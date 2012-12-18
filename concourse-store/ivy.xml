@@ -1,0 +1,11 @@
+<ivy-module version="2.0">
+    <info organisation="com.cinchapi" module="concourse-store"/>
+    <dependencies>
+    	<dependency org="joda-time" name="joda-time" rev="2.1"/>
+    	<dependency org="com.google.code.gson" name="gson" rev="2.2.2"/>
+    	<dependency org="com.javadocmd" name="simplelatlng" rev="1.0.1"/>
+        <dependency org="commons-lang" name="commons-lang" rev="2.0"/>
+        <dependency org="commons-cli" name="commons-cli" rev="1.0"/>
+        <dependency org="ch.qos.logback" name="logback-classic" rev="1.0.7"/>
+    </dependencies>
+</ivy-module>
