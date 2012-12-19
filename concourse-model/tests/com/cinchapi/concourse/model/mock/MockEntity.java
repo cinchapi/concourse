@@ -1,9 +1,13 @@
 package com.cinchapi.concourse.model.mock;
 
-import java.util.Iterator;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import com.cinchapi.concourse.data.Property;
+import com.cinchapi.concourse.id.Id;
+import com.cinchapi.concourse.id.IdGenerator;
+import com.cinchapi.concourse.model.AbstractEntity;
 import com.cinchapi.concourse.model.Entity;
 import com.cinchapi.concourse.model.MetadataRecord;
 import com.cinchapi.concourse.model.PropertyRecord;
@@ -15,57 +19,52 @@ import com.cinchapi.concourse.model.PropertyRecord;
  * @author jnelson
  *
  */
-@SuppressWarnings("rawtypes")
-public class MockEntity implements Entity{
+public class MockEntity extends AbstractEntity{
 	
-	MockLongId id;
-	
-	private static final MockIdGenerator idgen = new MockIdGenerator();
-	
-	public MockEntity(String classifier, String title){
-		this.id = idgen.requestId();
+	static IdGenerator idgen = new IdGenerator(){
+		
+		Random random = new Random();
+
+		@Override
+		public Id requestId() {
+			return new Id(Integer.toString(random.nextInt()));
+		}
+		
+	};
+
+	public MockEntity(String classifier, String title) {
+		super(classifier, title);
 	}
 
-	
 	@Override
-	public MockLongId getId() {
-		return id;
+	protected Id createId() {
+		return idgen.requestId();
 	}
 
-	
 	@Override
-	public  PropertyRecord add(Property property) {
+	protected MetadataRecord createMetadata(String classifier, String title) {
 		return null;
 	}
 
 	@Override
-	public boolean setTitle(String title) {
-		return false;
-	}
-
-	@Override
-	public  boolean contains(Property property) {
-		return false;
-	}
-
-	@Override
-	public  Set<Property> get(String key) {
+	protected Map<String, Set<PropertyRecord<?>>> createData() {
 		return null;
 	}
 
 	@Override
-	public  PropertyRecord remove(Property property) {
+	protected PropertyRecord<?> createPropertyRecord(Property<?> property) {
 		return null;
 	}
 
 	@Override
-	public Iterator<String> iterator() {
+	protected Set<PropertyRecord<?>> createEmptyPropertyRecordSet() {
 		return null;
 	}
 
 	@Override
-	public MetadataRecord getMetadata() {
+	protected Set<Property<?>> createEmptyPropertySet() {
 		return null;
 	}
+	
 
 }

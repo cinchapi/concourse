@@ -3,6 +3,7 @@ package com.cinchapi.concourse.data;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import com.cinchapi.commons.annotations.UnitTested;
 import com.cinchapi.concourse.annotations.DataType;
 import com.cinchapi.concourse.annotations.Immutable;
 import com.google.gson.Gson;
@@ -16,6 +17,7 @@ import com.google.gson.JsonObject;
  */
 @Immutable
 @DataType("abstract")
+@UnitTested(PropertyTest.class)
 public abstract class AbstractProperty<T> implements Property<T>{
 	
 	private final String key;

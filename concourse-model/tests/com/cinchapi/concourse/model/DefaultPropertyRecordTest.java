@@ -8,17 +8,16 @@ import com.cinchapi.commons.util.RandomString;
 import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.model.mock.MockEntity;
 import com.cinchapi.concourse.model.mock.MockProperty;
-import com.cinchapi.concourse.model.old.SimplePropertyRecord;
 
-public class SimplePropertyRecordTest extends PropertyRecordTest{
+public class DefaultPropertyRecordTest<T> extends PropertyRecordTest<T>{
 	
 	private static final RandomString random = new RandomString();
 
 	@Override
-	public PropertyRecord copy(PropertyRecord record) {
-		PropertyRecord copy = new SimplePropertyRecord(record.getEntity(), record.getProperty(), record.getAddedTime());
+	public PropertyRecord<T> copy(PropertyRecord<T> record) {
+		PropertyRecord<T> copy = new DefaultPropertyRecord<T>(record.getEntity(), record.getProperty(), record.getAddedTime());
 		try {
-			Field f = record.getClass().getDeclaredField("removed");
+			Field f = record.getClass().getSuperclass().getDeclaredField("removed");
 			f.setAccessible(true);
 			f.set(copy, record.getRemovedTime());
 			
@@ -35,13 +34,13 @@ public class SimplePropertyRecordTest extends PropertyRecordTest{
 	}
 
 	@Override
-	public <T> PropertyRecord getInstance(Entity entity, Property<T> property, DateTime added) {
-		return new SimplePropertyRecord(entity, property, added);
+	public PropertyRecord<T> getInstance(Entity entity, Property<T> property, DateTime added) {
+		return new DefaultPropertyRecord<T>(entity, property, added);
 	}
 
 	@Override
-	public <T> PropertyRecord getInstanceRemoved(Entity entity, Property<T> property, DateTime added) {
-		SimplePropertyRecord record = new SimplePropertyRecord(entity, property, added);
+	public PropertyRecord<T> getInstanceRemoved(Entity entity, Property<T> property, DateTime added) {
+		DefaultPropertyRecord<T> record = new DefaultPropertyRecord<T>(entity, property, added);
 		record.markAsRemoved();
 		return record;
 	}

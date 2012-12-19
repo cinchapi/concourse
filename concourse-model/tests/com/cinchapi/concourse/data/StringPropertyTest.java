@@ -1,9 +1,8 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import com.cinchapi.commons.util.RandomString;
 import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.data.StringProperty;
-import com.cinchapi.concourse.model.PropertyTest;
 
 /**
  * Test for {@link StringProperty}

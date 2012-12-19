@@ -1,10 +1,9 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import java.util.Random;
 
 import com.cinchapi.concourse.data.IntegerProperty;
 import com.cinchapi.concourse.data.Property;
-import com.cinchapi.concourse.model.PropertyTest;
 
 public class IntegerPropertyTest extends PropertyTest<Integer>{
 

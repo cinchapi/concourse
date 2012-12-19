@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -12,6 +12,4 @@ import org.junit.runners.Suite.SuiteClasses;
 	LongPropertyTest.class,
 	StringPropertyTest.class
 })
-public class PropertyTestSuite {
-
-}
+public class PropertyTestSuite { }

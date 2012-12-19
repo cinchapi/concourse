@@ -1,8 +1,8 @@
 package com.cinchapi.concourse.model.mock;
 
 import com.cinchapi.concourse.annotations.DataType;
+import com.cinchapi.concourse.data.AbstractProperty;
 import com.cinchapi.concourse.data.Property;
-import com.cinchapi.concourse.property.AbstractProperty;
 
 /**
  * A {@link Property} used for unit tests.

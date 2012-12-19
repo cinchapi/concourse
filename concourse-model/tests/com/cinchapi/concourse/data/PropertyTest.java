@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.model;
+package com.cinchapi.concourse.data;
 
 import org.junit.Test;
 
@@ -8,7 +8,7 @@ import com.cinchapi.concourse.data.Property;
 import junit.framework.TestCase;
 
 /**
- * Tests for the contract of {@link Property}.
+ * Tests for the contract of {@link Property} and implementation of {@link AbstractProperty}.
  * @author jnelson
  *
  * @param <T> - the data type of the {@link Property} value

@@ -2,7 +2,6 @@ package com.cinchapi.concourse.data;
 
 import com.cinchapi.commons.annotations.UnitTested;
 import com.cinchapi.concourse.annotations.Immutable;
-import com.cinchapi.concourse.model.PropertyTest;
 
 /**
  * An immutable attribute that is uniquely describable by the mapping of a <code>key</code> to a <code>value</code>.

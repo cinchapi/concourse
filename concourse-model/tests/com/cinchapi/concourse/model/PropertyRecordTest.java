@@ -9,24 +9,24 @@ import com.cinchapi.concourse.data.Property;
 import junit.framework.TestCase;
 
 /**
- * Tests for the contract of {@link PropertyRecord}
+ * Tests for the contract of {@link PropertyRecord} and implementation of {@link AbstractPropertyRecord}.
  * @author jnelson
  *
  */
-abstract public class PropertyRecordTest extends TestCase{
+abstract public class PropertyRecordTest<T> extends TestCase{
 	
 	/**
 	 * Get a copy of the specified {@link PropertyRecord}
 	 * @param record
 	 * @return a copy
 	 */
-	public abstract PropertyRecord copy(PropertyRecord record);
+	public abstract PropertyRecord<T> copy(PropertyRecord<T> record);
 	
 	/**
 	 * Get a new {@link PropertyRecord} instance.
 	 * @return new {@link PropertyRecord}
 	 */
-	public <T> PropertyRecord getInstance(){
+	public PropertyRecord<T> getInstance(){
 		Entity entity = getEntityInstance();
 		Property<T> property = getPropertyInstance();
 		DateTime added = DateTime.now();
@@ -40,13 +40,13 @@ abstract public class PropertyRecordTest extends TestCase{
 	 * @param added
 	 * @return new {@link PropertyRecord} that contains the specified values
 	 */
-	public abstract <T> PropertyRecord getInstance(Entity entity, Property<T> property, DateTime added);
+	public abstract PropertyRecord<T> getInstance(Entity entity, Property<T> property, DateTime added);
 	
 	/**
 	 * Get a new {@link PropertyRecord} instance that is marked as removed.
 	 * @return new {@link PropertyRecord} that is marked as removed
 	 */
-	public <T> PropertyRecord getInstanceRemoved(){
+	public PropertyRecord<T> getInstanceRemoved(){
 		Entity entity = getEntityInstance();
 		Property<T> property = getPropertyInstance();
 		DateTime added = DateTime.now();
@@ -60,7 +60,7 @@ abstract public class PropertyRecordTest extends TestCase{
 	 * @param added
 	 * @return new {@link PropertyRecord} that contains the specified values and is marked as removed 
 	 */
-	public abstract <T> PropertyRecord getInstanceRemoved(Entity entity, Property<T> property, DateTime added);
+	public abstract PropertyRecord<T> getInstanceRemoved(Entity entity, Property<T> property, DateTime added);
 	
 	/**
 	 * Get an {@link Entity} instance
@@ -72,7 +72,7 @@ abstract public class PropertyRecordTest extends TestCase{
 	 * Get a {@link Property} instance
 	 * @return new {@link Property}
 	 */
-	public abstract <T> Property<T> getPropertyInstance();
+	public abstract Property<T> getPropertyInstance();
 	
 	/**
 	 * Get a {@link Property} containing the specified <code>key</code> and <code>value</code>.
@@ -80,7 +80,7 @@ abstract public class PropertyRecordTest extends TestCase{
 	 * @param value
 	 * @return new {@link Property}
 	 */
-	public abstract <T> Property <T> getPropertyInstance(String key, String value);
+	public abstract Property<T> getPropertyInstance(String key, String value);
 	
 	/**
 	 * Sleep for the specified number of milliseconds
@@ -99,29 +99,29 @@ abstract public class PropertyRecordTest extends TestCase{
 	@Test
 	public void testGetAddedTimestamp(){
 		DateTime added = DateTime.now();
-		PropertyRecord record = getInstance(getEntityInstance(), getPropertyInstance(), added);
+		PropertyRecord<T> record = getInstance(getEntityInstance(), getPropertyInstance(), added);
 		assertEquals(added, record.getAddedTime());
 	}
 	
 	@Test
 	public void testGetEntity(){
 		Entity entity = getEntityInstance();
-		PropertyRecord record = getInstance(entity, getPropertyInstance(), DateTime.now());
+		PropertyRecord<T> record = getInstance(entity, getPropertyInstance(), DateTime.now());
 		
 		assertEquals(entity, record.getEntity());
 	}
 	
 	@Test
-	public <T> void testGetProperty(){
+	public void testGetProperty(){
 		Property<T> property = getPropertyInstance();
-		PropertyRecord record = getInstance(getEntityInstance(), property, DateTime.now());
+		PropertyRecord<T> record = getInstance(getEntityInstance(), property, DateTime.now());
 		
 		assertEquals(property, record.getProperty());
 	}
 	
 	@Test
-	public <T> void testGetRemovedTimestamp(){
-		PropertyRecord record = getInstance();
+	public void testGetRemovedTimestamp(){
+		PropertyRecord<T> record = getInstance();
 		DateTime removed = record.markAsRemoved();
 		
 		assertEquals(removed, record.getRemovedTime());
@@ -129,8 +129,8 @@ abstract public class PropertyRecordTest extends TestCase{
 	
 	@Test
 	public void testIsRemoved(){
-		PropertyRecord recordA = getInstanceRemoved();
-		PropertyRecord recordB = getInstance();
+		PropertyRecord<T> recordA = getInstanceRemoved();
+		PropertyRecord<T> recordB = getInstance();
 		
 		assertTrue(recordA.isMarkAsRemoved());
 		assertFalse(recordB.isMarkAsRemoved());
@@ -138,7 +138,7 @@ abstract public class PropertyRecordTest extends TestCase{
 	
 	@Test
 	public void testMarkAsRemoved(){
-		PropertyRecord record = getInstance();
+		PropertyRecord<T> record = getInstance();
 		
 		assertFalse(record.isMarkAsRemoved());
 		
@@ -172,8 +172,8 @@ abstract public class PropertyRecordTest extends TestCase{
 		sleep(1);
 		DateTime createdB = DateTime.now();
 		
-		PropertyRecord aaaa = getInstance(entityA, getPropertyInstance(keyA, valueA), createdA);
-		PropertyRecord aaab = getInstance(entityA, getPropertyInstance(keyA, valueA), createdB); 
+		PropertyRecord<T> aaaa = getInstance(entityA, getPropertyInstance(keyA, valueA), createdA);
+		PropertyRecord<T> aaab = getInstance(entityA, getPropertyInstance(keyA, valueA), createdB); 
 		assertTrue(aaaa.equals(aaaa)); //identity
 		assertEquals(aaaa.hashCode(), aaaa.hashCode());
 		assertTrue(aaaa.equals(aaab)); //neither removed, same entity and same property, diff created 
@@ -182,16 +182,16 @@ abstract public class PropertyRecordTest extends TestCase{
 		aaab.markAsRemoved();
 		assertFalse(aaaa.equals(aaab)); //one removed, same entity, same property, diff created
 		
-		PropertyRecord baaa = getInstance(entityB, getPropertyInstance(keyA, valueA), createdA); 
+		PropertyRecord<T> baaa = getInstance(entityB, getPropertyInstance(keyA, valueA), createdA); 
 		assertFalse(aaaa.equals(baaa)); //diff entity, same property, same created
 		
-		PropertyRecord aaba = getInstance(entityA, getPropertyInstance(keyA, valueB), createdA);
+		PropertyRecord<T> aaba = getInstance(entityA, getPropertyInstance(keyA, valueB), createdA);
 		assertFalse(aaaa.equals(aaba)); //same entity, diff property(value), same created
 		sleep(1);
 		aaba.markAsRemoved();
 		assertFalse(aaaa.equals(aaba)); //one removed, same entity diff property(value), same created
 		
-		PropertyRecord abaa = getInstance(entityA, getPropertyInstance(keyB, valueA), createdA);
+		PropertyRecord<T> abaa = getInstance(entityA, getPropertyInstance(keyB, valueA), createdA);
 		assertFalse(aaaa.equals(abaa)); //same entity, diff property(key), same created
 		sleep(1);
 		abaa.markAsRemoved();
@@ -201,7 +201,7 @@ abstract public class PropertyRecordTest extends TestCase{
 		aaaa.markAsRemoved();
 		assertFalse(aaaa.equals(aaab)); //both removed, same entity, same property, diff created
 		
-		PropertyRecord aaaa2 = getInstance(entityA, getPropertyInstance(keyA, valueA), createdA);
+		PropertyRecord<T> aaaa2 = getInstance(entityA, getPropertyInstance(keyA, valueA), createdA);
 		sleep(1);
 		aaaa2.markAsRemoved();
 		
