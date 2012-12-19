@@ -1,19 +1,20 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import com.cinchapi.concourse.annotations.DataType;
-import com.cinchapi.concourse.model.Property;
+import com.cinchapi.concourse.annotations.Immutable;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 /**
- * The abstract base implementation of the {@link Property} interface.
+ * Abstract implementation of the {@link Property} interface.
  * @author jnelson
  *
- * @param <T> - the data type
+ * @param <T> - the <code>value</code> type
  */
+@Immutable
 @DataType("abstract")
 public abstract class AbstractProperty<T> implements Property<T>{
 	
@@ -55,9 +56,6 @@ public abstract class AbstractProperty<T> implements Property<T>{
 		return type;
 	}
 	
-	/**
-	 * Two <code>property</code> objects are equal if they have equal keys, equal values and equal types.
-	 */
 	@Override
 	@SuppressWarnings("rawtypes")
 	public boolean equals(Object obj){

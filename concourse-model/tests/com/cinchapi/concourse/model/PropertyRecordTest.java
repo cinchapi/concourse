@@ -3,6 +3,8 @@ package com.cinchapi.concourse.model;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
+import com.cinchapi.concourse.data.Property;
+
 
 import junit.framework.TestCase;
 

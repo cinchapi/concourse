@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.model;
+package com.cinchapi.concourse.data;
 
 import com.cinchapi.commons.annotations.UnitTested;
 import com.cinchapi.concourse.annotations.Immutable;

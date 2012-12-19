@@ -3,6 +3,7 @@ package com.cinchapi.concourse.model;
 import org.junit.Test;
 
 import com.cinchapi.commons.util.RandomString;
+import com.cinchapi.concourse.data.Property;
 
 import junit.framework.TestCase;
 

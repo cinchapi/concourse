@@ -1,10 +1,10 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import com.cinchapi.concourse.annotations.DataType;
 import com.javadocmd.simplelatlng.LatLng;
 
 /**
- * A GIS property defined by a latitude and longitude.
+ * A GIS {@link AbstractProperty} defined by a latitude and longitude.
  * @author jnelson
  *
  */

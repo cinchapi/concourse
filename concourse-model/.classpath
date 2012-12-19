@@ -8,6 +8,5 @@
 	<classpathentry kind="src" path="/concourse-shared"/>
 	<classpathentry kind="src" path="/cinchapi-commons"/>
 	<classpathentry kind="src" path="/concourse-idgen"/>
-	<classpathentry kind="src" path="/concourse-store"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

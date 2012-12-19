@@ -1,10 +1,9 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import com.cinchapi.concourse.annotations.DataType;
-import com.cinchapi.concourse.model.Property;
 
 /**
- * A {@link Property} that holds a 64-bit numberic value.
+ * An {@link AbstractProperty} that holds a 64-bit numberic value.
  * @author jnelson
  *
  */

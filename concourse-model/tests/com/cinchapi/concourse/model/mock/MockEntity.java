@@ -3,9 +3,9 @@ package com.cinchapi.concourse.model.mock;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.model.Entity;
-import com.cinchapi.concourse.model.Metadata;
-import com.cinchapi.concourse.model.Property;
+import com.cinchapi.concourse.model.MetadataRecord;
 import com.cinchapi.concourse.model.PropertyRecord;
 
 
@@ -64,7 +64,7 @@ public class MockEntity implements Entity{
 	}
 
 	@Override
-	public Metadata getMetadata() {
+	public MetadataRecord getMetadata() {
 		return null;
 	}
 

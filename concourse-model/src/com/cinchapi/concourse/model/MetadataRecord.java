@@ -2,22 +2,32 @@ package com.cinchapi.concourse.model;
 
 import java.util.Iterator;
 
+import com.cinchapi.concourse.metadata.IntrinsicProperty;
 
 /**
- * A Collection of {@link MetaProperty} objects that describe an {@link Entity}. 
+ * A Collection of {@link IntrinsicProperty} objects that describe an {@link Entity}.
+ * The relevant <code>properties</code> are: 
+ * <ul>
+ * 	<li><strong>class</strong> -  A string that describes that nature of the <code>entity</code></li>
+ * 	<li><strong>title</strong> -  A string that names the <code>entity</code></li>
+ * 	<li><strong>created</strong> -  The timestamp when the <code>entity</code> was created</li>
+ * </ul> 
  * 
  * @author jnelson
  *
  */
-@SuppressWarnings("rawtypes")
-public interface Metadata extends Iterable<MetaProperty>{
+public interface MetadataRecord extends Iterable<IntrinsicProperty<?>>{
+	
+	public static final String CLASS_KEY = "class";
+	public static final String TITLE_KEY = "title";
+	public static final String CREATED_KEY = "created";
 	
 	/**
 	 * Get the <code>property</code> described by the <code>key</code>.
 	 * @param key
 	 * @return the <code>property</code> or <code>null</code> if none is found.
 	 */
-	public MetaProperty get(String key);
+	public IntrinsicProperty<?> get(String key);
 	
 	/**
 	 * Check to see if this <code>record</code> is the metadata for the <code>entity</code>.
@@ -33,14 +43,14 @@ public interface Metadata extends Iterable<MetaProperty>{
 	 * @return the updated <code>property</code>.
 	 * @throws UnsupportedOperationException if this method is unsupported.
 	 */
-	public <T> MetaProperty set(String key, T value) throws UnsupportedOperationException;
+	public IntrinsicProperty<?> set(String key, Object value) throws UnsupportedOperationException;
 	
 	/**
 	 * Return an {@link Iterator} over the encapsulated <code>properties</code>.
 	 * @return the <code>iterator</code>
 	 */
 	@Override
-	public Iterator<MetaProperty> iterator();
+	public Iterator<IntrinsicProperty<?>> iterator();
 	
 
 }

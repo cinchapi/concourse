@@ -3,11 +3,11 @@ package com.cinchapi.concourse.model;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.id.Id;
 
-
 /**
- * An element that contains {@link Metadata} and set of {@link PropertyRecord}s. 
+ * An element that contains {@link MetadataRecord} and a {@link PropertyRecord} set. 
  * @author jnelson
  *
  */
@@ -21,16 +21,14 @@ public interface Entity extends Iterable<String>{
 	 * @return the created property <code>record</code> or <code>null</code> if the <code>property</code> 
 	 * cannot be added.
 	 */
-	@SuppressWarnings("rawtypes")
-	public PropertyRecord add(Property property);
+	public PropertyRecord<?> add(Property<?> property);
 	
 	/**
 	 * Check to see if this <code>entity</code> contains the <code>property</code>.
 	 * @param record
 	 * @return <code>true</code> if the <code>property</code> is contained.
 	 */
-	@SuppressWarnings("rawtypes")
-	public  boolean contains(Property property);
+	public boolean contains(Property<?> property);
 	
 	/**
 	 * Get the {@link Property} objects described by the specified <code>key</code> that currently 
@@ -38,8 +36,7 @@ public interface Entity extends Iterable<String>{
 	 * @param key
 	 * @return a set of relevant {@link Property} objects
 	 */
-	@SuppressWarnings("rawtypes")
-	public  Set<Property> get(String key);
+	public Set<Property<?>> get(String key);
 	
 	/**
 	 * Get the <code>id</code>.
@@ -53,14 +50,13 @@ public interface Entity extends Iterable<String>{
 	 * @return the affected {@link IPropertyRecord} or <code>null</code> if the {@link Property} cannot be removed (i.e
 	 * it does not exist on this {@link Entity}).
 	 */
-	@SuppressWarnings("rawtypes")
-	public  PropertyRecord remove(Property property);
+	public PropertyRecord<?> remove(Property<?> property);
 	
 	/**
 	 * Get the <code>metadata</code>.
 	 * @return the <code>metadata</code>.
 	 */
-	public Metadata getMetadata();
+	public MetadataRecord getMetadata();
 	
 	/**
 	 * Set the <code>title</code> for this <code>entity</code>.

@@ -2,9 +2,9 @@ package com.cinchapi.concourse.property;
 
 import java.util.Random;
 
-import com.cinchapi.concourse.model.Property;
+import com.cinchapi.concourse.data.LongProperty;
+import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.model.PropertyTest;
-import com.cinchapi.concourse.property.LongProperty;
 
 public class LongPropertyTest extends PropertyTest<Long>{
 

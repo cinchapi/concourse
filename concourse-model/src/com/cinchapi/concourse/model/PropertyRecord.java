@@ -3,6 +3,7 @@ package com.cinchapi.concourse.model;
 import org.joda.time.DateTime;
 
 import com.cinchapi.commons.annotations.UnitTested;
+import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.model.PropertyRecordTest;
 
 /**
@@ -10,11 +11,12 @@ import com.cinchapi.concourse.model.PropertyRecordTest;
  * When adding a <code>property</code> to an <code>entity</code>, create a new property <code>record</code> 
  * associating the two. If the <code>property</code> is removed, simply mark the analogous <code>record</code>
  * as removed.
+ * 
  * @author jnelson
  *
  */
 @UnitTested(PropertyRecordTest.class)
-public interface PropertyRecord {
+public interface PropertyRecord<T> {
 	
 	/**
 	 * Mark this <code>record</code> as removed when the encapsulated <code>property</code> is removed from
@@ -40,8 +42,7 @@ public interface PropertyRecord {
 	 * Get the encapsulated <code>property</code>.
 	 * @return the <code>property</code>.
 	 */
-	@SuppressWarnings("rawtypes")
-	public Property getProperty();
+	public Property<T> getProperty();
 	
 	/**
 	 * Get the timestamp that indicates when the <code>property</code> was <code>added</code> to the <code>entity</code>.

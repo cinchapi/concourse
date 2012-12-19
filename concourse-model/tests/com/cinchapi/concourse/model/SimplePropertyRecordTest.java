@@ -1,17 +1,14 @@
-package com.cinchapi.concourse.model.simple;
+package com.cinchapi.concourse.model;
 
 import java.lang.reflect.Field;
 
 import org.joda.time.DateTime;
 
 import com.cinchapi.commons.util.RandomString;
-import com.cinchapi.concourse.model.Entity;
-import com.cinchapi.concourse.model.Property;
-import com.cinchapi.concourse.model.PropertyRecord;
-import com.cinchapi.concourse.model.PropertyRecordTest;
+import com.cinchapi.concourse.data.Property;
 import com.cinchapi.concourse.model.mock.MockEntity;
 import com.cinchapi.concourse.model.mock.MockProperty;
-import com.cinchapi.concourse.model.simple.SimplePropertyRecord;
+import com.cinchapi.concourse.model.old.SimplePropertyRecord;
 
 public class SimplePropertyRecordTest extends PropertyRecordTest{
 	

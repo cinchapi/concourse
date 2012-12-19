@@ -1,10 +1,9 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import com.cinchapi.concourse.annotations.DataType;
-import com.cinchapi.concourse.model.Property;
 
 /**
- * A {@link Property} that holds variable length string.
+ * An {@link AbstractProperty} that holds variable length string.
  * @author jnelson
  *
  */

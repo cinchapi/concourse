@@ -1,12 +1,11 @@
-package com.cinchapi.concourse.property;
+package com.cinchapi.concourse.data;
 
 import org.joda.time.DateTime;
 
 import com.cinchapi.concourse.annotations.DataType;
-import com.cinchapi.concourse.model.Property;
 
 /**
- * A {@link Property} that specifies a point in time.
+ * An {@link AbstractProperty} that specifies a point in time.
  * @author jnelson
  *
  */
