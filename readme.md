@@ -1,1 +1,0 @@
-Concourse is an ACID-compliant, distributed, object-oriented data store with built-in fulltext search, transaction support and revision tracking that exposes a graph-like interface to big sparse data.
