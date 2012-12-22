@@ -8,7 +8,7 @@ import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.id.IdGenerator;
 import com.cinchapi.concourse.model.AbstractEntity;
 import com.cinchapi.concourse.model.api.Entity;
-import com.cinchapi.concourse.model.api.MetadataRecord;
+import com.cinchapi.concourse.model.api.Metadata;
 import com.cinchapi.concourse.model.api.PropertyRecord;
 import com.cinchapi.concourse.property.api.Property;
 
@@ -42,22 +42,22 @@ public class MockEntity extends AbstractEntity{
 	}
 
 	@Override
-	protected MetadataRecord createMetadataRecordInstance(String classifier, String title) {
+	protected Metadata createMetadataRecordInstance(String classifier, String title) {
 		return null;
 	}
 
 	@Override
-	protected Map<String, Set<PropertyRecord<?>>> createEmptyDataMap() {
+	protected Map<String, Set<PropertyRecord<?>>> createEmptyModificationsMap() {
 		return null;
 	}
 
 	@Override
-	protected PropertyRecord<?> createPropertyRecordInstance(Property<?> property) {
+	protected PropertyRecord<?> createModificationRecordInstance(Property<?> property) {
 		return null;
 	}
 
 	@Override
-	protected Set<PropertyRecord<?>> createEmptyPropertyRecordSet() {
+	protected Set<PropertyRecord<?>> createEmptyModificationRecordSet() {
 		return null;
 	}
 

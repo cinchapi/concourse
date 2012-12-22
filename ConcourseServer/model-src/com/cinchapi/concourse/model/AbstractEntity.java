@@ -5,16 +5,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import static com.cinchapi.concourse.model.api.MetadataRecord.CREATED_KEY;
-import static com.cinchapi.concourse.model.api.MetadataRecord.TITLE_KEY;
+import static com.cinchapi.concourse.model.api.Metadata.CREATED_KEY;
+import static com.cinchapi.concourse.model.api.Metadata.TITLE_KEY;
 
 import org.joda.time.DateTime;
 
-import com.cinchapi.commons.annotations.NoDocumentation;
 import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.model.api.Entity;
-import com.cinchapi.concourse.model.api.MetadataRecord;
-import com.cinchapi.concourse.model.api.PropertyRecord;
+import com.cinchapi.concourse.model.api.Metadata;
+import com.cinchapi.concourse.model.api.Modification;
 import com.cinchapi.concourse.property.api.IntrinsicProperty;
 import com.cinchapi.concourse.property.api.Property;
 import com.google.gson.Gson;
@@ -32,40 +31,41 @@ import com.google.gson.JsonSerializer;
  *
  */
 public abstract class AbstractEntity implements Entity{
-
-	/**
-	 * A collection mapping a String, <code>key</code> to a set of {@link PropertyRecord} objects where each record
-	 * associates this <code>entity</code> to a <code>property</code> where <code>property.getKey() == key</code>.
-	 */
-	protected Map<String,Set<PropertyRecord<?>>> data;
-	protected Id id; 
-	protected MetadataRecord metadata;
+	
+	private final Id id; 
+	private final Metadata metadata;
+	private final Map<String, Modification<?>> modifications; 
+	private final Map<String, Set<Property<?>>> data; 
 	
 	private static final Gson json;
 	
-	@NoDocumentation
+	/* Non-Initializable */
 	public AbstractEntity(String classifier, String title){
-		this.id = createId();
-		this.metadata = createMetadataRecordInstance(classifier, title);
-		this.data = createEmptyDataMap();
+		id = createId();
+		metadata = createMetadata(classifier, title);
+		data = createEmptyData();
+		modifications = createEmptyModifications();
 	}
 	
-	@NoDocumentation
-	protected AbstractEntity() {}
-	
 	@Override
-	public PropertyRecord<?> add(Property<?> property){
-		PropertyRecord<?> record = createPropertyRecordInstance(property);
-		String key = record.getProperty().getKey();
-		Set<PropertyRecord<?>> records;
+	public Modification<?> add(Property<?> property){
+		String key = property.getKey();
+		
+		Set<Property<?>> properties;
 		if(data.containsKey(key)){
-			records = data.get(key);
+			properties = data.get(key);
 		}
 		else{
-			records = createEmptyPropertyRecordSet();
-			data.put(key, records);
+			properties = createEmptyPropertySet();
+			data.put(key, properties);
 		}
-		return records.add(record) ? record: null;
+		
+		Modification<?> mod = null;
+		if(properties.add(property)){
+			mod = createModification(property, Modification.Type.PROPERTY_ADDED);
+			modifications.put(mod.getLookup(), mod);
+		}
+		return mod;
 	}
 	
 	@Override
@@ -73,34 +73,16 @@ public abstract class AbstractEntity implements Entity{
 		return get(property.getKey()).contains(property);
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Set<Property<?>> get(String key){
-		Set<Property<?>> properties = createEmptyPropertySet();
-		Iterator<PropertyRecord<?>> it = data.get(key).iterator();
-		while(it.hasNext()){
-			PropertyRecord record = it.next();
-			if(!record.isMarkAsRemoved()){
-				properties.add(record.getProperty());
-			}
-		}
-		return properties;
+		return data.get(key);
 	}
 	
-	@SuppressWarnings("rawtypes")
 	@Override
-	public PropertyRecord<?> remove(Property<?> property){
-		PropertyRecord record = createPropertyRecordInstance(property);
-		String key = record.getProperty().getKey();
-		Iterator<PropertyRecord<?>> it = data.get(key).iterator();
-		while(it.hasNext()){
-			PropertyRecord stored = it.next();
-			if(stored.equals(record)){
-				stored.markAsRemoved();
-				return stored;
-			}
-		}
-		return null;
+	public Modification<?> remove(Property<?> property){
+		return data.get(property.getKey()).remove(property) 
+				? createModification(property, Modification.Type.PROPERTY_REMOVED) 
+				: null;
 	}
 	
 	@Override
@@ -115,13 +97,18 @@ public abstract class AbstractEntity implements Entity{
 	}
 
 	@Override
-	public MetadataRecord getMetadata() {
+	public Metadata getMetadata() {
 		return metadata;
 	}
 	
 	@Override
-	public Iterator<String> iterator() {
+	public Iterator<String> keyIterator() {
 		return data.keySet().iterator();
+	}
+	
+	@Override
+	public Iterator<Modification<?>> modificationIterator(){
+		return modifications.values().iterator();
 	}
 	
 	@Override
@@ -132,45 +119,6 @@ public abstract class AbstractEntity implements Entity{
 		 */
 		return json.toJson(this, AbstractEntity.class);
 	}
-	
-	/**
-	 * Create the {@link Id} for a newly constructed <code>entity</code>.
-	 * @return the <code>id</code>.
-	 */
-	protected abstract Id createId();
-	
-	/**
-	 * Create the {@link MetadataRecord} for a newly constructed <code>entity</code>.
-	 * @param classifier
-	 * @param title
-	 * @return
-	 */
-	protected abstract MetadataRecord createMetadataRecordInstance(String classifier, String title);
-	
-	/**
-	 * Create the initial {@link #data} map for a newly constructed <code>entity</code>. 
-	 * @return
-	 */
-	protected abstract Map<String, Set<PropertyRecord<?>>> createEmptyDataMap();
-	
-	/**
-	 * Create a {@link PropertyRecord} for the specified {@link Property}.
-	 * @param property
-	 * @return a new <code>property record</code>/
-	 */
-	protected abstract PropertyRecord<?> createPropertyRecordInstance(Property<?> property);
-	
-	/**
-	 * Create an empty {@link PropertyRecord} set.
-	 * @return an empty set.
-	 */
-	protected abstract Set<PropertyRecord<?>> createEmptyPropertyRecordSet();
-
-	/**
-	 * Create an empty {@link Property} set.
-	 * @return an empty set.
-	 */
-	protected abstract Set<Property<?>> createEmptyPropertySet();
 	
 	static{
 		/*
@@ -200,7 +148,7 @@ public abstract class AbstractEntity implements Entity{
 				}
 				object.add("metadata", metadata);
 				
-				Iterator<String> keys = src.iterator();
+				Iterator<String> keys = src.keyIterator();
 				JsonObject data = new JsonObject();
 				while(keys.hasNext()){
 					String key = keys.next();
@@ -245,5 +193,12 @@ public abstract class AbstractEntity implements Entity{
 			
 		}).create();
 	}
+	
+	protected abstract Id createId();
+	protected abstract Set<Property<?>> createEmptyPropertySet();
+	protected abstract Modification<?> createModification(Property<?> property, Modification.Type type);
+	protected abstract Metadata createMetadata(String classifier, String title);
+	protected abstract Map<String, Modification<?>> createEmptyModifications();
+	protected abstract Map<String, Set<Property<?>>> createEmptyData();
 	
 }

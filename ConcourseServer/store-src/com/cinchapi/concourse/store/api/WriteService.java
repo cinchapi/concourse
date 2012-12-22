@@ -4,13 +4,13 @@ package com.cinchapi.concourse.store.api;
  * A service that writes to a store.
  * @author jnelson
  *
- * @param <T> - the {@link Transaction} type
+ * @param <T> - the {@link StoreTransaction} type
  */
-public interface WriteService<T extends Transaction<?>> {
+public interface WriteService<T extends StoreTransaction> {
 	
 	/**
 	 * Start a <code>transaction</code>.
-	 * @return the {@link Transaction}.
+	 * @return the {@link StoreTransaction}.
 	 */
 	public T startTransaction();
 	

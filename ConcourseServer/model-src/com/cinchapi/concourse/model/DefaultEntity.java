@@ -9,8 +9,9 @@ import com.cinchapi.commons.util.Counter;
 import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.id.IdGenerator;
 import com.cinchapi.concourse.model.api.Entity;
-import com.cinchapi.concourse.model.api.MetadataRecord;
-import com.cinchapi.concourse.model.api.PropertyRecord;
+import com.cinchapi.concourse.model.api.Metadata;
+import com.cinchapi.concourse.model.api.Modification;
+import com.cinchapi.concourse.model.api.Modification.Type;
 import com.cinchapi.concourse.property.api.Property;
 
 /**
@@ -21,7 +22,43 @@ import com.cinchapi.concourse.property.api.Property;
 public class DefaultEntity extends AbstractEntity{
 	
 	protected static final int DEFAULT_DATA_MAP_CAPACITY = 100;
-	private static IdGenerator idgen;
+	private static final IdGenerator idgen;
+
+	public DefaultEntity(String classifier, String title) {
+		super(classifier, title);
+	}
+
+	@Override
+	protected Id createId() {
+		return idgen.requestId();
+	}
+
+	@Override
+	protected Set<Property<?>> createEmptyPropertySet() { 
+		return new HashSet<Property<?>>(); 
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	protected Modification<?> createModification(Property<?> property, Type type) { 
+		return new DefaultModification(this, property, type);
+	}
+
+	@Override
+	protected Metadata createMetadata(String classifier, String title) {
+		return new DefaultMetadata(this, classifier, title);
+	}
+
+	@Override
+	protected Map<String, Modification<?>> createEmptyModifications() {
+		return new HashMap<String, Modification<?>>();
+	}
+
+	@Override
+	protected Map<String, Set<Property<?>>> createEmptyData() {
+		return new HashMap<String, Set<Property<?>>>();
+	}
+	
 	static{
 		idgen = new IdGenerator(){
 			
@@ -35,39 +72,4 @@ public class DefaultEntity extends AbstractEntity{
 		};
 	}
 
-	public DefaultEntity(String classifier, String title) {
-		super(classifier, title);
-	}
-
-	@Override
-	protected Id createId() {
-		return idgen.requestId();
-	}
-
-	@Override
-	protected MetadataRecord createMetadataRecordInstance(String classifier, String title) {
-		return new DefaultMetadataRecord(this, classifier, title);
-	}
-
-	@Override
-	protected Map<String, Set<PropertyRecord<?>>> createEmptyDataMap() {
-		return new HashMap<String, Set<PropertyRecord<?>>>(DEFAULT_DATA_MAP_CAPACITY);
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	protected PropertyRecord<?> createPropertyRecordInstance(Property<?> property) {
-		return new DefaultPropertyRecord(this, property);
-	}
-
-	@Override
-	protected Set<PropertyRecord<?>> createEmptyPropertyRecordSet() {
-		return new HashSet<PropertyRecord<?>>();
-	}
-
-	@Override
-	protected Set<Property<?>> createEmptyPropertySet() {
-		return new HashSet<Property<?>>();
-	}
-	
 }

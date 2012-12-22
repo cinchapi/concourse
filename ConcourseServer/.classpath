@@ -7,6 +7,7 @@
 	<classpathentry kind="src" path="misc-src"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="src" path="test-impl"/>
+	<classpathentry kind="src" path="api-src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?ivyXmlPath=ivy.xml&amp;confs=*"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
