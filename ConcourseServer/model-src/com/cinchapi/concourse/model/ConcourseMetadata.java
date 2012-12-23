@@ -3,25 +3,27 @@ package com.cinchapi.concourse.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.cinchapi.concourse.annotations.Immutable;
 import com.cinchapi.concourse.model.api.Entity;
 import com.cinchapi.concourse.model.api.Metadata;
 import com.cinchapi.concourse.property.api.IntrinsicProperty;
 
 /**
- * Default implementation of the {@link Metadata} interface.
+ * {@link Metadata} for Concourse.
  * @author jnelson
  *
  */
-public class DefaultMetadata extends AbstractMetadata{
+@Immutable
+public final class ConcourseMetadata extends AbstractMetadata{
 
 	/**
-	 * Create new {@link DefaultMetadata} for the <code>entity</code> described by the <code>classifier</code> 
+	 * Create new {@link ConcourseMetadata} for the <code>entity</code> described by the <code>classifier</code> 
 	 * and <code>title</code>.
 	 * @param entity
 	 * @param classifier
 	 * @param title
 	 */
-	public DefaultMetadata(Entity entity, String classifier, String title) {
+	public ConcourseMetadata(Entity entity, String classifier, String title) {
 		super(entity, classifier, title);
 	}
 

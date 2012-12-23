@@ -1,11 +1,13 @@
 package com.cinchapi.concourse.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.joda.time.DateTime;
 
 import com.cinchapi.commons.util.Hash;
-import com.cinchapi.concourse.annotations.Immutable;
 import com.cinchapi.concourse.model.api.Entity;
 import com.cinchapi.concourse.model.api.Modification;
 import com.cinchapi.concourse.property.api.Property;
@@ -18,13 +20,12 @@ import com.google.gson.JsonObject;
  *
  * @param <T> - the {@link Property} <code>type</code>
  */
-@Immutable
 public abstract class AbstractModification<T> implements Modification<T>{
 	
-	private Entity entity;
-	private Property<T> property;
-	private DateTime timestamp;
-	private Type type;
+	private final Entity entity;
+	private final Property<T> property;
+	private final DateTime timestamp;
+	private final Type type;
 	
 	/* lazy initialization */
 	private String lookup;
@@ -46,17 +47,17 @@ public abstract class AbstractModification<T> implements Modification<T>{
 	}
 
 	@Override
-	public Entity getEntity() {
+	public final Entity getEntity() {
 		return entity;
 	}
 
 	@Override
-	public Property<T> getProperty() {
+	public final Property<T> getProperty() {
 		return property;
 	}
 
 	@Override
-	public DateTime getTimestamp() {
+	public final DateTime getTimestamp() {
 		return timestamp;
 	}
 	
@@ -65,7 +66,7 @@ public abstract class AbstractModification<T> implements Modification<T>{
 	 * and {@link #type}.
 	 */
 	@Override 
-	public String getLookup(){
+	public final String getLookup(){
 		if(lookup == null){
 			String rawLookup = new StringBuilder()
 			.append(entity)
@@ -79,12 +80,12 @@ public abstract class AbstractModification<T> implements Modification<T>{
 	}
 
 	@Override
-	public Modification.Type getType() {
+	public final Modification.Type getType() {
 		return type;
 	}
 	
 	@Override
-	public boolean equals(Object obj){
+	public final boolean equals(Object obj){
 		if(obj == null){
 			return false;
 		}
@@ -101,8 +102,21 @@ public abstract class AbstractModification<T> implements Modification<T>{
 		}
 	}
 	
+	@Override 
+	public List<String> asList(){
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(getLookup());
+		list.add(getEntity().getId().toString());
+		list.add(getProperty().getKey());
+		list.add(getProperty().getValue().toString());
+		list.add(getProperty().getType());
+		list.add(getType().toString());
+		list.add(getTimestamp().toString());
+		return list;
+	}
+	
 	@Override
-	public int hashCode(){
+	public final int hashCode(){
 		if(hashCode == 0){
 			HashCodeBuilder builder = new HashCodeBuilder();
 			builder.append(entity);
@@ -115,7 +129,7 @@ public abstract class AbstractModification<T> implements Modification<T>{
 	}
 	
 	@Override
-	public String toString(){
+	public final String toString(){
 		JsonObject object = new JsonObject();
 		object.addProperty("id", entity.getId().toString());
 		object.addProperty("key", property.getKey());

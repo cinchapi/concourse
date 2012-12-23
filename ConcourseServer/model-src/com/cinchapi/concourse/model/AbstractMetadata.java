@@ -7,9 +7,9 @@ import org.joda.time.DateTime;
 
 import com.cinchapi.concourse.model.api.Entity;
 import com.cinchapi.concourse.model.api.Metadata;
-import com.cinchapi.concourse.property.ClassIntrinsicProperty;
-import com.cinchapi.concourse.property.CreatedIntrinsicProperty;
-import com.cinchapi.concourse.property.TitleIntrinsicProperty;
+import com.cinchapi.concourse.property.IntrinsicClassProperty;
+import com.cinchapi.concourse.property.IntrinsicCreatedProperty;
+import com.cinchapi.concourse.property.IntrinsicTitleProperty;
 import com.cinchapi.concourse.property.api.IntrinsicProperty;
 
 /**
@@ -32,9 +32,9 @@ public abstract class AbstractMetadata implements Metadata{
 	protected AbstractMetadata(Entity entity, String classifier, String title, DateTime created){
 		this.entity = entity;
 		this.properties = createEmtptyPropertiesMap();
-		this.properties.put(CLASS_KEY, new ClassIntrinsicProperty(classifier));
-		this.properties.put(TITLE_KEY, new TitleIntrinsicProperty(title));
-		this.properties.put(CREATED_KEY, new CreatedIntrinsicProperty(created));
+		this.properties.put(CLASS_KEY, new IntrinsicClassProperty(classifier));
+		this.properties.put(TITLE_KEY, new IntrinsicTitleProperty(title));
+		this.properties.put(CREATED_KEY, new IntrinsicCreatedProperty(created));
 	}
 	
 	@Override
@@ -64,7 +64,7 @@ public abstract class AbstractMetadata implements Metadata{
 	}
 	
 	private void setTitle(String title){
-		properties.put(TITLE_KEY, new TitleIntrinsicProperty(title));
+		properties.put(TITLE_KEY, new IntrinsicTitleProperty(title));
 	}
 	
 	/**

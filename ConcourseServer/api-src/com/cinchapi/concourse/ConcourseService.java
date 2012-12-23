@@ -7,11 +7,10 @@ import java.util.Set;
 
 import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.model.api.Entity;
-import com.cinchapi.concourse.model.api.PropertyRecord;
+import com.cinchapi.concourse.model.api.Modification;
 import com.cinchapi.concourse.property.LongProperty;
 import com.cinchapi.concourse.property.StringProperty;
 import com.cinchapi.concourse.property.api.Property;
-import com.cinchapi.concourse.store.ConcourseMutation;
 import com.cinchapi.concourse.store.ConcourseStoreTransaction;
 
 import static com.cinchapi.concourse.config.ServerConfig.*;
@@ -33,11 +32,10 @@ public class ConcourseService implements CoreService, SearchService{
 	public boolean add(String key, Object value, Id id) {
 		Entity entity = STORE.load(id);
 		Property<?> property = createProperty(key, value);
-		PropertyRecord<?> propertyRecord = entity.add(property);
-		if(propertyRecord != null){
+		Modification<?> mod = entity.add(property);
+		if(mod != null){
 			ConcourseStoreTransaction transaction = STORE.startTransaction();
-			ConcourseMutation mutation = new ConcourseMutation(id, property, ConcourseMutation.Type.ADDITION);
-			transaction.add(mutation);
+			transaction.add(mod);
 			return transactionLog.add(transaction);
 		}
 		else{

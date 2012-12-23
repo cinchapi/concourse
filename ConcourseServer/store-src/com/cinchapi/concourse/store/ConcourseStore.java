@@ -1,26 +1,31 @@
 package com.cinchapi.concourse.store;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
+import org.github.jamm.MemoryMeter;
 
 import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.model.api.Entity;
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.googlecode.concurrentlinkedhashmap.EntryWeigher;
 
 /**
- * Any store used by an {@link ConcourseServer} should be a subclass of {@link ConcourseStore}. This class provides
+ * Any store used by a {@link ConcourseServer} should be a subclass of {@link ConcourseStore}. This class provides
  * entity caching to prevent unnecessary store lookups. 
  * @author jnelson
  *
  */
 public abstract class ConcourseStore extends AbstractStore<ConcourseStoreTransaction>{ 
 	
-	/**
-	 * Cache of loaded entities.
-	 */
-	private Map<Id, Entity> entityCache;
+	private ConcurrentMap<Id, Entity> cache; //entity cache
+	private static final EntryWeigher<Id, Entity> memoryUsageWeigher;
 	
+	/* Non-Initializable */
 	public ConcourseStore(){
-		entityCache = new HashMap<Id,Entity>();
+		cache = new ConcurrentLinkedHashMap.Builder<Id, Entity>()
+				.maximumWeightedCapacity(1024 * 1024) //1MB
+				.weigher(memoryUsageWeigher)
+				.build();
 	}
 
 	/**
@@ -28,12 +33,26 @@ public abstract class ConcourseStore extends AbstractStore<ConcourseStoreTransac
 	 */
 	@Override
 	public Entity load(Id id) {
-		if(entityCache.containsKey(id)){
-			return entityCache.get(id);
+		if(cache.containsKey(id)){
+			return cache.get(id);
 		}
 		else{
 			return lookup(id);
 		}
+	}
+	
+	static{
+		memoryUsageWeigher = new EntryWeigher<Id, Entity>(){
+			
+			final MemoryMeter memory = new MemoryMeter();
+
+			@Override
+			public int weightOf(Id key, Entity value) {
+				long bytes = memory.measure(key) + memory.measure(value);
+				return (int) (Math.min(bytes, Integer.MAX_VALUE));
+			}
+			
+		};
 	}
 	
 	/**
@@ -42,5 +61,6 @@ public abstract class ConcourseStore extends AbstractStore<ConcourseStoreTransac
 	 * @return the <code>entity</code>.
 	 */
 	protected abstract Entity lookup(Id id);
+	
 	
 }

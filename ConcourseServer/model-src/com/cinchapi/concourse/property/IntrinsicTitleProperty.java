@@ -5,25 +5,25 @@ import com.cinchapi.concourse.annotations.DataType;
 import com.cinchapi.concourse.property.api.IntrinsicProperty;
 
 /**
- * An {@link IntrinsicProperty} that specifies a class <code>value</code>.
+ * An {@link IntrinsicProperty} that specifies a title <code>value</code>.
  * @author jnelson
  *
  */
 @DataType("string")
-public class ClassIntrinsicProperty extends AbstractProperty<String> implements IntrinsicProperty<String>{
+public class IntrinsicTitleProperty extends AbstractProperty<String> implements IntrinsicProperty<String>{
 	
-	private static final String key = "class";
+	private static final String key = "title";
 	
 	/**
-	 * Create a new {@link ClassIntrinsicProperty} with the specified <code>value</code>.
+	 * Create a new {@link IntrinsicTitleProperty} with the specified <code>value</code>.
 	 * @param value
 	 */
-	public ClassIntrinsicProperty(String value){
+	public IntrinsicTitleProperty(String value){
 		this(key, value);
 	}
 	
 	@NoDocumentation
-	private ClassIntrinsicProperty(String key, String value){
+	private IntrinsicTitleProperty(String key, String value){
 		super(key, value);
 	}
 

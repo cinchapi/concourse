@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.cinchapi.commons.util.Counter;
+import com.cinchapi.concourse.annotations.Immutable;
 import com.cinchapi.concourse.id.Id;
 import com.cinchapi.concourse.id.IdGenerator;
 import com.cinchapi.concourse.model.api.Entity;
@@ -19,12 +20,13 @@ import com.cinchapi.concourse.property.api.Property;
  * @author jnelson
  *
  */
-public class DefaultEntity extends AbstractEntity{
+@Immutable
+public final class ConcourseEntity extends AbstractEntity{
 	
-	protected static final int DEFAULT_DATA_MAP_CAPACITY = 100;
+	protected static final int DEFAULT_DATA_MAP_CAPACITY = 100; //TODO make this larger
 	private static final IdGenerator idgen;
 
-	public DefaultEntity(String classifier, String title) {
+	public ConcourseEntity(String classifier, String title) {
 		super(classifier, title);
 	}
 
@@ -41,12 +43,12 @@ public class DefaultEntity extends AbstractEntity{
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected Modification<?> createModification(Property<?> property, Type type) { 
-		return new DefaultModification(this, property, type);
+		return new ConcourseModification(this, property, type);
 	}
 
 	@Override
 	protected Metadata createMetadata(String classifier, String title) {
-		return new DefaultMetadata(this, classifier, title);
+		return new ConcourseMetadata(this, classifier, title);
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class DefaultEntity extends AbstractEntity{
 
 			@Override
 			public Id requestId() {
-				return new Id(Long.toString(counter.next()));
+				return new Id(Long.toString(counter.next())); //TODO change this
 			}
 			
 		};

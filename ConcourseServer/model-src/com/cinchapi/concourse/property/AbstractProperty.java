@@ -43,17 +43,17 @@ public abstract class AbstractProperty<T> implements Property<T>{
 	}
 	
 	@Override
-	public String getKey() {
+	public final String getKey() {
 		return key;
 	}
 
 	@Override
-	public T getValue() {
+	public final T getValue() {
 		return value;
 	}
 	
 	@Override
-	public String getType(){
+	public final String getType(){
 		if(type == null){
 			this.type = this.getClass().getAnnotation(DataType.class).value();
 		}
@@ -62,7 +62,7 @@ public abstract class AbstractProperty<T> implements Property<T>{
 	
 	@Override
 	@SuppressWarnings("rawtypes")
-	public boolean equals(Object obj){
+	public final boolean equals(Object obj){
 		if(obj == null){
 			return false;
 		}
@@ -82,7 +82,7 @@ public abstract class AbstractProperty<T> implements Property<T>{
 	}
 
 	@Override
-	public int hashCode(){
+	public final int hashCode(){
 		if(hashCode == 0){
 			hashCode = new HashCodeBuilder().append(getKey()).
 					append(getValue()).
@@ -93,7 +93,7 @@ public abstract class AbstractProperty<T> implements Property<T>{
 	}
 	
 	@Override
-	public String toString(){
+	public final String toString(){
 		JsonObject object = new JsonObject();
 		object.addProperty("key", key);
 		object.addProperty("value", value.toString());

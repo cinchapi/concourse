@@ -12,7 +12,7 @@ import com.cinchapi.concourse.id.Id;
 public interface QueryService {
 	
 	/**
-	 * Query a store and get a list of matching {@link Entity} <code>ids</code>.
+	 * Query a store and get an {@link Id} list that represents that matching {@link Entity} objects.
 	 * @param query
 	 * @return a list of matching <code>ids</code>.
 	 */

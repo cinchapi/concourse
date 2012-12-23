@@ -11,7 +11,7 @@ import com.cinchapi.concourse.model.api.Entity;
 public interface ReadService {
 	
 	/**
-	 * Load an <code>entity</code> from a store.
+	 * Load an {@link Entity} from the store.
 	 * @param id
 	 * @return the {@link Entity}.
 	 */

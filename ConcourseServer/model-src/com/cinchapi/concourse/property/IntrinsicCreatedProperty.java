@@ -12,20 +12,20 @@ import com.cinchapi.concourse.property.api.IntrinsicProperty;
  *
  */
 @DataType("datetime")
-public class CreatedIntrinsicProperty extends AbstractProperty<DateTime> implements IntrinsicProperty<DateTime>{
+public class IntrinsicCreatedProperty extends AbstractProperty<DateTime> implements IntrinsicProperty<DateTime>{
 	
 	private static final String key = "created";
 	
 	/**
-	 * Create a new {@link CreatedIntrinsicProperty} with the specified <code>value</code>.
+	 * Create a new {@link IntrinsicCreatedProperty} with the specified <code>value</code>.
 	 * @param value
 	 */
-	public CreatedIntrinsicProperty(DateTime value){
+	public IntrinsicCreatedProperty(DateTime value){
 		this(key, value);
 	}
 	
 	@NoDocumentation
-	private CreatedIntrinsicProperty(String key, DateTime value){
+	private IntrinsicCreatedProperty(String key, DateTime value){
 		super(key, value);
 	}
 

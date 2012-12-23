@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
-import com.cinchapi.concourse.annotations.Immutable;
 import com.cinchapi.concourse.property.api.Property;
 
 /**
@@ -16,7 +15,6 @@ import com.cinchapi.concourse.property.api.Property;
  * @param <T> - the {@link Property} <code>type</code>
  *
  */
-@Immutable
 public interface Modification<T> {
 	
 	/**
