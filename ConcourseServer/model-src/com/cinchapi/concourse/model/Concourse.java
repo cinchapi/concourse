@@ -1,6 +1,5 @@
 package com.cinchapi.concourse.model;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -16,11 +15,14 @@ import com.google.common.primitives.UnsignedLong;
  * distinct values of any type.
  * </p>
  * <p>
- * {@link Concourse} can be used to represent which nodes on a graph are
- * connected to which other nodes. Each row and each column corresponds to a
- * node. Each value in the cell formed at the intersection of the row and column
- * corresponds to an edge between the corresponding row node and column node on
- * the graph--an edge whose weight is equal to the value.
+ * At scale, this structure is a simple and effective store for big data that
+ * contains many relationships, while also providing fast and familiar access to
+ * normalized data. As a modified adjacency matrix, Concourse naturally
+ * represents which nodes on a graph are connected to which other nodes: each
+ * row and each column corresponds to a node and each value in the cell formed
+ * at the intersection of the row and column corresponds to an edge between the
+ * corresponding row node and column node on the graph--an edge whose weight is
+ * equal to the value.
  * </p>
  * 
  * @author jnelson
@@ -35,18 +37,18 @@ public interface Concourse {
 	 * @param value
 	 * @return <code>true</code> if the <code>value</code> is added.
 	 */
-	public boolean add(
-			@NotNull UnsignedLong row,
-			@NotNull String column,
+	public boolean add(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
 	 * Return a list of columns in <code>row</code>.
 	 * 
 	 * @param row
-	 * @return the list of <code>non-null<code>columns in <code>row</code>.
+	 * @return the set of <code>non-null<code> columns in <code>row</code>. A
+	 *         null return value indicates that {@link #exists(UnsignedLong)}
+	 *         for <code>row</code> is false.
 	 */
-	public List<String> describe(@NotNull UnsignedLong row);
+	public Set<String> describe(@NotNull UnsignedLong row);
 
 	/**
 	 * Return <code>true</code> if <code>row</code> exists.
@@ -56,7 +58,7 @@ public interface Concourse {
 	 *         <code>row</code> is not empty.
 	 */
 	public boolean exists(@NotNull UnsignedLong row);
-	
+
 	/**
 	 * Return <code>true</code> if <code>column</code> exists in
 	 * <code>row</code>.
@@ -66,10 +68,8 @@ public interface Concourse {
 	 * @return <code>true</code> if {@link #get(UnsignedLong, String)} for
 	 *         <code>row</code> and </code>column</code> is not empty.
 	 */
-	public boolean exists(
-			@NotNull UnsignedLong row,
-			@NotNull String column);
-	
+	public boolean exists(@NotNull UnsignedLong row, @NotNull String column);
+
 	/**
 	 * Return <code>true</code> if <code>row</code> contains <code>value</code>
 	 * in <code>column</code>.
@@ -79,9 +79,7 @@ public interface Concourse {
 	 * @param value
 	 * @return <code>true</code> if <code>value</code> is contained.
 	 */
-	public boolean exists(
-			@NotNull UnsignedLong row,
-			@NotNull String column,
+	public boolean exists(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
@@ -92,9 +90,7 @@ public interface Concourse {
 	 * @param column
 	 * @return the result set.
 	 */
-	public Set<Object> get(
-			@NotNull UnsignedLong row,
-			@NotNull String column);
+	public Set<Object> get(@NotNull UnsignedLong row, @NotNull String column);
 
 	/**
 	 * Remove <code>value</code> from <code>column</code> in <code>row</code>.
@@ -104,9 +100,7 @@ public interface Concourse {
 	 * @param value
 	 * @return <code>true</code> if <code>value</code> is removed.
 	 */
-	public boolean remove(
-			@NotNull UnsignedLong row,
-			@NotNull String column,
+	public boolean remove(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
@@ -119,7 +113,7 @@ public interface Concourse {
 	 * @return the result set.
 	 */
 	public Set<UnsignedLong> select(@NotNull String column, Operator operator,
-			@NotNull Object...values);
+			@NotNull Object... values);
 
 	/**
 	 * Overwrite <code>column</code> in <code>row</code> with <code>value</code>
@@ -211,7 +205,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public String toString(){
+		public String toString() {
 			return sign;
 		}
 	}

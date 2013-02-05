@@ -5,8 +5,8 @@ import java.util.Random;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.cinchapi.commons.util.Counter;
-import com.cinchapi.commons.util.RandomString;
+import com.cinchapi.util.Counter;
+import com.cinchapi.util.RandomString;
 import com.google.common.primitives.UnsignedLong;
 
 import junit.framework.TestCase;
