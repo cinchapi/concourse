@@ -1,6 +1,5 @@
 package com.cinchapi.concourse.model;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -9,11 +8,17 @@ import javax.annotation.concurrent.Immutable;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.cinchapi.util.AtomicClock;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedLong;
-
-import static org.junit.Assert.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * Implementation of the {@link Concourse} interface that provides abstractions
@@ -24,14 +29,22 @@ import static org.junit.Assert.*;
  */
 public abstract class AbstractConcourse implements Concourse {
 
+	private static Gson json = new GsonBuilder().setPrettyPrinting().create();
+	private static AtomicClock clock = new AtomicClock();
+
 	@Override
 	public final boolean add(UnsignedLong row, String column, Object value) {
-		assertNotNull(row);
-		assertNotNull(column);
-		assertNotNull(value);
+		Preconditions.checkNotNull(row);
+		Preconditions.checkNotNull(column);
+		Preconditions.checkArgument(!column.contains(" "),
+				"column name cannot contain spaces");
+		Preconditions.checkNotNull(value);
+		Preconditions.checkArgument(
+				(value instanceof UnsignedLong && exists((UnsignedLong) value))
+						|| !(value instanceof UnsignedLong), value
+						+ " is not an existing row");
 
-		UnsignedLong timestamp = UnsignedLong.valueOf(System
-				.currentTimeMillis());
+		UnsignedLong timestamp = clock.time();
 		ConcourseValue _value = new ConcourseValue(value, timestamp);
 
 		return addSpi(row, column, _value);
@@ -70,18 +83,8 @@ public abstract class AbstractConcourse implements Concourse {
 	@Override
 	public final Set<Object> get(UnsignedLong row, String column) {
 		Set<ConcourseValue> _values = getSpi(row, column);
-
-		Set<Object> values = Sets.newTreeSet(new Comparator<Object>() {
-
-			@Override
-			public int compare(Object o1, Object o2) {
-				ConcourseValue v1 = (ConcourseValue) o1;
-				ConcourseValue v2 = (ConcourseValue) o2;
-				return -1 * v1.timestamp.compareTo(v2.timestamp);
-			}
-
-		});
-
+		Set<Object> values = Sets.newLinkedHashSetWithExpectedSize(_values
+				.size());
 		for (ConcourseValue _value : _values) {
 			values.add(_value.value);
 		}
@@ -90,8 +93,8 @@ public abstract class AbstractConcourse implements Concourse {
 	}
 
 	/**
-	 * Return a set of {@link ConcourseValue} to implement the interface for
-	 * {@link #get(UnsignedLong, String)}.
+	 * Return a set of {@link ConcourseValue} sorted by timestamp to implement
+	 * the interface for {@link #get(UnsignedLong, String)}.
 	 * 
 	 * @param row
 	 * @param column
@@ -119,6 +122,13 @@ public abstract class AbstractConcourse implements Concourse {
 	 */
 	protected abstract boolean removeSpi(UnsignedLong row, String column,
 			ConcourseValue value);
+
+	/**
+	 * Return a the set of non-null rows.
+	 * 
+	 * @return the row set.
+	 */
+	protected abstract Set<UnsignedLong> rowSet();
 
 	@Override
 	public final Set<UnsignedLong> select(String column, Operator operator,
@@ -158,6 +168,70 @@ public abstract class AbstractConcourse implements Concourse {
 		return add(row, column, value);
 	}
 
+	@Override
+	public String toString() {
+		JsonObject collection = new JsonObject();
+		Iterator<UnsignedLong> rows = rowSet().iterator();
+		while (rows.hasNext()) {
+			UnsignedLong row = rows.next();
+			JsonObject object = new JsonObject();
+			Iterator<String> columns = describe(row).iterator();
+			while (columns.hasNext()) {
+				String column = columns.next();
+				Set<ConcourseValue> values = getSpi(row, column);
+				object.add(column, toStringExtractJsonElement(values));
+			}
+			collection.add(row.toString(), object);
+		}
+		return json.toJson(collection);
+	}
+
+	/**
+	 * Extract a {@link JsonElement} from <code>values</code>
+	 * 
+	 * @param values
+	 * @return the element.
+	 */
+	private JsonElement toStringExtractJsonElement(Set<ConcourseValue> values) {
+		if(values.size() > 1) {
+			JsonArray array = new JsonArray();
+			Iterator<ConcourseValue> it = values.iterator();
+			while (it.hasNext()) {
+				array.add(toStringExtractJsonPrimitive(it.next()));
+			}
+			return array;
+		}
+		else {
+			return toStringExtractJsonPrimitive(values.iterator().next());
+		}
+	}
+
+	/**
+	 * Extract a {@link JsonPrimitive} from <code>value</code>.
+	 * 
+	 * @param value
+	 * @return the primitive.
+	 */
+	private JsonObject toStringExtractJsonPrimitive(ConcourseValue value) {
+		JsonObject result = new JsonObject();
+		switch (value.type) {
+		case BOOLEAN:
+			result.addProperty("value", ((Boolean) value.getValue()));
+			break;
+		case NUMBER:
+			result.addProperty("value", ((Number) value.getValue()));
+			break;
+		case RELATION:
+			result.addProperty("value", ((Number) value.getValue()));
+			break;
+		case STRING:
+			result.addProperty("value", ((String) value.getValue()));
+			break;
+		}
+		result.addProperty("type", value.getType());
+		return result;
+	}
+
 	/**
 	 * Provides an abstraction for all values stored within Concourse. All type
 	 * information is handled within this class.
@@ -173,8 +247,10 @@ public abstract class AbstractConcourse implements Concourse {
 		 */
 		public static Type determineType(Object value) {
 			Type type;
-
-			if(value instanceof Number) {
+			if(value instanceof UnsignedLong) {
+				type = Type.RELATION;
+			}
+			else if(value instanceof Number) {
 				type = Type.NUMBER;
 			}
 			else if(value instanceof Boolean) {
@@ -195,16 +271,23 @@ public abstract class AbstractConcourse implements Concourse {
 		private final UnsignedLong timestamp;
 
 		/**
+		 * The empty timestamp used with {@link #AbstractConcourse(Object)}.
+		 */
+		protected static UnsignedLong EMPTY_TIMESTAMP = UnsignedLong
+				.valueOf(0L);
+
+		/**
 		 * Construct a new instance without specifying a timestamp. This is
 		 * useful for non-mutating callers (i.e. I want to check if a value
-		 * exists as opposed to adding a new value) because these calls typicall
-		 * use the {@link #equals(Object)} method, which ignores the timestamp.
+		 * exists as opposed to adding a new value) because these calls
+		 * typically use the {@link #equals(Object)} method or an
+		 * {@link Comparator} which ignores the timestamp.
 		 * 
 		 * @param value
 		 * @param type
 		 */
 		public ConcourseValue(Object value) {
-			this(value, UnsignedLong.valueOf(0L));
+			this(value, EMPTY_TIMESTAMP);
 		}
 
 		/**
@@ -215,12 +298,13 @@ public abstract class AbstractConcourse implements Concourse {
 		 * @param timestamp
 		 */
 		public ConcourseValue(Object value, UnsignedLong timestamp) {
-			assertNotNull(value);
-			assertNotNull(timestamp);
+			Preconditions.checkNotNull(value);
+			Preconditions.checkNotNull(timestamp);
 
 			this.value = value;
-			this.type = determineType(value);
 			this.timestamp = timestamp;
+			this.type = determineType(value);
+
 		}
 
 		@Override
@@ -288,7 +372,7 @@ public abstract class AbstractConcourse implements Concourse {
 		}
 
 		public enum Type {
-			NUMBER, BOOLEAN, STRING;
+			NUMBER, BOOLEAN, RELATION, STRING;
 
 			@Override
 			public String toString() {

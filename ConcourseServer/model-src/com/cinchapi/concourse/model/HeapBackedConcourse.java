@@ -1,11 +1,12 @@
 package com.cinchapi.concourse.model;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -14,7 +15,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.cinchapi.util.search.Indexer;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.UnsignedLong;
@@ -26,7 +31,7 @@ import com.google.common.primitives.UnsignedLong;
  * @author jnelson
  * 
  */
-public class InMemoryConcourse extends AbstractConcourse {
+public class HeapBackedConcourse extends AbstractConcourse {
 
 	/**
 	 * Maps row to columns to values. Columns are are hash sorted and values are
@@ -40,13 +45,28 @@ public class InMemoryConcourse extends AbstractConcourse {
 	private Map<String, TreeMap<ConcourseValue, TreeSet<UnsignedLong>>> columns;
 
 	/**
+	 * Maps index to columns to to rows to values. Everything is hash sorted.
+	 */
+	private Map<String, HashMap<String, HashMap<UnsignedLong, HashSet<ConcourseValue>>>> fulltext;
+
+	/**
 	 * Sorts <code>values</code> in descending order based on timestamp.
 	 */
 	private static Comparator<ConcourseValue> descendingTimeValueComparator = new Comparator<ConcourseValue>() {
 
 		@Override
 		public int compare(ConcourseValue o1, ConcourseValue o2) {
-			return -1 * o1.getTimestamp().compareTo(o2.getTimestamp());
+			if(o1.getTimestamp().equals(ConcourseValue.EMPTY_TIMESTAMP)
+					|| o2.getTimestamp().equals(ConcourseValue.EMPTY_TIMESTAMP)) {
+				// this means a "comparison" value is being compared to a
+				// "stored" value
+				return o1.equals(o2) ? 0 : -1
+						* o1.getTimestamp().compareTo(o2.getTimestamp());
+			}
+			else {
+				return -1 * o1.getTimestamp().compareTo(o2.getTimestamp());
+			}
+
 		}
 	};
 
@@ -60,29 +80,28 @@ public class InMemoryConcourse extends AbstractConcourse {
 		public int compare(ConcourseValue o1, ConcourseValue o2) {
 			if(o1.getValue() instanceof Number
 					&& o2.getValue() instanceof Number) {
-				BigDecimal _o1;
-				if(o1.getValue() instanceof Integer) {
-					_o1 = new BigDecimal((int) o1.getValue());
+				Number _o1 = (Number) o1.getValue();
+				Number _o2 = (Number) o2.getValue();
+				if(_o1 instanceof Integer) {
+					return Integer.valueOf(_o1.intValue()).compareTo(
+							_o2.intValue());
 				}
-				else if(o1.getValue() instanceof Long) {
-					_o1 = BigDecimal.valueOf((long) o1.getValue());
+				else if(_o1 instanceof Double) {
+					return Double.valueOf(_o1.doubleValue()).compareTo(
+							_o2.doubleValue());
+				}
+				else if(_o1 instanceof Float) {
+					return Float.valueOf(_o1.floatValue()).compareTo(
+							_o2.floatValue());
+				}
+				else if(_o1 instanceof Long) {
+					return Long.valueOf(_o1.longValue()).compareTo(
+							_o2.longValue());
 				}
 				else {
-					_o1 = BigDecimal.valueOf((double) o1.getValue());
+					return Integer.valueOf(_o1.intValue()).compareTo(
+							_o2.intValue());
 				}
-
-				BigDecimal _o2;
-				if(o2.getValue() instanceof Integer) {
-					_o2 = new BigDecimal((int) o2.getValue());
-				}
-				else if(o2.getValue() instanceof Long) {
-					_o2 = BigDecimal.valueOf((long) o2.getValue());
-				}
-				else {
-					_o2 = BigDecimal.valueOf((double) o2.getValue());
-				}
-
-				return _o1.compareTo(_o2);
 			}
 			else {
 				return o1.toString().compareTo(o2.toString());
@@ -108,10 +127,11 @@ public class InMemoryConcourse extends AbstractConcourse {
 	 * 
 	 * @param expectedNumColumnsPerRow
 	 */
-	public InMemoryConcourse(int expectedNumColumnsPerRow) {
+	public HeapBackedConcourse(int expectedNumColumnsPerRow) {
 		this.rows = Maps.newTreeMap(descendingRowComparator);
 		this.columns = Maps
 				.newHashMapWithExpectedSize(expectedNumColumnsPerRow);
+		this.fulltext = Maps.newHashMap();
 	}
 
 	@Override
@@ -122,9 +142,18 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 			executor.execute(new ColumnIndexer(row, column, value));
 			executor.execute(new RowIndexer(row, column, value));
-			executor.execute(new FullTextIndexer(row, column, value));
+			// executor.execute(new FullTextIndexer(row, column, value));
+			executor.shutdown();
+			try {
+				// try to avoid race conditions where certain threads finish
+				// before others and prevent some of the indexing from occuring
+				executor.awaitTermination(1, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
-			return exists(row, column, value);
+			return existsSpi(row, column, value);
 		}
 		else {
 			return false;
@@ -133,7 +162,7 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 	@Override
 	public Set<String> describe(UnsignedLong row) {
-		return rows.get(row).keySet();
+		return exists(row) ? rows.get(row).keySet() : new TreeSet<String>();
 	}
 
 	@Override
@@ -143,31 +172,17 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 	@Override
 	public boolean exists(UnsignedLong row, String column) {
-		return rows.get(row).containsKey(column);
+		return exists(row) ? rows.get(row).containsKey(column) : false;
 	}
 
 	@Override
 	public boolean existsSpi(UnsignedLong row, String column,
 			ConcourseValue value) {
-		return columns.get(column).get(value).contains(row);
-	}
-
-	@Override
-	protected Set<ConcourseValue> getSpi(UnsignedLong row, String column) {
-		return rows.get(row).get(column);
-	}
-
-	@Override
-	protected boolean removeSpi(UnsignedLong row, String column,
-			ConcourseValue value) {
-		if(exists(row, column, value)) {
-			ExecutorService executor = Executors.newCachedThreadPool();
-
-			executor.execute(new ColumnDeIndexer(row, column, value));
-			executor.execute(new RowDeIndexer(row, column, value));
-			executor.execute(new FullTextDeIndexer(row, column, value));
-
-			return exists(row, column, value);
+		if(columns.containsKey(column)) {
+			TreeMap<ConcourseValue, TreeSet<UnsignedLong>> values = columns
+					.get(column);
+			return values.containsKey(value) ? values.get(value).contains(row)
+					: false;
 		}
 		else {
 			return false;
@@ -175,7 +190,45 @@ public class InMemoryConcourse extends AbstractConcourse {
 	}
 
 	@Override
-	public Set<UnsignedLong> selectSpi(String column, Operator operator,
+	protected Set<ConcourseValue> getSpi(UnsignedLong row, String column) {
+		return exists(row, column) ? rows.get(row).get(column)
+				: new TreeSet<ConcourseValue>();
+	}
+
+	@Override
+	protected boolean removeSpi(UnsignedLong row, String column,
+			ConcourseValue value) {
+		if(existsSpi(row, column, value)) {
+			ExecutorService executor = Executors.newCachedThreadPool();
+
+			executor.execute(new ColumnDeIndexer(row, column, value));
+			executor.execute(new RowDeIndexer(row, column, value));
+			// executor.execute(new FullTextDeIndexer(row, column, value));
+			executor.shutdown();
+			try {
+				// try to avoid race conditions where certain threads finish
+				// before others and prevent some of the deindexing from
+				// occuring
+				executor.awaitTermination(1, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			return !existsSpi(row, column, value);
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	protected Set<UnsignedLong> rowSet() {
+		return rows.keySet();
+	}
+
+	@Override
+	protected Set<UnsignedLong> selectSpi(String column, Operator operator,
 			List<ConcourseValue> values) {
 		AbstractSelector selector = null;
 		switch (operator) {
@@ -223,7 +276,15 @@ public class InMemoryConcourse extends AbstractConcourse {
 			e.printStackTrace();
 			result = Sets.newTreeSet();
 		}
-
+		executor.shutdown();
+		try {
+			// try to avoid race conditions where certain threads finish
+			// before others and prevent certain selections from finishing
+			executor.awaitTermination(1, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return result;
 	}
 
@@ -293,9 +354,10 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value2 = values.get(1);
 			SortedMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column).subMap(value1, true, value2, false);
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				result.addAll(_values.get(it.next()));
+				result.addAll(it.next().getValue());
 			}
 
 			return result;
@@ -321,6 +383,12 @@ public class InMemoryConcourse extends AbstractConcourse {
 		@Override
 		public void run() {
 			columns.get(column).get(value).remove(row);
+			if(columns.get(column).get(value).isEmpty()) {
+				columns.get(column).remove(value);
+			}
+			if(columns.get(column).isEmpty()) {
+				columns.remove(column);
+			}
 		}
 	}
 
@@ -380,7 +448,8 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public TreeSet<UnsignedLong> call() {
-			// TODO implement
+			String value = values.get(0).toString();
+			result.addAll(fulltext.get(value).get(column).keySet());
 			return result;
 		}
 	}
@@ -426,7 +495,17 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public void run() {
-			// TODO implement
+			Iterator<Entry<String, HashMap<String, HashMap<UnsignedLong, HashSet<ConcourseValue>>>>> it = fulltext
+					.entrySet().iterator();
+			while (it.hasNext()) {
+				Iterator<ConcourseValue> it2 = it.next().getValue().get(column)
+						.get(row).iterator();
+				while (it2.hasNext()) {
+					if(it2.next().equals(value)) {
+						it2.remove();
+					}
+				}
+			}
 		}
 	}
 
@@ -448,7 +527,39 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public void run() {
-			// TODO implement
+			Iterator<String> it = Indexer.index(value.toString()).values()
+					.iterator();
+			while (it.hasNext()) {
+				String index = it.next();
+
+				HashMap<String, HashMap<UnsignedLong, HashSet<ConcourseValue>>> columns;
+				if(fulltext.containsKey(index)) {
+					columns = fulltext.get(index);
+				}
+				else {
+					columns = Maps.newHashMap();
+					fulltext.put(index, columns);
+				}
+
+				HashMap<UnsignedLong, HashSet<ConcourseValue>> rows;
+				if(columns.containsKey(column)) {
+					rows = columns.get(column);
+				}
+				else {
+					rows = Maps.newHashMap();
+					columns.put(column, rows);
+				}
+
+				HashSet<ConcourseValue> values;
+				if(rows.containsKey(row)) {
+					values = rows.get(row);
+				}
+				else {
+					values = Sets.newHashSet();
+				}
+
+				values.add(value);
+			}
 		}
 	}
 
@@ -472,9 +583,10 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value = values.get(0);
 			SortedMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column).tailMap(value, true);
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				result.addAll(_values.get(it.next()));
+				result.addAll(it.next().getValue());
 			}
 
 			return result;
@@ -501,9 +613,10 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value = values.get(0);
 			SortedMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column).tailMap(value, false);
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				result.addAll(_values.get(it.next()));
+				result.addAll(it.next().getValue());
 			}
 
 			return result;
@@ -530,9 +643,10 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value = values.get(0);
 			SortedMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column).headMap(value, true);
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				result.addAll(_values.get(it.next()));
+				result.addAll(it.next().getValue());
 			}
 
 			return result;
@@ -559,9 +673,10 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value = values.get(0);
 			SortedMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column).headMap(value, false);
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				result.addAll(_values.get(it.next()));
+				result.addAll(it.next().getValue());
 			}
 
 			return result;
@@ -585,7 +700,14 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public TreeSet<UnsignedLong> call() {
-			// TODO implement
+			Iterator<String> it = fulltext.keySet().iterator();
+			String value = values.get(0).toString();
+			while (it.hasNext()) {
+				String index = it.next();
+				if(!value.equals(index)) {
+					result.addAll(fulltext.get(index).get(column).keySet());
+				}
+			}
 			return result;
 		}
 	}
@@ -610,12 +732,12 @@ public class InMemoryConcourse extends AbstractConcourse {
 			ConcourseValue value = values.get(0);
 			Map<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
 					.get(column);
-
-			Iterator<ConcourseValue> it = _values.keySet().iterator();
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
 			while (it.hasNext()) {
-				ConcourseValue val = it.next();
-				if(!val.equals(value)) {
-					result.addAll(_values.get(val));
+				Entry<ConcourseValue, TreeSet<UnsignedLong>> entry = it.next();
+				if(entry.getKey().equals(value)) {
+					result.addAll(entry.getValue());
 				}
 			}
 
@@ -640,7 +762,20 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public TreeSet<UnsignedLong> call() {
-			// TODO implement
+			String regex = values.get(0).toString();
+			TreeMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
+					.get(column);
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
+			while (it.hasNext()) {
+				Entry<ConcourseValue, TreeSet<UnsignedLong>> entry = it.next();
+				Pattern p = Pattern.compile(regex);
+				Matcher m = p.matcher(entry.getValue().toString());
+				if(!m.matches()) {
+					result.addAll(entry.getValue());
+				}
+			}
+
 			return result;
 		}
 	}
@@ -662,7 +797,20 @@ public class InMemoryConcourse extends AbstractConcourse {
 
 		@Override
 		public TreeSet<UnsignedLong> call() {
-			// TODO implement
+			String regex = values.get(0).toString();
+			TreeMap<ConcourseValue, TreeSet<UnsignedLong>> _values = columns
+					.get(column);
+			Iterator<Entry<ConcourseValue, TreeSet<UnsignedLong>>> it = _values
+					.entrySet().iterator();
+			while (it.hasNext()) {
+				Entry<ConcourseValue, TreeSet<UnsignedLong>> entry = it.next();
+				Pattern p = Pattern.compile(regex);
+				Matcher m = p.matcher(entry.getValue().toString());
+				if(m.matches()) {
+					result.addAll(entry.getValue());
+				}
+			}
+
 			return result;
 		}
 	}
@@ -686,6 +834,12 @@ public class InMemoryConcourse extends AbstractConcourse {
 		@Override
 		public void run() {
 			rows.get(row).get(column).remove(value);
+			if(rows.get(row).get(column).isEmpty()) {
+				rows.get(row).remove(column);
+			}
+			if(rows.get(row).isEmpty()) {
+				rows.remove(row);
+			}
 		}
 	}
 
