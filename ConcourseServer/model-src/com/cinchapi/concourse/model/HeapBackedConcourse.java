@@ -66,7 +66,6 @@ public class HeapBackedConcourse extends AbstractConcourse {
 			else {
 				return -1 * o1.getTimestamp().compareTo(o2.getTimestamp());
 			}
-
 		}
 	};
 
@@ -107,7 +106,6 @@ public class HeapBackedConcourse extends AbstractConcourse {
 				return o1.toString().compareTo(o2.toString());
 			}
 		}
-
 	};
 
 	/**
@@ -119,7 +117,6 @@ public class HeapBackedConcourse extends AbstractConcourse {
 		public int compare(UnsignedLong o1, UnsignedLong o2) {
 			return -1 * o1.compareTo(o2);
 		}
-
 	};
 
 	/**
@@ -142,7 +139,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 
 			executor.execute(new ColumnIndexer(row, column, value));
 			executor.execute(new RowIndexer(row, column, value));
-			// executor.execute(new FullTextIndexer(row, column, value));
+			executor.execute(new FullTextIndexer(row, column, value));
 			executor.shutdown();
 			try {
 				// try to avoid race conditions where certain threads finish
@@ -203,7 +200,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 
 			executor.execute(new ColumnDeIndexer(row, column, value));
 			executor.execute(new RowDeIndexer(row, column, value));
-			// executor.execute(new FullTextDeIndexer(row, column, value));
+			executor.execute(new FullTextDeIndexer(row, column, value));
 			executor.shutdown();
 			try {
 				// try to avoid race conditions where certain threads finish
@@ -495,14 +492,15 @@ public class HeapBackedConcourse extends AbstractConcourse {
 
 		@Override
 		public void run() {
-			Iterator<Entry<String, HashMap<String, HashMap<UnsignedLong, HashSet<ConcourseValue>>>>> it = fulltext
-					.entrySet().iterator();
-			while (it.hasNext()) {
-				Iterator<ConcourseValue> it2 = it.next().getValue().get(column)
-						.get(row).iterator();
-				while (it2.hasNext()) {
-					if(it2.next().equals(value)) {
-						it2.remove();
+			Iterator<String> indexes = fulltext.keySet().iterator();
+			while(indexes.hasNext()){
+				String index = indexes.next();
+				if(fulltext.get(index).containsKey(column) && fulltext.get(index).get(column).containsKey(row)){
+					Iterator<ConcourseValue> values = fulltext.get(index).get(column).get(row).iterator();
+					while(values.hasNext()){
+						if(values.next().equals(value)){
+							values.remove();
+						}
 					}
 				}
 			}
@@ -556,6 +554,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 				}
 				else {
 					values = Sets.newHashSet();
+					rows.put(row, values);
 				}
 
 				values.add(value);

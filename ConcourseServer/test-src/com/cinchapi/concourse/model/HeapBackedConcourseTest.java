@@ -45,9 +45,9 @@ public class HeapBackedConcourseTest extends AbstractConcourseTest{
 	@Override
 	public void testAdd(){
 		super.testAdd();
+		Concourse concourse = getEmptyInstance();
 		
 		//test adding multiple types to a column in a row
-		Concourse concourse = getEmptyInstance();
 		UnsignedLong row = getNextRow();
 		String column = getRandomColumn();
 		String v1 = getRandomValueString();
@@ -61,6 +61,18 @@ public class HeapBackedConcourseTest extends AbstractConcourseTest{
 		assertTrue(values.contains(v1));
 		assertTrue(values.contains(v2));
 		assertTrue(values.contains(v3));
+		
+		UnsignedLong row2 = getNextRow();
+		//can't add a relation to a non-existing row
+		try{
+			concourse.add(row, column, row2);
+			fail("Expecting IllegalArgumentException");
+		}
+		catch(IllegalArgumentException e){}
+		
+		//can add relation to existing row
+		assertTrue(concourse.add(row2, column, row));
+		concourse.add(row, column, row2);
 	}
 
 }
