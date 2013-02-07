@@ -31,7 +31,7 @@ import com.google.common.primitives.UnsignedLong;
  * @author jnelson
  * 
  */
-public class HeapBackedConcourse extends AbstractConcourse {
+public class HeapBasedConcourse extends AbstractConcourse {
 
 	/**
 	 * Maps row to columns to values. Columns are are hash sorted and values are
@@ -60,8 +60,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 					|| o2.getTimestamp().equals(ConcourseValue.EMPTY_TIMESTAMP)) {
 				// this means a "comparison" value is being compared to a
 				// "stored" value
-				return o1.equals(o2) ? 0 : -1
-						* o1.getTimestamp().compareTo(o2.getTimestamp());
+				return o1.equals(o2) ? 0 : -1;
 			}
 			else {
 				return -1 * o1.getTimestamp().compareTo(o2.getTimestamp());
@@ -124,7 +123,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 	 * 
 	 * @param expectedNumColumnsPerRow
 	 */
-	public HeapBackedConcourse(int expectedNumColumnsPerRow) {
+	public HeapBasedConcourse(int expectedNumColumnsPerRow) {
 		this.rows = Maps.newTreeMap(descendingRowComparator);
 		this.columns = Maps
 				.newHashMapWithExpectedSize(expectedNumColumnsPerRow);

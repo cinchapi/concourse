@@ -1,5 +1,7 @@
 package com.cinchapi.concourse.model;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.Rule;
@@ -8,6 +10,7 @@ import org.junit.rules.ExpectedException;
 
 import com.cinchapi.util.Counter;
 import com.cinchapi.util.RandomString;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.UnsignedLong;
 
 import junit.framework.TestCase;
@@ -32,7 +35,7 @@ public abstract class ConcourseTest extends TestCase {
 	 * @param maxCountIfLimitScaleTests
 	 * @return the <code>count</code>.
 	 */
-	protected int getRandomCount(int maxCountIfLimitScaleTests){
+	protected int count(int maxCountIfLimitScaleTests){
 		int count = limitScaleTests() ? rand.nextInt(maxCountIfLimitScaleTests) : rand.nextInt();
 		return Math.abs(count);
 	}
@@ -169,7 +172,7 @@ public abstract class ConcourseTest extends TestCase {
 		//column is in description if added
 		concourse.add(row, column, value);
 		assertTrue(concourse.describe(row).contains(column));
-		int count = getRandomCount(10);
+		int count = count(10);
 		for(int i = 0; i < count; i++){
 			String _column = getRandomColumn();
 			while(_column.equals(column)){
@@ -185,8 +188,105 @@ public abstract class ConcourseTest extends TestCase {
 	}
 	
 	@Test
-	public void benchmarks(){
-		//TODO
+	public void testExists(){
+		Concourse concourse = getEmptyInstance();
+		
+		//test that non added data does not exist
+		UnsignedLong row = getNextRow();
+		String column = getRandomColumn();
+		Object value = getRandomValue();
+		assertFalse(concourse.exists(row));
+		assertFalse(concourse.exists(row, column));
+		assertFalse(concourse.exists(row, column, value));
+		
+		//test that added data does exist
+		concourse.add(row, column, value);
+		assertTrue(concourse.exists(row));
+		assertTrue(concourse.exists(row, column));
+		assertTrue(concourse.exists(row, column, value));
+		
+		//test that multiple rows can exist
+		UnsignedLong row2 = getNextRow();
+		concourse.add(row2, column, value);
+		assertTrue(concourse.exists(row));
+		assertTrue(concourse.exists(row2));
+		int count = count(50);
+		for(int i = 0; i < count; i++){
+			UnsignedLong _row = getNextRow();
+			assertFalse(concourse.exists(_row));
+			concourse.add(_row, column, value);
+			assertTrue(concourse.exists(_row));
+		}
+		
+		//test that multiple columns can exist in a row
+		String column2 = getRandomColumn();
+		concourse.add(row, column2, value);
+		assertTrue(concourse.exists(row, column));
+		assertTrue(concourse.exists(row, column2));
+		count = count(50);
+		for(int i = 0; i < count; i++){
+			String _column = getRandomColumn();
+			while(_column.equals(column) || _column.equals(column2)){
+				_column = getRandomColumn();
+			}
+			assertFalse(concourse.exists(row, _column));
+			concourse.add(row, _column, value);
+			assertTrue(concourse.exists(row, _column));
+		}
+		
+		//test that multiple values can exist in a cell
+		Object value2 = getRandomValue();
+		concourse.add(row, column, value2);
+		assertTrue(concourse.exists(row2, column, value));
+		assertTrue(concourse.exists(row, column, value2));
+		count = count(50);
+		for(int i = 0; i < count; i++){
+			Object _value = getRandomValue();
+			concourse.add(row, column, _value);
+			assertTrue(concourse.exists(row, column, _value));
+		}
+		
+		//removed a value from a cell in a row means that it does not exist
+		concourse.remove(row, column2, value);
+		assertFalse(concourse.exists(row, column2, value));
+		
+		//removing all the values in a cell means that the column does not exist in the row
+		Iterator<Object> values = concourse.get(row, column).iterator();
+		while(values.hasNext()){
+			concourse.remove(row, column, values.next());
+		}
+		assertFalse(concourse.exists(row, column));
+		
+		//removing all the values from all the columns in a row means that the row does not exist
+		List<String> columns = Lists.newArrayList(concourse.describe(row));
+		for(int i = 0; i < columns.size(); i++){
+			String _column = columns.get(i);
+			List<Object> _values = Lists.newArrayList(concourse.get(row, _column));
+			for(int j = 0; j < _values.size(); j++){
+				Object _value = _values.get(j);
+				concourse.remove(row, _column, _value);
+			}
+		}
+		assertFalse(concourse.exists(row));
+		
 	}
+	
+	public void testGet(){
+		Concourse concourse = getEmptyInstance();
+		
+		//added data can be retrieved
+		UnsignedLong row = getNextRow();
+		String column = getRandomColumn();
+		Object value = getRandomValue();
+		concourse.add(row, column, value);
+		assertEquals(1, concourse.get(row, column).size());
+		assertTrue(concourse.get(row, column).contains(value));
+		
+		//removed data cannot be retrieved
+		concourse.remove(row, column, value);
+		assertEquals(0, concourse.get(row, column).size());
+		assertFalse(concourse.get(row, column).contains(value));
+	}
+	
 
 }

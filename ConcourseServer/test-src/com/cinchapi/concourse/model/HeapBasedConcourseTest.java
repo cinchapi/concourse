@@ -5,11 +5,11 @@ import java.util.Set;
 import com.google.common.primitives.UnsignedLong;
 
 /**
- * Test cases for {@link HeapBackedConcourse}
+ * Test cases for {@link HeapBasedConcourse}
  * @author jnelson
  *
  */
-public class HeapBackedConcourseTest extends AbstractConcourseTest{
+public class HeapBasedConcourseTest extends AbstractConcourseTest{
 	
 	@Override
 	protected boolean limitScaleTests() {
@@ -39,7 +39,7 @@ public class HeapBackedConcourseTest extends AbstractConcourseTest{
 
 	@Override
 	protected Concourse getEmptyInstance() {
-		return new HeapBackedConcourse(defaultExpectedNumColumnsPerRow);
+		return new HeapBasedConcourse(defaultExpectedNumColumnsPerRow);
 	}
 	
 	@Override
