@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.FixedSizeIterableByteSequences;
 import com.cinchapi.concourse.util.IterableByteSequences;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Time;
@@ -77,20 +76,6 @@ import com.google.common.collect.Lists;
 public class Cell implements FileChannelPersistable, Locatable {
 
 	/**
-	 * Return a new cell instance.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return the cell
-	 */
-	public static Cell newInstance(Key row, String column) {
-		State state = State.newInstance();
-		History history = History.newInstance();
-		byte[] locator = Utilities.calculateLocator(row, column);
-		return new Cell(state, history, locator);
-	}
-
-	/**
 	 * Return the cell represented by <code>bytes</code>. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
 	 * <code>bytes</code> was generated using {@link #getBytes()}.
@@ -113,6 +98,20 @@ public class Cell implements FileChannelPersistable, Locatable {
 		bytes.get(h);
 		History history = History.fromByteSequences(h);
 
+		return new Cell(state, history, locator);
+	}
+
+	/**
+	 * Return a new cell instance.
+	 * 
+	 * @param row
+	 * @param column
+	 * @return the cell
+	 */
+	public static Cell newInstance(Key row, String column) {
+		State state = State.newInstance();
+		History history = History.newInstance();
+		byte[] locator = Utilities.calculateLocator(row, column);
 		return new Cell(state, history, locator);
 	}
 
@@ -182,6 +181,11 @@ public class Cell implements FileChannelPersistable, Locatable {
 					&& Objects.equal(this.locator, other.locator);
 		}
 		return false;
+	}
+
+	@Override
+	public byte[] getBytes() {
+		return asByteBuffer().array();
 	}
 
 	@Override
@@ -264,20 +268,21 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	@Override
-	public String toString() {
-		return "Cell " + Hash.toString(locator) + " with state "
-				+ state.toString();
-	}
-
-	@Override
 	public int size() {
 		return state.size() + history.size() + locator.length
 				+ fixedSizeInBytes;
 	}
 
 	@Override
-	public byte[] getBytes() {
-		return asByteBuffer().array();
+	public String toString() {
+		return "Cell " + Hash.toString(locator) + " with state "
+				+ state.toString();
+	}
+
+	@Override
+	public void writeTo(FileChannel channel) throws IOException {
+		Writer.write(this, channel);
+
 	}
 
 	/**
@@ -304,9 +309,123 @@ public class Cell implements FileChannelPersistable, Locatable {
 		return buffer;
 	}
 
-	@Override
-	public void writeTo(FileChannel channel) throws IOException {
-		Writer.write(this, channel);
+	/**
+	 * The base class for the {@link Cell} elements that hold a list of values.
+	 * 
+	 * @author jnelson
+	 */
+	private static class AbstractValueList implements
+			IterableByteSequences,
+			FileChannelPersistable {
+
+		protected List<Value> values;
+		protected final ByteBuffer bytes; // I am keeping the byte sequences
+											// here instead of calculating them
+											// on demand because I can't
+											// determine the size needed store
+											// the state without iterating
+											// through the list first because
+											// each value may have a different
+											// size.
+
+		/**
+		 * Construct a new instance. This constructor is for creating a
+		 * new/empty instance.
+		 */
+		private AbstractValueList() {
+			this.values = Lists.newArrayList();
+			this.bytes = ByteBuffer.allocate(0);
+		}
+
+		/**
+		 * Construct a new instance using a byte buffer assuming that the
+		 * <code>bytes</code> conform to the rules for a
+		 * {@link IterableByteSequences}.
+		 * 
+		 * @param bytes
+		 */
+		private AbstractValueList(byte[] bytes) { // I prefer to receive a byte
+													// array here so I know for
+													// sure one backs the buffer
+			this.bytes = ByteBuffer.wrap(bytes);
+			this.values = Lists.newArrayList();
+			IterableByteSequences.ByteSequencesIterator bsit = iterator();
+			while (bsit.hasNext()) {
+				values.add(Value.fromByteSequence((bsit.next())));
+			}
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param revisions
+		 */
+		private AbstractValueList(List<Value> revisions) {
+			this.values = revisions;
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			for (Value revision : revisions) {
+				byte[] bytes = revision.getBytes();
+				out.write(bytes.length);
+				try {
+					out.write(bytes);
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			this.bytes = ByteBuffer.wrap(out.toByteArray());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj.getClass().equals(this.getClass())) {
+				final AbstractValueList other = (AbstractValueList) obj;
+				return Objects.equal(values, other.values);
+			}
+			return false;
+		}
+
+		@Override
+		public byte[] getBytes() {
+			return asByteBuffer().array();
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(values);
+		}
+
+		@Override
+		public ByteSequencesIterator iterator() {
+			return IterableByteSequences.ByteSequencesIterator.over(getBytes());
+		}
+
+		@Override
+		public int size() {
+			return bytes.capacity();
+		}
+
+		@Override
+		public String toString() {
+			return values.toString();
+		}
+
+		@Override
+		public void writeTo(FileChannel channel) throws IOException {
+			Writer.write(this, channel);
+
+		}
+
+		/**
+		 * Return a byte buffer that represents the object and conforms to
+		 * {@link IterableByteSequences}.
+		 * 
+		 * @return a byte buffer
+		 */
+		private ByteBuffer asByteBuffer() {
+			bytes.rewind();
+			return bytes;
+		}
 
 	}
 
@@ -316,9 +435,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @author jnelson
 	 */
-	private static final class History implements
-			IterableByteSequences,
-			FileChannelPersistable {
+	private static final class History extends AbstractValueList {
 
 		/**
 		 * Return the history represented by <code>bytes</code>. Use this method
@@ -352,14 +469,13 @@ public class Cell implements FileChannelPersistable, Locatable {
 			return new History();
 		}
 
-		private List<Value> revisions;
-		private final ByteBuffer bytes; // I am keeping the byte sequences here
-										// instead of calculating them on demand
-										// because I can't determine the size
-										// needed store the state without
-										// iterating through the list first
-										// because each value may have a
-										// different size.
+		/**
+		 * Construct a new instance. This constructor is for creating a
+		 * new/empty history.
+		 */
+		private History() {
+			super();
+		}
 
 		/**
 		 * Construct a new instance using a byte buffer assuming that the
@@ -368,15 +484,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * 
 		 * @param bytes
 		 */
-		private History(byte[] bytes) { // I prefer to receive a byte array
-										// here so I know for sure one backs
-										// the buffer
-			this.bytes = ByteBuffer.wrap(bytes);
-			this.revisions = Lists.newArrayList();
-			IterableByteSequences.ByteSequencesIterator bsit = iterator();
-			while (bsit.hasNext()) {
-				revisions.add(Value.fromByteSequence((bsit.next())));
-			}
+		private History(byte[] bytes) {
+			super(bytes);
 		}
 
 		/**
@@ -385,28 +494,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @param revisions
 		 */
 		private History(List<Value> revisions) {
-			this.revisions = revisions;
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			for (Value revision : revisions) {
-				byte[] bytes = revision.getBytes();
-				out.write(bytes.length);
-				try {
-					out.write(bytes);
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			this.bytes = ByteBuffer.wrap(out.toByteArray());
-		}
-
-		/**
-		 * Construct a new instance. This constructor is for creating a
-		 * new/empty history.
-		 */
-		private History() {
-			this.revisions = Lists.newArrayList();
-			this.bytes = ByteBuffer.allocate(0);
+			super(revisions);
 		}
 
 		/**
@@ -439,15 +527,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 			return count;
 		}
 
-		@Override
-		public boolean equals(Object obj) {
-			if(obj instanceof History) {
-				History other = (History) obj;
-				return Objects.equal(revisions, other.revisions);
-			}
-			return false;
-		}
-
 		/**
 		 * Return <code>true</code> if <code>value</code> existed in the cell
 		 * prior <code>at</code> the specified timestamp (meaning there is an
@@ -475,6 +554,16 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
+		 * Log a revision for <code>value</code>
+		 * 
+		 * @param value
+		 */
+		public void log(Value value) {
+			Preconditions.checkArgument(value.isForStorage());
+			values.add(value);
+		}
+
+		/**
 		 * Return a new list of revisions that were present <code>at</code> the
 		 * specified timestamp.
 		 * 
@@ -483,7 +572,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 */
 		public List<Value> rewind(long to) {
 			List<Value> snapshot = Lists.newArrayList();
-			ListIterator<Value> it = revisions.listIterator();
+			ListIterator<Value> it = values.listIterator();
 			while (it.hasNext()) {
 				Value value = it.next();
 				if(value.getTimestamp() <= to) {
@@ -493,52 +582,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 			return snapshot;
 		}
 
-		@Override
-		public byte[] getBytes() {
-			return asByteBuffer().array();
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(revisions);
-		}
-
-		@Override
-		public ByteSequencesIterator iterator() {
-			return IterableByteSequences.ByteSequencesIterator.over(getBytes());
-		}
-
-		/**
-		 * Log a revision for <code>value</code>
-		 * 
-		 * @param value
-		 */
-		public void log(Value value) {
-			Preconditions.checkArgument(value.isForStorage());
-			revisions.add(value);
-		}
-
-		@Override
-		public int size() {
-			return bytes.capacity();
-		}
-
-		@Override
-		public void writeTo(FileChannel channel) throws IOException {
-			Writer.write(this, channel);
-
-		}
-
-		/**
-		 * Return a byte buffer that represents the object and conforms to
-		 * {@link FixedSizeIterableByteSequences}.
-		 * 
-		 * @return a byte buffer
-		 */
-		private ByteBuffer asByteBuffer() {
-			bytes.rewind();
-			return bytes;
-		}
 	}
 
 	/**
@@ -547,9 +590,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * @author jnelson
 	 */
 	@Immutable
-	private static final class State implements
-			IterableByteSequences,
-			FileChannelPersistable {
+	private static final class State extends AbstractValueList {
 
 		/**
 		 * Return the state represented by <code>bytes</code>. Use this method
@@ -581,14 +622,13 @@ public class Cell implements FileChannelPersistable, Locatable {
 			return new State();
 		}
 
-		private final List<Value> values;
-		private final ByteBuffer bytes; // I am keeping the byte sequences here
-										// instead of calculating them on demand
-										// because I can't determine the size
-										// needed store the state without
-										// iterating through the list first
-										// because each value may have a
-										// different size.
+		/**
+		 * Construct a new instance. This constructor is for creating new/empty
+		 * cells states.
+		 */
+		private State() {
+			super();
+		}
 
 		/**
 		 * Construct a new instance using a byte buffer assuming that the
@@ -597,14 +637,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * 
 		 * @param bytes
 		 */
-		private State(byte[] bytes) {// I prefer to receive a byte array here so
-										// I know for sure one backs the buffer
-			this.bytes = ByteBuffer.wrap(bytes);
-			this.values = Lists.newArrayList();
-			IterableByteSequences.ByteSequencesIterator bsit = iterator();
-			while (bsit.hasNext()) {
-				values.add(Value.fromByteSequence(bsit.next()));
-			}
+		private State(byte[] bytes) {
+			super(bytes);
 		}
 
 		/**
@@ -614,28 +648,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @param values
 		 */
 		private State(List<Value> values) {
-			this.values = values;
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			for (Value value : values) {
-				byte[] bytes = value.getBytes();
-				out.write(bytes.length);
-				try {
-					out.write(bytes);
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			this.bytes = ByteBuffer.wrap(out.toByteArray());
-		}
-
-		/**
-		 * Construct a new instance. This constructor is for creating new/empty
-		 * cells states.
-		 */
-		private State() {
-			this.values = Lists.newArrayList();
-			this.bytes = ByteBuffer.allocate(0);
+			super(values);
 		}
 
 		/**
@@ -694,20 +707,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 			return values.size();
 		}
 
-		@Override
-		public boolean equals(Object obj) {
-			if(obj instanceof State) {
-				final State other = (State) obj;
-				return Objects.equal(values, other.getValues());
-			}
-			return false;
-		}
-
-		@Override
-		public byte[] getBytes() {
-			return asByteBuffer().array();
-		}
-
 		/**
 		 * Return the values.
 		 * 
@@ -715,17 +714,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 */
 		public List<Value> getValues() {
 			return Collections.unmodifiableList(values);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hashCode(values);
-		}
-
-		@Override
-		public IterableByteSequences.ByteSequencesIterator iterator() {
-			return IterableByteSequences.ByteSequencesIterator.over(bytes
-					.array());
 		}
 
 		/**
@@ -742,34 +730,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 			values.remove(value);
 			return State.fromList(values);
 		}
-
-		@Override
-		public int size() {
-			return bytes.capacity();
-		}
-
-		@Override
-		public String toString() {
-			return values.toString();
-		}
-
-		@Override
-		public void writeTo(FileChannel channel) throws IOException {
-			Writer.write(this, channel);
-
-		}
-
-		/**
-		 * Return a byte buffer that represents the object and conforms to
-		 * {@link IterableByteSequences}.
-		 * 
-		 * @return a byte buffer
-		 */
-		private ByteBuffer asByteBuffer() {
-			bytes.rewind();
-			return bytes;
-		}
-
 	}
 
 	/**
