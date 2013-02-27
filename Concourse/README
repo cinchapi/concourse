@@ -1,0 +1,58 @@
+KONCOURSE
+===========
+Koncourse is a data store for PHP applications that is based on the entity-attribute-value with classes and relationships (EAV/CR) model. Koncourse enables rapid development of applications that
+
+* have sparse and heterogenous data,
+* have large numbers of classes and class instances, or
+* have dynamic ontologies.
+
+This framework also includes utilities for many useful operations that are not in the PHP standard library.
+ 
+To get started checkout http://jtnelson.github.com/Koncourse/
+
+Installation
+------------
+* Download the Koncourse source to your project directory
+* Run bin/setup.php to configure your project's Koncourse preferences and to seed your Koncourse database
+* Read the full Koncourse documentation at http://jtnelson.github.com/Koncourse/ for more information on getting started
+ 
+Versioning
+----------
+Koncourse will be maintained under the Semantic Versioning guidelines as much as possible.
+ 
+Releases will be numbered with the following format:
+<major>.<minor>.<patch>
+ 
+And constructed with the following guidelines:
+Breaking backward compatability bumps the major
+New additions while maintaing backward compatibility bumps the minor
+Bug fixes and miscellaneous changes bumps the patch
+ 
+For more information on Semantic Versioning, please visit http://semver.org/.
+ 
+This is version 1.1.0 of Koncourse.
+ 
+Issue Tracker
+-------------
+Please file any bugs/issues at https://github.com/jtnelson/Koncourse/issues
+ 
+Author
+------
+Jeff Nelson
+https://github.com/jtnelson
+ 
+System Requirements
+-------------------
+* A Linux or Linux-like OS
+* PHP 5.3.6 or greater with 
+** Memcache
+** PDO
+** cURL
+* MySQL 5.5.9 or greater
+* Yahoo PlaceFinder API APP ID (only required for use with the KGeoDataUtils)
+ 
+License
+-------
+Koncourse is released under the GNU Lesser General Public License. For more information see COPYING and COPYING.LESSER which are
+included with this package or go to http://www.gnu.org/licenses/lgpl-3.0.txt
+
