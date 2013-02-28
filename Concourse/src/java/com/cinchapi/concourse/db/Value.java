@@ -22,6 +22,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Time;
 import com.cinchapi.util.Hash;
 import com.cinchapi.util.ObjectReuseCache;
 import com.google.common.base.Objects;
@@ -87,6 +88,17 @@ public final class Value implements
 		quantity.rewind();
 
 		return new Value(quantity, type, timestamp);
+	}
+
+	/**
+	 * Return a value that is appropriate for storage, with the current
+	 * timestamp.
+	 * 
+	 * @param quantity
+	 * @return the new instance.
+	 */
+	public static Value forStorage(Object quantity) {
+		return Value.forStorage(quantity, Time.now());
 	}
 
 	/**
