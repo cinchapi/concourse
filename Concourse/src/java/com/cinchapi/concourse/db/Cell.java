@@ -70,6 +70,10 @@ import com.google.common.collect.Lists;
  * much lower.</li>
  * </ul>
  * </p>
+ * <p>
+ * <strong>Note:</strong> All the methods in this class are synchronized to
+ * prevent state from changing in the middle of an operation
+ * </p>
  * 
  * @author jnelson
  */
@@ -142,7 +146,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @param value
 	 */
-	public final void add(Value value) {
+	public synchronized final void add(Value value) {
 		Preconditions.checkState(state.canBeAdded(value),
 				"Cannot add value '%s' because it is already contained", value);
 		Preconditions.checkArgument(value.isForStorage(),
@@ -158,7 +162,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * @param value
 	 * @return <code>true</code> if <code>value</code> is contained.
 	 */
-	public final boolean contains(Value value) {
+	public synchronized final boolean contains(Value value) {
 		return state.contains(value);
 
 	}
@@ -168,12 +172,12 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @return the count.
 	 */
-	public int count() {
+	public synchronized int count() {
 		return state.count();
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public synchronized boolean equals(Object obj) {
 		if(obj instanceof Cell) {
 			final Cell other = (Cell) obj;
 			return Objects.equal(this.state, other.state)
@@ -184,7 +188,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	@Override
-	public byte[] getBytes() {
+	public synchronized byte[] getBytes() {
 		return asByteBuffer().array();
 	}
 
@@ -198,7 +202,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @return the values.
 	 */
-	public List<Value> getValues() {
+	public synchronized List<Value> getValues() {
 		return state.getValues();
 	}
 
@@ -208,7 +212,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * @param at
 	 * @return the values.
 	 */
-	public List<Value> getValues(long at) {
+	public synchronized List<Value> getValues(long at) {
 		Iterator<Value> it = history.rewind(at).iterator();
 		List<Value> snapshot = Lists.newArrayList();
 		while (it.hasNext()) {
@@ -225,7 +229,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	@Override
-	public int hashCode() {
+	public synchronized int hashCode() {
 		return Objects.hashCode(state, history, locator);
 	}
 
@@ -234,7 +238,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @return <code>true</code> if the size is 0.
 	 */
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		return state.size() == 0;
 	}
 
@@ -245,7 +249,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @param value
 	 */
-	public void remove(Value value) {
+	public synchronized void remove(Value value) {
 		Preconditions.checkState(state.canBeRemoved(value),
 				"Cannot remove value '%s' because it is not contained", value);
 		Preconditions
@@ -260,7 +264,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	/**
 	 * Iterate through and remove all of the <code>values</code> from the cell.
 	 */
-	public void removeAll() {
+	public synchronized void removeAll() {
 		Iterator<Value> it = getValues().iterator();
 		while (it.hasNext()) {
 			remove(it.next());
@@ -268,19 +272,19 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	@Override
-	public int size() {
+	public synchronized int size() {
 		return state.size() + history.size() + locator.length
 				+ fixedSizeInBytes;
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		return "Cell " + Hash.toString(locator) + " with state "
 				+ state.toString();
 	}
 
 	@Override
-	public void writeTo(FileChannel channel) throws IOException {
+	public synchronized void writeTo(FileChannel channel) throws IOException {
 		Writer.write(this, channel);
 
 	}
@@ -298,7 +302,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 * 
 	 * @return a byte buffer.
 	 */
-	private ByteBuffer asByteBuffer() {
+	private synchronized ByteBuffer asByteBuffer() {
 		ByteBuffer buffer = ByteBuffer.allocate(size());
 		buffer.putInt(state.size());
 		buffer.putInt(history.size());
@@ -450,17 +454,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Return a history with <code>revisions</code>
-		 * 
-		 * @param revisions
-		 * @return the history
-		 */
-		@SuppressWarnings("unused")
-		static History fromList(List<Value> revisions) {
-			return new History(revisions);
-		}
-
-		/**
 		 * Return a new and empty history.
 		 * 
 		 * @return the new instance.
@@ -505,7 +498,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @return the number of appearances.
 		 */
 		@SuppressWarnings("unused")
-		public int count(Value value) {
+		public int count(Value value) { // this method might be useful later
 			return count(value, Time.now());
 		}
 
@@ -536,7 +529,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @return <code>true</code> if <code>value</code> exists.
 		 */
 		@SuppressWarnings("unused")
-		public boolean exists(Value value) {
+		public boolean exists(Value value) { // this method might be useful
+												// later
 			return exists(value, Time.now());
 		}
 
