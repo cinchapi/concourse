@@ -160,7 +160,6 @@ public final class Value implements
 		quantity.rewind();
 
 		return new Value(quantity, type, timestamp);
-
 	}
 
 	/**
@@ -196,6 +195,7 @@ public final class Value implements
 	private final long timestamp;
 	private final byte[] locator; // SHA-256 hash (32 bytes)
 	private final int size;
+	private transient final ByteBuffer buffer;
 
 	/**
 	 * Construct a new instance.
@@ -214,6 +214,7 @@ public final class Value implements
 		this.locator = Hash.sha256(getQuantityBuffer().array(), ByteBuffers
 				.toByteBuffer(this.type.ordinal()).array());
 		this.size = getQuantityBuffer().capacity() + fixedSizeInBytes;
+		this.buffer = asByteBuffer();
 	}
 
 	/**
@@ -387,7 +388,8 @@ public final class Value implements
 	 */
 	@Override
 	public byte[] getBytes() {
-		return asByteBuffer().array();
+		this.buffer.rewind();
+		return this.buffer.array();
 	}
 
 	@Override

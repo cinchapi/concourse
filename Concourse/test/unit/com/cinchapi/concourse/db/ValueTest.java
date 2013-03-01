@@ -14,14 +14,20 @@
  */
 package com.cinchapi.concourse.db;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.text.NumberFormat;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.util.Mocks;
+import com.cinchapi.concourse.util.Timer;
 import com.cinchapi.util.AtomicClock;
 import com.cinchapi.util.RandomString;
 
@@ -77,6 +83,41 @@ public class ValueTest extends TestCase {
 															// checking the
 															// timestamp
 															// explicitly
+	}
+
+	public void testBenchmark() throws IOException {
+		log.info("Running testBenchmark");
+		NumberFormat format = NumberFormat.getNumberInstance();
+		format.setGroupingUsed(true);
+		
+		//Test write to disk time
+		int size = 100000;
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+		
+		Value[] values = new Value[size];
+		long numBytes = 0;
+		log.info("Creating {} Values...", format.format(size));
+		for (int i = 0; i < size; i++) {
+			Value value = Value.forStorage(getRandomValue());
+			numBytes += value.size();
+			values[i] = value;
+		}
+
+		String filePath = "test/value_test_benchmark.tst";
+		RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+		Timer t = new Timer();
+		t.start();
+		log.info("Writing {} total BYTES to {}...", format.format(numBytes), filePath);
+		for (int i = 0; i < size; i++) {
+			Value value = values[i];
+			value.writeTo(file.getChannel());
+		}
+		long elapsed = t.stop(unit);
+		long bytesPerUnit = numBytes / elapsed;
+		
+		log.info("Total write time was {} {} with {} bytes written per {}",
+				format.format(elapsed), unit, format.format(bytesPerUnit),
+				unit.toString().substring(0, unit.toString().length() - 1));
 	}
 
 	private Object getRandomValue() {

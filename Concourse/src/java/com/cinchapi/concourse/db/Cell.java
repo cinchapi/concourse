@@ -76,6 +76,7 @@ import com.google.common.collect.Lists;
  * </p>
  * 
  * @author jnelson
+ * @since 1.0
  */
 public class Cell implements FileChannelPersistable, Locatable {
 
@@ -96,17 +97,18 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		byte[] s = new byte[stateSize];
 		bytes.get(s);
-		State state = State.fromByteSequences(s);
+		State state = State.fromByteSequences(ByteBuffer.wrap(s));
 
 		byte[] h = new byte[historySize];
 		bytes.get(h);
-		History history = History.fromByteSequences(h);
+		History history = History.fromByteSequences(ByteBuffer.wrap(h));
 
 		return new Cell(state, history, locator);
 	}
 
 	/**
-	 * Return a new cell instance.
+	 * Return a new cell instance at the intersection of <code>row</code> and
+	 * <code>column</code>.
 	 * 
 	 * @param row
 	 * @param column
@@ -119,10 +121,46 @@ public class Cell implements FileChannelPersistable, Locatable {
 		return new Cell(state, history, locator);
 	}
 
-	private static final int fixedSizeInBytes = 2 * (Integer.SIZE / 8); // stateSize
-																		// and
-																		// historySize
-	private final byte[] locator;
+	/**
+	 * Read the next cell from <code>channel</code> assuming that it conforms to
+	 * the specification described in the {@link #asByteBuffer()} method.
+	 * 
+	 * @param buffer
+	 * @return the next {@link Cell} in the channel.
+	 */
+	public static Cell readFrom(FileChannel channel) throws IOException {
+		ByteBuffer buffers[] = new ByteBuffer[3];
+		buffers[0] = ByteBuffer.allocate(4); // stateSize
+		buffers[1] = ByteBuffer.allocate(4); // historySize
+		buffers[2] = ByteBuffer.allocate(32); // locator
+		channel.read(buffers);
+
+		for (ByteBuffer buf : buffers) {
+			buf.rewind();
+		}
+
+		int stateSize = buffers[0].getInt();
+		int historySize = buffers[1].getInt();
+		byte[] locator = buffers[2].array();
+
+		ByteBuffer s = ByteBuffer.allocate(stateSize);
+		channel.read(s);
+		s.rewind();
+		State state = State.fromByteSequences(s);
+
+		ByteBuffer h = ByteBuffer.allocate(historySize);
+		channel.read(h);
+		h.rewind();
+		History history = History.fromByteSequences(h);
+
+		return new Cell(state, history, locator);
+
+	}
+
+	private static final int fixedSizeInBytes = 2 * (Integer.SIZE / 8) + 32; // stateSize,
+																				// historySize,
+																				// locator
+	private final byte[] locator; // SHA-256 hash (32 bytes)
 	private State state;
 	private History history;
 
@@ -192,6 +230,10 @@ public class Cell implements FileChannelPersistable, Locatable {
 		return asByteBuffer().array();
 	}
 
+	/**
+	 * Returns a 32 byte hash that represents the <code>row</code> and
+	 * <code>column</code> that house the cell.
+	 */
 	@Override
 	public byte[] getLocator() {
 		return locator;
@@ -273,8 +315,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 	@Override
 	public synchronized int size() {
-		return state.size() + history.size() + locator.length
-				+ fixedSizeInBytes;
+		return state.size() + history.size() + fixedSizeInBytes;
 	}
 
 	@Override
@@ -286,7 +327,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 	@Override
 	public synchronized void writeTo(FileChannel channel) throws IOException {
 		Writer.write(this, channel);
-
 	}
 
 	/**
@@ -323,14 +363,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 			FileChannelPersistable {
 
 		protected List<Value> values;
-		protected final ByteBuffer bytes; // I am keeping the byte sequences
-											// here instead of calculating them
-											// on demand because I can't
-											// determine the size needed store
-											// the state without iterating
-											// through the list first because
-											// each value may have a different
-											// size.
 
 		/**
 		 * Construct a new instance. This constructor is for creating a
@@ -338,7 +370,6 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 */
 		private AbstractValueList() {
 			this.values = Lists.newArrayList();
-			this.bytes = ByteBuffer.allocate(0);
 		}
 
 		/**
@@ -348,12 +379,10 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * 
 		 * @param bytes
 		 */
-		private AbstractValueList(byte[] bytes) { // I prefer to receive a byte
-													// array here so I know for
-													// sure one backs the buffer
-			this.bytes = ByteBuffer.wrap(bytes);
+		private AbstractValueList(ByteBuffer bytes) {
 			this.values = Lists.newArrayList();
-			IterableByteSequences.ByteSequencesIterator bsit = iterator();
+			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
+					.over(bytes.array());
 			while (bsit.hasNext()) {
 				values.add(Value.fromByteSequence((bsit.next())));
 			}
@@ -362,22 +391,10 @@ public class Cell implements FileChannelPersistable, Locatable {
 		/**
 		 * Construct a new instance.
 		 * 
-		 * @param revisions
+		 * @param values
 		 */
-		private AbstractValueList(List<Value> revisions) {
-			this.values = revisions;
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			for (Value revision : revisions) {
-				byte[] bytes = revision.getBytes();
-				out.write(bytes.length);
-				try {
-					out.write(bytes);
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			this.bytes = ByteBuffer.wrap(out.toByteArray());
+		private AbstractValueList(List<Value> values) {
+			this.values = values;
 		}
 
 		@Override
@@ -406,7 +423,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		@Override
 		public int size() {
-			return bytes.capacity();
+			return asByteBuffer().capacity();
 		}
 
 		@Override
@@ -427,8 +444,22 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @return a byte buffer
 		 */
 		private ByteBuffer asByteBuffer() {
-			bytes.rewind();
-			return bytes;
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			for (Value value : values) {
+				byte[] bytes = value.getBytes();
+				try {
+					out.write(ByteBuffer.allocate(4).putInt(bytes.length)
+							.array()); // for some reason writing the
+										// length of the array doesn't work
+										// properly, so I have to wrap it in a
+										// byte buffer :-/
+					out.write(bytes);
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			return ByteBuffer.wrap(out.toByteArray());
 		}
 
 	}
@@ -449,7 +480,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @param bytes
 		 * @return the history
 		 */
-		static History fromByteSequences(byte[] bytes) {
+		static History fromByteSequences(ByteBuffer bytes) {
 			return new History(bytes);
 		}
 
@@ -477,7 +508,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * 
 		 * @param bytes
 		 */
-		private History(byte[] bytes) {
+		private History(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -593,7 +624,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * @param bytes
 		 * @return the state
 		 */
-		static State fromByteSequences(byte[] bytes) {
+		static State fromByteSequences(ByteBuffer bytes) {
 			return new State(bytes);
 		}
 
@@ -631,7 +662,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		 * 
 		 * @param bytes
 		 */
-		private State(byte[] bytes) {
+		private State(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -746,5 +777,4 @@ public class Cell implements FileChannelPersistable, Locatable {
 					column.getBytes(ByteBuffers.charset()));
 		}
 	}
-
 }

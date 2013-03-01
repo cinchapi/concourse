@@ -90,6 +90,7 @@ public interface IterableByteSequences {
 		@Override
 		public ByteBuffer next() {
 			ByteBuffer next = this.next;
+			next.rewind();
 			readNext();
 			return next;
 		}
@@ -104,12 +105,14 @@ public interface IterableByteSequences {
 		 * Read the next element from <code>bytes</code>.
 		 */
 		protected void readNext() {
-			int peek = bytes.getInt();
 			next = null;
-			if(peek > 0 && bytes.remaining() >= peek) {
-				next = ByteBuffer.allocate(peek);
-				while (next.remaining() > 0) {
-					next.put(bytes.get());
+			if(bytes.remaining() >= 4) {
+				int peek = bytes.getInt();
+				if(peek > 0 && bytes.remaining() >= peek) {
+					next = ByteBuffer.allocate(peek);
+					while (next.remaining() > 0) {
+						next.put(bytes.get());
+					}
 				}
 			}
 		}
