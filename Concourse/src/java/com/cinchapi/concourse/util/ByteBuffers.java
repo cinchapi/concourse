@@ -78,7 +78,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -92,7 +92,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -106,7 +106,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -120,7 +120,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -134,7 +134,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -148,7 +148,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return the value represented by <code>buffer</code> while maintaining the
+	 * Return the value represented by {@code buffer} while maintaining the
 	 * buffer's current position.
 	 * 
 	 * @param buffer
@@ -168,7 +168,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.
@@ -181,7 +181,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.
@@ -193,7 +193,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.
@@ -205,7 +205,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.
@@ -217,7 +217,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.
@@ -228,7 +228,7 @@ public final class ByteBuffers {
 	}
 
 	/**
-	 * Return a byte buffer that contains <code>value</code>.
+	 * Return a byte buffer that contains {@code value}.
 	 * 
 	 * @param value
 	 * @return the byte buffer.

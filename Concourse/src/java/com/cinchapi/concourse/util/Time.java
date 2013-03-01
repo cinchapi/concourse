@@ -26,7 +26,8 @@ public final class Time {
 	private static AtomicClock clock = new AtomicClock();
 
 	/**
-	 * Get the current timestamp.
+	 * Get the current timestamp. Use this throughout the project to make sure
+	 * that no time collisions happen.
 	 * 
 	 * @return the current timestamp.
 	 */

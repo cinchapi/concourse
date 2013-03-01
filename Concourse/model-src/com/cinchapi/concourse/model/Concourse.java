@@ -30,60 +30,60 @@ import com.google.common.primitives.UnsignedLong;
 public interface Concourse {
 
 	/**
-	 * Add <code>value</code> to <code>column</code> in <code>row</code>.
+	 * Add {@code value} to {@code column} in {@code row}.
 	 * 
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if the <code>value</code> is added.
+	 * @return {@code true} if the {@code value} is added.
 	 */
 	public boolean add(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
-	 * Return a list of columns in <code>row</code>.
+	 * Return a list of columns in {@code row}.
 	 * 
 	 * @param row
-	 * @return the set of <code>non-null<code> columns in <code>row</code>. A
+	 * @return the set of <code>non-null<code> columns in {@code row}. A
 	 *         null return value indicates that {@link #exists(UnsignedLong)}
-	 *         for <code>row</code> is false.
+	 *         for {@code row} is false.
 	 */
 	public Set<String> describe(@NotNull UnsignedLong row);
 
 	/**
-	 * Return <code>true</code> if <code>row</code> exists.
+	 * Return {@code true} if {@code row} exists.
 	 * 
 	 * @param row
-	 * @return <code>true</code> if {@link #describe(UnsignedLong)} for
-	 *         <code>row</code> is not empty.
+	 * @return {@code true} if {@link #describe(UnsignedLong)} for
+	 *         {@code row} is not empty.
 	 */
 	public boolean exists(@NotNull UnsignedLong row);
 
 	/**
-	 * Return <code>true</code> if <code>column</code> exists in
-	 * <code>row</code>.
+	 * Return {@code true} if {@code column} exists in
+	 * {@code row}.
 	 * 
 	 * @param row
 	 * @param column
-	 * @return <code>true</code> if {@link #get(UnsignedLong, String)} for
-	 *         <code>row</code> and </code>column</code> is not empty.
+	 * @return {@code true} if {@link #get(UnsignedLong, String)} for
+	 *         {@code row} and </code>column</code> is not empty.
 	 */
 	public boolean exists(@NotNull UnsignedLong row, @NotNull String column);
 
 	/**
-	 * Return <code>true</code> if <code>row</code> contains <code>value</code>
-	 * in <code>column</code>.
+	 * Return {@code true} if {@code row} contains {@code value}
+	 * in {@code column}.
 	 * 
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is contained.
+	 * @return {@code true} if {@code value} is contained.
 	 */
 	public boolean exists(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
-	 * Return the values in <code>column</code> for <code>row</code> sorted by
+	 * Return the values in {@code column} for {@code row} sorted by
 	 * timestamp.
 	 * 
 	 * @param row
@@ -93,19 +93,19 @@ public interface Concourse {
 	public Set<Object> get(@NotNull UnsignedLong row, @NotNull String column);
 
 	/**
-	 * Remove <code>value</code> from <code>column</code> in <code>row</code>.
+	 * Remove {@code value} from {@code column} in {@code row}.
 	 * 
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is removed.
+	 * @return {@code true} if {@code value} is removed.
 	 */
 	public boolean remove(@NotNull UnsignedLong row, @NotNull String column,
 			@NotNull Object value);
 
 	/**
-	 * Select the rows that satisify the <code>operator</code> in comparison to
-	 * the appropriate number of <code>values</code>.
+	 * Select the rows that satisify the {@code operator} in comparison to
+	 * the appropriate number of {@code values}.
 	 * 
 	 * @param column
 	 * @param operator
@@ -116,14 +116,14 @@ public interface Concourse {
 			@NotNull Object... values);
 
 	/**
-	 * Overwrite <code>column</code> in <code>row</code> with <code>value</code>
-	 * . If <code>value</code> is <code>null</code> then <code>column</code> is
-	 * deleted from <code>row</code>.
+	 * Overwrite {@code column} in {@code row} with {@code value}
+	 * . If {@code value} is {@code null} then {@code column} is
+	 * deleted from {@code row}.
 	 * 
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is set.
+	 * @return {@code true} if {@code value} is set.
 	 */
 	public boolean set(@NotNull UnsignedLong row, @NotNull String column,
 			@Nullable Object value);

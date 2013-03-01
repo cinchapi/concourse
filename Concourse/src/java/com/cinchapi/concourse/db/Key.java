@@ -35,7 +35,7 @@ public final class Key implements Comparable<Key> {
 
 	/**
 	 * Return a row key that represents the same value as the inverse two's
-	 * complement of <code>value</code>.
+	 * complement of {@code value}.
 	 * 
 	 * @param value
 	 * @return a row key.

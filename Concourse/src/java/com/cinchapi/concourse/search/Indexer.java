@@ -25,8 +25,8 @@ import com.cinchapi.concourse.db.Value;
 public interface Indexer {
 
 	/**
-	 * Remove <code>value</code> from the indexes for <code>row</code> and
-	 * <code>column</code>
+	 * Remove {@code value} from the indexes for {@code row} and
+	 * {@code column}
 	 * 
 	 * @param row
 	 * @param column
@@ -35,7 +35,7 @@ public interface Indexer {
 	public void deindex(Key row, String column, Value value);
 
 	/**
-	 * Index <code>value</code> to <code>row</code> and <code>column</code> for
+	 * Index {@code value} to {@code row} and {@code column} for
 	 * fulltext searching.
 	 * 
 	 * @param row

@@ -24,10 +24,10 @@ import java.math.BigDecimal;
 public final class Numbers {
 	
 	/**
-	 * Compare <code>a</code> to <code>b</code>.
+	 * Compare {@code a} to {@code b}.
 	 * @param a
 	 * @param b
-	 * @return -1, 0, or 1 as <code>a</code> is numerically less than, equal to, or greater than <code>b</code>.
+	 * @return -1, 0, or 1 as {@code a} is numerically less than, equal to, or greater than {@code b}.
 	 */
 	public static int compare(Number a, Number b){
 		BigDecimal first = new BigDecimal(a.toString());
@@ -36,21 +36,21 @@ public final class Numbers {
 	}
 
 	/**
-	 * Return <code>true</code> if <code>num</code> is evenly divisible by two.
+	 * Return {@code true} if {@code num} is evenly divisible by two.
 	 * 
 	 * @param num
-	 * @return <code>true</code> if <code>num</code> is even.
+	 * @return {@code true} if {@code num} is even.
 	 */
 	public static boolean isEven(Number num) {
 		return num.intValue() % 2 == 0;
 	}
 
 	/**
-	 * Return <code>true</code> if <code>num</code> is not evenly divisible by
+	 * Return {@code true} if {@code num} is not evenly divisible by
 	 * two.
 	 * 
 	 * @param num
-	 * @return <code>true</code> if <code>num</code> is odd.
+	 * @return {@code true} if {@code num} is odd.
 	 */
 	public static boolean isOdd(Number num) {
 		return !isEven(num);

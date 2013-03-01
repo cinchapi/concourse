@@ -14,70 +14,50 @@
  */
 package com.cinchapi.concourse.db;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.text.NumberFormat;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.cinchapi.concourse.util.Mocks;
-import com.cinchapi.concourse.util.Timer;
-import com.cinchapi.util.AtomicClock;
-import com.cinchapi.util.RandomString;
-
-import junit.framework.TestCase;
 
 /**
  * Unit tests for {@link Value}.
  * 
  * @author jnelson
  */
-public class ValueTest extends TestCase {
-
-	private static AtomicClock clock = new AtomicClock();
-	private static Random rand = new Random();
-	private static RandomString strand = new RandomString();
-	private static final Logger log = LoggerFactory.getLogger(ValueTest.class);
+public class ValueTest extends DbBaseTest {
 
 	@Test
 	public void testCompare() {
 		// default compare should compare time in descending order
-		long t1 = clock.time();
-		long t2 = clock.time();
-		Value a = Value.forStorage(getRandomValue(), t1);
-		Value b = Value.forStorage(getRandomValue(), t1);
-		Value c = Value.forStorage(getRandomValue(), t2);
-		assertTrue(a.compareTo(b) == 0);
+		Value a = randomValueForStorage();
+		Value b = randomValueForStorage();
+		Value c = randomValueForStorage();
+
+		assertTrue(a.compareTo(b) > 0);
 		assertTrue(a.compareTo(c) > 0);
+		assertTrue(b.compareTo(a) < 0);
+		assertTrue(b.compareTo(c) > 0);
 		assertTrue(c.compareTo(a) < 0);
 		assertTrue(c.compareTo(b) < 0);
 
-		// a comparative value should always be equal to an additive one with
-		// the same raw value
-		Value d = Value.notForStorage(a.getQuantity());
+		// a notForStorage value should always be equal to an forStorage one
+		// with the same quantity
+		Value d = new ValueBuilder().setForStorage(false)
+				.setQuantity(a.getQuantity()).build();
 		assertTrue(d.compareTo(a) == 0);
 
-		// a comparative value should always be greater than an additive value
-		// with a different raw value
+		// a notForStorage value should always be "greater" than an forStorage
+		// value with a different raw value
 		assertTrue(d.compareTo(b) > 0);
-		assertTrue(b.compareTo(d) < 0);
 		assertTrue(d.compareTo(c) > 0);
-		assertTrue(c.compareTo(d) < 0);
 
 		// TODO logical number comparison should work regardless of type
 	}
 
+	@Test
 	public void testGetBytes() {
-		Value v = Mocks.getValueForStorage();
-		Value w = Value.fromByteSequence(ByteBuffer.wrap(v.getBytes()));
-		assertEquals(w, v);
-		assertEquals(w.getTimestamp(), v.getTimestamp()); // equality is only
+		Value v1 = randomValueForStorage();
+		Value v2 = Value.fromByteSequence(ByteBuffer.wrap(v1.getBytes()));
+		assertEquals(v2, v1);
+		assertEquals(v2.getTimestamp(), v1.getTimestamp()); // equality is only
 															// based on quantity
 															// and type, so i'm
 															// checking the
@@ -85,82 +65,41 @@ public class ValueTest extends TestCase {
 															// explicitly
 	}
 
-	public void testBenchmark() throws IOException {
-		log.info("Running testBenchmark");
-		NumberFormat format = NumberFormat.getNumberInstance();
-		format.setGroupingUsed(true);
-		
-		//Test write to disk time
-		int size = 100000;
-		TimeUnit unit = TimeUnit.MILLISECONDS;
-		
-		Value[] values = new Value[size];
-		long numBytes = 0;
-		log.info("Creating {} Values...", format.format(size));
-		for (int i = 0; i < size; i++) {
-			Value value = Value.forStorage(getRandomValue());
-			numBytes += value.size();
-			values[i] = value;
-		}
-
-		String filePath = "test/value_test_benchmark.tst";
-		RandomAccessFile file = new RandomAccessFile(filePath, "rw");
-		Timer t = new Timer();
-		t.start();
-		log.info("Writing {} total BYTES to {}...", format.format(numBytes), filePath);
-		for (int i = 0; i < size; i++) {
-			Value value = values[i];
-			value.writeTo(file.getChannel());
-		}
-		long elapsed = t.stop(unit);
-		long bytesPerUnit = numBytes / elapsed;
-		
-		log.info("Total write time was {} {} with {} bytes written per {}",
-				format.format(elapsed), unit, format.format(bytesPerUnit),
-				unit.toString().substring(0, unit.toString().length() - 1));
-	}
-
-	private Object getRandomValue() {
-		int seed = rand.nextInt();
-		if(seed % 5 == 0) {
-			return getRandomValueBoolean();
-		}
-		else if(seed % 2 == 0) {
-			return getRandomValueNumber();
-		}
-		else {
-			return getRandomValueString();
-		}
-	}
-
-	private Boolean getRandomValueBoolean() {
-		int seed = rand.nextInt();
-		if(seed % 2 == 0) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	private Number getRandomValueNumber() {
-		int seed = rand.nextInt();
-		if(seed % 5 == 0) {
-			return rand.nextFloat();
-		}
-		else if(seed % 4 == 0) {
-			return rand.nextDouble();
-		}
-		else if(seed % 3 == 0) {
-			return rand.nextLong();
-		}
-		else {
-			return rand.nextInt();
-		}
-	}
-
-	private String getRandomValueString() {
-		return strand.nextStringAllowDigits();
-	}
+	// @Test
+	// public void testBenchmark() throws IOException {
+	// log.info("Running testBenchmark");
+	// NumberFormat format = NumberFormat.getNumberInstance();
+	// format.setGroupingUsed(true);
+	//
+	// //Test write to disk time
+	// int size = 100000;
+	// TimeUnit unit = TimeUnit.MILLISECONDS;
+	//
+	// Value[] values = new Value[size];
+	// long numBytes = 0;
+	// log.info("Creating {} Values...", format.format(size));
+	// for (int i = 0; i < size; i++) {
+	// Value value = Value.forStorage(getRandomValue());
+	// numBytes += value.size();
+	// values[i] = value;
+	// }
+	//
+	// String filePath = "test/value_test_benchmark.tst";
+	// RandomAccessFile file = new RandomAccessFile(filePath, "rw");
+	// Timer t = new Timer();
+	// t.start();
+	// log.info("Writing {} total BYTES to {}...", format.format(numBytes),
+	// filePath);
+	// for (int i = 0; i < size; i++) {
+	// Value value = values[i];
+	// value.writeTo(file.getChannel());
+	// }
+	// long elapsed = t.stop(unit);
+	// long bytesPerUnit = numBytes / elapsed;
+	//
+	// log.info("Total write time was {} {} with {} bytes written per {}",
+	// format.format(elapsed), unit, format.format(bytesPerUnit),
+	// unit.toString().substring(0, unit.toString().length() - 1));
+	// }
 
 }

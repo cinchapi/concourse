@@ -59,15 +59,15 @@ import com.google.common.collect.Lists;
  * <p>
  * <h2>Storage Requirements</h2>
  * <ul>
- * <li>The size required for the <code>state</code> is equal to the sum of the
- * size of all the values contained within plus 4 additional bytes. A
- * <code>state</code> (and therefore a cell) can hold at most 44,739,242 values
- * at once, but in actuality this limit is much lower.</li>
- * <li>The size required for the <code>history</code> is 4 bytes plus the
- * summation of the size of each value multiplied by the number of times the
- * value was added plus that to the number of times the value was removed. A
- * history can hold at most 44,739,242 revisions, but in actuality this limit is
- * much lower.</li>
+ * <li>The size required for the {@code state} is equal to the sum of the size
+ * of all the values contained within plus 4 additional bytes. A {@code state}
+ * (and therefore a cell) can hold at most 44,739,242 values at once, but in
+ * actuality this limit is much lower.</li>
+ * <li>The size required for the {@code history} is 4 bytes plus the summation
+ * of the size of each value multiplied by the number of times the value was
+ * added plus that to the number of times the value was removed. A history can
+ * hold at most 44,739,242 revisions, but in actuality this limit is much lower.
+ * </li>
  * </ul>
  * </p>
  * <p>
@@ -78,12 +78,12 @@ import com.google.common.collect.Lists;
  * @author jnelson
  * @since 1.0
  */
-public class Cell implements FileChannelPersistable, Locatable {
+public class Cell implements Persistable, Locatable {
 
 	/**
-	 * Return the cell represented by <code>bytes</code>. Use this method when
+	 * Return the cell represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
-	 * <code>bytes</code> was generated using {@link #getBytes()}.
+	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
 	 * @return the value
@@ -107,8 +107,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Return a new cell instance at the intersection of <code>row</code> and
-	 * <code>column</code>.
+	 * Return a new cell instance at the intersection of {@code row} and
+	 * {@code column}.
 	 * 
 	 * @param row
 	 * @param column
@@ -122,8 +122,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Read the next cell from <code>channel</code> assuming that it conforms to
-	 * the specification described in the {@link #asByteBuffer()} method.
+	 * Read the next cell from {@code channel} assuming that it conforms to the
+	 * specification described in the {@link #asByteBuffer()} method.
 	 * 
 	 * @param buffer
 	 * @return the next {@link Cell} in the channel.
@@ -178,9 +178,9 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Add <code>value</code>, for which {@link Value#isForStorage()} must be
-	 * <code>true</code>, to the cell. This will modify the <code>state</code>
-	 * and log <code>value</code> in the <code>history</code>.
+	 * Add {@code value}, for which {@link Value#isForStorage()} must be
+	 * {@code true}, to the cell. This will modify the {@code state} and log
+	 * {@code value} in the {@code history}.
 	 * 
 	 * @param value
 	 */
@@ -195,10 +195,10 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Return <code>true</code> if <code>value</code> is found in the cell.
+	 * Return {@code true} if {@code value} is found in the cell.
 	 * 
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is contained.
+	 * @return {@code true} if {@code value} is contained.
 	 */
 	public synchronized final boolean contains(Value value) {
 		return state.contains(value);
@@ -231,8 +231,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Returns a 32 byte hash that represents the <code>row</code> and
-	 * <code>column</code> that house the cell.
+	 * Returns a 32 byte hash that represents the {@code row} and {@code column}
+	 * that house the cell.
 	 */
 	@Override
 	public byte[] getLocator() {
@@ -249,7 +249,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Return all the values contained <code>at</code> the specified timestamp.
+	 * Return all the values contained {@code at} the specified timestamp.
 	 * 
 	 * @param at
 	 * @return the values.
@@ -276,18 +276,18 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Return <code>true</code> if the cell is empty.
+	 * Return {@code true} if the cell is empty.
 	 * 
-	 * @return <code>true</code> if the size is 0.
+	 * @return {@code true} if the size is 0.
 	 */
 	public synchronized boolean isEmpty() {
 		return state.size() == 0;
 	}
 
 	/**
-	 * Remove <code>value</code>, for which {@link Value#isForStorage()} must be
-	 * <code>true</code>, from the cell. This will modify the <code>state</code>
-	 * and log <code>value</code> in the <code>history</code>.
+	 * Remove {@code value}, for which {@link Value#isForStorage()} must be
+	 * {@code true}, from the cell. This will modify the {@code state} and log
+	 * {@code value} in the {@code history}.
 	 * 
 	 * @param value
 	 */
@@ -304,7 +304,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	}
 
 	/**
-	 * Iterate through and remove all of the <code>values</code> from the cell.
+	 * Iterate through and remove all of the {@code values} from the cell.
 	 */
 	public synchronized void removeAll() {
 		Iterator<Value> it = getValues().iterator();
@@ -360,7 +360,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 	 */
 	private static class AbstractValueList implements
 			IterableByteSequences,
-			FileChannelPersistable {
+			Persistable {
 
 		protected List<Value> values;
 
@@ -374,7 +374,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		/**
 		 * Construct a new instance using a byte buffer assuming that the
-		 * <code>bytes</code> conform to the rules for a
+		 * {@code bytes} conform to the rules for a
 		 * {@link IterableByteSequences}.
 		 * 
 		 * @param bytes
@@ -473,9 +473,9 @@ public class Cell implements FileChannelPersistable, Locatable {
 	private static final class History extends AbstractValueList {
 
 		/**
-		 * Return the history represented by <code>bytes</code>. Use this method
-		 * when reading and reconstructing from a file. This method assumes that
-		 * <code>bytes</code> was generated using {@link #getBytes()}.
+		 * Return the history represented by {@code bytes}. Use this method when
+		 * reading and reconstructing from a file. This method assumes that
+		 * {@code bytes} was generated using {@link #getBytes()}.
 		 * 
 		 * @param bytes
 		 * @return the history
@@ -503,7 +503,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		/**
 		 * Construct a new instance using a byte buffer assuming that the
-		 * <code>bytes</code> conform to the rules for a
+		 * {@code bytes} conform to the rules for a
 		 * {@link IterableByteSequences}.
 		 * 
 		 * @param bytes
@@ -522,8 +522,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Count the total number of times that <code>value</code> appears in
-		 * the history.
+		 * Count the total number of times that {@code value} appears in the
+		 * history.
 		 * 
 		 * @param value
 		 * @return the number of appearances.
@@ -534,9 +534,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Count the number of times that <code>value</code> appears in the
-		 * history with a timestamp that is less than or equal to
-		 * <code>at</code>.
+		 * Count the number of times that {@code value} appears in the history
+		 * with a timestamp that is less than or equal to {@code at}.
 		 * 
 		 * @param value
 		 * @param at
@@ -552,12 +551,12 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Return <code>true</code> if <code>value</code> existed in the cell
-		 * prior <code>at</code> the specified timestamp (meaning there is an
-		 * odd number of appearances for <code>value</code> in the history).
+		 * Return {@code true} if {@code value} existed in the cell prior
+		 * {@code at} the specified timestamp (meaning there is an odd number of
+		 * appearances for {@code value} in the history).
 		 * 
 		 * @param value
-		 * @return <code>true</code> if <code>value</code> exists.
+		 * @return {@code true} if {@code value} exists.
 		 */
 		@SuppressWarnings("unused")
 		public boolean exists(Value value) { // this method might be useful
@@ -566,20 +565,20 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Return <code>true</code> if <code>value</code> existed in the cell
-		 * prior <code>at</code> the specified timestamp (meaning there is an
-		 * odd number of appearances for <code>value</code> in the history).
+		 * Return {@code true} if {@code value} existed in the cell prior
+		 * {@code at} the specified timestamp (meaning there is an odd number of
+		 * appearances for {@code value} in the history).
 		 * 
 		 * @param value
 		 * @param before
-		 * @return <code>true</code> if <code>value</code> existed.
+		 * @return {@code true} if {@code value} existed.
 		 */
 		public boolean exists(Value value, long at) {
 			return Numbers.isOdd(count(value, at));
 		}
 
 		/**
-		 * Log a revision for <code>value</code>
+		 * Log a revision for {@code value}
 		 * 
 		 * @param value
 		 */
@@ -589,7 +588,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Return a new list of revisions that were present <code>at</code> the
+		 * Return a new list of revisions that were present {@code at} the
 		 * specified timestamp.
 		 * 
 		 * @param to
@@ -618,8 +617,8 @@ public class Cell implements FileChannelPersistable, Locatable {
 	private static final class State extends AbstractValueList {
 
 		/**
-		 * Return the state represented by <code>bytes</code>. Use this method
-		 * when reading and reconstructing from a file.
+		 * Return the state represented by {@code bytes}. Use this method when
+		 * reading and reconstructing from a file.
 		 * 
 		 * @param bytes
 		 * @return the state
@@ -657,7 +656,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		/**
 		 * Construct a new instance using a byte buffer assuming that the
-		 * <code>bytes</code> conform to the rules for a
+		 * {@code bytes} conform to the rules for a
 		 * {@link IterableByteSequences}.
 		 * 
 		 * @param bytes
@@ -692,32 +691,32 @@ public class Cell implements FileChannelPersistable, Locatable {
 		}
 
 		/**
-		 * Return <code>true</code> if <code>value</code> is not contained in
-		 * the state and can therefore be added.
+		 * Return {@code true} if {@code value} is not contained in the state
+		 * and can therefore be added.
 		 * 
 		 * @param value
-		 * @return <code>true</code> if <code>value</code> can be added.
+		 * @return {@code true} if {@code value} can be added.
 		 */
 		public boolean canBeAdded(Value value) {
 			return !contains(value);
 		}
 
 		/**
-		 * Return <code>true</code> if <code>value</code> is contained in the
-		 * state and can therefore be removed.
+		 * Return {@code true} if {@code value} is contained in the state and
+		 * can therefore be removed.
 		 * 
 		 * @param value
-		 * @return <code>true</code> if <code>value</code> can be removed.
+		 * @return {@code true} if {@code value} can be removed.
 		 */
 		public boolean canBeRemoved(Value value) {
 			return contains(value);
 		}
 
 		/**
-		 * Return <code>true</code> if the state contains <code>value</code>.
+		 * Return {@code true} if the state contains {@code value}.
 		 * 
 		 * @param value
-		 * @return <code>true</code> if the value is contained.
+		 * @return {@code true} if the value is contained.
 		 */
 		public boolean contains(Value value) {
 			return values.contains(value);
@@ -766,7 +765,7 @@ public class Cell implements FileChannelPersistable, Locatable {
 
 		/**
 		 * Return the 32 byte locator value that corresponds to the cell at the
-		 * intersection of <code>row</code> and <code>column</code>.
+		 * intersection of {@code row} and {@code column}.
 		 * 
 		 * @param row
 		 * @param column

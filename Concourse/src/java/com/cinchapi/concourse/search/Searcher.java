@@ -26,8 +26,8 @@ import com.cinchapi.concourse.db.Key;
 public interface Searcher {
 
 	/**
-	 * Return the set of <code>keys</code> for the rows containing
-	 * <code>query</code> in any column.
+	 * Return the set of {@code keys} for the rows containing
+	 * {@code query} in any column.
 	 * 
 	 * @param query
 	 * @return the result set.
@@ -35,8 +35,8 @@ public interface Searcher {
 	public Set<Key> search(String query);
 
 	/**
-	 * Return the set of <code>keys</code> for the rows containing
-	 * <code>query</code> in <code>column</code>.
+	 * Return the set of {@code keys} for the rows containing
+	 * {@code query} in {@code column}.
 	 * 
 	 * @param query
 	 * @return the result set.
@@ -44,8 +44,8 @@ public interface Searcher {
 	public Set<Key> search(String query, String column);
 
 	/**
-	 * Return the set of <code>columns</code> in <code>row</code> that contain
-	 * <code>query</code>.
+	 * Return the set of {@code columns} in {@code row} that contain
+	 * {@code query}.
 	 * 
 	 * @param query
 	 * @return the result set.

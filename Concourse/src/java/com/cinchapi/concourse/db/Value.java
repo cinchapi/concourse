@@ -23,7 +23,6 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.util.ByteBuffers;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.Time;
-import com.cinchapi.util.Hash;
 import com.cinchapi.util.ObjectReuseCache;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -33,16 +32,16 @@ import com.google.common.primitives.Longs;
  * <p>
  * An immutable typed quantity that is {@link Locatable} using a
  * timestamp<sup>1</sup> and contained within a {@link Cell}. Both
- * <code>naturally</code> sortable in descending order by timestamp and
- * <code>logically</code> sortable in ascending order by quantity( regardless of
- * <code>type</code>). This is the most basic element of data in
- * {@link Concourse}. A single value cannot be larger than 2GB. <br>
+ * {@code naturally} sortable in descending order by timestamp and
+ * {@code logically} sortable in ascending order by quantity( regardless of
+ * {@code type}). This is the most basic element of data in {@link Concourse}. A
+ * single value cannot be larger than 2GB. <br>
  * <br>
  * <sup>1</sup> - No two values can have the same timestamp
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
- * Each value requires at least 48 bytes of space. Additional space requirements
+ * Each value requires at least 24 bytes of space. Additional space requirements
  * are as follows:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
@@ -51,8 +50,8 @@ import com.google.common.primitives.Longs;
  * <li>INTEGER requires an additional 4 bytes</li>
  * <li>LONG requires an additional 8 bytes</li>
  * <li>RELATION requires an additional 8 bytes</li>
- * <li>STRING requires an additional 1-4 bytes for every character (uses UTF-8)
- * encoding</li>
+ * <li>STRING requires an additional 1-4 bytes for every character (uses UTF-8
+ * encoding)</li>
  * </ul>
  * </p>
  * 
@@ -60,15 +59,12 @@ import com.google.common.primitives.Longs;
  * @since 1.0
  */
 @Immutable
-public final class Value implements
-		Comparable<Value>,
-		FileChannelPersistable,
-		Locatable {
+public final class Value implements Comparable<Value>, Persistable {
 
 	/**
-	 * Return the value represented by <code>bytes</code>. Use this method when
+	 * Return the value represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
-	 * <code>bytes</code> was generated using {@link #getBytes()}.
+	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
 	 * @return the value
@@ -76,10 +72,6 @@ public final class Value implements
 	public static Value fromByteSequence(ByteBuffer bytes) {
 		long timestamp = bytes.getLong();
 		Type type = Type.values()[bytes.getInt()];
-
-		byte[] locator = new byte[32];
-		bytes.get(locator);
-
 		int size = bytes.getInt() - fixedSizeInBytes;
 
 		byte[] qty = new byte[size];
@@ -98,20 +90,9 @@ public final class Value implements
 	 * @return the new instance.
 	 */
 	public static Value forStorage(Object quantity) {
-		return Value.forStorage(quantity, Time.now());
-	}
-
-	/**
-	 * Return a value that is appropriate for storage.
-	 * 
-	 * @param quantity
-	 * @param timestamp
-	 * @return the new instance.
-	 */
-	public static Value forStorage(Object quantity, long timestamp) {
-		return new Value(quantity, timestamp); // do not use cache because
-												// forStorage values must have
-												// a unique timestamp and will
+		return new Value(quantity, Time.now()); // do not use cache because
+												// forStorage values must have a
+												// unique timestamp and will
 												// thus never be duplicated
 	}
 
@@ -133,8 +114,8 @@ public final class Value implements
 	}
 
 	/**
-	 * Read the next value from <code>channel</code> assuming that it conforms
-	 * to the specification described in the {@link #asByteBuffer()} method.
+	 * Read the next value from {@code channel} assuming that it conforms to the
+	 * specification described in the {@link #asByteBuffer()} method.
 	 * 
 	 * @param buffer
 	 * @return the next {@link Value} in the channel.
@@ -143,7 +124,6 @@ public final class Value implements
 		ByteBuffer buffers[] = new ByteBuffer[4];
 		buffers[0] = ByteBuffer.allocate(8); // timestamp
 		buffers[1] = ByteBuffer.allocate(4); // type
-		buffers[2] = ByteBuffer.allocate(32); // locator
 		buffers[3] = ByteBuffer.allocate(4); // size
 		channel.read(buffers);
 
@@ -163,9 +143,9 @@ public final class Value implements
 	}
 
 	/**
-	 * Write the value to a writable <code>channel</code> and close it
-	 * afterwards. This method will acquire a lock over the region from the
-	 * channels current position plus the {@link #size()} of the value.
+	 * Write the value to a writable {@code channel} and close it afterwards.
+	 * This method will acquire a lock over the region from the channels current
+	 * position plus the {@link #size()} of the value.
 	 * 
 	 * @param channel
 	 * @param value
@@ -178,7 +158,7 @@ public final class Value implements
 
 	private static final ObjectReuseCache<Value> cache = new ObjectReuseCache<Value>();
 	private static final int fixedSizeInBytes = (2 * (Integer.SIZE / 8))
-			+ (Long.SIZE / 8) + 32;
+			+ (Long.SIZE / 8);
 	private static final int maxQuantitySizeInBytes = Integer.MAX_VALUE
 			- fixedSizeInBytes; // Max size is limited to about 2GB
 								// because size is stored
@@ -193,7 +173,6 @@ public final class Value implements
 	private final ByteBuffer quantity;
 	private final Type type;
 	private final long timestamp;
-	private final byte[] locator; // SHA-256 hash (32 bytes)
 	private final int size;
 	private transient final ByteBuffer buffer;
 
@@ -211,8 +190,6 @@ public final class Value implements
 		this.quantity = quantity;
 		this.type = type;
 		this.timestamp = timestamp;
-		this.locator = Hash.sha256(getQuantityBuffer().array(), ByteBuffers
-				.toByteBuffer(this.type.ordinal()).array());
 		this.size = getQuantityBuffer().capacity() + fixedSizeInBytes;
 		this.buffer = asByteBuffer();
 	}
@@ -221,7 +198,7 @@ public final class Value implements
 	 * <p>
 	 * Construct a new <em>unstorable</em> instance for use with non-storing
 	 * methods which typically use {@link #equals(Object)} or a
-	 * <code>timestamp</code> ignoring {@link Comparator}.
+	 * {@code timestamp} ignoring {@link Comparator}.
 	 * </p>
 	 * <p>
 	 * <strong>Note:</strong> The constructed object is <strong>not</strong>
@@ -236,7 +213,7 @@ public final class Value implements
 
 	/**
 	 * Construct a new instance for use with storing methods that sort based on
-	 * <code>timestamp</code>.
+	 * {@code timestamp}.
 	 * 
 	 * @param quantity
 	 * @param timestamp
@@ -258,13 +235,13 @@ public final class Value implements
 	}
 
 	/**
-	 * Determine if the comparison to <code>o</code> should be done naturally or
-	 * <code>logically</code>.
+	 * Determine if the comparison to {@code o} should be done naturally or
+	 * {@code logically}.
 	 * 
 	 * @param o
 	 * @param logically
-	 *            if <code>true</code> the value based comparison occurs,
-	 *            otherwise based on timestamp/equality
+	 *            if {@code true} the value based comparison occurs, otherwise
+	 *            based on timestamp/equality
 	 * @return a negative integer, zero, or a positive integer as this object is
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
@@ -309,9 +286,8 @@ public final class Value implements
 	}
 
 	/**
-	 * Equality is only based on <code>quantity</code> and <code>type</code>, as
-	 * to allow objects with different timestamps to be considered equal if
-	 * necessary.
+	 * Equality is only based on {@code quantity} and {@code type}, as to allow
+	 * objects with different timestamps to be considered equal if necessary.
 	 */
 	@Override
 	public boolean equals(Object obj) {
@@ -323,25 +299,8 @@ public final class Value implements
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.db.Locatable#getLocator()
-	 */
 	/**
-	 * Returns a 32 byte hash that represents the {@link #quantity} and
-	 * {@link #type}. Locators are defined per quantity/type and not value, so
-	 * two values will return the same locator if they express the same
-	 * quantity/type. This uses the same semantics as the
-	 * {@link #equals(Object)} method.
-	 */
-	@Override
-	public byte[] getLocator() {
-		return locator;
-	}
-
-	/**
-	 * Return an object that represents the encapsulated <code>quantity</code>.
+	 * Return an object that represents the encapsulated {@code quantity}.
 	 * 
 	 * @return the value.
 	 */
@@ -350,11 +309,11 @@ public final class Value implements
 	}
 
 	/**
-	 * Return the associated <code>timestamp</code>. This is guaranteed to be
-	 * unique amongst forStorage values so it a de facto identifier. For
-	 * notForStorage values, the timestamp is always {@link #nil}.
+	 * Return the associated {@code timestamp}. This is guaranteed to be unique
+	 * amongst forStorage values so it a de facto identifier. For notForStorage
+	 * values, the timestamp is always {@link #nil}.
 	 * 
-	 * @return the <code>timestamp</code>
+	 * @return the {@code timestamp}
 	 */
 	public long getTimestamp() {
 		return timestamp;
@@ -388,8 +347,7 @@ public final class Value implements
 	 */
 	@Override
 	public byte[] getBytes() {
-		this.buffer.rewind();
-		return this.buffer.array();
+		return getBuffer().array();
 	}
 
 	@Override
@@ -398,21 +356,20 @@ public final class Value implements
 	}
 
 	/**
-	 * Return <code>true</code> if the value is suitable for use in storage
+	 * Return {@code true} if the value is suitable for use in storage
 	 * functions.
 	 * 
-	 * @return <code>true</code> of {@link Value#isNotForStorage()} is
-	 *         <code>false</code>.
+	 * @return {@code true} of {@link Value#isNotForStorage()} is {@code false}.
 	 */
 	public boolean isForStorage() {
 		return !isNotForStorage();
 	}
 
 	/**
-	 * Return <code>true</code> if the value is not suitable for storage
-	 * functions and is only suitable for comparisons.
+	 * Return {@code true} if the value is not suitable for storage functions
+	 * and is only suitable for comparisons.
 	 * 
-	 * @return <code>true</code> if the timestamp is null.
+	 * @return {@code true} if the timestamp is null.
 	 */
 	public boolean isNotForStorage() {
 		return timestamp == nil;
@@ -449,19 +406,29 @@ public final class Value implements
 	 * @return a byte buffer.
 	 */
 	private ByteBuffer asByteBuffer() {
-		ByteBuffer buffer = ByteBuffer.allocate(size());
+		ByteBuffer buffer = ByteBuffer.allocate(this.size);
 		buffer.put(ByteBuffers.toByteBuffer(timestamp));
 		buffer.put(ByteBuffers.toByteBuffer(type.ordinal()));
-		buffer.put(ByteBuffer.wrap(locator));
-		buffer.put(ByteBuffers.toByteBuffer(size()));
+		buffer.put(ByteBuffers.toByteBuffer(this.size));
 		buffer.put(getQuantityBuffer());
 		buffer.rewind();
 		return buffer;
 	}
 
 	/**
+	 * Rewind and return {@link #buffer}. Use this method instead of accessing
+	 * the variable directly to ensure that it is rewound.
+	 * 
+	 * @return
+	 */
+	private ByteBuffer getBuffer() {
+		buffer.rewind();
+		return buffer;
+	}
+
+	/**
 	 * Rewind and return {@link #quantity}. Use this method instead of accessing
-	 * the variable directly.
+	 * the variable directly to ensure that it is rewound.
 	 * 
 	 * @return
 	 */
@@ -488,7 +455,7 @@ public final class Value implements
 	private static class Utilities {
 
 		/**
-		 * Return a {@link ByteBuffer} that represents <code>object</code>.
+		 * Return a {@link ByteBuffer} that represents {@code object}.
 		 * 
 		 * @param object
 		 * @return the byte buffer.
@@ -499,8 +466,8 @@ public final class Value implements
 		}
 
 		/**
-		 * Return a {@link ByteBuffer} that represents <code>object</code> of
-		 * <code>type</code>.
+		 * Return a {@link ByteBuffer} that represents {@code object} of
+		 * {@code type}.
 		 * 
 		 * @param object
 		 * @return the byte buffer.
@@ -542,8 +509,7 @@ public final class Value implements
 		}
 
 		/**
-		 * Return the object of <code>type</code> that is represted by
-		 * <code>buffer</code>
+		 * Return the object of {@code type} that is represted by {@code buffer}
 		 * 
 		 * @param buffer
 		 * @param type
@@ -581,7 +547,7 @@ public final class Value implements
 		}
 
 		/**
-		 * Determine the {@link Type} for <code>value</code>.
+		 * Determine the {@link Type} for {@code value}.
 		 * 
 		 * @param value
 		 * @return the value type.

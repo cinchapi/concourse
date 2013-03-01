@@ -40,7 +40,7 @@ public class Timer {
 
 	/**
 	 * Stop the timer now and return the amount of time measured in
-	 * <code>milliseconds</code> that has elapsed.
+	 * {@code milliseconds} that has elapsed.
 	 * 
 	 * @return the elapsed time.
 	 */
@@ -50,7 +50,7 @@ public class Timer {
 
 	/**
 	 * Stop the timer now and return the amount of time measured in
-	 * <code>unit</code> that has elapsed.
+	 * {@code unit} that has elapsed.
 	 * 
 	 * @param unit
 	 * @return the elapsed time.

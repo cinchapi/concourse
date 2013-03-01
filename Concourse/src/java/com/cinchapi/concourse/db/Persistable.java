@@ -19,44 +19,52 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 /**
- * An object that can be written to a file channel.
+ * An object that can be written to a {@link FileChannel}.
  * 
  * @author jnelson
  */
-public interface FileChannelPersistable extends ByteSized {
+public interface Persistable extends ByteSized {
 
 	/**
-	 * Write the object to a writable <code>channel</code>. This method should
+	 * Encodes the object into a sequence for the purpose of writing the bytes
+	 * to a {@link FileChannel}. This method is called from
+	 * {@link Writer#write(Persistable, FileChannel)}.
+	 */
+	@Override
+	public byte[] getBytes();
+
+	/**
+	 * Write the object to a writable {@code channel}. This method should
 	 * acquire a lock over the region from the channels current position plus
 	 * the {@link #size()} of the value. The caller is responsible for ensuring
 	 * that the channel is in the correct position before and after this method
 	 * has run. In general, call
-	 * {@link FileChannelPersistable.Writer#write(FileChannelPersistable, FileChannel)}
-	 * from this method.
+	 * {@link Persistable.Writer#write(Persistable, FileChannel)} from this
+	 * method.
 	 * 
 	 * @param channel
 	 * @throws IOException
-	 * @see {@link FileChannelPersistable.Writer#write(FileChannelPersistable, FileChannel)}
+	 * @see {@link Persistable.Writer#write(Persistable, FileChannel)}
 	 */
 	public void writeTo(FileChannel channel) throws IOException;
 
 	/**
-	 * A class that implements the
-	 * {@link FileChannelPersistable#writeTo(FileChannel)} method.
+	 * A class that implements the {@link Persistable#writeTo(FileChannel)}
+	 * method.
 	 * 
 	 * @author jnelson
 	 */
 	public class Writer {
 
 		/**
-		 * Write <code>obj</code> to <code>channel</code> in accordance with
-		 * {@link FileChannelPersistable#writeTo(FileChannel)}.
+		 * Write {@code obj} to {@code channel} in accordance with
+		 * {@link Persistable#writeTo(FileChannel)}.
 		 * 
 		 * @param obj
 		 * @param channel
 		 * @throws IOException
 		 */
-		public static void write(FileChannelPersistable obj, FileChannel channel)
+		public static void write(Persistable obj, FileChannel channel)
 				throws IOException {
 			channel.lock(channel.position(), obj.size(), false);
 			channel.write(ByteBuffer.wrap(obj.getBytes()));

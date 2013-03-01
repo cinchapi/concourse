@@ -31,9 +31,9 @@ public abstract class ConcourseTest extends TestCase {
 	protected RandomString strand = new RandomString();
 	
 	/**
-	 * Get an random <code>count</code> value for scale tests.
+	 * Get an random {@code count} value for scale tests.
 	 * @param maxCountIfLimitScaleTests
-	 * @return the <code>count</code>.
+	 * @return the {@code count}.
 	 */
 	protected int count(int maxCountIfLimitScaleTests){
 		int count = limitScaleTests() ? rand.nextInt(maxCountIfLimitScaleTests) : rand.nextInt();
@@ -41,10 +41,10 @@ public abstract class ConcourseTest extends TestCase {
 	}
 
 	/**
-	 * Return <code>true</code> if scale tests should be limited so that they
+	 * Return {@code true} if scale tests should be limited so that they
 	 * don't take a long time.
 	 * 
-	 * @return <code>true</code> if scale tests should be lmited.
+	 * @return {@code true} if scale tests should be lmited.
 	 */
 	protected abstract boolean limitScaleTests();
 

@@ -30,7 +30,7 @@ public interface FixedSizeIterableByteSequences extends IterableByteSequences {
 
 	/**
 	 * Return a {@link FixedSizeByteSequencesIterator} over an array of
-	 * <code>bytes</code>.
+	 * {@code bytes}.
 	 * 
 	 * @param bytes
 	 * @return the iterator.
@@ -52,7 +52,7 @@ public interface FixedSizeIterableByteSequences extends IterableByteSequences {
 	public class FixedSizeByteSequencesIterator extends ByteSequencesIterator {
 
 		/**
-		 * Return a byte iterator over <code>bytes</code>.
+		 * Return a byte iterator over {@code bytes}.
 		 * 
 		 * @param bytes
 		 * @return the iterator.

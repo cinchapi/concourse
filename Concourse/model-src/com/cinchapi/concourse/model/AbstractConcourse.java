@@ -57,7 +57,7 @@ public abstract class AbstractConcourse implements Concourse {
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is added.
+	 * @return {@code true} if {@code value} is added.
 	 */
 	protected abstract boolean addSpi(UnsignedLong row, String column,
 			ConcourseValue value);
@@ -75,7 +75,7 @@ public abstract class AbstractConcourse implements Concourse {
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if the cell exists.
+	 * @return {@code true} if the cell exists.
 	 */
 	public abstract boolean existsSpi(UnsignedLong row, String column,
 			ConcourseValue value);
@@ -112,13 +112,13 @@ public abstract class AbstractConcourse implements Concourse {
 	/**
 	 * Uses a {@link ConcourseValue} to implement the interface for
 	 * {@link #remove(UnsignedLong, String, Object)}. The implemention should
-	 * not depend on having the <code>timestamp</code> associated with the
+	 * not depend on having the {@code timestamp} associated with the
 	 * stored value.
 	 * 
 	 * @param row
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is removed.
+	 * @return {@code true} if {@code value} is removed.
 	 */
 	protected abstract boolean removeSpi(UnsignedLong row, String column,
 			ConcourseValue value);
@@ -187,7 +187,7 @@ public abstract class AbstractConcourse implements Concourse {
 	}
 
 	/**
-	 * Extract a {@link JsonElement} from <code>values</code>
+	 * Extract a {@link JsonElement} from {@code values}
 	 * 
 	 * @param values
 	 * @return the element.
@@ -207,7 +207,7 @@ public abstract class AbstractConcourse implements Concourse {
 	}
 
 	/**
-	 * Extract a {@link JsonPrimitive} from <code>value</code>.
+	 * Extract a {@link JsonPrimitive} from {@code value}.
 	 * 
 	 * @param value
 	 * @return the primitive.
@@ -240,10 +240,10 @@ public abstract class AbstractConcourse implements Concourse {
 	public static final class ConcourseValue {
 
 		/**
-		 * Return the <code>value</code> type.
+		 * Return the {@code value} type.
 		 * 
 		 * @param value
-		 * @return the type of <code>value</code>.
+		 * @return the type of {@code value}.
 		 */
 		public static Type determineType(Object value) {
 			Type type;
@@ -328,27 +328,27 @@ public abstract class AbstractConcourse implements Concourse {
 		}
 
 		/**
-		 * Return the <code>timestamp</code>.
+		 * Return the {@code timestamp}.
 		 * 
-		 * @return the <code>timestamp</code>
+		 * @return the {@code timestamp}
 		 */
 		public UnsignedLong getTimestamp() {
 			return timestamp;
 		}
 
 		/**
-		 * Return the <code>type</code>.
+		 * Return the {@code type}.
 		 * 
-		 * @return the <code>type</code>.
+		 * @return the {@code type}.
 		 */
 		public String getType() {
 			return this.type.toString();
 		}
 
 		/**
-		 * Return the <code>value</code>.
+		 * Return the {@code value}.
 		 * 
-		 * @return the <code>value</code>.
+		 * @return the {@code value}.
 		 */
 		public Object getValue() {
 			return value;

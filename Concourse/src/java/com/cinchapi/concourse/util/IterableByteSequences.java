@@ -40,7 +40,7 @@ public interface IterableByteSequences {
 
 	/**
 	 * Return a {@link ByteSequencesIterator} over an array of
-	 * <code>bytes</code>.
+	 * {@code bytes}.
 	 * 
 	 * @param bytes
 	 * @return the iterator.
@@ -60,7 +60,7 @@ public interface IterableByteSequences {
 	public class ByteSequencesIterator implements Iterator<ByteBuffer> {
 
 		/**
-		 * Return a byte iterator over <code>bytes</code>.
+		 * Return a byte iterator over {@code bytes}.
 		 * 
 		 * @param bytes
 		 * @return the iterator.
@@ -102,7 +102,7 @@ public interface IterableByteSequences {
 		}
 
 		/**
-		 * Read the next element from <code>bytes</code>.
+		 * Read the next element from {@code bytes}.
 		 */
 		protected void readNext() {
 			next = null;

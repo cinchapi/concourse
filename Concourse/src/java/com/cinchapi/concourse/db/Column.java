@@ -75,11 +75,11 @@ public final class Column {
 	}
 
 	/**
-	 * Add <code>row</code> to <code>value</code>.
+	 * Add {@code row} to {@code value}.
 	 * 
 	 * @param row
 	 * @param value
-	 * @return <code>true</code> if <code>row</code> is added.
+	 * @return {@code true} if {@code row} is added.
 	 */
 	public boolean add(Key row, Value value) {
 		Preconditions.checkNotNull(row);
@@ -99,11 +99,11 @@ public final class Column {
 	}
 
 	/**
-	 * Remove <code>row</code> from <code>value</code>.
+	 * Remove {@code row} from {@code value}.
 	 * 
 	 * @param row
 	 * @param value
-	 * @return <code>true</code> if <code>row</code> is removed.
+	 * @return {@code true} if {@code row} is removed.
 	 */
 	public boolean remove(Key row, Value value) {
 		if(values.containsKey(value) && values.get(value).remove(row)) {
@@ -120,8 +120,8 @@ public final class Column {
 	}
 
 	/**
-	 * Return the rows that satisfy <code>operator</code> in relation to
-	 * <code>value</code>.
+	 * Return the rows that satisfy {@code operator} in relation to
+	 * {@code value}.
 	 * 
 	 * @param operator
 	 * @param values
@@ -165,12 +165,12 @@ public final class Column {
 	}
 
 	/**
-	 * Remove <code>row</code> from any existing values and add <code>row</code>
-	 * to <code>value</code>.
+	 * Remove {@code row} from any existing values and add {@code row}
+	 * to {@code value}.
 	 * 
 	 * @param row
 	 * @param value
-	 * @return <code>true</code> if <code>row</code> is set.
+	 * @return {@code true} if {@code row} is set.
 	 */
 	public boolean set(Key row, Value value) {
 		Iterator<Value> it = values.keySet().iterator();

@@ -50,7 +50,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 	private Map<String, HashMap<String, HashMap<UnsignedLong, HashSet<ConcourseValue>>>> fulltext;
 
 	/**
-	 * Sorts <code>values</code> in descending order based on timestamp.
+	 * Sorts {@code values} in descending order based on timestamp.
 	 */
 	private static Comparator<ConcourseValue> descendingTimeValueComparator = new Comparator<ConcourseValue>() {
 
@@ -69,7 +69,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 	};
 
 	/**
-	 * Sorts <code>values</code> in logical order, taking into account type
+	 * Sorts {@code values} in logical order, taking into account type
 	 * differences.
 	 */
 	private static Comparator<ConcourseValue> logicalValueComparator = new Comparator<ConcourseValue>() {
@@ -108,7 +108,7 @@ public class HeapBackedConcourse extends AbstractConcourse {
 	};
 
 	/**
-	 * Sorts <code>rows</code> in descending order.
+	 * Sorts {@code rows} in descending order.
 	 */
 	private static Comparator<UnsignedLong> descendingRowComparator = new Comparator<UnsignedLong>() {
 

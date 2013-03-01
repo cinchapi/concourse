@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 public final class Row implements Locatable{
 
 	/**
-	 * Return an empty row identified by <code>key</code>.
+	 * Return an empty row identified by {@code key}.
 	 * 
 	 * @param key
 	 * @return the row.
@@ -81,11 +81,11 @@ public final class Row implements Locatable{
 	}
 
 	/**
-	 * Add <code>value</code> to the cell under <code>column</code>.
+	 * Add {@code value} to the cell under {@code column}.
 	 * 
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is added.
+	 * @return {@code true} if {@code value} is added.
 	 */
 	public boolean add(String column, Value value) {
 		Preconditions.checkArgument(!column.contains(" "),
@@ -137,7 +137,7 @@ public final class Row implements Locatable{
 	}
 
 	/**
-	 * Return the columns that had non-empty cell right before <code>at</code>.
+	 * Return the columns that had non-empty cell right before {@code at}.
 	 * 
 	 * @param at
 	 * @return the columns.
@@ -184,7 +184,7 @@ public final class Row implements Locatable{
 	}
 
 	/**
-	 * Get the cell under <code>column</code>, even if the cell is empty.
+	 * Get the cell under {@code column}, even if the cell is empty.
 	 * 
 	 * @param column
 	 * @return the cell.
@@ -200,29 +200,29 @@ public final class Row implements Locatable{
 	}
 
 	/**
-	 * Return <code>true</code> if the row is empty.
+	 * Return {@code true} if the row is empty.
 	 * 
-	 * @return <code>true</code> if there are - non-empty cells in the row.
+	 * @return {@code true} if there are - non-empty cells in the row.
 	 */
 	public boolean isEmpty() {
 		return cells.size() == 0;
 	}
 
 	/**
-	 * Return the <code>key</code> that identifies this row.
+	 * Return the {@code key} that identifies this row.
 	 * 
-	 * @return the <code>key</code>.
+	 * @return the {@code key}.
 	 */
 	public Key key() {
 		return key;
 	}
 
 	/**
-	 * Remove <code>value</code> from the the cell under <code>column</code>.
+	 * Remove {@code value} from the the cell under {@code column}.
 	 * 
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is removed.
+	 * @return {@code true} if {@code value} is removed.
 	 */
 	public boolean remove(String column, Value value) {
 		if(cells.containsKey(column)) {
@@ -251,12 +251,12 @@ public final class Row implements Locatable{
 	}
 
 	/**
-	 * Remove any existing values from the cell under <code>column</code> and
-	 * add <code>value</code> to the cell.
+	 * Remove any existing values from the cell under {@code column} and
+	 * add {@code value} to the cell.
 	 * 
 	 * @param column
 	 * @param value
-	 * @return <code>true</code> if <code>value</code> is set.
+	 * @return {@code true} if {@code value} is set.
 	 */
 	public boolean set(String column, Value value) {
 		if(cells.containsKey(column)) {
