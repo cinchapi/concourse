@@ -24,5 +24,5 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ ValueTest.class, RowKeyTest.class })
+@SuiteClasses({ ValueTest.class, KeyTest.class })
 public class DbTestSuite {}

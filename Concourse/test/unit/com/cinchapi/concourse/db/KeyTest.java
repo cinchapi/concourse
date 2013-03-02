@@ -14,43 +14,21 @@
  */
 package com.cinchapi.concourse.db;
 
-import java.util.Random;
-
 import org.junit.Test;
-
-import junit.framework.TestCase;
+import com.cinahpi.concourse.BaseTest;
 
 /**
  * Unit tests for {@link Key}.
  * 
  * @author jnelson
  */
-public final class RowKeyTest extends TestCase {
+public final class KeyTest extends BaseTest {
 
-	private static Random rand = new Random();
-
-	/**
-	 * Return a negative number.
-	 * 
-	 * @return the number.
-	 */
-	private long getNegative() {
-		return -1 * Math.abs(rand.nextLong());
-	}
-
-	/**
-	 * Return a positive number.
-	 * 
-	 * @return the number.
-	 */
-	private long getPositive() {
-		return Math.abs(rand.nextLong());
-	}
 
 	@Test
 	public void testUnsignedConstraint() {
-		long positive = getPositive();
-		long negative = getNegative();
+		long positive = randomPositiveLong();
+		long negative = randomNegativeLong();
 		Key positiveKey = Key.create(positive);
 		Key negativeKey = Key.create(negative);
 

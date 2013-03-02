@@ -31,7 +31,7 @@ import com.google.common.primitives.UnsignedLongs;
  * @author jnelson
  */
 @Immutable
-public final class Key implements Comparable<Key> {
+public final class Key implements Comparable<Key>, ByteSized {
 
 	/**
 	 * Return a row key that represents the same value as the inverse two's
@@ -90,31 +90,23 @@ public final class Key implements Comparable<Key> {
 	}
 
 	@Override
+	public byte[] getBytes() {
+		return Longs.toByteArray(key);
+	}
+
+	@Override
 	public int hashCode() {
 		return Objects.hashCode(key);
 	}
 
 	@Override
+	public int size() {
+		return Long.SIZE / 8;
+	}
+
+	@Override
 	public String toString() {
 		return prepend + UnsignedLongs.toString(key) + append;
-	}
-
-	/**
-	 * Return a byte array that represents this key.
-	 * 
-	 * @return the byte array.
-	 */
-	public byte[] getBytes() {
-		return Longs.toByteArray(key);
-	}
-
-	/**
-	 * Return a byte buffer that represents this key.
-	 * 
-	 * @return the byte buffer.
-	 */
-	public ByteBuffer getByteBuffer() {
-		return ByteBuffers.toByteBuffer(key);
 	}
 
 }
