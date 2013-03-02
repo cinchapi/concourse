@@ -158,7 +158,17 @@ public final class ByteBuffers {
 		String value = "";
 		int position = buffer.position();
 		try {
-			value = decoder.get().decode(buffer).toString();
+			value = decoder.get().decode(buffer).toString().trim(); // it is
+																	// necessary
+																	// to trim
+																	// here
+																	// because
+																	// the
+																	// decoding
+																	// picks up
+																	// trailing
+																	// whitespace
+																	// sometimes
 		}
 		catch (CharacterCodingException e) {
 			e.printStackTrace();

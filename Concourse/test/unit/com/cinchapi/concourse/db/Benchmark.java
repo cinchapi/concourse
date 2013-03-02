@@ -12,31 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.util;
-
-import com.cinchapi.util.AtomicClock;
+package com.cinchapi.concourse.db;
 
 /**
- * Time utilities.
+ * 
  * 
  * @author jnelson
  */
-public final class Time {
-
-	private static AtomicClock clock = new AtomicClock();
-
-	/**
-	 * Get the current timestamp. Use this throughout the project to make sure
-	 * that no time collisions happen.
-	 * 
-	 * @return the current timestamp.
-	 */
-	public static long now() {
-		long now;
-		synchronized (clock) {
-			now = clock.time();
-		}
-		return now;
-	}
+public @interface Benchmark {
 
 }

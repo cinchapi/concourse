@@ -19,6 +19,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.db.Value;
 import com.cinchapi.concourse.util.Time;
 import com.cinchapi.concourse.util.Timer;
 import com.cinchapi.util.RandomString;
@@ -31,7 +32,8 @@ import org.junit.Test;
  * 
  * @author jnelson
  */
-@SuppressWarnings("unused") //used by subclasses
+@SuppressWarnings("unused")
+// used by subclasses
 public abstract class BaseTest extends TestCase {
 
 	/*
@@ -41,7 +43,6 @@ public abstract class BaseTest extends TestCase {
 	 */
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	private final Random rand = new Random();
-	private final Timer timer = new Timer();
 	private final RandomString strand = new RandomString();
 
 	protected int minScaleFreq = 10;
@@ -230,12 +231,73 @@ public abstract class BaseTest extends TestCase {
 	}
 
 	/**
-	 * Return the {@link Timer}.
+	 * Return a random {@link Value} where {@link Value#isForStorage()} is
+	 * {@code true}.
 	 * 
-	 * @return the timer.
+	 * @return the value.
 	 */
-	protected final Timer timer() {
-		return timer;
+	protected Value randomValueForStorage() {
+		return new ValueBuilder().build();
+	}
+
+	/**
+	 * Return a random {@link Value} where {@link Value#isForStorage()} is
+	 * {@code false}.
+	 * 
+	 * @return the value.
+	 */
+	protected Value randomValueNotForStorage() {
+		return new ValueBuilder().forStorage(false).build();
+	}
+
+	/**
+	 * A builder for {@link Value} objects.
+	 * 
+	 * @author jnelson
+	 */
+	protected class ValueBuilder {
+
+		private Object quantity = randomObject();
+		private boolean forStorage = true;
+
+		/**
+		 * Construct a new instance.
+		 */
+		public ValueBuilder() {}
+
+		/**
+		 * Build the {@link Value}.
+		 * 
+		 * @return the value
+		 */
+		public Value build() {
+			return forStorage ? Value.forStorage(quantity) : Value
+					.notForStorage(quantity);
+		}
+
+		/**
+		 * If {@code true} then the built {@link Value} will return {@code true}
+		 * for {@link Value#isForStorage()}. Default is {@code true}.
+		 * 
+		 * @param quantity
+		 * @return this
+		 */
+		public ValueBuilder forStorage(boolean forStorage) {
+			this.forStorage = forStorage;
+			return this;
+		}
+
+		/**
+		 * Set the {@code quantity} for the {@link Value} that will be built.
+		 * Default is random.
+		 * 
+		 * @param quantity
+		 * @return this
+		 */
+		public ValueBuilder quantity(Object quantity) {
+			this.quantity = quantity;
+			return this;
+		}
 	}
 
 }

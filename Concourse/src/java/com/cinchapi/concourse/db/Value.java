@@ -30,8 +30,7 @@ import com.google.common.primitives.Longs;
 
 /**
  * <p>
- * An immutable typed quantity that is {@link Locatable} using a
- * timestamp<sup>1</sup> and contained within a {@link Cell}. Both
+ * An immutable typed quantity that is contained within a {@link Cell}. Both
  * {@code naturally} sortable in descending order by timestamp and
  * {@code logically} sortable in ascending order by quantity( regardless of
  * {@code type}). This is the most basic element of data in {@link Concourse}. A
@@ -41,8 +40,8 @@ import com.google.common.primitives.Longs;
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
- * Each value requires at least 24 bytes of space. Additional space requirements
- * are as follows:
+ * Each value requires at least {@value #MIN_SIZE} bytes of space. Additional
+ * space requirements are as follows:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
  * <li>DOUBLE requires an additional 8 bytes</li>
@@ -166,7 +165,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	private static final long nil = 0L;
 
 	/**
-	 * Every value requires a minimum of 48 bytes for storage.
+	 * Every value requires a minimum of {@value #MIN_SIZE} bytes for storage.
 	 */
 	public static final int MIN_SIZE = fixedSizeInBytes;
 
@@ -255,7 +254,8 @@ public final class Value implements Comparable<Value>, Persistable {
 						(Number) o.getQuantity());
 			}
 			else {
-				return this.toString().compareTo(o.toString());
+				return this.getQuantity().toString()
+						.compareTo(o.getQuantity().toString());
 			}
 		}
 		else {
@@ -382,7 +382,7 @@ public final class Value implements Comparable<Value>, Persistable {
 
 	@Override
 	public String toString() {
-		return getQuantity().toString();
+		return getQuantity().toString() + " [" + type.name() + "]";
 	}
 
 	@Override
@@ -509,7 +509,8 @@ public final class Value implements Comparable<Value>, Persistable {
 		}
 
 		/**
-		 * Return the object of {@code type} that is represted by {@code buffer}
+		 * Return the object of {@code type} that is represented by
+		 * {@code buffer}
 		 * 
 		 * @param buffer
 		 * @param type
