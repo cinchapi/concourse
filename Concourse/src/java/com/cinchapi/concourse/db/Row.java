@@ -32,7 +32,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.db.api.Persistable;
+import com.cinchapi.concourse.db.io.Persistable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

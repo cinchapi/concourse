@@ -47,7 +47,7 @@ import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.api.ConcourseService;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.db.Value;
-import com.cinchapi.concourse.db.api.Persistable;
+import com.cinchapi.concourse.db.io.Persistable;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

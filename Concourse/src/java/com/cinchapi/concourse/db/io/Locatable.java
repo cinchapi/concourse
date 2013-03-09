@@ -12,27 +12,45 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db.api;
+package com.cinchapi.concourse.db.io;
+
+import com.cinchapi.common.Hash;
 
 /**
- * An object that can return the number of bytes used to represent it in memory.
+ * An object that can be located using a sequence of bytes.
  * 
  * @author jnelson
  */
-public interface ByteSized {
+public interface Locatable {
 
 	/**
-	 * Return the total number of bytes used to represent this object.
+	 * Return the locator.
 	 * 
-	 * @return the number of bytes.
+	 * @return the locator.
 	 */
-	public int size();
+	public byte[] getLocator();
 
 	/**
-	 * Encodes the object into a sequence of bytes.
+	 * A utility class for creating locators.
 	 * 
-	 * @return the byte sequence.
+	 * @author jnelson
 	 */
-	public byte[] getBytes();
+	public static class Locators {
+
+		/**
+		 * The size of each {@code locator} is 32 bytes.
+		 */
+		public final static int SIZE = 32;
+
+		/**
+		 * Return a {@code locator} based on the {@code components}.
+		 * 
+		 * @param components
+		 * @return the locator
+		 */
+		public static byte[] create(byte[]... components) {
+			return Hash.sha256(components);
+		}
+	}
 
 }

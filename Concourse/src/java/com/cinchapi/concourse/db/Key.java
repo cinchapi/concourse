@@ -18,7 +18,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
-import com.cinchapi.concourse.db.api.ByteSized;
+import com.cinchapi.concourse.db.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
