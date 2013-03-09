@@ -14,12 +14,11 @@
  */
 package com.cinchapi.concourse.db;
 
-import java.nio.ByteBuffer;
-
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.util.ObjectReuseCache;
+import com.cinchapi.common.Strings;
+import com.cinchapi.common.cache.ObjectReuseCache;
+import com.cinchapi.concourse.db.api.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
@@ -40,7 +39,7 @@ public final class Key implements Comparable<Key>, ByteSized {
 	 * @param value
 	 * @return a row key.
 	 */
-	public static Key create(long value) {
+	public static Key fromLong(long value) {
 		Key key = cache.get(value);
 		if(key == null) {
 			key = new Key(value);
@@ -49,8 +48,6 @@ public final class Key implements Comparable<Key>, ByteSized {
 		return key;
 	}
 
-	private static final String append = "}";
-	private static final String prepend = "{";
 	private static final ObjectReuseCache<Key> cache = new ObjectReuseCache<Key>();
 	private final long key;
 
@@ -106,7 +103,7 @@ public final class Key implements Comparable<Key>, ByteSized {
 
 	@Override
 	public String toString() {
-		return prepend + UnsignedLongs.toString(key) + append;
+		return Strings.toString(this);
 	}
 
 }

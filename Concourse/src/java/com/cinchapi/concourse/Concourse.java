@@ -1,6 +1,15 @@
 package com.cinchapi.concourse;
 
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import com.cinchapi.concourse.api.ConcourseService;
+import com.cinchapi.concourse.commitlog.CommitLog;
+import com.cinchapi.concourse.db.Database;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -20,10 +29,11 @@ import java.util.Set;
  * <br>
  * <sup>1</sup> - You cannot write a duplicate value to a cell.
  * <h2>Data Model</h2>
- * Concourse is a big matrix where each row is a single, canonical object record
- * and each column is an attribute in the data universe. The intersection of a
- * row and column--a cell--specifies the <strong>values</strong><sup>2</sup> for
- * the relevant attribute on the relevant object.
+ * Concourse is a big matrix where each row represents a single, canonical
+ * object record and each column represents an attribute in the data universe.
+ * The intersection of a row and column--a cell--specifies the
+ * <strong>values</strong><sup>2</sup> for the relevant attribute on the
+ * relevant object.
  * <ul>
  * <li>Each value is versioned by timestamp.<sup>3</sup></li>
  * <li>Each cell sorts its values by timestamp in descending order and also
@@ -41,176 +51,146 @@ import java.util.Set;
  * node and each value in the cell formed at the intersection of the row and
  * column corresponds to an edge between the corresponding row node and column
  * node on the graph--an edge whose weight is equal to the value.
+ * 
+ * <h2>Data Processing</h2>
+ * Concourse is designed for highly efficient reads and writes.
+ * <h4>Writes</h4>
+ * Initially all data is written to an append only commit log. The commit log
+ * exists in memory and is flushed to disk periodically.
+ * <h4>Reads</h4>
+ * For reads, Concourse queries its internal database and commit log for the
+ * appropriate result sets according to their respective views of the data. The
+ * two results sets are resolved by taking their XOR (see
+ * {@link Sets#symmetricDifference(Set, Set)} before being returned.
  * </p>
+ * 
  * 
  * @author jnelson
  */
-public interface Concourse {
+public class Concourse extends ConcourseService {
+
+	private CommitLog commitLog;
+	private Database database;
 
 	/**
-	 * Add {@code value} to {@code column} in {@code row}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return {@code true} if the {@code value} is added.
+	 * <p>
+	 * Force an immediate flush of the {@code commitLog} to the permanent
+	 * {@code database}.
+	 * </p>
+	 * <p>
+	 * <strong>Note:</strong> This method is synchronized and will block so that
+	 * reads/writes do not occur simultaneously.
+	 * </p>
 	 */
-	public boolean add(long row, String column, Object value);
+	public synchronized void flush() {
+		database.flush(commitLog);
+	}
 
-	/**
-	 * Return a list of columns in {@code row}.
-	 * 
-	 * @param row
-	 * @return the set of <code>non-null<code> columns in {@code row}. A
-	 *         null return value indicates that {@link #exists(long)} for
-	 *         {@code row} is false.
-	 */
-	public Set<String> describe(long row);
+	@Override
+	protected boolean addSpi(long row, String column, Object value) {
+		flush(false);
+		ExecutorService executor = Executors.newCachedThreadPool();
 
-	/**
-	 * Return {@code true} if {@code row} exists.
-	 * 
-	 * @param row
-	 * @return {@code true} if {@link #describe(long)} for {@code row}
-	 *         is not empty.
-	 */
-	public boolean exists(long row);
-
-	/**
-	 * Return {@code true} if {@code column} exists in
-	 * {@code row}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return {@code true} if {@link #get(long, String)} for
-	 *         {@code row} and </code>column</code> is not empty.
-	 */
-	public boolean exists(long row, String column);
-
-	/**
-	 * Return {@code true} if {@code row} contains {@code value}
-	 * in {@code column}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return {@code true} if {@code value} is contained.
-	 */
-	public boolean exists(long row, String column, Object value);
-
-	/**
-	 * Return the values in {@code column} for {@code row} sorted by
-	 * timestamp.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return the result set.
-	 */
-	public Set<Object> get(long row, String column);
-
-	/**
-	 * Remove {@code value} from {@code column} in {@code row}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return {@code true} if {@code value} is removed.
-	 */
-	public boolean remove(long row, String column, Object value);
-
-	/**
-	 * Select the rows that satisify the {@code operator} in comparison to
-	 * the appropriate number of {@code values}.
-	 * 
-	 * @param column
-	 * @param operator
-	 * @param values
-	 * @return the result set.
-	 */
-	public Set<Long> select(String column, SelectOperator operator,
-			Object... values);
-
-	/**
-	 * Overwrite {@code column} in {@code row} with {@code value}
-	 * . If {@code value} is {@code null} then {@code column} is
-	 * deleted from {@code row}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return {@code true} if {@code value} is set.
-	 */
-	public boolean set(long row, String column, Object value);
-
-	/**
-	 * The operators that can be used with
-	 * {@link Concourse#select(String, SelectOperator, Object...)}.
-	 */
-	public enum SelectOperator {
-		/**
-		 * Select rows where at least one value in the column is a substring of
-		 * the query.
-		 */
-		CONTAINS("CONTAINS"),
-		/**
-		 * Select rows where at least one value in the column matches the regex
-		 * query.
-		 */
-		REGEX("REGEX"),
-		/**
-		 * Select rows where no value in the column matches the regex query.
-		 */
-		NOT_REGEX("NOT REGEX"),
-		/**
-		 * Select rows where at least one value in the column is equal to the
-		 * query.
-		 */
-		EQUALS("="),
-		/**
-		 * Select rows where no value in the column is equal to the query.
-		 */
-		NOT_EQUALS("!="),
-		/**
-		 * Select rows where at least one value in the column is greater than
-		 * the query.
-		 */
-		GREATER_THAN(">"),
-		/**
-		 * Select rows where at least one value in the column is greater than or
-		 * equal to the query.
-		 */
-		GREATER_THAN_OR_EQUALS(">="),
-		/**
-		 * Select rows where at least one value in the column is less than the
-		 * query.
-		 */
-		LESS_THAN("<"),
-		/**
-		 * Select rows where at least one value in the column is less than or
-		 * equal to the query.
-		 */
-		LESS_THAN_OR_EQUALS("<="),
-		/**
-		 * Select rows where at least one value in the column is between the
-		 * queries.
-		 */
-		BETWEEN("<>");
-
-		private String sign;
-
-		/**
-		 * Set the enum properties
-		 * 
-		 * @param sign
-		 */
-		SelectOperator(String sign) {
-			this.sign = sign;
+		Future<Boolean> clr = executor.submit(ConcurrentActions.add(commitLog,
+				row, column, value));
+		try {
+			return clr.get();
 		}
-
-		@Override
-		public String toString() {
-			return sign;
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 
+	@Override
+	protected Set<String> describeSpi(long row) {
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Set<String>> dbr = executor.submit(ConcurrentActions.describe(
+				database, row));
+		Future<Set<String>> clr = executor.submit(ConcurrentActions.describe(
+				commitLog, row));
+		try {
+			return Sets.symmetricDifference(dbr.get(), clr.get());
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return Sets.newHashSet();
+		}
+	}
+
+	@Override
+	protected boolean existsSpi(long row, String column, Object value) {
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Boolean> dbr = executor.submit(ConcurrentActions.exists(
+				database, row, column, value));
+		Future<Boolean> clr = executor.submit(ConcurrentActions.exists(
+				commitLog, row, column, value));
+		try {
+			return dbr.get() ^ clr.get();
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
+	 * Flush the {@code commitLog} to the {@code database} iff it is full or
+	 * {@code force} is {@code true}.
+	 * 
+	 * @param force
+	 */
+	protected void flush(boolean force) {
+		if(force || commitLog.isFull()) {
+			flush();
+		}
+	}
+
+	@Override
+	protected Set<Object> getSpi(long row, String column) {
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Set<Object>> dbr = executor.submit(ConcurrentActions.get(
+				database, row, column));
+		Future<Set<Object>> clr = executor.submit(ConcurrentActions.get(
+				commitLog, row, column));
+		try {
+			return Sets.symmetricDifference(dbr.get(), clr.get());
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return Sets.newHashSet();
+		}
+	}
+
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		flush(false);
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Boolean> clr = executor.submit(ConcurrentActions.remove(
+				commitLog, row, column, value));
+		try {
+			return clr.get();
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	protected Set<Long> selectSpi(String column, SelectOperator operator,
+			Object... values) {
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Set<Long>> dbr = executor.submit(ConcurrentActions.select(
+				database, column, operator, values));
+		Future<Set<Long>> clr = executor.submit(ConcurrentActions.select(
+				commitLog, column, operator, values));
+		try {
+			return Sets.symmetricDifference(dbr.get(), clr.get());
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return Sets.newHashSet();
+		}
+	}
 }

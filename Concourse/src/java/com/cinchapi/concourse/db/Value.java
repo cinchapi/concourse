@@ -20,10 +20,12 @@ import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.Numbers;
-import com.cinchapi.concourse.util.Time;
-import com.cinchapi.util.ObjectReuseCache;
+import com.cinchapi.common.Strings;
+import com.cinchapi.common.cache.ObjectReuseCache;
+import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.math.Numbers;
+import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.api.Persistable;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -40,8 +42,8 @@ import com.google.common.primitives.Longs;
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
- * Each value requires at least {@value #MIN_SIZE} bytes of space. Additional
- * space requirements are as follows:
+ * Each value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space.
+ * Additional space requirements are as follows:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
  * <li>DOUBLE requires an additional 8 bytes</li>
@@ -71,7 +73,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	public static Value fromByteSequence(ByteBuffer bytes) {
 		long timestamp = bytes.getLong();
 		Type type = Type.values()[bytes.getInt()];
-		int size = bytes.getInt() - fixedSizeInBytes;
+		int size = bytes.getInt() - FIXED_SIZE_IN_BYTES;
 
 		byte[] qty = new byte[size];
 		bytes.get(qty);
@@ -132,7 +134,7 @@ public final class Value implements Comparable<Value>, Persistable {
 
 		long timestamp = buffers[0].getLong();
 		Type type = Type.values()[buffers[1].getInt()];
-		int size = buffers[3].getInt() - fixedSizeInBytes;
+		int size = buffers[3].getInt() - FIXED_SIZE_IN_BYTES;
 
 		ByteBuffer quantity = ByteBuffer.allocate(size);
 		channel.read(quantity);
@@ -156,18 +158,19 @@ public final class Value implements Comparable<Value>, Persistable {
 	}
 
 	private static final ObjectReuseCache<Value> cache = new ObjectReuseCache<Value>();
-	private static final int fixedSizeInBytes = (2 * (Integer.SIZE / 8))
+	private static final int FIXED_SIZE_IN_BYTES = (2 * (Integer.SIZE / 8))
 			+ (Long.SIZE / 8);
-	private static final int maxQuantitySizeInBytes = Integer.MAX_VALUE
-			- fixedSizeInBytes; // Max size is limited to about 2GB
-								// because size is stored
-								// using a 4 byte signed integer
-	private static final long nil = 0L;
+	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
+			- FIXED_SIZE_IN_BYTES; // Max size is limited to about 2GB
+									// because size is stored
+									// using a 4 byte signed integer
+	private static final long NIL = 0L;
 
 	/**
-	 * Every value requires a minimum of {@value #MIN_SIZE} bytes for storage.
+	 * Every value requires a minimum of {@value #MIN_SIZE_IN_BYTES} bytes for
+	 * storage.
 	 */
-	public static final int MIN_SIZE = fixedSizeInBytes;
+	public static final int MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES;
 
 	private final ByteBuffer quantity;
 	private final Type type;
@@ -189,7 +192,7 @@ public final class Value implements Comparable<Value>, Persistable {
 		this.quantity = quantity;
 		this.type = type;
 		this.timestamp = timestamp;
-		this.size = getQuantityBuffer().capacity() + fixedSizeInBytes;
+		this.size = getQuantityBuffer().capacity() + FIXED_SIZE_IN_BYTES;
 		this.buffer = asByteBuffer();
 	}
 
@@ -207,7 +210,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * @param quantity
 	 */
 	private Value(Object quantity) {
-		this(quantity, nil);
+		this(quantity, NIL);
 	}
 
 	/**
@@ -311,7 +314,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique
 	 * amongst forStorage values so it a de facto identifier. For notForStorage
-	 * values, the timestamp is always {@link #nil}.
+	 * values, the timestamp is always {@link #NIL}.
 	 * 
 	 * @return the {@code timestamp}
 	 */
@@ -328,17 +331,11 @@ public final class Value implements Comparable<Value>, Persistable {
 		return type.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.db.ByteSized#getBytes()
-	 */
 	/**
 	 * Return a byte array that represents the value with the following order:
 	 * <ol>
 	 * <li><strong>timestamp</strong> - first 8 bytes</li>
 	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>locator</strong> - next 32 bytes</li>
 	 * <li><strong>size</strong> - next 4 bytes</li>
 	 * <li><strong>quantity</strong> - remaining bytes</li>
 	 * </ol>
@@ -372,7 +369,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * @return {@code true} if the timestamp is null.
 	 */
 	public boolean isNotForStorage() {
-		return timestamp == nil;
+		return timestamp == NIL;
 	}
 
 	@Override
@@ -382,7 +379,7 @@ public final class Value implements Comparable<Value>, Persistable {
 
 	@Override
 	public String toString() {
-		return getQuantity().toString() + " [" + type.name() + "]";
+		return Strings.toString(this);
 	}
 
 	@Override
@@ -398,7 +395,6 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * <ol>
 	 * <li><strong>timestamp</strong> - first 8 bytes</li>
 	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>locator</strong> - next 32 bytes</li>
 	 * <li><strong>size</strong> - next 4 bytes</li>
 	 * <li><strong>quantity</strong> - remaining bytes</li>
 	 * </ol>
@@ -498,9 +494,9 @@ public final class Value implements Comparable<Value>, Persistable {
 				String _object = object.toString();
 				Preconditions
 						.checkArgument(
-								_object.getBytes(ByteBuffers.charset()).length < maxQuantitySizeInBytes,
+								_object.getBytes(ByteBuffers.charset()).length < MAX_QUANTITY_SIZE_IN_BYTES,
 								"Cannot create a byte buffer for %s because it is larger than the %s maximum allowed bytes",
-								object, maxQuantitySizeInBytes);
+								object, MAX_QUANTITY_SIZE_IN_BYTES);
 				buffer = ByteBuffers.toByteBuffer(object.toString());
 				break;
 			}
@@ -537,7 +533,7 @@ public final class Value implements Comparable<Value>, Persistable {
 				object = ByteBuffers.getLong(buffer);
 				break;
 			case RELATION:
-				object = Key.create(ByteBuffers.getLong(buffer));
+				object = Key.fromLong(ByteBuffers.getLong(buffer));
 				break;
 			default:
 				object = ByteBuffers.getString(buffer);

@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.Concourse.SelectOperator;
+import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.api.Queryable.SelectOperator;
 import com.cinchapi.concourse.search.Searcher;
-import com.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

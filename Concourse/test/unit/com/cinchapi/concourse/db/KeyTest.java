@@ -29,8 +29,8 @@ public final class KeyTest extends BaseTest {
 	public void testUnsignedConstraint() {
 		long positive = randomPositiveLong();
 		long negative = randomNegativeLong();
-		Key positiveKey = Key.create(positive);
-		Key negativeKey = Key.create(negative);
+		Key positiveKey = Key.fromLong(positive);
+		Key negativeKey = Key.fromLong(negative);
 
 		// row keys should never be negative
 		assertFalse(Long.toString(positive).startsWith("-"));

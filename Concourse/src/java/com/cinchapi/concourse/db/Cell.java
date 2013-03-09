@@ -23,11 +23,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.cinchapi.concourse.util.ByteBuffers;
-import com.cinchapi.concourse.util.IterableByteSequences;
-import com.cinchapi.concourse.util.Numbers;
-import com.cinchapi.concourse.util.Time;
-import com.cinchapi.util.Hash;
+import com.cinchapi.common.Hash;
+import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.math.Numbers;
+import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.api.Locatable;
+import com.cinchapi.concourse.db.api.Persistable;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
@@ -59,16 +61,20 @@ import com.google.common.collect.Lists;
  * <p>
  * <h2>Storage Requirements</h2>
  * <ul>
- * <li>The size required for the {@code state} is equal to the sum of the size
- * of all the values contained within plus 4 additional bytes. A {@code state}
- * (and therefore a cell) can hold at most 44,739,242 values at once, but in
+ * <li>The size required for the {@code state} is the summation of the size of
+ * each values plus 4 bytes. A {@code state} (and therefore a cell) can
+ * theoretically hold up to {@value #MAX_NUM_VALUES} values at once, but in
  * actuality this limit is much lower.</li>
- * <li>The size required for the {@code history} is 4 bytes plus the summation
- * of the size of each value multiplied by the number of times the value was
- * added plus that to the number of times the value was removed. A history can
- * hold at most 44,739,242 revisions, but in actuality this limit is much lower.
- * </li>
+ * <li>The size required for the {@code history} is the product of 4 times the
+ * total number of revisions plus the summation of the size of each value
+ * multiplied by the number revisions with that value. A history can
+ * theoretically hold up to {@value #MAX_NUM_REVISIONS} revisions, but in
+ * actuality this limit is much lower.</li>
  * </ul>
+ * <strong>Note:</strong> The size of the Cell is guranteed to increase by at
+ * least the size of V for each revision involving V. Therefore, removing a
+ * value from a Cell will not reduce the size of the cell, but will
+ * <em>increase</em> it!
  * </p>
  * <p>
  * <strong>Note:</strong> All the methods in this class are synchronized to
@@ -122,6 +128,18 @@ public class Cell implements Persistable, Locatable {
 	}
 
 	/**
+	 * Return the {@code locator} for the cell at the intersection of
+	 * {@code row} and {@code column}.
+	 * 
+	 * @param row
+	 * @param column
+	 * @return the application cell locator.
+	 */
+	public static byte[] getLocatorFor(Key row, String column) {
+		return Utilities.calculateLocator(row, column);
+	}
+
+	/**
 	 * Read the next cell from {@code channel} assuming that it conforms to the
 	 * specification described in the {@link #asByteBuffer()} method.
 	 * 
@@ -157,9 +175,35 @@ public class Cell implements Persistable, Locatable {
 
 	}
 
-	private static final int fixedSizeInBytes = 2 * (Integer.SIZE / 8) + 32; // stateSize,
+	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8) + 32; // stateSize,
 																				// historySize,
 																				// locator
+
+	/**
+	 * The theoretical max number of values that can be simultaneously contained
+	 * in the cell. In actuality this limit is much lower because the size of a
+	 * value may vary widely.
+	 */
+	public static final int MAX_NUM_VALUES = State.MAX_NUM_VALUES;
+
+	/**
+	 * The theoretical max number of revisions that can occur to a cell. In
+	 * actuality this limit is much lower because the size of a value may vary
+	 * widely.
+	 */
+	public static final int MAX_NUM_REVISIONS = History.MAX_NUM_VALUES;
+
+	/**
+	 * The minimum size of a cell (e.g. the size of an empty Cell with no values
+	 * or history).
+	 */
+	public static final int MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES;
+
+	/**
+	 * The maximum allowable size of a cell.
+	 */
+	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
+
 	private final byte[] locator; // SHA-256 hash (32 bytes)
 	private State state;
 	private History history;
@@ -315,7 +359,7 @@ public class Cell implements Persistable, Locatable {
 
 	@Override
 	public synchronized int size() {
-		return state.size() + history.size() + fixedSizeInBytes;
+		return state.size() + history.size() + FIXED_SIZE_IN_BYTES;
 	}
 
 	@Override
@@ -354,7 +398,8 @@ public class Cell implements Persistable, Locatable {
 	}
 
 	/**
-	 * The base class for the {@link Cell} elements that hold a list of values.
+	 * The base class for the {@link Cell} elements that hold a List of values.
+	 * The list is limited to a size of {@value #MAX_SIZE_IN_BYTES} bytes.
 	 * 
 	 * @author jnelson
 	 */
@@ -362,6 +407,9 @@ public class Cell implements Persistable, Locatable {
 			IterableByteSequences,
 			Persistable {
 
+		protected static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
+		protected static final int MAX_NUM_VALUES = MAX_SIZE_IN_BYTES
+				/ (4 + Value.MIN_SIZE_IN_BYTES);
 		protected List<Value> values;
 
 		/**
@@ -772,7 +820,7 @@ public class Cell implements Persistable, Locatable {
 		 * @return the applicable locator.
 		 */
 		private static byte[] calculateLocator(Key row, String column) {
-			return Hash.sha256(row.getBytes(),
+			return Locators.create(row.getBytes(),
 					column.getBytes(ByteBuffers.charset()));
 		}
 	}

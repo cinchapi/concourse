@@ -19,13 +19,17 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.RandomString;
+import com.cinchapi.common.time.StopWatch;
+import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.Cell;
+import com.cinchapi.concourse.db.Key;
+import com.cinchapi.concourse.db.Row;
 import com.cinchapi.concourse.db.Value;
-import com.cinchapi.concourse.util.Time;
-import com.cinchapi.concourse.util.Timer;
-import com.cinchapi.util.RandomString;
 
 import junit.framework.TestCase;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Base class for all Concourse related unit tests.
@@ -102,6 +106,45 @@ public abstract class BaseTest extends TestCase {
 	 */
 	protected void log(String format, Object... arguments) {
 		log.info(format, arguments);
+	}
+
+	protected void mockValueForStorage() {
+		Value v = Mockito.mock(Value.class);
+		long timestamp = Time.now();
+		Object quantity = randomObject();
+		Mockito.when(v.getQuantity()).thenReturn(quantity);
+		Mockito.when(v.getTimestamp()).thenReturn(timestamp);
+		Mockito.when(v.isForStorage()).thenReturn(true);
+	}
+
+	/**
+	 * Return a random {@link Key}.
+	 * 
+	 * @return the key
+	 */
+	protected Key randomKey() {
+		return Key.fromLong(randomLong());
+	}
+
+	/**
+	 * Return a new {@link Cell} at a random {@code row} and {@code column}.
+	 * 
+	 * @return the cell
+	 */
+	protected Cell randomNewCell() {
+		Key row = randomKey();
+		String column = randomString();
+		return Cell.newInstance(row, column);
+	}
+
+	/**
+	 * Return a new {@link Row} with a random {@code key}.
+	 * 
+	 * @return the row
+	 */
+	protected Row randomNewRow() {
+		Key key = randomKey();
+		return Row.newInstance(key);
 	}
 
 	/**

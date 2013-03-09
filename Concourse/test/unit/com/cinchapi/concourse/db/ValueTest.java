@@ -125,7 +125,7 @@ public class ValueTest extends BaseTest {
 		assertEquals(s1.compareTo(s2), new ValueBuilder().quantity(s1).build()
 				.compareToLogically(new ValueBuilder().quantity(s2).build()));
 
-		// TODO logical comparison regardless of storage type
+		// logical comparison regardless of storage type
 		Value v1 = randomValueForStorage();
 		Value v2 = randomValueForStorage();
 		Value v2nfs = new ValueBuilder().quantity(v2.getQuantity())
@@ -216,13 +216,14 @@ public class ValueTest extends BaseTest {
 		Value floatVal = new ValueBuilder().quantity(randomFloat()).build();
 		Value stringVal = new ValueBuilder().quantity(randomString()).build();
 		Value boolVal = new ValueBuilder().quantity(randomBoolean()).build();
-		// TODO make a mock row and test for relation type
+		Value keyVal = new ValueBuilder().quantity(randomKey()).build();
 		assertEquals(Value.Type.INTEGER.toString(), intVal.getType());
 		assertEquals(Value.Type.LONG.toString(), longVal.getType());
 		assertEquals(Value.Type.DOUBLE.toString(), doubleVal.getType());
 		assertEquals(Value.Type.FLOAT.toString(), floatVal.getType());
 		assertEquals(Value.Type.STRING.toString(), stringVal.getType());
 		assertEquals(Value.Type.BOOLEAN.toString(), boolVal.getType());
+		assertEquals(Value.Type.RELATION.toString(), keyVal.getType());
 	}
 
 	@Test
