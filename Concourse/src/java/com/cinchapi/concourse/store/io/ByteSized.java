@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.io;
+package com.cinchapi.concourse.store.io;
 
 /**
  * An object that can return the number of bytes used to represent it in memory.

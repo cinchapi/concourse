@@ -12,15 +12,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse;
+package com.cinchapi.concourse.store;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.api.Queryable.SelectOperator;
+import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.api.Queryable.SelectOperator;
 
 /**
  * Contains various callables and runnables for concurrency in {@link Concourse}
@@ -302,7 +302,7 @@ public class ConcurrentActions {
 
 	/**
 	 * Execute the
-	 * {@link ConcourseService#select(String, com.cinchapi.concourse.api.Queryable.SelectOperator, Object...)}
+	 * {@link ConcourseService#select(String, com.cinchapi.concourse.store.api.Queryable.SelectOperator, Object...)}
 	 * method.
 	 * 
 	 * @author jnelson

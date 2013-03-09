@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.db.Cell;
-import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.Row;
-import com.cinchapi.concourse.db.Value;
+import com.cinchapi.concourse.store.db.Cell;
+import com.cinchapi.concourse.store.db.Key;
+import com.cinchapi.concourse.store.db.Row;
+import com.cinchapi.concourse.store.db.Value;
 
 import junit.framework.TestCase;
 import org.junit.Test;

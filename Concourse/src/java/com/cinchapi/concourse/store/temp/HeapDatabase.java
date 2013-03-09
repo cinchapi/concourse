@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.temp;
+package com.cinchapi.concourse.store.temp;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -26,9 +26,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.Value;
+import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.db.Key;
+import com.cinchapi.concourse.store.db.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -400,7 +400,7 @@ public class HeapDatabase extends ConcourseService {
 
 	/**
 	 * Add indexes for the commit to allow for more efficient
-	 * {@link #select(String, com.cinchapi.concourse.api.Queryable.SelectOperator, Object...)}
+	 * {@link #select(String, com.cinchapi.concourse.store.api.Queryable.SelectOperator, Object...)}
 	 * operations.
 	 * 
 	 * @param commit

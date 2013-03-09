@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.store.db;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,7 +32,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.io.Persistable;
+import com.cinchapi.concourse.store.io.Persistable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

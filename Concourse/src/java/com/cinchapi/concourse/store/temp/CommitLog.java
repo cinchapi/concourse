@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.temp;
+package com.cinchapi.concourse.store.temp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
-import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.io.Persistable;
+import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.io.Persistable;
 import com.google.common.base.Preconditions;
 
 /**

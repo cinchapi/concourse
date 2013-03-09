@@ -12,12 +12,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
+package com.cinchapi.concourse.store.search;
+
+import com.cinchapi.concourse.store.db.Key;
+import com.cinchapi.concourse.store.db.Value;
 
 /**
- * Provides {@link Queryable}, {@link Retrievable} and {@link Revisable}
- * interfaces to a datastore.
+ * A service that indexes data for fulltext searching.
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
-public interface DataStoreService extends Queryable, Retrievable, Revisable {}
+public interface Indexer {
+
+	/**
+	 * Remove {@code value} from the indexes for {@code row} and
+	 * {@code column}
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 */
+	public void deindex(Key row, String column, Value value);
+
+	/**
+	 * Index {@code value} to {@code row} and {@code column} for
+	 * fulltext searching.
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 */
+	public void index(Key row, String column, Value value);
+
+}

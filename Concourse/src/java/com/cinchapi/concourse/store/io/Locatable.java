@@ -12,36 +12,45 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.search;
+package com.cinchapi.concourse.store.io;
 
-import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.Value;
+import com.cinchapi.common.Hash;
 
 /**
- * A service that indexes data for fulltext searching.
+ * An object that can be located using a sequence of bytes.
  * 
  * @author jnelson
  */
-public interface Indexer {
+public interface Locatable {
 
 	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
+	 * Return the locator.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @return the locator.
 	 */
-	public void deindex(Key row, String column, Value value);
+	public byte[] getLocator();
 
 	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
+	 * A utility class for creating locators.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @author jnelson
 	 */
-	public void index(Key row, String column, Value value);
+	public static class Locators {
+
+		/**
+		 * The size of each {@code locator} is 32 bytes.
+		 */
+		public final static int SIZE = 32;
+
+		/**
+		 * Return a {@code locator} based on the {@code components}.
+		 * 
+		 * @param components
+		 * @return the locator
+		 */
+		public static byte[] create(byte[]... components) {
+			return Hash.sha256(components);
+		}
+	}
 
 }

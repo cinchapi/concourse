@@ -12,11 +12,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.search;
+package com.cinchapi.concourse.store.search;
 
 import java.util.Set;
 
-import com.cinchapi.concourse.db.Key;
+import com.cinchapi.concourse.store.db.Key;
 
 /**
  * A service that searches a fulltext index.

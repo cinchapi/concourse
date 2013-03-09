@@ -19,6 +19,8 @@ import java.util.Iterator;
 import org.junit.Test;
 
 import com.cinahpi.concourse.BaseTest;
+import com.cinchapi.concourse.store.db.Cell;
+import com.cinchapi.concourse.store.db.Value;
 
 /**
  * Unit tests for {@link Cell}

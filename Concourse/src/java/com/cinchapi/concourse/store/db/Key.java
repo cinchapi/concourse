@@ -12,13 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.store.db;
 
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
-import com.cinchapi.concourse.io.ByteSized;
+import com.cinchapi.concourse.store.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;

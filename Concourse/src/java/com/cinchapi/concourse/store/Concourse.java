@@ -1,4 +1,4 @@
-package com.cinchapi.concourse;
+package com.cinchapi.concourse.store;
 
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -6,9 +6,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.db.Database;
-import com.cinchapi.concourse.temp.CommitLog;
+import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.db.Database;
+import com.cinchapi.concourse.store.temp.CommitLog;
 import com.google.common.collect.Sets;
 
 /**

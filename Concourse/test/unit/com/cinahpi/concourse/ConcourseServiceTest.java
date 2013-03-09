@@ -22,7 +22,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.api.ConcourseService;
+import com.cinchapi.concourse.store.api.ConcourseService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

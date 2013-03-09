@@ -12,14 +12,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.store.db;
 
 import java.util.Iterator;
 import java.util.Set;
 
-import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.temp.Commit;
-import com.cinchapi.concourse.temp.CommitLog;
+import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.temp.Commit;
+import com.cinchapi.concourse.store.temp.CommitLog;
 
 /**
  * 

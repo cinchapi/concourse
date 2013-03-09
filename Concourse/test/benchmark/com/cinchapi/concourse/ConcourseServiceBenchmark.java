@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.api.ConcourseService;
+import com.cinchapi.concourse.store.api.ConcourseService;
 
 /**
  * Base benchmark tests for the {@link ConcourseService} interface.

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.temp;
+package com.cinchapi.concourse.store.temp;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,9 +23,9 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.Value;
-import com.cinchapi.concourse.io.Persistable;
+import com.cinchapi.concourse.store.db.Key;
+import com.cinchapi.concourse.store.db.Value;
+import com.cinchapi.concourse.store.io.Persistable;
 import com.google.common.base.Objects;
 
 /**
