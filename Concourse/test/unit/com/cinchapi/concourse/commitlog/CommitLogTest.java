@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.junit.Test;
 
 import com.cinahpi.concourse.ConcourseServiceTest;
+import com.cinchapi.concourse.temp.CommitLog;
 /**
  * Unit tests for {@link CommitLog}.
  * 

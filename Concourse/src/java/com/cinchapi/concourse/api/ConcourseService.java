@@ -19,9 +19,9 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 /**
- * Provides base functionality that is common to every {@link DataStoreService}.
- * The implementing class is responsible for all necessary
- * synchronization/locking.
+ * <p>Provides base functionality that is common to every {@link DataStoreService}.</p>
+ * <p><strong>Note:</strong> The implementing class is responsible for all necessary
+ * synchronization/locking.</p>
  * 
  * @author Jeff Nelson
  */
@@ -29,10 +29,9 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean add(long row, String column, Object value) {
-		Preconditions
-				.checkArgument(!com.cinchapi.common.Strings
-						.containsWhitespace(column),
-						"The column name cannot contain whitespace");
+		Preconditions.checkArgument(
+				!com.cinchapi.common.Strings.containsWhitespace(column),
+				"The column name cannot contain whitespace");
 		return addSpi(row, column, value);
 	}
 

@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.commitlog.CommitLog;
 import com.cinchapi.concourse.db.Database;
+import com.cinchapi.concourse.temp.CommitLog;
 import com.google.common.collect.Sets;
 
 /**
@@ -62,6 +62,16 @@ import com.google.common.collect.Sets;
  * appropriate result sets according to their respective views of the data. The
  * two results sets are resolved by taking their XOR (see
  * {@link Sets#symmetricDifference(Set, Set)} before being returned.
+ * 
+ * <h2>Additional Notes</h2>
+ * <ul>
+ * <li>
+ * In its present implementation, Concourse can only increase in size (even if
+ * data is removed) because every single revision is tracked. In the future,
+ * functionality to purge history and therefore reduce the size of the database
+ * <em>should</em> be added.
+ * </li>
+ * </ul>
  * </p>
  * 
  * 

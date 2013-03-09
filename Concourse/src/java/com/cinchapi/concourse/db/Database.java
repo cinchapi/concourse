@@ -18,8 +18,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.commitlog.CommitLog;
-import com.cinchapi.concourse.commitlog.CommitLog.Commit;
+import com.cinchapi.concourse.temp.Commit;
+import com.cinchapi.concourse.temp.CommitLog;
 
 /**
  * 

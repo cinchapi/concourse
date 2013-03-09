@@ -23,8 +23,8 @@ import com.cinchapi.concourse.api.ConcourseService;
 import com.cinchapi.concourse.api.Queryable.SelectOperator;
 
 /**
- * Contains various callables and runnabless for concurrency in
- * {@link Concourse}.
+ * Contains various callables and runnables for concurrency in {@link Concourse}
+ * .
  * 
  * @author Jeff Nelson
  */
@@ -39,8 +39,8 @@ public class ConcurrentActions {
 	 * @param value
 	 * @return the method return value
 	 */
-	public static Add add(ConcourseService service, long row,
-			String column, Object value) {
+	public static Add add(ConcourseService service, long row, String column,
+			Object value) {
 		return new Add(service, row, column, value);
 	}
 
@@ -77,8 +77,7 @@ public class ConcurrentActions {
 	 * @param column
 	 * @return the method return value
 	 */
-	public static Get get(ConcourseService service, long row,
-			String column) {
+	public static Get get(ConcourseService service, long row, String column) {
 		return new Get(service, row, column);
 	}
 
@@ -98,8 +97,7 @@ public class ConcurrentActions {
 
 	/**
 	 * Execute
-	 * {@link ConcourseService#select(String, SelectOperator, Object...)}
-	 * .
+	 * {@link ConcourseService#select(String, SelectOperator, Object...)} .
 	 * 
 	 * @param service
 	 * @param row
@@ -107,8 +105,8 @@ public class ConcurrentActions {
 	 * @param value
 	 * @return the method return value
 	 */
-	public static Select select(ConcourseService service,
-			String column, SelectOperator operator, Object... values) {
+	public static Select select(ConcourseService service, String column,
+			SelectOperator operator, Object... values) {
 		return new Select(service, column, operator, values);
 	}
 
@@ -123,7 +121,7 @@ public class ConcurrentActions {
 	 *            - the result type of the called method
 	 */
 	@Immutable
-	protected static abstract class AbstractConcourseServiceCallable<V> implements
+	private static abstract class AbstractConcourseServiceCallable<V> implements
 			Callable<V> {
 
 		protected final ConcourseService service;
@@ -139,12 +137,11 @@ public class ConcurrentActions {
 	}
 
 	/**
-	 * Execute the {@link ConcourseService#add(long, String, Object)}
-	 * method.
+	 * Execute the {@link ConcourseService#add(long, String, Object)} method.
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Add extends
+	private static final class Add extends
 			AbstractConcourseServiceCallable<Boolean> {
 
 		private final long row;
@@ -179,7 +176,7 @@ public class ConcurrentActions {
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Describe extends
+	private static final class Describe extends
 			AbstractConcourseServiceCallable<Set<String>> {
 
 		private final long row;
@@ -203,12 +200,11 @@ public class ConcurrentActions {
 	}
 
 	/**
-	 * Execute the {@link ConcourseService#exists(long, String, Object)}
-	 * method.
+	 * Execute the {@link ConcourseService#exists(long, String, Object)} method.
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Exists extends
+	private static final class Exists extends
 			AbstractConcourseServiceCallable<Boolean> {
 
 		private final long row;
@@ -223,8 +219,8 @@ public class ConcurrentActions {
 		 * @param column
 		 * @param value
 		 */
-		public Exists(ConcourseService service, long row,
-				String column, Object value) {
+		public Exists(ConcourseService service, long row, String column,
+				Object value) {
 			super(service);
 			this.row = row;
 			this.column = column;
@@ -243,7 +239,7 @@ public class ConcurrentActions {
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Get extends
+	private static final class Get extends
 			AbstractConcourseServiceCallable<Set<Object>> {
 
 		private final long row;
@@ -270,12 +266,11 @@ public class ConcurrentActions {
 	}
 
 	/**
-	 * Execute the {@link ConcourseService#remove(long, String, Object)}
-	 * method.
+	 * Execute the {@link ConcourseService#remove(long, String, Object)} method.
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Remove extends
+	private static final class Remove extends
 			AbstractConcourseServiceCallable<Boolean> {
 
 		private final long row;
@@ -290,8 +285,8 @@ public class ConcurrentActions {
 		 * @param column
 		 * @param value
 		 */
-		public Remove(ConcourseService service, long row,
-				String column, Object value) {
+		public Remove(ConcourseService service, long row, String column,
+				Object value) {
 			super(service);
 			this.row = row;
 			this.column = column;
@@ -312,7 +307,7 @@ public class ConcurrentActions {
 	 * 
 	 * @author jnelson
 	 */
-	protected static final class Select extends
+	private static final class Select extends
 			AbstractConcourseServiceCallable<Set<Long>> {
 
 		private final String column;

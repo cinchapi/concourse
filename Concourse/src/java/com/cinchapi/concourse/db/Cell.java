@@ -28,8 +28,8 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.db.io.Locatable;
-import com.cinchapi.concourse.db.io.Persistable;
+import com.cinchapi.concourse.io.Locatable;
+import com.cinchapi.concourse.io.Persistable;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;

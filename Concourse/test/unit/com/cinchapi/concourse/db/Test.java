@@ -18,7 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.cinchapi.concourse.api.Queryable.SelectOperator;
-import com.cinchapi.concourse.commitlog.CommitLog;
+import com.cinchapi.concourse.temp.CommitLog;
 
 /**
  * 

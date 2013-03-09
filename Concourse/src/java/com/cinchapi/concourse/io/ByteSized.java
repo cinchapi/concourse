@@ -12,32 +12,27 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.commitlog;
-
-import java.io.IOException;
-
-import com.cinchapi.concourse.ConcourseServiceBenchmark;
+package com.cinchapi.concourse.io;
 
 /**
- * 
+ * An object that can return the number of bytes used to represent it in memory.
  * 
  * @author jnelson
  */
-public class CommitLogBenchmark extends ConcourseServiceBenchmark{
-	
-	private static final String location = "test/output/benchmark/commitlog";
-	private static final int size = 1024 * 1024 * 100;
+public interface ByteSized {
 
-	
-	@Override
-	protected CommitLog getService() {
-		try {
-			return CommitLog.newInstance(location, size);
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+	/**
+	 * Return the total number of bytes used to represent this object.
+	 * 
+	 * @return the number of bytes.
+	 */
+	public int size();
+
+	/**
+	 * Encodes the object into a sequence of bytes.
+	 * 
+	 * @return the byte sequence.
+	 */
+	public byte[] getBytes();
 
 }
