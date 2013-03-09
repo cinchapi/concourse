@@ -17,6 +17,7 @@ package com.cinchapi.concourse.temp;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -25,22 +26,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.api.Queryable.SelectOperator;
+import com.cinchapi.concourse.api.ConcourseService;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.db.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Longs;
 
 /**
- * A {@link Commit} database that is maintained entirely in memory, enabling
- * faster read/write operations. The data takes up 3X more space in memory than
- * it would on disk.
+ * A temporary {@link ConcourseService} that is maintained entirely in memory,
+ * enabling faster read/write operations. The data takes up 3X more space in
+ * memory than it would on disk.
  * 
  * @author Jeff Nelson
  */
-public final class HeapDatabase {
+public class HeapDatabase extends ConcourseService {
 
 	/**
 	 * Return a new {@link HeapDatabase} with enough capacity for the
@@ -50,12 +52,7 @@ public final class HeapDatabase {
 	 * @return the memory representation
 	 */
 	public static HeapDatabase newInstancewithExpectedSize(int expectedCapacity) {
-		List<Commit> ordered = Lists.newArrayListWithCapacity(expectedCapacity);
-		Map<Commit, Integer> counts = Maps
-				.newHashMapWithExpectedSize(expectedCapacity);
-		Map<String, TreeMap<Value, Set<Key>>> columns = Maps
-				.newHashMapWithExpectedSize(expectedCapacity);
-		return new HeapDatabase(ordered, counts, columns);
+		return new HeapDatabase(expectedCapacity);
 	}
 
 	private static final Comparator<Value> comp = new Comparator<Value>() {
@@ -72,51 +69,14 @@ public final class HeapDatabase {
 	private Map<String, TreeMap<Value, Set<Key>>> columns;
 
 	/**
-	 * Construct a new instance.
+	 * Construct a new empty instance with the {@code expectedCapacity}.
 	 * 
-	 * @param ordered
-	 * @param counts
+	 * @param expectedCapacity
 	 */
-	private HeapDatabase(List<Commit> ordered, Map<Commit, Integer> counts,
-			Map<String, TreeMap<Value, Set<Key>>> columns) {
-		this.ordered = ordered;
-		this.counts = counts;
-		this.columns = columns;
-	}
-
-	/**
-	 * Add the {@code commit}.
-	 * 
-	 * @param commit
-	 */
-	public void add(Commit commit) {
-		int count = count(commit) + 1;
-		counts.put(commit, count);
-		ordered.add(commit);
-		index(commit); // I won't deindex commits in-memory because it is
-						// expensive and I can will check the commit
-						// #count() whenever I read from the index.
-	}
-
-	/**
-	 * Return the count for {@code commit} in the commitlog.
-	 * 
-	 * @param commit
-	 * @return the count
-	 */
-	public int count(Commit commit) {
-		return counts.containsKey(commit) ? counts.get(commit) : 0;
-	}
-
-	/**
-	 * Return {@code true} if {@code commit} has been committed an odd number of
-	 * time.
-	 * 
-	 * @param commit
-	 * @return {@code true} if {@code commit} exists
-	 */
-	public boolean exists(Commit commit) {
-		return Numbers.isOdd(count(commit));
+	protected HeapDatabase(int expectedCapacity) {
+		this.ordered = Lists.newArrayListWithCapacity(expectedCapacity);
+		this.counts = Maps.newHashMapWithExpectedSize(expectedCapacity);
+		this.columns = Maps.newHashMapWithExpectedSize(expectedCapacity);
 	}
 
 	/**
@@ -125,19 +85,109 @@ public final class HeapDatabase {
 	 * @return the commits
 	 */
 	public List<Commit> getCommits() {
-		return ordered;
+		synchronized (ordered) {
+			return ordered;
+		}
 	}
 
-	/**
-	 * Implement the interface for
-	 * {@link CommitLog#selectSpi(String, com.cinchapi.concourse.api.Queryable.SelectOperator, Object...)}
-	 * 
-	 * @param column
-	 * @param operator
-	 * @param values
-	 * @return the rows that satisfy the select criteria
-	 */
-	public Set<Long> select(String column, SelectOperator operator,
+	@Override
+	protected boolean addSpi(long row, String column, Object value) {
+		if(!exists(row, column, value)) {
+			return record(Commit.forStorage(row, column, value));
+		}
+		return false;
+	}
+
+	@Override
+	protected Set<String> describeSpi(long row) {
+		Map<String, Set<Value>> columns2Values = Maps.newHashMap();
+		synchronized (ordered) {
+			Iterator<Commit> commiterator = ordered.iterator();
+			while (commiterator.hasNext()) {
+				Commit commit = commiterator.next();
+				if(Longs.compare(commit.getRow().asLong(), row) == 0) {
+					Set<Value> values;
+					if(columns2Values.containsKey(commit.getColumn())) {
+						values = columns2Values.get(commit.getColumn());
+					}
+					else {
+						values = Sets.newHashSet();
+						columns2Values.put(commit.getColumn(), values);
+					}
+					if(values.contains(commit.getValue())) { // this means I've
+																// encountered
+																// an
+																// even number
+																// commit for
+																// row/column/value
+																// which
+																// resulted
+																// from a
+																// removal
+						values.remove(commit.getValue());
+					}
+					else {
+						values.add(commit.getValue());
+					}
+				}
+			}
+			Set<String> columns = columns2Values.keySet();
+			Iterator<String> coliterator = columns.iterator();
+			while (coliterator.hasNext()) {
+				if(columns2Values.get(coliterator.next()).isEmpty()) {
+					coliterator.remove();
+				}
+			}
+			return columns;
+		}
+	}
+
+	@Override
+	protected boolean existsSpi(long row, String column, Object value) {
+		return exists(Commit.notForStorage(row, column, value));
+	}
+
+	@Override
+	protected Set<Object> getSpi(long row, String column) {
+		Set<Value> _values = Sets.newLinkedHashSet();
+		ListIterator<Commit> commiterator = ordered
+				.listIterator(ordered.size());
+		while (commiterator.hasPrevious()) {
+			Commit commit = commiterator.previous();
+			if(Longs.compare(commit.getRow().asLong(), row) == 0
+					&& commit.getColumn().equals(column)) {
+				if(_values.contains(commit.getValue())) { // this means I've
+															// encountered an
+															// even number
+															// commit for
+															// row/column/value
+															// which resulted
+															// from a removal
+					_values.remove(commit.getValue());
+				}
+				else {
+					_values.add(commit.getValue());
+				}
+			}
+		}
+		Set<Object> values = Sets.newLinkedHashSetWithExpectedSize(_values
+				.size());
+		for (Value value : _values) {
+			values.add(value.getQuantity());
+		}
+		return values;
+	}
+
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		if(exists(row, column, value)) {
+			return record(Commit.forStorage(row, column, value));
+		}
+		return false;
+	}
+
+	@Override
+	protected Set<Long> selectSpi(String column, SelectOperator operator,
 			Object... values) {
 		// Throughout this method I have to check if the value indexed in
 		// #columns still exists because I do not deindex columns for
@@ -314,6 +364,41 @@ public final class HeapDatabase {
 	}
 
 	/**
+	 * Return the number of commits that exist for the revision for
+	 * {@code value} in the {@code cell} at the intersection of {@code row} and
+	 * {@code column}.
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 * @return the number of commits for the revision
+	 */
+	public int count(long row, String column, Object value) {
+		return count(Commit.notForStorage(row, column, value));
+	}
+
+	/**
+	 * Return the count for {@code commit} in the commitlog.
+	 * 
+	 * @param commit
+	 * @return the count
+	 */
+	protected int count(Commit commit) {
+		return counts.containsKey(commit) ? counts.get(commit) : 0;
+	}
+
+	/**
+	 * Return {@code true} if {@code commit} has been committed an odd number of
+	 * time.
+	 * 
+	 * @param commit
+	 * @return {@code true} if {@code commit} exists
+	 */
+	protected boolean exists(Commit commit) {
+		return Numbers.isOdd(count(commit));
+	}
+
+	/**
 	 * Add indexes for the commit to allow for more efficient
 	 * {@link #select(String, com.cinchapi.concourse.api.Queryable.SelectOperator, Object...)}
 	 * operations.
@@ -341,5 +426,21 @@ public final class HeapDatabase {
 			values.put(value, rows);
 		}
 		rows.add(row);
+	}
+
+	/**
+	 * Record the {@code commit} in memory.
+	 * 
+	 * @param commit
+	 * @return {@code true}
+	 */
+	protected boolean record(Commit commit) {
+		int count = count(commit) + 1;
+		counts.put(commit, count);
+		ordered.add(commit);
+		index(commit); // I won't deindex commits in-memory because it is
+						// expensive and I can will check the commit
+						// #count() whenever I read from the index.
+		return true;
 	}
 }

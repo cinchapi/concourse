@@ -22,32 +22,22 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
-import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.api.ConcourseService;
-import com.cinchapi.concourse.db.Value;
 import com.cinchapi.concourse.io.Persistable;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Longs;
 
 /**
  * <p>
- * A temporary {@link ConcourseService} that is fully represented in memory
- * using a {@link HeapDatabase} and also persisted on disk in a append-only
- * memory mapped file. Occasionally, the CommitLog is flushed to a permanent
- * database. The size of the CommitLog on disk cannot exceed
+ * A file backed {@link HeapDatabase} whose purpose is to speed up writes and
+ * reads for new data in a larger system. temporary {@link ConcourseService}
+ * that is fully represented in memory The CommitLog is flushed to a permanent
+ * database from time to time. The size of the CommitLog on disk cannot exceed
  * {@value #MAX_SIZE_IN_BYTES} bytes, but it will take up up to 4X more space in
  * memory.
  * </p>
@@ -55,7 +45,7 @@ import com.google.common.primitives.Longs;
  * 
  * @author Jeff Nelson
  */
-public class CommitLog extends ConcourseService implements
+public class CommitLog extends HeapDatabase implements
 		IterableByteSequences,
 		Persistable {
 
@@ -65,30 +55,15 @@ public class CommitLog extends ConcourseService implements
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param buffer
+	 * @param populated
+	 *            - specify as {@code true} if the buffer has been populated
+	 *            from an existing commitlog, set to {@code false} otherwise for
+	 *            an empty commitlog
 	 * @return the commitLog
 	 */
-	public static CommitLog fromByteSequences(MappedByteBuffer buffer) {
-		byte[] bytes = new byte[buffer.capacity()];
-		buffer.get(bytes);
-
-		HeapDatabase memory = HeapDatabase
-				.newInstancewithExpectedSize(bytes.length
-						/ (Commit.AVG_MIN_SIZE_IN_BYTES + 4)); // I'm adding 4
-																// to
-																// account for
-																// the 4
-																// bytes used to
-																// store
-																// the size for
-																// each
-																// commit
-		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
-				.over(bytes);
-		while (bsit.hasNext()) {
-			memory.add(Commit.fromByteSequence(bsit.next()));
-		}
-
-		return new CommitLog(buffer, memory);
+	public static CommitLog fromByteSequences(MappedByteBuffer buffer,
+			boolean populated) {
+		return new CommitLog(buffer, populated);
 	}
 
 	/**
@@ -108,7 +83,7 @@ public class CommitLog extends ConcourseService implements
 				MAX_SIZE_IN_BYTES);
 		MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
 				.getChannel().map(MapMode.READ_WRITE, 0, size);
-		return CommitLog.fromByteSequences(buffer);
+		return CommitLog.fromByteSequences(buffer, true);
 	}
 
 	/**
@@ -138,9 +113,7 @@ public class CommitLog extends ConcourseService implements
 
 		MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
 				.getChannel().map(MapMode.READ_WRITE, 0, size);
-		HeapDatabase memory = HeapDatabase.newInstancewithExpectedSize(size
-				/ Commit.AVG_MIN_SIZE_IN_BYTES);
-		return new CommitLog(buffer, memory);
+		return CommitLog.fromByteSequences(buffer, false);
 	}
 
 	private static final int FIXED_SIZE_PER_COMMIT = Integer.SIZE / 8; // for
@@ -189,24 +162,65 @@ public class CommitLog extends ConcourseService implements
 	private static final Logger log = LoggerFactory.getLogger(CommitLog.class);
 	private static final double PCT_USABLE_CAPACITY = 100 - PCT_CAPACITY_FOR_OVERFLOW_PREVENTION;
 
-	private final HeapDatabase memory;
 	private final MappedByteBuffer buffer;
 	private int size = 0;
 	private final int usableCapacity;
 
 	/**
 	 * 
-	 * Construct a new instance.
+	 * Construct a new instance from the {@link MappedByteBuffer} of an existing
+	 * file.
 	 * 
 	 * @param buffer
-	 * @param memory
+	 * @param populated
+	 *            - specify as {@code true} if the buffer has been populated
+	 *            from an existing commitlog, set to {@code false} otherwise for
+	 *            an empty commitlog
 	 */
-	private CommitLog(MappedByteBuffer buffer, HeapDatabase memory) {
+	private CommitLog(MappedByteBuffer buffer, boolean populated) {
+		super(buffer.capacity() / (Commit.AVG_MIN_SIZE_IN_BYTES + 4)); // I'm
+																		// adding
+																		// 4 to
+																		// account
+																		// for
+																		// the 4
+																		// bytes
+																		// used
+																		// to
+																		// store
+																		// the
+																		// size
+																		// for
+																		// each
+																		// commit
 		this.buffer = buffer;
-		this.memory = memory;
 		this.usableCapacity = (int) Math.round((PCT_USABLE_CAPACITY / 100.0)
 				* buffer.capacity());
 		this.buffer.force();
+
+		if(populated) {
+			byte[] bytes = new byte[buffer.capacity()];
+			this.buffer.get(bytes);
+			this.buffer.rewind();
+			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
+					.over(bytes);
+			while (bsit.hasNext()) {
+				this.record(Commit.fromByteSequence(bsit.next())); // this will
+																	// only
+																	// record
+																	// the
+																	// commit in
+																	// memory
+																	// and
+																	// not the
+																	// underlying
+																	// file
+																	// (because
+																	// its
+																	// already
+																	// there!)
+			}
+		}
 	}
 
 	@Override
@@ -216,17 +230,6 @@ public class CommitLog extends ConcourseService implements
 		byte[] bytes = new byte[size];
 		copy.get(bytes);
 		return bytes;
-	}
-
-	/**
-	 * Return a list of the commits.
-	 * 
-	 * @return the commits
-	 */
-	public List<Commit> getCommits() {
-		synchronized (memory) {
-			return memory.getCommits();
-		}
 	}
 
 	/**
@@ -267,121 +270,43 @@ public class CommitLog extends ConcourseService implements
 
 	@Override
 	protected boolean addSpi(long row, String column, Object value) {
-		if(!exists(row, column, value)) {
-			return commit(Commit.forStorage(row, column, value));
+		Commit commit = Commit.forStorage(row, column, value);
+		if(!exists(commit)) {
+			return append(commit);
+		}
+		return false;
+	}
+
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		Commit commit = Commit.forStorage(row, column, value);
+		if(exists(commit)) {
+			return append(commit);
 		}
 		return false;
 	}
 
 	/**
-	 * Return the number of commits that exist for the revision for
-	 * {@code value} in the {@code cell} at the intersection of {@code row} and
-	 * {@code column}.
+	 * Append {@commit} to the underlying file and perform the
+	 * {@link #record(Commit)} function.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return the number of commits for the revision
+	 * @param commit
+	 * @return {@code true}
 	 */
-	protected int count(long row, String column, Object value) {
-		Commit commit = Commit.notForStorage(row, column, value);
-		synchronized (memory) {
-			return memory.count(commit);
+	private boolean append(Commit commit) {
+		synchronized (buffer) {
+			// Must attempt to write to the file before writing to memory
+			Preconditions
+					.checkState(
+							buffer.remaining() > commit.size() + 4,
+							"The commitlog does not have enough capacity to store the commit. The commitlog has %s bytes remaining and the commit requires %s bytes. Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION.",
+							buffer.remaining(), commit.size() + 4);
+			buffer.putInt(commit.size());
+			buffer.put(commit.getBytes());
 		}
-	}
-
-	@Override
-	protected Set<String> describeSpi(long row) {
-		Map<String, Set<Value>> columns2Values = Maps.newHashMap();
-		synchronized (memory) {
-			Iterator<Commit> commiterator = memory.getCommits().iterator();
-			while (commiterator.hasNext()) {
-				Commit commit = commiterator.next();
-				if(Longs.compare(commit.getRow().asLong(), row) == 0) {
-					Set<Value> values;
-					if(columns2Values.containsKey(commit.getColumn())) {
-						values = columns2Values.get(commit.getColumn());
-					}
-					else {
-						values = Sets.newHashSet();
-						columns2Values.put(commit.getColumn(), values);
-					}
-					if(values.contains(commit.getValue())) { // this means I've
-																// encountered
-																// an
-																// even number
-																// commit for
-																// row/column/value
-																// which
-																// resulted
-																// from a
-																// removal
-						values.remove(commit.getValue());
-					}
-					else {
-						values.add(commit.getValue());
-					}
-				}
-			}
-			Set<String> columns = columns2Values.keySet();
-			Iterator<String> coliterator = columns.iterator();
-			while (coliterator.hasNext()) {
-				if(columns2Values.get(coliterator.next()).isEmpty()) {
-					coliterator.remove();
-				}
-			}
-			return columns;
-		}
-	}
-
-	@Override
-	protected boolean existsSpi(long row, String column, Object value) {
-		return Numbers.isOdd(count(row, column, value));
-	}
-
-	@Override
-	protected Set<Object> getSpi(long row, String column) {
-		Set<Value> _values = Sets.newLinkedHashSet();
-		ListIterator<Commit> commiterator = memory.getCommits().listIterator(
-				memory.getCommits().size());
-		while (commiterator.hasPrevious()) {
-			Commit commit = commiterator.previous();
-			if(Longs.compare(commit.getRow().asLong(), row) == 0
-					&& commit.getColumn().equals(column)) {
-				if(_values.contains(commit.getValue())) { // this means I've
-															// encountered an
-															// even number
-															// commit for
-															// row/column/value
-															// which resulted
-															// from a removal
-					_values.remove(commit.getValue());
-				}
-				else {
-					_values.add(commit.getValue());
-				}
-			}
-		}
-		Set<Object> values = Sets.newLinkedHashSetWithExpectedSize(_values
-				.size());
-		for (Value value : _values) {
-			values.add(value.getQuantity());
-		}
-		return values;
-	}
-
-	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		if(exists(row, column, value)) {
-			return commit(Commit.forStorage(row, column, value));
-		}
-		return false;
-	}
-
-	@Override
-	protected Set<Long> selectSpi(String column, SelectOperator operator,
-			Object... values) {
-		return memory.select(column, operator, values);
+		size += commit.size() + FIXED_SIZE_PER_COMMIT;
+		checkForOverflow();
+		return super.record(commit);
 	}
 
 	/**
@@ -394,30 +319,6 @@ public class CommitLog extends ConcourseService implements
 					"The commitlog has exceeded its usable capacity of {} and is now in the overflow prevention region. There are {} bytes left in this region. If these bytes are consumed an oveflow exception will be thrown.",
 					usableCapacity, buffer.remaining());
 		}
-	}
-
-	/**
-	 * Add a commit.
-	 * 
-	 * @param commit
-	 * @return {@code true}
-	 */
-	private boolean commit(Commit commit) {
-		synchronized (buffer) {
-			Preconditions
-					.checkState(
-							buffer.remaining() > commit.size() + 4,
-							"The commitlog does not have enough capacity to store the commit. The commitlog has %s bytes remaining and the commit requires %s bytes. Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION.",
-							buffer.remaining(), commit.size() + 4);
-			buffer.putInt(commit.size());
-			buffer.put(commit.getBytes());
-		}
-		synchronized (memory) {
-			memory.add(commit);
-		}
-		size += commit.size() + FIXED_SIZE_PER_COMMIT;
-		checkForOverflow();
-		return true;
 	}
 
 }
