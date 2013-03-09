@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,6 +164,10 @@ public class CommitLog extends HeapDatabase implements
 	private static final Logger log = LoggerFactory.getLogger(CommitLog.class);
 	private static final double PCT_USABLE_CAPACITY = 100 - PCT_CAPACITY_FOR_OVERFLOW_PREVENTION;
 
+	/**
+	 * <strong>Note</strong>: Each commit is preceded by a 4 byte int specifying
+	 * the size.
+	 */
 	private final MappedByteBuffer buffer;
 	private int size = 0;
 	private final int usableCapacity;
@@ -220,6 +226,67 @@ public class CommitLog extends HeapDatabase implements
 																	// already
 																	// there!)
 			}
+		}
+	}
+
+	/**
+	 * <p>
+	 * <strong>USE WITH CAUTION!</strong>
+	 * </p>
+	 * <p>
+	 * Return an iterator that should only be used for flushing the commitlog.
+	 * Each call to {@link Iterator#next} will DELETE the returned commit.
+	 * </p>
+	 * 
+	 * @return the iterator
+	 */
+	public Iterator<Commit> flusher() {
+		synchronized (this) {
+			return new Iterator<Commit>() {
+
+				int expectedCount = ordered.size();
+
+				@Override
+				public boolean hasNext() {
+					return !ordered.isEmpty();
+				}
+
+				@Override
+				public Commit next() {
+					checkForComodification();
+					Commit next = ordered.remove(0);
+					int count = counts.get(next) - 1;
+					if(count == 0) {
+						counts.remove(next);
+					}
+					else {
+						counts.put(next, count);
+					}
+					int nextSize = next.size() + 4;
+					buffer.position(buffer.position() + nextSize);
+					buffer.compact();
+					expectedCount--;
+					size -= nextSize;
+					return next;
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+
+				}
+
+				/**
+				 * Check for concurrent modification to the commit log.
+				 */
+				private void checkForComodification() {
+					if(expectedCount != ordered.size()) {
+						throw new ConcurrentModificationException(
+								"Attempted modification to CommitLog while flushing");
+					}
+				}
+
+			};
 		}
 	}
 

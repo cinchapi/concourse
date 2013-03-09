@@ -64,8 +64,8 @@ public class HeapDatabase extends ConcourseService {
 
 	};
 
-	private List<Commit> ordered;
-	private Map<Commit, Integer> counts;
+	protected List<Commit> ordered;
+	protected Map<Commit, Integer> counts;
 	private Map<String, TreeMap<Value, Set<Key>>> columns;
 
 	/**

@@ -16,10 +16,11 @@ package com.cinchapi.concourse.db;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 
-import com.cinchapi.concourse.store.api.Queryable.SelectOperator;
+import com.cinchapi.concourse.store.temp.Commit;
 import com.cinchapi.concourse.store.temp.CommitLog;
-import com.cinchapi.concourse.store.temp.HeapDatabase;
+
 
 /**
  * 
@@ -29,13 +30,18 @@ import com.cinchapi.concourse.store.temp.HeapDatabase;
 public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException{
-		HeapDatabase log = HeapDatabase.newInstancewithExpectedSize(3);
+		CommitLog log = CommitLog.newInstance("test/output/oneoff/commitlog", 1000);
 		log.add(1, "name", 10);
 		log.add(2, "name", 20);
 		log.add(3, "name", "30");
 		log.remove(2, "name", 20);
-		System.out.println(log.select("name", SelectOperator.EQUALS, "30"));
-//		log.add(1, "row", false);
+		
+		Iterator<Commit> it = log.flusher();
+		while(it.hasNext()){
+			Commit c = it.next();
+			System.out.println(log.size());
+		}
+		log.add(1, "row", false);
 	}
 
 }
