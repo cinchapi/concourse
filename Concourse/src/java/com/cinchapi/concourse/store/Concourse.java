@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.cinchapi.concourse.store.api.ConcourseService;
-import com.cinchapi.concourse.store.db.Database;
+import com.cinchapi.concourse.store.perm.Database;
 import com.cinchapi.concourse.store.temp.CommitLog;
 import com.google.common.collect.Sets;
 

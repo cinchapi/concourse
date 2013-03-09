@@ -12,10 +12,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.search;
+package com.cinchapi.concourse.store.api.search;
 
-import com.cinchapi.concourse.store.db.Key;
-import com.cinchapi.concourse.store.db.Value;
+import com.cinchapi.concourse.store.perm.Key;
+import com.cinchapi.concourse.store.perm.Value;
 
 /**
  * A service that indexes data for fulltext searching.

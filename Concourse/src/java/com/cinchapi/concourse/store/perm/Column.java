@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.db;
+package com.cinchapi.concourse.store.perm;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.store.api.Queryable.SelectOperator;
-import com.cinchapi.concourse.store.search.Searcher;
+import com.cinchapi.concourse.store.api.search.Searcher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

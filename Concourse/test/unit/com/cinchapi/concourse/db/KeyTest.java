@@ -16,7 +16,7 @@ package com.cinchapi.concourse.db;
 
 import org.junit.Test;
 import com.cinahpi.concourse.BaseTest;
-import com.cinchapi.concourse.store.db.Key;
+import com.cinchapi.concourse.store.perm.Key;
 
 /**
  * Unit tests for {@link Key}.

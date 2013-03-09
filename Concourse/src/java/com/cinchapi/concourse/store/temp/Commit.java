@@ -23,9 +23,9 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.store.db.Key;
-import com.cinchapi.concourse.store.db.Value;
 import com.cinchapi.concourse.store.io.Persistable;
+import com.cinchapi.concourse.store.perm.Key;
+import com.cinchapi.concourse.store.perm.Value;
 import com.google.common.base.Objects;
 
 /**
