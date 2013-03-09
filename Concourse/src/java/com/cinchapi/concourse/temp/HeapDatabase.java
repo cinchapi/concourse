@@ -55,7 +55,7 @@ public class HeapDatabase extends ConcourseService {
 		return new HeapDatabase(expectedCapacity);
 	}
 
-	private static final Comparator<Value> comp = new Comparator<Value>() {
+	private static final Comparator<Value> comparator = new Comparator<Value>() {
 
 		@Override
 		public int compare(Value o1, Value o2) {
@@ -414,7 +414,7 @@ public class HeapDatabase extends ConcourseService {
 			values = columns.get(column);
 		}
 		else {
-			values = Maps.newTreeMap(comp);
+			values = Maps.newTreeMap(comparator);
 			columns.put(column, values);
 		}
 		Set<Key> rows;
@@ -438,8 +438,8 @@ public class HeapDatabase extends ConcourseService {
 		int count = count(commit) + 1;
 		counts.put(commit, count);
 		ordered.add(commit);
-		index(commit); // I won't deindex commits in-memory because it is
-						// expensive and I can will check the commit
+		index(commit); // I won't deindex commits because it is
+						// expensive and I will check the commit
 						// #count() whenever I read from the index.
 		return true;
 	}
