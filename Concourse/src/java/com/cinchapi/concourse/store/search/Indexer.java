@@ -14,8 +14,8 @@
  */
 package com.cinchapi.concourse.store.search;
 
-import com.cinchapi.concourse.store.db.Key;
-import com.cinchapi.concourse.store.db.Value;
+import com.cinchapi.concourse.store.perm.Key;
+import com.cinchapi.concourse.store.perm.Value;
 
 /**
  * A service that indexes data for fulltext searching.
