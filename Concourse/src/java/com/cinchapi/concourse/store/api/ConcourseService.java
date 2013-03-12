@@ -19,19 +19,32 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 
 /**
- * <p>Provides base functionality that is common to every {@link DataStoreService}.</p>
- * <p><strong>Note:</strong> The implementing class is responsible for all necessary
- * synchronization/locking.</p>
+ * <p>
+ * Provides base functionality that is common to every {@link DataStoreService}.
+ * All bounds checking for parameters is handled here.
+ * </p>
+ * <p>
+ * <strong>Note:</strong> The implementing class is responsible for all
+ * necessary synchronization/locking.
+ * </p>
  * 
  * @author Jeff Nelson
  */
 public abstract class ConcourseService implements DataStoreService {
+
+	private static final CharSequence[] bannedColumnNameChars = {",", "\"", "'", "\\"};
 
 	@Override
 	public final boolean add(long row, String column, Object value) {
 		Preconditions.checkArgument(
 				!com.cinchapi.common.Strings.containsWhitespace(column),
 				"The column name cannot contain whitespace");
+		Preconditions
+				.checkArgument(
+						!com.cinchapi.common.Strings.contains(column,
+								bannedColumnNameChars),
+						"The column name connot contained any of the following banned characters : {}",
+						(Object[]) bannedColumnNameChars);
 		return addSpi(row, column, value);
 	}
 
@@ -138,8 +151,11 @@ public abstract class ConcourseService implements DataStoreService {
 			SelectOperator operator, Object... values);
 
 	/**
-	 * Default implement of the interface for {@code #set(long, String, Object)}
-	 * . Feel free to override if necessary.
+	 * Default implemention of the interface for
+	 * {@code #set(long, String, Object)}. Feel free to override if necessary.
+	 * This implementation gets the values for the cell at [{@code row} x
+	 * {@code column}] and removes them all. Afterwards it adds {@code value} in
+	 * [{@code row} x {@code column}].
 	 * 
 	 * @param row
 	 * @param column

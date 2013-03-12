@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.perm;
+package com.cinchapi.concourse.store.component;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -53,7 +53,7 @@ public final class Column {
 	
 	private final Select select = new Select();
 	private final String name;
-	private final ConcurrentSkipListMap<Value, RowSet> values = new ConcurrentSkipListMap<Value, RowSet>();
+	private final ConcurrentSkipListMap<Value, Section> values = new ConcurrentSkipListMap<Value, Section>();
 
 	/**
 	 * Construct a new instance.
@@ -87,12 +87,12 @@ public final class Column {
 		Preconditions.checkArgument(value.isForStorage(),
 				"'%s' is notForStorage and cannot be added", value);
 
-		RowSet rows;
+		Section rows;
 		if(values.containsKey(value)) {
 			rows = values.get(value);
 		}
 		else {
-			rows = RowSet.createEmpty();
+			rows = Section.createEmpty();
 			values.put(value, rows);
 		}
 		return rows.add(row);
@@ -127,8 +127,8 @@ public final class Column {
 	 * @param values
 	 * @return the row set.
 	 */
-	public RowSet select(SelectOperator operator, Value... values) {
-		RowSet results = null;
+	public Section select(SelectOperator operator, Value... values) {
+		Section results = null;
 		switch (operator) {
 		case BETWEEN:
 			results = select.between(values[0], values[1]);
@@ -184,7 +184,7 @@ public final class Column {
 	/**
 	 * A naturally sorted collection of {@link Key}.
 	 */
-	public static class RowSet extends TreeSet<Key> {
+	public static class Section extends TreeSet<Key> {
 
 		/**
 		 * 
@@ -196,14 +196,14 @@ public final class Column {
 		 * 
 		 * @return the row set.
 		 */
-		public static RowSet createEmpty() {
-			return new RowSet();
+		public static Section createEmpty() {
+			return new Section();
 		}
 
 		/**
 		 * Construct a new instance.
 		 */
-		private RowSet() {}
+		private Section() {}
 
 	}
 
@@ -219,9 +219,9 @@ public final class Column {
 		 * @param v2
 		 * @return the result set.
 		 */
-		public RowSet between(Value v1, Value v2) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values
+		public Section between(Value v1, Value v2) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values
 					.subMap(v1, true, v2, false).entrySet().iterator();
 			while (it.hasNext()) {
 				result.addAll(it.next().getValue());
@@ -235,8 +235,8 @@ public final class Column {
 		 * @param query
 		 * @return the result set.
 		 */
-		public RowSet contains(Value v) {
-			RowSet result = RowSet.createEmpty();
+		public Section contains(Value v) {
+			Section result = Section.createEmpty();
 			result.addAll(searcher.search(v.toString(), name));
 			return result;
 		}
@@ -247,8 +247,8 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet equal(Value v) {
-			return values.containsKey(v) ? values.get(v) : RowSet.createEmpty();
+		public Section equal(Value v) {
+			return values.containsKey(v) ? values.get(v) : Section.createEmpty();
 		}
 
 		/**
@@ -257,9 +257,9 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet greaterThan(Value v) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.tailMap(v, false)
+		public Section greaterThan(Value v) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.tailMap(v, false)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				result.addAll(it.next().getValue());
@@ -273,9 +273,9 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet greaterThanOrEquals(Value v) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.tailMap(v, true)
+		public Section greaterThanOrEquals(Value v) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.tailMap(v, true)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				result.addAll(it.next().getValue());
@@ -289,9 +289,9 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet lessThan(Value v) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.headMap(v, false)
+		public Section lessThan(Value v) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.headMap(v, false)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				result.addAll(it.next().getValue());
@@ -305,9 +305,9 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet lessThanOrEquals(Value v) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.headMap(v, true)
+		public Section lessThanOrEquals(Value v) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.headMap(v, true)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				result.addAll(it.next().getValue());
@@ -321,11 +321,11 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet notEquals(Value v) {
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.entrySet().iterator();
+		public Section notEquals(Value v) {
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
 			while (it.hasNext()) {
-				Entry<Value, RowSet> entry = it.next();
+				Entry<Value, Section> entry = it.next();
 				if(!entry.getKey().equals(v)) {
 					result.addAll(entry.getValue());
 				}
@@ -339,12 +339,12 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet notRegex(Value v) {
+		public Section notRegex(Value v) {
 			String regex = v.toString();
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.entrySet().iterator();
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
 			while (it.hasNext()) {
-				Entry<Value, RowSet> entry = it.next();
+				Entry<Value, Section> entry = it.next();
 				Pattern p = Pattern.compile(regex);
 				Matcher m = p.matcher(entry.getValue().toString());
 				if(!m.matches()) {
@@ -360,12 +360,12 @@ public final class Column {
 		 * @param v
 		 * @return the result set.
 		 */
-		public RowSet regex(Value v) {
+		public Section regex(Value v) {
 			String regex = v.toString();
-			RowSet result = RowSet.createEmpty();
-			Iterator<Entry<Value, RowSet>> it = values.entrySet().iterator();
+			Section result = Section.createEmpty();
+			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
 			while (it.hasNext()) {
-				Entry<Value, RowSet> entry = it.next();
+				Entry<Value, Section> entry = it.next();
 				Pattern p = Pattern.compile(regex);
 				Matcher m = p.matcher(entry.getValue().toString());
 				if(!m.matches()) {

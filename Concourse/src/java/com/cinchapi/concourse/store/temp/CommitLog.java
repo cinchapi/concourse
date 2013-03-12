@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.cinchapi.concourse.store.api.ConcourseService;
 import com.cinchapi.concourse.store.io.Persistable;
 import com.google.common.base.Preconditions;
@@ -69,23 +70,27 @@ public class CommitLog extends HeapDatabase implements
 	}
 
 	/**
-	 * Return the CommitLog that is stored in the file at {@code location}.
+	 * Return the CommitLog that is stored in the file at {@code location}. This
+	 * function wil fail if the file does not exist.
 	 * 
 	 * @param location
 	 *            - path to the FILE (not directory) to use for the CommitLog
 	 * @return the CommitLog stored at {@code location}
-	 * @throws FileNotFoundException
-	 * @throws IOException
 	 */
-	public static CommitLog fromFile(String location)
-			throws FileNotFoundException, IOException {
+	public static CommitLog fromFile(String location) {
 		int size = (int) new File(location).length();
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
-				"The size of the CommitLog cannot be greater than {}",
+				"The size of the CommitLog cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
-		MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
-				.getChannel().map(MapMode.READ_WRITE, 0, size);
-		return CommitLog.fromByteSequences(buffer, true);
+		try {
+			MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
+					.getChannel().map(MapMode.READ_WRITE, 0, size);
+			return CommitLog.fromByteSequences(buffer, true);
+		}
+		catch (IOException e) {
+			throw new ConcourseRuntimeException(e);
+		}
+
 	}
 
 	/**
@@ -102,20 +107,25 @@ public class CommitLog extends HeapDatabase implements
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public static CommitLog newInstance(String location, int size)
-			throws IOException {
+	public static CommitLog newInstance(String location, int size) {
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
-				"The size of the CommitLog cannot be greater than {}",
+				"The size of the CommitLog cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
+		try {
+			File tmp = new File(location);
+			tmp.delete(); // delete the old file if it was there
+			tmp.getParentFile().mkdirs();
+			tmp.createNewFile();
 
-		File tmp = new File(location);
-		tmp.delete(); // delete the old file if it was there
-		tmp.getParentFile().mkdirs();
-		tmp.createNewFile();
+			MappedByteBuffer buffer;
+			buffer = new RandomAccessFile(location, "rw").getChannel().map(
+					MapMode.READ_WRITE, 0, size);
+			return CommitLog.fromByteSequences(buffer, false);
+		}
+		catch (IOException e) {
+			throw new ConcourseRuntimeException(e);
+		}
 
-		MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
-				.getChannel().map(MapMode.READ_WRITE, 0, size);
-		return CommitLog.fromByteSequences(buffer, false);
 	}
 
 	private static final int FIXED_SIZE_PER_COMMIT = Integer.SIZE / 8; // for
@@ -147,19 +157,19 @@ public class CommitLog extends HeapDatabase implements
 	public static final double PCT_CAPACITY_FOR_OVERFLOW_PREVENTION = .02;
 
 	/**
-	 * The default location for the CommtLog file.
+	 * The default filename for the commitlog.
 	 */
-	public static final String DEFAULT_LOCATION = "db/commitlog";
+	public static final String DEFAULT_LOCATION = "commitlog";
 
 	/**
 	 * The maximum allowable size of the CommitLog on disk.
 	 */
-	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
+	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10) / 100;
 
 	/**
-	 * The default size of the CommitLog.
+	 * The default size of the commitlog
 	 */
-	public static final int DEFAULT_SIZE_IN_BYTES = MAX_SIZE_IN_BYTES;
+	public static final int DEFAULT_SIZE_IN_BYTES = MAX_SIZE_IN_BYTES - 1;
 
 	private static final Logger log = LoggerFactory.getLogger(CommitLog.class);
 	private static final double PCT_USABLE_CAPACITY = 100 - PCT_CAPACITY_FOR_OVERFLOW_PREVENTION;

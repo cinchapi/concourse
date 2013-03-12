@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.store.api.ConcourseService;
-import com.cinchapi.concourse.store.perm.Key;
-import com.cinchapi.concourse.store.perm.Value;
+import com.cinchapi.concourse.store.component.Key;
+import com.cinchapi.concourse.store.component.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
