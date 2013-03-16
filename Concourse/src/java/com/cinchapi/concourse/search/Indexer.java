@@ -12,16 +12,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.search;
 
-import java.util.Set;
+import com.cinchapi.concourse.structure.Key;
+import com.cinchapi.concourse.structure.Value;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * A service that indexes data for fulltext searching.
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public interface Indexer {
+
+	/**
+	 * Remove {@code value} from the indexes for {@code row} and
+	 * {@code column}
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 */
+	public void deindex(Key row, String column, Value value);
+
+	/**
+	 * Index {@code value} to {@code row} and {@code column} for
+	 * fulltext searching.
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 */
+	public void index(Key row, String column, Value value);
 
 }

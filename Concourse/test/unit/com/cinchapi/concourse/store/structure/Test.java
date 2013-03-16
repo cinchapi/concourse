@@ -12,16 +12,36 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.store.structure;
 
-import java.util.Set;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Iterator;
+
+import com.cinchapi.concourse.store.CommitLog;
+import com.cinchapi.concourse.structure.Commit;
+
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * 
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public class Test {
+	
+	public static void main(String[] args) throws FileNotFoundException, IOException{
+		CommitLog log = CommitLog.newInstance("test/output/oneoff/commitlog", 1000);
+		log.add(1, "name", 10);
+		log.add(2, "name", 20);
+		log.add(3, "name", "30");
+		log.remove(2, "name", 20);
+		
+		Iterator<Commit> it = log.flusher();
+		while(it.hasNext()){
+			Commit c = it.next();
+			System.out.println(log.size());
+		}
+		log.add(1, "row", false);
+	}
 
 }

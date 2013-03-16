@@ -12,16 +12,45 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.io;
 
-import java.util.Set;
+import com.cinchapi.common.Hash;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * An object that can be located using a sequence of bytes.
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public interface Locatable {
+
+	/**
+	 * Return the locator.
+	 * 
+	 * @return the locator.
+	 */
+	public byte[] getLocator();
+
+	/**
+	 * A utility class for creating locators.
+	 * 
+	 * @author jnelson
+	 */
+	public static class Locators {
+
+		/**
+		 * The size of each {@code locator} is 32 bytes.
+		 */
+		public final static int SIZE = 32;
+
+		/**
+		 * Return a {@code locator} based on the {@code components}.
+		 * 
+		 * @param components
+		 * @return the locator
+		 */
+		public static byte[] create(byte[]... components) {
+			return Hash.sha256(components);
+		}
+	}
 
 }

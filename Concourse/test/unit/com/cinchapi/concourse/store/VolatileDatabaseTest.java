@@ -12,16 +12,27 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.store;
 
-import java.util.Set;
+import com.cinchapi.concourse.services.ConcourseServiceProvider;
+import com.cinchapi.concourse.services.ConcourseServiceTest;
+import com.cinchapi.concourse.store.VolatileDatabase;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * 
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public class VolatileDatabaseTest extends ConcourseServiceTest {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.cinchapi.concourse.ConcourseServiceTest#getService()
+	 */
+	@Override
+	protected VolatileDatabase getService() {
+		return ConcourseServiceProvider.provideHeapDatabase();
+	}
 
 }

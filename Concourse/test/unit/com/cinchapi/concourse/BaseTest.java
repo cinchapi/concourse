@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.store.component.Cell;
-import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Row;
-import com.cinchapi.concourse.store.component.Value;
+import com.cinchapi.concourse.structure.Cell;
+import com.cinchapi.concourse.structure.Key;
+import com.cinchapi.concourse.structure.Row;
+import com.cinchapi.concourse.structure.Value;
 
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -36,8 +36,8 @@ import org.mockito.Mockito;
  * 
  * @author jnelson
  */
-@SuppressWarnings("unused")
 // used by subclasses
+@SuppressWarnings("unused")
 public abstract class BaseTest extends TestCase {
 
 	/*

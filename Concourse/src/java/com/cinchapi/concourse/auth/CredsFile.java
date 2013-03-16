@@ -32,7 +32,7 @@ import com.google.common.collect.Maps;
  * A file that contains valid credentials for accessing the
  * {@link ConcourseServer}.
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
 public class CredsFile implements Serializable {
 

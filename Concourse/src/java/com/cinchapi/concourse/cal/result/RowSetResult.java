@@ -17,7 +17,8 @@ package com.cinchapi.concourse.cal.result;
 import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
-import com.cinchapi.concourse.store.component.Key;
+
+import com.cinchapi.concourse.structure.Key;
 
 /**
  * A result that contains a set of {@link Key} objects, each of which identifies

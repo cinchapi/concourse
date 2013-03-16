@@ -12,16 +12,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.store.structure;
 
-import java.util.Set;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * Run all the tests in this package together.
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
-
-}
+@RunWith(Suite.class)
+@SuiteClasses({ ValueTest.class, KeyTest.class })
+public class DbTestSuite {}

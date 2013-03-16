@@ -21,7 +21,7 @@ import com.cinchapi.concourse.cal.result.BooleanResult;
 /**
  * A {@link Statement} that returns a boolean when executed.
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
 public abstract class BooleanResultStatement implements Statement<BooleanResult> {
 	

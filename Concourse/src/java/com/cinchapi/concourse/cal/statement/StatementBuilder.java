@@ -15,7 +15,7 @@
 package com.cinchapi.concourse.cal.statement;
 
 import com.cinchapi.concourse.cal.result.Result;
-import com.cinchapi.concourse.cal.statement.Statement.Action;
+import com.cinchapi.concourse.services.services.cal.statement.Statement.Action;
 
 /**
  * 

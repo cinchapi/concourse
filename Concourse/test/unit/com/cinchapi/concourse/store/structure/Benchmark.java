@@ -12,16 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
-
-import java.util.Set;
+package com.cinchapi.concourse.store.structure;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * 
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public @interface Benchmark {
 
 }

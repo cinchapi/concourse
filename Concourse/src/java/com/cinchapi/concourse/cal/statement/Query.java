@@ -22,7 +22,7 @@ import java.util.Stack;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.Strings;
-import com.cinchapi.concourse.store.api.Queryable.Operator;
+import com.cinchapi.concourse.services.QueryableService.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
@@ -40,7 +40,7 @@ import com.google.common.collect.Lists;
  * <li>column BETWEEN value1 value2</li>
  * </ul>
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
 @Immutable
 public class Query {

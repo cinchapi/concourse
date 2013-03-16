@@ -12,16 +12,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.statement;
+package com.cinchapi.concourse.store;
 
-import java.util.Set;
+import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
+import com.cinchapi.concourse.services.ConcourseServiceProvider;
+import com.cinchapi.concourse.store.CommitLog;
 
 /**
- * A statement that returns a set of longs, each of which corresponds to a
- * {@link Key}.
+ * 
  * 
  * @author jnelson
  */
-public interface RowSetStatement extends Statement<Set<Long>> {
+public class CommitLogBenchmark extends ConcourseServiceBenchmark {
+
+	private static final String location = "test/output/benchmark/commitlog";
+	private static final int size = 1024 * 1024 * 100;
+
+	@Override
+	protected CommitLog getService() {
+		return ConcourseServiceProvider.provideNewCommitLog(location, size);
+	}
 
 }

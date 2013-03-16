@@ -12,39 +12,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.result;
+package com.cinchapi.concourse.store.structure;
 
-import java.util.Set;
-import javax.annotation.concurrent.Immutable;
+import org.junit.Test;
 
-import com.cinchapi.concourse.structure.Cell;
+import com.cinchapi.concourse.BaseTest;
+import com.cinchapi.concourse.structure.Key;
 
 /**
- * A result that contains a set of {@link Cell} objects, each of which contains
- * one or more a {@link Value} objects.
+ * Unit tests for {@link Key}.
  * 
  * @author jnelson
  */
-@Immutable
-public class CellSetResult extends AbstractSetResult<Cell> {
+public final class KeyTest extends BaseTest {
 
-	/**
-	 * Return a new {@link CellSetResult} that wraps the {@code results}.
-	 * 
-	 * @param results
-	 * @return the wrapped results
-	 */
-	public static CellSetResult forSet(Set<Cell> results) {
-		return new CellSetResult(results);
-	}
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param results
-	 */
-	protected CellSetResult(Set<Cell> results) {
-		super(results);
+	@Test
+	public void testUnsignedConstraint() {
+		long positive = randomPositiveLong();
+		long negative = randomNegativeLong();
+		Key positiveKey = Key.fromLong(positive);
+		Key negativeKey = Key.fromLong(negative);
+
+		// row keys should never be negative
+		assertFalse(Long.toString(positive).startsWith("-"));
+		assertFalse(positiveKey.toString().startsWith("-"));
+		assertTrue(Long.toString(negative).startsWith("-"));
+		assertFalse(negativeKey.toString().startsWith("-"));
 	}
 
 }

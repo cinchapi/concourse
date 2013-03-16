@@ -37,7 +37,7 @@ import com.cinchapi.concourse.store.Concourse;
 /**
  * The Concourse Database server.
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
 public class ConcourseServer implements Server {
 

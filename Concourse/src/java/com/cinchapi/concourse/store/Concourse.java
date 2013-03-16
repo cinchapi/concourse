@@ -13,9 +13,7 @@ import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.store.api.ConcourseService;
-import com.cinchapi.concourse.store.perm.Database;
-import com.cinchapi.concourse.store.temp.CommitLog;
+import com.cinchapi.concourse.services.ConcourseService;
 import com.google.common.collect.Sets;
 
 /**
@@ -287,7 +285,7 @@ public class Concourse extends ConcourseService {
 	 * Contains various callables and runnables to enable concurrent operations
 	 * within {@link Concourse}.
 	 * 
-	 * @author Jeff Nelson
+	 * @author jnelson
 	 */
 	public static class Threads {
 

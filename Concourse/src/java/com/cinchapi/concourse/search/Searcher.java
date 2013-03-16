@@ -12,39 +12,44 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.cal.result;
+package com.cinchapi.concourse.search;
 
 import java.util.Set;
-import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.structure.Cell;
+import com.cinchapi.concourse.structure.Key;
 
 /**
- * A result that contains a set of {@link Cell} objects, each of which contains
- * one or more a {@link Value} objects.
+ * A service that searches a fulltext index.
  * 
  * @author jnelson
  */
-@Immutable
-public class CellSetResult extends AbstractSetResult<Cell> {
+public interface Searcher {
 
 	/**
-	 * Return a new {@link CellSetResult} that wraps the {@code results}.
+	 * Return the set of {@code keys} for the rows containing
+	 * {@code query} in any column.
 	 * 
-	 * @param results
-	 * @return the wrapped results
+	 * @param query
+	 * @return the result set.
 	 */
-	public static CellSetResult forSet(Set<Cell> results) {
-		return new CellSetResult(results);
-	}
+	public Set<Key> search(String query);
 
 	/**
-	 * Construct a new instance.
+	 * Return the set of {@code keys} for the rows containing
+	 * {@code query} in {@code column}.
 	 * 
-	 * @param results
+	 * @param query
+	 * @return the result set.
 	 */
-	protected CellSetResult(Set<Cell> results) {
-		super(results);
-	}
+	public Set<Key> search(String query, String column);
+
+	/**
+	 * Return the set of {@code columns} in {@code row} that contain
+	 * {@code query}.
+	 * 
+	 * @param query
+	 * @return the result set.
+	 */
+	public Set<String> search(String query, Key row);
 
 }

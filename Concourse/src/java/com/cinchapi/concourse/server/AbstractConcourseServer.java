@@ -37,7 +37,7 @@ import com.cinchapi.concourse.store.Concourse;
 /**
  * Base implementation of the {@ConcourseServer} interface.
  * 
- * @author Jeff Nelson
+ * @author jnelson
  */
 public abstract class AbstractConcourseServer implements Server {
 
@@ -169,7 +169,7 @@ public abstract class AbstractConcourseServer implements Server {
 	 * The default implementation for what should be retuened from
 	 * {@link AbstractConcourseServer#getClientHandler(Socket)}
 	 * 
-	 * @author Jeff Nelson
+	 * @author jnelson
 	 */
 	public class DefaultClientHandler implements Runnable {
 
