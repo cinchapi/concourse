@@ -14,9 +14,8 @@
  */
 package com.cinchapi.concourse.temp;
 
-import java.io.IOException;
-
 import com.cinchapi.concourse.ConcourseServiceBenchmark;
+import com.cinchapi.concourse.ConcourseServiceProvider;
 import com.cinchapi.concourse.store.temp.CommitLog;
 
 /**
@@ -24,21 +23,14 @@ import com.cinchapi.concourse.store.temp.CommitLog;
  * 
  * @author jnelson
  */
-public class CommitLogBenchmark extends ConcourseServiceBenchmark{
-	
+public class CommitLogBenchmark extends ConcourseServiceBenchmark {
+
 	private static final String location = "test/output/benchmark/commitlog";
 	private static final int size = 1024 * 1024 * 100;
 
-	
 	@Override
 	protected CommitLog getService() {
-		try {
-			return CommitLog.newInstance(location, size);
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return ConcourseServiceProvider.provideNewCommitLog(location, size);
 	}
 
 }

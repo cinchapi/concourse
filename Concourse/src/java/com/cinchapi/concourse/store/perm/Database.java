@@ -35,6 +35,10 @@ public class Database extends ConcourseService {
 			
 		}
 	}
+	
+	public static Database inDir(String directory){
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.cinchapi.concourse.api.ConcourseService#addSpi(long, java.lang.String, java.lang.Object)
@@ -67,7 +71,7 @@ public class Database extends ConcourseService {
 	 * @see com.cinchapi.concourse.api.ConcourseService#getSpi(long, java.lang.String)
 	 */
 	@Override
-	protected Set<Object> getSpi(long row, String column) {
+	protected Set<Object> fetchSpi(long row, String column) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -85,7 +89,7 @@ public class Database extends ConcourseService {
 	 * @see com.cinchapi.concourse.api.ConcourseService#selectSpi(java.lang.String, com.cinchapi.concourse.api.Queryable.SelectOperator, java.lang.Object[])
 	 */
 	@Override
-	protected Set<Long> selectSpi(String column, SelectOperator operator,
+	protected Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
 		// TODO Auto-generated method stub
 		return null;

@@ -20,8 +20,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.cinahpi.concourse.BaseTest;
-import com.cinchapi.concourse.store.perm.Value;
+import com.cinchapi.concourse.BaseTest;
+import com.cinchapi.concourse.store.component.Value;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 

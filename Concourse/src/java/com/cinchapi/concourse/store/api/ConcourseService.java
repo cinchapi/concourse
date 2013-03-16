@@ -32,19 +32,54 @@ import com.google.common.base.Preconditions;
  */
 public abstract class ConcourseService implements DataStoreService {
 
-	private static final CharSequence[] bannedColumnNameChars = {",", "\"", "'", "\\"};
-
-	@Override
-	public final boolean add(long row, String column, Object value) {
+	/**
+	 * Return {@code true} if {@code column} is a legal name. See
+	 * {@link #ILLEGAL_COLUMN_NAME_CHARS} for details. This method will throw an
+	 * exception if the column name is not legal.
+	 * 
+	 * @param column
+	 * @return {@code true} if the name is legal
+	 * @throws IllegalArgumentException
+	 */
+	public static boolean checkColumnName(String column)
+			throws IllegalArgumentException {
 		Preconditions.checkArgument(
 				!com.cinchapi.common.Strings.containsWhitespace(column),
 				"The column name cannot contain whitespace");
 		Preconditions
 				.checkArgument(
 						!com.cinchapi.common.Strings.contains(column,
-								bannedColumnNameChars),
-						"The column name connot contained any of the following banned characters : {}",
-						(Object[]) bannedColumnNameChars);
+								ILLEGAL_COLUMN_NAME_CHARS),
+						"The column name connot contained any of the following banned characters : %s",
+						(Object[]) ILLEGAL_COLUMN_NAME_CHARS);
+		for (Operator operator : Operator.values()) {
+			Preconditions
+					.checkArgument(
+							!column.matches("(?i).*" + operator + ".*"),
+							"The column name cannot contain a substring of %s because it is reserved word",
+							operator);
+		}
+		return true;
+	}
+
+	/**
+	 * The list of characters that cannot appear in a legal column name. The
+	 * list includes:
+	 * <ul>
+	 * <li>comma (,)</li>
+	 * <li>double quote (")</li>
+	 * <li>single quote (')</li>
+	 * <li>back slash (\)</li>
+	 * <li>open parenthesis (()</li>
+	 * <li>close parenthesis ())</li>
+	 * </ul>
+	 */
+	public static final CharSequence[] ILLEGAL_COLUMN_NAME_CHARS = { ",", "\"",
+			"'", "\\", "(", ")" };
+
+	@Override
+	public final boolean add(long row, String column, Object value) {
+		ConcourseService.checkColumnName(column);
 		return addSpi(row, column, value);
 	}
 
@@ -60,7 +95,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean exists(long row, String column) {
-		return !get(row, column).isEmpty();
+		return !fetch(row, column).isEmpty();
 	}
 
 	@Override
@@ -69,8 +104,8 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final Set<Object> get(long row, String column) {
-		return getSpi(row, column);
+	public final Set<Object> fetch(long row, String column) {
+		return fetchSpi(row, column);
 	}
 
 	@Override
@@ -79,9 +114,9 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final Set<Long> select(String column, SelectOperator operator,
+	public final Set<Long> query(String column, Operator operator,
 			Object... values) {
-		return selectSpi(column, operator, values);
+		return querySpi(column, operator, values);
 	}
 
 	@Override
@@ -119,14 +154,14 @@ public abstract class ConcourseService implements DataStoreService {
 	protected abstract boolean existsSpi(long row, String column, Object value);
 
 	/**
-	 * Implement the interface for {@link #get(long, String)}.
+	 * Implement the interface for {@link #fetch(long, String)}.
 	 * 
 	 * @param row
 	 * @param column
 	 * @return the set of values that currently exist in the cell located at the
 	 *         intersection of {@code row} and {@code column}
 	 */
-	protected abstract Set<Object> getSpi(long row, String column);
+	protected abstract Set<Object> fetchSpi(long row, String column);
 
 	/**
 	 * Implement the interface for {@link #remove(long, String, Object)}.
@@ -139,16 +174,15 @@ public abstract class ConcourseService implements DataStoreService {
 	protected abstract boolean removeSpi(long row, String column, Object value);
 
 	/**
-	 * Implement the interface for
-	 * {@link #select(String, SelectOperator, Object...)}.
+	 * Implement the interface for {@link #query(String, Operator, Object...)}.
 	 * 
 	 * @param column
 	 * @param operator
 	 * @param values
 	 * @return the set of rows that match the select criteria
 	 */
-	protected abstract Set<Long> selectSpi(String column,
-			SelectOperator operator, Object... values);
+	protected abstract Set<Long> querySpi(String column, Operator operator,
+			Object... values);
 
 	/**
 	 * Default implemention of the interface for
@@ -163,7 +197,7 @@ public abstract class ConcourseService implements DataStoreService {
 	 * @return {@code true} if the set is successful
 	 */
 	protected boolean setSpi(long row, String column, Object value) {
-		Set<Object> values = get(row, column);
+		Set<Object> values = fetch(row, column);
 		for (Object v : values) {
 			remove(row, column, v);
 		}

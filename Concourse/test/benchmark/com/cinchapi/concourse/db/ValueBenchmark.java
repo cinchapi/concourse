@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseBenchmark;
-import com.cinchapi.concourse.store.perm.Value;
+import com.cinchapi.concourse.store.component.Value;
 
 /**
  * Benchmarking for {@link Value}.

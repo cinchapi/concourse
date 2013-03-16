@@ -14,7 +14,10 @@
  */
 package com.cinchapi.concourse.store.temp;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -49,24 +52,41 @@ public class HeapDatabase extends ConcourseService {
 	 * {@code expectedSize}.
 	 * 
 	 * @param expectedCapacity
+	 *            - the expected number of commits
 	 * @return the memory representation
 	 */
-	public static HeapDatabase newInstancewithExpectedSize(int expectedCapacity) {
+	public static HeapDatabase newInstancewithExpectedCapacity(
+			int expectedCapacity) {
 		return new HeapDatabase(expectedCapacity);
 	}
 
-	private static final Comparator<Value> comparator = new Comparator<Value>() {
+	private static final TreeMap<Value, Set<Key>> EMPTY_VALUE_INDEX = new TreeMap<Value, Set<Key>>(); // read-only
+	private static final Set<Key> EMPTY_KEY_SET = Collections
+			.unmodifiableSet(new HashSet<Key>());
+	private static final Comparator<Value> comparator = new Value.LogicalComparator();
 
-		@Override
-		public int compare(Value o1, Value o2) {
-			return o1.compareToLogically(o2);
-		}
-
-	};
-
+	/**
+	 * Maintains all the commits in chronological order. Elements from
+	 * the list SHOULD NOT be deleted, so handle with care.
+	 */
 	protected List<Commit> ordered;
-	protected Map<Commit, Integer> counts;
-	private Map<String, TreeMap<Value, Set<Key>>> columns;
+
+	/**
+	 * Maintains a mapping from a Commit to the number of times the Commit
+	 * exists in {@link #ordered}.
+	 */
+	protected HashMap<Commit, Integer> counts;
+
+	/**
+	 * Maintains an index mapping a column name to a ValueIndex. The ValueIndex
+	 * maps a Value to a KeySet indicating the rows that contain the value. Use
+	 * helper functions to retrieve data from this index so as to avoid
+	 * NullPointerExceptions.
+	 * 
+	 * @see {@link #getValueIndexForColumn(String)}
+	 * @see {@link #getKeySetForColumnAndValue(String, Value)}
+	 */
+	private HashMap<String, TreeMap<Value, Set<Key>>> columns;
 
 	/**
 	 * Construct a new empty instance with the {@code expectedCapacity}.
@@ -77,6 +97,20 @@ public class HeapDatabase extends ConcourseService {
 		this.ordered = Lists.newArrayListWithCapacity(expectedCapacity);
 		this.counts = Maps.newHashMapWithExpectedSize(expectedCapacity);
 		this.columns = Maps.newHashMapWithExpectedSize(expectedCapacity);
+	}
+
+	/**
+	 * Return the number of commits that exist for the revision for
+	 * {@code value} in the {@code cell} at the intersection of {@code row} and
+	 * {@code column}.
+	 * 
+	 * @param row
+	 * @param column
+	 * @param value
+	 * @return the number of commits for the revision
+	 */
+	public int count(long row, String column, Object value) {
+		return count(Commit.notForStorage(row, column, value));
 	}
 
 	/**
@@ -96,6 +130,16 @@ public class HeapDatabase extends ConcourseService {
 			return record(Commit.forStorage(row, column, value));
 		}
 		return false;
+	}
+
+	/**
+	 * Return the count for {@code commit} in the commitlog.
+	 * 
+	 * @param commit
+	 * @return the count
+	 */
+	protected int count(Commit commit) {
+		return counts.containsKey(commit) ? counts.get(commit) : 0;
 	}
 
 	@Override
@@ -142,13 +186,24 @@ public class HeapDatabase extends ConcourseService {
 		}
 	}
 
+	/**
+	 * Return {@code true} if {@code commit} has been committed an odd number of
+	 * time.
+	 * 
+	 * @param commit
+	 * @return {@code true} if {@code commit} exists
+	 */
+	protected boolean exists(Commit commit) {
+		return Numbers.isOdd(count(commit));
+	}
+
 	@Override
 	protected boolean existsSpi(long row, String column, Object value) {
 		return exists(Commit.notForStorage(row, column, value));
 	}
 
 	@Override
-	protected Set<Object> getSpi(long row, String column) {
+	protected Set<Object> fetchSpi(long row, String column) {
 		Set<Value> _values = Sets.newLinkedHashSet();
 		ListIterator<Commit> commiterator = ordered
 				.listIterator(ordered.size());
@@ -179,36 +234,29 @@ public class HeapDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		if(exists(row, column, value)) {
-			return record(Commit.forStorage(row, column, value));
-		}
-		return false;
-	}
-
-	@Override
-	protected Set<Long> selectSpi(String column, SelectOperator operator,
+	protected Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
 		// Throughout this method I have to check if the value indexed in
 		// #columns still exists because I do not deindex columns for
-		// removal commits
+		// remove commits
 		Set<Long> rows = Sets.newHashSet();
-
 		Value val = Value.notForStorage(values[0]);
 
-		if(operator == SelectOperator.EQUALS) {
-			Set<Key> keys = columns.get(column).get(val);
-			Object obj = val.getQuantity();
-			for (Key key : keys) {
-				long row = key.asLong();
-				Commit commit = Commit.notForStorage(row, column, obj);
-				if(exists(commit)) {
-					rows.add(row);
+		if(operator == Operator.EQUALS) {
+			Set<Key> keys = getKeySetForColumnAndValue(column, val);
+			if(keys != null) {
+				Object obj = val.getQuantity();
+				for (Key key : keys) {
+					long row = key.asLong();
+					Commit commit = Commit.notForStorage(row, column, obj);
+					if(exists(commit)) {
+						rows.add(row);
+					}
 				}
 			}
 		}
-		else if(operator == SelectOperator.NOT_EQUALS) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.NOT_EQUALS) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -226,8 +274,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.GREATER_THAN) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.GREATER_THAN) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.tailMap(val, false).entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -243,8 +291,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.GREATER_THAN_OR_EQUALS) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.tailMap(val, true).entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -260,8 +308,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.LESS_THAN) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.LESS_THAN) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.headMap(val, false).entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -277,8 +325,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.LESS_THAN_OR_EQUALS) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.headMap(val, true).entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -294,11 +342,11 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.BETWEEN) {
+		else if(operator == Operator.BETWEEN) {
 			Preconditions.checkArgument(values.length > 1,
 					"You must specify two arguments for the BETWEEN selector.");
 			Value v2 = Value.notForStorage(values[1]);
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.subMap(val, true, v2, false).entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -314,8 +362,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.REGEX) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.REGEX) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -335,8 +383,8 @@ public class HeapDatabase extends ConcourseService {
 				}
 			}
 		}
-		else if(operator == SelectOperator.NOT_REGEX) {
-			Iterator<Entry<Value, Set<Key>>> it = columns.get(column)
+		else if(operator == Operator.NOT_REGEX) {
+			Iterator<Entry<Value, Set<Key>>> it = getValueIndexForColumn(column)
 					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, Set<Key>> entry = it.next();
@@ -364,43 +412,62 @@ public class HeapDatabase extends ConcourseService {
 	}
 
 	/**
-	 * Return the number of commits that exist for the revision for
-	 * {@code value} in the {@code cell} at the intersection of {@code row} and
+	 * Record the {@code commit} in memory. This method DOES NOT perform any
+	 * validation or input checks.
+	 * 
+	 * @param commit
+	 * @return {@code true}
+	 */
+	protected boolean record(Commit commit) {
+		int count = count(commit) + 1;
+		counts.put(commit, count);
+		ordered.add(commit);
+		index(commit); // I won't deindex commits because it is
+						// expensive and I will check the commit
+						// #count() whenever I read from the index.
+		return true;
+	}
+
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		if(exists(row, column, value)) {
+			return record(Commit.forStorage(row, column, value));
+		}
+		return false;
+	}
+
+	/**
+	 * Safely return a ValueIndex for {@code column}.
+	 * 
+	 * @param column
+	 * @return the ValueIndex
+	 */
+	private TreeMap<Value, Set<Key>> getValueIndexForColumn(String column) {
+		if(columns.containsKey(column)) {
+			return columns.get(column);
+		}
+		return EMPTY_VALUE_INDEX;
+	}
+
+	/**
+	 * Safely return a KeySet for the rows that contain {@code value} in
 	 * {@code column}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 * @return the number of commits for the revision
+	 * @return the KeySet
 	 */
-	public int count(long row, String column, Object value) {
-		return count(Commit.notForStorage(row, column, value));
-	}
-
-	/**
-	 * Return the count for {@code commit} in the commitlog.
-	 * 
-	 * @param commit
-	 * @return the count
-	 */
-	protected int count(Commit commit) {
-		return counts.containsKey(commit) ? counts.get(commit) : 0;
-	}
-
-	/**
-	 * Return {@code true} if {@code commit} has been committed an odd number of
-	 * time.
-	 * 
-	 * @param commit
-	 * @return {@code true} if {@code commit} exists
-	 */
-	protected boolean exists(Commit commit) {
-		return Numbers.isOdd(count(commit));
+	private Set<Key> getKeySetForColumnAndValue(String column, Value value) {
+		TreeMap<Value, Set<Key>> valueIndex = getValueIndexForColumn(column);
+		if(valueIndex.containsKey(value)) {
+			return valueIndex.get(value);
+		}
+		return EMPTY_KEY_SET;
 	}
 
 	/**
 	 * Add indexes for the commit to allow for more efficient
-	 * {@link #select(String, com.cinchapi.concourse.store.api.Queryable.SelectOperator, Object...)}
+	 * {@link #query(String, com.cinchapi.concourse.store.api.Queryable.Operator, Object...)}
 	 * operations.
 	 * 
 	 * @param commit
@@ -426,21 +493,5 @@ public class HeapDatabase extends ConcourseService {
 			values.put(value, rows);
 		}
 		rows.add(row);
-	}
-
-	/**
-	 * Record the {@code commit} in memory.
-	 * 
-	 * @param commit
-	 * @return {@code true}
-	 */
-	protected boolean record(Commit commit) {
-		int count = count(commit) + 1;
-		counts.put(commit, count);
-		ordered.add(commit);
-		index(commit); // I won't deindex commits because it is
-						// expensive and I will check the commit
-						// #count() whenever I read from the index.
-		return true;
 	}
 }

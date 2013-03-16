@@ -17,6 +17,7 @@ package com.cinchapi.concourse.store.component;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Comparator;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -25,6 +26,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.store.Concourse;
 import com.cinchapi.concourse.store.io.Persistable;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -63,6 +65,20 @@ import com.google.common.primitives.Longs;
 public final class Value implements Comparable<Value>, Persistable {
 
 	/**
+	 * Return a value that is appropriate for storage, with the current
+	 * timestamp.
+	 * 
+	 * @param quantity
+	 * @return the new instance.
+	 */
+	public static Value forStorage(Object quantity) {
+		return new Value(quantity, Time.now()); // do not use cache because
+												// forStorage values must have a
+												// unique timestamp and will
+												// thus never be duplicated
+	}
+
+	/**
 	 * Return the value represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
 	 * {@code bytes} was generated using {@link #getBytes()}.
@@ -81,20 +97,6 @@ public final class Value implements Comparable<Value>, Persistable {
 		quantity.rewind();
 
 		return new Value(quantity, type, timestamp);
-	}
-
-	/**
-	 * Return a value that is appropriate for storage, with the current
-	 * timestamp.
-	 * 
-	 * @param quantity
-	 * @return the new instance.
-	 */
-	public static Value forStorage(Object quantity) {
-		return new Value(quantity, Time.now()); // do not use cache because
-												// forStorage values must have a
-												// unique timestamp and will
-												// thus never be duplicated
 	}
 
 	/**
@@ -303,6 +305,22 @@ public final class Value implements Comparable<Value>, Persistable {
 	}
 
 	/**
+	 * Return a byte array that represents the value with the following order:
+	 * <ol>
+	 * <li><strong>timestamp</strong> - first 8 bytes</li>
+	 * <li><strong>type</strong> - next 4 bytes</li>
+	 * <li><strong>size</strong> - next 4 bytes</li>
+	 * <li><strong>quantity</strong> - remaining bytes</li>
+	 * </ol>
+	 * 
+	 * @return a byte array.
+	 */
+	@Override
+	public byte[] getBytes() {
+		return getBuffer().array();
+	}
+
+	/**
 	 * Return an object that represents the encapsulated {@code quantity}.
 	 * 
 	 * @return the value.
@@ -329,22 +347,6 @@ public final class Value implements Comparable<Value>, Persistable {
 	 */
 	public String getType() {
 		return type.toString();
-	}
-
-	/**
-	 * Return a byte array that represents the value with the following order:
-	 * <ol>
-	 * <li><strong>timestamp</strong> - first 8 bytes</li>
-	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>size</strong> - next 4 bytes</li>
-	 * <li><strong>quantity</strong> - remaining bytes</li>
-	 * </ol>
-	 * 
-	 * @return a byte array.
-	 */
-	@Override
-	public byte[] getBytes() {
-		return getBuffer().array();
 	}
 
 	@Override
@@ -431,6 +433,20 @@ public final class Value implements Comparable<Value>, Persistable {
 	private ByteBuffer getQuantityBuffer() {
 		quantity.rewind();
 		return quantity;
+	}
+
+	/**
+	 * A {@link Comparator} that sorts values logically.
+	 * 
+	 * @see {@link Value#compareToLogically(Value)}
+	 */
+	public static class LogicalComparator implements Comparator<Value> {
+
+		@Override
+		public int compare(Value o1, Value o2) {
+			return o1.compareToLogically(o2);
+		}
+
 	}
 
 	/**

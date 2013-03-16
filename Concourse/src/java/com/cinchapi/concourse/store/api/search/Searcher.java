@@ -16,7 +16,7 @@ package com.cinchapi.concourse.store.api.search;
 
 import java.util.Set;
 
-import com.cinchapi.concourse.store.perm.Key;
+import com.cinchapi.concourse.store.component.Key;
 
 /**
  * A service that searches a fulltext index.

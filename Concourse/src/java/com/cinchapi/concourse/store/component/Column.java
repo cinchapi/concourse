@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.store.api.Queryable.SelectOperator;
+import com.cinchapi.concourse.store.api.Queryable.Operator;
 import com.cinchapi.concourse.store.api.search.Searcher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -127,7 +127,7 @@ public final class Column {
 	 * @param values
 	 * @return the row set.
 	 */
-	public Section select(SelectOperator operator, Value... values) {
+	public Section select(Operator operator, Value... values) {
 		Section results = null;
 		switch (operator) {
 		case BETWEEN:
@@ -213,7 +213,7 @@ public final class Column {
 	private class Select {
 
 		/**
-		 * Perform a {@link SelectOperator#BETWEEN} select.
+		 * Perform a {@link Operator#BETWEEN} select.
 		 * 
 		 * @param v1
 		 * @param v2
@@ -230,7 +230,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#CONTAINS} select.
+		 * Perform a {@link Operator#CONTAINS} select.
 		 * 
 		 * @param query
 		 * @return the result set.
@@ -242,7 +242,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#EQUALS} select.
+		 * Perform a {@link Operator#EQUALS} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -252,7 +252,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#GREATER_THAN} select.
+		 * Perform a {@link Operator#GREATER_THAN} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -268,7 +268,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#GREATER_THAN_OR_EQUALS} select.
+		 * Perform a {@link Operator#GREATER_THAN_OR_EQUALS} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -284,7 +284,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#LESS_THAN} select.
+		 * Perform a {@link Operator#LESS_THAN} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -300,7 +300,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#LESS_THAN_OR_EQUALS} select.
+		 * Perform a {@link Operator#LESS_THAN_OR_EQUALS} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -316,7 +316,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#NOT_EQUALS} select.
+		 * Perform a {@link Operator#NOT_EQUALS} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -334,7 +334,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#NOT_REGEX} select.
+		 * Perform a {@link Operator#NOT_REGEX} select.
 		 * 
 		 * @param v
 		 * @return the result set.
@@ -355,7 +355,7 @@ public final class Column {
 		}
 
 		/**
-		 * Perform a {@link SelectOperator#REGEX} select.
+		 * Perform a {@link Operator#REGEX} select.
 		 * 
 		 * @param v
 		 * @return the result set.

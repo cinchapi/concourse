@@ -221,20 +221,20 @@ public class CommitLog extends HeapDatabase implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
-				this.record(Commit.fromByteSequence(bsit.next())); // this will
-																	// only
-																	// record
-																	// the
-																	// commit in
-																	// memory
-																	// and
-																	// not the
-																	// underlying
-																	// file
-																	// (because
-																	// its
-																	// already
-																	// there!)
+				record(Commit.fromByteSequence(bsit.next())); // this will
+																// only
+																// record
+																// the
+																// commit in
+																// memory
+																// and
+																// not the
+																// underlying
+																// file
+																// (because
+																// its
+																// already
+																// there!)
 			}
 		}
 	}
@@ -264,8 +264,8 @@ public class CommitLog extends HeapDatabase implements
 				@Override
 				public Commit next() {
 					checkForComodification();
-					Commit next = ordered.remove(0);
-					int count = counts.get(next) - 1;
+					Commit next = ordered.remove(0); // authorized
+					int count = counts.get(next) - 1; // authorized
 					if(count == 0) {
 						counts.remove(next);
 					}

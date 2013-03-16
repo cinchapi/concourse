@@ -12,36 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.api.search;
-
-import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Value;
+package com.cinchapi.concourse.cal;
 
 /**
- * A service that indexes data for fulltext searching.
+ * 
  * 
  * @author jnelson
  */
-public interface Indexer {
-
-	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 */
-	public void deindex(Key row, String column, Value value);
-
-	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 */
-	public void index(Key row, String column, Value value);
+public class ResultSet {
 
 }

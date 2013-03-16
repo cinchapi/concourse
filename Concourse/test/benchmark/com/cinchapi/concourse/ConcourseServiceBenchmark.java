@@ -14,11 +14,13 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import com.cinchapi.concourse.store.api.ConcourseService;
+import com.cinchapi.concourse.store.api.Queryable.Operator;
 
 /**
  * Base benchmark tests for the {@link ConcourseService} interface.
@@ -109,6 +111,83 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		log("Runtime for remove() with an initial target of {} and a removal target of {} values: {} {}",
 				format.format(initTarget), format.format(removeTarget),
 				format.format(elapsed), unit);
+	}
+
+	@Test
+	public void testQuery() {
+		ConcourseService service = getService();
+
+		// Tuning parameters
+		int numValues = 500000;
+		int numColumns = (int) Math.round(.1 * numValues); // a lower number
+															// means more
+															// values/column
+		int numRows = (int) Math.round(.4 * numValues); // a lower number means
+														// more values/row
+
+		TimeUnit unit = TimeUnit.MICROSECONDS;
+
+		log("Running benchmark for query() with {} values {} columns and {} rows",
+				format.format(numValues), format.format(numColumns),
+				format.format(numRows));
+
+		log("Generating and writing data...");
+
+		log("Generating initial data...");
+		long[] rows = new long[numRows];
+		for (int i = 0; i < rows.length; i++) {
+			rows[i] = randomLong();
+		}
+
+		String[] columns = new String[numColumns];
+		for (int i = 0; i < columns.length; i++) {
+			columns[i] = randomStringNoSpaces();
+		}
+		Object[] values = new Object[numValues];
+		for (int i = 0; i < values.length; i++) {
+			values[i] = randomObject();
+		}
+
+		log("Writing initial data...");
+		for (int i = 0; i < values.length; i++) {
+			Object value = values[i];
+			String column = columns[getRandom().nextInt(columns.length)];
+			long row = rows[getRandom().nextInt(rows.length)];
+			service.add(row, column, value);
+		}
+
+		String column;
+		Object value;
+		long elapsed;
+		Set<Long> results;
+
+		Operator[] operators = Operator.values();
+		for (Operator operator : operators) {
+			try {
+				column = columns[getRandom().nextInt(columns.length)];
+				value = values[getRandom().nextInt(values.length)];
+				log("Performing QUERY {} {} {}", column, operator, value);
+				timer().start();
+				if(operator == Operator.BETWEEN) {
+					Object value2 = values[getRandom().nextInt(values.length)];
+					results = service.query(column, operator, value, value2);
+				}
+				else {
+					results = service.query(column, operator, value);
+				}
+				elapsed = timer().stop(unit);
+				log("Runtime for query: {} {}", elapsed, unit);
+				log("Results for query: {}", results);
+				log(System.lineSeparator());
+			}
+			catch (UnsupportedOperationException e) {
+				log("{}", e.getMessage());
+				timer().stop();
+				continue;
+			}
+
+		}
+
 	}
 
 	protected String randomStringNoSpaces() {

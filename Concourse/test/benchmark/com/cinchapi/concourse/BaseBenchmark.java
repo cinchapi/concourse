@@ -21,8 +21,8 @@ import java.text.NumberFormat;
 
 import org.junit.BeforeClass;
 
-import com.cinahpi.concourse.BaseTest;
 import com.cinchapi.common.time.StopWatch;
+import com.cinchapi.concourse.BaseTest;
 
 /**
  * Base class for all benchmark tests

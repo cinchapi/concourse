@@ -17,5 +17,8 @@
         <dependency org="org.apache.lucene" name="lucene-core" rev="3.6.2"/>
         <dependency org="org.apache.lucene" name="lucene-analyzers" rev="3.6.2"/>
         <dependency org="org.apache.lucene" name="lucene-queries" rev="3.6.2"/>
+        <dependency org="commons-configuration" name="commons-configuration" rev="1.9"/>
+        <dependency org="org.apache.tomcat" name="tomcat-catalina" rev="7.0.37"/>
+        <dependency org="jline" name="jline" rev="2.10"/>
     </dependencies>
 </ivy-module>

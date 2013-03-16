@@ -12,36 +12,27 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.api.search;
+package com.cinchapi.concourse.temp;
 
-import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Value;
+import com.cinchapi.concourse.ConcourseServiceBenchmark;
+import com.cinchapi.concourse.ConcourseServiceProvider;
+import com.cinchapi.concourse.store.api.ConcourseService;
 
 /**
- * A service that indexes data for fulltext searching.
+ * 
  * 
  * @author jnelson
  */
-public interface Indexer {
+public class HeapDatabaseBenchmark extends ConcourseServiceBenchmark {
 
-	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @see com.cinchapi.concourse.ConcourseServiceBenchmark#getService()
 	 */
-	public void deindex(Key row, String column, Value value);
-
-	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 */
-	public void index(Key row, String column, Value value);
+	@Override
+	protected ConcourseService getService() {
+		return ConcourseServiceProvider.provideHeapDatabase();
+	}
 
 }

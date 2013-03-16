@@ -48,7 +48,7 @@ public interface Retrievable {
 	 * 
 	 * @param row
 	 * @param column
-	 * @return {@code true} if {@link #get(long, String)} for {@code row} and
+	 * @return {@code true} if {@link #fetch(long, String)} for {@code row} and
 	 *         {@code column} is not empty.
 	 */
 	public boolean exists(long row, String column);
@@ -72,6 +72,6 @@ public interface Retrievable {
 	 * @param column
 	 * @return the result set.
 	 */
-	public Set<Object> get(long row, String column);
+	public Set<Object> fetch(long row, String column);
 
 }

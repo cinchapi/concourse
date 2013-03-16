@@ -12,36 +12,42 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.api.search;
+package com.cinchapi.concourse.cal.result;
 
-import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Value;
+import java.util.Set;
+
+import javax.annotation.concurrent.Immutable;
 
 /**
- * A service that indexes data for fulltext searching.
+ * A result that contains a set of objects. The implementing class SHOULD NOT
+ * implement additional non-static functionality, but should just specify
+ * {@code T}.
  * 
  * @author jnelson
+ * @param <T>
+ *            - the object type contained in the set
  */
-public interface Indexer {
+@Immutable
+public abstract class AbstractSetResult<T> implements Result{
+
+	private final Set<T> results;
 
 	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
+	 * Construct a new instance.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @param results
 	 */
-	public void deindex(Key row, String column, Value value);
+	protected AbstractSetResult(Set<T> results) {
+		this.results = results;
+	}
 
 	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
+	 * Return a set view of the results.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @return the results
 	 */
-	public void index(Key row, String column, Value value);
+	public Set<T> getResults() {
+		return results; // TODO return a read only copy
+	}
 
 }

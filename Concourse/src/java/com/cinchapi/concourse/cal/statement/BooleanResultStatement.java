@@ -12,36 +12,20 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.api.search;
+package com.cinchapi.concourse.cal.statement;
 
-import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Value;
+import java.util.List;
+
+import com.cinchapi.concourse.cal.result.BooleanResult;
 
 /**
- * A service that indexes data for fulltext searching.
+ * A {@link Statement} that returns a boolean when executed.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
-public interface Indexer {
+public abstract class BooleanResultStatement implements Statement<BooleanResult> {
+	
+	public abstract List<BooleanResultStatementMapping> getMappings();
 
-	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 */
-	public void deindex(Key row, String column, Value value);
-
-	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 */
-	public void index(Key row, String column, Value value);
 
 }

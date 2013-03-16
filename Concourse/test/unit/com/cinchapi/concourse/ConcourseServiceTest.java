@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinahpi.concourse;
+package com.cinchapi.concourse;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -203,7 +203,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			service.add(row, column, value);
 		}
 		Collections.reverse(values);
-		assertEquals(service.get(row, column), Sets.newLinkedHashSet(values));
+		assertEquals(service.fetch(row, column), Sets.newLinkedHashSet(values));
 		
 		//get returns correctly after removals happen
 		Iterator<Object> it = values.iterator();
@@ -214,7 +214,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				it.remove();
 			}
 		}
-		assertEquals(service.get(row, column), Sets.newLinkedHashSet(values));
+		assertEquals(service.fetch(row, column), Sets.newLinkedHashSet(values));
 	}
 	
 	@Test
@@ -250,8 +250,8 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			value = randomObject();
 		}
 		assertTrue(service.set(row, column, value));
-		assertEquals(1, service.get(row, column).size());
-		assertTrue(service.get(row, column).contains(value));
+		assertEquals(1, service.fetch(row, column).size());
+		assertTrue(service.fetch(row, column).contains(value));
 		
 		//setting an existing value works 
 		scale = getScaleFrequency();
@@ -259,8 +259,8 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			service.add(row, column, randomObject());
 		}
 		assertTrue(service.set(row, column, value));
-		assertEquals(1, service.get(row, column).size());
-		assertTrue(service.get(row, column).contains(value));
+		assertEquals(1, service.fetch(row, column).size());
+		assertTrue(service.fetch(row, column).contains(value));
 	}
 
 	protected String randomStringNoSpaces() {

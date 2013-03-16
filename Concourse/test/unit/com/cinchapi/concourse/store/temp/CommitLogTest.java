@@ -12,15 +12,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.commitlog;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
+package com.cinchapi.concourse.store.temp;
 
 import org.junit.Test;
 
-import com.cinahpi.concourse.ConcourseServiceTest;
+import com.cinchapi.concourse.ConcourseServiceProvider;
+import com.cinchapi.concourse.ConcourseServiceTest;
 import com.cinchapi.concourse.store.temp.CommitLog;
+
 /**
  * Unit tests for {@link CommitLog}.
  * 
@@ -28,37 +27,26 @@ import com.cinchapi.concourse.store.temp.CommitLog;
  */
 public class CommitLogTest extends ConcourseServiceTest {
 
-	private static final String location = "test/commitlog";
-	private static final int size = 1024 * 1024;
-
 	@Override
 	protected CommitLog getService() {
-		try {
-			return CommitLog.newInstance(location, size);
-		}
-		catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+		return ConcourseServiceProvider.provideNewCommitLog();
 	}
-	
+
 	@Test
-	public void testIsFull(){
+	public void testIsFull() {
 		CommitLog service = getService();
-		while(!service.isFull()){
-			try{
-				service.add(randomLong(), randomStringNoSpaces(), randomObject());
+		while (!service.isFull()) {
+			try {
+				service.add(randomLong(), randomStringNoSpaces(),
+						randomObject());
 			}
-			catch(IllegalStateException e){
+			catch (IllegalStateException e) {
 				log("{}", e);
 				break;
 			}
 		}
 		assertTrue(service.isFull());
-		assertTrue(service.size() <= size);
+		assertTrue(service.size() <= ConcourseServiceProvider.COMMIT_LOG_DEFAULT_SIZE_IN_BYTES);
 	}
 
 }

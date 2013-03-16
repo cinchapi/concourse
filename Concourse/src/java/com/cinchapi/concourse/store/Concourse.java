@@ -235,7 +235,7 @@ public class Concourse extends ConcourseService {
 	}
 
 	@Override
-	protected Set<Object> getSpi(long row, String column) {
+	protected Set<Object> fetchSpi(long row, String column) {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<Object>> dbr = executor.submit(Threads.get(database, row,
 				column));
@@ -267,7 +267,7 @@ public class Concourse extends ConcourseService {
 	}
 
 	@Override
-	protected Set<Long> selectSpi(String column, SelectOperator operator,
+	protected Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<Long>> dbr = executor.submit(Threads.select(database,
@@ -331,7 +331,7 @@ public class Concourse extends ConcourseService {
 		}
 
 		/**
-		 * Execute {@link ConcourseService#get(long, String)}.
+		 * Execute {@link ConcourseService#fetch(long, String)}.
 		 * 
 		 * @param service
 		 * @param row
@@ -358,7 +358,7 @@ public class Concourse extends ConcourseService {
 
 		/**
 		 * Execute
-		 * {@link ConcourseService#select(String, SelectOperator, Object...)} .
+		 * {@link ConcourseService#query(String, Operator, Object...)} .
 		 * 
 		 * @param service
 		 * @param row
@@ -367,7 +367,7 @@ public class Concourse extends ConcourseService {
 		 * @return the method return value
 		 */
 		public static Select select(ConcourseService service, String column,
-				SelectOperator operator, Object... values) {
+				Operator operator, Object... values) {
 			return new Select(service, column, operator, values);
 		}
 
@@ -523,7 +523,7 @@ public class Concourse extends ConcourseService {
 
 			@Override
 			public Set<Object> call() throws Exception {
-				return service.get(row, column);
+				return service.fetch(row, column);
 			}
 
 		}
@@ -566,7 +566,7 @@ public class Concourse extends ConcourseService {
 
 		/**
 		 * Execute the
-		 * {@link ConcourseService#select(String, com.cinchapi.concourse.store.api.Queryable.SelectOperator, Object...)}
+		 * {@link ConcourseService#query(String, com.cinchapi.concourse.store.api.Queryable.Operator, Object...)}
 		 * method.
 		 * 
 		 * @author jnelson
@@ -575,7 +575,7 @@ public class Concourse extends ConcourseService {
 				AbstractConcourseServiceCallable<Set<Long>> {
 
 			private final String column;
-			private final SelectOperator operator;
+			private final Operator operator;
 			private final Object[] values;
 
 			/**
@@ -587,7 +587,7 @@ public class Concourse extends ConcourseService {
 			 * @param values
 			 */
 			public Select(ConcourseService service, String column,
-					SelectOperator operator, Object... values) {
+					Operator operator, Object... values) {
 				super(service);
 				this.column = column;
 				this.operator = operator;
@@ -596,7 +596,7 @@ public class Concourse extends ConcourseService {
 
 			@Override
 			public Set<Long> call() throws Exception {
-				return service.select(column, operator, values);
+				return service.query(column, operator, values);
 			}
 
 		}

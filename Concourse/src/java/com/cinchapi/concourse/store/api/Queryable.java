@@ -24,22 +24,22 @@ import java.util.Set;
 public interface Queryable {
 
 	/**
-	 * Select the rows that satisfy the {@code operator} in comparison to the
-	 * appropriate number of {@code values}.
+	 * Return the rows that satisfy the {@code operator} in relation to the
+	 * {@code column} and the appropriate number of {@code values}.
 	 * 
 	 * @param column
 	 * @param operator
 	 * @param values
 	 * @return the result set.
 	 */
-	public Set<Long> select(String column, SelectOperator operator,
+	public Set<Long> query(String column, Operator operator,
 			Object... values);
 
 	/**
 	 * The operators that can be used with
-	 * {@link Queryable#select(String, SelectOperator, Object...)}.
+	 * {@link Queryable#query(String, Operator, Object...)}.
 	 */
-	public enum SelectOperator {
+	public enum Operator {
 		/**
 		 * Select rows where at least one value in the column is a substring of
 		 * the query.
@@ -87,7 +87,7 @@ public interface Queryable {
 		 * Select rows where at least one value in the column is between the
 		 * queries.
 		 */
-		BETWEEN("<>");
+		BETWEEN("BETWEEN");
 
 		private String sign;
 
@@ -96,7 +96,7 @@ public interface Queryable {
 		 * 
 		 * @param sign
 		 */
-		SelectOperator(String sign) {
+		Operator(String sign) {
 			this.sign = sign;
 		}
 

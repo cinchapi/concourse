@@ -12,36 +12,39 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.api.search;
+package com.cinchapi.concourse.cal.result;
 
+import java.util.Set;
+
+import javax.annotation.concurrent.Immutable;
 import com.cinchapi.concourse.store.component.Key;
-import com.cinchapi.concourse.store.component.Value;
 
 /**
- * A service that indexes data for fulltext searching.
+ * A result that contains a set of {@link Key} objects, each of which identifies
+ * a {@link Row}.
  * 
  * @author jnelson
  */
-public interface Indexer {
+@Immutable
+public class RowSetResult extends AbstractSetResult<Key> {
 
 	/**
-	 * Remove {@code value} from the indexes for {@code row} and
-	 * {@code column}
+	 * Return a new {@link RowSetResult} that wraps the {@code results}.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @param results
+	 * @return the wrapped results
 	 */
-	public void deindex(Key row, String column, Value value);
+	public static RowSetResult forSet(Set<Key> results) {
+		return new RowSetResult(results);
+	}
 
 	/**
-	 * Index {@code value} to {@code row} and {@code column} for
-	 * fulltext searching.
+	 * Construct a new instance.
 	 * 
-	 * @param row
-	 * @param column
-	 * @param value
+	 * @param results
 	 */
-	public void index(Key row, String column, Value value);
+	private RowSetResult(Set<Key> results) {
+		super(results);
+	}
 
 }
