@@ -43,7 +43,7 @@ import com.google.common.base.Preconditions;
  * <p>
  * Writes are immediately flushed to a file on disk (this has little overhead
  * because the entire capacity of the file is mapped in memory and data is
- * always appended) and reads happen entirely in memory. From time to time, the
+ * always appended) but reads happen entirely in memory. From time to time, the
  * CommitLog is flushed to a permanent database.
  * </p>
  * <p>
@@ -170,7 +170,7 @@ public class CommitLog extends VolatileDatabase implements
 	/**
 	 * The maximum allowable size of the CommitLog on disk.
 	 */
-	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10) / 100;
+	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10);
 
 	/**
 	 * The default size of the commitlog
@@ -227,7 +227,7 @@ public class CommitLog extends VolatileDatabase implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
-				record(Commit.fromByteSequence(bsit.next())); // this will
+				commit(Commit.fromByteSequence(bsit.next())); // this will
 																// only
 																// record
 																// the
@@ -271,12 +271,12 @@ public class CommitLog extends VolatileDatabase implements
 				public Commit next() {
 					checkForComodification();
 					Commit next = ordered.remove(0); // authorized
-					int count = counts.get(next) - 1; // authorized
+					int count = counts.get(next) - 1; 
 					if(count == 0) {
-						counts.remove(next);
+						counts.remove(next); // authorized
 					}
 					else {
-						counts.put(next, count);
+						counts.put(next, count); // authorized
 					}
 					int nextSize = next.size() + 4;
 					buffer.position(buffer.position() + nextSize);
@@ -353,28 +353,27 @@ public class CommitLog extends VolatileDatabase implements
 
 	@Override
 	protected boolean addSpi(long row, String column, Object value) {
-		Commit commit = Commit.forStorage(row, column, value);
-		if(!exists(commit)) {
-			return append(commit);
-		}
-		return false;
+		return append(Commit.forStorage(row, column, value));
 	}
 
 	@Override
 	protected boolean removeSpi(long row, String column, Object value) {
-		Commit commit = Commit.forStorage(row, column, value);
-		if(exists(commit)) {
-			return append(commit);
-		}
-		return false;
+		return append(Commit.forStorage(row, column, value));
 	}
 
 	/**
-	 * Append {@commit} to the underlying file and perform the
-	 * {@link #record(Commit)} function.
+	 * Append {@code commit} to the underlying file and perform the
+	 * {@link #commit(Commit)} function so that it is also added to the volatile
+	 * store.
 	 * 
 	 * @param commit
 	 * @return {@code true}
+	 */
+	/*
+	 * (non-Javadoc)
+	 * This method does not override #commit because it is necessary to access a
+	 * distinct method for only altering the VolatileDatabase (i.e. when
+	 * constructing a CommitLog from an existing file)
 	 */
 	private boolean append(Commit commit) {
 		synchronized (buffer) {
@@ -389,7 +388,7 @@ public class CommitLog extends VolatileDatabase implements
 		}
 		size += commit.size() + FIXED_SIZE_PER_COMMIT;
 		checkForOverflow();
-		return super.record(commit);
+		return super.commit(commit);
 	}
 
 	/**

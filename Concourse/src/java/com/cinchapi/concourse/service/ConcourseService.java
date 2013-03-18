@@ -12,11 +12,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.services;
+package com.cinchapi.concourse.service;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
+import com.cinchapi.common.time.Time;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -25,7 +29,7 @@ import com.google.common.base.Preconditions;
  * </p>
  * <p>
  * <strong>Note:</strong> The implementing class is responsible for all
- * necessary synchronization/locking.
+ * necessary concurreny control.
  * </p>
  * 
  * @author jnelson
@@ -79,8 +83,11 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean add(long row, String column, Object value) {
-		ConcourseService.checkColumnName(column);
-		return addSpi(row, column, value);
+		if(!exists(row, column, value)) {
+			ConcourseService.checkColumnName(column);
+			return addSpi(row, column, value);
+		}
+		return false;
 	}
 
 	@Override
@@ -105,15 +112,12 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final Set<Object> fetch(long row, String column) {
-		return fetchSpi(row, column);
+		return fetch(row, column, Time.now());
 	}
 
 	@Override
 	public final Set<Object> fetch(long row, String column, long timestamp) {
-		// TODO this should be pretty easy for the permanent database, but might
-		// be harder/slower for the commitlog
-		throw new UnsupportedOperationException(
-				"This operation is not currently supported");
+		return fetchSpi(row, column, timestamp);
 	}
 
 	@Override
@@ -124,23 +128,56 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean remove(long row, String column, Object value) {
-		return removeSpi(row, column, value);
+		if(exists(row, column, value)) {
+			return removeSpi(row, column, value);
+		}
+		return false;
 	}
 
 	@Override
 	public final boolean revert(long row, String column, long timestamp) {
-		// TODO figure out if this should erase history or create new
-		// history...creating new history would be easier technically because
-		// i could simply walk backwards and repeat commits but adding new
-		// history while creating might be counter intuitive..
-
-		throw new UnsupportedOperationException(
-				"This operation is not currently supported");
+		Set<Object> past = fetch(row, column, timestamp);
+		Set<Object> present = fetch(row, column);
+		Set<Object> xor = Sets.symmetricDifference(past, present);
+		for (Object value : xor) {
+			if(present.contains(value)) {
+				remove(row, column, value);
+			}
+			else {
+				add(row, column, value);
+			}
+		}
+		return Sets.symmetricDifference(fetch(row, column),
+				fetch(row, column, timestamp)).isEmpty();
 	}
 
 	@Override
 	public final boolean set(long row, String column, Object value) {
-		return setSpi(row, column, value);
+		Set<Object> values = fetch(row, column);
+		for (Object v : values) {
+			remove(row, column, v);
+		}
+		return add(row, column, value);
+	}
+
+	@Override
+	public long sizeOf() {
+		return sizeOf(null, null);
+	}
+
+	@Override
+	public long sizeOf(long row) {
+		return sizeOf(row, null);
+	}
+
+	@Override
+	public long sizeOf(Long row, String column) {
+		Preconditions
+				.checkArgument(
+						row == null && column == null,
+						"Calculating the size of a column is not supported. "
+								+ "If the row parameter is null, the column parameter must also be null.");
+		return sizeOfSpi(row, column);
 	}
 
 	/**
@@ -173,14 +210,17 @@ public abstract class ConcourseService implements DataStoreService {
 	protected abstract boolean existsSpi(long row, String column, Object value);
 
 	/**
-	 * Implement the interface for {@link #fetch(long, String)}.
+	 * Implement the interface for {@link #fetch(long, String, long)}.
 	 * 
 	 * @param row
 	 * @param column
-	 * @return the set of values that currently exist in the cell located at the
-	 *         intersection of {@code row} and {@code column}
+	 * @param timestamp
+	 * @return the set of values that exist in the cell located at the
+	 *         intersection of {@code row} and {@code column} at
+	 *         {@code timestamp}
 	 */
-	protected abstract Set<Object> fetchSpi(long row, String column);
+	protected abstract Set<Object> fetchSpi(long row, String column,
+			long timestamp);
 
 	/**
 	 * Implement the interface for {@link #query(String, Operator, Object...)}.
@@ -204,23 +244,24 @@ public abstract class ConcourseService implements DataStoreService {
 	protected abstract boolean removeSpi(long row, String column, Object value);
 
 	/**
-	 * Default implementation of the interface for
-	 * {@code #set(long, String, Object)}. Feel free to override if necessary.
-	 * This implementation gets the values for the cell at [{@code row} x
-	 * {@code column}] and removes them all. Afterwards it adds {@code value} in
-	 * [{@code row} x {@code column}].
+	 * <p>
+	 * Return the size in bytes.
+	 * </p>
+	 * <p>
+	 * <ul>
+	 * <li>Implement the interface for {@link #size(Long, String)} if
+	 * {@code row} and {@code column} both != {@code null}.</li>
+	 * <li>Implement the interface for {@link #size(Long)} if {@code row} ==
+	 * {@code null}.</li>
+	 * <li>Implement the interface for {@link #size()} if {@code row} and
+	 * {@code column} both == {@code null}.</li>
+	 * </ul>
+	 * </p>
 	 * 
 	 * @param row
 	 * @param column
-	 * @param value
-	 * @return {@code true} if the set is successful
+	 * @return the size in bytes
 	 */
-	protected boolean setSpi(long row, String column, Object value) {
-		Set<Object> values = fetch(row, column);
-		for (Object v : values) {
-			remove(row, column, v);
-		}
-		return add(row, column, value);
-	}
+	protected abstract long sizeOfSpi(@Nullable Long row, @Nullable String column);
 
 }

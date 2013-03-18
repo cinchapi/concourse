@@ -16,7 +16,6 @@ package com.cinchapi.concourse.structure;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
@@ -32,7 +31,12 @@ import com.google.common.primitives.UnsignedLongs;
  * @author jnelson
  */
 @Immutable
-public final class Key implements Comparable<Key>, ByteSized {
+public final class Key extends Number implements Comparable<Key>, ByteSized {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Return a row key that represents the same value as the inverse two's
@@ -105,7 +109,28 @@ public final class Key implements Comparable<Key>, ByteSized {
 
 	@Override
 	public String toString() {
-		return Strings.toString(this);
+		return UnsignedLongs.toString(key); // for compatibility with {@link
+											// Numbers.compare(Number, Number)}
+	}
+
+	@Override
+	public int intValue() {
+		return (int) key;
+	}
+
+	@Override
+	public long longValue() {
+		return asLong();
+	}
+
+	@Override
+	public float floatValue() {
+		return (float) key;
+	}
+
+	@Override
+	public double doubleValue() {
+		return (double) key;
 	}
 
 }

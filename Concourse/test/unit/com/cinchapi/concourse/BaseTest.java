@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.structure.Cell;
 import com.cinchapi.concourse.structure.Key;
 import com.cinchapi.concourse.structure.Row;
@@ -262,6 +263,31 @@ public abstract class BaseTest extends TestCase {
 	 */
 	protected String randomString() {
 		return strand.nextStringAllowDigits();
+	}
+
+	/**
+	 * Return a random number of milliseconds to use with Thread.sleep()
+	 * 
+	 * @return the sleep time
+	 */
+	protected long randomSleep() {
+		return rand.nextInt(1000) + 0; // between 0 and 1 second
+	}
+
+	/**
+	 * Return a random string that is a valid column name.
+	 * 
+	 * @return a random column name
+	 */
+	protected String randomColumnName() {
+		String string = randomString().replace(" ", "");
+		try {
+			ConcourseService.checkColumnName(string);
+			return string;
+		}
+		catch (IllegalArgumentException e) {
+			return randomColumnName();
+		}
 	}
 
 	/**

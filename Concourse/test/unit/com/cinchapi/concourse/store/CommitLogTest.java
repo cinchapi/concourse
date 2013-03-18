@@ -37,7 +37,7 @@ public class CommitLogTest extends ConcourseServiceTest {
 		CommitLog service = getService();
 		while (!service.isFull()) {
 			try {
-				service.add(randomLong(), randomStringNoSpaces(),
+				service.add(randomLong(), randomColumnName(),
 						randomObject());
 			}
 			catch (IllegalStateException e) {

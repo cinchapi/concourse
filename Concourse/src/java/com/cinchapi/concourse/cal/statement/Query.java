@@ -22,7 +22,7 @@ import java.util.Stack;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.Strings;
-import com.cinchapi.concourse.services.QueryableService.Operator;
+import com.cinchapi.concourse.service.QueryableService.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 

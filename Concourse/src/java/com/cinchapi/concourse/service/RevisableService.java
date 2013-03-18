@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.services;
+package com.cinchapi.concourse.service;
 
 /**
  * Specifies the possible revisions that can occur regarding a {@code value} in

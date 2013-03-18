@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.cinchapi.concourse.BaseBenchmark;
-import com.cinchapi.concourse.services.ConcourseService;
-import com.cinchapi.concourse.services.QueryableService.Operator;
+import com.cinchapi.concourse.service.ConcourseService;
+import com.cinchapi.concourse.service.QueryableService.Operator;
 
 /**
  * Base benchmark tests for the {@link ConcourseService} interface.
@@ -52,7 +52,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 		for (int count = 0; count < target; count++) {
 			rows[count] = randomLong();
-			columns[count] = randomStringNoSpaces();
+			columns[count] = randomColumnName();
 			values[count] = randomObject();
 		}
 
@@ -67,6 +67,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		long elapsed = timer().stop(unit);
 		log("Runtime for add() with a target of {} values: {} {}",
 				format.format(target), format.format(elapsed), unit);
+		log("Wrote a total of {} bytes", format.format(service.sizeOf()));
 	}
 
 	@Test
@@ -87,7 +88,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 		for (int count = 0; count < initTarget; count++) {
 			long row = randomLong();
-			String column = randomStringNoSpaces();
+			String column = randomColumnName();
 			Object value = randomObject();
 
 			rows[count] = row;
@@ -142,7 +143,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 		String[] columns = new String[numColumns];
 		for (int i = 0; i < columns.length; i++) {
-			columns[i] = randomStringNoSpaces();
+			columns[i] = randomColumnName();
 		}
 		Object[] values = new Object[numValues];
 		for (int i = 0; i < values.length; i++) {
@@ -189,17 +190,6 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 		}
 
-	}
-
-	protected String randomStringNoSpaces() {
-		String string = randomString().replace(" ", "");
-		try{
-			ConcourseService.checkColumnName(string);
-			return string;
-		}
-		catch(IllegalArgumentException e){
-			return randomStringNoSpaces();
-		}
 	}
 
 }

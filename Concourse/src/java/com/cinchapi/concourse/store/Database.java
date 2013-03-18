@@ -17,7 +17,7 @@ package com.cinchapi.concourse.store;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.cinchapi.concourse.services.ConcourseService;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.structure.Commit;
 
 /**
@@ -27,20 +27,23 @@ import com.cinchapi.concourse.structure.Commit;
  */
 public class Database extends ConcourseService {
 
-	public synchronized void flush(CommitLog commitLog) {
-		Iterator<Commit> commiterator = commitLog.getCommits().iterator();
-		while(commiterator.hasNext()){
-			Commit commit = commiterator.next();
-			
-		}
-	}
-	
-	public static Database inDir(String directory){
+	public static Database inDir(String directory) {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.api.ConcourseService#addSpi(long, java.lang.String, java.lang.Object)
+	public synchronized void flush(CommitLog commitLog) {
+		Iterator<Commit> commiterator = commitLog.getCommits().iterator();
+		while (commiterator.hasNext()) {
+			Commit commit = commiterator.next();
+
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.cinchapi.concourse.api.ConcourseService#addSpi(long,
+	 * java.lang.String, java.lang.Object)
 	 */
 	@Override
 	protected boolean addSpi(long row, String column, Object value) {
@@ -48,7 +51,9 @@ public class Database extends ConcourseService {
 		return false;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.cinchapi.concourse.api.ConcourseService#describeSpi(long)
 	 */
 	@Override
@@ -57,35 +62,32 @@ public class Database extends ConcourseService {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.api.ConcourseService#existsSpi(long, java.lang.String, java.lang.Object)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.cinchapi.concourse.api.ConcourseService#existsSpi(long,
+	 * java.lang.String, java.lang.Object)
 	 */
 	@Override
 	protected boolean existsSpi(long row, String column, Object value) {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
 	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.api.ConcourseService#getSpi(long, java.lang.String)
+	 * @see com.cinchapi.concourse.services.ConcourseService#fetchSpi(long, java.lang.String, long)
 	 */
 	@Override
-	protected Set<Object> fetchSpi(long row, String column) {
+	protected Set<Object> fetchSpi(long row, String column, long timestamp) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.api.ConcourseService#removeSpi(long, java.lang.String, java.lang.Object)
-	 */
-	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.api.ConcourseService#selectSpi(java.lang.String, com.cinchapi.concourse.api.Queryable.SelectOperator, java.lang.Object[])
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.cinchapi.concourse.api.ConcourseService#selectSpi(java.lang.String,
+	 * com.cinchapi.concourse.api.Queryable.SelectOperator, java.lang.Object[])
 	 */
 	@Override
 	protected Set<Long> querySpi(String column, Operator operator,
@@ -93,5 +95,18 @@ public class Database extends ConcourseService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.cinchapi.concourse.api.ConcourseService#removeSpi(long,
+	 * java.lang.String, java.lang.Object)
+	 */
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 
 }

@@ -24,17 +24,18 @@ import com.cinchapi.concourse.store.VolatileDatabase;
  */
 public class ConcourseServiceProvider {
 
-	public static final int HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY = 100;
+	public static final int HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY = 100000;
 	public static final String COMMIT_LOG_DEFAULT_LOCATION = "test/commitlog";
 	public static final int COMMIT_LOG_DEFAULT_SIZE_IN_BYTES = 1024 * 1024;
 
-	public static VolatileDatabase provideHeapDatabase() {
+	public static VolatileDatabase provideVolatileDatabase() {
 		return ConcourseServiceProvider
-				.provideHeapDatabase(HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY);
+				.provideVolatileDatabase(HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY);
 	}
 
-	public static VolatileDatabase provideHeapDatabase(int expectedCapacity) {
-		return VolatileDatabase.newInstancewithExpectedCapacity(expectedCapacity);
+	public static VolatileDatabase provideVolatileDatabase(int expectedCapacity) {
+		return VolatileDatabase
+				.newInstancewithExpectedCapacity(expectedCapacity);
 	}
 
 	public static CommitLog provideNewCommitLog() {

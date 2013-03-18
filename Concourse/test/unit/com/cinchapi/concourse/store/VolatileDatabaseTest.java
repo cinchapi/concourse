@@ -32,7 +32,7 @@ public class VolatileDatabaseTest extends ConcourseServiceTest {
 	 */
 	@Override
 	protected VolatileDatabase getService() {
-		return ConcourseServiceProvider.provideHeapDatabase();
+		return ConcourseServiceProvider.provideVolatileDatabase();
 	}
 
 }

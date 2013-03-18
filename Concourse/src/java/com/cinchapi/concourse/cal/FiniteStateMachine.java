@@ -16,7 +16,7 @@ package com.cinchapi.concourse.cal;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-import com.cinchapi.concourse.services.ConcourseService;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.google.common.base.Preconditions;
 
 /**

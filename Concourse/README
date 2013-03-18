@@ -3,7 +3,7 @@ CONCOURSE
 Concourse is a schemaless database that is designed for applications that
 have large amounts of sparse data in read and write heavy environments.
 Concourse comes with automatic indexing, data versioning and support for
-transactions.
+ACID transactions.
 
 Concourse aims to be a service that is easy for developers to deploy, access
 and scale with minimal tuning, while also being highly optimized for fast
@@ -17,7 +17,7 @@ For more information, visit http://cinchapi.com/concourse
 
 Versioning
 ----------
-This is version 1.0.0 of Concourse.
+This is version 0.1 of Concourse.
 
 Concourse will be maintained under the Semantic Versioning guidelines as much as possible.
  

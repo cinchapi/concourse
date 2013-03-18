@@ -29,7 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.services.ConcourseService;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.structure.Commit;
 import com.cinchapi.concourse.structure.Key;
 import com.cinchapi.concourse.structure.Value;
@@ -41,10 +41,11 @@ import com.google.common.primitives.Longs;
 
 /**
  * <p>
- * A {@link ConcourseService} that is maintained entirely in memory.
+ * A lightweight {@link ConcourseService} that is maintained entirely in memory.
  * </p>
  * <p>
- * Data in a VolatileDatabase takes up 3X more space than it would on disk. This
+ * The database stores data as a list of {@link Commit} objects (with a few
+ * indices). The data takes up 3X more space than it would on disk. This
  * structure serves as a suitable cache or fast, albeit temporary, storage for
  * data that will eventually be persisted to disk.
  * </p>
@@ -66,7 +67,9 @@ public class VolatileDatabase extends ConcourseService {
 		return new VolatileDatabase(expectedCapacity);
 	}
 
-	private static final TreeMap<Value, Set<Key>> EMPTY_VALUE_INDEX = new TreeMap<Value, Set<Key>>(); // read-only
+	private static final TreeMap<Value, Set<Key>> EMPTY_VALUE_INDEX = new TreeMap<Value, Set<Key>>(); // treat
+																										// as
+																										// read-only
 	private static final Set<Key> EMPTY_KEY_SET = Collections
 			.unmodifiableSet(new HashSet<Key>());
 	private static final Comparator<Value> comparator = new Value.LogicalComparator();
@@ -105,51 +108,59 @@ public class VolatileDatabase extends ConcourseService {
 		this.columns = Maps.newHashMapWithExpectedSize(expectedCapacity);
 	}
 
-	/**
-	 * Return the number of commits that exist for the revision for
-	 * {@code value} in the {@code cell} at the intersection of {@code row} and
-	 * {@code column}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @param value
-	 * @return the number of commits for the revision
-	 */
-	public int count(long row, String column, Object value) {
-		return count(Commit.notForStorage(row, column, value));
-	}
-
-	/**
-	 * Return a list of the commits in order.
-	 * 
-	 * @return the commits
-	 */
-	public List<Commit> getCommits() {
-		synchronized (ordered) {
-			return ordered;
-		}
-	}
-
 	@Override
 	protected boolean addSpi(long row, String column, Object value) {
-		if(!exists(row, column, value)) {
-			return record(Commit.forStorage(row, column, value));
-		}
-		return false;
+		return commit(Commit.forStorage(row, column, value));
 	}
 
 	/**
-	 * Return the count for {@code commit} in the commitlog.
+	 * Record the {@code commit} in memory. This method DOES NOT perform any
+	 * validation or input checks.
+	 * 
+	 * @param commit
+	 * @return {@code true}
+	 */
+	protected final boolean commit(final Commit commit) {
+		int count = count(commit) + 1;
+		counts.put(commit, count);
+		ordered.add(commit);
+		index(commit); // I won't deindex commits because it is
+						// expensive and I will check the commit
+						// #count() whenever I read from the index.
+		return true;
+	}
+
+	/**
+	 * Return {@code true} if {@code commit} has been committed an odd number of
+	 * times and is therefore considered to be contained (meaning the committed
+	 * value exists).
+	 * 
+	 * @param commit
+	 * @return {@code true} if {@code commit} exists.
+	 */
+	protected final boolean contains(Commit commit) {
+		return Numbers.isOdd(count(commit));
+	}
+
+	/**
+	 * Return the count for {@code commit} in the database. Many operations
+	 * build upon this functionality (i.e the {@code exists} method, which is
+	 * called by both the {@code add} and {@code remove} methods
+	 * before issuing writes is built upon this method.
 	 * 
 	 * @param commit
 	 * @return the count
 	 */
-	protected int count(Commit commit) {
-		return counts.containsKey(commit) ? counts.get(commit) : 0;
+	protected final int count(Commit commit) {
+		commit = Commit.notForStorageCopy(commit);
+		synchronized (commit) { // I can lock locally here because a
+								// notForStorage commit is a cached reference
+			return counts.containsKey(commit) ? counts.get(commit) : 0;
+		}
 	}
 
 	@Override
-	protected Set<String> describeSpi(long row) {
+	protected final Set<String> describeSpi(long row) {
 		Map<String, Set<Value>> columns2Values = Maps.newHashMap();
 		synchronized (ordered) {
 			Iterator<Commit> commiterator = ordered.iterator();
@@ -192,43 +203,39 @@ public class VolatileDatabase extends ConcourseService {
 		}
 	}
 
-	/**
-	 * Return {@code true} if {@code commit} has been committed an odd number of
-	 * time.
-	 * 
-	 * @param commit
-	 * @return {@code true} if {@code commit} exists
-	 */
-	protected boolean exists(Commit commit) {
-		return Numbers.isOdd(count(commit));
+	@Override
+	protected final boolean existsSpi(long row, String column, Object value) {
+		return contains(Commit.notForStorage(row, column, value));
 	}
 
 	@Override
-	protected boolean existsSpi(long row, String column, Object value) {
-		return exists(Commit.notForStorage(row, column, value));
-	}
-
-	@Override
-	protected Set<Object> fetchSpi(long row, String column) {
+	protected final Set<Object> fetchSpi(long row, String column, long timestamp) {
 		Set<Value> _values = Sets.newLinkedHashSet();
-		ListIterator<Commit> commiterator = ordered
-				.listIterator(ordered.size());
-		while (commiterator.hasPrevious()) {
-			Commit commit = commiterator.previous();
-			if(Longs.compare(commit.getRow().asLong(), row) == 0
-					&& commit.getColumn().equals(column)) {
-				if(_values.contains(commit.getValue())) { // this means I've
-															// encountered an
-															// even number
-															// commit for
-															// row/column/value
-															// which resulted
-															// from a removal
-					_values.remove(commit.getValue());
+		ListIterator<Commit> commiterator = ordered.listIterator();
+		while (commiterator.hasNext()) {
+			Commit commit = commiterator.next();
+			if(commit.getValue().getTimestamp() <= timestamp) {
+				if(Longs.compare(commit.getRow().asLong(), row) == 0
+						&& commit.getColumn().equals(column)) {
+					if(_values.contains(commit.getValue())) { // this means I've
+																// encountered
+																// an
+																// even number
+																// commit for
+																// row/column/value
+																// which
+																// resulted
+																// from a
+																// removal
+						_values.remove(commit.getValue());
+					}
+					else {
+						_values.add(commit.getValue());
+					}
 				}
-				else {
-					_values.add(commit.getValue());
-				}
+			}
+			else {
+				break;
 			}
 		}
 		Set<Object> values = Sets.newLinkedHashSetWithExpectedSize(_values
@@ -239,13 +246,15 @@ public class VolatileDatabase extends ConcourseService {
 		return values;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * Throughout this method I have to check if the value indexed in #columns
+	 * still exists because I do not deindex columns for remove commits
+	 */
 	@Override
-	protected Set<Long> querySpi(String column, Operator operator,
+	protected final Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
-		// Throughout this method I have to check if the value indexed in
-		// #columns still exists because I do not deindex columns for
-		// remove commits
-		Set<Long> rows = Sets.newHashSet();
+		Set<Long> rows = Sets.newLinkedHashSet();
 		Value val = Value.notForStorage(values[0]);
 
 		if(operator == Operator.EQUALS) {
@@ -255,7 +264,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(row);
 					}
 				}
@@ -273,7 +282,7 @@ public class VolatileDatabase extends ConcourseService {
 					for (Key key : keys) {
 						long row = key.asLong();
 						Commit commit = Commit.notForStorage(row, column, obj);
-						if(exists(commit)) {
+						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -291,7 +300,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -308,7 +317,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -325,7 +334,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -342,7 +351,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -362,7 +371,7 @@ public class VolatileDatabase extends ConcourseService {
 				for (Key key : keys) {
 					long row = key.asLong();
 					Commit commit = Commit.notForStorage(row, column, obj);
-					if(exists(commit)) {
+					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -382,7 +391,7 @@ public class VolatileDatabase extends ConcourseService {
 					for (Key key : keys) {
 						long row = key.asLong();
 						Commit commit = Commit.notForStorage(row, column, obj);
-						if(exists(commit)) {
+						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -403,7 +412,7 @@ public class VolatileDatabase extends ConcourseService {
 					for (Key key : keys) {
 						long row = key.asLong();
 						Commit commit = Commit.notForStorage(row, column, obj);
-						if(exists(commit)) {
+						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -417,42 +426,33 @@ public class VolatileDatabase extends ConcourseService {
 		return rows;
 	}
 
-	/**
-	 * Record the {@code commit} in memory. This method DOES NOT perform any
-	 * validation or input checks.
-	 * 
-	 * @param commit
-	 * @return {@code true}
-	 */
-	protected boolean record(Commit commit) {
-		int count = count(commit) + 1;
-		counts.put(commit, count);
-		ordered.add(commit);
-		index(commit); // I won't deindex commits because it is
-						// expensive and I will check the commit
-						// #count() whenever I read from the index.
-		return true;
+	@Override
+	protected boolean removeSpi(long row, String column, Object value) {
+		return commit(Commit.forStorage(row, column, value));
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		if(exists(row, column, value)) {
-			return record(Commit.forStorage(row, column, value));
+	protected long sizeOfSpi(Long row, String column) {
+		long size = 0;
+		boolean seekingSizeForDb = row == null && column == null;
+		boolean seekingSizeForRow = row != null && column == null;
+		boolean seekingSizeForCell = row != null && column != null;
+		synchronized (ordered) {
+			Iterator<Commit> commiterator = ordered.iterator();
+			while (commiterator.hasNext()) {
+				Commit commit = commiterator.next();
+				boolean inRow = seekingSizeForRow
+						&& Longs.compare(commit.getRow().asLong(), row) == 0; // prevents
+																				// NPE
+				boolean inCell = seekingSizeForCell
+						&& Longs.compare(commit.getRow().asLong(), row) == 0
+						&& commit.getColumn().equals(column); // prevents NPE
+				if(seekingSizeForDb || inRow || inCell) {
+					size += commit.size();
+				}
+			}
+			return size;
 		}
-		return false;
-	}
-
-	/**
-	 * Safely return a ValueIndex for {@code column}.
-	 * 
-	 * @param column
-	 * @return the ValueIndex
-	 */
-	private TreeMap<Value, Set<Key>> getValueIndexForColumn(String column) {
-		if(columns.containsKey(column)) {
-			return columns.get(column);
-		}
-		return EMPTY_VALUE_INDEX;
 	}
 
 	/**
@@ -469,6 +469,19 @@ public class VolatileDatabase extends ConcourseService {
 			return valueIndex.get(value);
 		}
 		return EMPTY_KEY_SET;
+	}
+
+	/**
+	 * Safely return a ValueIndex for {@code column}.
+	 * 
+	 * @param column
+	 * @return the ValueIndex
+	 */
+	private TreeMap<Value, Set<Key>> getValueIndexForColumn(String column) {
+		if(columns.containsKey(column)) {
+			return columns.get(column);
+		}
+		return EMPTY_VALUE_INDEX;
 	}
 
 	/**

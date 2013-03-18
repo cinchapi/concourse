@@ -100,6 +100,18 @@ public final class Commit implements Persistable {
 		return commit;
 	}
 
+	/**
+	 * Return a copy of a {@code commit} that is guaranteed to be notForStorage.
+	 * 
+	 * @param commit
+	 * @return a copy of the commit
+	 */
+	public static Commit notForStorageCopy(Commit commit) {
+		return commit.isForStorage() ? Commit.notForStorage(commit.getRow()
+				.asLong(), commit.getColumn(), commit.getValue().getQuantity())
+				: commit;
+	}
+
 	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8); // columnSize,
 																			// valueSize
 
@@ -178,6 +190,26 @@ public final class Commit implements Persistable {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(row, column, value);
+	}
+
+	/**
+	 * Return {@code true} if the commit is forStorage, meaning it represents a
+	 * forStorage value.
+	 * 
+	 * @return {@code true} if the commit is forStorage
+	 */
+	public boolean isForStorage() {
+		return value.isForStorage();
+	}
+
+	/**
+	 * Return {@code true} if the commit is notForStorage, meaning it represents
+	 * a notForStorage value.
+	 * 
+	 * @return {@code true} if the commit is notForStorage
+	 */
+	public boolean isNotForStorage() {
+		return value.isNotForStorage();
 	}
 
 	@Override

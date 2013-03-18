@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse;
 
 import java.io.File;
 import java.util.Set;
@@ -13,7 +13,9 @@ import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.services.ConcourseService;
+import com.cinchapi.concourse.service.ConcourseService;
+import com.cinchapi.concourse.store.CommitLog;
+import com.cinchapi.concourse.store.Database;
 import com.google.common.collect.Sets;
 
 /**
@@ -21,7 +23,7 @@ import com.google.common.collect.Sets;
  * Concourse is a schemaless database that is designed for applications that
  * have large amounts of sparse data in read and write heavy environments.
  * Concourse comes with automatic indexing, data versioning and support for
- * transactions.
+ * ACID transactions.
  * 
  * <h2>Intent</h2>
  * Concourse aims to be a service that is easy for developers to deploy, access
@@ -220,6 +222,22 @@ public class Concourse extends ConcourseService {
 		}
 	}
 
+	@Override
+	protected Set<Object> fetchSpi(long row, String column, long timestamp) {
+		ExecutorService executor = Executors.newCachedThreadPool();
+		Future<Set<Object>> dbr = executor.submit(Threads.fetch(database, row,
+				column, timestamp));
+		Future<Set<Object>> clr = executor.submit(Threads.fetch(commitLog, row,
+				column, timestamp));
+		try {
+			return Sets.symmetricDifference(dbr.get(), clr.get());
+		}
+		catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			return Sets.newHashSet();
+		}
+	}
+
 	/**
 	 * Flush the {@code commitLog} to the {@code database} iff it is full or
 	 * {@code force} is {@code true}.
@@ -233,12 +251,13 @@ public class Concourse extends ConcourseService {
 	}
 
 	@Override
-	protected Set<Object> fetchSpi(long row, String column) {
+	protected Set<Long> querySpi(String column, Operator operator,
+			Object... values) {
 		ExecutorService executor = Executors.newCachedThreadPool();
-		Future<Set<Object>> dbr = executor.submit(Threads.get(database, row,
-				column));
-		Future<Set<Object>> clr = executor.submit(Threads.get(commitLog, row,
-				column));
+		Future<Set<Long>> dbr = executor.submit(Threads.query(database, column,
+				operator, values));
+		Future<Set<Long>> clr = executor.submit(Threads.query(commitLog,
+				column, operator, values));
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
 		}
@@ -261,23 +280,6 @@ public class Concourse extends ConcourseService {
 		catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 			return false;
-		}
-	}
-
-	@Override
-	protected Set<Long> querySpi(String column, Operator operator,
-			Object... values) {
-		ExecutorService executor = Executors.newCachedThreadPool();
-		Future<Set<Long>> dbr = executor.submit(Threads.select(database,
-				column, operator, values));
-		Future<Set<Long>> clr = executor.submit(Threads.select(commitLog,
-				column, operator, values));
-		try {
-			return Sets.symmetricDifference(dbr.get(), clr.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			e.printStackTrace();
-			return Sets.newHashSet();
 		}
 	}
 
@@ -334,10 +336,26 @@ public class Concourse extends ConcourseService {
 		 * @param service
 		 * @param row
 		 * @param column
+		 * @param timestamp
 		 * @return the method return value
 		 */
-		public static Get get(ConcourseService service, long row, String column) {
-			return new Get(service, row, column);
+		public static Fetch fetch(ConcourseService service, long row,
+				String column, long timestamp) {
+			return new Fetch(service, row, column, timestamp);
+		}
+
+		/**
+		 * Execute {@link ConcourseService#query(String, Operator, Object...)} .
+		 * 
+		 * @param service
+		 * @param row
+		 * @param column
+		 * @param value
+		 * @return the method return value
+		 */
+		public static Query query(ConcourseService service, String column,
+				Operator operator, Object... values) {
+			return new Query(service, column, operator, values);
 		}
 
 		/**
@@ -352,21 +370,6 @@ public class Concourse extends ConcourseService {
 		public static Remove remove(ConcourseService service, long row,
 				String column, Object value) {
 			return new Remove(service, row, column, value);
-		}
-
-		/**
-		 * Execute
-		 * {@link ConcourseService#query(String, Operator, Object...)} .
-		 * 
-		 * @param service
-		 * @param row
-		 * @param column
-		 * @param value
-		 * @return the method return value
-		 */
-		public static Select select(ConcourseService service, String column,
-				Operator operator, Object... values) {
-			return new Select(service, column, operator, values);
 		}
 
 		private Threads() {}
@@ -496,15 +499,16 @@ public class Concourse extends ConcourseService {
 		}
 
 		/**
-		 * Execute the {@link ConcourseService#get(long)} method.
+		 * Execute the {@link ConcourseService#fetch(long, String)} method.
 		 * 
 		 * @author jnelson
 		 */
-		private static final class Get extends
+		private static final class Fetch extends
 				AbstractConcourseServiceCallable<Set<Object>> {
 
 			private final long row;
 			private final String column;
+			private final long timestamp;
 
 			/**
 			 * Construct a new instance.
@@ -513,15 +517,54 @@ public class Concourse extends ConcourseService {
 			 * @param row
 			 * @param column
 			 */
-			public Get(ConcourseService service, long row, String column) {
+			public Fetch(ConcourseService service, long row, String column,
+					long timestamp) {
 				super(service);
 				this.row = row;
 				this.column = column;
+				this.timestamp = timestamp;
 			}
 
 			@Override
 			public Set<Object> call() throws Exception {
-				return service.fetch(row, column);
+				return service.fetch(row, column, timestamp);
+			}
+
+		}
+
+		/**
+		 * Execute the
+		 * {@link ConcourseService#query(String, com.cinchapi.concourse.store.api.Queryable.Operator, Object...)}
+		 * method.
+		 * 
+		 * @author jnelson
+		 */
+		private static final class Query extends
+				AbstractConcourseServiceCallable<Set<Long>> {
+
+			private final String column;
+			private final Operator operator;
+			private final Object[] values;
+
+			/**
+			 * Construct a new instance.
+			 * 
+			 * @param service
+			 * @param column
+			 * @param operator
+			 * @param values
+			 */
+			public Query(ConcourseService service, String column,
+					Operator operator, Object... values) {
+				super(service);
+				this.column = column;
+				this.operator = operator;
+				this.values = values;
+			}
+
+			@Override
+			public Set<Long> call() throws Exception {
+				return service.query(column, operator, values);
 			}
 
 		}
@@ -561,42 +604,6 @@ public class Concourse extends ConcourseService {
 			}
 
 		}
-
-		/**
-		 * Execute the
-		 * {@link ConcourseService#query(String, com.cinchapi.concourse.store.api.Queryable.Operator, Object...)}
-		 * method.
-		 * 
-		 * @author jnelson
-		 */
-		private static final class Select extends
-				AbstractConcourseServiceCallable<Set<Long>> {
-
-			private final String column;
-			private final Operator operator;
-			private final Object[] values;
-
-			/**
-			 * Construct a new instance.
-			 * 
-			 * @param service
-			 * @param column
-			 * @param operator
-			 * @param values
-			 */
-			public Select(ConcourseService service, String column,
-					Operator operator, Object... values) {
-				super(service);
-				this.column = column;
-				this.operator = operator;
-				this.values = values;
-			}
-
-			@Override
-			public Set<Long> call() throws Exception {
-				return service.query(column, operator, values);
-			}
-
-		}
+		
 	}
 }

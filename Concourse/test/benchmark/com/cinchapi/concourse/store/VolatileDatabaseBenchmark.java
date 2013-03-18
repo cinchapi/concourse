@@ -14,7 +14,7 @@
  */
 package com.cinchapi.concourse.store;
 
-import com.cinchapi.concourse.services.ConcourseService;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
 
@@ -32,7 +32,7 @@ public class VolatileDatabaseBenchmark extends ConcourseServiceBenchmark {
 	 */
 	@Override
 	protected ConcourseService getService() {
-		return ConcourseServiceProvider.provideHeapDatabase();
+		return ConcourseServiceProvider.provideVolatileDatabase();
 	}
 
 }
