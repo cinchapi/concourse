@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
  * </p>
  * <p>
  * <strong>Note:</strong> The implementing class is responsible for all
- * necessary concurreny control.
+ * necessary concurrency control.
  * </p>
  * 
  * @author jnelson

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.search.Searcher;
-import com.cinchapi.concourse.service.QueryableService.Operator;
+import com.cinchapi.concourse.service.QueryService.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 

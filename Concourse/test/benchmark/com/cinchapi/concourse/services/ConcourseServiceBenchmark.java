@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.BaseBenchmark;
 import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.service.QueryableService.Operator;
+import com.cinchapi.concourse.service.QueryService.Operator;
 
 /**
  * Base benchmark tests for the {@link ConcourseService} interface.

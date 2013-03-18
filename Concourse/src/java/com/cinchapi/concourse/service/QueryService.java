@@ -21,7 +21,7 @@ import java.util.Set;
  * 
  * @author jnelson
  */
-public interface QueryableService {
+public interface QueryService {
 
 	/**
 	 * Return the rows that satisfy the {@code operator} in relation to the
@@ -37,7 +37,7 @@ public interface QueryableService {
 
 	/**
 	 * The operators that can be used with
-	 * {@link QueryableService#query(String, Operator, Object...)}.
+	 * {@link QueryService#query(String, Operator, Object...)}.
 	 */
 	public enum Operator {
 		/**

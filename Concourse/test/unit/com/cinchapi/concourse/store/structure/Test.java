@@ -18,7 +18,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.store.CommitLog;
+import com.cinchapi.concourse.store.Transaction;
 import com.cinchapi.concourse.structure.Commit;
 
 
@@ -30,18 +33,13 @@ import com.cinchapi.concourse.structure.Commit;
 public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException{
-		CommitLog log = CommitLog.newInstance("test/output/oneoff/commitlog", 1000);
-		log.add(1, "name", 10);
-		log.add(2, "name", 20);
-		log.add(3, "name", "30");
-		log.remove(2, "name", 20);
+		Concourse service = Concourse.withDefaultHome();
+		Transaction transaction = service.startTransaction();
+		System.out.println(transaction.add(1, "name", "Jeff Nelson"));
+		transaction.set(1, "name", "Ashleah Gilmore");
+		System.out.println(transaction.fetch(1, "name"));
+		System.out.println(service.fetch(1, "name"));
 		
-		Iterator<Commit> it = log.flusher();
-		while(it.hasNext()){
-			Commit c = it.next();
-			System.out.println(log.size());
-		}
-		log.add(1, "row", false);
 	}
 
 }

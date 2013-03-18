@@ -15,12 +15,12 @@
 package com.cinchapi.concourse.service;
 
 /**
- * Specifies the possible revisions that can occur regarding a {@code value} in
+ * Specifies the possible writes that can occur regarding a {@code value} in
  * a {@code cell} located at the intersection of {@code row} and {@code column}.
  * 
  * @author jnelson
  */
-public interface RevisableService {
+public interface WriteService {
 
 	/**
 	 * Add {@code value} to cell at the intersection of {@code row} and

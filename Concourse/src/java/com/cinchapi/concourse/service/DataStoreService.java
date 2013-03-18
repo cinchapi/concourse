@@ -15,15 +15,15 @@
 package com.cinchapi.concourse.service;
 
 /**
- * Provides {@link QueryableService}, {@link RetrievableService} and
- * {@link RevisableService} interfaces to a datastore.
+ * Provides {@link QueryService}, {@link ReadService} and
+ * {@link WriteService} interfaces to a datastore.
  * 
  * @author jnelson
  */
 public interface DataStoreService extends
-		QueryableService,
-		RetrievableService,
-		RevisableService {
+		QueryService,
+		ReadService,
+		WriteService {
 
 	/**
 	 * Return the total size of all the stored data in bytes.

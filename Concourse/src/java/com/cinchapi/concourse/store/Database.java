@@ -19,6 +19,7 @@ import java.util.Set;
 
 import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.structure.Commit;
+import com.google.common.collect.Sets;
 
 /**
  * 
@@ -28,7 +29,7 @@ import com.cinchapi.concourse.structure.Commit;
 public class Database extends ConcourseService {
 
 	public static Database inDir(String directory) {
-		return null;
+		return new Database();
 	}
 
 	public synchronized void flush(CommitLog commitLog) {
@@ -58,8 +59,7 @@ public class Database extends ConcourseService {
 	 */
 	@Override
 	protected Set<String> describeSpi(long row) {
-		// TODO Auto-generated method stub
-		return null;
+		return Sets.newHashSet();
 	}
 
 	/*
@@ -78,8 +78,7 @@ public class Database extends ConcourseService {
 	 */
 	@Override
 	protected Set<Object> fetchSpi(long row, String column, long timestamp) {
-		// TODO Auto-generated method stub
-		return null;
+		return Sets.newHashSet();
 	}
 
 	/*
@@ -92,8 +91,7 @@ public class Database extends ConcourseService {
 	@Override
 	protected Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
-		// TODO Auto-generated method stub
-		return null;
+		return Sets.newHashSet();
 	}
 
 	/*
@@ -104,8 +102,15 @@ public class Database extends ConcourseService {
 	 */
 	@Override
 	protected boolean removeSpi(long row, String column, Object value) {
-		// TODO Auto-generated method stub
 		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.cinchapi.concourse.service.ConcourseService#sizeOfSpi(java.lang.Long, java.lang.String)
+	 */
+	@Override
+	protected long sizeOfSpi(Long row, String column) {
+		return 0;
 	}
 
 

@@ -17,12 +17,12 @@ package com.cinchapi.concourse.service;
 import java.util.Set;
 
 /**
- * Specifies the possible ways in which data can be retrieved from a {@code row}
+ * Specifies the possible ways in which data can be read from a {@code row}
  * and/or {@code column}.
  * 
  * @author jnelson
  */
-public interface RetrievableService {
+public interface ReadService {
 
 	/**
 	 * Return a list of columns in {@code row}.
