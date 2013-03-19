@@ -33,11 +33,7 @@ public class Database extends ConcourseService {
 	}
 
 	public synchronized void flush(CommitLog commitLog) {
-		Iterator<Commit> commiterator = commitLog.getCommits().iterator();
-		while (commiterator.hasNext()) {
-			Commit commit = commiterator.next();
-
-		}
+		
 	}
 
 	/*

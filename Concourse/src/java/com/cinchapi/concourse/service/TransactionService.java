@@ -14,43 +14,28 @@
  */
 package com.cinchapi.concourse.service;
 
+import com.cinchapi.concourse.store.Transaction;
+
 /**
- * Provides {@link QueryService}, {@link ReadService} and
- * {@link WriteService} interfaces to a datastore.
+ * A service that can start and commit a {@link Transaction}.
  * 
  * @author jnelson
  */
-public interface DataStoreService extends
-		QueryService,
-		ReadService,
-		WriteService {
-	
-	/**
-	 * Close the service.
-	 */
-	public abstract void close();
+public interface TransactionService {
 
 	/**
-	 * Return the total size of all the stored data in bytes.
+	 * Start and return a {@link Transaction}.
 	 * 
-	 * @return the total size
+	 * @return the transaction
 	 */
-	public long sizeOf();
+	public Transaction startTransaction();
 
 	/**
-	 * Return the size of all the data stored in a single row in bytes.
+	 * Commit a {@link Transaction}.
 	 * 
-	 * @param row
-	 * @return the row size
+	 * @param transaction
+	 * @return {@code true} if the transaction is fully committed
 	 */
-	public long sizeOf(long row);
+	public boolean commitTransaction(Transaction transaction);
 
-	/**
-	 * Return the size of all the data stored in a single cell in bytes.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return the cell size
-	 */
-	public long sizeOf(Long row, String column);
 }

@@ -88,15 +88,8 @@ public class CommitLog extends VolatileDatabase implements
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
 				"The size of the CommitLog cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
-		try {
-			MappedByteBuffer buffer = new RandomAccessFile(location, "rw")
-					.getChannel().map(MapMode.READ_WRITE, 0, size);
-			return CommitLog.fromByteSequences(buffer, true);
-		}
-		catch (IOException e) {
-			throw new ConcourseRuntimeException(e);
-		}
-
+		MappedByteBuffer buffer = Utilities.openBuffer(location, size);
+		return CommitLog.fromByteSequences(buffer, true);
 	}
 
 	/**
@@ -122,10 +115,7 @@ public class CommitLog extends VolatileDatabase implements
 			tmp.delete(); // delete the old file if it was there
 			tmp.getParentFile().mkdirs();
 			tmp.createNewFile();
-
-			MappedByteBuffer buffer;
-			buffer = new RandomAccessFile(location, "rw").getChannel().map(
-					MapMode.READ_WRITE, 0, size);
+			MappedByteBuffer buffer = Utilities.openBuffer(location, size);
 			return CommitLog.fromByteSequences(buffer, false);
 		}
 		catch (IOException e) {
@@ -218,12 +208,10 @@ public class CommitLog extends VolatileDatabase implements
 		this.buffer = buffer;
 		this.usableCapacity = (int) Math.round((PCT_USABLE_CAPACITY / 100.0)
 				* buffer.capacity());
-		this.buffer.force();
 
 		if(populated) {
 			byte[] bytes = new byte[buffer.capacity()];
 			this.buffer.get(bytes);
-			this.buffer.rewind();
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
@@ -242,6 +230,7 @@ public class CommitLog extends VolatileDatabase implements
 																// already
 																// there!)
 			}
+			this.buffer.position(bsit.position());
 		}
 	}
 
@@ -271,7 +260,7 @@ public class CommitLog extends VolatileDatabase implements
 				public Commit next() {
 					checkForComodification();
 					Commit next = ordered.remove(0); // authorized
-					int count = counts.get(next) - 1; 
+					int count = counts.get(next) - 1;
 					if(count == 0) {
 						counts.remove(next); // authorized
 					}
@@ -385,6 +374,7 @@ public class CommitLog extends VolatileDatabase implements
 							buffer.remaining(), commit.size() + 4);
 			buffer.putInt(commit.size());
 			buffer.put(commit.getBytes());
+			buffer.force();
 		}
 		size += commit.size() + FIXED_SIZE_PER_COMMIT;
 		checkForOverflow();
@@ -398,8 +388,39 @@ public class CommitLog extends VolatileDatabase implements
 	private void checkForOverflow() {
 		if(isFull()) {
 			log.warn(
-					"The commitlog has exceeded its usable capacity of {} and is now in the overflow prevention region. There are {} bytes left in this region. If these bytes are consumed an oveflow exception will be thrown.",
-					usableCapacity, buffer.remaining());
+					"The commitlog has exceeded its usable capacity of {} bytes and is now "
+							+ "in the overflow prevention region. There are {} bytes left in "
+							+ "this region. If these bytes are consumed an oveflow exception "
+							+ "will be thrown.", usableCapacity,
+					buffer.remaining());
+		}
+	}
+
+	/**
+	 * CommitLog utility methods
+	 */
+	private static class Utilities {
+
+		/**
+		 * Open a {@link MappedByteBuffer} with {@code size} for the existing
+		 * file at {@code location}.
+		 * 
+		 * @param location
+		 * @param size
+		 * @return the byte buffer
+		 */
+		public static MappedByteBuffer openBuffer(String location, int size) {
+			try {
+				FileChannel channel = new RandomAccessFile(location, "rw")
+						.getChannel();
+				MappedByteBuffer buffer = channel.map(MapMode.READ_WRITE, 0,
+						size);
+				channel.close();
+				return buffer;
+			}
+			catch (IOException e) {
+				throw new ConcourseRuntimeException(e);
+			}
 		}
 	}
 

@@ -89,6 +89,11 @@ public abstract class ConcourseService implements DataStoreService {
 		}
 		return false;
 	}
+	
+	@Override
+	public synchronized void close(){
+		//TODO something
+	}
 
 	@Override
 	public final Set<String> describe(long row) {

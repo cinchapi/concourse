@@ -1,6 +1,12 @@
-package com.cinchapi.concourse;
+package com.cinchapi.concourse.store;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -8,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.service.StaggeredWriteService;
 import com.cinchapi.concourse.service.TransactionService;
-import com.cinchapi.concourse.store.CommitLog;
-import com.cinchapi.concourse.store.Database;
-import com.cinchapi.concourse.store.Transaction;
+import com.cinchapi.concourse.store.Transaction.Operation;
+import com.cinchapi.concourse.structure.Commit;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 /**
@@ -117,7 +123,7 @@ public final class Concourse extends StaggeredWriteService implements
 		}
 		else {
 			commitLog = CommitLog.newInstance(commitLogFile.getAbsolutePath(),
-					CommitLog.DEFAULT_SIZE_IN_BYTES);
+					CommitLog.DEFAULT_SIZE_IN_BYTES / 100);
 			commitLogIsFlushed = true;
 		}
 
@@ -125,7 +131,7 @@ public final class Concourse extends StaggeredWriteService implements
 		databaseDir.mkdirs();
 		database = Database.inDir(databaseDir.getAbsolutePath());
 
-		return new Concourse(commitLog, database, commitLogIsFlushed);
+		return new Concourse(commitLog, database, commitLogIsFlushed, home);
 	}
 
 	/**
@@ -134,28 +140,107 @@ public final class Concourse extends StaggeredWriteService implements
 	public static final String DEFAULT_HOME = System.getProperty("user.home")
 			+ File.separator + "concourse";
 	private static final Logger log = LoggerFactory.getLogger(Concourse.class);
+	private static final String TRANSACTION_FILE_NAME = "transaction";
 
+	private boolean open = true;
 	private boolean flushed;
+	private final String transactionFile;
 
-	private Concourse(CommitLog commitLog, Database database, boolean flushed) {
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param commitLog
+	 * @param database
+	 * @param flushed
+	 * @param home
+	 */
+	private Concourse(CommitLog commitLog, Database database, boolean flushed,
+			String home) {
 		super(database, commitLog);
 		this.flushed = flushed;
+		this.transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
+		if(new File(transactionFile).exists()) {
+			log.info("It appears that Concourse was last shutdown in the middle of "
+					+ "a commiting a transaction and will attempt to finish now");
+
+			try {
+				ObjectInputStream in = new ObjectInputStream(
+						new FileInputStream(transactionFile));
+				Transaction transaction = (Transaction) in.readObject();
+				commitTransaction(transaction);
+			}
+			catch (Exception e) {
+				log.error(
+						"An error occured while trying to read an existing transaction file: {}",
+						e);
+			}
+		}
 	}
 
 	/**
 	 * Close Concourse.
 	 */
+	@Override
 	public synchronized void close() {
-		if(!flushed) {
-			log.warn("The commitlog has not been flushed");
+		if(open) {
+			if(!flushed) {
+				log.warn("The commitlog has not been flushed");
+			}
+			open = false;
+			super.close();
 		}
 	}
 
 	@Override
 	public boolean commitTransaction(Transaction transaction) {
-		
-		// TODO Auto-generated method stub
-		return false;
+		Preconditions
+				.checkState(!new File(transactionFile).exists(),
+						"Cannot commit the transaction because a transaction file already exists");
+		transaction.prepare();
+		synchronized (this) {
+			try {
+				ObjectOutputStream out = new ObjectOutputStream(
+						new FileOutputStream(transactionFile));
+				out.writeObject(transaction);
+				out.flush();
+				out.close();
+			}
+			catch (Exception e) {
+				log.error(
+						"An exception occured while writing a transaction to a file: {}",
+						e);
+			}
+			Transaction current = Transaction.replay(transaction);
+			Iterator<Map.Entry<Commit, Operation>> it = current.flusher();
+			while (it.hasNext()) {
+				Map.Entry<Commit, Operation> entry = it.next();
+				Operation operation = entry.getValue();
+				Commit commit = entry.getKey();
+				if(operation == Operation.ADD
+						&& add(commit.getRow().asLong(), commit.getColumn(),
+								commit.getValue().getQuantity())) {
+					log.info("Successfully saved operation {} for commit {}",
+							operation, commit);
+					continue;
+				}
+				else if(operation == Operation.REMOVE
+						&& remove(commit.getRow().asLong(), commit.getColumn(),
+								commit.getValue().getQuantity())) {
+					log.info("Successfully saved operation {} for commit {}",
+							operation, commit);
+					continue;
+				}
+				else {
+					log.warn(
+							"Failed attempt to save operation {} for commit {}. This indicates "
+									+ "that Concourse was previously shutdown in the middle of "
+									+ "a transaction.", operation, commit);
+					continue;
+				}
+			}
+			new File(transactionFile).delete();
+			return true;
+		}
 	}
 
 	/**
@@ -175,7 +260,7 @@ public final class Concourse extends StaggeredWriteService implements
 
 	@Override
 	public Transaction startTransaction() {
-		return Transaction.startTransaction(this);
+		return Transaction.start(this);
 	}
 
 	@Override

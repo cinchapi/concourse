@@ -18,9 +18,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Iterator;
 
-import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.store.CommitLog;
+import com.cinchapi.concourse.store.Concourse;
 import com.cinchapi.concourse.store.Transaction;
 import com.cinchapi.concourse.structure.Commit;
 
@@ -32,13 +32,17 @@ import com.cinchapi.concourse.structure.Commit;
  */
 public class Test {
 	
-	public static void main(String[] args) throws FileNotFoundException, IOException{
+	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
 		Concourse service = Concourse.withDefaultHome();
-		Transaction transaction = service.startTransaction();
-		System.out.println(transaction.add(1, "name", "Jeff Nelson"));
-		transaction.set(1, "name", "Ashleah Gilmore");
-		System.out.println(transaction.fetch(1, "name"));
 		System.out.println(service.fetch(1, "name"));
+//		Transaction transaction = service.startTransaction();
+//		transaction.add(1, "name", "Ashleah Gilmore");
+//		transaction.add(1, "name", "Jeff Nelson");
+//		transaction.set(1, "name", "Ashleah Gilmore");
+//		service.commitTransaction(transaction);
+		System.out.println(service.set(1, "name", "Dana"));
+		System.out.println(service.fetch(1, "name"));
+		service.close();
 		
 	}
 

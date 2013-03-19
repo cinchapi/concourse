@@ -27,7 +27,7 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.io.Persistable;
-import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.store.Concourse;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -382,7 +382,7 @@ public final class Value implements Comparable<Value>, Persistable {
 
 	@Override
 	public String toString() {
-		return Strings.toString(this);
+		return getQuantity() + " : " + Strings.toString(this);
 	}
 
 	@Override

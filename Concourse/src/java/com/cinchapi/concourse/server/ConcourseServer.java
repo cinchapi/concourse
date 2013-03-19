@@ -32,7 +32,7 @@ import com.cinchapi.concourse.auth.AttemptedAuth;
 import com.cinchapi.concourse.auth.AttemptedAuthResponse;
 import com.cinchapi.concourse.auth.CredsFile;
 import com.cinchapi.concourse.client.ClientRequest;
-import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.store.Concourse;
 
 /**
  * The Concourse Database server.
