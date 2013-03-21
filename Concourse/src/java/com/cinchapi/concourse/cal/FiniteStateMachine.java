@@ -26,9 +26,9 @@ import com.google.common.base.Preconditions;
  * <p>
  * <strong>Expected Formats:</strong>
  * <ul>
- * <li>ADD column as value (, column2 as value2)* IN row</li>
- * <li>SET column as value (, column2 as value2)* IN row</li>
- * <li>REMOVE column as value (, column2 as value2)* IN row</li>
+ * <li>ADD column as value (AND column2 as value2)* IN row</li>
+ * <li>SET column as value (AND column2 as value2)* IN row</li>
+ * <li>REMOVE column as value (AND column2 as value2)* IN row</li>
  * </ul>
  * 
  * @author jnelson

@@ -61,7 +61,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	protected final ConcourseService primary;
 	protected final ConcourseService secondary;
-	protected final ExecutorService executor = Executors.newCachedThreadPool();
+	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * Construct a new instance.
@@ -84,11 +84,11 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		registerShutdownHooks();
 	}
 
-	/**
-	 * Close the service.
-	 */
 	@Override
-	public synchronized void close() {
+	public synchronized void shutdown() {
+		// This is a generic shutdown that only handles private variables.
+		// A subclasses should override this method and explicitly handle the
+		// primary and secondary services, etc
 		executor.shutdown();
 		try {
 			if(!executor.awaitTermination(EXECUTOR_SHUTDOWN_WAIT_IN_SECS,
@@ -102,7 +102,6 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		catch (InterruptedException e) {
 			log.error("An error occured while shutting down the service: {}", e);
 		}
-		super.close();
 	}
 
 	@Override
@@ -212,7 +211,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 			@Override
 			public void run() {
-				close();
+				shutdown();
 			}
 		});
 	}

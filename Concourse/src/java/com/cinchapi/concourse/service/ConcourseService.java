@@ -91,11 +91,6 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 	
 	@Override
-	public synchronized void close(){
-		//TODO something
-	}
-
-	@Override
 	public final Set<String> describe(long row) {
 		return describeSpi(row);
 	}

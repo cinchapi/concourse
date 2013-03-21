@@ -15,8 +15,8 @@
 package com.cinchapi.concourse.service;
 
 /**
- * Provides {@link QueryService}, {@link ReadService} and
- * {@link WriteService} interfaces to a datastore.
+ * Provides {@link QueryService}, {@link ReadService} and {@link WriteService}
+ * interfaces to a datastore.
  * 
  * @author jnelson
  */
@@ -24,11 +24,11 @@ public interface DataStoreService extends
 		QueryService,
 		ReadService,
 		WriteService {
-	
+
 	/**
-	 * Close the service.
+	 * Shutdown the service.
 	 */
-	public abstract void close();
+	public abstract void shutdown();
 
 	/**
 	 * Return the total size of all the stored data in bytes.

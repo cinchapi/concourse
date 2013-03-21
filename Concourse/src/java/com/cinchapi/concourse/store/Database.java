@@ -14,11 +14,12 @@
  */
 package com.cinchapi.concourse.store;
 
-import java.util.Iterator;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.structure.Commit;
 import com.google.common.collect.Sets;
 
 /**
@@ -28,12 +29,20 @@ import com.google.common.collect.Sets;
  */
 public class Database extends ConcourseService {
 
+	private static Logger log = LoggerFactory.getLogger(Database.class);
+
 	public static Database inDir(String directory) {
 		return new Database();
 	}
 
 	public synchronized void flush(CommitLog commitLog) {
-		
+
+	}
+
+	@Override
+	public synchronized void shutdown() {
+		log.info("Successfully shutdown the Database.");
+
 	}
 
 	/*
@@ -69,8 +78,12 @@ public class Database extends ConcourseService {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.services.ConcourseService#fetchSpi(long, java.lang.String, long)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.cinchapi.concourse.services.ConcourseService#fetchSpi(long,
+	 * java.lang.String, long)
 	 */
 	@Override
 	protected Set<Object> fetchSpi(long row, String column, long timestamp) {
@@ -101,13 +114,16 @@ public class Database extends ConcourseService {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.service.ConcourseService#sizeOfSpi(java.lang.Long, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.cinchapi.concourse.service.ConcourseService#sizeOfSpi(java.lang.Long,
+	 * java.lang.String)
 	 */
 	@Override
 	protected long sizeOfSpi(Long row, String column) {
 		return 0;
 	}
-
 
 }

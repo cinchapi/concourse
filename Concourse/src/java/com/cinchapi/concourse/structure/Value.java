@@ -463,6 +463,24 @@ public final class Value implements Comparable<Value>, Persistable {
 	}
 
 	/**
+	 * Publicly accessible utility methods for a {@link Value}.
+	 * 
+	 * @author jnelson
+	 */
+	public static class Values {
+
+		/**
+		 * Return the object type of {@code value}.
+		 * 
+		 * @param value
+		 * @return the object type
+		 */
+		public static Type getObjectType(Object value) {
+			return Utilities.getObjectType(value);
+		}
+	}
+
+	/**
 	 * Utilities for {@link Value}.
 	 */
 	private static class Utilities {

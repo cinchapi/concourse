@@ -15,7 +15,6 @@
 package com.cinchapi.concourse.store;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -30,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.cinchapi.concourse.io.Persistable;
 import com.cinchapi.concourse.structure.Commit;
@@ -81,11 +82,21 @@ public class CommitLog extends VolatileDatabase implements
 	 * 
 	 * @param location
 	 *            - path to the FILE (not directory) to use for the CommitLog
+	 * @param config
 	 * @return the CommitLog stored at {@code location}
 	 */
-	public static CommitLog fromFile(String location) {
-		int size = (int) new File(location).length();
-		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
+	public static CommitLog fromFile(String location,
+			ConcourseConfiguration config) {
+		int oldSize = (int) new File(location).length();
+		int size = config.getInt(Prefs.COMMMIT_LOG_SIZE_IN_BYTES,
+				DEFAULT_SIZE_IN_BYTES);
+		Preconditions
+				.checkArgument(
+						size >= oldSize,
+						"The commitlog at %s is too large to be loaded. "
+								+ "Incrase the value of COMMMIT_LOG_SIZE_IN_BYTES to %s",
+						location, oldSize);
+		Preconditions.checkState(size < MAX_SIZE_IN_BYTES,
 				"The size of the CommitLog cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
 		MappedByteBuffer buffer = Utilities.openBuffer(location, size);
@@ -99,14 +110,13 @@ public class CommitLog extends VolatileDatabase implements
 	 * 
 	 * @param location
 	 *            - path to the FILE (not directory) to use for the CommitLog
-	 * @param size
-	 *            - a larger CommitLog optimizes write time whereas a smaller
-	 *            CommitLog optimizes read time
+	 * @param config
 	 * @return the new commit log
-	 * @throws FileNotFoundException
-	 * @throws IOException
 	 */
-	public static CommitLog newInstance(String location, int size) {
+	public static CommitLog newInstance(String location,
+			ConcourseConfiguration config) {
+		int size = config.getInt(Prefs.COMMMIT_LOG_SIZE_IN_BYTES,
+				DEFAULT_SIZE_IN_BYTES);
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
 				"The size of the CommitLog cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
@@ -323,6 +333,14 @@ public class CommitLog extends VolatileDatabase implements
 			return ByteSequencesIterator.over(array);
 		}
 	}
+	
+	@Override
+	public synchronized void shutdown() {
+		buffer.force();
+		log.info("Successfully shutdown the CommitLog.");
+		super.shutdown();
+		
+	}
 
 	@Override
 	public int size() {
@@ -370,7 +388,9 @@ public class CommitLog extends VolatileDatabase implements
 			Preconditions
 					.checkState(
 							buffer.remaining() > commit.size() + 4,
-							"The commitlog does not have enough capacity to store the commit. The commitlog has %s bytes remaining and the commit requires %s bytes. Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION.",
+							"The commitlog does not have enough capacity to store the commit. "
+									+ "The commitlog has %s bytes remaining and the commit requires %s bytes. "
+									+ "Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION.",
 							buffer.remaining(), commit.size() + 4);
 			buffer.putInt(commit.size());
 			buffer.put(commit.getBytes());
@@ -394,6 +414,13 @@ public class CommitLog extends VolatileDatabase implements
 							+ "will be thrown.", usableCapacity,
 					buffer.remaining());
 		}
+	}
+
+	/**
+	 * The configurable preferences used in this class.
+	 */
+	private enum Prefs implements PrefsKey {
+		COMMMIT_LOG_SIZE_IN_BYTES
 	}
 
 	/**

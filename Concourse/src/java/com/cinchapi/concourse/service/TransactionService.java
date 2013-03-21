@@ -24,18 +24,17 @@ import com.cinchapi.concourse.store.Transaction;
 public interface TransactionService {
 
 	/**
-	 * Start and return a {@link Transaction}.
+	 * Start and return a {@link Transaction} object which should be used for
+	 * performing ALL atomic operations.
 	 * 
 	 * @return the transaction
 	 */
 	public Transaction startTransaction();
 
-	/**
-	 * Commit a {@link Transaction}.
-	 * 
-	 * @param transaction
-	 * @return {@code true} if the transaction is fully committed
-	 */
-	public boolean commitTransaction(Transaction transaction);
+	public String _(); // This method should NOT be called publicly, but Java
+						// does not allow non-public methods in an
+						// interface...furthermore, Java does not allow an
+						// interface to specify variables that a class should
+						// define :-/
 
 }

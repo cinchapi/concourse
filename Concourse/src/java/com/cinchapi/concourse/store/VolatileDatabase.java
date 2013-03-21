@@ -109,6 +109,9 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
+	public synchronized void shutdown() {/* do nothing */}
+
+	@Override
 	protected boolean addSpi(long row, String column, Object value) {
 		return commit(Commit.forStorage(row, column, value));
 	}
