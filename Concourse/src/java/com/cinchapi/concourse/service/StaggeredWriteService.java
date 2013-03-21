@@ -105,7 +105,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	}
 
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
+	protected boolean addSpi(String column, Object value, long row) {
 		Future<Boolean> clr = executor.submit(Threads.add(secondary, row,
 				column, value));
 		try {
@@ -135,7 +135,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	}
 
 	@Override
-	protected final boolean existsSpi(long row, String column, Object value) {
+	protected final boolean existsSpi(String column, Object value, long row) {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Boolean> dbr = executor.submit(Threads.exists(primary, row,
 				column, value));
@@ -152,7 +152,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	}
 
 	@Override
-	protected final Set<Object> fetchSpi(long row, String column, long timestamp) {
+	protected final Set<Object> fetchSpi(String column, long timestamp, long row) {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<Object>> dbr = executor.submit(Threads.fetch(primary, row,
 				column, timestamp));
@@ -186,7 +186,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
+	protected boolean removeSpi(String column, Object value, long row) {
 		Future<Boolean> clr = executor.submit(Threads.remove(secondary, row,
 				column, value));
 		try {
@@ -199,8 +199,8 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	}
 
 	@Override
-	protected final long sizeOfSpi(Long row, String column) {
-		return primary.sizeOf(row, column) + secondary.sizeOf(row, column);
+	protected final long sizeOfSpi(String column, Long row) {
+		return primary.sizeOf(column, row) + secondary.sizeOf(column, row);
 	}
 
 	/**
@@ -225,7 +225,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	protected static class Threads {
 
 		/**
-		 * Execute {@link ConcourseService#add(long, String, Object)}.
+		 * Execute {@link ConcourseService#add(String, Object, long)}.
 		 * 
 		 * @param service
 		 * @param row
@@ -250,7 +250,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute {@link ConcourseService#exists(long, String, Object)}.
+		 * Execute {@link ConcourseService#exists(String, Object, long)}.
 		 * 
 		 * @param service
 		 * @param row
@@ -264,7 +264,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute {@link ConcourseService#fetch(long, String)}.
+		 * Execute {@link ConcourseService#fetch(String, long)}.
 		 * 
 		 * @param service
 		 * @param row
@@ -292,7 +292,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute {@link ConcourseService#remove(long, String, Object)}.
+		 * Execute {@link ConcourseService#remove(String, Object, long)}.
 		 * 
 		 * @param service
 		 * @param row
@@ -332,7 +332,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute the {@link ConcourseService#add(long, String, Object)}
+		 * Execute the {@link ConcourseService#add(String, Object, long)}
 		 * method.
 		 * 
 		 * @author jnelson
@@ -362,7 +362,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 			@Override
 			public Boolean call() throws Exception {
-				return service.addSpi(row, column, value); // I'm calling
+				return service.addSpi(column, value, row); // I'm calling
 															// addSpi() instead
 															// of add() to
 															// prevent an
@@ -401,7 +401,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute the {@link ConcourseService#exists(long, String, Object)}
+		 * Execute the {@link ConcourseService#exists(String, Object, long)}
 		 * method.
 		 * 
 		 * @author jnelson
@@ -431,13 +431,13 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 			@Override
 			public Boolean call() throws Exception {
-				return service.exists(row, column, value);
+				return service.exists(column, value, row);
 			}
 
 		}
 
 		/**
-		 * Execute the {@link ConcourseService#fetch(long, String)} method.
+		 * Execute the {@link ConcourseService#fetch(String, long)} method.
 		 * 
 		 * @author jnelson
 		 */
@@ -465,7 +465,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 			@Override
 			public Set<Object> call() throws Exception {
-				return service.fetch(row, column, timestamp);
+				return service.fetch(column, timestamp, row);
 			}
 
 		}
@@ -508,7 +508,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 		}
 
 		/**
-		 * Execute the {@link ConcourseService#remove(long, String, Object)}
+		 * Execute the {@link ConcourseService#remove(String, Object, long)}
 		 * method.
 		 * 
 		 * @author jnelson
@@ -538,7 +538,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 			@Override
 			public Boolean call() throws Exception {
-				return service.removeSpi(row, column, value); // I'm calling
+				return service.removeSpi(column, value, row); // I'm calling
 																// removeSpi()
 																// instead of
 																// remove() to

@@ -112,8 +112,8 @@ public class VolatileDatabase extends ConcourseService {
 	public synchronized void shutdown() {/* do nothing */}
 
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
-		return commit(Commit.forStorage(row, column, value));
+	protected boolean addSpi(String column, Object value, long row) {
+		return commit(Commit.forStorage(column, value, row));
 	}
 
 	/**
@@ -207,12 +207,12 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected final boolean existsSpi(long row, String column, Object value) {
-		return contains(Commit.notForStorage(row, column, value));
+	protected final boolean existsSpi(String column, Object value, long row) {
+		return contains(Commit.notForStorage(column, value, row));
 	}
 
 	@Override
-	protected final Set<Object> fetchSpi(long row, String column, long timestamp) {
+	protected final Set<Object> fetchSpi(String column, long timestamp, long row) {
 		Set<Value> _values = Sets.newLinkedHashSet();
 		ListIterator<Commit> commiterator = ordered.listIterator();
 		while (commiterator.hasNext()) {
@@ -266,7 +266,7 @@ public class VolatileDatabase extends ConcourseService {
 				Object obj = val.getQuantity();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(row);
 					}
@@ -284,7 +284,7 @@ public class VolatileDatabase extends ConcourseService {
 					Set<Key> keys = entry.getValue();
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(row, column, obj);
+						Commit commit = Commit.notForStorage(column, obj, row);
 						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
@@ -302,7 +302,7 @@ public class VolatileDatabase extends ConcourseService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
@@ -319,7 +319,7 @@ public class VolatileDatabase extends ConcourseService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
@@ -336,7 +336,7 @@ public class VolatileDatabase extends ConcourseService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
@@ -353,7 +353,7 @@ public class VolatileDatabase extends ConcourseService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
@@ -373,7 +373,7 @@ public class VolatileDatabase extends ConcourseService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(row, column, obj);
+					Commit commit = Commit.notForStorage(column, obj, row);
 					if(contains(commit)) {
 						rows.add(key.asLong());
 					}
@@ -393,7 +393,7 @@ public class VolatileDatabase extends ConcourseService {
 				if(m.matches()) {
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(row, column, obj);
+						Commit commit = Commit.notForStorage(column, obj, row);
 						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
@@ -414,7 +414,7 @@ public class VolatileDatabase extends ConcourseService {
 				if(!m.matches()) {
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(row, column, obj);
+						Commit commit = Commit.notForStorage(column, obj, row);
 						if(contains(commit)) {
 							rows.add(key.asLong());
 						}
@@ -430,12 +430,12 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		return commit(Commit.forStorage(row, column, value));
+	protected boolean removeSpi(String column, Object value, long row) {
+		return commit(Commit.forStorage(column, value, row));
 	}
 
 	@Override
-	protected long sizeOfSpi(Long row, String column) {
+	protected long sizeOfSpi(String column, Long row) {
 		long size = 0;
 		boolean seekingSizeForDb = row == null && column == null;
 		boolean seekingSizeForRow = row != null && column == null;

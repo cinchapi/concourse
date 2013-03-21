@@ -14,6 +14,8 @@
  */
 package com.cinchapi.concourse.service;
 
+import javax.annotation.Nullable;
+
 /**
  * Specifies the possible writes that can occur regarding a {@code value} in
  * a {@code cell} located at the intersection of {@code row} and {@code column}.
@@ -23,49 +25,52 @@ package com.cinchapi.concourse.service;
 public interface WriteService {
 
 	/**
-	 * Add {@code value} to cell at the intersection of {@code row} and
-	 * {@code column}.
+	 * Add {@code column} as {@code value} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 *            - any leading or trailing whitespace in a string value will be
-	 *            stripped
-	 * @return {@code true} if the {@code value} is added.
+	 * @param row
+	 * 
+	 * @return {@code true} if the cell at {@code row}:{@code column} contains
+	 *         {@code value} after it previously did not.
 	 */
-	public boolean add(long row, String column, Object value);
+	public boolean add(String column, Object value, long row);
 
 	/**
-	 * Remove {@code value} from the cell at the intersection of {@code row} and
-	 * {@code column}.
+	 * Remove {@code column} as {@code value} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 * @return {@code true} if {@code value} is removed.
+	 * @param row
+	 * 
+	 * @return {@code true} if the cell at {@code row}:{@code column} no longer
+	 *         contains {@code value} after it previously did.
 	 */
-	public boolean remove(long row, String column, Object value);
+	public boolean remove(String column, Object value, long row);
 
 	/**
-	 * Revert the cell at the intersection of {@code row} and {@code column} to
-	 * {@code timestamp}.
+	 * Revert {@code column} to {@code timestamp} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param timestamp
-	 * @return {@code true} if the cell is reverted
+	 * @param row
+	 * 
+	 * @return {@code true} if the cell at {@code row}:{@code column} is
+	 *         reverted.
 	 */
-	public boolean revert(long row, String column, long timestamp);
+	public boolean revert(String column, long timestamp, long row);
 
 	/**
-	 * Remove any existing values from the cell at the intersection of
-	 * {@code row} and {@code column} and replace them with {@code value}.
+	 * Set {@code column} as {@code value} in {@code row} by removing any
+	 * existing values and replacing them with {@code value}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 * @return {@code true} if {@code value} is set.
+	 * @param row
+	 * 
+	 * @return {@code true} if cell at {@code row}:{@code column} is modified to
+	 *         contain only {@code value}.
 	 */
-	public boolean set(long row, String column, Object value);
+	public boolean set(String column, Object value, long row);
 
 }

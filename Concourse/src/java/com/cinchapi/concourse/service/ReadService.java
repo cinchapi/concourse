@@ -35,55 +35,57 @@ public interface ReadService {
 	public Set<String> describe(long row);
 
 	/**
-	 * Return {@code true} if {@code row} exists.
+	 * Check if {@code row} exists.
 	 * 
 	 * @param row
-	 * @return {@code true} if {@link #describe(long)} for {@code row} is not
-	 *         empty.
+	 * @return {@code true} if {@link #describe(long)} for {@code row} is a
+	 *         non-empty set
 	 */
 	public boolean exists(long row);
 
 	/**
-	 * Return {@code true} if a cell exists at the intersection of {@code row}
-	 * and {@code column}.
+	 * Check if {@code column} exists in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
-	 * @return {@code true} if {@link #fetch(long, String)} for {@code row} and
+	 * @param row
+	 * 
+	 * @return {@code true} if {@link #fetch(String, long)} for {@code row} and
 	 *         {@code column} is not empty.
 	 */
-	public boolean exists(long row, String column);
+	public boolean exists(String column, long row);
 
 	/**
-	 * Return {@code true} if {@code value} exists in the cell at the
-	 * intersection of {@code row} and {@code column}.
+	 * Check if {@code column} as {@code value} exists in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 * @return {@code true} if {@code value} is contained.
+	 * @param row
+	 * 
+	 * @return {@code true} if {@code value} is contained in the cell at
+	 *         {@code row}:{@code column}.
 	 */
-	public boolean exists(long row, String column, Object value);
+	public boolean exists(String column, Object value, long row);
 
 	/**
-	 * Return the values in the cell under {@code column} for {@code row} sorted
-	 * by timestamp in descending order.
+	 * Fetch {@code column} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
-	 * @return the result set.
+	 * @param row
+	 * 
+	 * @return the values in the cell at {@code row}:{@code column}.
 	 */
-	public Set<Object> fetch(long row, String column);
+	public Set<Object> fetch(String column, long row);
 
 	/**
-	 * Return the values in the cell under {@code column} for {@code row} sorted
-	 * by timestamp in descending order as of {@code timestamp}.
+	 * Fetch {@code column} at {@code timestamp} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
+	 * @param row
 	 * @param at
-	 * @return
+	 * 
+	 * @return the values in the cell at {@code row}:{@code column} as existed
+	 *         at {@code timestamp}.
 	 */
-	public Set<Object> fetch(long row, String column, long timestamp);
+	public Set<Object> fetch(String column, long timestamp, long row);
 
 }

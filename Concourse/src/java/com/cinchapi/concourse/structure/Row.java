@@ -130,7 +130,7 @@ public class Row implements IterableByteSequences, Persistable {
 	}
 
 	/**
-	 * Add {@code value} to the cell under {@code column}.
+	 * Add {@code column} as {@code value}.
 	 * 
 	 * @param column
 	 * @param value
@@ -260,7 +260,7 @@ public class Row implements IterableByteSequences, Persistable {
 	}
 
 	/**
-	 * Remove {@code value} from the the cell under {@code column}.
+	 * Remove {@code} column as {@code value}.
 	 * 
 	 * @param column
 	 * @param value
@@ -277,8 +277,7 @@ public class Row implements IterableByteSequences, Persistable {
 	}
 
 	/**
-	 * Remove any existing values from the cell under {@code column} and add
-	 * {@code value} to the cell.
+	 * Set {@code column} as {@code value}.
 	 * 
 	 * @param column
 	 * @param value

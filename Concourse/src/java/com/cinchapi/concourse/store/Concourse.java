@@ -194,10 +194,10 @@ public final class Concourse extends StaggeredWriteService implements
 	}
 
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
+	protected boolean addSpi(String column, Object value, long row) {
 		flush(false);
 		flushed = false;
-		return super.addSpi(row, column, value);
+		return super.addSpi(column, value, row);
 	}
 
 	/**
@@ -213,10 +213,10 @@ public final class Concourse extends StaggeredWriteService implements
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
+	protected boolean removeSpi(String column, Object value, long row) {
 		flush(false);
 		flushed = false;
-		return super.removeSpi(row, column, value);
+		return super.removeSpi(column, value, row);
 	}
 
 	/**

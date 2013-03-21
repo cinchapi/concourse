@@ -45,29 +45,29 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		long row = randomLong();
 		String column = randomColumnName();
 		Object value = randomObject();
-		assertTrue(service.add(row, column, value));
+		assertTrue(service.add(column, value, row));
 
 		// can't add dupes
-		assertFalse(service.add(row, column, value));
+		assertFalse(service.add(column, value, row));
 
 		// multiple values in column
 		int scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			Object v = randomObject();
-			while (service.exists(row, column, v)) {
+			while (service.exists(column, v, row)) {
 				v = randomObject();
 			}
-			assertTrue(service.add(row, column, v));
+			assertTrue(service.add(column, v, row));
 		}
 
 		// multiple columns in a row
 		scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			String c = randomColumnName();
-			while (service.exists(row, c)) {
+			while (service.exists(c, row)) {
 				c = randomColumnName();
 			}
-			assertTrue(service.add(row, c, value));
+			assertTrue(service.add(c, value, row));
 		}
 
 		// multiple rows
@@ -77,7 +77,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			while (service.exists(r)) {
 				r = randomLong();
 			}
-			assertTrue(service.add(r, column, value));
+			assertTrue(service.add(column, value, r));
 		}
 
 	}
@@ -96,7 +96,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				column = randomColumnName();
 			}
 			columns.add(column);
-			service.add(row, column, randomObject());
+			service.add(column, randomObject(), row);
 		}
 		assertEquals(columns, service.describe(row));
 	}
@@ -111,21 +111,21 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		Object value = randomObject();
 
 		assertFalse(service.exists(row));
-		service.add(row, column, value);
+		service.add(column, value, row);
 		assertTrue(service.exists(row));
 
 		// row doesn't exists after being removed
-		service.remove(row, column, value);
+		service.remove(column, value, row);
 		assertFalse(service.exists(row));
 
 		// adding and removing at scale yields correct exists value for row
 		int scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
-				service.add(row, column, value);
+				service.add(column, value, row);
 			}
 			else {
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 			}
 		}
 		assertEquals(service.exists(row), Numbers.isEven(scale) ? false : true);
@@ -135,28 +135,28 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		column = randomColumnName();
 		value = randomObject();
 
-		assertFalse(service.exists(row, column));
-		service.add(row, column, value);
-		assertTrue(service.exists(row, column));
+		assertFalse(service.exists(column, row));
+		service.add(column, value, row);
+		assertTrue(service.exists(column, row));
 
 		// row and column don't exist after being removed
-		service.remove(row, column, value);
-		assertFalse(service.exists(row, column));
-		service.add(row, randomColumnName(), value);
-		assertFalse(service.exists(row, column));
+		service.remove(column, value, row);
+		assertFalse(service.exists(column, row));
+		service.add(randomColumnName(), value, row);
+		assertFalse(service.exists(column, row));
 
 		// adding and removing at scale yields correct exists value for row and
 		// column
 		scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
-				service.add(row, column, value);
+				service.add(column, value, row);
 			}
 			else {
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 			}
 		}
-		assertEquals(service.exists(row, column), Numbers.isEven(scale) ? false
+		assertEquals(service.exists(column, row), Numbers.isEven(scale) ? false
 				: true);
 
 		// row and column and value exist
@@ -164,26 +164,26 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		column = randomColumnName();
 		value = randomObject();
 
-		assertFalse(service.exists(row, column, value));
-		service.add(row, column, value);
-		assertTrue(service.exists(row, column, value));
+		assertFalse(service.exists(column, value, row));
+		service.add(column, value, row);
+		assertTrue(service.exists(column, value, row));
 
 		// row and column and value don't exist after being removed
-		service.remove(row, column, value);
-		assertFalse(service.exists(row, column, value));
+		service.remove(column, value, row);
+		assertFalse(service.exists(column, value, row));
 
 		// adding and removing at scale yields correct exists value for row and
 		// column and value
 		scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
-				service.add(row, column, value);
+				service.add(column, value, row);
 			}
 			else {
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 			}
 		}
-		assertEquals(service.exists(row, column, value),
+		assertEquals(service.exists(column, value, row),
 				Numbers.isEven(scale) ? false : true);
 	}
 
@@ -203,24 +203,24 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				value = randomObject();
 			}
 			values.add(value);
-			service.add(row, column, value);
+			service.add(column, value, row);
 		}
 		Collections.reverse(values);
-		assertEquals(service.fetch(row, column), Sets.newLinkedHashSet(values));
+		assertEquals(service.fetch(column, row), Sets.newLinkedHashSet(values));
 
 		// fetch returns correctly after removals happen
 		Iterator<Object> it = values.iterator();
 		while (it.hasNext()) {
 			if(getRandom().nextInt() % 3 == 0) {
 				Object value = it.next();
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 				it.remove();
 			}
 			else{
 				it.next();
 			}
 		}
-		assertEquals(service.fetch(row, column), Sets.newLinkedHashSet(values));
+		assertEquals(service.fetch(column, row), Sets.newLinkedHashSet(values));
 
 		// historical fetch
 		long timestamp = Time.now();
@@ -229,14 +229,14 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		while (it.hasNext()) {
 			if(getRandom().nextInt() % 3 == 0) {
 				Object value = it.next();
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 			}
 			else {
 				Object value = randomObject();
-				service.add(row, column, value);
+				service.add(column, value, row);
 			}
 		}
-		assertEquals(service.fetch(row, column, timestamp),
+		assertEquals(service.fetch(column, timestamp, row),
 				Sets.newLinkedHashSet(values));
 
 	}
@@ -249,9 +249,9 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		String column = randomColumnName();
 		Object value = randomObject();
 
-		assertFalse(service.remove(row, column, value));
-		service.add(row, column, value);
-		assertTrue(service.remove(row, column, value));
+		assertFalse(service.remove(column, value, row));
+		service.add(column, value, row);
+		assertTrue(service.remove(column, value, row));
 	}
 
 	@Test
@@ -269,21 +269,21 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				value = randomObject();
 			}
 			values.add(value);
-			service.add(row, column, value);
+			service.add(column, value, row);
 		}
 		Collections.reverse(values);
 		Iterator<Object> it = values.iterator();
 		while (it.hasNext()) {
 			if(getRandom().nextInt() % 3 == 0) {
 				Object value = it.next();
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 				it.remove();
 			}
 			else{
 				it.next();
 			}
 		}
-		assertEquals(service.fetch(row, column), Sets.newLinkedHashSet(values));
+		assertEquals(service.fetch(column, row), Sets.newLinkedHashSet(values));
 		long timestamp = Time.now();
 		Thread.sleep(randomSleep());
 		it = Sets.newLinkedHashSet(values).iterator();
@@ -291,16 +291,16 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		while (it.hasNext()) {
 			if(getRandom().nextInt() % 3 == 0) {
 				Object value = it.next();
-				service.remove(row, column, value);
+				service.remove(column, value, row);
 			}
 			else {
 				Object value = randomObject();
-				service.add(row, column, value);
+				service.add(column, value, row);
 			}
 		}
-		assertTrue(service.revert(row, column, timestamp));
-		assertEquals(service.fetch(row, column),
-				service.fetch(row, column, timestamp));
+		assertTrue(service.revert(column, timestamp, row));
+		assertEquals(service.fetch(column, row),
+				service.fetch(column, timestamp, row));
 	}
 
 	@Test
@@ -325,7 +325,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		for (int i = 0; i < scale; i++) { // add equal values
 			long row = randomLong();
 			equal.add(row);
-			service.add(row, column, value);
+			service.add(column, value, row);
 		}
 
 		scale = getScaleFrequency();
@@ -336,7 +336,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				value2 = randomObject();
 			}
 			notEqual.add(row);
-			service.add(row, column, value2);
+			service.add(column, value2, row);
 		}
 
 		assertEquals(equal, service.query(column, Operator.EQUALS, value));
@@ -357,8 +357,8 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		while (rowB == rowA) {
 			rowB = randomLong();
 		}
-		service.add(rowA, column, Long.toString(a));
-		service.add(rowB, column, b);
+		service.add(column, Long.toString(a), rowA);
+		service.add(column, b, rowB);
 		assertTrue(service.query(column, Operator.GREATER_THAN_OR_EQUALS, a)
 				.contains(rowB));
 		assertTrue(service.query(column, Operator.GREATER_THAN_OR_EQUALS, a)
@@ -392,11 +392,11 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			else { // value < value2
 				greater.add(row);
 			}
-			service.add(row, column, value2);
+			service.add(column, value2, row);
 		}
 		while (equal.isEmpty()) {
 			long row = randomLong();
-			service.add(row, column, value);
+			service.add(column, value, row);
 			equal.add(row);
 		}
 
@@ -428,24 +428,24 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		String column = randomColumnName();
 		int scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
-			service.add(row, column, randomObject());
+			service.add(column, randomObject(), row);
 		}
 		Object value = randomObject();
-		while (service.exists(row, column, value)) {
+		while (service.exists(column, value, row)) {
 			value = randomObject();
 		}
-		assertTrue(service.set(row, column, value));
-		assertEquals(1, service.fetch(row, column).size());
-		assertTrue(service.fetch(row, column).contains(value));
+		assertTrue(service.set(column, value, row));
+		assertEquals(1, service.fetch(column, row).size());
+		assertTrue(service.fetch(column, row).contains(value));
 
 		// setting an existing value works
 		scale = getScaleFrequency();
 		for (int i = 0; i < scale; i++) {
-			service.add(row, column, randomObject());
+			service.add(column, randomObject(), row);
 		}
-		assertTrue(service.set(row, column, value));
-		assertEquals(1, service.fetch(row, column).size());
-		assertTrue(service.fetch(row, column).contains(value));
+		assertTrue(service.set(column, value, row));
+		assertEquals(1, service.fetch(column, row).size());
+		assertTrue(service.fetch(column, row).contains(value));
 	}
 	
 	@Test

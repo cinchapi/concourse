@@ -31,26 +31,28 @@ public interface DataStoreService extends
 	public abstract void shutdown();
 
 	/**
-	 * Return the total size of all the stored data in bytes.
+	 * Return the size of all the data stored in service.
 	 * 
-	 * @return the total size
+	 * @return the total size.
 	 */
 	public long sizeOf();
 
 	/**
-	 * Return the size of all the data stored in a single row in bytes.
+	 * Return the size in {@code row}
 	 * 
 	 * @param row
-	 * @return the row size
+	 * @return the size of the data stored in all the cells in {@code row}.
 	 */
 	public long sizeOf(long row);
 
 	/**
-	 * Return the size of all the data stored in a single cell in bytes.
+	 * Return the size of {@code column} in {@code row}.
 	 * 
-	 * @param row
 	 * @param column
-	 * @return the cell size
+	 * @param row
+	 * 
+	 * @return the size of the data stored in the cell at {@code row}:
+	 *         {@code column}.
 	 */
-	public long sizeOf(Long row, String column);
+	public long sizeOf(String column, Long row);
 }

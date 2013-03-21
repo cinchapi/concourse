@@ -41,17 +41,17 @@ public final class Commit implements Persistable {
 
 	/**
 	 * Return a forStorage commit that corresponds to a revision for
-	 * {@code value} in the {@code cell} at the intersection of {@code row} and
-	 * {@code column}.
+	 * {@code value} in the {@code cell} at {@code row}:{@code column}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
-	 * @return the revision
+	 * @param row
+	 * 
+	 * @return the Commit
 	 * @see {@link Value#isForStorage()}
 	 */
-	public static Commit forStorage(long row, String column, Object value) {
-		return new Commit(Key.fromLong(row), column, Value.forStorage(value));
+	public static Commit forStorage(String column, Object value, long row) {
+		return new Commit(column, Value.forStorage(value), Key.fromLong(row));
 	}
 
 	/**
@@ -75,26 +75,26 @@ public final class Commit implements Persistable {
 		buffer.get(val);
 		Value value = Value.fromByteSequence(ByteBuffer.wrap(val));
 
-		return new Commit(row, column, value);
+		return new Commit(column, value, row);
 	}
 
 	/**
 	 * Return a notForStorage commit that corresponds to a revision for
-	 * {@code value} in the {@code cell} at the intersection of {@code row} and
-	 * {@code column}.
+	 * {@code value} in the {@code cell} at {@code row}:{@code column}.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
+	 * @param row
+	 * 
 	 * @return the revision
 	 * @see {@link Value#isNotForStorage()}
 	 */
-	public static Commit notForStorage(long row, String column, Object value) {
+	public static Commit notForStorage(String column, Object value, long row) {
 		Commit commit;
 		commit = cache.get(row, column, value);
 		if(commit == null) {
-			commit = new Commit(Key.fromLong(row), column,
-					Value.notForStorage(value));
+			commit = new Commit(column, Value.notForStorage(value),
+					Key.fromLong(row));
 			cache.put(commit, row, column, value);
 		}
 		return commit;
@@ -107,8 +107,8 @@ public final class Commit implements Persistable {
 	 * @return a copy of the commit
 	 */
 	public static Commit notForStorageCopy(Commit commit) {
-		return commit.isForStorage() ? Commit.notForStorage(commit.getRow()
-				.asLong(), commit.getColumn(), commit.getValue().getQuantity())
+		return commit.isForStorage() ? Commit.notForStorage(commit.getColumn(),
+				commit.getValue().getQuantity(), commit.getRow().asLong())
 				: commit;
 	}
 
@@ -132,11 +132,11 @@ public final class Commit implements Persistable {
 	/**
 	 * Construct a new instance.
 	 * 
-	 * @param row
 	 * @param column
 	 * @param value
+	 * @param row
 	 */
-	private Commit(Key row, String column, Value value) {
+	private Commit(String column, Value value, Key row) {
 		this.row = row;
 		this.column = column;
 		this.columnSize = this.column.getBytes(ByteBuffers.charset()).length;

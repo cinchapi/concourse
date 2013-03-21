@@ -82,10 +82,10 @@ public abstract class ConcourseService implements DataStoreService {
 			"'", "\\", "(", ")" };
 
 	@Override
-	public final boolean add(long row, String column, Object value) {
-		if(!exists(row, column, value)) {
+	public final boolean add(String column, Object value, long row) {
+		if(!exists(column, value, row)) {
 			ConcourseService.checkColumnName(column);
-			return addSpi(row, column, value);
+			return addSpi(column, value, row);
 		}
 		return false;
 	}
@@ -101,23 +101,23 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final boolean exists(long row, String column) {
-		return !fetch(row, column).isEmpty();
+	public final boolean exists(String column, long row) {
+		return !fetch(column, row).isEmpty();
 	}
 
 	@Override
-	public final boolean exists(long row, String column, Object value) {
-		return existsSpi(row, column, value);
+	public final boolean exists(String column, Object value, long row) {
+		return existsSpi(column, value, row);
 	}
 
 	@Override
-	public final Set<Object> fetch(long row, String column) {
-		return fetch(row, column, Time.now());
+	public final Set<Object> fetch(String column, long row) {
+		return fetch(column, Time.now(), row);
 	}
 
 	@Override
-	public final Set<Object> fetch(long row, String column, long timestamp) {
-		return fetchSpi(row, column, timestamp);
+	public final Set<Object> fetch(String column, long timestamp, long row) {
+		return fetchSpi(column, timestamp, row);
 	}
 
 	@Override
@@ -127,37 +127,37 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final boolean remove(long row, String column, Object value) {
-		if(exists(row, column, value)) {
-			return removeSpi(row, column, value);
+	public final boolean remove(String column, Object value, long row) {
+		if(exists(column, value, row)) {
+			return removeSpi(column, value, row);
 		}
 		return false;
 	}
 
 	@Override
-	public final boolean revert(long row, String column, long timestamp) {
-		Set<Object> past = fetch(row, column, timestamp);
-		Set<Object> present = fetch(row, column);
+	public final boolean revert(String column, long timestamp, long row) {
+		Set<Object> past = fetch(column, timestamp, row);
+		Set<Object> present = fetch(column, row);
 		Set<Object> xor = Sets.symmetricDifference(past, present);
 		for (Object value : xor) {
 			if(present.contains(value)) {
-				remove(row, column, value);
+				remove(column, value, row);
 			}
 			else {
-				add(row, column, value);
+				add(column, value, row);
 			}
 		}
-		return Sets.symmetricDifference(fetch(row, column),
-				fetch(row, column, timestamp)).isEmpty();
+		return Sets.symmetricDifference(fetch(column, row),
+				fetch(column, timestamp, row)).isEmpty();
 	}
 
 	@Override
-	public final boolean set(long row, String column, Object value) {
-		Set<Object> values = fetch(row, column);
+	public final boolean set(String column, Object value, long row) {
+		Set<Object> values = fetch(column, row);
 		for (Object v : values) {
-			remove(row, column, v);
+			remove(column, v, row);
 		}
-		return add(row, column, value);
+		return add(column, value, row);
 	}
 
 	@Override
@@ -167,28 +167,28 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public long sizeOf(long row) {
-		return sizeOf(row, null);
+		return sizeOf(null, row);
 	}
 
 	@Override
-	public long sizeOf(Long row, String column) {
+	public long sizeOf(String column, Long row) {
 		Preconditions
 				.checkArgument(
 						row == null && column == null,
 						"Calculating the size of a column is not supported. "
 								+ "If the row parameter is null, the column parameter must also be null.");
-		return sizeOfSpi(row, column);
+		return sizeOfSpi(column, row);
 	}
 
 	/**
-	 * Implement the interface for {@link #add(long, String, Object)}.
-	 * 
-	 * @param row
+	 * Implement the interface for {@link #add(String, Object, long)}.
 	 * @param column
 	 * @param value
+	 * @param row
+	 * 
 	 * @return {@code true} if the add is successful
 	 */
-	protected abstract boolean addSpi(long row, String column, Object value);
+	protected abstract boolean addSpi(String column, Object value, long row);
 
 	/**
 	 * Implement the interface for {@link #describe(long)}.
@@ -199,28 +199,28 @@ public abstract class ConcourseService implements DataStoreService {
 	protected abstract Set<String> describeSpi(long row);
 
 	/**
-	 * Implement the interface for {@link #exists(long, String, Object)}.
-	 * 
-	 * @param row
+	 * Implement the interface for {@link #exists(String, Object, long)}.
 	 * @param column
 	 * @param value
+	 * @param row
+	 * 
 	 * @return {@code true} if {@code value} exists in the cell located at the
 	 *         intersection of {@code row} and {@code column}
 	 */
-	protected abstract boolean existsSpi(long row, String column, Object value);
+	protected abstract boolean existsSpi(String column, Object value, long row);
 
 	/**
-	 * Implement the interface for {@link #fetch(long, String, long)}.
-	 * 
-	 * @param row
+	 * Implement the interface for {@link #fetch(String, long, long)}.
 	 * @param column
 	 * @param timestamp
+	 * @param row
+	 * 
 	 * @return the set of values that exist in the cell located at the
 	 *         intersection of {@code row} and {@code column} at
 	 *         {@code timestamp}
 	 */
-	protected abstract Set<Object> fetchSpi(long row, String column,
-			long timestamp);
+	protected abstract Set<Object> fetchSpi(String column, long timestamp,
+			long row);
 
 	/**
 	 * Implement the interface for {@link #query(String, Operator, Object...)}.
@@ -234,14 +234,14 @@ public abstract class ConcourseService implements DataStoreService {
 			Object... values);
 
 	/**
-	 * Implement the interface for {@link #remove(long, String, Object)}.
-	 * 
-	 * @param row
+	 * Implement the interface for {@link #remove(String, Object, long)}.
 	 * @param column
 	 * @param value
+	 * @param row
+	 * 
 	 * @return {@code true} if the remove is successful
 	 */
-	protected abstract boolean removeSpi(long row, String column, Object value);
+	protected abstract boolean removeSpi(String column, Object value, long row);
 
 	/**
 	 * <p>
@@ -249,19 +249,19 @@ public abstract class ConcourseService implements DataStoreService {
 	 * </p>
 	 * <p>
 	 * <ul>
-	 * <li>Implement the interface for {@link #size(Long, String)} if
+	 * <li>Implement the interface for {@link #sizeOf(String, Long)} if
 	 * {@code row} and {@code column} both != {@code null}.</li>
-	 * <li>Implement the interface for {@link #size(Long)} if {@code row} ==
+	 * <li>Implement the interface for {@link #sizeOf(Long)} if {@code row} ==
 	 * {@code null}.</li>
-	 * <li>Implement the interface for {@link #size()} if {@code row} and
+	 * <li>Implement the interface for {@link #sizeOf()} if {@code row} and
 	 * {@code column} both == {@code null}.</li>
 	 * </ul>
 	 * </p>
-	 * 
-	 * @param row
 	 * @param column
+	 * @param row
+	 * 
 	 * @return the size in bytes
 	 */
-	protected abstract long sizeOfSpi(@Nullable Long row, @Nullable String column);
+	protected abstract long sizeOfSpi(@Nullable String column, @Nullable Long row);
 
 }

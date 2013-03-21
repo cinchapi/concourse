@@ -61,7 +61,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		log("Writing data...");
 		timer().start();
 		for (int count = 0; count < target; count++) {
-			service.add(rows[count], columns[count], values[count]);
+			service.add(columns[count], values[count], rows[count]);
 		}
 
 		long elapsed = timer().stop(unit);
@@ -95,7 +95,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 			columns[count] = column;
 			values[count] = value;
 
-			service.add(row, column, value);
+			service.add(column, value, row);
 		}
 
 		log("Removing data...");
@@ -107,7 +107,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 			String column = columns[index];
 			Object value = values[index];
 
-			service.remove(row, column, value);
+			service.remove(column, value, row);
 		}
 		long elapsed = timer().stop(unit);
 		log("Runtime for remove() with an initial target of {} and a removal target of {} values: {} {}",
@@ -155,7 +155,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 			Object value = values[i];
 			String column = columns[getRandom().nextInt(columns.length)];
 			long row = rows[getRandom().nextInt(rows.length)];
-			service.add(row, column, value);
+			service.add(column, value, row);
 		}
 
 		String column;

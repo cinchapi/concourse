@@ -359,13 +359,13 @@ public class CommitLog extends VolatileDatabase implements
 	}
 
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
-		return append(Commit.forStorage(row, column, value));
+	protected boolean addSpi(String column, Object value, long row) {
+		return append(Commit.forStorage(column, value, row));
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		return append(Commit.forStorage(row, column, value));
+	protected boolean removeSpi(String column, Object value, long row) {
+		return append(Commit.forStorage(column, value, row));
 	}
 
 	/**

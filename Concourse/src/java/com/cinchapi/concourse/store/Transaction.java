@@ -257,8 +257,8 @@ public final class Transaction extends StaggeredWriteService {
 	}
 
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
-		if(super.addSpi(row, column, value) && !isClosed()) {
+	protected boolean addSpi(String column, Object value, long row) {
+		if(super.addSpi(column, value, row) && !isClosed()) {
 			return storeOperation(Type.ADD, row, column, value);
 		}
 		return false;
@@ -320,8 +320,8 @@ public final class Transaction extends StaggeredWriteService {
 	}
 
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
-		if(super.removeSpi(row, column, value) && !isClosed()) {
+	protected boolean removeSpi(String column, Object value, long row) {
+		if(super.removeSpi(column, value, row) && !isClosed()) {
 			return storeOperation(Type.REMOVE, row, column, value);
 		}
 		return false;
@@ -374,8 +374,8 @@ public final class Transaction extends StaggeredWriteService {
 
 	/**
 	 * Store an operation in the transaction. This method should ONLY be called
-	 * from the {@link #addSpi(long, String, Object)} or
-	 * {@link #removeSpi(long, String, Object)} method.
+	 * from the {@link #addSpi(String, Object, long)} or
+	 * {@link #removeSpi(String, Object, long)} method.
 	 * 
 	 * @param type
 	 * @param row
@@ -644,13 +644,13 @@ public final class Transaction extends StaggeredWriteService {
 									|| to instanceof TransactionService,
 							"A transaction operation can only be flushed to a TransactionService or another Transaction");
 			if(operation.getType() == Type.ADD
-					&& to.add(operation.getRow(), operation.getColumn(),
-							operation.getValue())) {
+					&& to.add(operation.getColumn(), operation.getValue(),
+							operation.getRow())) {
 				return true;
 			}
 			else if(operation.getType() == Type.REMOVE
-					&& to.remove(operation.getRow(), operation.getColumn(),
-							operation.getValue())) {
+					&& to.remove(operation.getColumn(), operation.getValue(),
+							operation.getRow())) {
 				return true;
 			}
 			else { // detected a merge conflict that would cause the

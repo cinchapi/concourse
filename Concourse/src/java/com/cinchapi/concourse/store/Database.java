@@ -52,7 +52,7 @@ public class Database extends ConcourseService {
 	 * java.lang.String, java.lang.Object)
 	 */
 	@Override
-	protected boolean addSpi(long row, String column, Object value) {
+	protected boolean addSpi(String column, Object value, long row) {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -74,7 +74,7 @@ public class Database extends ConcourseService {
 	 * java.lang.String, java.lang.Object)
 	 */
 	@Override
-	protected boolean existsSpi(long row, String column, Object value) {
+	protected boolean existsSpi(String column, Object value, long row) {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -86,7 +86,7 @@ public class Database extends ConcourseService {
 	 * java.lang.String, long)
 	 */
 	@Override
-	protected Set<Object> fetchSpi(long row, String column, long timestamp) {
+	protected Set<Object> fetchSpi(String column, long timestamp, long row) {
 		return Sets.newHashSet();
 	}
 
@@ -110,7 +110,7 @@ public class Database extends ConcourseService {
 	 * java.lang.String, java.lang.Object)
 	 */
 	@Override
-	protected boolean removeSpi(long row, String column, Object value) {
+	protected boolean removeSpi(String column, Object value, long row) {
 		return false;
 	}
 
@@ -122,7 +122,7 @@ public class Database extends ConcourseService {
 	 * java.lang.String)
 	 */
 	@Override
-	protected long sizeOfSpi(Long row, String column) {
+	protected long sizeOfSpi(String column, Long row) {
 		return 0;
 	}
 

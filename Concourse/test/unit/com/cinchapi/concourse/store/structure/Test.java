@@ -40,7 +40,7 @@ public class Test {
 //		t.add(1, "name", "Jeff Nelson");
 //		t.add(1, "name", "Morgan Debaun");
 //		t.commit();
-		System.out.println(service.fetch(1, "name")); //empty
+		System.out.println(service.fetch("name", 1)); //empty
 		service.shutdown();
 
 		
