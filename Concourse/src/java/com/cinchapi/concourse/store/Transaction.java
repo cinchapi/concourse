@@ -311,11 +311,12 @@ public final class Transaction extends StaggeredWriteService {
 					log.warn(
 							"Failed attempt to save transaction operation {} because it appears "
 									+ "that the primary service was previously shutdown while "
-									+ "committing this transaction, but managed to successfully "
-									+ "commit this particular transaction.",
+									+ "committing this transaction, yet managed to successfully "
+									+ "commit this particular operation.",
 							operation);
 				}
 			}
+			cleanup.run();
 		}
 	}
 
