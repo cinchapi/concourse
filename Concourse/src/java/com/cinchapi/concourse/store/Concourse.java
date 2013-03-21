@@ -109,7 +109,10 @@ public final class Concourse extends StaggeredWriteService implements
 		databaseDir.mkdirs();
 		database = Database.inDir(databaseDir.getAbsolutePath());
 
-		return new Concourse(commitLog, database, commitLogIsFlushed, home);
+		String transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
+
+		return new Concourse(commitLog, database, commitLogIsFlushed,
+				transactionFile);
 	}
 
 	/**
@@ -143,10 +146,10 @@ public final class Concourse extends StaggeredWriteService implements
 	 * @param home
 	 */
 	private Concourse(CommitLog commitLog, Database database, boolean flushed,
-			String home) {
+			String transactionFile) {
 		super(database, commitLog);
 		this.flushed = flushed;
-		this.transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
+		this.transactionFile = transactionFile;
 		recover();
 	}
 

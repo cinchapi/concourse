@@ -82,6 +82,12 @@ public abstract class ConcourseService implements DataStoreService {
 			"'", "\\", "(", ")" };
 
 	@Override
+	public long add(String column, Object value) {
+		long row = Time.now();
+		return add(column, value, row) ? row : null;
+	}
+
+	@Override
 	public final boolean add(String column, Object value, long row) {
 		if(!exists(column, value, row)) {
 			ConcourseService.checkColumnName(column);
@@ -89,7 +95,7 @@ public abstract class ConcourseService implements DataStoreService {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public final Set<String> describe(long row) {
 		return describeSpi(row);
@@ -182,6 +188,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	/**
 	 * Implement the interface for {@link #add(String, Object, long)}.
+	 * 
 	 * @param column
 	 * @param value
 	 * @param row
@@ -200,6 +207,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	/**
 	 * Implement the interface for {@link #exists(String, Object, long)}.
+	 * 
 	 * @param column
 	 * @param value
 	 * @param row
@@ -211,6 +219,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	/**
 	 * Implement the interface for {@link #fetch(String, long, long)}.
+	 * 
 	 * @param column
 	 * @param timestamp
 	 * @param row
@@ -235,6 +244,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	/**
 	 * Implement the interface for {@link #remove(String, Object, long)}.
+	 * 
 	 * @param column
 	 * @param value
 	 * @param row
@@ -257,11 +267,13 @@ public abstract class ConcourseService implements DataStoreService {
 	 * {@code column} both == {@code null}.</li>
 	 * </ul>
 	 * </p>
+	 * 
 	 * @param column
 	 * @param row
 	 * 
 	 * @return the size in bytes
 	 */
-	protected abstract long sizeOfSpi(@Nullable String column, @Nullable Long row);
+	protected abstract long sizeOfSpi(@Nullable String column,
+			@Nullable Long row);
 
 }
