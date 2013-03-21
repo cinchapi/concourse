@@ -156,12 +156,12 @@ public final class Transaction extends StaggeredWriteService {
 				}
 				else { // detected a merge conflict that would cause the
 						// transaction to fail
-					t.rollback();
+					t.closed = true;
 					return null;
 				}
 			}
 		}
-		t.rollback();
+		t.closed = true;
 		return t;
 	}
 
