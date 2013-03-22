@@ -32,21 +32,21 @@ public class CommitLogTest extends ConcourseServiceTest {
 		return ConcourseServiceProvider.provideNewCommitLog();
 	}
 
-	@Test
-	public void testIsFull() {
-		CommitLog service = getService();
-		while (!service.isFull()) {
-			try {
-				service.add(randomColumnName(), randomObject(),
-						randomLong());
-			}
-			catch (IllegalStateException e) {
-				log("{}", e);
-				break;
-			}
-		}
-		assertTrue(service.isFull());
-		assertTrue(service.size() <= ConcourseServiceProvider.COMMIT_LOG_DEFAULT_SIZE_IN_BYTES);
-	}
+//	@Test
+//	public void testIsFull() {
+//		CommitLog service = getService();
+//		while (!service.isFull()) {
+//			try {
+//				service.add(randomColumnName(), randomObject(),
+//						randomLong());
+//			}
+//			catch (IllegalStateException e) {
+//				log("{}", e);
+//				break;
+//			}
+//		}
+//		assertTrue(service.isFull());
+//		assertTrue(service.size() <= ConcourseServiceProvider.COMMIT_LOG_DEFAULT_SIZE_IN_BYTES);
+//	}
 
 }

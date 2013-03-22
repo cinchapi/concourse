@@ -227,22 +227,26 @@ public class CommitLog extends VolatileStorage implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
-				commit(Commit.fromByteSequence(bsit.next())); // this will
-																// only
-																// record
-																// the
-																// commit in
-																// memory
-																// and
-																// not the
-																// underlying
-																// file
-																// (because
-																// its
-																// already
-																// there!)
+				commit(Commit.fromByteSequence(bsit.next()), false); // this
+																		// will
+																		// only
+																		// record
+																		// the
+																		// commit
+																		// in
+																		// memory
+																		// and
+																		// not
+																		// the
+																		// underlying
+																		// file
+																		// (because
+																		// it is
+																		// already
+																		// there!)
 			}
 			this.buffer.position(bsit.position());
+			reindex();
 		}
 	}
 
@@ -316,12 +320,12 @@ public class CommitLog extends VolatileStorage implements
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return append(Commit.forStorage(column, value, row));
+		return append(Commit.forStorage(column, value, row), true);
 	}
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return append(Commit.forStorage(column, value, row));
+		return append(Commit.forStorage(column, value, row), false);
 	}
 
 	/**
@@ -330,7 +334,9 @@ public class CommitLog extends VolatileStorage implements
 	 * store.
 	 * 
 	 * @param commit
+	 * @param index
 	 * @return {@code true}
+	 * @see {@link #commit(Commit, boolean)}
 	 */
 	/*
 	 * (non-Javadoc)
@@ -338,7 +344,7 @@ public class CommitLog extends VolatileStorage implements
 	 * distinct method for only altering the VolatileDatabase (i.e. when
 	 * constructing a CommitLog from an existing file)
 	 */
-	private boolean append(Commit commit) {
+	private boolean append(Commit commit, boolean index) {
 		synchronized (buffer) {
 			// Must attempt to write to the file before writing to memory
 			Preconditions
@@ -354,7 +360,7 @@ public class CommitLog extends VolatileStorage implements
 		}
 		size += commit.size() + FIXED_SIZE_PER_COMMIT;
 		checkForOverflow();
-		return super.commit(commit);
+		return super.commit(commit, index);
 	}
 
 	/**

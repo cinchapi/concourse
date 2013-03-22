@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.service.ConcourseService;
+import com.cinchapi.concourse.service.IndexingService;
 import com.cinchapi.concourse.structure.Commit;
 import com.cinchapi.concourse.structure.Key;
 import com.cinchapi.concourse.structure.Value;
@@ -59,7 +60,8 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-public class VolatileStorage extends ConcourseService {
+public class VolatileStorage extends ConcourseService implements
+		IndexingService {
 
 	/**
 	 * Return a new {@link VolatileStorage} with enough capacity for the
@@ -125,11 +127,20 @@ public class VolatileStorage extends ConcourseService {
 	}
 
 	@Override
+	public synchronized void reindex() { // O(n)
+		for (Commit commit : ordered) {
+			if(contains(commit)) {
+				index(commit);
+			}
+		}
+	}
+
+	@Override
 	public synchronized void shutdown() {/* do nothing */}
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return commit(Commit.forStorage(column, value, row));
+		return commit(Commit.forStorage(column, value, row), true);
 	}
 
 	/**
@@ -137,15 +148,21 @@ public class VolatileStorage extends ConcourseService {
 	 * validation or input checks.
 	 * 
 	 * @param commit
+	 * @param index
+	 *            - set to {@code true} to index the commit for
+	 *            {@link #query(String, Operator, Object...)} operations
 	 * @return {@code true}
 	 */
-	protected final boolean commit(final Commit commit) {
+	protected final boolean commit(final Commit commit, boolean index) {
+		// I wont deindex from a remove commit because it is expensive and I
+		// will check the commit #count() whenever I read from the index. To
+		// reclaim space for stale indices, call reindex()
 		int count = count(commit) + 1;
 		counts.put(commit, count);
 		ordered.add(commit);
-		index(commit); // I won't deindex commits because it is
-						// expensive and I will check the commit
-						// #count() whenever I read from the index.
+		if(index) {
+			index(commit);
+		}
 		return true;
 	}
 
@@ -447,7 +464,7 @@ public class VolatileStorage extends ConcourseService {
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return commit(Commit.forStorage(column, value, row));
+		return commit(Commit.forStorage(column, value, row), false);
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseTest;
 import com.cinchapi.concourse.service.ConcourseService;
+import com.cinchapi.concourse.service.IndexingService;
 import com.cinchapi.concourse.service.QueryService.Operator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -216,7 +217,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				service.remove(column, value, row);
 				it.remove();
 			}
-			else{
+			else {
 				it.next();
 			}
 		}
@@ -279,7 +280,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				service.remove(column, value, row);
 				it.remove();
 			}
-			else{
+			else {
 				it.next();
 			}
 		}
@@ -407,17 +408,16 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		gte.addAll(equal);
 		assertEquals(gte,
 				service.query(column, Operator.GREATER_THAN_OR_EQUALS, value));
-		
+
 		assertEquals(less, service.query(column, Operator.LESS_THAN, value));
 		Set<Long> lte = Sets.newHashSet();
 		lte.addAll(less);
 		lte.addAll(equal);
 		assertEquals(lte,
 				service.query(column, Operator.LESS_THAN_OR_EQUALS, value));
-		
+
 		assertEquals(equal, service.query(column, Operator.EQUALS, value));
 
-		
 	}
 
 	@Test
@@ -447,66 +447,142 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		assertEquals(1, service.fetch(column, row).size());
 		assertTrue(service.fetch(column, row).contains(value));
 	}
-	
+
 	@Test
-	public void testColumnName(){
+	public void testColumnName() {
 		List<String> good = Lists.newArrayList();;
 		List<String> bad = Lists.newArrayList();
-		
+
 		good.add(randomColumnName());
-		
+
 		String withNumbers = "";
-		int scale = getRandom().nextInt(7)+1;
-		for(int i = 0 ; i < scale; i++){
-			withNumbers+= randomColumnName().concat(randomNumber().toString());
+		int scale = getRandom().nextInt(7) + 1;
+		for (int i = 0; i < scale; i++) {
+			withNumbers += randomColumnName().concat(randomNumber().toString());
 		}
 		good.add(withNumbers);
-		
-		Operator operator = Operator.values()[getRandom().nextInt(Operator.values().length)];
+
+		Operator operator = Operator.values()[getRandom().nextInt(
+				Operator.values().length)];
 		String withOperator = "";
 		scale = getRandom().nextInt(3);
-		for(int i = 0; i < scale; i++){
-			withOperator+= randomColumnName();
+		for (int i = 0; i < scale; i++) {
+			withOperator += randomColumnName();
 		}
-		withOperator+=operator;
+		withOperator += operator;
 		scale = getRandom().nextInt(3);
-		for(int i = 0; i < scale; i++){
-			withOperator+= randomColumnName();
+		for (int i = 0; i < scale; i++) {
+			withOperator += randomColumnName();
 		}
 		bad.add(withOperator);
-		
+
 		String withSpace = "";
-		scale = getRandom().nextInt(5)+1;
-		for(int i = 0; i < scale; i++){
-			withSpace+= randomColumnName() + " ";
+		scale = getRandom().nextInt(5) + 1;
+		for (int i = 0; i < scale; i++) {
+			withSpace += randomColumnName() + " ";
 		}
 		bad.add(withSpace.trim());
-		
-		CharSequence illegal = ConcourseService.ILLEGAL_COLUMN_NAME_CHARS[getRandom().nextInt(ConcourseService.ILLEGAL_COLUMN_NAME_CHARS.length)];
+
+		CharSequence illegal = ConcourseService.ILLEGAL_COLUMN_NAME_CHARS[getRandom()
+				.nextInt(ConcourseService.ILLEGAL_COLUMN_NAME_CHARS.length)];
 		String withIllegal = "";
 		scale = getRandom().nextInt(3);
-		for(int i = 0; i < scale; i++){
-			withIllegal+= randomColumnName();
+		for (int i = 0; i < scale; i++) {
+			withIllegal += randomColumnName();
 		}
-		withIllegal+=illegal;
+		withIllegal += illegal;
 		scale = getRandom().nextInt(3);
-		for(int i = 0; i < scale; i++){
-			withIllegal+= randomColumnName();
+		for (int i = 0; i < scale; i++) {
+			withIllegal += randomColumnName();
 		}
 		bad.add(withIllegal);
-		
-		for(String g : good){
+
+		for (String g : good) {
 			assertTrue(ConcourseService.checkColumnName(g));
 		}
-		for(String b : bad){
-			try{
+		for (String b : bad) {
+			try {
 				ConcourseService.checkColumnName(b);
+				log("{}", bad);
 				fail();
 			}
-			catch(IllegalArgumentException e){
-				//pass
+			catch (IllegalArgumentException e) {
+				// pass
 			}
 		}
 	}
 
+	@Test
+	public void testReindex() {
+		log("Running testReindex");
+		ConcourseService service = getService();
+		if(IndexingService.class.isAssignableFrom(service.getClass())) {
+			int scale = getScaleFrequency() * 5;
+			
+			int pool = Math.round(0.09f * scale);
+			log("The column pool is {}", pool);
+			String[] columnPool = new String[pool];
+			
+			pool = Math.round(0.4f * scale);
+			log("The row pool is {}", pool);
+			long[] rowPool = new long[pool];
+			
+			for(int i = 0; i < rowPool.length; i++){
+				rowPool[i] = randomLong();
+			}
+			for(int i = 0; i < columnPool.length; i++){
+				columnPool[i] = randomColumnName();
+			}
+
+			String[] columns = new String[scale];
+			Object[] values = new Object[scale];
+			long[] rows = new long[scale];
+
+			// generate data
+			log("Generating {} values", scale);
+			for (int i = 0; i < scale; i++) {
+				columns[i] = columnPool[getRandom().nextInt(columnPool.length)];
+				values[i] = randomObject();
+				rows[i] = rowPool[getRandom().nextInt(rowPool.length)];
+			}
+
+			// add data
+			log("Adding {} values", scale);
+			for (int i = 0; i < scale; i++) {
+				service.add(columns[i], values[i], rows[i]);
+			}
+
+			scale = Math.round(0.3f * scale);
+			// remove data
+			log("Removing up to {} values", scale);
+			for (int i = 0; i < scale; i++) {
+				int index = getRandom().nextInt(values.length);
+				service.remove(columns[index], values[index], rows[index]);
+			}
+
+			// perform query before the reindex
+			Operator operator = Operator.values()[getRandom().nextInt(
+					Operator.values().length)];
+			while (operator == Operator.BETWEEN
+					|| operator == Operator.CONTAINS) {
+				operator = Operator.values()[getRandom().nextInt(
+						Operator.values().length)];
+			}
+			String column = columns[getRandom().nextInt(columns.length)];
+			Object value = values[getRandom().nextInt(values.length)];
+			
+			log("Performing query for {} {} {} BEFORE reindex", column, operator, value);
+			Set<Long> pre = service.query(column, operator, values);
+			log("The results of the query were {}", pre);
+
+			// run reindex
+			log("Running a reindex");
+			((IndexingService) service).reindex();
+			log("Performing query for {} {} {} AFTER index", column, operator, value);
+			Set<Long> post = service.query(column, operator, values);
+			log("The results of the query were {}", post);
+			assertEquals(pre, post);
+
+		}
+	}
 }
