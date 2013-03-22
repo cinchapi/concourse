@@ -128,6 +128,7 @@ public final class Commit implements Persistable {
 	private final String column;
 	private final int valueSize;
 	private final Value value;
+	private transient int hashCode = 0;
 
 	/**
 	 * Construct a new instance.
@@ -189,7 +190,10 @@ public final class Commit implements Persistable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(row, column, value);
+		if(hashCode == 0) {
+			hashCode = Objects.hashCode(row, column, value);
+		}
+		return hashCode;
 	}
 
 	/**

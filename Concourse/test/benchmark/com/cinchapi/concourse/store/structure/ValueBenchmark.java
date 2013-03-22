@@ -21,9 +21,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseBenchmark;
 import com.cinchapi.concourse.store.structure.Benchmark;
+import com.cinchapi.concourse.structure.Commit;
 import com.cinchapi.concourse.structure.Value;
 
 /**
@@ -69,6 +71,24 @@ public class ValueBenchmark extends BaseBenchmark {
 				format.format(elapsed), unit, format.format(bytesPerUnit), unit
 						.toString().substring(0, unit.toString().length() - 1));
 
+	}
+	
+	@Test
+	public void testValueCreationTime(){
+		int target = 100000;
+		Object[] quantities = new Object[target];
+
+		for (int count = 0; count < target; count++) {
+			quantities[count] = randomObject();
+		}
+		StopWatch timer = timer();
+		timer.start();
+		for(int i = 0; i < target; i++){
+			Value.forStorage(quantities[i]);
+		}
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+		long elapsed = timer.stop(unit);
+		log("Created {} values in {} {}", target, elapsed, unit);
 	}
 
 }

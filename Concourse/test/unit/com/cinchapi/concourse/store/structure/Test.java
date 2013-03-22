@@ -36,8 +36,13 @@ public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
 		Concourse service = Concourse.start("concourse.prefs");
-		long row = service.add("name", "Jeff");
-		System.out.println(service.query("name", Operator.EQUALS, "Jeff")); 
+		long row = service.add("name", "Johnson");
+		Transaction t = service.startTransaction();
+		t.add("friend", Key.fromLong(230));
+		t.remove("name", "Johnson", row);
+//		service.remove("name", "Bobby", row);
+		t.commit();
+		System.out.println(service.query("name", Operator.EQUALS, "Johnson")); 
 		service.shutdown();
 
 		

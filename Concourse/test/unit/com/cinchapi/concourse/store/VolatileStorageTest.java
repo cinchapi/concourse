@@ -14,25 +14,25 @@
  */
 package com.cinchapi.concourse.store;
 
-import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
+import com.cinchapi.concourse.services.ConcourseServiceTest;
+import com.cinchapi.concourse.store.VolatileStorage;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class VolatileDatabaseBenchmark extends ConcourseServiceBenchmark {
+public class VolatileStorageTest extends ConcourseServiceTest {
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.cinchapi.concourse.ConcourseServiceBenchmark#getService()
+	 * @see com.cinchapi.concourse.ConcourseServiceTest#getService()
 	 */
 	@Override
-	protected ConcourseService getService() {
-		return ConcourseServiceProvider.provideVolatileDatabase();
+	protected VolatileStorage getService() {
+		return ConcourseServiceProvider.provideVolatileStorage();
 	}
 
 }

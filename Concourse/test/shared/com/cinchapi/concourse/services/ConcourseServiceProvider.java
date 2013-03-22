@@ -14,8 +14,9 @@
  */
 package com.cinchapi.concourse.services;
 
+import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.store.CommitLog;
-import com.cinchapi.concourse.store.VolatileDatabase;
+import com.cinchapi.concourse.store.VolatileStorage;
 
 /**
  * 
@@ -24,27 +25,27 @@ import com.cinchapi.concourse.store.VolatileDatabase;
  */
 public class ConcourseServiceProvider {
 
-	public static final int HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY = 100000;
+	public static final int VOLATILE_STORAGE_DEFAULT_EXPECTED_CAPACITY = 100000;
 	public static final String COMMIT_LOG_DEFAULT_LOCATION = "test/commitlog";
-	public static final int COMMIT_LOG_DEFAULT_SIZE_IN_BYTES = 1024 * 1024;
+	public static final String CONCOURSE_PREFS = "concourse.prefs";
 
-	public static VolatileDatabase provideVolatileDatabase() {
+	public static VolatileStorage provideVolatileStorage() {
 		return ConcourseServiceProvider
-				.provideVolatileDatabase(HEAP_DATABASE_DEFAULT_EXPECTED_CAPACITY);
+				.provideVolatileStorage(VOLATILE_STORAGE_DEFAULT_EXPECTED_CAPACITY);
 	}
 
-	public static VolatileDatabase provideVolatileDatabase(int expectedCapacity) {
-		return VolatileDatabase
+	public static VolatileStorage provideVolatileStorage(int expectedCapacity) {
+		return VolatileStorage
 				.newInstancewithExpectedCapacity(expectedCapacity);
 	}
 
 	public static CommitLog provideNewCommitLog() {
 		return ConcourseServiceProvider.provideNewCommitLog(
-				COMMIT_LOG_DEFAULT_LOCATION, COMMIT_LOG_DEFAULT_SIZE_IN_BYTES);
+				COMMIT_LOG_DEFAULT_LOCATION);
 
 	}
 
-	public static CommitLog provideNewCommitLog(String location, int size) {
-		return CommitLog.newInstance(location, size);
+	public static CommitLog provideNewCommitLog(String location) {
+		return CommitLog.newInstance(location, ConcourseConfiguration.fromFile(CONCOURSE_PREFS));
 	}
 }

@@ -19,6 +19,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.structure.Key;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -89,7 +90,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean add(String column, Object value, long row) {
-		if(!exists(column, value, row)) {
+		if(!exists(column, value, row) && isValid(value)) {
 			ConcourseService.checkColumnName(column);
 			return addSpi(column, value, row);
 		}
@@ -275,5 +276,24 @@ public abstract class ConcourseService implements DataStoreService {
 	 */
 	protected abstract long sizeOfSpi(@Nullable String column,
 			@Nullable Long row);
+
+	/**
+	 * Check to see if {@code value} is valid. This method will throw an
+	 * {@link IllegalArgumentException} if the value is not valid.
+	 * 
+	 * @param value
+	 * @return {@code true} if the value is valid
+	 * @throws IllegalArgumentException
+	 */
+	private boolean isValid(Object value) throws IllegalArgumentException {
+		Preconditions
+				.checkArgument(
+						!(value instanceof Key)
+								|| (value instanceof Key && exists(((Key) value)
+										.asLong())),
+						"Cannot add a relation to row %s because that row does not exist",
+						value);
+		return true;
+	}
 
 }

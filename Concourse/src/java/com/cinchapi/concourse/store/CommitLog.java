@@ -38,24 +38,26 @@ import com.google.common.base.Preconditions;
 
 /**
  * <p>
- * A file mapped {@link VolatileDatabase} whose purpose is to speed up writes
- * and reads for new data in a larger system.
+ * A persisted {@link ConcourseService} service that aims to offer fast writes
+ * and queries at the expense of a large memory footprint<sup>1</sup>.
  * </p>
  * <p>
- * Writes are immediately flushed to a file on disk (this has little overhead
- * because the entire capacity of the file is mapped in memory and data is
- * always appended) but reads happen entirely in memory. From time to time, the
- * CommitLog is flushed to a permanent database.
- * </p>
+ * Each commit is immediately flushed to a file on disk (this has little
+ * overhead because the entire capacity of the file is mapped in memory and data
+ * is always appended). Furthermore, no indices are stored on disk which further
+ * optimizes writes and also reads because they must happen entirely in memory.
+ * When an existing CommitLog is loaded from disk, its commits are replayed in
+ * memory and the indices are recreated.
  * <p>
- * The size of the CommitLog on disk cannot exceed {@value #MAX_SIZE_IN_BYTES}
- * bytes, but it will take up up to 4X more space in memory.
+ * <sup>1</sup> - The size of the CommitLog on disk cannot exceed
+ * {@value #MAX_SIZE_IN_BYTES} bytes, but it will take up up to 4X more space in
+ * memory.
  * </p>
  * 
  * 
  * @author jnelson
  */
-public class CommitLog extends VolatileDatabase implements
+public class CommitLog extends VolatileStorage implements
 		IterableByteSequences,
 		Persistable {
 
@@ -71,7 +73,7 @@ public class CommitLog extends VolatileDatabase implements
 	 *            an empty commitlog
 	 * @return the commitLog
 	 */
-	public static CommitLog fromByteSequences(MappedByteBuffer buffer,
+	protected static CommitLog fromByteSequences(MappedByteBuffer buffer,
 			boolean populated) {
 		return new CommitLog(buffer, populated);
 	}
@@ -196,8 +198,8 @@ public class CommitLog extends VolatileDatabase implements
 	 * @param buffer
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing commitlog, set to {@code false} otherwise for
-	 *            an empty commitlog
+	 *            from an existing commitlog, set to {@code false} for an empty
+	 *            commitlog
 	 */
 	private CommitLog(MappedByteBuffer buffer, boolean populated) {
 		super(buffer.capacity() / (Commit.AVG_MIN_SIZE_IN_BYTES + 4)); // I'm
@@ -256,53 +258,7 @@ public class CommitLog extends VolatileDatabase implements
 	 * @return the iterator
 	 */
 	public Iterator<Commit> flusher() {
-		synchronized (this) {
-			return new Iterator<Commit>() {
-
-				int expectedCount = ordered.size();
-
-				@Override
-				public boolean hasNext() {
-					return !ordered.isEmpty();
-				}
-
-				@Override
-				public Commit next() {
-					checkForComodification();
-					Commit next = ordered.remove(0); // authorized
-					int count = counts.get(next) - 1;
-					if(count == 0) {
-						counts.remove(next); // authorized
-					}
-					else {
-						counts.put(next, count); // authorized
-					}
-					int nextSize = next.size() + 4;
-					buffer.position(buffer.position() + nextSize);
-					buffer.compact();
-					expectedCount--;
-					size -= nextSize;
-					return next;
-				}
-
-				@Override
-				public void remove() {
-					throw new UnsupportedOperationException();
-
-				}
-
-				/**
-				 * Check for concurrent modification to the commit log.
-				 */
-				private void checkForComodification() {
-					if(expectedCount != ordered.size()) {
-						throw new ConcurrentModificationException(
-								"Attempted modification to CommitLog while flushing");
-					}
-				}
-
-			};
-		}
+		return new Flusher();
 	}
 
 	@Override
@@ -333,13 +289,13 @@ public class CommitLog extends VolatileDatabase implements
 			return ByteSequencesIterator.over(array);
 		}
 	}
-	
+
 	@Override
 	public synchronized void shutdown() {
 		buffer.force();
 		log.info("Successfully shutdown the CommitLog.");
 		super.shutdown();
-		
+
 	}
 
 	@Override
@@ -421,6 +377,57 @@ public class CommitLog extends VolatileDatabase implements
 	 */
 	private enum Prefs implements PrefsKey {
 		COMMMIT_LOG_SIZE_IN_BYTES
+	}
+
+	/**
+	 * An flushing iterator, that removes commits from the mapped file and the
+	 * in-memory indices for each call to next();
+	 * 
+	 * @author jnelson
+	 */
+	private class Flusher implements Iterator<Commit> {
+		int expectedCount = ordered.size();
+
+		@Override
+		public boolean hasNext() {
+			return !ordered.isEmpty();
+		}
+
+		@Override
+		public Commit next() {
+			checkForComodification();
+			Commit next = ordered.remove(0); // authorized
+			int count = counts.get(next) - 1;
+			if(count == 0) {
+				counts.remove(next); // authorized
+			}
+			else {
+				counts.put(next, count); // authorized
+			}
+			int nextSize = next.size() + 4;
+			buffer.position(buffer.position() + nextSize);
+			buffer.compact().position(0);
+			expectedCount--;
+			size -= nextSize;
+			return next;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+
+		}
+
+		/**
+		 * Check for concurrent modification to the commit log.
+		 */
+		private void checkForComodification() {
+			if(expectedCount != ordered.size()) {
+				throw new ConcurrentModificationException(
+						"Attempted modification to CommitLog while flushing");
+			}
+		}
+
 	}
 
 	/**

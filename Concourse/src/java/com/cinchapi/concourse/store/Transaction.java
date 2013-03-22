@@ -57,7 +57,7 @@ import com.google.gson.JsonSerializer;
 /**
  * <p>
  * A {@link Transaction} is initiated from a {@link TransactionService} for the
- * purpose of conducting an ACID operation. This object provides a similar
+ * purpose of conducting an set of ACID operations. This object provides a similar
  * action interface as the the parent.
  * </p>
  * <p>
@@ -76,9 +76,10 @@ import com.google.gson.JsonSerializer;
  * data. If the replay succeeds, all the operations are permanently written to
  * the parent and the lock is released, otherwise the commit fails and the
  * transaction is discarded.</li>
- * <li><strong>Isolation</strong>: Each concurrent transaction exists in
- * isolation. The results of an uncommitted transaction are invisible to other
- * transactions. At the time of commit, the transaction grabs a lock on the
+ * <li><strong>Isolation</strong>: Each concurrent transaction exists in a
+ * sandbox, and the operations of an uncommitted transaction are invisible to
+ * others. Each operation in a transaction is conducted against a current snapshot of
+ * the parent service. At the time of commit, the transaction grabs a lock on the
  * parent service, so commits also happen in isolation.</li>
  * <li><strong>Durability</strong>: Once a transaction is committed, it is
  * permanently written to the parent service. Before attempt to commit a
@@ -102,7 +103,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param parent
 	 * @return the transaction
 	 */
-	public static Transaction initFrom(TransactionService parent) {
+	protected static Transaction initFrom(TransactionService parent) {
 		return new Transaction(parent);
 	}
 
@@ -114,7 +115,8 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param parent
 	 * @return the recovered Transaction
 	 */
-	public static Transaction recoverFrom(String file, TransactionService parent) {
+	protected static Transaction recoverFrom(String file,
+			TransactionService parent) {
 		String content = "";
 		FileInputStream stream;
 		try {
@@ -162,6 +164,7 @@ public final class Transaction extends StaggeredWriteService {
 			}
 		}
 		t.closed = true;
+		transaction.shutdown();
 		return t;
 	}
 
@@ -195,7 +198,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param transaction
 	 */
 	private Transaction(Transaction transaction) {
-		super(transaction.primary, VolatileDatabase
+		super(transaction.primary, VolatileStorage
 				.newInstancewithExpectedCapacity(transaction.operations.size()));
 	}
 
@@ -206,7 +209,7 @@ public final class Transaction extends StaggeredWriteService {
 	 *            - must be an instance of ConcourseService
 	 */
 	private Transaction(TransactionService parent) {
-		super((ConcourseService) parent, VolatileDatabase
+		super((ConcourseService) parent, VolatileStorage
 				.newInstancewithExpectedCapacity(INITIAL_CAPACITY));
 	}
 
@@ -332,7 +335,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * Assert that the number of operations is equal to the number of commits.
 	 */
 	private void assertSize() {
-		assert operations.size() == ((VolatileDatabase) secondary).ordered
+		assert operations.size() == ((VolatileStorage) secondary).ordered
 				.size() : "There is a discrepency between the number of operations and the number of commits";
 	}
 

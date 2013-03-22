@@ -83,34 +83,38 @@ public final class Concourse extends StaggeredWriteService implements
 	/**
 	 * Return {@link Concourse} tuned with the parameters in {@code config}.
 	 * 
-	 * @param config
+	 * @param prefs
 	 * @return Concourse
 	 */
-	public static Concourse start(ConcourseConfiguration config) {
-		final String home = config
-				.getString(Prefs.CONCOURSE_HOME, DEFAULT_HOME);
+	public static Concourse start(ConcourseConfiguration prefs) {
+		final String home = prefs.getString(Prefs.CONCOURSE_HOME,
+				DEFAULT_CONCOURSE_HOME);
 
+		// Setup the CommitLog
 		CommitLog commitLog;
 		File commitLogFile = new File(home + File.separator + "commitlog");
 		boolean commitLogIsFlushed;
 		if(commitLogFile.exists()) {
 			commitLog = CommitLog.fromFile(commitLogFile.getAbsolutePath(),
-					config);
+					prefs);
 			commitLogIsFlushed = false;
 		}
 		else {
 			commitLog = CommitLog.newInstance(commitLogFile.getAbsolutePath(),
-					config);
+					prefs);
 			commitLogIsFlushed = true;
 		}
 
+		// Setup the Database
 		Database database;
 		File databaseDir = new File(home + File.separator + "db");
 		databaseDir.mkdirs();
 		database = Database.inDir(databaseDir.getAbsolutePath());
 
+		// Setup for Transactions
 		String transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
 
+		// Return Concourse
 		return new Concourse(commitLog, database, commitLogIsFlushed,
 				transactionFile);
 	}
@@ -127,10 +131,11 @@ public final class Concourse extends StaggeredWriteService implements
 	}
 
 	/**
-	 * The default HOME directory for Concourse.
+	 * By default, Concourse is based in the 'concourse' directory under the
+	 * user's home directory.
 	 */
-	public static final String DEFAULT_HOME = System.getProperty("user.home")
-			+ File.separator + "concourse";
+	public static final String DEFAULT_CONCOURSE_HOME = System
+			.getProperty("user.home") + File.separator + "concourse";
 	private static final String TRANSACTION_FILE_NAME = "transaction";
 	private static final Logger log = LoggerFactory.getLogger(Concourse.class);
 

@@ -44,29 +44,43 @@ import com.google.common.primitives.Longs;
  * A lightweight {@link ConcourseService} that is maintained entirely in memory.
  * </p>
  * <p>
- * The database stores data as a list of {@link Commit} objects (with a few
- * indices). The data takes up 3X more space than it would on disk. This
- * structure serves as a suitable cache or fast, albeit temporary, storage for
- * data that will eventually be persisted to disk.
+ * The service stores data as a list of {@link Commit} objects with hyper
+ * indexing<sup>1</sup>. The data takes up 3X more space than it would on disk.
+ * This structure serves as a suitable cache or as fast, albeit temporary,
+ * storage for data that will eventually be persisted to disk.
+ * </p>
+ * <p>
+ * <sup>1</sup> - A red-black tree is used to index <em>every</em> column for
+ * logarithmic query operations. Additionally, the count for each distinct
+ * commit is maintained, so the ability to determine if a value exists in a cell
+ * takes constant time. Finally, no special row-oriented indices are maintained
+ * so fetch and describe operations run in linear time.
  * </p>
  * 
  * @author jnelson
  */
-public class VolatileDatabase extends ConcourseService {
+public class VolatileStorage extends ConcourseService {
 
 	/**
-	 * Return a new {@link VolatileDatabase} with enough capacity for the
+	 * Return a new {@link VolatileStorage} with enough capacity for the
 	 * {@code expectedSize}.
 	 * 
 	 * @param expectedCapacity
 	 *            - the expected number of commits
 	 * @return the memory representation
 	 */
-	public static VolatileDatabase newInstancewithExpectedCapacity(
+	public static VolatileStorage newInstancewithExpectedCapacity(
 			int expectedCapacity) {
-		return new VolatileDatabase(expectedCapacity);
+		return new VolatileStorage(expectedCapacity);
 	}
 
+	/**
+	 * The average number of rows that have value V in column C. This number is
+	 * used to set the initial capacity of each KeySet. Setting this value too
+	 * high will consume more memory, but setting it too low will slow down
+	 * writes because the KeySet will need to be resized.
+	 */
+	private static final int AVG_NUM_ROWS_MAPPED_FROM_SINGLE_VALUE_IN_COLUMN = 100;
 	private static final TreeMap<Value, Set<Key>> EMPTY_VALUE_INDEX = new TreeMap<Value, Set<Key>>(); // treat
 																										// as
 																										// read-only
@@ -88,21 +102,23 @@ public class VolatileDatabase extends ConcourseService {
 
 	/**
 	 * Maintains an index mapping a column name to a ValueIndex. The ValueIndex
-	 * maps a Value to a KeySet indicating the rows that contain the value. Use
+	 * maps a Value to a KeySet holding the rows that contain the value. Use
 	 * helper functions to retrieve data from this index so as to avoid
 	 * NullPointerExceptions.
 	 * 
 	 * @see {@link #getValueIndexForColumn(String)}
 	 * @see {@link #getKeySetForColumnAndValue(String, Value)}
 	 */
-	private HashMap<String, TreeMap<Value, Set<Key>>> columns;
+	private HashMap<String, TreeMap<Value, Set<Key>>> columns; // treemap is a
+																// red-black
+																// tree
 
 	/**
 	 * Construct a new empty instance with the {@code expectedCapacity}.
 	 * 
 	 * @param expectedCapacity
 	 */
-	protected VolatileDatabase(int expectedCapacity) {
+	protected VolatileStorage(int expectedCapacity) {
 		this.ordered = Lists.newArrayListWithCapacity(expectedCapacity);
 		this.counts = Maps.newHashMapWithExpectedSize(expectedCapacity);
 		this.columns = Maps.newHashMapWithExpectedSize(expectedCapacity);
@@ -146,7 +162,7 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	/**
-	 * Return the count for {@code commit} in the database. Many operations
+	 * Return the count for {@code commit} in the storage. Many operations
 	 * build upon this functionality (i.e the {@code exists} method, which is
 	 * called by both the {@code add} and {@code remove} methods
 	 * before issuing writes is built upon this method.
@@ -163,7 +179,7 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected final Set<String> describeSpi(long row) {
+	protected final Set<String> describeSpi(long row) { // O(n)
 		Map<String, Set<Value>> columns2Values = Maps.newHashMap();
 		synchronized (ordered) {
 			Iterator<Commit> commiterator = ordered.iterator();
@@ -212,7 +228,7 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected final Set<Object> fetchSpi(String column, long timestamp, long row) {
+	protected final Set<Object> fetchSpi(String column, long timestamp, long row) { // O(n)
 		Set<Value> _values = Sets.newLinkedHashSet();
 		ListIterator<Commit> commiterator = ordered.listIterator();
 		while (commiterator.hasNext()) {
@@ -435,7 +451,7 @@ public class VolatileDatabase extends ConcourseService {
 	}
 
 	@Override
-	protected long sizeOfSpi(String column, Long row) {
+	protected long sizeOfSpi(String column, Long row) { // O(n)
 		long size = 0;
 		boolean seekingSizeForDb = row == null && column == null;
 		boolean seekingSizeForRow = row != null && column == null;
@@ -511,7 +527,8 @@ public class VolatileDatabase extends ConcourseService {
 			rows = values.get(value);
 		}
 		else {
-			rows = Sets.newHashSet();
+			rows = Sets
+					.newHashSetWithExpectedSize(AVG_NUM_ROWS_MAPPED_FROM_SINGLE_VALUE_IN_COLUMN);
 			values.put(value, rows);
 		}
 		rows.add(row);

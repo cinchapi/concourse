@@ -81,7 +81,6 @@ public abstract class StaggeredWriteService extends ConcourseService {
 				this.getClass());
 		this.primary = primary;
 		this.secondary = secondary;
-		registerShutdownHooks();
 	}
 
 	@Override
@@ -119,12 +118,10 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected final Set<String> describeSpi(long row) {
-		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<String>> dbr = executor.submit(Threads
 				.describe(primary, row));
 		Future<Set<String>> clr = executor.submit(Threads.describe(secondary,
 				row));
-		executor.shutdown();
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
 		}
@@ -136,12 +133,10 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected final boolean existsSpi(String column, Object value, long row) {
-		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Boolean> dbr = executor.submit(Threads.exists(primary, row,
 				column, value));
 		Future<Boolean> clr = executor.submit(Threads.exists(secondary, row,
 				column, value));
-		executor.shutdown();
 		try {
 			return dbr.get() ^ clr.get();
 		}
@@ -153,12 +148,10 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected final Set<Object> fetchSpi(String column, long timestamp, long row) {
-		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<Object>> dbr = executor.submit(Threads.fetch(primary, row,
 				column, timestamp));
 		Future<Set<Object>> clr = executor.submit(Threads.fetch(secondary, row,
 				column, timestamp));
-		executor.shutdown();
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
 		}
@@ -171,7 +164,6 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	@Override
 	protected final Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
-		ExecutorService executor = Executors.newCachedThreadPool();
 		Future<Set<Long>> dbr = executor.submit(Threads.query(primary, column,
 				operator, values));
 		Future<Set<Long>> clr = executor.submit(Threads.query(secondary,
@@ -201,19 +193,6 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	@Override
 	protected final long sizeOfSpi(String column, Long row) {
 		return primary.sizeOf(column, row) + secondary.sizeOf(column, row);
-	}
-
-	/**
-	 * Register shutdown hooks.
-	 */
-	private void registerShutdownHooks() {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-
-			@Override
-			public void run() {
-				shutdown();
-			}
-		});
 	}
 
 	/**

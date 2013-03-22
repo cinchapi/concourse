@@ -14,11 +14,15 @@
  */
 package com.cinchapi.concourse.services;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.BaseBenchmark;
 import com.cinchapi.concourse.service.ConcourseService;
 import com.cinchapi.concourse.service.QueryService.Operator;
@@ -30,6 +34,8 @@ import com.cinchapi.concourse.service.QueryService.Operator;
  */
 public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
+	private static final int DEFAULT_SERVICE_CAPACITY = 1000000;
+
 	/**
 	 * Return the service.
 	 * 
@@ -37,10 +43,110 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 	 */
 	protected abstract ConcourseService getService();
 
+	/**
+	 * Return a service that is guaranteed to have entries for each of the
+	 * columns in {@code c}.
+	 * 
+	 * @param c
+	 * @return the service
+	 */
+	protected ConcourseService getServiceWithColumns(String... c) {
+		ConcourseService service = getService();
+
+		int capacity = DEFAULT_SERVICE_CAPACITY;
+		log("Creating a service with {} pre-generated values",
+				format.format(capacity));
+
+		String[] columns = new String[(int) Math.round(.1 * capacity)];
+		Object[] values = new Object[capacity];
+		long[] rows = new long[(int) Math.round(.4 * capacity)];
+
+		log("Generating data for service...");
+		for (int i = 0; i < capacity; i++) {
+			if(i < columns.length) {
+				columns[i] = i < c.length ? c[i] : randomColumnName();
+			}
+			if(i < values.length) {
+				values[i] = randomObject();
+			}
+			if(i < rows.length) {
+				rows[i] = randomLong();
+			}
+		}
+
+		log("Writing data to service...");
+		writeToService(service, columns, values, rows);
+
+		return service;
+	}
+
+	/**
+	 * Return a service that is guaranteed to have entries for each of the
+	 * rows in {@code r}.
+	 * 
+	 * @param c
+	 * @return the service
+	 */
+	protected ConcourseService getServiceWithRows(long... r) {
+		ConcourseService service = getService();
+
+		int capacity = DEFAULT_SERVICE_CAPACITY;
+		log("Creating a service with {} pre-generated values",
+				format.format(capacity));
+
+		String[] columns = new String[(int) Math.round(.1 * capacity)];
+		Object[] values = new Object[capacity];
+		long[] rows = new long[(int) Math.round(.4 * capacity)];
+
+		log("Generating data for service...");
+		for (int i = 0; i < capacity; i++) {
+			if(i < columns.length) {
+				columns[i] = randomColumnName();
+			}
+			if(i < values.length) {
+				values[i] = randomObject();
+			}
+			if(i < rows.length) {
+				rows[i] = i < r.length ? r[i] : randomLong();
+			}
+		}
+
+		log("Writing data to service...");
+		writeToService(service, columns, values, rows);
+
+		return service;
+	}
+
+	/**
+	 * Write the specified values to the provided service as best as possible.
+	 * There is no guarantee that every row or every column or every value
+	 * will be written because elements are chosen from the arrays at random.
+	 * 
+	 * @param service
+	 * @param columns
+	 * @param values
+	 * @param rows
+	 */
+	protected void writeToService(ConcourseService service, String[] columns,
+			Object[] values, long[] rows) {
+		int length = Numbers.max(columns.length, values.length, rows.length);
+		for (int i = 0; i < length; i++) {
+			String column = columns[getRandom().nextInt(columns.length)];
+			Object value = values[getRandom().nextInt(values.length)];
+			long row = rows[getRandom().nextInt(rows.length)];
+			while (service.exists(column, value, row)) {
+				column = columns[getRandom().nextInt(columns.length)];
+				value = values[getRandom().nextInt(values.length)];
+				row = rows[getRandom().nextInt(rows.length)];
+			}
+			service.add(column, value, row);
+		}
+	}
+
 	@Test
 	public void testAdd() {
 		int target = 100000;
-		TimeUnit unit = TimeUnit.SECONDS;
+		TimeUnit unit = TimeUnit.MILLISECONDS;
 
 		log("Running benchmark for add() with a target of {} values...",
 				format.format(target));
@@ -151,12 +257,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		}
 
 		log("Writing initial data...");
-		for (int i = 0; i < values.length; i++) {
-			Object value = values[i];
-			String column = columns[getRandom().nextInt(columns.length)];
-			long row = rows[getRandom().nextInt(rows.length)];
-			service.add(column, value, row);
-		}
+		writeToService(service, columns, values, rows);
 
 		String column;
 		Object value;
@@ -190,6 +291,30 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 		}
 
+	}
+
+	@Test
+	public void testFetch() {
+		String column = randomColumnName();
+		ConcourseService service = getServiceWithColumns(column);
+
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+		timer().start();
+		service.fetch(column, randomLong());
+		long elapsed = timer().stop(unit);
+		log("Runtime for fetch(): {} {}", elapsed, unit);
+	}
+
+	@Test
+	public void testDescribe() {
+		long row = randomLong();
+		ConcourseService service = getServiceWithRows(row);
+
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+		timer().start();
+		service.describe(row);
+		long elapsed = timer().stop(unit);
+		log("Runtime for describe(): {} {}", elapsed, unit);
 	}
 
 }
