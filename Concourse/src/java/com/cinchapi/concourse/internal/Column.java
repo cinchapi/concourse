@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.structure;
+package com.cinchapi.concourse.internal;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.internal.QueryService.Operator;
 import com.cinchapi.concourse.search.Searcher;
-import com.cinchapi.concourse.service.QueryService.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -47,6 +47,8 @@ public final class Column {
 	public static Column createEmpty(String name) {
 		return new Column(name);
 	}
+	
+	public static final int AVG_COLUMN_NAME_SIZE_IN_BYTES = 24;
 
 	private static final Logger log = LoggerFactory.getLogger(Column.class);
 	private static final int maxNameSizeInBytes = 65536; // 64KB

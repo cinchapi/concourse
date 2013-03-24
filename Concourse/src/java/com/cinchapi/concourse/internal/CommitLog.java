@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,13 +32,12 @@ import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
-import com.cinchapi.concourse.io.Persistable;
-import com.cinchapi.concourse.structure.Commit;
+import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Preconditions;
 
 /**
  * <p>
- * A persisted {@link ConcourseService} service that aims to offer fast writes
+ * A disk based {@link ConcourseService} service that aims to offer fast writes
  * and queries at the expense of a large memory footprint<sup>1</sup>.
  * </p>
  * <p>
@@ -57,26 +56,9 @@ import com.google.common.base.Preconditions;
  * 
  * @author jnelson
  */
-public class CommitLog extends VolatileStorage implements
+class CommitLog extends VolatileStorage implements
 		IterableByteSequences,
-		Persistable {
-
-	/**
-	 * Return the CommitLog represented by {@code bytes}. Use this method when
-	 * reading and reconstructing from a file. This method assumes that
-	 * {@code bytes} was generated using {@link #getBytes()}.
-	 * 
-	 * @param buffer
-	 * @param populated
-	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing commitlog, set to {@code false} otherwise for
-	 *            an empty commitlog
-	 * @return the commitLog
-	 */
-	protected static CommitLog fromByteSequences(MappedByteBuffer buffer,
-			boolean populated) {
-		return new CommitLog(buffer, populated);
-	}
+		ByteSized {
 
 	/**
 	 * Return the CommitLog that is stored in the file at {@code location}. This
@@ -134,6 +116,23 @@ public class CommitLog extends VolatileStorage implements
 			throw new ConcourseRuntimeException(e);
 		}
 
+	}
+
+	/**
+	 * Return the CommitLog represented by {@code bytes}. Use this method when
+	 * reading and reconstructing from a file. This method assumes that
+	 * {@code bytes} was generated using {@link #getBytes()}.
+	 * 
+	 * @param buffer
+	 * @param populated
+	 *            - specify as {@code true} if the buffer has been populated
+	 *            from an existing commitlog, set to {@code false} otherwise for
+	 *            an empty commitlog
+	 * @return the commitLog
+	 */
+	protected static CommitLog fromByteSequences(MappedByteBuffer buffer,
+			boolean populated) {
+		return new CommitLog(buffer, populated);
 	}
 
 	private static final int FIXED_SIZE_PER_COMMIT = Integer.SIZE / 8; // for
@@ -250,21 +249,6 @@ public class CommitLog extends VolatileStorage implements
 		}
 	}
 
-	/**
-	 * <p>
-	 * <strong>USE WITH CAUTION!</strong>
-	 * </p>
-	 * <p>
-	 * Return an iterator that should only be used for flushing the commitlog.
-	 * Each call to {@link Iterator#next} will DELETE the returned commit.
-	 * </p>
-	 * 
-	 * @return the iterator
-	 */
-	public Iterator<Commit> flusher() {
-		return new Flusher();
-	}
-
 	@Override
 	public byte[] getBytes() {
 		ByteBuffer copy = buffer.asReadOnlyBuffer();
@@ -272,16 +256,6 @@ public class CommitLog extends VolatileStorage implements
 		byte[] bytes = new byte[size];
 		copy.get(bytes);
 		return bytes;
-	}
-
-	/**
-	 * Return {@code true} if the commit log is full and should be
-	 * {@code flushed}.
-	 * 
-	 * @return {@code true} if the commit log is full.
-	 */
-	public boolean isFull() {
-		return size >= usableCapacity;
 	}
 
 	@Override
@@ -313,12 +287,6 @@ public class CommitLog extends VolatileStorage implements
 	}
 
 	@Override
-	public void writeTo(FileChannel channel) throws IOException {
-		Writer.write(this, channel);
-
-	}
-
-	@Override
 	protected boolean addSpi(String column, Object value, long row) {
 		return append(Commit.forStorage(column, value, row), true);
 	}
@@ -326,6 +294,31 @@ public class CommitLog extends VolatileStorage implements
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
 		return append(Commit.forStorage(column, value, row), false);
+	}
+
+	/**
+	 * <p>
+	 * <strong>USE WITH CAUTION!</strong>
+	 * </p>
+	 * <p>
+	 * Return an iterator that should only be used for flushing the commitlog.
+	 * Each call to {@link Iterator#next} will DELETE the returned commit.
+	 * </p>
+	 * 
+	 * @return the iterator
+	 */
+	Iterator<Commit> flusher() {
+		return new Flusher();
+	}
+
+	/**
+	 * Return {@code true} if the commit log is full and should be
+	 * {@code flushed}.
+	 * 
+	 * @return {@code true} if the commit log is full.
+	 */
+	boolean isFull() {
+		return size >= usableCapacity;
 	}
 
 	/**
@@ -376,13 +369,6 @@ public class CommitLog extends VolatileStorage implements
 							+ "will be thrown.", usableCapacity,
 					buffer.remaining());
 		}
-	}
-
-	/**
-	 * The configurable preferences used in this class.
-	 */
-	private enum Prefs implements PrefsKey {
-		COMMMIT_LOG_SIZE_IN_BYTES
 	}
 
 	/**
@@ -437,6 +423,13 @@ public class CommitLog extends VolatileStorage implements
 	}
 
 	/**
+	 * The configurable preferences used in this class.
+	 */
+	private enum Prefs implements PrefsKey {
+		COMMMIT_LOG_SIZE_IN_BYTES
+	}
+
+	/**
 	 * CommitLog utility methods
 	 */
 	private static class Utilities {
@@ -451,7 +444,7 @@ public class CommitLog extends VolatileStorage implements
 		 */
 		public static MappedByteBuffer openBuffer(String location, int size) {
 			try {
-				FileChannel channel = new RandomAccessFile(location, "rw")
+				FileChannel channel = new RandomAccessFile(location, "rwd")
 						.getChannel();
 				MappedByteBuffer buffer = channel.map(MapMode.READ_WRITE, 0,
 						size);

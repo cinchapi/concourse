@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,11 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.service.IndexingService;
-import com.cinchapi.concourse.structure.Commit;
-import com.cinchapi.concourse.structure.Key;
-import com.cinchapi.concourse.structure.Value;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -51,6 +46,10 @@ import com.google.common.primitives.Longs;
  * storage for data that will eventually be persisted to disk.
  * </p>
  * <p>
+ * The service can theoretically handle up to {@value #MAX_NUM_COMMITS} writes,
+ * but memory availability is a more reliable gauge.
+ * </p>
+ * <p>
  * <sup>1</sup> - A red-black tree is used to index <em>every</em> column for
  * logarithmic query operations. Additionally, the count for each distinct
  * commit is maintained, so the ability to determine if a value exists in a cell
@@ -60,8 +59,7 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-public class VolatileStorage extends ConcourseService implements
-		IndexingService {
+class VolatileStorage extends ConcourseService implements IndexingService {
 
 	/**
 	 * Return a new {@link VolatileStorage} with enough capacity for the
@@ -71,10 +69,15 @@ public class VolatileStorage extends ConcourseService implements
 	 *            - the expected number of commits
 	 * @return the memory representation
 	 */
-	public static VolatileStorage newInstancewithExpectedCapacity(
+	static VolatileStorage newInstancewithExpectedCapacity(
 			int expectedCapacity) {
 		return new VolatileStorage(expectedCapacity);
 	}
+
+	/**
+	 * The maximum number of commits that can be stored by the service.
+	 */
+	public static final int MAX_NUM_COMMITS = Integer.MAX_VALUE;
 
 	/**
 	 * The average number of rows that have value V in column C. This number is

@@ -12,11 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.structure;
+package com.cinchapi.concourse.internal;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Comparator;
 
 import javax.annotation.concurrent.Immutable;
@@ -26,8 +24,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.io.Persistable;
-import com.cinchapi.concourse.store.Concourse;
+import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -58,12 +55,16 @@ import com.google.common.primitives.Longs;
  * <li>STRING requires an additional 1-4 bytes for every character (uses UTF-8
  * encoding)</li>
  * </ul>
+ * <strong>NOTE</strong>: There is no way to recommend a precise storage measure
+ * for a generic value, but the weighted size of
+ * {@value #WEIGHTED_SIZE_IN_BYTES} bytes can be used with caution as a general
+ * guide.
  * </p>
  * 
  * @author jnelson
  */
 @Immutable
-public final class Value implements Comparable<Value>, Persistable {
+final class Value implements Comparable<Value>, ByteSized {
 
 	/**
 	 * Return a value that is appropriate for storage, with the current
@@ -117,63 +118,64 @@ public final class Value implements Comparable<Value>, Persistable {
 		return value;
 	}
 
-	/**
-	 * Read the next value from {@code channel} assuming that it conforms to the
-	 * specification described in the {@link #asByteBuffer()} method.
-	 * 
-	 * @param buffer
-	 * @return the next {@link Value} in the channel.
-	 */
-	public static Value readFrom(FileChannel channel) throws IOException {
-		ByteBuffer buffers[] = new ByteBuffer[4];
-		buffers[0] = ByteBuffer.allocate(8); // timestamp
-		buffers[1] = ByteBuffer.allocate(4); // type
-		buffers[3] = ByteBuffer.allocate(4); // size
-		channel.read(buffers);
-
-		for (ByteBuffer buf : buffers) {
-			buf.rewind();
-		}
-
-		long timestamp = buffers[0].getLong();
-		Type type = Type.values()[buffers[1].getInt()];
-		int size = buffers[3].getInt() - FIXED_SIZE_IN_BYTES;
-
-		ByteBuffer quantity = ByteBuffer.allocate(size);
-		channel.read(quantity);
-		quantity.rewind();
-
-		return new Value(quantity, type, timestamp);
-	}
-
-	/**
-	 * Write the value to a writable {@code channel} and close it afterwards.
-	 * This method will acquire a lock over the region from the channels current
-	 * position plus the {@link #size()} of the value.
-	 * 
-	 * @param channel
-	 * @param value
-	 * @throws IOException
-	 */
-	public static void writeTo(FileChannel channel, Value value)
-			throws IOException {
-		value.writeTo(channel);
-	}
-
 	private static final ObjectReuseCache<Value> cache = new ObjectReuseCache<Value>();
 	private static final int FIXED_SIZE_IN_BYTES = (2 * (Integer.SIZE / 8))
 			+ (Long.SIZE / 8);
 	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
-			- FIXED_SIZE_IN_BYTES; // Max size is limited to about 2GB
-									// because size is stored
-									// using a 4 byte signed integer
+			- FIXED_SIZE_IN_BYTES;
 	private static final long NIL = 0L;
 
 	/**
-	 * Every value requires a minimum of {@value #MIN_SIZE_IN_BYTES} bytes for
-	 * storage.
+	 * <p>
+	 * Every value requires a minimum of {@value #MIN_SIZE_IN_BYTES} bytes plus
+	 * <em>additional</em> storage according to the following rules:
+	 * <ul>
+	 * <li>BOOLEAN requires an additional 1 byte</li>
+	 * <li>DOUBLE requires an additional 8 bytes</li>
+	 * <li>FLOAT requires an additional 4 bytes</li>
+	 * <li>INTEGER requires an additional 4 bytes</li>
+	 * <li>LONG requires an additional 8 bytes</li>
+	 * <li>RELATION requires an additional 8 bytes</li>
+	 * <li>STRING requires an additional 1-4 bytes for every character (uses
+	 * UTF-8 encoding)</li>
+	 * </ul>
+	 * </p>
 	 */
 	public static final int MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES;
+
+	/**
+	 * <p>
+	 * This value attempts to express average quantity size based on the
+	 * expected nature of stored data. The individual weights are fairly
+	 * arbitrary, but the trends are very intentional (i.e. data is expected to
+	 * be weighted most heavily towards storing relations).
+	 * </p>
+	 * <p>
+	 * The weighting is broken down as follows:
+	 * <ul>
+	 * <li>BOOLEAN quantities are weighed at <strong>5 percent</strong></li>
+	 * <li>DOUBLE quantities are weighed at <strong>12 percent</strong></li>
+	 * <li>FLOAT quantities are weighed at <strong>7.5 percent</strong></li>
+	 * <li>INTEGER quantities are weighed at <strong>7.5 percent</strong></li>
+	 * <li>LONG quantities are weighed at <strong>12 percent</strong></li>
+	 * <li>RELATION quantities are weighed at <strong>28 percent</strong></li>
+	 * <li>STRING quantities are weighed at <strong>28 percent</strong>
+	 * (assumption is a 100 byte string)</li>
+	 * </ul>
+	 * </p>
+	 */
+	public static final int WEIGHTED_QTY_SIZE_IN_BYTES = (int) ((.05 * 1)
+			+ (.12 * 8) + (.075 * 4) + (.075 * 4) + (.12 * 8) + (.28 * 8) + (.28 * 100));
+
+	/**
+	 * This is a more realistic measure of the storage required for a single
+	 * value. This value combines the minimally required
+	 * {@value #MIN_SIZE_IN_BYTES} bytes with the additional weighted
+	 * expectation of {@value #WEIGHTED_QTY_SIZE_IN_BYTES} bytes for the
+	 * quantity.
+	 */
+	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
+			+ WEIGHTED_QTY_SIZE_IN_BYTES;
 
 	private final ByteBuffer quantity;
 	private final Type type;
@@ -240,6 +242,51 @@ public final class Value implements Comparable<Value>, Persistable {
 	}
 
 	/**
+	 * Equality is only based on {@code quantity} and {@code type}, as to allow
+	 * objects with different timestamps to be considered equal if necessary.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Value) {
+			final Value other = (Value) obj;
+			return Objects.equal(this.getQuantity(), other.getQuantity())
+					&& Objects.equal(type, type);
+		}
+		return false;
+	}
+
+	/**
+	 * Return a byte array that represents the value with the following order:
+	 * <ol>
+	 * <li><strong>timestamp</strong> - first 8 bytes</li>
+	 * <li><strong>type</strong> - next 4 bytes</li>
+	 * <li><strong>size</strong> - next 4 bytes</li>
+	 * <li><strong>quantity</strong> - remaining bytes</li>
+	 * </ol>
+	 * 
+	 * @return a byte array.
+	 */
+	@Override
+	public byte[] getBytes() {
+		return getBuffer().array();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(getQuantity(), type);
+	}
+
+	@Override
+	public int size() {
+		return size;
+	}
+
+	@Override
+	public String toString() {
+		return getQuantity() + " : " + Strings.toString(this);
+	}
+
+	/**
 	 * Determine if the comparison to {@code o} should be done naturally or
 	 * {@code logically}.
 	 * 
@@ -252,7 +299,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
 	 */
-	public int compareTo(Value o, boolean logically) {
+	int compareTo(Value o, boolean logically) {
 		if(logically) {
 			if(this.getQuantity() instanceof Number
 					&& o.getQuantity() instanceof Number) {
@@ -287,38 +334,8 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * @return a negative integer, zero, or a positive integer as this object is
 	 *         less than, equal to, or greater than the specified object.
 	 */
-	public int compareToLogically(Value o) {
+	int compareToLogically(Value o) {
 		return compareTo(o, true);
-	}
-
-	/**
-	 * Equality is only based on {@code quantity} and {@code type}, as to allow
-	 * objects with different timestamps to be considered equal if necessary.
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Value) {
-			final Value other = (Value) obj;
-			return Objects.equal(this.getQuantity(), other.getQuantity())
-					&& Objects.equal(type, type);
-		}
-		return false;
-	}
-
-	/**
-	 * Return a byte array that represents the value with the following order:
-	 * <ol>
-	 * <li><strong>timestamp</strong> - first 8 bytes</li>
-	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>size</strong> - next 4 bytes</li>
-	 * <li><strong>quantity</strong> - remaining bytes</li>
-	 * </ol>
-	 * 
-	 * @return a byte array.
-	 */
-	@Override
-	public byte[] getBytes() {
-		return getBuffer().array();
 	}
 
 	/**
@@ -326,18 +343,18 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @return the value.
 	 */
-	public Object getQuantity() {
+	Object getQuantity() {
 		return Utilities.getObjectFromByteBuffer(getQuantityBuffer(), type);
 	}
 
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique
-	 * amongst forStorage values so it a de facto identifier. For notForStorage
+	 * amongst forStorage values so it a defacto identifier. For notForStorage
 	 * values, the timestamp is always {@link #NIL}.
 	 * 
 	 * @return the {@code timestamp}
 	 */
-	public long getTimestamp() {
+	long getTimestamp() {
 		return timestamp;
 	}
 
@@ -346,13 +363,8 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @return the value type
 	 */
-	public String getType() {
+	String getType() {
 		return type.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(getQuantity(), type);
 	}
 
 	/**
@@ -361,7 +373,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @return {@code true} of {@link Value#isNotForStorage()} is {@code false}.
 	 */
-	public boolean isForStorage() {
+	boolean isForStorage() {
 		return !isNotForStorage();
 	}
 
@@ -371,25 +383,8 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @return {@code true} if the timestamp is null.
 	 */
-	public boolean isNotForStorage() {
+	boolean isNotForStorage() {
 		return timestamp == NIL;
-	}
-
-	@Override
-	public int size() {
-		return size;
-	}
-
-	@Override
-	public String toString() {
-		return getQuantity() + " : " + Strings.toString(this);
-	}
-
-	@Override
-	public void writeTo(FileChannel channel) throws IOException {
-		Preconditions.checkState(isForStorage(),
-				"Cannot write out a notForStorage value.");
-		Writer.write(this, channel);
 	}
 
 	/**
@@ -441,7 +436,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @see {@link Value#compareToLogically(Value)}
 	 */
-	public static class LogicalComparator implements Comparator<Value> {
+	static class LogicalComparator implements Comparator<Value> {
 
 		@Override
 		public int compare(Value o1, Value o2) {
@@ -453,7 +448,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	/**
 	 * The value type contained within a {@link Value}.
 	 */
-	public enum Type {
+	enum Type {
 		BOOLEAN, DOUBLE, FLOAT, INTEGER, LONG, RELATION, STRING;
 
 		@Override
@@ -467,7 +462,7 @@ public final class Value implements Comparable<Value>, Persistable {
 	 * 
 	 * @author jnelson
 	 */
-	public static class Values {
+	static class Values {
 
 		/**
 		 * Return the object type of {@code value}.
@@ -547,7 +542,7 @@ public final class Value implements Comparable<Value>, Persistable {
 		 * @param type
 		 * @return the object.
 		 */
-		public static Object getObjectFromByteBuffer(ByteBuffer buffer,
+		static Object getObjectFromByteBuffer(ByteBuffer buffer,
 				Type type) {
 			Object object = null;
 
@@ -584,7 +579,7 @@ public final class Value implements Comparable<Value>, Persistable {
 		 * @param value
 		 * @return the value type.
 		 */
-		public static Type getObjectType(Object value) {
+		static Type getObjectType(Object value) {
 			Type type;
 			if(value instanceof Boolean) {
 				type = Type.BOOLEAN;

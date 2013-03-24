@@ -24,9 +24,9 @@ import org.junit.Test;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseTest;
-import com.cinchapi.concourse.structure.Cell;
-import com.cinchapi.concourse.structure.Row;
-import com.cinchapi.concourse.structure.Value;
+import com.cinchapi.concourse.internal.Cell;
+import com.cinchapi.concourse.internal.Row;
+import com.cinchapi.concourse.internal.Value;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -76,7 +76,7 @@ public class RowTest extends BaseTest {
 		}
 		ListIterator<String> it2 = columns.listIterator();
 		while (it2.hasNext()) {
-			assertTrue(row.columnSet().contains(it2.next()));
+			assertTrue(row.describe().contains(it2.next()));
 		}
 		
 		//concurrent modification
@@ -100,7 +100,7 @@ public class RowTest extends BaseTest {
 			columns.add(column);
 			row.add(column, randomValueForStorage());
 		}
-		assertTrue(Sets.symmetricDifference(row.columnSet(), columns).isEmpty());
+		assertTrue(Sets.symmetricDifference(row.describe(), columns).isEmpty());
 
 		// column set from the past
 		long at = Time.now();
@@ -123,7 +123,7 @@ public class RowTest extends BaseTest {
 				removed.add(c);
 			}
 		}
-		assertEquals(Sets.symmetricDifference(row.columnSet(at), columns), removed);
+		assertEquals(Sets.symmetricDifference(row.describe(at), columns), removed);
 		
 		//column set all
 		assertEquals(row.columnSetAll(), Sets.union(columns, removed));

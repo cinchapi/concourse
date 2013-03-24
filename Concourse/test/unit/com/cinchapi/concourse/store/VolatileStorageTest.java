@@ -14,9 +14,9 @@
  */
 package com.cinchapi.concourse.store;
 
+import com.cinchapi.concourse.internal.VolatileStorage;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
 import com.cinchapi.concourse.services.ConcourseServiceTest;
-import com.cinchapi.concourse.store.VolatileStorage;
 
 /**
  * 

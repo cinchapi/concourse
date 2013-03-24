@@ -17,7 +17,7 @@ package com.cinchapi.concourse.store.structure;
 import org.junit.Test;
 
 import com.cinchapi.concourse.BaseTest;
-import com.cinchapi.concourse.structure.Key;
+import com.cinchapi.concourse.internal.Key;
 
 /**
  * Unit tests for {@link Key}.

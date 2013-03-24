@@ -16,9 +16,9 @@ package com.cinchapi.concourse.store;
 
 import org.junit.Test;
 
+import com.cinchapi.concourse.internal.CommitLog;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
 import com.cinchapi.concourse.services.ConcourseServiceTest;
-import com.cinchapi.concourse.store.CommitLog;
 
 /**
  * Unit tests for {@link CommitLog}.

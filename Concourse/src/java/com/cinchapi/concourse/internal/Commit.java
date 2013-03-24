@@ -12,45 +12,43 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.structure;
+package com.cinchapi.concourse.internal;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.io.Persistable;
+import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
 
 /**
  * <p>
- * A {@link Persistable} representation for a revision involving a {@link Value}
- * in the {@link Cell} at the intersection of a {@link Row} and {@link Column}.
- * A single Commit holds information about a row ({@link Key}), column (name),
- * and Value.
+ * A {@link ByteSized} representation for a revision involving a {@link Value}
+ * in the {@code cell} at the intersection of a {@code row} and {@code column}
+ * that is designed for temporary, append-only storage.
  * </p>
  * 
  * @author jnelson
  */
 @Immutable
-public final class Commit implements Persistable {
+final class Commit implements ByteSized {
 
 	/**
-	 * Return a forStorage commit that corresponds to a revision for
-	 * {@code value} in the {@code cell} at {@code row}:{@code column}.
+	 * Return a commit that is appropriate for storage and corresponds to a
+	 * revision for {@code value} in the {@code cell} at {@code row}:
+	 * {@code column}.
 	 * 
 	 * @param column
 	 * @param value
 	 * @param row
 	 * 
-	 * @return the Commit
+	 * @return the new instance
 	 * @see {@link Value#isForStorage()}
 	 */
-	public static Commit forStorage(String column, Object value, long row) {
+	static Commit forStorage(String column, Object value, long row) {
 		return new Commit(column, Value.forStorage(value), Key.fromLong(row));
 	}
 
@@ -60,36 +58,36 @@ public final class Commit implements Persistable {
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
-	 * @return the value
+	 * @return the commit
 	 */
-	public static Commit fromByteSequence(ByteBuffer buffer) {
-		Key row = Key.fromLong(buffer.getLong());
+	static Commit fromByteSequence(ByteBuffer bytes) {
+		Key row = Key.fromLong(bytes.getLong());
 
-		int columnSize = buffer.getInt();
+		int columnSize = bytes.getInt();
 		byte[] col = new byte[columnSize];
-		buffer.get(col);
+		bytes.get(col);
 		String column = ByteBuffers.getString(ByteBuffer.wrap(col));
 
-		int valueSize = buffer.getInt();
+		int valueSize = bytes.getInt();
 		byte[] val = new byte[valueSize];
-		buffer.get(val);
+		bytes.get(val);
 		Value value = Value.fromByteSequence(ByteBuffer.wrap(val));
 
 		return new Commit(column, value, row);
 	}
 
 	/**
-	 * Return a notForStorage commit that corresponds to a revision for
-	 * {@code value} in the {@code cell} at {@code row}:{@code column}.
+	 * Return a commit that is not appropriate for storage, but can be used in
+	 * comparisons. This is the preferred way to create commits unless the
+	 * commit
+	 * will be stored.
 	 * 
 	 * @param column
 	 * @param value
 	 * @param row
-	 * 
-	 * @return the revision
-	 * @see {@link Value#isNotForStorage()}
+	 * @return the new instance.
 	 */
-	public static Commit notForStorage(String column, Object value, long row) {
+	static Commit notForStorage(String column, Object value, long row) {
 		Commit commit;
 		commit = cache.get(row, column, value);
 		if(commit == null) {
@@ -104,9 +102,9 @@ public final class Commit implements Persistable {
 	 * Return a copy of a {@code commit} that is guaranteed to be notForStorage.
 	 * 
 	 * @param commit
-	 * @return a copy of the commit
+	 * @return the copy
 	 */
-	public static Commit notForStorageCopy(Commit commit) {
+	static Commit notForStorageCopy(Commit commit) {
 		return commit.isForStorage() ? Commit.notForStorage(commit.getColumn(),
 				commit.getValue().getQuantity(), commit.getRow().asLong())
 				: commit;
@@ -116,11 +114,11 @@ public final class Commit implements Persistable {
 																			// valueSize
 
 	/**
-	 * The average minimum size of a commit in bytes (assumes a column name of
-	 * about about 25 characters).
+	 * The average minimum size of a commit in bytes.
+	 * <em>Assumes a column name of about about 12 characters</em>.
 	 */
 	public static final int AVG_MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES
-			+ Value.MIN_SIZE_IN_BYTES + 50;
+			+ Value.MIN_SIZE_IN_BYTES + Column.AVG_COLUMN_NAME_SIZE_IN_BYTES;
 	private static final ObjectReuseCache<Commit> cache = new ObjectReuseCache<Commit>();
 
 	private final Key row;
@@ -161,59 +159,12 @@ public final class Commit implements Persistable {
 		return asByteBuffer().array();
 	}
 
-	/**
-	 * Return {@code column}.
-	 * 
-	 * @return the column
-	 */
-	public String getColumn() {
-		return column;
-	}
-
-	/**
-	 * Return {@code row}.
-	 * 
-	 * @return the row
-	 */
-	public Key getRow() {
-		return row;
-	}
-
-	/**
-	 * Return {@code value}.
-	 * 
-	 * @return the value
-	 */
-	public Value getValue() {
-		return value;
-	}
-
 	@Override
 	public int hashCode() {
 		if(hashCode == 0) {
 			hashCode = Objects.hashCode(row, column, value);
 		}
 		return hashCode;
-	}
-
-	/**
-	 * Return {@code true} if the commit is forStorage, meaning it represents a
-	 * forStorage value.
-	 * 
-	 * @return {@code true} if the commit is forStorage
-	 */
-	public boolean isForStorage() {
-		return value.isForStorage();
-	}
-
-	/**
-	 * Return {@code true} if the commit is notForStorage, meaning it represents
-	 * a notForStorage value.
-	 * 
-	 * @return {@code true} if the commit is notForStorage
-	 */
-	public boolean isNotForStorage() {
-		return value.isNotForStorage();
 	}
 
 	@Override
@@ -226,10 +177,51 @@ public final class Commit implements Persistable {
 		return Strings.toString(this);
 	}
 
-	@Override
-	public void writeTo(FileChannel channel) throws IOException {
-		Writer.write(this, channel);
+	/**
+	 * Return {@code column}.
+	 * 
+	 * @return the column
+	 */
+	String getColumn() {
+		return column;
+	}
 
+	/**
+	 * Return {@code row}.
+	 * 
+	 * @return the row
+	 */
+	Key getRow() {
+		return row;
+	}
+
+	/**
+	 * Return {@code value}.
+	 * 
+	 * @return the value
+	 */
+	Value getValue() {
+		return value;
+	}
+
+	/**
+	 * Return {@code true} if the commit is forStorage, meaning it represents a
+	 * forStorage value.
+	 * 
+	 * @return {@code true} if the commit is forStorage
+	 */
+	boolean isForStorage() {
+		return value.isForStorage();
+	}
+
+	/**
+	 * Return {@code true} if the commit is notForStorage, meaning it represents
+	 * a notForStorage value.
+	 * 
+	 * @return {@code true} if the commit is notForStorage
+	 */
+	boolean isNotForStorage() {
+		return value.isNotForStorage();
 	}
 
 	/**

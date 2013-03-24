@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -34,13 +34,8 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
-import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.service.StaggeredWriteService;
-import com.cinchapi.concourse.service.TransactionService;
-import com.cinchapi.concourse.store.Transaction.Operation.Type;
-import com.cinchapi.concourse.structure.Commit;
-import com.cinchapi.concourse.structure.Key;
-import com.cinchapi.concourse.structure.Value.Values;
+import com.cinchapi.concourse.internal.Transaction.Operation.Type;
+import com.cinchapi.concourse.internal.Value.Values;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -500,25 +495,25 @@ public final class Transaction extends StaggeredWriteService {
 				Type type = Type.values()[obj.get(TYPE_MEMBER).getAsInt()];
 				long row = obj.get(ROW_MEMBER).getAsLong();
 				String column = obj.get(COLUMN_MEMBER).getAsString();
-				com.cinchapi.concourse.structure.Value.Type valueType = com.cinchapi.concourse.structure.Value.Type
+				com.cinchapi.concourse.internal.Value.Type valueType = com.cinchapi.concourse.internal.Value.Type
 						.values()[obj.get(VALUE_TYPE_MEMBER).getAsInt()];
 				Object value = null;
-				if(valueType == com.cinchapi.concourse.structure.Value.Type.BOOLEAN) {
+				if(valueType == com.cinchapi.concourse.internal.Value.Type.BOOLEAN) {
 					value = obj.get(VALUE_MEMBER).getAsBoolean();
 				}
-				else if(valueType == com.cinchapi.concourse.structure.Value.Type.DOUBLE) {
+				else if(valueType == com.cinchapi.concourse.internal.Value.Type.DOUBLE) {
 					value = obj.get(VALUE_MEMBER).getAsDouble();
 				}
-				else if(valueType == com.cinchapi.concourse.structure.Value.Type.FLOAT) {
+				else if(valueType == com.cinchapi.concourse.internal.Value.Type.FLOAT) {
 					value = obj.get(VALUE_MEMBER).getAsFloat();
 				}
-				else if(valueType == com.cinchapi.concourse.structure.Value.Type.INTEGER) {
+				else if(valueType == com.cinchapi.concourse.internal.Value.Type.INTEGER) {
 					value = obj.get(VALUE_MEMBER).getAsInt();
 				}
-				else if(valueType == com.cinchapi.concourse.structure.Value.Type.LONG) {
+				else if(valueType == com.cinchapi.concourse.internal.Value.Type.LONG) {
 					value = obj.get(VALUE_MEMBER).getAsLong();
 				}
-				else if(valueType == com.cinchapi.concourse.structure.Value.Type.RELATION) {
+				else if(valueType == com.cinchapi.concourse.internal.Value.Type.RELATION) {
 					value = Key.fromLong(obj.get(VALUE_MEMBER).getAsLong());
 				}
 				else {

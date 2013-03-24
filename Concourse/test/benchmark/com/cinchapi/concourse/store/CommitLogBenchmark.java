@@ -14,9 +14,9 @@
  */
 package com.cinchapi.concourse.store;
 
+import com.cinchapi.concourse.internal.CommitLog;
 import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
-import com.cinchapi.concourse.store.CommitLog;
 
 /**
  * 

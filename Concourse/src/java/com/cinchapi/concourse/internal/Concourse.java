@@ -1,4 +1,4 @@
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
 import java.io.File;
 import java.util.Set;
@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
-import com.cinchapi.concourse.service.StaggeredWriteService;
-import com.cinchapi.concourse.service.TransactionService;
 import com.google.common.collect.Sets;
 
 /**
@@ -208,23 +206,23 @@ public final class Concourse extends StaggeredWriteService implements
 		return super.addSpi(column, value, row);
 	}
 
+	@Override
+	protected boolean removeSpi(String column, Object value, long row) {
+		flush(false);
+		flushed = false;
+		return super.removeSpi(column, value, row);
+	}
+
 	/**
 	 * Flush the {@code commitLog} to the {@code database} iff it is full or
 	 * {@code force} is {@code true}.
 	 * 
 	 * @param force
 	 */
-	protected void flush(boolean force) {
+	private void flush(boolean force) {
 		if(force || ((CommitLog) secondary).isFull()) {
 			flush();
 		}
-	}
-
-	@Override
-	protected boolean removeSpi(String column, Object value, long row) {
-		flush(false);
-		flushed = false;
-		return super.removeSpi(column, value, row);
 	}
 
 	/**

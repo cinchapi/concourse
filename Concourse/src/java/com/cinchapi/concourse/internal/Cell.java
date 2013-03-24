@@ -12,24 +12,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.structure;
+package com.cinchapi.concourse.internal;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.cinchapi.common.Hash;
+import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.io.Locatable;
-import com.cinchapi.concourse.io.Persistable;
+import com.cinchapi.concourse.io.ByteSized;
+import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.Immutable;
@@ -39,14 +36,8 @@ import com.google.common.collect.Lists;
 
 /**
  * <p>
- * Represents a {@link Value} set contained at the intersection of a {@link Row}
- * and {@link Column}.
- * </p>
- * <p>
- * Only a single cell can exist at this intersection, so each is
- * {@link Locatable} using a 32 byte hash derived from the row {@link Key} and
- * the Column Name. After construction, the cell does not maintain any explicit
- * knowledge of its housing row or column.
+ * A {@link Value} collection contained at the intersection of a {@link Row} and
+ * {@link Column}.
  * </p>
  * <p>
  * Each cell has two variable length components:
@@ -79,14 +70,12 @@ import com.google.common.collect.Lists;
  * value from a Cell will not reduce the size of the cell, but will
  * <em>increase</em> it!
  * </p>
- * <p>
- * <strong>Note:</strong> All the methods in this class are synchronized to
- * prevent state from changing in the middle of an operation
- * </p>
  * 
  * @author jnelson
  */
-public class Cell implements Persistable, Locatable {
+class Cell implements ByteSized {
+	// NOTE: This class does not define hashCode() or equals() because the
+	// defaults are the desired behaviour.
 
 	/**
 	 * Return the cell represented by {@code bytes}. Use this method when
@@ -94,14 +83,15 @@ public class Cell implements Persistable, Locatable {
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
-	 * @return the value
+	 * @return the cell
 	 */
-	public static Cell fromByteSequence(ByteBuffer bytes) {
+	static Cell fromByteSequence(ByteBuffer bytes) {
+		int columnSize = bytes.getInt();
 		int stateSize = bytes.getInt();
 		int historySize = bytes.getInt();
 
-		byte[] locator = new byte[32];
-		bytes.get(locator);
+		byte[] column = new byte[columnSize];
+		bytes.get(column);
 
 		byte[] s = new byte[stateSize];
 		bytes.get(s);
@@ -111,75 +101,24 @@ public class Cell implements Persistable, Locatable {
 		bytes.get(h);
 		History history = History.fromByteSequences(ByteBuffer.wrap(h));
 
-		return new Cell(state, history, locator);
+		return new Cell(column, state, history);
 	}
 
 	/**
-	 * Return a new cell instance at the intersection of {@code row} and
-	 * {@code column}.
+	 * Return a <em>new</em> cell for storage under {@code column}, with a clean
+	 * state and no history.
 	 * 
-	 * @param row
-	 * @param column
-	 * @return the cell
+	 * @return the new instance
 	 */
-	public static Cell newInstance(Key row, String column) {
+	static Cell newInstance(String column) {
 		State state = State.newInstance();
 		History history = History.newInstance();
-		byte[] locator = Utilities.calculateLocator(row, column);
-		return new Cell(state, history, locator);
+		return new Cell(column.getBytes(ByteBuffers.charset()), state, history);
 	}
 
-	/**
-	 * Return the {@code locator} for the cell at the intersection of
-	 * {@code row} and {@code column}.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return the application cell locator.
-	 */
-	public static byte[] getLocatorFor(Key row, String column) {
-		return Utilities.calculateLocator(row, column);
-	}
-
-	/**
-	 * Read the next cell from {@code channel} assuming that it conforms to the
-	 * specification described in the {@link #asByteBuffer()} method.
-	 * 
-	 * @param buffer
-	 * @return the next {@link Cell} in the channel.
-	 */
-	public static Cell readFrom(FileChannel channel) throws IOException {
-		ByteBuffer buffers[] = new ByteBuffer[3];
-		buffers[0] = ByteBuffer.allocate(4); // stateSize
-		buffers[1] = ByteBuffer.allocate(4); // historySize
-		buffers[2] = ByteBuffer.allocate(32); // locator
-		channel.read(buffers);
-
-		for (ByteBuffer buf : buffers) {
-			buf.rewind();
-		}
-
-		int stateSize = buffers[0].getInt();
-		int historySize = buffers[1].getInt();
-		byte[] locator = buffers[2].array();
-
-		ByteBuffer s = ByteBuffer.allocate(stateSize);
-		channel.read(s);
-		s.rewind();
-		State state = State.fromByteSequences(s);
-
-		ByteBuffer h = ByteBuffer.allocate(historySize);
-		channel.read(h);
-		h.rewind();
-		History history = History.fromByteSequences(h);
-
-		return new Cell(state, history, locator);
-
-	}
-
-	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8) + 32; // stateSize,
-																				// historySize,
-																				// locator
+	private static final int FIXED_SIZE_IN_BYTES = 3 * (Integer.SIZE / 8); // columnSize,
+																			// stateSize,
+																			// historySize
 
 	/**
 	 * The theoretical max number of values that can be simultaneously contained
@@ -202,25 +141,48 @@ public class Cell implements Persistable, Locatable {
 	public static final int MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES;
 
 	/**
+	 * This is a more realistic measure of the storage required for a single
+	 * cell with one revision.
+	 */
+	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
+			+ (2 * Value.WEIGHTED_SIZE_IN_BYTES);
+
+	/**
 	 * The maximum allowable size of a cell.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
-	private final byte[] locator; // SHA-256 hash (32 bytes)
+	private final byte[] column;
 	private State state;
 	private History history;
 
 	/**
 	 * Construct a new instance.
 	 * 
+	 * @param column
 	 * @param state
 	 * @param history
-	 * @param locator
 	 */
-	private Cell(State state, History history, byte[] locator) {
+	private Cell(byte[] column, State state, History history) {
+		this.column = column;
 		this.state = state;
 		this.history = history;
-		this.locator = locator;
+	}
+
+	@Override
+	public byte[] getBytes() {
+		return asByteBuffer().array();
+	}
+
+	@Override
+	public int size() {
+		return column.length + state.size() + history.size()
+				+ FIXED_SIZE_IN_BYTES;
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(this);
 	}
 
 	/**
@@ -230,7 +192,7 @@ public class Cell implements Persistable, Locatable {
 	 * 
 	 * @param value
 	 */
-	public synchronized final void add(Value value) {
+	void add(Value value) {
 		Preconditions.checkState(state.canBeAdded(value),
 				"Cannot add value '%s' because it is already contained", value);
 		Preconditions.checkArgument(value.isForStorage(),
@@ -241,56 +203,39 @@ public class Cell implements Persistable, Locatable {
 	}
 
 	/**
-	 * Return {@code true} if {@code value} is found in the cell.
+	 * Return {@code true} if {@code value} is presently found in the cell.
 	 * 
 	 * @param value
-	 * @return {@code true} if {@code value} is contained.
+	 * @return {@code true} if {@code value} is contained
 	 */
-	public synchronized final boolean contains(Value value) {
+	boolean contains(Value value) {
 		return state.contains(value);
-
 	}
 
 	/**
-	 * Return the number of values contained in the cell.
+	 * Return the number of values presently contained in the cell.
 	 * 
-	 * @return the count.
+	 * @return the count
 	 */
-	public synchronized int count() {
+	int count() {
 		return state.count();
 	}
 
-	@Override
-	public synchronized boolean equals(Object obj) {
-		if(obj instanceof Cell) {
-			final Cell other = (Cell) obj;
-			return Objects.equal(this.state, other.state)
-					&& Objects.equal(this.history, other.history)
-					&& Objects.equal(this.locator, other.locator);
-		}
-		return false;
-	}
-
-	@Override
-	public synchronized byte[] getBytes() {
-		return asByteBuffer().array();
-	}
-
 	/**
-	 * Returns a 32 byte hash that represents the {@code row} and {@code column}
-	 * that house the cell.
-	 */
-	@Override
-	public byte[] getLocator() {
-		return locator;
-	}
-
-	/**
-	 * Return the values currently contained.
+	 * Return a string representation of the {@code column} name.
 	 * 
-	 * @return the values.
+	 * @return the column name
 	 */
-	public synchronized List<Value> getValues() {
+	String getColumn() {
+		return new String(column, ByteBuffers.charset());
+	}
+
+	/**
+	 * Return a list of the presently contained values.
+	 * 
+	 * @return the values
+	 */
+	List<Value> getValues() {
 		return state.getValues();
 	}
 
@@ -298,9 +243,9 @@ public class Cell implements Persistable, Locatable {
 	 * Return all the values contained {@code at} the specified timestamp.
 	 * 
 	 * @param at
-	 * @return the values.
+	 * @return the values
 	 */
-	public synchronized List<Value> getValues(long at) {
+	List<Value> getValues(long at) {
 		Iterator<Value> it = history.rewind(at).iterator();
 		List<Value> snapshot = Lists.newArrayList();
 		while (it.hasNext()) {
@@ -312,13 +257,7 @@ public class Cell implements Persistable, Locatable {
 				snapshot.add(value);
 			}
 		}
-
 		return history.rewind(at);
-	}
-
-	@Override
-	public synchronized int hashCode() {
-		return Objects.hashCode(state, history, locator);
 	}
 
 	/**
@@ -326,7 +265,7 @@ public class Cell implements Persistable, Locatable {
 	 * 
 	 * @return {@code true} if the size is 0.
 	 */
-	public synchronized boolean isEmpty() {
+	boolean isEmpty() {
 		return state.size() == 0;
 	}
 
@@ -337,7 +276,7 @@ public class Cell implements Persistable, Locatable {
 	 * 
 	 * @param value
 	 */
-	public synchronized void remove(Value value) {
+	void remove(Value value) {
 		Preconditions.checkState(state.canBeRemoved(value),
 				"Cannot remove value '%s' because it is not contained", value);
 		Preconditions
@@ -350,49 +289,25 @@ public class Cell implements Persistable, Locatable {
 	}
 
 	/**
-	 * Iterate through and remove all of the {@code values} from the cell.
-	 */
-	public synchronized void removeAll() {
-		Iterator<Value> it = getValues().iterator();
-		while (it.hasNext()) {
-			remove(it.next());
-		}
-	}
-
-	@Override
-	public synchronized int size() {
-		return state.size() + history.size() + FIXED_SIZE_IN_BYTES;
-	}
-
-	@Override
-	public synchronized String toString() {
-		return "Cell " + Hash.toString(locator) + " with state "
-				+ state.toString();
-	}
-
-	@Override
-	public synchronized void writeTo(FileChannel channel) throws IOException {
-		Writer.write(this, channel);
-	}
-
-	/**
 	 * Return a new byte buffer that contains the current view of the cell with
 	 * the following order:
 	 * <ol>
-	 * <li><strong>stateSize</strong> - first 4 bytes</li>
+	 * <li><strong>columnSize</strong> - first 4 bytes</li>
+	 * <li><strong>stateSize</strong> - next 4 bytes</li>
 	 * <li><strong>historySize</strong> - next 4 bytes</li>
-	 * <li><strong>locator</strong> - next 32 bytes</li>
+	 * <li><strong>column</strong> - next columnSize bytes</li>
 	 * <li><strong>state</strong> - next stateSize bytes</li>
 	 * <li><strong>history</strong> - remaining bytes</li>
 	 * </ol>
 	 * 
 	 * @return a byte buffer.
 	 */
-	private synchronized ByteBuffer asByteBuffer() {
+	private ByteBuffer asByteBuffer() {
 		ByteBuffer buffer = ByteBuffer.allocate(size());
+		buffer.putInt(column.length);
 		buffer.putInt(state.size());
 		buffer.putInt(history.size());
-		buffer.put(locator);
+		buffer.put(column);
 		buffer.put(state.getBytes());
 		buffer.put(history.getBytes());
 		buffer.rewind();
@@ -407,7 +322,7 @@ public class Cell implements Persistable, Locatable {
 	 */
 	private static class AbstractValueList implements
 			IterableByteSequences,
-			Persistable {
+			ByteSized {
 
 		protected static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 		protected static final int MAX_NUM_VALUES = MAX_SIZE_IN_BYTES
@@ -458,7 +373,7 @@ public class Cell implements Persistable, Locatable {
 
 		@Override
 		public byte[] getBytes() {
-			return asByteBuffer().array();
+			return ByteSizedCollections.toByteArray(values);
 		}
 
 		@Override
@@ -473,45 +388,13 @@ public class Cell implements Persistable, Locatable {
 
 		@Override
 		public int size() {
-			return asByteBuffer().capacity();
+			return getBytes().length;
 		}
 
 		@Override
 		public String toString() {
 			return values.toString();
 		}
-
-		@Override
-		public void writeTo(FileChannel channel) throws IOException {
-			Writer.write(this, channel);
-
-		}
-
-		/**
-		 * Return a byte buffer that represents the object and conforms to
-		 * {@link IterableByteSequences}.
-		 * 
-		 * @return a byte buffer
-		 */
-		private ByteBuffer asByteBuffer() {
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			for (Value value : values) {
-				byte[] bytes = value.getBytes();
-				try {
-					out.write(ByteBuffer.allocate(4).putInt(bytes.length)
-							.array()); // for some reason writing the
-										// length of the array doesn't work
-										// properly, so I have to wrap it in a
-										// byte buffer :-/
-					out.write(bytes);
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			return ByteBuffer.wrap(out.toByteArray());
-		}
-
 	}
 
 	/**
@@ -578,8 +461,9 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return the number of appearances.
 		 */
+		// this method might be useful later
 		@SuppressWarnings("unused")
-		public int count(Value value) { // this method might be useful later
+		int count(Value value) {
 			return count(value, Time.now());
 		}
 
@@ -591,7 +475,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param at
 		 * @return the number of appearances
 		 */
-		public int count(Value value, long at) {
+		int count(Value value, long at) {
 			int count = 0;
 			ListIterator<Value> it = rewind(at).listIterator();
 			while (it.hasNext()) {
@@ -608,9 +492,9 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return {@code true} if {@code value} exists.
 		 */
+		// this method might be useful later
 		@SuppressWarnings("unused")
-		public boolean exists(Value value) { // this method might be useful
-												// later
+		boolean exists(Value value) {
 			return exists(value, Time.now());
 		}
 
@@ -623,7 +507,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param before
 		 * @return {@code true} if {@code value} existed.
 		 */
-		public boolean exists(Value value, long at) {
+		boolean exists(Value value, long at) {
 			return Numbers.isOdd(count(value, at));
 		}
 
@@ -632,19 +516,19 @@ public class Cell implements Persistable, Locatable {
 		 * 
 		 * @param value
 		 */
-		public void log(Value value) {
+		void log(Value value) {
 			Preconditions.checkArgument(value.isForStorage());
 			values.add(value);
 		}
 
 		/**
-		 * Return a new list of revisions that were present {@code at} the
-		 * specified timestamp.
+		 * Return a <em>new</em> list of revisions that were present {@code at}
+		 * the specified timestamp.
 		 * 
 		 * @param to
 		 * @return the list of revisions
 		 */
-		public List<Value> rewind(long to) {
+		List<Value> rewind(long to) {
 			List<Value> snapshot = Lists.newArrayList();
 			ListIterator<Value> it = values.listIterator();
 			while (it.hasNext()) {
@@ -734,7 +618,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return the new state representation.
 		 */
-		public State add(Value value) {
+		State add(Value value) {
 			List<Value> values = Lists.newArrayList(this.values);
 			values.add(value);
 			return State.fromList(values);
@@ -747,7 +631,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return {@code true} if {@code value} can be added.
 		 */
-		public boolean canBeAdded(Value value) {
+		boolean canBeAdded(Value value) {
 			return !contains(value);
 		}
 
@@ -758,7 +642,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return {@code true} if {@code value} can be removed.
 		 */
-		public boolean canBeRemoved(Value value) {
+		boolean canBeRemoved(Value value) {
 			return contains(value);
 		}
 
@@ -768,7 +652,7 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return {@code true} if the value is contained.
 		 */
-		public boolean contains(Value value) {
+		boolean contains(Value value) {
 			return values.contains(value);
 		}
 
@@ -777,7 +661,7 @@ public class Cell implements Persistable, Locatable {
 		 * 
 		 * @return the count.
 		 */
-		public int count() {
+		int count() {
 			return values.size();
 		}
 
@@ -786,7 +670,7 @@ public class Cell implements Persistable, Locatable {
 		 * 
 		 * @return the values.
 		 */
-		public List<Value> getValues() {
+		List<Value> getValues() {
 			return Collections.unmodifiableList(values);
 		}
 
@@ -799,31 +683,10 @@ public class Cell implements Persistable, Locatable {
 		 * @param value
 		 * @return the new state representation.
 		 */
-		public State remove(Value value) {
+		State remove(Value value) {
 			List<Value> values = Lists.newArrayList(this.values);
 			values.remove(value);
 			return State.fromList(values);
-		}
-	}
-
-	/**
-	 * {@link Cell} utilities.
-	 * 
-	 * @author jnelson
-	 */
-	private static class Utilities {
-
-		/**
-		 * Return the 32 byte locator value that corresponds to the cell at the
-		 * intersection of {@code row} and {@code column}.
-		 * 
-		 * @param row
-		 * @param column
-		 * @return the applicable locator.
-		 */
-		private static byte[] calculateLocator(Key row, String column) {
-			return Locators.create(row.getBytes(),
-					column.getBytes(ByteBuffers.charset()));
 		}
 	}
 }

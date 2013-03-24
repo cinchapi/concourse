@@ -24,9 +24,9 @@ import org.junit.Test;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseTest;
-import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.service.IndexingService;
-import com.cinchapi.concourse.service.QueryService.Operator;
+import com.cinchapi.concourse.internal.ConcourseService;
+import com.cinchapi.concourse.internal.IndexingService;
+import com.cinchapi.concourse.internal.QueryService.Operator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -503,7 +503,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		for (String b : bad) {
 			try {
 				ConcourseService.checkColumnName(b);
-				log("{}", bad);
+				log("The bad column name is {}", bad);
 				fail();
 			}
 			catch (IllegalArgumentException e) {

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.service;
+package com.cinchapi.concourse.internal;
 
 /**
  * A service that indexes data.
@@ -20,9 +20,10 @@ package com.cinchapi.concourse.service;
  * @author jnelson
  */
 public interface IndexingService {
-	
+
 	/**
 	 * Reindex the data that is stored by the service.
+	 * <em>This may be a resource intensive operation</em>.
 	 */
 	public void reindex();
 

@@ -15,8 +15,8 @@
 package com.cinchapi.concourse.services;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.store.CommitLog;
-import com.cinchapi.concourse.store.VolatileStorage;
+import com.cinchapi.concourse.internal.CommitLog;
+import com.cinchapi.concourse.internal.VolatileStorage;
 
 /**
  * 

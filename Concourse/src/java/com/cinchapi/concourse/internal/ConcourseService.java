@@ -12,14 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.service;
+package com.cinchapi.concourse.internal;
 
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.structure.Key;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -90,7 +89,7 @@ public abstract class ConcourseService implements DataStoreService {
 
 	@Override
 	public final boolean add(String column, Object value, long row) {
-		if(!exists(column, value, row) && isValid(value)) {
+		if(!exists(column, value, row) && isValidValue(value)) {
 			ConcourseService.checkColumnName(column);
 			return addSpi(column, value, row);
 		}
@@ -118,7 +117,7 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final Set<Object> fetch(String column, long row) {
+	public Set<Object> fetch(String column, long row) {
 		return fetch(column, Time.now(), row);
 	}
 
@@ -285,7 +284,7 @@ public abstract class ConcourseService implements DataStoreService {
 	 * @return {@code true} if the value is valid
 	 * @throws IllegalArgumentException
 	 */
-	private boolean isValid(Object value) throws IllegalArgumentException {
+	private boolean isValidValue(Object value) throws IllegalArgumentException {
 		Preconditions
 				.checkArgument(
 						!(value instanceof Key)

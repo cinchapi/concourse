@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.service.ConcourseService;
-import com.cinchapi.concourse.structure.Cell;
-import com.cinchapi.concourse.structure.Key;
-import com.cinchapi.concourse.structure.Row;
-import com.cinchapi.concourse.structure.Value;
+import com.cinchapi.concourse.internal.Cell;
+import com.cinchapi.concourse.internal.ConcourseService;
+import com.cinchapi.concourse.internal.Key;
+import com.cinchapi.concourse.internal.Row;
+import com.cinchapi.concourse.internal.Value;
 
 import junit.framework.TestCase;
 import org.junit.Test;

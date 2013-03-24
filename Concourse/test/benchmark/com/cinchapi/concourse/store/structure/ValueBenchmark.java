@@ -24,9 +24,9 @@ import org.junit.Test;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.BaseBenchmark;
+import com.cinchapi.concourse.internal.Commit;
+import com.cinchapi.concourse.internal.Value;
 import com.cinchapi.concourse.store.structure.Benchmark;
-import com.cinchapi.concourse.structure.Commit;
-import com.cinchapi.concourse.structure.Value;
 
 /**
  * Benchmarking for {@link Value}.

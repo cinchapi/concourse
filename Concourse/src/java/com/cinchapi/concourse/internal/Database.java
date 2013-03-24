@@ -12,14 +12,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.concourse.service.ConcourseService;
 import com.google.common.collect.Sets;
 
 /**
@@ -30,9 +29,14 @@ import com.google.common.collect.Sets;
 public class Database extends ConcourseService {
 
 	private static Logger log = LoggerFactory.getLogger(Database.class);
+	private final String home;
 
 	public static Database inDir(String directory) {
-		return new Database();
+		return new Database(directory);
+	}
+	
+	private Database(String home){
+		this.home = home;
 	}
 
 	public synchronized void flush(CommitLog commitLog) {
@@ -44,39 +48,31 @@ public class Database extends ConcourseService {
 		log.info("Successfully shutdown the Database.");
 
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.api.ConcourseService#addSpi(long,
-	 * java.lang.String, java.lang.Object)
-	 */
+	
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		// TODO Auto-generated method stub
+		load(row).add(column, Value.forStorage(value));
+		// TODO add in column
+		// TODO use threads
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.api.ConcourseService#describeSpi(long)
-	 */
 	@Override
 	protected Set<String> describeSpi(long row) {
-		return Sets.newHashSet();
+		return load(row).describe();
+	}
+	
+	private Row load(long row){
+		return Row.identifiedBy(Key.fromLong(row), home);
+	}
+	
+	private Column load(String column){
+		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.api.ConcourseService#existsSpi(long,
-	 * java.lang.String, java.lang.Object)
-	 */
 	@Override
 	protected boolean existsSpi(String column, Object value, long row) {
-		// TODO Auto-generated method stub
-		return false;
+		return load(row).exists(column, Value.notForStorage(value));
 	}
 
 	/*

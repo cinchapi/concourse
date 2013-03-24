@@ -14,7 +14,7 @@
  */
 package com.cinchapi.concourse.store;
 
-import com.cinchapi.concourse.service.ConcourseService;
+import com.cinchapi.concourse.internal.ConcourseService;
 import com.cinchapi.concourse.services.ConcourseServiceProvider;
 
 /**

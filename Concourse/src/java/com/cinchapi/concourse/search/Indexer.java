@@ -14,8 +14,8 @@
  */
 package com.cinchapi.concourse.search;
 
-import com.cinchapi.concourse.structure.Key;
-import com.cinchapi.concourse.structure.Value;
+import com.cinchapi.concourse.internal.Key;
+import com.cinchapi.concourse.internal.Value;
 
 /**
  * A service that indexes data for fulltext searching.
