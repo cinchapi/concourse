@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.db.Transaction.Operation.Type;
+import com.cinchapi.concourse.db.Value.Values;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
-import com.cinchapi.concourse.internal.Transaction.Operation.Type;
-import com.cinchapi.concourse.internal.Value.Values;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -193,8 +193,8 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param transaction
 	 */
 	private Transaction(Transaction transaction) {
-		super(transaction.primary, VolatileStorage
-				.newInstancewithExpectedCapacity(transaction.operations.size()));
+		super(VolatileStorage
+				.newInstancewithExpectedCapacity(transaction.operations.size()), transaction.primary);
 	}
 
 	/**
@@ -204,8 +204,8 @@ public final class Transaction extends StaggeredWriteService {
 	 *            - must be an instance of ConcourseService
 	 */
 	private Transaction(TransactionService parent) {
-		super((ConcourseService) parent, VolatileStorage
-				.newInstancewithExpectedCapacity(INITIAL_CAPACITY));
+		super(VolatileStorage
+				.newInstancewithExpectedCapacity(INITIAL_CAPACITY), (ConcourseService) parent);
 	}
 
 	/**
@@ -245,7 +245,7 @@ public final class Transaction extends StaggeredWriteService {
 
 	@Override
 	public synchronized void shutdown() {
-		secondary.shutdown(); // shutdown the volatile db
+		initial.shutdown(); // shutdown the volatile db
 		super.shutdown();
 	}
 
@@ -330,12 +330,12 @@ public final class Transaction extends StaggeredWriteService {
 	 * Assert that the number of operations is equal to the number of commits.
 	 */
 	private void assertSize() {
-		assert operations.size() == ((VolatileStorage) secondary).ordered
+		assert operations.size() == ((VolatileStorage) initial).ordered
 				.size() : "There is a discrepency between the number of operations and the number of commits";
 	}
 
 	/**
-	 * Return an iterator of mappings from {@link Commit} to
+	 * Return an iterator of mappings from {@link Write} to
 	 * {@link OperationType} for the purpose of flushing this transaction to
 	 * its parent service.
 	 * 
@@ -495,25 +495,25 @@ public final class Transaction extends StaggeredWriteService {
 				Type type = Type.values()[obj.get(TYPE_MEMBER).getAsInt()];
 				long row = obj.get(ROW_MEMBER).getAsLong();
 				String column = obj.get(COLUMN_MEMBER).getAsString();
-				com.cinchapi.concourse.internal.Value.Type valueType = com.cinchapi.concourse.internal.Value.Type
+				com.cinchapi.concourse.db.Value.Type valueType = com.cinchapi.concourse.db.Value.Type
 						.values()[obj.get(VALUE_TYPE_MEMBER).getAsInt()];
 				Object value = null;
-				if(valueType == com.cinchapi.concourse.internal.Value.Type.BOOLEAN) {
+				if(valueType == com.cinchapi.concourse.db.Value.Type.BOOLEAN) {
 					value = obj.get(VALUE_MEMBER).getAsBoolean();
 				}
-				else if(valueType == com.cinchapi.concourse.internal.Value.Type.DOUBLE) {
+				else if(valueType == com.cinchapi.concourse.db.Value.Type.DOUBLE) {
 					value = obj.get(VALUE_MEMBER).getAsDouble();
 				}
-				else if(valueType == com.cinchapi.concourse.internal.Value.Type.FLOAT) {
+				else if(valueType == com.cinchapi.concourse.db.Value.Type.FLOAT) {
 					value = obj.get(VALUE_MEMBER).getAsFloat();
 				}
-				else if(valueType == com.cinchapi.concourse.internal.Value.Type.INTEGER) {
+				else if(valueType == com.cinchapi.concourse.db.Value.Type.INTEGER) {
 					value = obj.get(VALUE_MEMBER).getAsInt();
 				}
-				else if(valueType == com.cinchapi.concourse.internal.Value.Type.LONG) {
+				else if(valueType == com.cinchapi.concourse.db.Value.Type.LONG) {
 					value = obj.get(VALUE_MEMBER).getAsLong();
 				}
-				else if(valueType == com.cinchapi.concourse.internal.Value.Type.RELATION) {
+				else if(valueType == com.cinchapi.concourse.db.Value.Type.RELATION) {
 					value = Key.fromLong(obj.get(VALUE_MEMBER).getAsLong());
 				}
 				else {

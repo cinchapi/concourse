@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 
@@ -26,18 +26,18 @@ import com.google.common.base.Objects;
 
 /**
  * <p>
- * A {@link ByteSized} representation for a revision involving a {@link Value}
- * in the {@code cell} at the intersection of a {@code row} and {@code column}
- * that is designed for temporary, append-only storage.
+ * A {@link ByteSized} representation for a write involving a {@link Value} in
+ * the {@code cell} at the intersection of a {@code row} and {@code column} that
+ * is designed for temporary, append-only storage.
  * </p>
  * 
  * @author jnelson
  */
 @Immutable
-final class Commit implements ByteSized {
+final class Write implements ByteSized {
 
 	/**
-	 * Return a commit that is appropriate for storage and corresponds to a
+	 * Return a write that is appropriate for storage and corresponds to a
 	 * revision for {@code value} in the {@code cell} at {@code row}:
 	 * {@code column}.
 	 * 
@@ -48,19 +48,19 @@ final class Commit implements ByteSized {
 	 * @return the new instance
 	 * @see {@link Value#isForStorage()}
 	 */
-	static Commit forStorage(String column, Object value, long row) {
-		return new Commit(column, Value.forStorage(value), Key.fromLong(row));
+	static Write forStorage(String column, Object value, long row) {
+		return new Write(column, Value.forStorage(value), Key.fromLong(row));
 	}
 
 	/**
-	 * Return the commit represented by {@code bytes}. Use this method when
+	 * Return the write represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
-	 * @return the commit
+	 * @return the write
 	 */
-	static Commit fromByteSequence(ByteBuffer bytes) {
+	static Write fromByteSequence(ByteBuffer bytes) {
 		Key row = Key.fromLong(bytes.getLong());
 
 		int columnSize = bytes.getInt();
@@ -73,13 +73,13 @@ final class Commit implements ByteSized {
 		bytes.get(val);
 		Value value = Value.fromByteSequence(ByteBuffer.wrap(val));
 
-		return new Commit(column, value, row);
+		return new Write(column, value, row);
 	}
 
 	/**
-	 * Return a commit that is not appropriate for storage, but can be used in
-	 * comparisons. This is the preferred way to create commits unless the
-	 * commit
+	 * Return a write that is not appropriate for storage, but can be used in
+	 * comparisons. This is the preferred way to create writes unless the
+	 * write
 	 * will be stored.
 	 * 
 	 * @param column
@@ -87,39 +87,39 @@ final class Commit implements ByteSized {
 	 * @param row
 	 * @return the new instance.
 	 */
-	static Commit notForStorage(String column, Object value, long row) {
-		Commit commit;
-		commit = cache.get(row, column, value);
-		if(commit == null) {
-			commit = new Commit(column, Value.notForStorage(value),
+	static Write notForStorage(String column, Object value, long row) {
+		Write write;
+		write = cache.get(row, column, value);
+		if(write == null) {
+			write = new Write(column, Value.notForStorage(value),
 					Key.fromLong(row));
-			cache.put(commit, row, column, value);
+			cache.put(write, row, column, value);
 		}
-		return commit;
+		return write;
 	}
 
 	/**
-	 * Return a copy of a {@code commit} that is guaranteed to be notForStorage.
+	 * Return a copy of a {@code write} that is guaranteed to be notForStorage.
 	 * 
-	 * @param commit
+	 * @param write
 	 * @return the copy
 	 */
-	static Commit notForStorageCopy(Commit commit) {
-		return commit.isForStorage() ? Commit.notForStorage(commit.getColumn(),
-				commit.getValue().getQuantity(), commit.getRow().asLong())
-				: commit;
+	static Write notForStorageCopy(Write write) {
+		return write.isForStorage() ? Write.notForStorage(write.getColumn(),
+				write.getValue().getQuantity(), write.getRow().asLong())
+				: write;
 	}
 
 	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8); // columnSize,
 																			// valueSize
 
 	/**
-	 * The average minimum size of a commit in bytes.
+	 * The average minimum size of a write in bytes.
 	 * <em>Assumes a column name of about about 12 characters</em>.
 	 */
 	public static final int AVG_MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES
 			+ Value.MIN_SIZE_IN_BYTES + Column.AVG_COLUMN_NAME_SIZE_IN_BYTES;
-	private static final ObjectReuseCache<Commit> cache = new ObjectReuseCache<Commit>();
+	private static final ObjectReuseCache<Write> cache = new ObjectReuseCache<Write>();
 
 	private final Key row;
 	private final int columnSize;
@@ -135,7 +135,7 @@ final class Commit implements ByteSized {
 	 * @param value
 	 * @param row
 	 */
-	private Commit(String column, Value value, Key row) {
+	private Write(String column, Value value, Key row) {
 		this.row = row;
 		this.column = column;
 		this.columnSize = this.column.getBytes(ByteBuffers.charset()).length;
@@ -145,8 +145,8 @@ final class Commit implements ByteSized {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Commit) {
-			Commit other = (Commit) obj;
+		if(obj instanceof Write) {
+			Write other = (Write) obj;
 			return Objects.equal(row, other.row)
 					&& Objects.equal(column, other.column)
 					&& Objects.equal(value, other.value);
@@ -205,27 +205,27 @@ final class Commit implements ByteSized {
 	}
 
 	/**
-	 * Return {@code true} if the commit is forStorage, meaning it represents a
+	 * Return {@code true} if the write is forStorage, meaning it represents a
 	 * forStorage value.
 	 * 
-	 * @return {@code true} if the commit is forStorage
+	 * @return {@code true} if the write is forStorage
 	 */
 	boolean isForStorage() {
 		return value.isForStorage();
 	}
 
 	/**
-	 * Return {@code true} if the commit is notForStorage, meaning it represents
+	 * Return {@code true} if the write is notForStorage, meaning it represents
 	 * a notForStorage value.
 	 * 
-	 * @return {@code true} if the commit is notForStorage
+	 * @return {@code true} if the write is notForStorage
 	 */
 	boolean isNotForStorage() {
 		return value.isNotForStorage();
 	}
 
 	/**
-	 * Return a new byte buffer that contains the commit with the following
+	 * Return a new byte buffer that contains the write with the following
 	 * order:
 	 * <ol>
 	 * <li><strong>rowKey</strong> - first 8 bytes</li>

@@ -23,9 +23,9 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.internal.Cell;
-import com.cinchapi.concourse.internal.Row;
-import com.cinchapi.concourse.internal.Value;
+import com.cinchapi.concourse.db.Cell;
+import com.cinchapi.concourse.db.Row;
+import com.cinchapi.concourse.db.Value;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 

@@ -12,32 +12,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
-
+package com.cinchapi.concourse.db;
 
 /**
- * A service that can start and commit a {@link Transaction}.
+ * A service that indexes data.
  * 
  * @author jnelson
  */
-public interface TransactionService {
+public interface IndexingService {
 
 	/**
-	 * Start and return a {@link Transaction} object which should be used for
-	 * performing ALL atomic operations.
-	 * 
-	 * @return the transaction
+	 * Reindex the data that is stored by the service.
+	 * <em>This may be a resource intensive operation</em>.
 	 */
-	public Transaction startTransaction();
-
-	/*
-	 * (non-Javadoc)
-	 * Return the name of the transaction file used be the service.
-	 */
-	public String z_(); // This method should NOT be called publicly, but Java
-						// does not allow non-public methods in an
-						// interface...furthermore, Java does not allow an
-						// interface to specify variables that a class should
-						// define :-/
+	public void reindex();
 
 }

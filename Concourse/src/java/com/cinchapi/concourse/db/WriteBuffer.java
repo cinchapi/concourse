@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,14 +41,14 @@ import com.google.common.base.Preconditions;
  * and queries at the expense of a large memory footprint<sup>1</sup>.
  * </p>
  * <p>
- * Each commit is immediately flushed to a file on disk (this has little
- * overhead because the entire capacity of the file is mapped in memory and data
- * is always appended). Furthermore, no indices are stored on disk which further
+ * Each write is immediately flushed to a file on disk (this has little overhead
+ * because the entire capacity of the file is mapped in memory and data is
+ * always appended). Furthermore, no indices are stored on disk which further
  * optimizes writes and also reads because they must happen entirely in memory.
- * When an existing CommitLog is loaded from disk, its commits are replayed in
+ * When an existing WriteBuffer is loaded from disk, its writes are replayed in
  * memory and the indices are recreated.
  * <p>
- * <sup>1</sup> - The size of the CommitLog on disk cannot exceed
+ * <sup>1</sup> - The size of the WriteBuffer on disk cannot exceed
  * {@value #MAX_SIZE_IN_BYTES} bytes, but it will take up up to 4X more space in
  * memory.
  * </p>
@@ -56,53 +56,56 @@ import com.google.common.base.Preconditions;
  * 
  * @author jnelson
  */
-class CommitLog extends VolatileStorage implements
+class WriteBuffer extends VolatileStorage implements
+		FlushableService,
 		IterableByteSequences,
 		ByteSized {
 
 	/**
-	 * Return the CommitLog that is stored in the file at {@code location}. This
+	 * Return the WriteBuffer that is stored in the file at {@code location}.
+	 * This
 	 * function will fail if the file does not exist.
 	 * 
 	 * @param location
-	 *            - path to the FILE (not directory) to use for the CommitLog
+	 *            - path to the FILE (not directory) to use for the WriteBuffer
 	 * @param config
-	 * @return the CommitLog stored at {@code location}
+	 * @return the WriteBuffer stored at {@code location}
 	 */
-	public static CommitLog fromFile(String location,
+	public static WriteBuffer fromFile(String location,
 			ConcourseConfiguration config) {
 		int oldSize = (int) new File(location).length();
-		int size = config.getInt(Prefs.COMMMIT_LOG_SIZE_IN_BYTES,
+		int size = config.getInt(Prefs.WRITE_BUFFER_SIZE_IN_BYTES,
 				DEFAULT_SIZE_IN_BYTES);
 		Preconditions
 				.checkArgument(
 						size >= oldSize,
-						"The commitlog at %s is too large to be loaded. "
+						"The WriteBuffer at %s is too large to be loaded. "
 								+ "Incrase the value of COMMMIT_LOG_SIZE_IN_BYTES to %s",
 						location, oldSize);
 		Preconditions.checkState(size < MAX_SIZE_IN_BYTES,
-				"The size of the CommitLog cannot be greater than %s bytes",
+				"The size of the WriteBuffer cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
 		MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-		return CommitLog.fromByteSequences(buffer, true);
+		return WriteBuffer.fromByteSequences(buffer, true);
 	}
 
 	/**
-	 * Return a new CommitLog instance at {@code location}. This commit log will
+	 * Return a new WriteBuffer instance at {@code location}. This write buffer
+	 * will
 	 * overwrite anything that was previously written to the file at
 	 * {@code location}.
 	 * 
 	 * @param location
-	 *            - path to the FILE (not directory) to use for the CommitLog
+	 *            - path to the FILE (not directory) to use for the WriteBuffer
 	 * @param config
-	 * @return the new commit log
+	 * @return the new write buffer
 	 */
-	public static CommitLog newInstance(String location,
+	public static WriteBuffer newInstance(String location,
 			ConcourseConfiguration config) {
-		int size = config.getInt(Prefs.COMMMIT_LOG_SIZE_IN_BYTES,
+		int size = config.getInt(Prefs.WRITE_BUFFER_SIZE_IN_BYTES,
 				DEFAULT_SIZE_IN_BYTES);
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
-				"The size of the CommitLog cannot be greater than %s bytes",
+				"The size of the WriteBuffer cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
 		try {
 			File tmp = new File(location);
@@ -110,7 +113,7 @@ class CommitLog extends VolatileStorage implements
 			tmp.getParentFile().mkdirs();
 			tmp.createNewFile();
 			MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-			return CommitLog.fromByteSequences(buffer, false);
+			return WriteBuffer.fromByteSequences(buffer, false);
 		}
 		catch (IOException e) {
 			throw new ConcourseRuntimeException(e);
@@ -119,70 +122,72 @@ class CommitLog extends VolatileStorage implements
 	}
 
 	/**
-	 * Return the CommitLog represented by {@code bytes}. Use this method when
+	 * Return the WriteBuffer represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param buffer
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing commitlog, set to {@code false} otherwise for
-	 *            an empty commitlog
-	 * @return the commitLog
+	 *            from an existing WriteBuffer, set to {@code false} otherwise
+	 *            for
+	 *            an empty WriteBuffer
+	 * @return the WriteBuffer
 	 */
-	protected static CommitLog fromByteSequences(MappedByteBuffer buffer,
+	protected static WriteBuffer fromByteSequences(MappedByteBuffer buffer,
 			boolean populated) {
-		return new CommitLog(buffer, populated);
+		return new WriteBuffer(buffer, populated);
 	}
 
-	private static final int FIXED_SIZE_PER_COMMIT = Integer.SIZE / 8; // for
+	private static final int FIXED_SIZE_PER_WRITE = Integer.SIZE / 8; // for
 																		// storing
 																		// the
 																		// size
 																		// of
 																		// of
 																		// the
-																		// commit
+																		// write
 
 	/**
 	 * <p>
 	 * The percent of capacity to reserve for overflow protection. This is a
-	 * safeguard against cases when the commitlog has M bytes of capacity
-	 * remaining and the next commit requires N bytes of storage (N > M).
-	 * Technically the commitlog is not full, but it would experience an
+	 * safeguard against cases when the WriteBuffer has M bytes of capacity
+	 * remaining and the next write requires N bytes of storage (N > M).
+	 * Technically the WriteBuffer is not full, but it would experience an
 	 * overflow if it tired to add the commit.
 	 * </p>
 	 * <p>
-	 * Setting this value to X means that a commitlog with a total capacity of Z
-	 * will be deemed full when it reaches a capacity of Y (Y = 100-X * Z). Any
-	 * capacity < Y is not considered full whereas any capacity > Y is
-	 * considered full. So when the commitlog is M bytes away from reaching a
-	 * capacity of Y, adding a commit that requires N bytes (N > M) will not
+	 * Setting this value to X means that a WriteBuffer with a total capacity of
+	 * Z will be deemed full when it reaches a capacity of Y (Y = 100-X * Z).
+	 * Any capacity < Y is not considered full whereas any capacity > Y is
+	 * considered full. So when the WriteBuffer is M bytes away from reaching a
+	 * capacity of Y, adding a write that requires N bytes (N > M) will not
 	 * cause an overflow so long as N-M < Z-Y.
 	 * </p>
 	 */
 	public static final double PCT_CAPACITY_FOR_OVERFLOW_PREVENTION = .02;
 
 	/**
-	 * The default filename for the commitlog.
+	 * The default filename for the WriteBuffer.
 	 */
-	public static final String DEFAULT_LOCATION = "commitlog";
+	public static final String DEFAULT_LOCATION = "WriteBuffer";
 
 	/**
-	 * The maximum allowable size of the CommitLog on disk.
+	 * The maximum allowable size of the WriteBuffer on disk.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10);
 
 	/**
-	 * The default size of the commitlog
+	 * The default size of the WriteBuffer
 	 */
 	public static final int DEFAULT_SIZE_IN_BYTES = MAX_SIZE_IN_BYTES - 1;
 
-	private static final Logger log = LoggerFactory.getLogger(CommitLog.class);
+	private static final Logger log = LoggerFactory
+			.getLogger(WriteBuffer.class);
 	private static final double PCT_USABLE_CAPACITY = 100 - PCT_CAPACITY_FOR_OVERFLOW_PREVENTION;
 
 	/**
-	 * <strong>Note</strong>: Each commit is preceded by a 4 byte int specifying
+	 * <strong>Note</strong>: Each write is preceded by a 4 byte int specifying
 	 * the size.
 	 */
 	private final MappedByteBuffer buffer;
@@ -197,12 +202,13 @@ class CommitLog extends VolatileStorage implements
 	 * @param buffer
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing commitlog, set to {@code false} for an empty
-	 *            commitlog
+	 *            from an existing WriteBuffer, set to {@code false} for an
+	 *            empty
+	 *            WriteBuffer
 	 */
-	private CommitLog(MappedByteBuffer buffer, boolean populated) {
+	private WriteBuffer(MappedByteBuffer buffer, boolean populated) {
 		super(buffer.capacity()
-				/ (Commit.AVG_MIN_SIZE_IN_BYTES + FIXED_SIZE_PER_COMMIT));
+				/ (Write.AVG_MIN_SIZE_IN_BYTES + FIXED_SIZE_PER_WRITE));
 		this.buffer = buffer;
 		this.usableCapacity = (int) Math.round((PCT_USABLE_CAPACITY / 100.0)
 				* buffer.capacity());
@@ -213,15 +219,16 @@ class CommitLog extends VolatileStorage implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
-				Commit commit = Commit.fromByteSequence(bsit.next());
-				// this will only record the commit in memory and not the
+				Write write = Write.fromByteSequence(bsit.next());
+				// this will only record the write in memory and not the
 				// underlying file (because it is already there!)
-				commit(commit, false);
-				size += commit.size() + FIXED_SIZE_PER_COMMIT;
+				commit(write, false);
+				size += write.size() + FIXED_SIZE_PER_WRITE;
 			}
 			this.buffer.position(bsit.position());
 			reindex();
 		}
+		log.info("The WriteBuffer has started.");
 	}
 
 	@Override
@@ -246,7 +253,7 @@ class CommitLog extends VolatileStorage implements
 	@Override
 	public synchronized void shutdown() {
 		buffer.force();
-		log.info("Successfully shutdown the CommitLog.");
+		log.info("The WriteBuffer has shutdown gracefully.");
 		super.shutdown();
 
 	}
@@ -263,12 +270,12 @@ class CommitLog extends VolatileStorage implements
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return append(Commit.forStorage(column, value, row), true);
+		return append(Write.forStorage(column, value, row), true);
 	}
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return append(Commit.forStorage(column, value, row), false);
+		return append(Write.forStorage(column, value, row), false);
 	}
 
 	/**
@@ -276,84 +283,85 @@ class CommitLog extends VolatileStorage implements
 	 * <strong>USE WITH CAUTION!</strong>
 	 * </p>
 	 * <p>
-	 * Return an iterator that should only be used for flushing the commitlog.
+	 * Return an iterator that should only be used for flushing the WriteBuffer.
 	 * Each call to {@link Iterator#next} will DELETE the returned commit.
 	 * </p>
 	 * 
 	 * @return the iterator
 	 */
-	Iterator<Commit> flusher() {
+	public Iterator<Write> flusher() {
 		return new Flusher();
 	}
 
 	/**
-	 * Return {@code true} if the commit log is full and should be
+	 * Return {@code true} if the write buffer is full and should be
 	 * {@code flushed}.
 	 * 
-	 * @return {@code true} if the commit log is full
+	 * @return {@code true} if the write buffer is full
 	 */
 	boolean isFull() {
 		return size >= usableCapacity;
 	}
 
 	/**
-	 * Return {@code true} if the commit log is too full to commit the revision
+	 * Return {@code true} if the write buffer is too full to write the revision
 	 * for {@code value} in {@code row}: {@code column}.
 	 * 
 	 * @param column
 	 * @param value
 	 * @param row
-	 * @return {@code true} if the commit log is full
+	 * @return {@code true} if the write buffer is full
 	 */
 	boolean isFull(String column, Object value, long row) {
-		Commit commit = Commit.notForStorage(column, value, row);
-		return size + commit.size() + FIXED_SIZE_PER_COMMIT > usableCapacity;
+		Write write = Write.notForStorage(column, value, row);
+		return size + write.size() + FIXED_SIZE_PER_WRITE > usableCapacity;
 	}
 
 	/**
-	 * Append {@code commit} to the underlying file and perform the
-	 * {@link #commit(Commit)} function so that it is also added to the volatile
+	 * Append {@code write} to the underlying file and perform the
+	 * {@link #commit(Write)} function so that it is also added to the volatile
 	 * store.
 	 * 
-	 * @param commit
+	 * @param write
 	 * @param index
 	 * @return {@code true}
-	 * @see {@link #commit(Commit, boolean)}
+	 * @see {@link #commit(Write, boolean)}
 	 */
 	/*
 	 * (non-Javadoc)
 	 * This method does not override #commit because it is necessary to access a
 	 * distinct method for only altering the VolatileDatabase (i.e. when
-	 * constructing a CommitLog from an existing file)
+	 * constructing a WriteBuffer from an existing file)
 	 */
-	private boolean append(Commit commit, boolean index) {
+	private boolean append(Write write, boolean index) {
 		synchronized (buffer) {
 			// Must attempt to write to the file before writing to memory
 			Preconditions
 					.checkState(
-							buffer.remaining() >= commit.size() + 4,
-							"The commitlog does not have enough capacity to store the commit. "
-									+ "The commitlog has %s bytes remaining and the commit requires %s bytes. "
+							buffer.remaining() >= write.size() + 4,
+							"The WriteBuffer does not have enough capacity to store the commit. "
+									+ "The WriteBuffer has %s bytes remaining and the write requires %s bytes. "
 									+ "Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION or "
 									+ "the value of COMMIT_LOG_SIZE_IN_BYTES.",
-							buffer.remaining(), commit.size() + 4);
-			buffer.putInt(commit.size());
-			buffer.put(commit.getBytes());
+							buffer.remaining(), write.size() + 4);
+			buffer.putInt(write.size());
+			buffer.put(write.getBytes());
 			buffer.force();
 		}
-		size += commit.size() + FIXED_SIZE_PER_COMMIT;
+		size += write.size() + FIXED_SIZE_PER_WRITE;
 		checkForOverflow();
-		return super.commit(commit, index);
+		return super.commit(write, index);
 	}
 
 	/**
-	 * Check if the commitlog has entered the overflow protection region and if
+	 * Check if the WriteBuffer has entered the overflow protection region and
+	 * if
 	 * so, log a WARN message.
 	 */
 	private void checkForOverflow() {
 		if(isFull()) {
 			log.warn(
-					"The commitlog has exceeded its usable capacity of {} bytes and is now "
+					"The WriteBuffer has exceeded its usable capacity of {} bytes and is now "
 							+ "in the overflow prevention region. There are {} bytes left in "
 							+ "this region. If these bytes are consumed an oveflow exception "
 							+ "will be thrown.", usableCapacity,
@@ -362,12 +370,12 @@ class CommitLog extends VolatileStorage implements
 	}
 
 	/**
-	 * An flushing iterator, that removes commits from the mapped file and the
+	 * An flushing iterator, that removes writes from the mapped file and the
 	 * in-memory indices for each call to next();
 	 * 
 	 * @author jnelson
 	 */
-	private class Flusher implements Iterator<Commit> {
+	private class Flusher implements Iterator<Write> {
 		int expectedCount = ordered.size();
 
 		public Flusher() {
@@ -380,9 +388,9 @@ class CommitLog extends VolatileStorage implements
 		}
 
 		@Override
-		public Commit next() {
+		public Write next() {
 			checkForComodification();
-			Commit next = ordered.remove(0); // authorized
+			Write next = ordered.remove(0); // authorized
 			int count = counts.get(next) - 1;
 			if(count == 0) {
 				counts.remove(next); // authorized
@@ -405,12 +413,12 @@ class CommitLog extends VolatileStorage implements
 		}
 
 		/**
-		 * Check for concurrent modification to the commit log.
+		 * Check for concurrent modification to the write buffer.
 		 */
 		private void checkForComodification() {
 			if(expectedCount != ordered.size()) {
 				throw new ConcurrentModificationException(
-						"Attempted modification to CommitLog while flushing");
+						"Attempted modification to WriteBuffer while flushing");
 			}
 		}
 
@@ -420,11 +428,11 @@ class CommitLog extends VolatileStorage implements
 	 * The configurable preferences used in this class.
 	 */
 	private enum Prefs implements PrefsKey {
-		COMMMIT_LOG_SIZE_IN_BYTES
+		WRITE_BUFFER_SIZE_IN_BYTES
 	}
 
 	/**
-	 * CommitLog utility methods
+	 * WriteBuffer utility methods
 	 */
 	private static class Utilities {
 

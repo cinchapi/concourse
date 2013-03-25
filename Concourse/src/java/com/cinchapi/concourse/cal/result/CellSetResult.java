@@ -17,7 +17,7 @@ package com.cinchapi.concourse.cal.result;
 import java.util.Set;
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.internal.Cell;
+import com.cinchapi.concourse.db.Cell;
 
 /**
  * A result that contains a set of {@link Cell} objects, each of which contains

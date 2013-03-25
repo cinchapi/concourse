@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -95,6 +95,7 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 				new FileInputStream(filename).getChannel().read(buffer); // deserialize
 																			// entire
 																			// row
+				buffer.rewind();
 				row = fromByteSequences(filename, key, buffer);
 				cache.put(row, key);
 			}
@@ -127,8 +128,10 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 															// memory than
 															// necessary
 		int nonEmptyCells = 0;
+		byte[] array = new byte[bytes.remaining()];
+		bytes.get(array);
 		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
-				.over(bytes.array());
+				.over(array);
 		while (bsit.hasNext()) {
 			Cell cell = Cell.fromByteSequence(bsit.next());
 			cells.put(cell.getColumn(), cell);

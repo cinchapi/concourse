@@ -12,17 +12,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * Encapsulates the mapping of a value to a set of {@link Key} objects.
@@ -91,8 +91,12 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 
 	@Override
 	public int size() {
-		return FIXED_SIZE_IN_BYTES + value.size()
-				+ (keys.size() * Key.SIZE_IN_BYTES);
+		return FIXED_SIZE_IN_BYTES + value.size() + keys.size();
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(this);
 	}
 
 	/**
@@ -105,12 +109,15 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 	}
 
 	/**
-	 * Return the indexed {@code keys}.
+	 * Return the indexed {@code keys} in most recent order.
 	 * 
 	 * @return the keys
 	 */
-	HashSet<Key> getKeys() {
-		return (HashSet<Key>) Collections.unmodifiableSet(keys.keys);
+	List<Key> getKeys() {
+		List<Key> theKeys = Lists.newArrayListWithCapacity(keys.keys.size());
+		theKeys.addAll(keys.keys);
+		Collections.reverse(theKeys);
+		return theKeys;
 	}
 
 	/**
@@ -183,10 +190,12 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 		 * @return the key set
 		 */
 		static KeySet fromByteSequences(ByteBuffer bytes) {
-			HashSet<Key> keys = Sets.newHashSetWithExpectedSize(bytes
-					.capacity() / Key.SIZE_IN_BYTES);
+			List<Key> keys = Lists.newArrayListWithExpectedSize((bytes
+					.capacity() / (Key.SIZE_IN_BYTES + 4)));
+			byte[] array = new byte[bytes.remaining()];
+			bytes.get(array);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
-					.over(bytes.array());
+					.over(array);
 			while (bsit.hasNext()) {
 				keys.add(Key.fromLong(bsit.next().getLong()));
 			}
@@ -199,18 +208,18 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 		 * @return the key set
 		 */
 		static KeySet newInstance() {
-			HashSet<Key> keys = Sets.newHashSet();
+			List<Key> keys = Lists.newArrayList();
 			return new KeySet(keys);
 		}
 
-		private HashSet<Key> keys;
+		private List<Key> keys;
 
 		/**
 		 * Construct a new instance.
 		 * 
 		 * @param keys
 		 */
-		private KeySet(HashSet<Key> keys) {
+		private KeySet(List<Key> keys) {
 			this.keys = keys;
 		}
 
@@ -221,7 +230,7 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 
 		@Override
 		public int size() {
-			return keys.size() * Key.SIZE_IN_BYTES;
+			return keys.size() * (Key.SIZE_IN_BYTES + 4);
 		}
 
 		@Override

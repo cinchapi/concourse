@@ -12,32 +12,31 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
-
-import org.junit.Test;
-
-import com.cinchapi.concourse.db.Key;
+package com.cinchapi.concourse.db;
 
 /**
- * Unit tests for {@link Key}.
+ * A service that flushes {@link Write} objects from a {@link FlushableService}
+ * and is therefore unable to be written to directly.
  * 
  * @author jnelson
  */
-public final class KeyTest extends BaseTest {
+public abstract class FlushingService extends ConcourseService {
 
+	/**
+	 * Flush the contents of the {@code service}.
+	 * 
+	 * @param service
+	 */
+	public abstract void flush(FlushableService service);
 
-	@Test
-	public void testUnsignedConstraint() {
-		long positive = randomPositiveLong();
-		long negative = randomNegativeLong();
-		Key positiveKey = Key.fromLong(positive);
-		Key negativeKey = Key.fromLong(negative);
+	@Override
+	protected final boolean addSpi(String column, Object value, long row) {
+		return false;
+	}
 
-		// row keys should never be negative
-		assertFalse(Long.toString(positive).startsWith("-"));
-		assertFalse(positiveKey.toString().startsWith("-"));
-		assertTrue(Long.toString(negative).startsWith("-"));
-		assertFalse(negativeKey.toString().startsWith("-"));
+	@Override
+	protected final boolean removeSpi(String column, Object value, long row) {
+		return false;
 	}
 
 }

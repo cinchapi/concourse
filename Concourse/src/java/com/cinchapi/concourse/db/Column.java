@@ -12,13 +12,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -32,10 +33,11 @@ import com.cinchapi.common.Hash;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.concourse.db.QueryService.Operator;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
-import com.cinchapi.concourse.internal.QueryService.Operator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -59,9 +61,11 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 */
 	private static Column fromByteSequences(String filename, String name,
 			ByteBuffer bytes) {
-		TreeMap<Value, ValueIndex> values = Maps.newTreeMap();
+		TreeMap<Value, ValueIndex> values = Maps.newTreeMap(new Value.LogicalComparator());
+		byte[] array = new byte[bytes.remaining()];
+		bytes.get(array);
 		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
-				.over(bytes.array());
+				.over(array);
 		while (bsit.hasNext()) {
 			ValueIndex index = ValueIndex.fromByteSequence(bsit.next());
 			values.put(index.getValue(), index);
@@ -92,6 +96,7 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 				new FileInputStream(filename).getChannel().read(buffer); // deserialize
 																			// entire
 																			// column
+				buffer.rewind();
 				column = fromByteSequences(filename, name, buffer);
 				cache.put(column, name);
 			}
@@ -143,12 +148,12 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 */
 	void add(Key row, Value value) {
 		ValueIndex index;
-		if(components.containsKey(value)) {
-			index = components.get(value);
+		if(((TreeMap<Value, ValueIndex>) components).containsKey(value)) {
+			index = ((TreeMap<Value, ValueIndex>) components).get(value);
 		}
 		else {
 			index = ValueIndex.forValue(value);
-			components.put(value, index);
+			((TreeMap<Value, ValueIndex>) components).put(value, index);
 		}
 		index.add(row);
 	}
@@ -161,16 +166,20 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 * @param values
 	 * @return the row set.
 	 */
-	Set<Key> query(Operator operator, Value... values) {
-		Set<Key> keys = Sets.newLinkedHashSet();
-		Value value = values[0];
+	Set<Long> query(Operator operator, Object... values) {
+		List<Key> keys = Lists.newArrayList();
+		Value value = Value.notForStorage(values[0]);
 
 		if(operator == Operator.EQUALS) {
-			keys = this.components.get(value).getKeys();
+			if(((TreeMap<Value, ValueIndex>) this.components)
+					.containsKey(value)) {
+				keys = ((TreeMap<Value, ValueIndex>) this.components)
+						.get(value).getKeys();
+			}
 		}
 		else if(operator == Operator.NOT_EQUALS) {
-			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
-					.iterator();
+			Iterator<Entry<Value, ValueIndex>> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, ValueIndex> entry = it.next();
 				Value theVal = entry.getKey();
@@ -211,7 +220,7 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 		else if(operator == Operator.BETWEEN) {
 			Preconditions.checkArgument(values.length > 1,
 					"You must specify two arguments for the BETWEEN selector.");
-			Value value2 = values[1];
+			Value value2 = Value.notForStorage(values[0]);
 			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
 					.subMap(value, true, value2, false).values().iterator();
 			while (it.hasNext()) {
@@ -219,8 +228,8 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 			}
 		}
 		else if(operator == Operator.REGEX) {
-			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
-					.iterator();
+			Iterator<Entry<Value, ValueIndex>> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, ValueIndex> entry = it.next();
 				Value theVal = entry.getKey();
@@ -234,8 +243,8 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 			}
 		}
 		else if(operator == Operator.NOT_REGEX) {
-			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
-					.iterator();
+			Iterator<Entry<Value, ValueIndex>> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.entrySet().iterator();
 			while (it.hasNext()) {
 				Entry<Value, ValueIndex> entry = it.next();
 				Value theVal = entry.getKey();
@@ -252,7 +261,11 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 			throw new UnsupportedOperationException(operator
 					+ " operator is unsupported");
 		}
-		return keys;
+		Set<Long> result = Sets.newLinkedHashSet();
+		for (Key key : keys) {
+			result.add(key.asLong());
+		}
+		return result;
 	}
 
 	/**
@@ -262,11 +275,11 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 * @param value
 	 */
 	void remove(Key row, Value value) {
-		if(components.containsKey(value)) {
-			ValueIndex index = components.get(value);
+		if(((TreeMap<Value, ValueIndex>)components).containsKey(value)) {
+			ValueIndex index = ((TreeMap<Value, ValueIndex>)components).get(value);
 			index.remove(row);
 			if(index.isEmpty()) {
-				components.remove(value);
+				((TreeMap<Value, ValueIndex>)components).remove(value);
 			}
 		}
 	}

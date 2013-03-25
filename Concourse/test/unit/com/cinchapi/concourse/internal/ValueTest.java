@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.internal.Value;
+import com.cinchapi.concourse.db.Value;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 

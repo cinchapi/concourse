@@ -18,7 +18,7 @@ import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.concourse.internal.Key;
+import com.cinchapi.concourse.db.Key;
 
 /**
  * A result that contains a set of {@link Key} objects, each of which identifies

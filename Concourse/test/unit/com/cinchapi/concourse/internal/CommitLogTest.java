@@ -16,19 +16,19 @@ package com.cinchapi.concourse.internal;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.internal.CommitLog;
+import com.cinchapi.concourse.db.WriteBuffer;
 import com.cinchapi.concourse.internal.ConcourseServiceProvider;
 import com.cinchapi.concourse.internal.ConcourseServiceTest;
 
 /**
- * Unit tests for {@link CommitLog}.
+ * Unit tests for {@link WriteBuffer}.
  * 
  * @author jnelson
  */
 public class CommitLogTest extends ConcourseServiceTest {
 
 	@Override
-	protected CommitLog getService() {
+	protected WriteBuffer getService() {
 		return ConcourseServiceProvider.provideNewCommitLog();
 	}
 

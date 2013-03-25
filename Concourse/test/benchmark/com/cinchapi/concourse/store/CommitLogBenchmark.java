@@ -14,7 +14,7 @@
  */
 package com.cinchapi.concourse.store;
 
-import com.cinchapi.concourse.internal.CommitLog;
+import com.cinchapi.concourse.db.WriteBuffer;
 import com.cinchapi.concourse.internal.ConcourseServiceProvider;
 import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
 
@@ -29,7 +29,7 @@ public class CommitLogBenchmark extends ConcourseServiceBenchmark {
 	private static final int size = 1024 * 1024 * 100;
 
 	@Override
-	protected CommitLog getService() {
+	protected WriteBuffer getService() {
 		return ConcourseServiceProvider.provideNewCommitLog(location, size);
 	}
 

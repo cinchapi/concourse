@@ -18,8 +18,8 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.internal.Cell;
-import com.cinchapi.concourse.internal.Value;
+import com.cinchapi.concourse.db.Cell;
+import com.cinchapi.concourse.db.Value;
 
 /**
  * Unit tests for {@link Cell}

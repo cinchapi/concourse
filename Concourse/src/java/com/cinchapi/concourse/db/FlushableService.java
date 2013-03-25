@@ -12,32 +12,22 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
-import org.junit.Test;
-
-import com.cinchapi.concourse.db.Key;
+import java.util.Iterator;
 
 /**
- * Unit tests for {@link Key}.
+ * An interface that can can have its stored {@link Write} objects flushed.
  * 
  * @author jnelson
  */
-public final class KeyTest extends BaseTest {
+public interface FlushableService {
 
-
-	@Test
-	public void testUnsignedConstraint() {
-		long positive = randomPositiveLong();
-		long negative = randomNegativeLong();
-		Key positiveKey = Key.fromLong(positive);
-		Key negativeKey = Key.fromLong(negative);
-
-		// row keys should never be negative
-		assertFalse(Long.toString(positive).startsWith("-"));
-		assertFalse(positiveKey.toString().startsWith("-"));
-		assertTrue(Long.toString(negative).startsWith("-"));
-		assertFalse(negativeKey.toString().startsWith("-"));
-	}
+	/**
+	 * Return an iterator that can be used for flushing commits.
+	 * 
+	 * @return the flusher
+	 */
+	public Iterator<Write> flusher();
 
 }

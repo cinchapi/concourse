@@ -16,10 +16,11 @@ package com.cinchapi.concourse;
 
 import java.util.Set;
 
-import com.cinchapi.concourse.internal.DataStoreService;
-import com.cinchapi.concourse.internal.Engine;
-import com.cinchapi.concourse.internal.Transaction;
-import com.cinchapi.concourse.internal.TransactionService;
+import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.db.DataStoreService;
+import com.cinchapi.concourse.db.Engine;
+import com.cinchapi.concourse.db.Transaction;
+import com.cinchapi.concourse.db.TransactionService;
 import com.google.common.collect.Sets;
 
 /**
@@ -89,11 +90,38 @@ import com.google.common.collect.Sets;
  */
 public class Concourse implements DataStoreService, TransactionService {
 
-	private Engine engine;
+	/**
+	 * Start {@code Concourse}.
+	 * 
+	 * @return Concourse
+	 */
+	public static Concourse start() {
+		ConcourseConfiguration prefs = ConcourseConfiguration
+				.fromFile(PREFS_FILE);
+		Engine engine = Engine.start(prefs);
+		return new Concourse(engine);
+	}
+
+	private static final String PREFS_FILE = "concourse.prefs";
+
+	private final Engine engine;
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param engine
+	 */
+	private Concourse(Engine engine) {
+		this.engine = engine;
+	}
 
 	@Override
 	public boolean add(String column, Object value, long row) {
 		return engine.add(column, value, row);
+	}
+	
+	public boolean addRelation(long fromRow, long toRow, String column){
+		return false;
 	}
 
 	@Override

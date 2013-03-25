@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,21 +40,21 @@ import com.google.common.primitives.Longs;
  * A lightweight {@link ConcourseService} that is maintained entirely in memory.
  * </p>
  * <p>
- * The service stores data as a list of {@link Commit} objects with hyper
+ * The service stores data as a list of {@link Write} objects with hyper
  * indexing<sup>1</sup>. The data takes up 3X more space than it would on disk.
  * This structure serves as a suitable cache or as fast, albeit temporary,
  * storage for data that will eventually be persisted to disk.
  * </p>
  * <p>
- * The service can theoretically handle up to {@value #MAX_NUM_COMMITS} writes,
+ * The service can theoretically handle up to {@value #MAX_NUM_WRITES} writes,
  * but memory availability is a more reliable gauge.
  * </p>
  * <p>
  * <sup>1</sup> - A red-black tree is used to index <em>every</em> column for
- * logarithmic query operations. Additionally, the count for each distinct
- * commit is maintained, so the ability to determine if a value exists in a cell
- * takes constant time. Finally, no special row-oriented indices are maintained
- * so fetch and describe operations run in linear time.
+ * logarithmic query operations. Additionally, the count for each distinct write
+ * is maintained, so the ability to determine if a value exists in a cell takes
+ * constant time. Finally, no special row-oriented indices are maintained so
+ * fetch and describe operations run in linear time.
  * </p>
  * 
  * @author jnelson
@@ -66,18 +66,17 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	 * {@code expectedSize}.
 	 * 
 	 * @param expectedCapacity
-	 *            - the expected number of commits
+	 *            - the expected number of writes
 	 * @return the memory representation
 	 */
-	static VolatileStorage newInstancewithExpectedCapacity(
-			int expectedCapacity) {
+	static VolatileStorage newInstancewithExpectedCapacity(int expectedCapacity) {
 		return new VolatileStorage(expectedCapacity);
 	}
 
 	/**
-	 * The maximum number of commits that can be stored by the service.
+	 * The maximum number of writes that can be stored by the service.
 	 */
-	public static final int MAX_NUM_COMMITS = Integer.MAX_VALUE;
+	public static final int MAX_NUM_WRITES = Integer.MAX_VALUE;
 
 	/**
 	 * The average number of rows that have value V in column C. This number is
@@ -94,16 +93,16 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	private static final Comparator<Value> comparator = new Value.LogicalComparator();
 
 	/**
-	 * Maintains all the commits in chronological order. Elements from
+	 * Maintains all the writes in chronological order. Elements from
 	 * the list SHOULD NOT be deleted, so handle with care.
 	 */
-	protected List<Commit> ordered;
+	protected List<Write> ordered;
 
 	/**
-	 * Maintains a mapping from a Commit to the number of times the Commit
+	 * Maintains a mapping from a Write to the number of times the Write
 	 * exists in {@link #ordered}.
 	 */
-	protected HashMap<Commit, Integer> counts;
+	protected HashMap<Write, Integer> counts;
 
 	/**
 	 * Maintains an index mapping a column name to a ValueIndex. The ValueIndex
@@ -131,9 +130,9 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	public synchronized void reindex() { // O(n)
-		for (Commit commit : ordered) {
-			if(contains(commit)) {
-				index(commit);
+		for (Write write : ordered) {
+			if(contains(write)) {
+				index(write);
 			}
 		}
 	}
@@ -143,58 +142,58 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return commit(Commit.forStorage(column, value, row), true);
+		return commit(Write.forStorage(column, value, row), true);
 	}
 
 	/**
-	 * Record the {@code commit} in memory. This method DOES NOT perform any
+	 * Record the {@code write} in memory. This method DOES NOT perform any
 	 * validation or input checks.
 	 * 
-	 * @param commit
+	 * @param write
 	 * @param index
-	 *            - set to {@code true} to index the commit for
+	 *            - set to {@code true} to index the write for
 	 *            {@link #query(String, Operator, Object...)} operations
 	 * @return {@code true}
 	 */
-	protected final boolean commit(final Commit commit, boolean index) {
-		// I wont deindex from a remove commit because it is expensive and I
-		// will check the commit #count() whenever I read from the index. To
+	protected final boolean commit(final Write write, boolean index) {
+		// I wont deindex from a remove write because it is expensive and I
+		// will check the write #count() whenever I read from the index. To
 		// reclaim space for stale indices, call reindex()
-		int count = count(commit) + 1;
-		counts.put(commit, count);
-		ordered.add(commit);
+		int count = count(write) + 1;
+		counts.put(write, count);
+		ordered.add(write);
 		if(index) {
-			index(commit);
+			index(write);
 		}
 		return true;
 	}
 
 	/**
-	 * Return {@code true} if {@code commit} has been committed an odd number of
+	 * Return {@code true} if {@code write} has been committed an odd number of
 	 * times and is therefore considered to be contained (meaning the committed
 	 * value exists).
 	 * 
-	 * @param commit
-	 * @return {@code true} if {@code commit} exists.
+	 * @param write
+	 * @return {@code true} if {@code write} exists.
 	 */
-	protected final boolean contains(Commit commit) {
-		return Numbers.isOdd(count(commit));
+	protected final boolean contains(Write write) {
+		return Numbers.isOdd(count(write));
 	}
 
 	/**
-	 * Return the count for {@code commit} in the storage. Many operations
+	 * Return the count for {@code write} in the storage. Many operations
 	 * build upon this functionality (i.e the {@code exists} method, which is
 	 * called by both the {@code add} and {@code remove} methods
 	 * before issuing writes is built upon this method.
 	 * 
-	 * @param commit
+	 * @param write
 	 * @return the count
 	 */
-	protected final int count(Commit commit) {
-		commit = Commit.notForStorageCopy(commit);
-		synchronized (commit) { // I can lock locally here because a
-								// notForStorage commit is a cached reference
-			return counts.containsKey(commit) ? counts.get(commit) : 0;
+	protected final int count(Write write) {
+		write = Write.notForStorageCopy(write);
+		synchronized (write) { // I can lock locally here because a
+								// notForStorage write is a cached reference
+			return counts.containsKey(write) ? counts.get(write) : 0;
 		}
 	}
 
@@ -202,32 +201,32 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	protected final Set<String> describeSpi(long row) { // O(n)
 		Map<String, Set<Value>> columns2Values = Maps.newHashMap();
 		synchronized (ordered) {
-			Iterator<Commit> commiterator = ordered.iterator();
-			while (commiterator.hasNext()) {
-				Commit commit = commiterator.next();
-				if(Longs.compare(commit.getRow().asLong(), row) == 0) {
+			Iterator<Write> writeIterator = ordered.iterator();
+			while (writeIterator.hasNext()) {
+				Write write = writeIterator.next();
+				if(Longs.compare(write.getRow().asLong(), row) == 0) {
 					Set<Value> values;
-					if(columns2Values.containsKey(commit.getColumn())) {
-						values = columns2Values.get(commit.getColumn());
+					if(columns2Values.containsKey(write.getColumn())) {
+						values = columns2Values.get(write.getColumn());
 					}
 					else {
 						values = Sets.newHashSet();
-						columns2Values.put(commit.getColumn(), values);
+						columns2Values.put(write.getColumn(), values);
 					}
-					if(values.contains(commit.getValue())) { // this means I've
-																// encountered
-																// an
-																// even number
-																// commit for
-																// row/column/value
-																// which
-																// resulted
-																// from a
-																// removal
-						values.remove(commit.getValue());
+					if(values.contains(write.getValue())) { // this means I've
+															// encountered
+															// an
+															// even number
+															// write for
+															// row/column/value
+															// which
+															// resulted
+															// from a
+															// removal
+						values.remove(write.getValue());
 					}
 					else {
-						values.add(commit.getValue());
+						values.add(write.getValue());
 					}
 				}
 			}
@@ -244,32 +243,32 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	protected final boolean existsSpi(String column, Object value, long row) {
-		return contains(Commit.notForStorage(column, value, row));
+		return contains(Write.notForStorage(column, value, row));
 	}
 
 	@Override
 	protected final Set<Object> fetchSpi(String column, long timestamp, long row) { // O(n)
 		Set<Value> _values = Sets.newLinkedHashSet();
-		ListIterator<Commit> commiterator = ordered.listIterator();
-		while (commiterator.hasNext()) {
-			Commit commit = commiterator.next();
-			if(commit.getValue().getTimestamp() <= timestamp) {
-				if(Longs.compare(commit.getRow().asLong(), row) == 0
-						&& commit.getColumn().equals(column)) {
-					if(_values.contains(commit.getValue())) { // this means I've
+		ListIterator<Write> writeIterator = ordered.listIterator();
+		while (writeIterator.hasNext()) {
+			Write write = writeIterator.next();
+			if(write.getValue().getTimestamp() <= timestamp) {
+				if(Longs.compare(write.getRow().asLong(), row) == 0
+						&& write.getColumn().equals(column)) {
+					if(_values.contains(write.getValue())) { // this means I've
 																// encountered
 																// an
 																// even number
-																// commit for
+																// write for
 																// row/column/value
 																// which
 																// resulted
 																// from a
 																// removal
-						_values.remove(commit.getValue());
+						_values.remove(write.getValue());
 					}
 					else {
-						_values.add(commit.getValue());
+						_values.add(write.getValue());
 					}
 				}
 			}
@@ -288,7 +287,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	/*
 	 * (non-Javadoc)
 	 * Throughout this method I have to check if the value indexed in #columns
-	 * still exists because I do not deindex columns for remove commits
+	 * still exists because I do not deindex columns for removes
 	 */
 	@Override
 	protected final Set<Long> querySpi(String column, Operator operator,
@@ -302,8 +301,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Object obj = val.getQuantity();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(row);
 					}
 				}
@@ -320,8 +319,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 					Set<Key> keys = entry.getValue();
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(column, obj, row);
-						if(contains(commit)) {
+						Write write = Write.notForStorage(column, obj, row);
+						if(contains(write)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -338,8 +337,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -355,8 +354,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -372,8 +371,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -389,8 +388,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -409,8 +408,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Set<Key> keys = entry.getValue();
 				for (Key key : keys) {
 					long row = key.asLong();
-					Commit commit = Commit.notForStorage(column, obj, row);
-					if(contains(commit)) {
+					Write write = Write.notForStorage(column, obj, row);
+					if(contains(write)) {
 						rows.add(key.asLong());
 					}
 				}
@@ -429,8 +428,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				if(m.matches()) {
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(column, obj, row);
-						if(contains(commit)) {
+						Write write = Write.notForStorage(column, obj, row);
+						if(contains(write)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -450,8 +449,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				if(!m.matches()) {
 					for (Key key : keys) {
 						long row = key.asLong();
-						Commit commit = Commit.notForStorage(column, obj, row);
-						if(contains(commit)) {
+						Write write = Write.notForStorage(column, obj, row);
+						if(contains(write)) {
 							rows.add(key.asLong());
 						}
 					}
@@ -467,7 +466,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return commit(Commit.forStorage(column, value, row), false);
+		return commit(Write.forStorage(column, value, row), false);
 	}
 
 	@Override
@@ -477,17 +476,17 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 		boolean seekingSizeForRow = row != null && column == null;
 		boolean seekingSizeForCell = row != null && column != null;
 		synchronized (ordered) {
-			Iterator<Commit> commiterator = ordered.iterator();
-			while (commiterator.hasNext()) {
-				Commit commit = commiterator.next();
+			Iterator<Write> writeIterator = ordered.iterator();
+			while (writeIterator.hasNext()) {
+				Write write = writeIterator.next();
 				boolean inRow = seekingSizeForRow
-						&& Longs.compare(commit.getRow().asLong(), row) == 0; // prevents
+						&& Longs.compare(write.getRow().asLong(), row) == 0; // prevents
 																				// NPE
 				boolean inCell = seekingSizeForCell
-						&& Longs.compare(commit.getRow().asLong(), row) == 0
-						&& commit.getColumn().equals(column); // prevents NPE
+						&& Longs.compare(write.getRow().asLong(), row) == 0
+						&& write.getColumn().equals(column); // prevents NPE
 				if(seekingSizeForDb || inRow || inCell) {
-					size += commit.size();
+					size += write.size();
 				}
 			}
 			return size;
@@ -524,16 +523,16 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	}
 
 	/**
-	 * Add indexes for the commit to allow for more efficient
+	 * Add indexes for the write to allow for more efficient
 	 * {@link #query(String, com.cinchapi.concourse.store.api.Queryable.Operator, Object...)}
 	 * operations.
 	 * 
-	 * @param commit
+	 * @param write
 	 */
-	private void index(Commit commit) {
-		String column = commit.getColumn();
-		Value value = commit.getValue();
-		Key row = commit.getRow();
+	private void index(Write write) {
+		String column = write.getColumn();
+		Value value = write.getValue();
+		Key row = write.getRow();
 		TreeMap<Value, Set<Key>> values;
 		if(columns.containsKey(column)) {
 			values = columns.get(column);

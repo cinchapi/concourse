@@ -31,8 +31,8 @@ import com.cinchapi.concourse.auth.AttemptedAuth;
 import com.cinchapi.concourse.auth.AttemptedAuthResponse;
 import com.cinchapi.concourse.auth.CredsFile;
 import com.cinchapi.concourse.client.ClientRequest;
+import com.cinchapi.concourse.db.Engine;
 import com.cinchapi.concourse.exception.ConcourseException;
-import com.cinchapi.concourse.internal.Engine;
 
 /**
  * Base implementation of the {@ConcourseServer} interface.
