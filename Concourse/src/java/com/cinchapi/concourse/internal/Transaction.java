@@ -269,7 +269,7 @@ public final class Transaction extends StaggeredWriteService {
 	protected synchronized void doCommit() {
 		Preconditions.checkState(closed,
 				"The transaction must be closed in order to commit");
-		final String transactionFile = ((TransactionService) primary)._();
+		final String transactionFile = ((TransactionService) primary).z_();
 		final File file = new File(transactionFile);
 		Runnable cleanup = new Runnable() { // Delete files, release locks, etc
 			@Override

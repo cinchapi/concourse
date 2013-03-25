@@ -33,10 +33,8 @@ import com.google.common.primitives.UnsignedLongs;
 @Immutable
 public final class Key extends Number implements Comparable<Key>, ByteSized {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	static final int SIZE_IN_BYTES = Long.SIZE / 8;
 
 	/**
 	 * Return a row key that represents the same value as the inverse two's

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.services;
+package com.cinchapi.concourse.internal;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -23,7 +23,6 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.BaseTest;
 import com.cinchapi.concourse.internal.ConcourseService;
 import com.cinchapi.concourse.internal.IndexingService;
 import com.cinchapi.concourse.internal.QueryService.Operator;
@@ -417,6 +416,8 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				service.query(column, Operator.LESS_THAN_OR_EQUALS, value));
 
 		assertEquals(equal, service.query(column, Operator.EQUALS, value));
+		
+		//TODO REGEX and NOT REGEX
 
 	}
 

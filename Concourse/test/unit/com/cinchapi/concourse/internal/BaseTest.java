@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse;
+package com.cinchapi.concourse.internal;
 
 import java.util.Random;
 
@@ -22,11 +22,6 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.internal.Cell;
-import com.cinchapi.concourse.internal.ConcourseService;
-import com.cinchapi.concourse.internal.Key;
-import com.cinchapi.concourse.internal.Row;
-import com.cinchapi.concourse.internal.Value;
 
 import junit.framework.TestCase;
 import org.junit.Test;

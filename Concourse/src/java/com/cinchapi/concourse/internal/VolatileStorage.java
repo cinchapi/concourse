@@ -445,7 +445,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 				Value theVal = entry.getKey();
 				Object obj = theVal.getQuantity();
 				Pattern p = Pattern.compile(values[0].toString());
-				Matcher m = p.matcher(theVal.toString());
+				Matcher m = p.matcher(obj.toString());
 				Set<Key> keys = entry.getValue();
 				if(!m.matches()) {
 					for (Key key : keys) {

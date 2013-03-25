@@ -14,7 +14,11 @@
  */
 package com.cinchapi.concourse.internal;
 
+import java.io.File;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,21 +30,43 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class Database extends ConcourseService {
+class Database extends ConcourseService {
 
-	private static Logger log = LoggerFactory.getLogger(Database.class);
+	private static final String ROW_HOME = "rows";
+	private static final String COLUMN_HOME = "cols";
+	private static final Logger log = LoggerFactory.getLogger(Database.class);
+	
 	private final String home;
+	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	public static Database inDir(String directory) {
 		return new Database(directory);
 	}
-	
-	private Database(String home){
+
+	private Database(String home) {
 		this.home = home;
 	}
 
+	/**
+	 * Flush the contents of the {@code commitLog} to the database.
+	 * 
+	 * @param commitLog
+	 */
 	public synchronized void flush(CommitLog commitLog) {
-
+		Iterator<Commit> flusher = commitLog.flusher();
+		while (flusher.hasNext()) {
+			Commit commit = flusher.next();
+			String column = commit.getColumn();
+			Value value = commit.getValue();
+			Row row = use(commit.getRow());
+			try {
+				row.add(column, value);
+			}
+			catch (IllegalStateException e) {
+				row.remove(column, value);
+			}
+			row.fsync();
+		}
 	}
 
 	@Override
@@ -48,78 +74,86 @@ public class Database extends ConcourseService {
 		log.info("Successfully shutdown the Database.");
 
 	}
-	
+
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		load(row).add(column, Value.forStorage(value));
-		// TODO add in column
-		// TODO use threads
-		return false;
+		Value v = Value.forStorage(value);
+		use(row).add(column, v);
+		use(column).add(Key.fromLong(row), v);
+		return true;
 	}
 
 	@Override
 	protected Set<String> describeSpi(long row) {
-		return load(row).describe();
-	}
-	
-	private Row load(long row){
-		return Row.identifiedBy(Key.fromLong(row), home);
-	}
-	
-	private Column load(String column){
-		return null;
+		return use(row).describe();
 	}
 
 	@Override
 	protected boolean existsSpi(String column, Object value, long row) {
-		return load(row).exists(column, Value.notForStorage(value));
+		return use(row).exists(column, Value.notForStorage(value));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.services.ConcourseService#fetchSpi(long,
-	 * java.lang.String, long)
-	 */
+	@Override
+	public Set<Object> fetch(String column, long row) {
+		Set<Object> result = Sets.newHashSet();
+		Cell cell = use(row).fetch(column);
+		if(cell != null) {
+			Iterable<Value> values = cell.getValues();
+			for (Value value : values) {
+				result.add(value.getQuantity());
+			}
+		}
+		return result;
+	}
+
 	@Override
 	protected Set<Object> fetchSpi(String column, long timestamp, long row) {
-		return Sets.newHashSet();
+		Set<Object> result = Sets.newHashSet();
+		Cell cell = use(row).fetch(column);
+		if(cell != null) {
+			Iterable<Value> values = cell.getValues(timestamp);
+			for (Value value : values) {
+				result.add(value.getQuantity());
+			}
+		}
+		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.cinchapi.concourse.api.ConcourseService#selectSpi(java.lang.String,
-	 * com.cinchapi.concourse.api.Queryable.SelectOperator, java.lang.Object[])
-	 */
 	@Override
 	protected Set<Long> querySpi(String column, Operator operator,
 			Object... values) {
+		use(column).query(operator, values);
 		return Sets.newHashSet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.cinchapi.concourse.api.ConcourseService#removeSpi(long,
-	 * java.lang.String, java.lang.Object)
-	 */
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return false;
+		Value v = Value.forStorage(value);
+		use(row).remove(column, v);
+		use(column).remove(Key.fromLong(row), v);
+		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.cinchapi.concourse.service.ConcourseService#sizeOfSpi(java.lang.Long,
-	 * java.lang.String)
-	 */
+	@Override
+	public long sizeOf(long row) {
+		return use(row).size();
+	}
+
 	@Override
 	protected long sizeOfSpi(String column, Long row) {
-		return 0;
+		return use(row).size(column);
+	}
+
+	private Row use(long row) {
+		return use(Key.fromLong(row));
+	}
+
+	private Row use(Key row) {
+		return Row.identifiedBy(row, home + File.separator + ROW_HOME);
+	}
+	
+	private Column use(String name){
+		return Column.identifiedBy(name, home + File.separator + COLUMN_HOME);
 	}
 
 }

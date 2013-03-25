@@ -17,7 +17,7 @@ package com.cinchapi.concourse.io;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
+import java.nio.channels.FileLock;
 
 /**
  * An object that can be written to a {@link FileChannel}.
@@ -67,8 +67,9 @@ public interface Persistable extends ByteSized {
 		 */
 		public static void write(Persistable obj, FileChannel channel)
 				throws IOException {
-			channel.lock(channel.position(), obj.size(), false);
+			FileLock lock = channel.lock(channel.position(), obj.size(), false);
 			channel.write(ByteBuffer.wrap(obj.getBytes()));
+			lock.release();
 		}
 	}
 

@@ -12,13 +12,12 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.structure;
+package com.cinchapi.concourse.internal;
 
 import java.util.Iterator;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.BaseTest;
 import com.cinchapi.concourse.internal.Cell;
 import com.cinchapi.concourse.internal.Value;
 

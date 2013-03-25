@@ -93,13 +93,14 @@ class Cell implements ByteSized {
 		byte[] column = new byte[columnSize];
 		bytes.get(column);
 
-		byte[] s = new byte[stateSize];
-		bytes.get(s);
-		State state = State.fromByteSequences(ByteBuffer.wrap(s));
+		byte[] stateBytes = new byte[stateSize];
+		bytes.get(stateBytes);
+		State state = State.fromByteSequences(ByteBuffer.wrap(stateBytes));
 
-		byte[] h = new byte[historySize];
-		bytes.get(h);
-		History history = History.fromByteSequences(ByteBuffer.wrap(h));
+		byte[] historyBytes = new byte[historySize];
+		bytes.get(historyBytes);
+		History history = History.fromByteSequences(ByteBuffer
+				.wrap(historyBytes));
 
 		return new Cell(column, state, history);
 	}

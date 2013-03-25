@@ -82,12 +82,6 @@ public abstract class ConcourseService implements DataStoreService {
 			"'", "\\", "(", ")" };
 
 	@Override
-	public long add(String column, Object value) {
-		long row = Time.now();
-		return add(column, value, row) ? row : null;
-	}
-
-	@Override
 	public final boolean add(String column, Object value, long row) {
 		if(!exists(column, value, row) && isValidValue(value)) {
 			ConcourseService.checkColumnName(column);

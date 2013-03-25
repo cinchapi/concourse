@@ -12,11 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.internal;
 
-import com.cinchapi.concourse.internal.VolatileStorage;
-import com.cinchapi.concourse.services.ConcourseServiceProvider;
-import com.cinchapi.concourse.services.ConcourseServiceTest;
+import com.cinchapi.concourse.internal.ConcourseServiceProvider;
 
 /**
  * 

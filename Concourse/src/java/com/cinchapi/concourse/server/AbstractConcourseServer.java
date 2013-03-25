@@ -32,7 +32,7 @@ import com.cinchapi.concourse.auth.AttemptedAuthResponse;
 import com.cinchapi.concourse.auth.CredsFile;
 import com.cinchapi.concourse.client.ClientRequest;
 import com.cinchapi.concourse.exception.ConcourseException;
-import com.cinchapi.concourse.internal.Concourse;
+import com.cinchapi.concourse.internal.Engine;
 
 /**
  * Base implementation of the {@ConcourseServer} interface.
@@ -59,7 +59,7 @@ public abstract class AbstractConcourseServer implements Server {
 	// Derived
 	private final File home;
 	private ServerSocket serverSocket;
-	private Concourse concourse;
+	private Engine concourse;
 	private CredsFile creds;
 
 	/**
@@ -129,7 +129,7 @@ public abstract class AbstractConcourseServer implements Server {
 		}
 
 		// Load Concourse
-		concourse = Concourse.withHomeAt(home.getAbsolutePath());
+		concourse = Engine.withHomeAt(home.getAbsolutePath());
 		log.info("The server has successfully started");
 		accept();
 	}

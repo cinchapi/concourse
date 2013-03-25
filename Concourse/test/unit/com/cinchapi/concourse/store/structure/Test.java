@@ -16,21 +16,14 @@ package com.cinchapi.concourse.store.structure;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.internal.Commit;
-import com.cinchapi.concourse.internal.CommitLog;
-import com.cinchapi.concourse.internal.Concourse;
-import com.cinchapi.concourse.internal.ConcourseService;
+import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.internal.Engine;
 import com.cinchapi.concourse.internal.Key;
-import com.cinchapi.concourse.internal.Row;
-import com.cinchapi.concourse.internal.Transaction;
-import com.cinchapi.concourse.internal.Value;
-import com.cinchapi.concourse.internal.QueryService.Operator;
+
 
 
 /**
@@ -41,38 +34,14 @@ import com.cinchapi.concourse.internal.QueryService.Operator;
 public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
-//		Concourse service = Concourse.start("concourse.prefs");
-//		service.add("name", "Jeff Nelson", 1);
-//		service.add("name", "Jeff Nelson", 2);
-//		service.add("age", 25, 1);
-//		service.add("age", 30, 2);
-//		service.remove("name", "Jeff Nelson", 2);
-//		service.remove("age", 25, 1);
-//		System.out.println(service.query("name", Operator.EQUALS, "Jeff Nelson"));
-//		System.out.println(service.query("age", Operator.GREATER_THAN_OR_EQUALS, 25));
-//		service.shutdown();
-		
-		StopWatch timer = new StopWatch();
-//		timer.start();
-//		Row row = Row.load(Key.fromLong(Time.now()), "/Users/jnelson/concourse2/db");
-//		long elapsed = timer.stop(TimeUnit.MILLISECONDS);
-//		System.out.println(elapsed +" ms");
-//		row.add("time", Value.forStorage(Time.now()));
-//		row.fsync();
-		
-		timer.start();
-		Row row = Row.identifiedBy(Key.fromLong(Time.now()), "/Users/jnelson/concourse2/db/rows");
-		long elapsed = timer.stop(TimeUnit.MILLISECONDS);
-		System.out.println(elapsed +" ms");
-		row.fsync();
-		
-//		row.add("name", Value.forStorage("Jeff Nelson"));
-//		row.add("name", Value.forStorage(23));
-//		row.fsync();
-//		List<Value> values = row.fetch("name").getValues();
-//		for(Value v : values){
-//			System.out.println(v.getQuantity());
-//		}
+		Engine concourse = Engine.start(ConcourseConfiguration.fromFile("concourse.prefs"));
+		long row = concourse.add("name", "Jeff Nelson");
+		concourse.add("time", "This is going to be a long property because i am trying to make it overflow", row);
+		concourse.add("time", Time.now(), row);
+		concourse.add("time", Time.now(), row);
+		concourse.add("time", Time.now(), row);
+		concourse.add("time", Time.now(), row);
+		concourse.shutdown();
 		
 	}
 

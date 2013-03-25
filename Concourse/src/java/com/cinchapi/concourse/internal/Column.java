@@ -14,67 +14,125 @@
  */
 package com.cinchapi.concourse.internal;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.Hash;
+import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.cinchapi.concourse.internal.QueryService.Operator;
-import com.cinchapi.concourse.search.Searcher;
+
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A collection of {@link Value} where each is mapped to a {@link Key}.
  * 
  * @author jnelson
  */
-//TODO this is not done WIP
-public final class Column {
+final class Column extends PersistableIndex<String, Value, ValueIndex> {
 
 	/**
-	 * Return an empty column.
+	 * Return the column represented by {@code bytes}. Use this method when
+	 * reading
+	 * and reconstructing from a file. This method assumes that {@code bytes}
+	 * was generated using {@link #getBytes()}.
+	 * 
+	 * @param filename
+	 * @param name
+	 * @param bytes
+	 * @return the column
+	 */
+	private static Column fromByteSequences(String filename, String name,
+			ByteBuffer bytes) {
+		TreeMap<Value, ValueIndex> values = Maps.newTreeMap();
+		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
+				.over(bytes.array());
+		while (bsit.hasNext()) {
+			ValueIndex index = ValueIndex.fromByteSequence(bsit.next());
+			values.put(index.getValue(), index);
+		}
+		return new Column(filename, name, values);
+	}
+
+	/**
+	 * Return the {link Column} identified by {@code name}.
 	 * 
 	 * @param name
-	 * @return the column.
+	 * @param home
+	 *            - the home directory where columns are stored
+	 * @return the column
 	 */
-	public static Column createEmpty(String name) {
-		return new Column(name);
-	}
-	
-	public static final int AVG_COLUMN_NAME_SIZE_IN_BYTES = 24;
+	static Column identifiedBy(String name, String home) {
+		Column column = cache.get(name);
+		if(column == null) {
+			String filename = home + File.separator
+					+ Utilities.getStorageFileNameFor(name);
+			try {
+				File file = new File(filename);
+				file.getParentFile().mkdirs();
+				file.createNewFile();
 
+				byte[] bytes = new byte[(int) file.length()];
+				ByteBuffer buffer = ByteBuffer.wrap(bytes);
+				new FileInputStream(filename).getChannel().read(buffer); // deserialize
+																			// entire
+																			// column
+				column = fromByteSequences(filename, name, buffer);
+				cache.put(column, name);
+			}
+			catch (IOException e) {
+				log.error(
+						"An error occured while trying to deserialize column {} from {}: {}",
+						name, filename, e);
+				throw new ConcourseRuntimeException(e);
+			}
+		}
+		return column;
+	}
+
+	/**
+	 * A larger name length allows more buckets (and therefore a smaller
+	 * bucket:row ratio), however the filesystem can act funny if a single
+	 * directory has too many files. This number should seek to have the
+	 * bucket:row ratio equitable to the number of possible buckets while being
+	 * mindful of not having too many files in a single directory.
+	 */
+	private static final int STORAGE_BUCKET_NAME_LENGTH = 4;
+	private static final String STORAGE_FILE_NAME_EXTENSION = ".cc";
 	private static final Logger log = LoggerFactory.getLogger(Column.class);
-	private static final int maxNameSizeInBytes = 65536; // 64KB
-	private static final Searcher searcher = null; //TODO get a searcher
-	
-	private final Select select = new Select();
-	private final String name;
-	private final ConcurrentSkipListMap<Value, Section> values = new ConcurrentSkipListMap<Value, Section>();
+	private static final ObjectReuseCache<Column> cache = new ObjectReuseCache<Column>();
+	public static final int AVG_COLUMN_NAME_SIZE_IN_BYTES = 24;
 
 	/**
 	 * Construct a new instance.
 	 * 
+	 * @param filename
 	 * @param name
+	 * @param components
 	 */
-	protected Column(String name) {
-		Preconditions.checkArgument(!name.contains(" "),
-				"'%s' is an invalid column name because it contains spaces",
-				name);
-		Preconditions.checkArgument(Strings.isNullOrEmpty(name),
-				"column name cannot be empty");
-		Preconditions
-				.checkArgument(
-						name.getBytes(ByteBuffers.charset()).length < maxNameSizeInBytes,
-						"column name cannot be larger than %s bytes",
-						maxNameSizeInBytes);
-		this.name = name;
+	private Column(String filename, String name,
+			TreeMap<Value, ValueIndex> components) {
+		super(filename, name, components);
+	}
+
+	@Override
+	protected Logger getLogger() {
+		return log;
 	}
 
 	/**
@@ -82,44 +140,17 @@ public final class Column {
 	 * 
 	 * @param row
 	 * @param value
-	 * @return {@code true} if {@code row} is added.
 	 */
-	public boolean add(Key row, Value value) {
-		Preconditions.checkNotNull(row);
-		Preconditions.checkNotNull(value);
-		Preconditions.checkArgument(value.isForStorage(),
-				"'%s' is notForStorage and cannot be added", value);
-
-		Section rows;
-		if(values.containsKey(value)) {
-			rows = values.get(value);
+	void add(Key row, Value value) {
+		ValueIndex index;
+		if(components.containsKey(value)) {
+			index = components.get(value);
 		}
 		else {
-			rows = Section.createEmpty();
-			values.put(value, rows);
+			index = ValueIndex.forValue(value);
+			components.put(value, index);
 		}
-		return rows.add(row);
-	}
-
-	/**
-	 * Remove {@code row} from {@code value}.
-	 * 
-	 * @param row
-	 * @param value
-	 * @return {@code true} if {@code row} is removed.
-	 */
-	public boolean remove(Key row, Value value) {
-		if(values.containsKey(value) && values.get(value).remove(row)) {
-			if(values.get(value).isEmpty()) {
-				values.remove(value);
-				if(log.isDebugEnabled()) {
-					log.debug("{} no longer exists in any row for column {}",
-							value, name);
-				}
-			}
-			return true;
-		}
-		return false;
+		index.add(row);
 	}
 
 	/**
@@ -130,252 +161,150 @@ public final class Column {
 	 * @param values
 	 * @return the row set.
 	 */
-	public Section select(Operator operator, Value... values) {
-		Section results = null;
-		switch (operator) {
-		case BETWEEN:
-			results = select.between(values[0], values[1]);
-			break;
-		case CONTAINS:
-			results = select.contains(values[0]);
-			break;
-		case EQUALS:
-			results = select.equal(values[0]);
-			break;
-		case NOT_EQUALS:
-			results = select.notEquals(values[0]);
-			break;
-		case GREATER_THAN:
-			results = select.greaterThan(values[0]);
-			break;
-		case GREATER_THAN_OR_EQUALS:
-			results = select.greaterThanOrEquals(values[0]);
-			break;
-		case LESS_THAN:
-			results = select.lessThan(values[0]);
-			break;
-		case LESS_THAN_OR_EQUALS:
-			results = select.lessThanOrEquals(values[0]);
-			break;
-		case REGEX:
-			results = select.regex(values[0]);
-			break;
-		case NOT_REGEX:
-			results = select.notRegex(values[0]);
-			break;
+	Set<Key> query(Operator operator, Value... values) {
+		Set<Key> keys = Sets.newLinkedHashSet();
+		Value value = values[0];
+
+		if(operator == Operator.EQUALS) {
+			keys = this.components.get(value).getKeys();
 		}
-		return results;
+		else if(operator == Operator.NOT_EQUALS) {
+			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
+					.iterator();
+			while (it.hasNext()) {
+				Entry<Value, ValueIndex> entry = it.next();
+				Value theVal = entry.getKey();
+				ValueIndex index = entry.getValue();
+				if(!theVal.equals(value)) {
+					keys.addAll(index.getKeys());
+				}
+			}
+		}
+		else if(operator == Operator.GREATER_THAN) {
+			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.tailMap(value, false).values().iterator();
+			while (it.hasNext()) {
+				keys.addAll(it.next().getKeys());
+			}
+		}
+		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.tailMap(value, true).values().iterator();
+			while (it.hasNext()) {
+				keys.addAll(it.next().getKeys());
+			}
+		}
+		else if(operator == Operator.LESS_THAN) {
+			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.headMap(value, false).values().iterator();
+			while (it.hasNext()) {
+				keys.addAll(it.next().getKeys());
+			}
+		}
+		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.headMap(value, true).values().iterator();
+			while (it.hasNext()) {
+				keys.addAll(it.next().getKeys());
+			}
+		}
+		else if(operator == Operator.BETWEEN) {
+			Preconditions.checkArgument(values.length > 1,
+					"You must specify two arguments for the BETWEEN selector.");
+			Value value2 = values[1];
+			Iterator<ValueIndex> it = ((TreeMap<Value, ValueIndex>) this.components)
+					.subMap(value, true, value2, false).values().iterator();
+			while (it.hasNext()) {
+				keys.addAll(it.next().getKeys());
+			}
+		}
+		else if(operator == Operator.REGEX) {
+			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
+					.iterator();
+			while (it.hasNext()) {
+				Entry<Value, ValueIndex> entry = it.next();
+				Value theVal = entry.getKey();
+				Object obj = theVal.getQuantity();
+				ValueIndex index = entry.getValue();
+				Pattern p = Pattern.compile(value.getQuantity().toString());
+				Matcher m = p.matcher(obj.toString());
+				if(m.matches()) {
+					keys.addAll(index.getKeys());
+				}
+			}
+		}
+		else if(operator == Operator.NOT_REGEX) {
+			Iterator<Entry<Value, ValueIndex>> it = this.components.entrySet()
+					.iterator();
+			while (it.hasNext()) {
+				Entry<Value, ValueIndex> entry = it.next();
+				Value theVal = entry.getKey();
+				Object obj = theVal.getQuantity();
+				ValueIndex index = entry.getValue();
+				Pattern p = Pattern.compile(value.getQuantity().toString());
+				Matcher m = p.matcher(obj.toString());
+				if(!m.matches()) {
+					keys.addAll(index.getKeys());
+				}
+			}
+		}
+		else {
+			throw new UnsupportedOperationException(operator
+					+ " operator is unsupported");
+		}
+		return keys;
 	}
 
 	/**
-	 * Remove {@code row} from any existing values and add {@code row}
-	 * to {@code value}.
+	 * Remove {@code row} from {@code value}.
 	 * 
 	 * @param row
 	 * @param value
-	 * @return {@code true} if {@code row} is set.
 	 */
-	public boolean set(Key row, Value value) {
-		Iterator<Value> it = values.keySet().iterator();
-		while (it.hasNext()) { // iterate through every value in the column and
-								// try to remove row
-			remove(row, it.next());
+	void remove(Key row, Value value) {
+		if(components.containsKey(value)) {
+			ValueIndex index = components.get(value);
+			index.remove(row);
+			if(index.isEmpty()) {
+				components.remove(value);
+			}
 		}
-		return add(row, value);
 	}
 
 	/**
-	 * A naturally sorted collection of {@link Key}.
+	 * Utilities for the {@link Column} class.
+	 * 
+	 * @author jnelson
 	 */
-	public static class Section extends TreeSet<Key> {
+	private static final class Utilities {
 
 		/**
+		 * Return the storage filename for the column identified by {@code name}
+		 * .
 		 * 
+		 * @param name
+		 * @return the storage filename
 		 */
-		private static final long serialVersionUID = 1L;
-
-		/**
-		 * Return an empty row set.
-		 * 
-		 * @return the row set.
-		 */
-		public static Section createEmpty() {
-			return new Section();
+		public static String getStorageFileNameFor(String name) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(getStorageBucketFor(name));
+			sb.append(File.separator);
+			sb.append(name);
+			sb.append(STORAGE_FILE_NAME_EXTENSION);
+			return sb.toString();
 		}
 
 		/**
-		 * Construct a new instance.
-		 */
-		private Section() {}
-
-	}
-
-	/**
-	 * A class that performs {@link #select} logic.
-	 */
-	private class Select {
-
-		/**
-		 * Perform a {@link Operator#BETWEEN} select.
+		 * Return the appropriate storage bucket for the row identified by
+		 * {@code key}.
 		 * 
-		 * @param v1
-		 * @param v2
-		 * @return the result set.
+		 * @param key
+		 * @return the storage bucket
 		 */
-		public Section between(Value v1, Value v2) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values
-					.subMap(v1, true, v2, false).entrySet().iterator();
-			while (it.hasNext()) {
-				result.addAll(it.next().getValue());
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#CONTAINS} select.
-		 * 
-		 * @param query
-		 * @return the result set.
-		 */
-		public Section contains(Value v) {
-			Section result = Section.createEmpty();
-			result.addAll(searcher.search(v.toString(), name));
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#EQUALS} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section equal(Value v) {
-			return values.containsKey(v) ? values.get(v) : Section.createEmpty();
-		}
-
-		/**
-		 * Perform a {@link Operator#GREATER_THAN} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section greaterThan(Value v) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.tailMap(v, false)
-					.entrySet().iterator();
-			while (it.hasNext()) {
-				result.addAll(it.next().getValue());
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#GREATER_THAN_OR_EQUALS} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section greaterThanOrEquals(Value v) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.tailMap(v, true)
-					.entrySet().iterator();
-			while (it.hasNext()) {
-				result.addAll(it.next().getValue());
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#LESS_THAN} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section lessThan(Value v) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.headMap(v, false)
-					.entrySet().iterator();
-			while (it.hasNext()) {
-				result.addAll(it.next().getValue());
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#LESS_THAN_OR_EQUALS} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section lessThanOrEquals(Value v) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.headMap(v, true)
-					.entrySet().iterator();
-			while (it.hasNext()) {
-				result.addAll(it.next().getValue());
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#NOT_EQUALS} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section notEquals(Value v) {
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<Value, Section> entry = it.next();
-				if(!entry.getKey().equals(v)) {
-					result.addAll(entry.getValue());
-				}
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#NOT_REGEX} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section notRegex(Value v) {
-			String regex = v.toString();
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<Value, Section> entry = it.next();
-				Pattern p = Pattern.compile(regex);
-				Matcher m = p.matcher(entry.getValue().toString());
-				if(!m.matches()) {
-					result.addAll(entry.getValue());
-				}
-			}
-			return result;
-		}
-
-		/**
-		 * Perform a {@link Operator#REGEX} select.
-		 * 
-		 * @param v
-		 * @return the result set.
-		 */
-		public Section regex(Value v) {
-			String regex = v.toString();
-			Section result = Section.createEmpty();
-			Iterator<Entry<Value, Section>> it = values.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<Value, Section> entry = it.next();
-				Pattern p = Pattern.compile(regex);
-				Matcher m = p.matcher(entry.getValue().toString());
-				if(!m.matches()) {
-					result.addAll(entry.getValue());
-				}
-			}
-			return result;
+		private static String getStorageBucketFor(String name) {
+			return Hash.toString(
+					Hash.sha256(name.getBytes(ByteBuffers.charset())))
+					.substring(0, STORAGE_BUCKET_NAME_LENGTH);
 		}
 	}
 

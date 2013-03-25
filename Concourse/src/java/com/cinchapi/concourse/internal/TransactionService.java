@@ -34,7 +34,7 @@ public interface TransactionService {
 	 * (non-Javadoc)
 	 * Return the name of the transaction file used be the service.
 	 */
-	public String _(); // This method should NOT be called publicly, but Java
+	public String z_(); // This method should NOT be called publicly, but Java
 						// does not allow non-public methods in an
 						// interface...furthermore, Java does not allow an
 						// interface to specify variables that a class should

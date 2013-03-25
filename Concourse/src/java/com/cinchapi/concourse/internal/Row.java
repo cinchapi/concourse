@@ -16,15 +16,12 @@ package com.cinchapi.concourse.internal;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 
@@ -36,8 +33,6 @@ import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
-import com.cinchapi.concourse.io.Persistable;
-import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -73,7 +68,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-class Row implements IterableByteSequences, Persistable {
+final class Row extends PersistableIndex<Key, String, Cell> {
 	// NOTE: This class does not define hashCode() or equals() because the
 	// defaults are the desired behaviour.
 
@@ -85,7 +80,7 @@ class Row implements IterableByteSequences, Persistable {
 	 *            - the home directory where rows are stored
 	 * @return the row
 	 */
-	public static Row identifiedBy(Key key, String home) {
+	static Row identifiedBy(Key key, String home) {
 		Row row = cache.get(key);
 		if(row == null) {
 			String filename = home + File.separator
@@ -122,7 +117,7 @@ class Row implements IterableByteSequences, Persistable {
 	 * @param filename
 	 * @param key
 	 * @param bytes
-	 * @return the value
+	 * @return the row
 	 */
 	private static Row fromByteSequences(String filename, Key key,
 			ByteBuffer bytes) {
@@ -150,7 +145,7 @@ class Row implements IterableByteSequences, Persistable {
 	 * mindful of not having too many files in a single directory.
 	 */
 	private static final int STORAGE_BUCKET_NAME_LENGTH = 4;
-	private static final String STORAGE_FILE_NAME_EXTENSION = ".row";
+	private static final String STORAGE_FILE_NAME_EXTENSION = ".cr";
 	private static final ObjectReuseCache<Row> cache = new ObjectReuseCache<Row>();
 
 	/**
@@ -170,17 +165,9 @@ class Row implements IterableByteSequences, Persistable {
 	 */
 	public static final int MAX_NUM_CELLS = MAX_SIZE_IN_BYTES
 			/ Cell.WEIGHTED_SIZE_IN_BYTES;
-
 	private static final Logger log = LoggerFactory.getLogger(Row.class);
 
-	/**
-	 * Map from column name to cell.
-	 */
-	private final HashMap<String, Cell> cells;
 	private transient int nonEmptyCells;
-	private transient final Key key;
-	private transient final String filename;
-	private transient final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
 	/**
 	 * Construct a new instance.
@@ -191,49 +178,8 @@ class Row implements IterableByteSequences, Persistable {
 	 */
 	private Row(String filename, Key key, HashMap<String, Cell> cells,
 			int nonEmptyCells) {
-		this.filename = filename;
-		this.key = key;
-		this.cells = cells;
+		super(filename, key, cells);
 		this.nonEmptyCells = nonEmptyCells;
-	}
-
-	@Override
-	public byte[] getBytes() {
-		lock.writeLock().lock();
-		try {
-			return ByteSizedCollections.toByteArray(cells.values());
-		}
-		finally {
-			lock.writeLock().unlock();
-		}
-	}
-
-	@Override
-	public ByteSequencesIterator iterator() {
-		lock.writeLock().lock();
-		try {
-			return IterableByteSequences.ByteSequencesIterator.over(getBytes());
-		}
-		finally {
-			lock.writeLock().unlock();
-		}
-
-	}
-
-	@Override
-	public int size() {
-		lock.readLock().lock();
-		try {
-			int size = 0;
-			Iterator<Cell> it = cells.values().iterator();
-			while (it.hasNext()) {
-				size += it.next().size();
-			}
-			return size;
-		}
-		finally {
-			lock.readLock().unlock();
-		}
 	}
 
 	/**
@@ -245,8 +191,8 @@ class Row implements IterableByteSequences, Persistable {
 	public int size(String column) {
 		lock.readLock().lock();
 		try {
-			if(cells.containsKey(column)) {
-				return cells.get(column).size();
+			if(components.containsKey(column)) {
+				return components.get(column).size();
 			}
 			return 0;
 		}
@@ -261,14 +207,8 @@ class Row implements IterableByteSequences, Persistable {
 	}
 
 	@Override
-	public void writeTo(FileChannel channel) throws IOException {
-		lock.writeLock().lock();
-		try {
-			Writer.write(this, channel);
-		}
-		finally {
-			lock.writeLock().unlock();
-		}
+	protected Logger getLogger() {
+		return log;
 	}
 
 	/**
@@ -282,12 +222,12 @@ class Row implements IterableByteSequences, Persistable {
 		lock.writeLock().lock();
 		try {
 			Cell cell;
-			if(cells.containsKey(column)) {
-				cell = cells.get(column);
+			if(components.containsKey(column)) {
+				cell = components.get(column);
 			}
 			else {
 				cell = Cell.newInstance(column);
-				cells.put(column, cell);
+				components.put(column, cell);
 				nonEmptyCells++;
 			}
 			cell.add(value);
@@ -305,8 +245,9 @@ class Row implements IterableByteSequences, Persistable {
 	Set<String> describe() { // O(n)
 		lock.readLock().lock();
 		try {
-			Set<String> columns = Sets.newHashSetWithExpectedSize(cells.size());
-			Iterator<Cell> it = cells.values().iterator();
+			Set<String> columns = Sets.newHashSetWithExpectedSize(components
+					.size());
+			Iterator<Cell> it = components.values().iterator();
 			while (it.hasNext()) {
 				Cell cell = it.next();
 				if(!cell.getValues().isEmpty()) {
@@ -330,8 +271,9 @@ class Row implements IterableByteSequences, Persistable {
 	Set<String> describe(long at) {
 		lock.readLock().lock();
 		try {
-			Set<String> columns = Sets.newHashSetWithExpectedSize(cells.size());
-			Iterator<Cell> it = cells.values().iterator();
+			Set<String> columns = Sets.newHashSetWithExpectedSize(components
+					.size());
+			Iterator<Cell> it = components.values().iterator();
 			while (it.hasNext()) {
 				Cell cell = it.next();
 				if(!cell.getValues(at).isEmpty()) {
@@ -355,8 +297,8 @@ class Row implements IterableByteSequences, Persistable {
 	boolean exists(String column, Value value) {
 		lock.readLock().lock();
 		try {
-			if(cells.containsKey(column)) {
-				return cells.get(column).contains(value);
+			if(components.containsKey(column)) {
+				return components.get(column).contains(value);
 			}
 			return false;
 		}
@@ -375,32 +317,10 @@ class Row implements IterableByteSequences, Persistable {
 	Cell fetch(String column) {
 		lock.readLock().lock();
 		try {
-			return cells.get(column);
+			return components.get(column);
 		}
 		finally {
 			lock.readLock().unlock();
-		}
-
-	}
-
-	/**
-	 * Sync changes made to the row back to disk.
-	 */
-	void fsync() {
-		lock.writeLock().lock();
-		try {
-			FileChannel channel = new FileOutputStream(filename).getChannel();
-			channel.position(0);
-			writeTo(channel);
-		}
-		catch (IOException e) {
-			log.error(
-					"An error occured while trying to fsync row {} to {}: {}",
-					key, filename, e);
-			throw new ConcourseRuntimeException(e);
-		}
-		finally {
-			lock.writeLock().unlock();
 		}
 	}
 
@@ -423,9 +343,9 @@ class Row implements IterableByteSequences, Persistable {
 	void remove(String column, Value value) {
 		lock.writeLock().lock();
 		try {
-			if(cells.containsKey(column)) {
-				cells.get(column).remove(value);
-				nonEmptyCells -= cells.get(column).isEmpty() ? 1 : 0;
+			if(components.containsKey(column)) {
+				components.get(column).remove(value);
+				nonEmptyCells -= components.get(column).isEmpty() ? 1 : 0;
 				// NOTE: Even if the cell is now empty, it should stay in the
 				// row because it has history
 			}

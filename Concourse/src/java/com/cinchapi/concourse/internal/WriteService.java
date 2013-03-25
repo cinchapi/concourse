@@ -14,8 +14,6 @@
  */
 package com.cinchapi.concourse.internal;
 
-import javax.annotation.Nullable;
-
 /**
  * Specifies the possible writes that can occur regarding a {@code value} in
  * a {@code cell} located at the intersection of {@code row} and {@code column}.
@@ -24,16 +22,6 @@ import javax.annotation.Nullable;
  */
 public interface WriteService {
 	
-	/**
-	 * Add {@code column} as {@code value} in a <em>new row</em>.
-	 * 
-	 * @param column
-	 * @param value
-	 * @return the {@code key} for the new row if the operation succeeds or
-	 *         {@code null} if the operation fails
-	 */
-	@Nullable
-	public long add(String column, Object value);
 
 	/**
 	 * Add {@code column} as {@code value} in {@code row}.

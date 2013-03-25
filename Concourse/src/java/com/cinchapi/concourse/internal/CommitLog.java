@@ -201,21 +201,8 @@ class CommitLog extends VolatileStorage implements
 	 *            commitlog
 	 */
 	private CommitLog(MappedByteBuffer buffer, boolean populated) {
-		super(buffer.capacity() / (Commit.AVG_MIN_SIZE_IN_BYTES + 4)); // I'm
-																		// adding
-																		// 4 to
-																		// account
-																		// for
-																		// the 4
-																		// bytes
-																		// used
-																		// to
-																		// store
-																		// the
-																		// size
-																		// for
-																		// each
-																		// commit
+		super(buffer.capacity()
+				/ (Commit.AVG_MIN_SIZE_IN_BYTES + FIXED_SIZE_PER_COMMIT));
 		this.buffer = buffer;
 		this.usableCapacity = (int) Math.round((PCT_USABLE_CAPACITY / 100.0)
 				* buffer.capacity());
@@ -226,23 +213,11 @@ class CommitLog extends VolatileStorage implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes);
 			while (bsit.hasNext()) {
-				commit(Commit.fromByteSequence(bsit.next()), false); // this
-																		// will
-																		// only
-																		// record
-																		// the
-																		// commit
-																		// in
-																		// memory
-																		// and
-																		// not
-																		// the
-																		// underlying
-																		// file
-																		// (because
-																		// it is
-																		// already
-																		// there!)
+				Commit commit = Commit.fromByteSequence(bsit.next());
+				// this will only record the commit in memory and not the
+				// underlying file (because it is already there!)
+				commit(commit, false);
+				size += commit.size() + FIXED_SIZE_PER_COMMIT;
 			}
 			this.buffer.position(bsit.position());
 			reindex();
@@ -315,10 +290,24 @@ class CommitLog extends VolatileStorage implements
 	 * Return {@code true} if the commit log is full and should be
 	 * {@code flushed}.
 	 * 
-	 * @return {@code true} if the commit log is full.
+	 * @return {@code true} if the commit log is full
 	 */
 	boolean isFull() {
 		return size >= usableCapacity;
+	}
+
+	/**
+	 * Return {@code true} if the commit log is too full to commit the revision
+	 * for {@code value} in {@code row}: {@code column}.
+	 * 
+	 * @param column
+	 * @param value
+	 * @param row
+	 * @return {@code true} if the commit log is full
+	 */
+	boolean isFull(String column, Object value, long row) {
+		Commit commit = Commit.notForStorage(column, value, row);
+		return size + commit.size() + FIXED_SIZE_PER_COMMIT > usableCapacity;
 	}
 
 	/**
@@ -342,10 +331,11 @@ class CommitLog extends VolatileStorage implements
 			// Must attempt to write to the file before writing to memory
 			Preconditions
 					.checkState(
-							buffer.remaining() > commit.size() + 4,
+							buffer.remaining() >= commit.size() + 4,
 							"The commitlog does not have enough capacity to store the commit. "
 									+ "The commitlog has %s bytes remaining and the commit requires %s bytes. "
-									+ "Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION.",
+									+ "Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION or "
+									+ "the value of COMMIT_LOG_SIZE_IN_BYTES.",
 							buffer.remaining(), commit.size() + 4);
 			buffer.putInt(commit.size());
 			buffer.put(commit.getBytes());
@@ -379,6 +369,10 @@ class CommitLog extends VolatileStorage implements
 	 */
 	private class Flusher implements Iterator<Commit> {
 		int expectedCount = ordered.size();
+
+		public Flusher() {
+			buffer.rewind();
+		}
 
 		@Override
 		public boolean hasNext() {

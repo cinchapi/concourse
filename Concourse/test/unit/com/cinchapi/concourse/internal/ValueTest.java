@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.structure;
+package com.cinchapi.concourse.internal;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.BaseTest;
 import com.cinchapi.concourse.internal.Value;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
