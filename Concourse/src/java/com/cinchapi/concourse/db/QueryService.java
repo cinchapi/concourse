@@ -17,7 +17,7 @@ package com.cinchapi.concourse.db;
 import java.util.Set;
 
 /**
- * Specifies the possible query operations that can occur in a {@code column}.
+ * A service that can query stored data.
  * 
  * @author jnelson
  */
@@ -32,8 +32,7 @@ public interface QueryService {
 	 * @param values
 	 * @return the result set.
 	 */
-	public Set<Long> query(String column, Operator operator,
-			Object... values);
+	public Set<Long> query(String column, Operator operator, Object... values);
 
 	/**
 	 * The operators that can be used with
@@ -92,7 +91,7 @@ public interface QueryService {
 		private String sign;
 
 		/**
-		 * Set the enum properties
+		 * Construct a new instance.
 		 * 
 		 * @param sign
 		 */

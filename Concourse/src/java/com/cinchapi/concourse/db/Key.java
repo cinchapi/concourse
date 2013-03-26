@@ -41,7 +41,7 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	 * complement of {@code value}.
 	 * 
 	 * @param value
-	 * @return a row key.
+	 * @return the key
 	 */
 	public static Key fromLong(long value) {
 		Key key = cache.get(value);
@@ -67,7 +67,7 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	/**
 	 * Return a long that represents the two's complement.
 	 * 
-	 * @return the long value.
+	 * @return the long value
 	 */
 	public long asLong() {
 		return key;
@@ -108,7 +108,8 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	@Override
 	public String toString() {
 		return UnsignedLongs.toString(key); // for compatibility with {@link
-											// Numbers.compare(Number, Number)}
+											// com.cinchapi.common.Numbers.compare(Number,
+											// Number)}
 	}
 
 	@Override

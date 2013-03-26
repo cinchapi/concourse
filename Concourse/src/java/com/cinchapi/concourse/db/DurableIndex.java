@@ -31,8 +31,8 @@ import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.cinchapi.concourse.io.Persistable;
 
 /**
- * An index that is stored to disk. The index maps a key to a {@link ByteSized}
- * value.
+ * An index that is stored to disk. The index is uniquely identifiable and maps
+ * keys to {@link ByteSized} values.
  * 
  * @author jnelson
  * @param <I>
@@ -42,7 +42,7 @@ import com.cinchapi.concourse.io.Persistable;
  * @param <V>
  *            - the ByteSized value in the index
  */
-abstract class PersistableIndex<I, K, V extends ByteSized> implements
+abstract class DurableIndex<I, K, V extends ByteSized> implements
 		IterableByteSequences,
 		Persistable {
 
@@ -50,9 +50,16 @@ abstract class PersistableIndex<I, K, V extends ByteSized> implements
 	protected transient final String filename;
 	protected transient final I identifier;
 	protected transient final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Logger log = getLogger();
+	private transient final Logger log = getLogger();
 
-	protected PersistableIndex(String filename, I identifier,
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param filename
+	 * @param identifier
+	 * @param components
+	 */
+	protected DurableIndex(String filename, I identifier,
 			Map<K, V> components) {
 		this.filename = filename;
 		this.identifier = identifier;
@@ -114,7 +121,7 @@ abstract class PersistableIndex<I, K, V extends ByteSized> implements
 	}
 
 	/**
-	 * Sync changes made to the row back to disk.
+	 * Sync changes made to the index back to disk.
 	 */
 	void fsync() {
 		lock.writeLock().lock();

@@ -14,30 +14,32 @@
  */
 package com.cinchapi.concourse.db;
 
-
 /**
- * A service that can start and commit a {@link Transaction}.
+ * A service that can start a {@link Transaction}.
  * 
  * @author jnelson
  */
 public interface TransactionService {
 
 	/**
-	 * Start and return a {@link Transaction} object which should be used for
-	 * performing ALL atomic operations.
+	 * Start and return a {@link Transaction} which can be used for
+	 * performing ACID operations.
 	 * 
 	 * @return the transaction
 	 */
 	public Transaction startTransaction();
 
-	/*
-	 * (non-Javadoc)
-	 * Return the name of the transaction file used be the service.
+	/**
+	 * Return the name of the transaction file used by the service.
+	 * 
+	 * @return the transaction filename
 	 */
-	public String z_(); // This method should NOT be called publicly, but Java
-						// does not allow non-public methods in an
-						// interface...furthermore, Java does not allow an
-						// interface to specify variables that a class should
-						// define :-/
+	public String getTransactionFileName(); // This method should NOT be called
+											// publicly, but Java does not allow
+											// non-public methods in an
+											// interface...furthermore, Java
+											// does not allow an interface to
+											// specify variables that a class
+											// should define :-/
 
 }

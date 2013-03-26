@@ -15,8 +15,7 @@
 package com.cinchapi.concourse.db;
 
 /**
- * Provides the {@link QueryService}, {@link ReadService} and
- * {@link WriteService} interfaces to a datastore.
+ * A single {@link QueryService}, {@link ReadService} and {@link WriteService}.
  * 
  * @author jnelson
  */
@@ -33,7 +32,7 @@ public interface DataStoreService extends
 	/**
 	 * Return the size of all the data stored in service.
 	 * 
-	 * @return the total size.
+	 * @return the total size
 	 */
 	public long sizeOf();
 
@@ -41,7 +40,7 @@ public interface DataStoreService extends
 	 * Return the size in {@code row}
 	 * 
 	 * @param row
-	 * @return the size of the data stored in all the cells in {@code row}.
+	 * @return the size of the data stored in {@code row}
 	 */
 	public long sizeOf(long row);
 
@@ -50,9 +49,8 @@ public interface DataStoreService extends
 	 * 
 	 * @param column
 	 * @param row
-	 * 
 	 * @return the size of the data stored in the cell at {@code row}:
-	 *         {@code column}.
+	 *         {@code column}
 	 */
 	public long sizeOf(String column, Long row);
 }

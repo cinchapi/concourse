@@ -45,10 +45,10 @@ import com.google.common.base.Preconditions;
  * because the entire capacity of the file is mapped in memory and data is
  * always appended). Furthermore, no indices are stored on disk which further
  * optimizes writes and also reads because they must happen entirely in memory.
- * When an existing WriteBuffer is loaded from disk, its writes are replayed in
+ * When an existing Buffer is loaded from disk, its writes are replayed in
  * memory and the indices are recreated.
  * <p>
- * <sup>1</sup> - The size of the WriteBuffer on disk cannot exceed
+ * <sup>1</sup> - The size of the Buffer on disk cannot exceed
  * {@value #MAX_SIZE_IN_BYTES} bytes, but it will take up up to 4X more space in
  * memory.
  * </p>
@@ -56,64 +56,76 @@ import com.google.common.base.Preconditions;
  * 
  * @author jnelson
  */
-class WriteBuffer extends VolatileStorage implements
+class Buffer extends VolatileStorage implements
 		FlushableService,
 		IterableByteSequences,
 		ByteSized {
 
 	/**
-	 * Return the WriteBuffer that is stored in the file at {@code location}.
-	 * This
-	 * function will fail if the file does not exist.
+	 * Return the Buffer that is stored in the file at {@code location}.
+	 * This function will fail if the file does not exist.
 	 * 
 	 * @param location
-	 *            - path to the FILE (not directory) to use for the WriteBuffer
+	 *            - path to the FILE (not directory) to use for the Buffer
 	 * @param config
-	 * @return the WriteBuffer stored at {@code location}
+	 * @return the Buffer stored at {@code location}
 	 */
-	public static WriteBuffer fromFile(String location,
-			ConcourseConfiguration config) {
+	public static Buffer fromFile(String location, ConcourseConfiguration config) {
 		int oldSize = (int) new File(location).length();
-		int size = config.getInt(Prefs.WRITE_BUFFER_SIZE_IN_BYTES,
+		int size = config.getInt(Prefs.BUFFER_SIZE_IN_BYTES,
 				DEFAULT_SIZE_IN_BYTES);
 		Preconditions
 				.checkArgument(
 						size >= oldSize,
-						"The WriteBuffer at %s is too large to be loaded. "
+						"The Buffer at %s is too large to be loaded. "
 								+ "Incrase the value of COMMMIT_LOG_SIZE_IN_BYTES to %s",
 						location, oldSize);
 		Preconditions.checkState(size < MAX_SIZE_IN_BYTES,
-				"The size of the WriteBuffer cannot be greater than %s bytes",
+				"The size of the Buffer cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
+
+		double pctOverflowProtection = config.getDouble(
+				Prefs.PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION,
+				DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION);
+		double pctUsableCapacity = 100 - pctOverflowProtection;
+
 		MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-		return WriteBuffer.fromByteSequences(buffer, true);
+
+		return Buffer.fromByteSequences(buffer, pctUsableCapacity, true);
 	}
 
 	/**
-	 * Return a new WriteBuffer instance at {@code location}. This write buffer
+	 * Return a new Buffer instance at {@code location}. This buffer
 	 * will
 	 * overwrite anything that was previously written to the file at
 	 * {@code location}.
 	 * 
 	 * @param location
-	 *            - path to the FILE (not directory) to use for the WriteBuffer
+	 *            - path to the FILE (not directory) to use for the Buffer
 	 * @param config
-	 * @return the new write buffer
+	 * @return the new buffer
 	 */
-	public static WriteBuffer newInstance(String location,
+	public static Buffer newInstance(String location,
 			ConcourseConfiguration config) {
-		int size = config.getInt(Prefs.WRITE_BUFFER_SIZE_IN_BYTES,
+		int size = config.getInt(Prefs.BUFFER_SIZE_IN_BYTES,
 				DEFAULT_SIZE_IN_BYTES);
 		Preconditions.checkArgument(size < MAX_SIZE_IN_BYTES,
-				"The size of the WriteBuffer cannot be greater than %s bytes",
+				"The size of the Buffer cannot be greater than %s bytes",
 				MAX_SIZE_IN_BYTES);
+
+		double pctOverflowProtection = config.getDouble(
+				Prefs.PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION,
+				DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION);
+		double pctUsableCapacity = 100 - pctOverflowProtection;
+
 		try {
 			File tmp = new File(location);
 			tmp.delete(); // delete the old file if it was there
 			tmp.getParentFile().mkdirs();
 			tmp.createNewFile();
 			MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-			return WriteBuffer.fromByteSequences(buffer, false);
+
+			return Buffer.fromByteSequences(buffer, pctUsableCapacity, false);
 		}
 		catch (IOException e) {
 			throw new ConcourseRuntimeException(e);
@@ -122,21 +134,22 @@ class WriteBuffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Return the WriteBuffer represented by {@code bytes}. Use this method when
+	 * Return the Buffer represented by {@code bytes}. Use this method when
 	 * reading and reconstructing from a file. This method assumes that
 	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param buffer
+	 * @param pctUsableCapacity
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing WriteBuffer, set to {@code false} otherwise
+	 *            from an existing Buffer, set to {@code false} otherwise
 	 *            for
-	 *            an empty WriteBuffer
-	 * @return the WriteBuffer
+	 *            an empty Buffer
+	 * @return the Buffer
 	 */
-	protected static WriteBuffer fromByteSequences(MappedByteBuffer buffer,
-			boolean populated) {
-		return new WriteBuffer(buffer, populated);
+	protected static Buffer fromByteSequences(MappedByteBuffer buffer,
+			double pctUsableCapacity, boolean populated) {
+		return new Buffer(buffer, pctUsableCapacity, populated);
 	}
 
 	private static final int FIXED_SIZE_PER_WRITE = Integer.SIZE / 8; // for
@@ -151,40 +164,38 @@ class WriteBuffer extends VolatileStorage implements
 	/**
 	 * <p>
 	 * The percent of capacity to reserve for overflow protection. This is a
-	 * safeguard against cases when the WriteBuffer has M bytes of capacity
-	 * remaining and the next write requires N bytes of storage (N > M).
-	 * Technically the WriteBuffer is not full, but it would experience an
-	 * overflow if it tired to add the commit.
+	 * safeguard against cases when the Buffer has M bytes of capacity remaining
+	 * and the next write requires N bytes of storage (N > M). Technically the
+	 * Buffer is not full, but it would experience an overflow if it tired to
+	 * add the commit.
 	 * </p>
 	 * <p>
-	 * Setting this value to X means that a WriteBuffer with a total capacity of
-	 * Z will be deemed full when it reaches a capacity of Y (Y = 100-X * Z).
-	 * Any capacity < Y is not considered full whereas any capacity > Y is
-	 * considered full. So when the WriteBuffer is M bytes away from reaching a
+	 * Setting this value to X means that a Buffer with a total capacity of Z
+	 * will be deemed full when it reaches a capacity of Y (Y = 100-X * Z). Any
+	 * capacity < Y is not considered full whereas any capacity > Y is
+	 * considered full. So when the Buffer is M bytes away from reaching a
 	 * capacity of Y, adding a write that requires N bytes (N > M) will not
 	 * cause an overflow so long as N-M < Z-Y.
 	 * </p>
 	 */
-	public static final double PCT_CAPACITY_FOR_OVERFLOW_PREVENTION = .02;
+	public static final double DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION = .02;
 
 	/**
-	 * The default filename for the WriteBuffer.
+	 * The default filename for the Buffer.
 	 */
-	public static final String DEFAULT_LOCATION = "WriteBuffer";
+	public static final String DEFAULT_LOCATION = "Buffer";
 
 	/**
-	 * The maximum allowable size of the WriteBuffer on disk.
+	 * The maximum allowable size of the Buffer on disk.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10);
 
 	/**
-	 * The default size of the WriteBuffer
+	 * The default size of the Buffer
 	 */
 	public static final int DEFAULT_SIZE_IN_BYTES = MAX_SIZE_IN_BYTES - 1;
 
-	private static final Logger log = LoggerFactory
-			.getLogger(WriteBuffer.class);
-	private static final double PCT_USABLE_CAPACITY = 100 - PCT_CAPACITY_FOR_OVERFLOW_PREVENTION;
+	private static final Logger log = LoggerFactory.getLogger(Buffer.class);
 
 	/**
 	 * <strong>Note</strong>: Each write is preceded by a 4 byte int specifying
@@ -200,17 +211,19 @@ class WriteBuffer extends VolatileStorage implements
 	 * file.
 	 * 
 	 * @param buffer
+	 * @param pctUsableCapacity
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
-	 *            from an existing WriteBuffer, set to {@code false} for an
+	 *            from an existing Buffer, set to {@code false} for an
 	 *            empty
-	 *            WriteBuffer
+	 *            Buffer
 	 */
-	private WriteBuffer(MappedByteBuffer buffer, boolean populated) {
+	private Buffer(MappedByteBuffer buffer, double pctUsableCapacity,
+			boolean populated) {
 		super(buffer.capacity()
 				/ (Write.AVG_MIN_SIZE_IN_BYTES + FIXED_SIZE_PER_WRITE));
 		this.buffer = buffer;
-		this.usableCapacity = (int) Math.round((PCT_USABLE_CAPACITY / 100.0)
+		this.usableCapacity = (int) Math.round((pctUsableCapacity / 100.0)
 				* buffer.capacity());
 
 		if(populated) {
@@ -228,7 +241,7 @@ class WriteBuffer extends VolatileStorage implements
 			this.buffer.position(bsit.position());
 			reindex();
 		}
-		log.info("The WriteBuffer has started.");
+		log.info("The buffer is ready.");
 	}
 
 	@Override
@@ -253,7 +266,7 @@ class WriteBuffer extends VolatileStorage implements
 	@Override
 	public synchronized void shutdown() {
 		buffer.force();
-		log.info("The WriteBuffer has shutdown gracefully.");
+		log.info("The buffer has shutdown gracefully.");
 		super.shutdown();
 
 	}
@@ -283,8 +296,8 @@ class WriteBuffer extends VolatileStorage implements
 	 * <strong>USE WITH CAUTION!</strong>
 	 * </p>
 	 * <p>
-	 * Return an iterator that should only be used for flushing the WriteBuffer.
-	 * Each call to {@link Iterator#next} will DELETE the returned commit.
+	 * Return an iterator that should only be used for flushing the Buffer. Each
+	 * call to {@link Iterator#next} will DELETE the returned commit.
 	 * </p>
 	 * 
 	 * @return the iterator
@@ -294,23 +307,22 @@ class WriteBuffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Return {@code true} if the write buffer is full and should be
-	 * {@code flushed}.
+	 * Return {@code true} if the buffer is full and should be {@code flushed}.
 	 * 
-	 * @return {@code true} if the write buffer is full
+	 * @return {@code true} if the buffer is full
 	 */
 	boolean isFull() {
 		return size >= usableCapacity;
 	}
 
 	/**
-	 * Return {@code true} if the write buffer is too full to write the revision
+	 * Return {@code true} if the buffer is too full to write the revision
 	 * for {@code value} in {@code row}: {@code column}.
 	 * 
 	 * @param column
 	 * @param value
 	 * @param row
-	 * @return {@code true} if the write buffer is full
+	 * @return {@code true} if the buffer is full
 	 */
 	boolean isFull(String column, Object value, long row) {
 		Write write = Write.notForStorage(column, value, row);
@@ -331,7 +343,7 @@ class WriteBuffer extends VolatileStorage implements
 	 * (non-Javadoc)
 	 * This method does not override #commit because it is necessary to access a
 	 * distinct method for only altering the VolatileDatabase (i.e. when
-	 * constructing a WriteBuffer from an existing file)
+	 * constructing a Buffer from an existing file)
 	 */
 	private boolean append(Write write, boolean index) {
 		synchronized (buffer) {
@@ -339,10 +351,11 @@ class WriteBuffer extends VolatileStorage implements
 			Preconditions
 					.checkState(
 							buffer.remaining() >= write.size() + 4,
-							"The WriteBuffer does not have enough capacity to store the commit. "
-									+ "The WriteBuffer has %s bytes remaining and the write requires %s bytes. "
-									+ "Consider increasing the value of PCT_CAPACITY_FOR_OVERFLOW_PROTECTION or "
-									+ "the value of COMMIT_LOG_SIZE_IN_BYTES.",
+							"The Buffer does not have enough capacity to store the commit. "
+									+ "The buffer has %s bytes remaining and the write requires %s bytes. "
+									+ "Consider increasing the value of "
+									+ "PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION or the value of "
+									+ "BUFFER_SIZE_IN_BYTES.",
 							buffer.remaining(), write.size() + 4);
 			buffer.putInt(write.size());
 			buffer.put(write.getBytes());
@@ -354,14 +367,14 @@ class WriteBuffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Check if the WriteBuffer has entered the overflow protection region and
+	 * Check if the Buffer has entered the overflow protection region and
 	 * if
 	 * so, log a WARN message.
 	 */
 	private void checkForOverflow() {
 		if(isFull()) {
 			log.warn(
-					"The WriteBuffer has exceeded its usable capacity of {} bytes and is now "
+					"The Buffer has exceeded its usable capacity of {} bytes and is now "
 							+ "in the overflow prevention region. There are {} bytes left in "
 							+ "this region. If these bytes are consumed an oveflow exception "
 							+ "will be thrown.", usableCapacity,
@@ -413,12 +426,12 @@ class WriteBuffer extends VolatileStorage implements
 		}
 
 		/**
-		 * Check for concurrent modification to the write buffer.
+		 * Check for concurrent modification to the buffer.
 		 */
 		private void checkForComodification() {
 			if(expectedCount != ordered.size()) {
 				throw new ConcurrentModificationException(
-						"Attempted modification to WriteBuffer while flushing");
+						"Attempted modification to Buffer while flushing");
 			}
 		}
 
@@ -428,11 +441,11 @@ class WriteBuffer extends VolatileStorage implements
 	 * The configurable preferences used in this class.
 	 */
 	private enum Prefs implements PrefsKey {
-		WRITE_BUFFER_SIZE_IN_BYTES
+		BUFFER_SIZE_IN_BYTES, PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION
 	}
 
 	/**
-	 * WriteBuffer utility methods
+	 * Buffer utility methods
 	 */
 	private static class Utilities {
 

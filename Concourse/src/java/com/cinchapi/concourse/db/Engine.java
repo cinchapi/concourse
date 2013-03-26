@@ -10,12 +10,10 @@ import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
 
 /**
  * <p>
- * The storage engine that is used by {@code Concourse}. The engine provides
- * ACID-compliant transactions and automatic indexing.
- * </p>
- * <p>
- * The engine is a {@link StaggeredWriteService} that first writes data to the
- * {@link WriteBuffer} and eventually flushes to {@link PrimaryStorage}.
+ * The Concourse storage engine handles concurrent CRUD operations,
+ * automatically indexes data and provides ACID-compliant transactions. The
+ * engine is a {@link StaggeredWriteService} that first writes data to the
+ * {@link Buffer} and eventually flushes to {@link DurableStorage}.
  * </p>
  * 
  * @author jnelson
@@ -24,7 +22,8 @@ public final class Engine extends StaggeredWriteService implements
 		TransactionService {
 
 	/**
-	 * Return an {@link Engine} tuned with the parameters in the {@code prefs}.
+	 * Return an {@link Engine} tuned with the parameters defined in the
+	 * {@code prefs}.
 	 * 
 	 * @param prefs
 	 * @return Engine
@@ -33,35 +32,33 @@ public final class Engine extends StaggeredWriteService implements
 		final String home = prefs.getString(Prefs.CONCOURSE_HOME,
 				DEFAULT_CONCOURSE_HOME);
 
-		// Setup the WriteBuffer
-		WriteBuffer writeBuffer;
-		File writeBufferFile = new File(home + File.separator + "buffer");
-		boolean writeBufferIsFlushed;
-		if(writeBufferFile.exists()) {
-			writeBuffer = WriteBuffer.fromFile(
-					writeBufferFile.getAbsolutePath(), prefs);
-			writeBufferIsFlushed = false;
+		// Setup the Buffer
+		Buffer buffer;
+		File bufferFile = new File(home + File.separator + "buf");
+		boolean bufferIsFlushed;
+		if(bufferFile.exists()) {
+			buffer = Buffer.fromFile(bufferFile.getAbsolutePath(), prefs);
+			bufferIsFlushed = false;
 		}
 		else {
-			writeBuffer = WriteBuffer.newInstance(
-					writeBufferFile.getAbsolutePath(), prefs);
-			writeBufferIsFlushed = true;
+			buffer = Buffer.newInstance(bufferFile.getAbsolutePath(), prefs);
+			bufferIsFlushed = true;
 		}
-		String writeBufferBackupFile = home + File.separator
+		String bufferBackupFile = home + File.separator
 				+ WRITE_BUFFER_BACKUP_FILE_NAME;
 
-		// Setup the PrimaryStorage
-		PrimaryStorage primary;
-		File databaseDir = new File(home + File.separator + "db");
+		// Setup the DurableStorage
+		DurableStorage durable;
+		File databaseDir = new File(home + File.separator + "ds");
 		databaseDir.mkdirs();
-		primary = PrimaryStorage.inDir(databaseDir.getAbsolutePath());
+		durable = DurableStorage.in(databaseDir.getAbsolutePath());
 
 		// Setup for Transactions
 		String transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
 
 		// Return the Engine
-		return new Engine(writeBuffer, primary, writeBufferIsFlushed,
-				transactionFile, writeBufferBackupFile);
+		return new Engine(buffer, durable, bufferIsFlushed, transactionFile,
+				bufferBackupFile);
 	}
 
 	/**
@@ -76,59 +73,55 @@ public final class Engine extends StaggeredWriteService implements
 
 	private boolean flushed;
 	private final String transactionFile;
-	private final String writeBufferBackupFile;
+	private final String bufferBackupFile;
 
 	/**
 	 * Construct a new instance.
 	 * 
-	 * @param writeBuffer
-	 * @param database
+	 * @param buffer
+	 * @param durable
 	 * @param flushed
-	 * @param home
+	 * @param transactionFile
+	 * @param bufferBackupFile
 	 */
-	private Engine(WriteBuffer writeBuffer, PrimaryStorage database,
-			boolean flushed, String transactionFile,
-			String writeBufferBackupFile) {
-		super(writeBuffer, database);
+	private Engine(Buffer buffer, DurableStorage durable, boolean flushed,
+			String transactionFile, String bufferBackupFile) {
+		super(buffer, durable);
 		this.flushed = flushed;
 		this.transactionFile = transactionFile;
-		this.writeBufferBackupFile = writeBufferBackupFile;
+		this.bufferBackupFile = bufferBackupFile;
 		recover();
-		log.info("The Engine has started.");
+		log.info("The engine has started.");
 	}
 
 	/**
-	 * <p>
-	 * Force an immediate flush of the {@code writeBuffer} to the permanent
-	 * {@code database}.
-	 * </p>
-	 * <p>
-	 * <p>
-	 * <strong>Note</strong>: This method is synchronized and will block so that
-	 * reads/writes do not occur during the flush.
-	 * </p>
-	 * <p>
-	 * <strong>Note</strong>: This method is <em>likely</em> cause a GC.
-	 * </p>
+	 * Force an immediate flush of the write buffer to primary storage. This
+	 * method will block other reads and writes and is <em>likely</em> to cause
+	 * a GC.
 	 */
 	public synchronized void flush() {
 		// TODO make a backup of the write log
-		((PrimaryStorage) primary).flush((WriteBuffer) initial);
+		((DurableStorage) primary).flush((Buffer) initial);
 		flushed = true;
 		System.gc();
 		// TODO delete the backup of the write log
-		log.info("The WriteBuffer has been flushed.");
+		log.info("The buffer has been flushed.");
+	}
+
+	@Override
+	public String getTransactionFileName() {
+		return this.transactionFile;
 	}
 
 	@Override
 	public synchronized void shutdown() {
 		synchronized (this) {
 			if(!flushed) {
-				log.warn("The WriteBuffer was not flushed prior to shutdown.");
+				log.warn("The buffer was not flushed prior to shutdown.");
 			}
 			initial.shutdown();
 			primary.shutdown();
-			log.info("The Engine has shutdown gracefully.");
+			log.info("The engine has shutdown gracefully.");
 			super.shutdown();
 		}
 	}
@@ -139,40 +132,36 @@ public final class Engine extends StaggeredWriteService implements
 	}
 
 	@Override
-	public String z_() {
-		return this.transactionFile;
-	}
-
-	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		flush(column, value, row);
+		checkFlush(column, value, row);
 		flushed = false;
 		return super.addSpi(column, value, row);
 	}
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		flush(column, value, row);
+		checkFlush(column, value, row);
 		flushed = false;
 		return super.removeSpi(column, value, row);
 	}
 
 	/**
-	 * Flush the {@code writeBuffer} to the {@code database} if it is too full
-	 * to
-	 * write the specified revision.
+	 * Flush the {@code writeBuffer} to the {@code database} iff it is too full
+	 * for the specified write.
 	 * 
-	 * @param force
+	 * @param column
+	 * @param value
+	 * @param row
 	 */
-	private void flush(String column, Object value, long row) {
-		if(((WriteBuffer) initial).isFull(column, value, row)) {
+	private void checkFlush(String column, Object value, long row) {
+		if(((Buffer) initial).isFull(column, value, row)) {
 			flush();
 		}
 	}
 
 	/**
-	 * Take the necessary steps to recover in the event that Engine was not
-	 * properly shutdown before.
+	 * Take the necessary steps on startup to recover in the event that Engine
+	 * was not properly shutdown.
 	 */
 	private void recover() {
 		File tf = new File(transactionFile);
@@ -185,11 +174,11 @@ public final class Engine extends StaggeredWriteService implements
 			tf.delete();
 			transaction.doCommit();
 		}
-		File wbf = new File(writeBufferBackupFile);
+		File wbf = new File(bufferBackupFile);
 		if(wbf.exists()) {
 			log.info("It appears that the engine was last shutdown while"
-					+ " flushing the WriteBuffer. The Engine will attempt to "
-					+ "finish flushing the WriteBuffer.");
+					+ " flushing the buffer. The Engine will attempt to "
+					+ "finish flushing the buffer now.");
 			// TODO copy the backup to the main file and delete the backup, then
 			// flush the commitLog
 		}
@@ -198,7 +187,7 @@ public final class Engine extends StaggeredWriteService implements
 	/**
 	 * The configurable preferences used in this class.
 	 */
-	enum Prefs implements PrefsKey {
-		CONCOURSE_HOME, COMMIT_LOG_SIZE_IN_BYTES
+	private enum Prefs implements PrefsKey {
+		CONCOURSE_HOME
 	}
 }

@@ -24,12 +24,13 @@ import com.google.common.collect.Sets;
 
 /**
  * <p>
- * Provides base functionality that is common to every {@link DataStoreService}.
- * All bounds checking for parameters is handled here.
+ * Provides base functionality for every {@link DataStoreService}. All bounds
+ * checking for parameters is handled here so extending classes are only
+ * responsible for providing method logic.
  * </p>
  * <p>
- * <strong>Note:</strong> The implementing class is responsible for all
- * necessary concurrency control.
+ * <strong>Note:</strong> The implementing class is responsible for concurrency
+ * control.
  * </p>
  * 
  * @author jnelson
@@ -39,7 +40,7 @@ public abstract class ConcourseService implements DataStoreService {
 	/**
 	 * Return {@code true} if {@code column} is a legal name. See
 	 * {@link #ILLEGAL_COLUMN_NAME_CHARS} for details. This method will throw an
-	 * exception if the column name is not legal.
+	 * exception if the column name is illegal.
 	 * 
 	 * @param column
 	 * @return {@code true} if the name is legal

@@ -19,7 +19,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -37,22 +36,41 @@ import com.cinchapi.concourse.db.QueryService.Operator;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A collection of {@link Value} where each is mapped to a {@link Key}.
+ * <p>
+ * A thread-safe<sup>1</sup> {@link ValueIndex} collection that makes it
+ * possible to perform <em>query</em> reads.
+ * </p>
+ * <p>
+ * Each column is a red-black tree index that is stored in its own distinct file
+ * on disk<sup>2</sup>.The entire column is deserialized or loaded from a cache
+ * whenever a read or write involving the column is occurs. To afford the
+ * caller flexibility, changes to a column are not automatically flushed to
+ * disk, but must be explicitly done by calling {@link #fsync()}.
+ * </p>
+ * <p>
+ * In memory, each column maintains an index mapping values to value indexes. A
+ * column can hold up to {@value #MAX_NUM_VALUES} values at once. The size of a
+ * column is the sum of the size for reach of its value indexes.
+ * </p>
+ * <p>
+ * <sup>1</sup> - Each column uses a locking protocol that allows multiple
+ * concurrent readers, but only one concurrent writer.<br>
+ * <sup>2</sup> - Columns are hashed into storage buckets (directories) based on
+ * the identifying name.
+ * </p>
  * 
  * @author jnelson
  */
-final class Column extends PersistableIndex<String, Value, ValueIndex> {
+final class Column extends DurableIndex<String, Value, ValueIndex> {
 
 	/**
 	 * Return the column represented by {@code bytes}. Use this method when
-	 * reading
-	 * and reconstructing from a file. This method assumes that {@code bytes}
-	 * was generated using {@link #getBytes()}.
+	 * reading and reconstructing from a file. This method assumes that
+	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param filename
 	 * @param name
@@ -61,7 +79,8 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 */
 	private static Column fromByteSequences(String filename, String name,
 			ByteBuffer bytes) {
-		TreeMap<Value, ValueIndex> values = Maps.newTreeMap(new Value.LogicalComparator());
+		TreeMap<Value, ValueIndex> values = Maps
+				.newTreeMap(new Value.LogicalComparator());
 		byte[] array = new byte[bytes.remaining()];
 		bytes.get(array);
 		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
@@ -74,7 +93,7 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	}
 
 	/**
-	 * Return the {link Column} identified by {@code name}.
+	 * Return the column identified by {@code name}.
 	 * 
 	 * @param name
 	 * @param home
@@ -93,9 +112,7 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 
 				byte[] bytes = new byte[(int) file.length()];
 				ByteBuffer buffer = ByteBuffer.wrap(bytes);
-				new FileInputStream(filename).getChannel().read(buffer); // deserialize
-																			// entire
-																			// column
+				new FileInputStream(filename).getChannel().read(buffer);
 				buffer.rewind();
 				column = fromByteSequences(filename, name, buffer);
 				cache.put(column, name);
@@ -111,17 +128,22 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	}
 
 	/**
+	 * The maximum number of values that can be held in a column at once.
+	 */
+	public static final int MAX_NUM_VALUES = Integer.MAX_VALUE;
+	public static final int AVG_COLUMN_NAME_SIZE_IN_BYTES = 24;
+
+	/**
 	 * A larger name length allows more buckets (and therefore a smaller
-	 * bucket:row ratio), however the filesystem can act funny if a single
+	 * bucket:column ratio), however the filesystem can act funny if a single
 	 * directory has too many files. This number should seek to have the
-	 * bucket:row ratio equitable to the number of possible buckets while being
-	 * mindful of not having too many files in a single directory.
+	 * bucket:column ratio that is similar to the number of possible buckets
+	 * while being mindful of not having too many files in a single directory.
 	 */
 	private static final int STORAGE_BUCKET_NAME_LENGTH = 4;
 	private static final String STORAGE_FILE_NAME_EXTENSION = ".cc";
 	private static final Logger log = LoggerFactory.getLogger(Column.class);
 	private static final ObjectReuseCache<Column> cache = new ObjectReuseCache<Column>();
-	public static final int AVG_COLUMN_NAME_SIZE_IN_BYTES = 24;
 
 	/**
 	 * Construct a new instance.
@@ -141,7 +163,7 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	}
 
 	/**
-	 * Add {@code row} to {@code value}.
+	 * Index {@code value} in {@code row}.
 	 * 
 	 * @param row
 	 * @param value
@@ -160,21 +182,21 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 
 	/**
 	 * Return the rows that satisfy {@code operator} in relation to
-	 * {@code value}.
+	 * {@code value}. The rows are sorted in ascending order.
 	 * 
 	 * @param operator
 	 * @param values
-	 * @return the row set.
+	 * @return the rows
 	 */
 	Set<Long> query(Operator operator, Object... values) {
-		List<Key> keys = Lists.newArrayList();
+		Set<Key> keys = Sets.newTreeSet();
 		Value value = Value.notForStorage(values[0]);
 
 		if(operator == Operator.EQUALS) {
 			if(((TreeMap<Value, ValueIndex>) this.components)
 					.containsKey(value)) {
-				keys = ((TreeMap<Value, ValueIndex>) this.components)
-						.get(value).getKeys();
+				keys.addAll(((TreeMap<Value, ValueIndex>) this.components).get(
+						value).getKeys());
 			}
 		}
 		else if(operator == Operator.NOT_EQUALS) {
@@ -275,11 +297,12 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 	 * @param value
 	 */
 	void remove(Key row, Value value) {
-		if(((TreeMap<Value, ValueIndex>)components).containsKey(value)) {
-			ValueIndex index = ((TreeMap<Value, ValueIndex>)components).get(value);
+		if(((TreeMap<Value, ValueIndex>) components).containsKey(value)) {
+			ValueIndex index = ((TreeMap<Value, ValueIndex>) components)
+					.get(value);
 			index.remove(row);
 			if(index.isEmpty()) {
-				((TreeMap<Value, ValueIndex>)components).remove(value);
+				((TreeMap<Value, ValueIndex>) components).remove(value);
 			}
 		}
 	}
@@ -308,10 +331,10 @@ final class Column extends PersistableIndex<String, Value, ValueIndex> {
 		}
 
 		/**
-		 * Return the appropriate storage bucket for the row identified by
-		 * {@code key}.
+		 * Return the appropriate storage bucket for the column identified by
+		 * {@code name}.
 		 * 
-		 * @param key
+		 * @param name
 		 * @return the storage bucket
 		 */
 		private static String getStorageBucketFor(String name) {

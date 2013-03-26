@@ -15,13 +15,11 @@
 package com.cinchapi.concourse.db;
 
 /**
- * Specifies the possible writes that can occur regarding a {@code value} in
- * a {@code cell} located at the intersection of {@code row} and {@code column}.
+ * A service that can write data to storage.
  * 
  * @author jnelson
  */
 public interface WriteService {
-	
 
 	/**
 	 * Add {@code column} as {@code value} in {@code row}.
@@ -31,7 +29,7 @@ public interface WriteService {
 	 * @param row
 	 * 
 	 * @return {@code true} if the cell at {@code row}:{@code column} contains
-	 *         {@code value} after it previously did not.
+	 *         {@code value} after it previously did not
 	 */
 	public boolean add(String column, Object value, long row);
 
@@ -43,7 +41,7 @@ public interface WriteService {
 	 * @param row
 	 * 
 	 * @return {@code true} if the cell at {@code row}:{@code column} no longer
-	 *         contains {@code value} after it previously did.
+	 *         contains {@code value} after it previously did
 	 */
 	public boolean remove(String column, Object value, long row);
 
@@ -55,7 +53,7 @@ public interface WriteService {
 	 * @param row
 	 * 
 	 * @return {@code true} if the cell at {@code row}:{@code column} is
-	 *         reverted.
+	 *         reverted
 	 */
 	public boolean revert(String column, long timestamp, long row);
 
@@ -68,7 +66,7 @@ public interface WriteService {
 	 * @param row
 	 * 
 	 * @return {@code true} if cell at {@code row}:{@code column} is modified to
-	 *         contain only {@code value}.
+	 *         contain only {@code value}
 	 */
 	public boolean set(String column, Object value, long row);
 

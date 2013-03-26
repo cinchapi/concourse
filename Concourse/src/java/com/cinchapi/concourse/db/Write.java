@@ -88,8 +88,7 @@ final class Write implements ByteSized {
 	 * @return the new instance.
 	 */
 	static Write notForStorage(String column, Object value, long row) {
-		Write write;
-		write = cache.get(row, column, value);
+		Write write = cache.get(row, column, value);
 		if(write == null) {
 			write = new Write(column, Value.notForStorage(value),
 					Key.fromLong(row));
@@ -112,7 +111,6 @@ final class Write implements ByteSized {
 
 	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8); // columnSize,
 																			// valueSize
-
 	/**
 	 * The average minimum size of a write in bytes.
 	 * <em>Assumes a column name of about about 12 characters</em>.

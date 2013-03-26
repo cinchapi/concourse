@@ -86,7 +86,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	public synchronized void shutdown() {
 		// This is a generic shutdown that only handles private variables.
 		// A subclasses should override this method and explicitly handle the
-		// primary and secondary services, etc
+		// primary and initial services, etc
 		executor.shutdown();
 		try {
 			if(!executor.awaitTermination(EXECUTOR_SHUTDOWN_WAIT_IN_SECS,
@@ -525,7 +525,6 @@ public abstract class StaggeredWriteService extends ConcourseService {
 																// erroneous/extra
 																// call to
 																// exists()
-
 			}
 
 		}

@@ -29,28 +29,57 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 /**
- * TODO add some comments
+ * <p>
+ * A full scale {@link ConcourseService} that is maintained mostly on disk and
+ * loads components into memory on demand.
+ * </p>
+ * <p>
+ * The service stores data in both {@link Row} and {@link Column}
+ * indexes<sup>1</sup>. Since the service is disk based, it has no limits on
+ * storage<sup>2</sup> beyond those imposed by the underlying filesystem. Once
+ * loaded into memory, data will take up more space than it does on disk. A
+ * cache is implemented so that frequently used components can be deserialized
+ * more quickly and less frequently used components will be evicted from memory
+ * before throwing an OOM.
+ * </p>
+ * <sup>1</sup> - A red-black tree is used to index <em>every</em> column for
+ * logarithmic query operations. Additionally, a hashmap is used to index
+ * <em>every</em> cell in <em>every</em> row so that exists, fetch and describe
+ * operations take amortized constant time.<br >
+ * <sup>2</sup> - Individual row and column indexes have size limitations.
+ * </p>
  * 
  * @author jnelson
  */
-class PrimaryStorage extends FlushingService {
+class DurableStorage extends FlushingService {
 
-	public static PrimaryStorage inDir(String directory) {
-		return new PrimaryStorage(directory);
+	/**
+	 * Return {@link DurableStorage} based in {@code dir}.
+	 * 
+	 * @param dir
+	 * @return durable storage
+	 */
+	public static DurableStorage in(String dir) {
+		return new DurableStorage(dir);
 	}
 
-	private static final String ROW_HOME = "rows";
-	private static final String COLUMN_HOME = "cols";
-	private static final Logger log = LoggerFactory.getLogger(PrimaryStorage.class);
-
 	private static final int EXECUTOR_SHUTDOWN_WAIT_IN_SECS = 60;
-	private final String home;
+	private static final String ROW_HOME = "cr";
+	private static final String COLUMN_HOME = "cc";
+	private static final Logger log = LoggerFactory
+			.getLogger(DurableStorage.class);
 
+	private final String home;
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
-	private PrimaryStorage(String home) {
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param home
+	 */
+	private DurableStorage(String home) {
 		this.home = home;
-		log.info("The Database has started.");
+		log.info("The durable storage is ready.");
 	}
 
 	@Override
@@ -67,41 +96,21 @@ class PrimaryStorage extends FlushingService {
 	}
 
 	@Override
-	public synchronized void flush(FlushableService commitLog) {
-		Iterator<Write> flusher = commitLog.flusher();
-		while (flusher.hasNext()) {
-			Write commit = flusher.next();
-			
-			// The commits do not specify the associated operation, so the
-			// easiest thing is to attempt to add first and then attempt to
-			// remove if that fails
-			try {
-				flushAdd(commit.getColumn(), commit.getValue(), commit.getRow());
-			}
-			catch (IllegalStateException e) {
-				flushRemove(commit.getColumn(), commit.getValue(),
-						commit.getRow());
-			}
-		}
-	}
-
-	@Override
 	public synchronized void shutdown() {
 		executor.shutdown();
 		try {
 			if(!executor.awaitTermination(EXECUTOR_SHUTDOWN_WAIT_IN_SECS,
 					TimeUnit.SECONDS)) {
 				List<Runnable> tasks = executor.shutdownNow();
-				log.error(
-						"The service did not properly shutdown. The following tasks were dropped: {}",
-						tasks);
+				log.error("The durable storage could not properly shutdown. "
+						+ "The following tasks were dropped: {}", tasks);
 			}
 		}
 		catch (InterruptedException e) {
 			log.error("An error occured while shutting down the {}: {}", this
 					.getClass().getName(), e);
 		}
-		log.info("The Database has shutdown gracefully.");
+		log.info("The durable storage has shutdown gracefully.");
 
 	}
 
@@ -142,6 +151,23 @@ class PrimaryStorage extends FlushingService {
 	@Override
 	protected long sizeOfSpi(String column, Long row) {
 		return use(row).size(column);
+	}
+
+	@Override
+	synchronized void flush(FlushableService commitLog) {
+		Iterator<Write> flusher = commitLog.flusher();
+		while (flusher.hasNext()) {
+			Write write = flusher.next();
+
+			// The writes do not specify an operation, so the easiest course is
+			// to attempt an add first and then attempt an remove if that fails
+			try {
+				flushAdd(write.getColumn(), write.getValue(), write.getRow());
+			}
+			catch (IllegalStateException e) {
+				flushRemove(write.getColumn(), write.getValue(), write.getRow());
+			}
+		}
 	}
 
 	/**

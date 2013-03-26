@@ -38,13 +38,13 @@ import com.google.common.collect.Sets;
 
 /**
  * <p>
- * A thread-safe<sup>1</sup> {@link Cell} collection where each is mapped from a
- * {@link Column} name.
+ * A thread-safe<sup>1</sup> {@link Cell} collection that makes it possible to
+ * perform <em>request</em> reads.
  * </p>
  * <p>
  * Each row is stored in its own distinct file on disk<sup>2</sup>. The entire
- * row is deserialized from disk or loaded from a cache whenever an operation on
- * the row is performed. To afford the caller flexibility, changes to a row are
+ * row is deserialized or loaded from a cache whenever a read or write involving
+ * the column is occurs. To afford the caller flexibility, changes to a row are
  * not automatically flushed to disk, but must be explicitly done by calling
  * {@link #fsync()}.
  * </p>
@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-final class Row extends PersistableIndex<Key, String, Cell> {
+final class Row extends DurableIndex<Key, String, Cell> {
 	// NOTE: This class does not define hashCode() or equals() because the
 	// defaults are the desired behaviour.
 
@@ -92,9 +92,7 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 
 				byte[] bytes = new byte[(int) file.length()];
 				ByteBuffer buffer = ByteBuffer.wrap(bytes);
-				new FileInputStream(filename).getChannel().read(buffer); // deserialize
-																			// entire
-																			// row
+				new FileInputStream(filename).getChannel().read(buffer);
 				buffer.rewind();
 				row = fromByteSequences(filename, key, buffer);
 				cache.put(row, key);
@@ -111,9 +109,8 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 
 	/**
 	 * Return the row represented by {@code bytes}. Use this method when
-	 * reading
-	 * and reconstructing from a file. This method assumes that {@code bytes}
-	 * was generated using {@link #getBytes()}.
+	 * reading and reconstructing from a file. This method assumes that
+	 * {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param filename
 	 * @param key
@@ -144,8 +141,8 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	 * A larger name length allows more buckets (and therefore a smaller
 	 * bucket:row ratio), however the filesystem can act funny if a single
 	 * directory has too many files. This number should seek to have the
-	 * bucket:row ratio equitable to the number of possible buckets while being
-	 * mindful of not having too many files in a single directory.
+	 * bucket:row ratio that is similar to the number of possible buckets while
+	 * being mindful of not having too many files in a single directory.
 	 */
 	private static final int STORAGE_BUCKET_NAME_LENGTH = 4;
 	private static final String STORAGE_FILE_NAME_EXTENSION = ".cr";
@@ -157,14 +154,9 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
-	 * <p>
-	 * The <em>maximum<sup>1</sup></em> number of cells that can exist in a row.
+	 * The weighted maximum number of cells that can exist in a row.
 	 * In actuality, this limit is much lower because the size of a cell can
 	 * very widely.
-	 * </p>
-	 * <p>
-	 * <sup>1</sup> - This is a weighted estimate
-	 * </p>
 	 */
 	public static final int MAX_NUM_CELLS = MAX_SIZE_IN_BYTES
 			/ Cell.WEIGHTED_SIZE_IN_BYTES;
@@ -215,8 +207,7 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	}
 
 	/**
-	 * Add {@code column} as {@code value}. This method does not perform any
-	 * consistency checks.
+	 * Add {@code column} as {@code value}.
 	 * 
 	 * @param column
 	 * @param value
@@ -266,7 +257,8 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	}
 
 	/**
-	 * Return the columns that had non-empty cell right before {@code at}.
+	 * Return the columns that had non-empty cell {@code at} the specified
+	 * timestamp.
 	 * 
 	 * @param at
 	 * @return the columns.
@@ -297,7 +289,7 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	 * @param value
 	 * @return {@code true} if {@code value} exists under {@code column}
 	 */
-	boolean exists(String column, Value value) {
+	boolean exists(String column, Value value) { //O(1)
 		lock.readLock().lock();
 		try {
 			if(components.containsKey(column)) {
@@ -317,7 +309,7 @@ final class Row extends PersistableIndex<Key, String, Cell> {
 	 * @return the cell.
 	 */
 	@Nullable
-	Cell fetch(String column) {
+	Cell fetch(String column) { //O(1)
 		lock.readLock().lock();
 		try {
 			return components.get(column);

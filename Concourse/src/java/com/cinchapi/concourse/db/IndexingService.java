@@ -22,7 +22,7 @@ package com.cinchapi.concourse.db;
 public interface IndexingService {
 
 	/**
-	 * Reindex the data that is stored by the service.
+	 * Reindex the data stored by the service.
 	 * <em>This may be a resource intensive operation</em>.
 	 */
 	public void reindex();

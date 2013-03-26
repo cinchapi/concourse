@@ -15,17 +15,16 @@
 package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
+import java.util.TreeSet;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
- * Encapsulates the mapping of a value to a set of {@link Key} objects.
+ * Encapsulates the mapping of a value to a {@link KeySet}.
  * 
  * @author jnelson
  */
@@ -109,15 +108,12 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 	}
 
 	/**
-	 * Return the indexed {@code keys} in most recent order.
+	 * Return the indexed {@code keys} in descending order.
 	 * 
 	 * @return the keys
 	 */
-	List<Key> getKeys() {
-		List<Key> theKeys = Lists.newArrayListWithCapacity(keys.keys.size());
-		theKeys.addAll(keys.keys);
-		Collections.reverse(theKeys);
-		return theKeys;
+	TreeSet<Key> getKeys() {
+		return keys.keys;
 	}
 
 	/**
@@ -172,7 +168,7 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 
 	/**
 	 * A {@link ByteSized} collection of {@link Key} objects that is used in a
-	 * {@link ValueIndex}.
+	 * {@link ValueIndex}. The keys are maintained in ascending order.
 	 * 
 	 * 
 	 * @author jnelson
@@ -190,8 +186,7 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 		 * @return the key set
 		 */
 		static KeySet fromByteSequences(ByteBuffer bytes) {
-			List<Key> keys = Lists.newArrayListWithExpectedSize((bytes
-					.capacity() / (Key.SIZE_IN_BYTES + 4)));
+			TreeSet<Key> keys = Sets.newTreeSet();
 			byte[] array = new byte[bytes.remaining()];
 			bytes.get(array);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
@@ -208,18 +203,18 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 		 * @return the key set
 		 */
 		static KeySet newInstance() {
-			List<Key> keys = Lists.newArrayList();
+			TreeSet<Key> keys = Sets.newTreeSet();
 			return new KeySet(keys);
 		}
 
-		private List<Key> keys;
+		private TreeSet<Key> keys;
 
 		/**
 		 * Construct a new instance.
 		 * 
 		 * @param keys
 		 */
-		private KeySet(List<Key> keys) {
+		private KeySet(TreeSet<Key> keys) {
 			this.keys = keys;
 		}
 

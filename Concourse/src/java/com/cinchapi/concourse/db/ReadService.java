@@ -17,8 +17,7 @@ package com.cinchapi.concourse.db;
 import java.util.Set;
 
 /**
- * Specifies the possible ways in which data can be read from a {@code row}
- * and/or {@code column}.
+ * A service that can read stored data.
  * 
  * @author jnelson
  */
@@ -30,7 +29,7 @@ public interface ReadService {
 	 * @param row
 	 * @return the set of {@code non-null} columns in {@code row}. An empty
 	 *         return value indicates that {@link #exists(long)} for {@code row}
-	 *         is {@code false}.
+	 *         is {@code false}
 	 */
 	public Set<String> describe(long row);
 
@@ -50,7 +49,7 @@ public interface ReadService {
 	 * @param row
 	 * 
 	 * @return {@code true} if {@link #fetch(String, long)} for {@code row} and
-	 *         {@code column} is not empty.
+	 *         {@code column} is not empty
 	 */
 	public boolean exists(String column, long row);
 
@@ -62,7 +61,7 @@ public interface ReadService {
 	 * @param row
 	 * 
 	 * @return {@code true} if {@code value} is contained in the cell at
-	 *         {@code row}:{@code column}.
+	 *         {@code row}:{@code column}
 	 */
 	public boolean exists(String column, Object value, long row);
 
@@ -72,7 +71,7 @@ public interface ReadService {
 	 * @param column
 	 * @param row
 	 * 
-	 * @return the values in the cell at {@code row}:{@code column}.
+	 * @return the values in the cell at {@code row}:{@code column}
 	 */
 	public Set<Object> fetch(String column, long row);
 
@@ -84,7 +83,7 @@ public interface ReadService {
 	 * @param at
 	 * 
 	 * @return the values in the cell at {@code row}:{@code column} as existed
-	 *         at {@code timestamp}.
+	 *         at {@code timestamp}
 	 */
 	public Set<Object> fetch(String column, long timestamp, long row);
 

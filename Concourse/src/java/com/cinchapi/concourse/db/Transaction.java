@@ -52,13 +52,13 @@ import com.google.gson.JsonSerializer;
 /**
  * <p>
  * A {@link Transaction} is initiated from a {@link TransactionService} for the
- * purpose of conducting an set of ACID operations. This object provides a similar
- * action interface as the the parent.
+ * purpose of conducting an set of ACID operations. This object provides a
+ * similar action interface as the the parent.
  * </p>
  * <p>
  * <h2>Transaction ACIDity</h2>
  * <ul>
- * <li><strong>Atomicity</strong>: The commits in a transaction are all or
+ * <li><strong>Atomicity</strong>: The writes in a transaction are all or
  * nothing.</li>
  * <li><strong>Consistency</strong>: Each successful transaction write is at a
  * minimum <em>instantaneously consistent</em> such that a write is
@@ -73,14 +73,14 @@ import com.google.gson.JsonSerializer;
  * transaction is discarded.</li>
  * <li><strong>Isolation</strong>: Each concurrent transaction exists in a
  * sandbox, and the operations of an uncommitted transaction are invisible to
- * others. Each operation in a transaction is conducted against a current snapshot of
- * the parent service. At the time of commit, the transaction grabs a lock on the
- * parent service, so commits also happen in isolation.</li>
+ * others. Each write in a transaction is conducted against the current snapshot
+ * of the parent service. At the time of commit, the transaction grabs a lock on
+ * the parent service, so commits also happen in isolation.</li>
  * <li><strong>Durability</strong>: Once a transaction is committed, it is
- * permanently written to the parent service. Before attempt to commit a
+ * permanently written to the parent service. Before attempting to commit a
  * transaction to the parent service, the transaction is logged to a file on
  * disk so that, in the event of a power loss, crash, shutdown, etc, the
- * transaction can be recovered and resume. Once the transaction is fully
+ * transaction can be recovered and resumed. Once the transaction is fully
  * committed, the file on disk is deleted.</li>
  * </ul>
  * </p>
@@ -193,8 +193,10 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param transaction
 	 */
 	private Transaction(Transaction transaction) {
-		super(VolatileStorage
-				.newInstancewithExpectedCapacity(transaction.operations.size()), transaction.primary);
+		super(
+				VolatileStorage
+						.newInstancewithExpectedCapacity(transaction.operations
+								.size()), transaction.primary);
 	}
 
 	/**
@@ -204,8 +206,10 @@ public final class Transaction extends StaggeredWriteService {
 	 *            - must be an instance of ConcourseService
 	 */
 	private Transaction(TransactionService parent) {
-		super(VolatileStorage
-				.newInstancewithExpectedCapacity(INITIAL_CAPACITY), (ConcourseService) parent);
+		super(
+				VolatileStorage
+						.newInstancewithExpectedCapacity(INITIAL_CAPACITY),
+				(ConcourseService) parent);
 	}
 
 	/**
@@ -269,7 +273,8 @@ public final class Transaction extends StaggeredWriteService {
 	protected synchronized void doCommit() {
 		Preconditions.checkState(closed,
 				"The transaction must be closed in order to commit");
-		final String transactionFile = ((TransactionService) primary).z_();
+		final String transactionFile = ((TransactionService) primary)
+				.getTransactionFileName();
 		final File file = new File(transactionFile);
 		Runnable cleanup = new Runnable() { // Delete files, release locks, etc
 			@Override
@@ -330,8 +335,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * Assert that the number of operations is equal to the number of commits.
 	 */
 	private void assertSize() {
-		assert operations.size() == ((VolatileStorage) initial).ordered
-				.size() : "There is a discrepency between the number of operations and the number of commits";
+		assert operations.size() == ((VolatileStorage) initial).ordered.size() : "There is a discrepency between the number of operations and the number of commits";
 	}
 
 	/**

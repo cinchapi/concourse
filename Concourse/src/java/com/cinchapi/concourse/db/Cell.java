@@ -43,13 +43,13 @@ import com.google.common.collect.Lists;
  * Each cell has two variable length components:
  * <ul>
  * <li><strong>State</strong> - An immutable snapshot of the forStorage values
- * currently in the cell. The state for the cell changes whenever a revision
- * occurs.</li>
+ * currently in the cell. The state for the cell changes whenever a write occurs
+ * to the cell.</li>
  * <li><strong>History</strong> - A list of forStorage values sorted by
- * timestamp in ascending order. Every time a revision for a value occurs, that
- * value is logged in the history. From the perspective of the history, a value
- * V is considered present at time T if there are an odd number of values in the
- * history equal to V with a timestamp less than or equal to T.</li>
+ * timestamp in insertion/ascending order. Every time a write occurs, the
+ * written value is logged in the history. From the perspective of the history,
+ * a value V is considered present at time T if there are an odd number of
+ * values in the history equal to V with a timestamp less than or equal to T.</li>
  * </ul>
  * </p>
  * <p>
@@ -194,7 +194,7 @@ class Cell implements ByteSized {
 	 * @param value
 	 */
 	void add(Value value) {
-		Preconditions.checkState(state.canBeAdded(value),
+		Preconditions.checkState(state.isAddable(value),
 				"Cannot add value '%s' because it is already contained", value);
 		Preconditions.checkArgument(value.isForStorage(),
 				"Cannot add value '%s' because it is not a forStorage value",
@@ -204,10 +204,10 @@ class Cell implements ByteSized {
 	}
 
 	/**
-	 * Return {@code true} if {@code value} is presently found in the cell.
+	 * Return {@code true} if {@code value} is found in the current state.
 	 * 
 	 * @param value
-	 * @return {@code true} if {@code value} is contained
+	 * @return {@code true} if {@code value} is presently contained
 	 */
 	boolean contains(Value value) {
 		return state.contains(value);
@@ -241,7 +241,7 @@ class Cell implements ByteSized {
 	}
 
 	/**
-	 * Return all the values contained {@code at} the specified timestamp.
+	 * Return a list of the values contained {@code at} the specified timestamp.
 	 * 
 	 * @param at
 	 * @return the values
@@ -264,7 +264,7 @@ class Cell implements ByteSized {
 	/**
 	 * Return {@code true} if the cell is empty.
 	 * 
-	 * @return {@code true} if the size is 0.
+	 * @return {@code true} if the state size is 0
 	 */
 	boolean isEmpty() {
 		return state.size() == 0;
@@ -278,7 +278,7 @@ class Cell implements ByteSized {
 	 * @param value
 	 */
 	void remove(Value value) {
-		Preconditions.checkState(state.canBeRemoved(value),
+		Preconditions.checkState(state.isRemovable(value),
 				"Cannot remove value '%s' because it is not contained", value);
 		Preconditions
 				.checkArgument(
@@ -339,9 +339,8 @@ class Cell implements ByteSized {
 		}
 
 		/**
-		 * Construct a new instance using a byte buffer assuming that the
-		 * {@code bytes} conform to the rules for a
-		 * {@link IterableByteSequences}.
+		 * Construct a new instance using a byte buffer that conform to the
+		 * rules for a {@link IterableByteSequences}.
 		 * 
 		 * @param bytes
 		 */
@@ -402,7 +401,7 @@ class Cell implements ByteSized {
 
 	/**
 	 * A log that appends a unique {@link Value} instance each time a
-	 * modification is made to a {@link Cell} regarding the value.
+	 * write is made to the {@link Cell} for the value.
 	 * 
 	 * @author jnelson
 	 */
@@ -462,7 +461,7 @@ class Cell implements ByteSized {
 		 * history.
 		 * 
 		 * @param value
-		 * @return the number of appearances.
+		 * @return the number of appearances
 		 */
 		// this method might be useful later
 		@SuppressWarnings("unused")
@@ -488,12 +487,10 @@ class Cell implements ByteSized {
 		}
 
 		/**
-		 * Return {@code true} if {@code value} existed in the cell prior
-		 * {@code at} the specified timestamp (meaning there is an odd number of
-		 * appearances for {@code value} in the history).
+		 * Return {@code true} if {@code value} presently exists in the cell.
 		 * 
 		 * @param value
-		 * @return {@code true} if {@code value} exists.
+		 * @return {@code true} if {@code value} exists
 		 */
 		// this method might be useful later
 		@SuppressWarnings("unused")
@@ -503,7 +500,7 @@ class Cell implements ByteSized {
 
 		/**
 		 * Return {@code true} if {@code value} existed in the cell prior
-		 * {@code at} the specified timestamp (meaning there is an odd number of
+		 * to the specified timestamp (meaning there is an odd number of
 		 * appearances for {@code value} in the history).
 		 * 
 		 * @param value
@@ -526,7 +523,7 @@ class Cell implements ByteSized {
 
 		/**
 		 * Return a <em>new</em> list of revisions that were present {@code at}
-		 * the specified timestamp.
+		 * the specified timestamp in insertion/ascending order.
 		 * 
 		 * @param to
 		 * @return the list of revisions
@@ -568,7 +565,7 @@ class Cell implements ByteSized {
 		 * Create a state from a list of values.
 		 * 
 		 * @param values
-		 * @return the state.
+		 * @return the state
 		 */
 		static State fromList(List<Value> values) {
 			return new State(values);
@@ -613,13 +610,13 @@ class Cell implements ByteSized {
 		}
 
 		/**
-		 * Call this method when performing a {@link Cell#add(Value)}
-		 * modification to get the new state representation. This method assumes
+		 * Call this method when performing a {@link Cell#add(Value)} write to
+		 * get the new state representation. This method assumes
 		 * that the caller has already verified that
-		 * <code>value<code> {@link #canBeAdded(Value)}.
+		 * <code>value<code> {@link #isAddable(Value)}.
 		 * 
 		 * @param value
-		 * @return the new state representation.
+		 * @return the new state representation
 		 */
 		State add(Value value) {
 			List<Value> values = Lists.newArrayList(this.values);
@@ -628,32 +625,10 @@ class Cell implements ByteSized {
 		}
 
 		/**
-		 * Return {@code true} if {@code value} is not contained in the state
-		 * and can therefore be added.
+		 * Return {@code true} if the state contains {@code value}
 		 * 
 		 * @param value
-		 * @return {@code true} if {@code value} can be added.
-		 */
-		boolean canBeAdded(Value value) {
-			return !contains(value);
-		}
-
-		/**
-		 * Return {@code true} if {@code value} is contained in the state and
-		 * can therefore be removed.
-		 * 
-		 * @param value
-		 * @return {@code true} if {@code value} can be removed.
-		 */
-		boolean canBeRemoved(Value value) {
-			return contains(value);
-		}
-
-		/**
-		 * Return {@code true} if the state contains {@code value}.
-		 * 
-		 * @param value
-		 * @return {@code true} if the value is contained.
+		 * @return {@code true} if the value is contained
 		 */
 		boolean contains(Value value) {
 			return values.contains(value);
@@ -662,26 +637,48 @@ class Cell implements ByteSized {
 		/**
 		 * Return the number of values in the state.
 		 * 
-		 * @return the count.
+		 * @return the count
 		 */
 		int count() {
 			return values.size();
 		}
 
 		/**
-		 * Return the values.
+		 * Return and unmodifiable view of the presently contained values.
 		 * 
-		 * @return the values.
+		 * @return the values
 		 */
 		List<Value> getValues() {
 			return Collections.unmodifiableList(values);
 		}
 
 		/**
-		 * Call this method when performing a {@link Cell#remove(Value)}
-		 * modification to get the new state representation. This method assumes
+		 * Return {@code true} if {@code value} is not contained in the state
+		 * and can therefore be added.
+		 * 
+		 * @param value
+		 * @return {@code true} if {@code value} can be added
+		 */
+		boolean isAddable(Value value) {
+			return !contains(value);
+		}
+
+		/**
+		 * Return {@code true} if {@code value} is contained in the state and
+		 * can therefore be removed.
+		 * 
+		 * @param value
+		 * @return {@code true} if {@code value} can be removed
+		 */
+		boolean isRemovable(Value value) {
+			return contains(value);
+		}
+
+		/**
+		 * Call this method when performing a {@link Cell#remove(Value)} write
+		 * to get the new state representation. This method assumes
 		 * that the caller has already verified that
-		 * <code>value<code> {@link #canBeRemoved(Value)}.
+		 * <code>value<code> {@link #isRemovable(Value)}.
 		 * 
 		 * @param value
 		 * @return the new state representation.

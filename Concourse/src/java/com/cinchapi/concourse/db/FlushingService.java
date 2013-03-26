@@ -15,19 +15,12 @@
 package com.cinchapi.concourse.db;
 
 /**
- * A service that flushes {@link Write} objects from a {@link FlushableService}
- * and is therefore unable to be written to directly.
+ * A service that flushes writes from a {@link FlushableService}, but cannot
+ * receive writes directly.
  * 
  * @author jnelson
  */
 public abstract class FlushingService extends ConcourseService {
-
-	/**
-	 * Flush the contents of the {@code service}.
-	 * 
-	 * @param service
-	 */
-	public abstract void flush(FlushableService service);
 
 	@Override
 	protected final boolean addSpi(String column, Object value, long row) {
@@ -38,5 +31,12 @@ public abstract class FlushingService extends ConcourseService {
 	protected final boolean removeSpi(String column, Object value, long row) {
 		return false;
 	}
+
+	/**
+	 * Flush the contents of the {@code service}.
+	 * 
+	 * @param service
+	 */
+	abstract void flush(FlushableService service);
 
 }

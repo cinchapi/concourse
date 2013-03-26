@@ -40,7 +40,7 @@ import com.google.common.primitives.Longs;
  * A lightweight {@link ConcourseService} that is maintained entirely in memory.
  * </p>
  * <p>
- * The service stores data as a list of {@link Write} objects with hyper
+ * The service stores data as a list of {@link Write} objects with partial
  * indexing<sup>1</sup>. The data takes up 3X more space than it would on disk.
  * This structure serves as a suitable cache or as fast, albeit temporary,
  * storage for data that will eventually be persisted to disk.

@@ -15,7 +15,7 @@
 package com.cinchapi.concourse.internal;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.db.WriteBuffer;
+import com.cinchapi.concourse.db.Buffer;
 import com.cinchapi.concourse.db.VolatileStorage;
 
 /**
@@ -39,13 +39,13 @@ public class ConcourseServiceProvider {
 				.newInstancewithExpectedCapacity(expectedCapacity);
 	}
 
-	public static WriteBuffer provideNewCommitLog() {
+	public static Buffer provideNewCommitLog() {
 		return ConcourseServiceProvider.provideNewCommitLog(
 				COMMIT_LOG_DEFAULT_LOCATION);
 
 	}
 
-	public static WriteBuffer provideNewCommitLog(String location) {
-		return WriteBuffer.newInstance(location, ConcourseConfiguration.fromFile(CONCOURSE_PREFS));
+	public static Buffer provideNewCommitLog(String location) {
+		return Buffer.newInstance(location, ConcourseConfiguration.fromFile(CONCOURSE_PREFS));
 	}
 }

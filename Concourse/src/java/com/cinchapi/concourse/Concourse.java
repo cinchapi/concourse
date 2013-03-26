@@ -200,7 +200,7 @@ public class Concourse implements DataStoreService, TransactionService {
 	}
 
 	@Override
-	public String z_() {
+	public String getTransactionFileName() {
 		throw new UnsupportedOperationException("Do not call this method");
 	}
 

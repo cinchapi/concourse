@@ -17,14 +17,14 @@ package com.cinchapi.concourse.db;
 import java.util.Iterator;
 
 /**
- * An interface that can can have its stored {@link Write} objects flushed.
+ * An service whose writes can be flushed by a {@link FlushingService}.
  * 
  * @author jnelson
  */
 public interface FlushableService {
 
 	/**
-	 * Return an iterator that can be used for flushing commits.
+	 * Return an iterator over the writes in the service.
 	 * 
 	 * @return the flusher
 	 */
