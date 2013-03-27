@@ -48,7 +48,7 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 		Value value = Value.fromByteSequence(ByteBuffer.wrap(valueBytes));
 
 		KeySet keys = KeySet.fromByteSequences(bytes);
-
+		
 		return new ValueIndex(value, keys);
 	}
 

@@ -23,6 +23,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * <p>
@@ -34,7 +35,19 @@ import com.google.common.base.Objects;
  * @author jnelson
  */
 @Immutable
-final class Write implements ByteSized {
+class Write implements ByteSized {
+
+	/**
+	 * Drop {@code write} into {@code file}. Any existing file content will be
+	 * deleted.
+	 * 
+	 * @param write
+	 * @param file
+	 * @return the dropped write
+	 */
+	static DroppedWrite drop(Write write, String file) {
+		return new DroppedWrite(write, file);
+	}
 
 	/**
 	 * Return a write that is appropriate for storage and corresponds to a
@@ -44,12 +57,17 @@ final class Write implements ByteSized {
 	 * @param column
 	 * @param value
 	 * @param row
+	 * @param type
 	 * 
 	 * @return the new instance
 	 * @see {@link Value#isForStorage()}
 	 */
-	static Write forStorage(String column, Object value, long row) {
-		return new Write(column, Value.forStorage(value), Key.fromLong(row));
+	static Write forStorage(String column, Object value, long row,
+			WriteType type) {
+		Preconditions.checkArgument(type != WriteType.NOT_FOR_STORAGE,
+				"Cannot create a forStorage Write with a NOT_FOR_STORAGE type");
+		return new Write(column, Value.forStorage(value), Key.fromLong(row),
+				type);
 	}
 
 	/**
@@ -61,6 +79,8 @@ final class Write implements ByteSized {
 	 * @return the write
 	 */
 	static Write fromByteSequence(ByteBuffer bytes) {
+		WriteType type = WriteType.values()[bytes.getInt()];
+
 		Key row = Key.fromLong(bytes.getLong());
 
 		int columnSize = bytes.getInt();
@@ -73,7 +93,7 @@ final class Write implements ByteSized {
 		bytes.get(val);
 		Value value = Value.fromByteSequence(ByteBuffer.wrap(val));
 
-		return new Write(column, value, row);
+		return new Write(column, value, row, type);
 	}
 
 	/**
@@ -91,7 +111,7 @@ final class Write implements ByteSized {
 		Write write = cache.get(row, column, value);
 		if(write == null) {
 			write = new Write(column, Value.notForStorage(value),
-					Key.fromLong(row));
+					Key.fromLong(row), WriteType.NOT_FOR_STORAGE);
 			cache.put(write, row, column, value);
 		}
 		return write;
@@ -109,7 +129,8 @@ final class Write implements ByteSized {
 				: write;
 	}
 
-	private static final int FIXED_SIZE_IN_BYTES = 2 * (Integer.SIZE / 8); // columnSize,
+	private static final int FIXED_SIZE_IN_BYTES = 3 * (Integer.SIZE / 8); // type,
+																			// columnSize,
 																			// valueSize
 	/**
 	 * The average minimum size of a write in bytes.
@@ -124,6 +145,7 @@ final class Write implements ByteSized {
 	private final String column;
 	private final int valueSize;
 	private final Value value;
+	private final WriteType type;
 	private transient int hashCode = 0;
 
 	/**
@@ -132,13 +154,15 @@ final class Write implements ByteSized {
 	 * @param column
 	 * @param value
 	 * @param row
+	 * @param type
 	 */
-	private Write(String column, Value value, Key row) {
+	protected Write(String column, Value value, Key row, WriteType type) {
 		this.row = row;
 		this.column = column;
 		this.columnSize = this.column.getBytes(ByteBuffers.charset()).length;
 		this.value = value;
 		this.valueSize = this.value.size();
+		this.type = type;
 	}
 
 	@Override
@@ -194,6 +218,15 @@ final class Write implements ByteSized {
 	}
 
 	/**
+	 * Return the {@code type}.
+	 * 
+	 * @return the type
+	 */
+	WriteType getType() {
+		return type;
+	}
+
+	/**
 	 * Return {@code value}.
 	 * 
 	 * @return the value
@@ -226,6 +259,7 @@ final class Write implements ByteSized {
 	 * Return a new byte buffer that contains the write with the following
 	 * order:
 	 * <ol>
+	 * <li><strong>type</strong> - first 4 bytes</li>
 	 * <li><strong>rowKey</strong> - first 8 bytes</li>
 	 * <li><strong>columnSize</strong> - next 4 bytes</li>
 	 * <li><strong>column</strong> - next columnSize bytes</li>
@@ -237,6 +271,7 @@ final class Write implements ByteSized {
 	 */
 	private ByteBuffer asByteBuffer() {
 		ByteBuffer buffer = ByteBuffer.allocate(size());
+		buffer.putInt(type.ordinal());
 		buffer.put(row.getBytes());
 		buffer.putInt(columnSize);
 		buffer.put(column.getBytes(ByteBuffers.charset()));

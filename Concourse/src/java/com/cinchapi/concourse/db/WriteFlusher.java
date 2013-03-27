@@ -14,18 +14,19 @@
  */
 package com.cinchapi.concourse.db;
 
+import java.util.Iterator;
+
 /**
- * An service whose writes can be flushed by a {@link FlushingService}.
+ * 
  * 
  * @author jnelson
  */
-public interface FlushableService {
+public interface WriteFlusher extends Iterator<Write> {
 
 	/**
-	 * Return an iterator over the writes in the service.
-	 * 
-	 * @return the flusher
+	 * Acknowledge that the most recently returned {@link Write} has been
+	 * flushed.
 	 */
-	public WriteFlusher flusher();
+	public void ack();
 
 }

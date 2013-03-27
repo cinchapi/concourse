@@ -24,6 +24,8 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,12 +49,12 @@ import com.google.common.base.Preconditions;
  * optimizes writes and also reads because they must happen entirely in memory.
  * When an existing Buffer is loaded from disk, its writes are replayed in
  * memory and the indices are recreated.
+ * </p>
  * <p>
  * <sup>1</sup> - The size of the Buffer on disk cannot exceed
  * {@value #MAX_SIZE_IN_BYTES} bytes, but it will take up up to 4X more space in
  * memory.
  * </p>
- * 
  * 
  * @author jnelson
  */
@@ -89,9 +91,9 @@ class Buffer extends VolatileStorage implements
 				DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION);
 		double pctUsableCapacity = 100 - pctOverflowProtection;
 
-		MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-
-		return Buffer.fromByteSequences(buffer, pctUsableCapacity, true);
+		MappedByteBuffer buffer = Utilities.openBuffer(location, size, false);
+		String backup = location + ".bak";
+		return fromByteSequences(buffer, pctUsableCapacity, backup, true);
 	}
 
 	/**
@@ -118,19 +120,9 @@ class Buffer extends VolatileStorage implements
 				DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION);
 		double pctUsableCapacity = 100 - pctOverflowProtection;
 
-		try {
-			File tmp = new File(location);
-			tmp.delete(); // delete the old file if it was there
-			tmp.getParentFile().mkdirs();
-			tmp.createNewFile();
-			MappedByteBuffer buffer = Utilities.openBuffer(location, size);
-
-			return Buffer.fromByteSequences(buffer, pctUsableCapacity, false);
-		}
-		catch (IOException e) {
-			throw new ConcourseRuntimeException(e);
-		}
-
+		MappedByteBuffer buffer = Utilities.openBuffer(location, size, true);
+		String backup = location + ".bak";
+		return fromByteSequences(buffer, pctUsableCapacity, backup, false);
 	}
 
 	/**
@@ -140,6 +132,7 @@ class Buffer extends VolatileStorage implements
 	 * 
 	 * @param buffer
 	 * @param pctUsableCapacity
+	 * @param backup
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
 	 *            from an existing Buffer, set to {@code false} otherwise
@@ -148,8 +141,8 @@ class Buffer extends VolatileStorage implements
 	 * @return the Buffer
 	 */
 	protected static Buffer fromByteSequences(MappedByteBuffer buffer,
-			double pctUsableCapacity, boolean populated) {
-		return new Buffer(buffer, pctUsableCapacity, populated);
+			double pctUsableCapacity, String backup, boolean populated) {
+		return new Buffer(buffer, pctUsableCapacity, backup, populated);
 	}
 
 	private static final int FIXED_SIZE_PER_WRITE = Integer.SIZE / 8; // for
@@ -181,11 +174,6 @@ class Buffer extends VolatileStorage implements
 	public static final double DEFAULT_PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PREVENTION = .02;
 
 	/**
-	 * The default filename for the Buffer.
-	 */
-	public static final String DEFAULT_LOCATION = "Buffer";
-
-	/**
 	 * The maximum allowable size of the Buffer on disk.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = (Integer.MAX_VALUE - 10);
@@ -202,6 +190,7 @@ class Buffer extends VolatileStorage implements
 	 * the size.
 	 */
 	private final MappedByteBuffer buffer;
+	private final String backup;
 	private int size = 0;
 	private final int usableCapacity;
 
@@ -212,6 +201,7 @@ class Buffer extends VolatileStorage implements
 	 * 
 	 * @param buffer
 	 * @param pctUsableCapacity
+	 * @param backup
 	 * @param populated
 	 *            - specify as {@code true} if the buffer has been populated
 	 *            from an existing Buffer, set to {@code false} for an
@@ -219,12 +209,13 @@ class Buffer extends VolatileStorage implements
 	 *            Buffer
 	 */
 	private Buffer(MappedByteBuffer buffer, double pctUsableCapacity,
-			boolean populated) {
+			String backup, boolean populated) {
 		super(buffer.capacity()
 				/ (Write.AVG_MIN_SIZE_IN_BYTES + FIXED_SIZE_PER_WRITE));
 		this.buffer = buffer;
 		this.usableCapacity = (int) Math.round((pctUsableCapacity / 100.0)
 				* buffer.capacity());
+		this.backup = backup;
 
 		if(populated) {
 			byte[] bytes = new byte[buffer.capacity()];
@@ -242,6 +233,21 @@ class Buffer extends VolatileStorage implements
 			reindex();
 		}
 		log.info("The buffer is ready.");
+	}
+
+	/**
+	 * <p>
+	 * <strong>USE WITH CAUTION!</strong>
+	 * </p>
+	 * <p>
+	 * Return an iterator that should only be used for flushing the Buffer. Each
+	 * call to {@link Iterator#next} will DELETE the returned commit.
+	 * </p>
+	 * 
+	 * @return the iterator
+	 */
+	public WriteFlusher flusher() {
+		return new Flusher();
 	}
 
 	@Override
@@ -283,27 +289,28 @@ class Buffer extends VolatileStorage implements
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return append(Write.forStorage(column, value, row), true);
+		return append(Write.forStorage(column, value, row, WriteType.ADD), true);
 	}
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return append(Write.forStorage(column, value, row), false);
+		return append(Write.forStorage(column, value, row, WriteType.REMOVE),
+				false);
 	}
 
 	/**
-	 * <p>
-	 * <strong>USE WITH CAUTION!</strong>
-	 * </p>
-	 * <p>
-	 * Return an iterator that should only be used for flushing the Buffer. Each
-	 * call to {@link Iterator#next} will DELETE the returned commit.
-	 * </p>
+	 * Check to see if a {@link DroppedWrite} exists. A write is dropped if the
+	 * buffer is interrupted in the middle of being flushed.
 	 * 
-	 * @return the iterator
+	 * @return the dropped write or {@code null}
 	 */
-	public Iterator<Write> flusher() {
-		return new Flusher();
+	@Nullable
+	DroppedWrite checkForDroppedWrite() {
+		File backupFile = new File(backup);
+		if(backupFile.exists()) {
+			return DroppedWrite.fromFile(backupFile);
+		}
+		return null;
 	}
 
 	/**
@@ -341,7 +348,7 @@ class Buffer extends VolatileStorage implements
 	 */
 	/*
 	 * (non-Javadoc)
-	 * This method does not override #commit because it is necessary to access a
+	 * This method does not override #commit because it is necessary to have a
 	 * distinct method for only altering the VolatileDatabase (i.e. when
 	 * constructing a Buffer from an existing file)
 	 */
@@ -388,11 +395,19 @@ class Buffer extends VolatileStorage implements
 	 * 
 	 * @author jnelson
 	 */
-	private class Flusher implements Iterator<Write> {
+	private class Flusher implements WriteFlusher {
 		int expectedCount = ordered.size();
 
+		/**
+		 * Construct a new instance.
+		 */
 		public Flusher() {
 			buffer.rewind();
+		}
+
+		@Override
+		public void ack() {
+			Utilities.deleteFile(backup);
 		}
 
 		@Override
@@ -412,6 +427,8 @@ class Buffer extends VolatileStorage implements
 				counts.put(next, count); // authorized
 			}
 			int nextSize = next.size() + 4;
+			Write.drop(next, backup); // backup the write in case of failure
+										// before flushing
 			buffer.position(buffer.position() + nextSize);
 			buffer.compact().position(0);
 			expectedCount--;
@@ -422,7 +439,6 @@ class Buffer extends VolatileStorage implements
 		@Override
 		public void remove() {
 			throw new UnsupportedOperationException();
-
 		}
 
 		/**
@@ -450,21 +466,53 @@ class Buffer extends VolatileStorage implements
 	private static class Utilities {
 
 		/**
+		 * Delete the file at {@code location}.
+		 * 
+		 * @param location
+		 */
+		public static void deleteFile(String location) {
+			File tmp = new File(location);
+			tmp.delete();
+		}
+
+		/**
 		 * Open a {@link MappedByteBuffer} with {@code size} for the existing
 		 * file at {@code location}.
 		 * 
 		 * @param location
 		 * @param size
+		 * @param clean
 		 * @return the byte buffer
 		 */
-		public static MappedByteBuffer openBuffer(String location, int size) {
+		public static MappedByteBuffer openBuffer(String location, int size,
+				boolean clean) {
 			try {
+				if(clean) {
+					clean(location);
+				}
 				FileChannel channel = new RandomAccessFile(location, "rwd")
 						.getChannel();
 				MappedByteBuffer buffer = channel.map(MapMode.READ_WRITE, 0,
 						size);
 				channel.close();
 				return buffer;
+			}
+			catch (IOException e) {
+				throw new ConcourseRuntimeException(e);
+			}
+		}
+
+		/**
+		 * Clean the file at {@code location}
+		 * 
+		 * @param location
+		 */
+		private static void clean(String location) {
+			try {
+				File tmp = new File(location);
+				tmp.delete();
+				tmp.getParentFile().mkdirs();
+				tmp.createNewFile();
 			}
 			catch (IOException e) {
 				throw new ConcourseRuntimeException(e);

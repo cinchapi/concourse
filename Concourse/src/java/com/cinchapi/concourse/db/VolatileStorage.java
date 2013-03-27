@@ -142,7 +142,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		return commit(Write.forStorage(column, value, row), true);
+		return commit(Write.forStorage(column, value, row, WriteType.ADD), true);
 	}
 
 	/**
@@ -466,7 +466,8 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		return commit(Write.forStorage(column, value, row), false);
+		return commit(Write.forStorage(column, value, row, WriteType.REMOVE),
+				false);
 	}
 
 	@Override

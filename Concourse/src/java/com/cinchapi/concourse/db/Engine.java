@@ -10,11 +10,44 @@ import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
 
 /**
  * <p>
- * The Concourse storage engine handles concurrent CRUD operations,
- * automatically indexes data and provides ACID-compliant transactions. The
+ * The Concourse storage engine handles concurrent CRUD operations, provides
+ * ACID-compliant transactions, and automatically indexes and versions data. The
  * engine is a {@link StaggeredWriteService} that first writes data to the
  * {@link Buffer} and eventually flushes to {@link DurableStorage}.
  * </p>
+ * <h2>ACID Transactions</h2>
+ * <p>
+ * By default, Concourse writes data immediately, but does provides the option
+ * to dynamically defer writes to a transaction that provides full ACID
+ * guarantees.
+ * <ul>
+ * <li><strong>Atomicity</strong>: The writes in a transaction are all or
+ * nothing.</li>
+ * <li><strong>Consistency</strong>: Each successful transaction write is at a
+ * minimum <em>instantaneously consistent</em> such that a write is
+ * <em><strong>guaranteed</strong></em> to be consistent at the instant when it
+ * is written and also consistent up until the instant when another write occurs
+ * in the parent service. Once a transaction is committed, the parent service is
+ * locked and all the operations that occurred in the transaction are replayed
+ * in a new transaction against the current state of the parent at the time of
+ * locking to ensure that each operation is consistent with the most recent
+ * data. If the replay succeeds, all the operations are permanently written to
+ * the parent and the lock is released, otherwise the commit fails and the
+ * transaction is discarded.</li>
+ * <li><strong>Isolation</strong>: Each concurrent transaction exists in a
+ * sandbox, and the operations of an uncommitted transaction are invisible to
+ * others. Each write in a transaction is conducted against the current snapshot
+ * of the parent service. At the time of commit, the transaction grabs a lock on
+ * the parent service, so commits also happen in isolation.</li>
+ * <li><strong>Durability</strong>: Once a transaction is committed, it is
+ * permanently written to the parent service. Before attempting to commit a
+ * transaction to the parent service, the transaction is logged to a file on
+ * disk so that, in the event of a power loss, crash, shutdown, etc, the
+ * transaction can be recovered and resumed. Once the transaction is fully
+ * committed, the file on disk is deleted.</li>
+ * </ul>
+ * </p>
+ * 
  * 
  * @author jnelson
  */
@@ -44,8 +77,6 @@ public final class Engine extends StaggeredWriteService implements
 			buffer = Buffer.newInstance(bufferFile.getAbsolutePath(), prefs);
 			bufferIsFlushed = true;
 		}
-		String bufferBackupFile = home + File.separator
-				+ WRITE_BUFFER_BACKUP_FILE_NAME;
 
 		// Setup the DurableStorage
 		DurableStorage durable;
@@ -57,8 +88,7 @@ public final class Engine extends StaggeredWriteService implements
 		String transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
 
 		// Return the Engine
-		return new Engine(buffer, durable, bufferIsFlushed, transactionFile,
-				bufferBackupFile);
+		return new Engine(buffer, durable, bufferIsFlushed, transactionFile);
 	}
 
 	/**
@@ -68,12 +98,10 @@ public final class Engine extends StaggeredWriteService implements
 	public static final String DEFAULT_CONCOURSE_HOME = System
 			.getProperty("user.home") + File.separator + "concourse";
 	private static final String TRANSACTION_FILE_NAME = "transaction";
-	private static final String WRITE_BUFFER_BACKUP_FILE_NAME = "buffer.bak";
 	private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
 	private boolean flushed;
 	private final String transactionFile;
-	private final String bufferBackupFile;
 
 	/**
 	 * Construct a new instance.
@@ -82,16 +110,14 @@ public final class Engine extends StaggeredWriteService implements
 	 * @param durable
 	 * @param flushed
 	 * @param transactionFile
-	 * @param bufferBackupFile
 	 */
 	private Engine(Buffer buffer, DurableStorage durable, boolean flushed,
-			String transactionFile, String bufferBackupFile) {
+			String transactionFile) {
 		super(buffer, durable);
 		this.flushed = flushed;
 		this.transactionFile = transactionFile;
-		this.bufferBackupFile = bufferBackupFile;
-		recover();
 		log.info("The engine has started.");
+		recover();
 	}
 
 	/**
@@ -100,11 +126,9 @@ public final class Engine extends StaggeredWriteService implements
 	 * a GC.
 	 */
 	public synchronized void flush() {
-		// TODO make a backup of the write log
 		((DurableStorage) primary).flush((Buffer) initial);
 		flushed = true;
 		System.gc();
-		// TODO delete the backup of the write log
 		log.info("The buffer has been flushed.");
 	}
 
@@ -164,23 +188,27 @@ public final class Engine extends StaggeredWriteService implements
 	 * was not properly shutdown.
 	 */
 	private void recover() {
+		// Recover dropped write
+		DroppedWrite write = ((Buffer) initial).checkForDroppedWrite();
+		if(write != null) {
+			log.info("It appears that the engine was last shutdown while "
+					+ "flushing the buffer and a write was dropped. "
+					+ "The engine will attempt to flush that write "
+					+ "now: {}", write);
+			((DurableStorage) primary).flush(write);
+			write.discard();
+		}
+
+		// Recover transaction
 		File tf = new File(transactionFile);
 		if(tf.exists()) {
 			log.info("It appears that the engine was last shutdown while"
-					+ " commiting a transaction. The Engine will attempt to "
+					+ " committing a transaction. The engine will attempt to "
 					+ "finish committing the transaction now");
 			Transaction transaction = Transaction.recoverFrom(transactionFile,
 					this);
 			tf.delete();
 			transaction.doCommit();
-		}
-		File wbf = new File(bufferBackupFile);
-		if(wbf.exists()) {
-			log.info("It appears that the engine was last shutdown while"
-					+ " flushing the buffer. The Engine will attempt to "
-					+ "finish flushing the buffer now.");
-			// TODO copy the backup to the main file and delete the backup, then
-			// flush the commitLog
 		}
 	}
 

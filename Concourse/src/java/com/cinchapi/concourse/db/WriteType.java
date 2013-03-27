@@ -15,17 +15,8 @@
 package com.cinchapi.concourse.db;
 
 /**
- * An service whose writes can be flushed by a {@link FlushingService}.
- * 
- * @author jnelson
+ * Enumerates the possible writes.
  */
-public interface FlushableService {
-
-	/**
-	 * Return an iterator over the writes in the service.
-	 * 
-	 * @return the flusher
-	 */
-	public WriteFlusher flusher();
-
+public enum WriteType {
+	ADD, REMOVE, NOT_FOR_STORAGE
 }

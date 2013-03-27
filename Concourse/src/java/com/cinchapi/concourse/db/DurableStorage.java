@@ -15,7 +15,6 @@
 package com.cinchapi.concourse.db;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.collect.Sets;
 
 /**
@@ -154,19 +154,37 @@ class DurableStorage extends FlushingService {
 	}
 
 	@Override
-	synchronized void flush(FlushableService commitLog) {
-		Iterator<Write> flusher = commitLog.flusher();
+	synchronized void flush(FlushableService buffer) {
+		WriteFlusher flusher = buffer.flusher();
 		while (flusher.hasNext()) {
 			Write write = flusher.next();
-
-			// The writes do not specify an operation, so the easiest course is
-			// to attempt an add first and then attempt an remove if that fails
 			try {
-				flushAdd(write.getColumn(), write.getValue(), write.getRow());
+				flush(write);
 			}
-			catch (IllegalStateException e) {
-				flushRemove(write.getColumn(), write.getValue(), write.getRow());
+			catch (Exception e) {
+				log.error("An error occured while trying to flush "
+						+ "write {} to durable storage: {}", write, e);
+				throw new ConcourseRuntimeException(e);
 			}
+			flusher.ack();
+		}
+	}
+
+	/**
+	 * Flush the {@code write} immediately.
+	 * 
+	 * @param write
+	 */
+	synchronized void flush(Write write) {
+		String column = write.getColumn();
+		Value value = write.getValue();
+		Key row = write.getRow();
+		WriteType type = write.getType();
+		if(type == WriteType.ADD) {
+			flushAdd(column, value, row);
+		}
+		else {
+			flushRemove(column, value, row);
 		}
 	}
 

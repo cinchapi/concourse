@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.db.Transaction.Operation.Type;
 import com.cinchapi.concourse.db.Value.Values;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.base.Preconditions;
@@ -50,41 +49,9 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 /**
- * <p>
  * A {@link Transaction} is initiated from a {@link TransactionService} for the
  * purpose of conducting an set of ACID operations. This object provides a
  * similar action interface as the the parent.
- * </p>
- * <p>
- * <h2>Transaction ACIDity</h2>
- * <ul>
- * <li><strong>Atomicity</strong>: The writes in a transaction are all or
- * nothing.</li>
- * <li><strong>Consistency</strong>: Each successful transaction write is at a
- * minimum <em>instantaneously consistent</em> such that a write is
- * <em><strong>guaranteed</strong></em> to be consistent at the instant when it
- * is written and also consistent up until the instant when another write occurs
- * in the parent service. Once a transaction is committed, the parent service is
- * locked and all the operations that occurred in the transaction are replayed
- * in a new transaction against the current state of the parent at the time of
- * locking to ensure that each operation is consistent with the most recent
- * data. If the replay succeeds, all the operations are permanently written to
- * the parent and the lock is released, otherwise the commit fails and the
- * transaction is discarded.</li>
- * <li><strong>Isolation</strong>: Each concurrent transaction exists in a
- * sandbox, and the operations of an uncommitted transaction are invisible to
- * others. Each write in a transaction is conducted against the current snapshot
- * of the parent service. At the time of commit, the transaction grabs a lock on
- * the parent service, so commits also happen in isolation.</li>
- * <li><strong>Durability</strong>: Once a transaction is committed, it is
- * permanently written to the parent service. Before attempting to commit a
- * transaction to the parent service, the transaction is logged to a file on
- * disk so that, in the event of a power loss, crash, shutdown, etc, the
- * transaction can be recovered and resumed. Once the transaction is fully
- * committed, the file on disk is deleted.</li>
- * </ul>
- * </p>
- * 
  * 
  * @author jnelson
  */
@@ -261,7 +228,7 @@ public final class Transaction extends StaggeredWriteService {
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
 		if(super.addSpi(column, value, row) && !isClosed()) {
-			return storeOperation(Type.ADD, row, column, value);
+			return storeOperation(WriteType.ADD, row, column, value);
 		}
 		return false;
 	}
@@ -326,7 +293,7 @@ public final class Transaction extends StaggeredWriteService {
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
 		if(super.removeSpi(column, value, row) && !isClosed()) {
-			return storeOperation(Type.REMOVE, row, column, value);
+			return storeOperation(WriteType.REMOVE, row, column, value);
 		}
 		return false;
 	}
@@ -386,7 +353,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * @param value
 	 * @return
 	 */
-	private boolean storeOperation(Type type, long row, String column,
+	private boolean storeOperation(WriteType type, long row, String column,
 			Object value) {
 		operations.add(new Operation(type, row, column, value));
 		assertSize();
@@ -406,7 +373,7 @@ public final class Transaction extends StaggeredWriteService {
 		// NOTE: This class does not define hashCode() or equals() because the
 		// defaults are the desired behaviour.
 
-		private final Type type;
+		private final WriteType type;
 		private final long row;
 		private final String column;
 		private final Object value;
@@ -419,7 +386,7 @@ public final class Transaction extends StaggeredWriteService {
 		 * @param column
 		 * @param value
 		 */
-		public Operation(Type type, long row, String column, Object value) {
+		public Operation(WriteType type, long row, String column, Object value) {
 			this.type = type;
 			this.row = row;
 			this.column = column;
@@ -449,7 +416,7 @@ public final class Transaction extends StaggeredWriteService {
 		 * 
 		 * @return the type
 		 */
-		public Type getType() {
+		public WriteType getType() {
 			return type;
 		}
 
@@ -465,13 +432,6 @@ public final class Transaction extends StaggeredWriteService {
 		@Override
 		public String toString() {
 			return Strings.toString(this);
-		}
-
-		/**
-		 * The write operation types that can occur within a transaction.
-		 */
-		public enum Type {
-			ADD, REMOVE
 		}
 
 		/**
@@ -496,7 +456,8 @@ public final class Transaction extends StaggeredWriteService {
 					throws JsonParseException {
 				JsonObject obj = json.getAsJsonObject();
 
-				Type type = Type.values()[obj.get(TYPE_MEMBER).getAsInt()];
+				WriteType type = WriteType.values()[obj.get(TYPE_MEMBER)
+						.getAsInt()];
 				long row = obj.get(ROW_MEMBER).getAsLong();
 				String column = obj.get(COLUMN_MEMBER).getAsString();
 				com.cinchapi.concourse.db.Value.Type valueType = com.cinchapi.concourse.db.Value.Type
@@ -641,17 +602,16 @@ public final class Transaction extends StaggeredWriteService {
 		 * @return {@code true} if the operation is successfully flushed.
 		 */
 		public static boolean flush(Operation operation, ConcourseService to) {
-			Preconditions
-					.checkArgument(
-							to instanceof Transaction
-									|| to instanceof TransactionService,
-							"A transaction operation can only be flushed to a TransactionService or another Transaction");
-			if(operation.getType() == Type.ADD
+			Preconditions.checkArgument(to instanceof Transaction
+					|| to instanceof TransactionService,
+					"A transaction operation can only be flushed to a "
+							+ "TransactionService or another Transaction");
+			if(operation.getType() == WriteType.ADD
 					&& to.add(operation.getColumn(), operation.getValue(),
 							operation.getRow())) {
 				return true;
 			}
-			else if(operation.getType() == Type.REMOVE
+			else if(operation.getType() == WriteType.REMOVE
 					&& to.remove(operation.getColumn(), operation.getValue(),
 							operation.getRow())) {
 				return true;

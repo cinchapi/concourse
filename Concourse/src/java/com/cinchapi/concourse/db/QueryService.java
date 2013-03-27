@@ -35,6 +35,20 @@ public interface QueryService {
 	public Set<Long> query(String column, Operator operator, Object... values);
 
 	/**
+	 * Return the rows from {@code base} that satisfy the {@code operator} in
+	 * relation to the {@code column} and the appropriate number of
+	 * {@code values}.
+	 * 
+	 * @param base
+	 * @param column
+	 * @param operatior
+	 * @param value
+	 * @return the result set
+	 */
+	public Set<Long> query(Set<Object> base, String column, Operator operatior,
+			Object... value);
+
+	/**
 	 * The operators that can be used with
 	 * {@link QueryService#query(String, Operator, Object...)}.
 	 */

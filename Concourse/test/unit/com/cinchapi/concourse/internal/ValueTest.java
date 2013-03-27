@@ -217,13 +217,13 @@ public class ValueTest extends BaseTest {
 		Value stringVal = new ValueBuilder().quantity(randomString()).build();
 		Value boolVal = new ValueBuilder().quantity(randomBoolean()).build();
 		Value keyVal = new ValueBuilder().quantity(randomKey()).build();
-		assertEquals(Value.Type.INTEGER.toString(), intVal.getType());
-		assertEquals(Value.Type.LONG.toString(), longVal.getType());
-		assertEquals(Value.Type.DOUBLE.toString(), doubleVal.getType());
-		assertEquals(Value.Type.FLOAT.toString(), floatVal.getType());
-		assertEquals(Value.Type.STRING.toString(), stringVal.getType());
-		assertEquals(Value.Type.BOOLEAN.toString(), boolVal.getType());
-		assertEquals(Value.Type.RELATION.toString(), keyVal.getType());
+		assertEquals(Value.WriteType.INTEGER.toString(), intVal.getType());
+		assertEquals(Value.WriteType.LONG.toString(), longVal.getType());
+		assertEquals(Value.WriteType.DOUBLE.toString(), doubleVal.getType());
+		assertEquals(Value.WriteType.FLOAT.toString(), floatVal.getType());
+		assertEquals(Value.WriteType.STRING.toString(), stringVal.getType());
+		assertEquals(Value.WriteType.BOOLEAN.toString(), boolVal.getType());
+		assertEquals(Value.WriteType.RELATION.toString(), keyVal.getType());
 	}
 
 	@Test
