@@ -4,11 +4,10 @@
 	<classpathentry kind="src" path="test/unit"/>
 	<classpathentry kind="src" path="test/benchmark"/>
 	<classpathentry kind="src" path="test/shared"/>
-	<classpathentry kind="src" path="montage/src"/>
-	<classpathentry kind="src" path="montage/test/unit"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?ivyXmlPath=ivy.xml&amp;confs=*"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/ConcourseShared"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Aubrey"/>
 	<classpathentry kind="output" path="bin/"/>
 </classpath>
