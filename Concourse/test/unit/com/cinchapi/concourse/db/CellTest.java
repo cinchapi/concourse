@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.util.Iterator;
 
@@ -26,7 +26,7 @@ import com.cinchapi.concourse.db.Value;
  * 
  * @author jnelson
  */
-public class CellTest extends BaseTest {
+public class CellTest extends DbBaseTest {
 
 	@Test
 	public void testAdd() throws Exception {
@@ -52,7 +52,7 @@ public class CellTest extends BaseTest {
 		catch (IllegalArgumentException e) {}
 		
 		//Scale tests
-		int count = getScaleFrequency();
+		int count = randomScaleFrequency();
 		for(int i = 0; i < count; i++){
 			Value v2 = randomValueForStorage();
 			while(cell.contains(v2)){
@@ -74,7 +74,7 @@ public class CellTest extends BaseTest {
 	@Test
 	public void testCount(){
 		Cell cell = randomNewCell();
-		int count = getScaleFrequency();
+		int count = randomScaleFrequency();
 		for(int i = 0; i < count; i++){
 			int currentCount = cell.count();
 			Value v = randomValueForStorage();

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse;
+package com.cinchapi.concourse.db;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,41 +21,28 @@ import java.text.NumberFormat;
 
 import org.junit.BeforeClass;
 
-import com.cinchapi.common.time.StopWatch;
-import com.cinchapi.concourse.internal.BaseTest;
-
 /**
  * Base class for all benchmark tests
  * 
  * @author jnelson
  */
-public class BaseBenchmark extends BaseTest {
+public class DbBaseBenchmark extends DbBaseTest {
 
 	protected final String outputBaseDir = "test/benchmarks/";
-	private final StopWatch timer = new StopWatch();
 	protected final NumberFormat format = NumberFormat.getNumberInstance();
-	
+
 	/**
 	 * Construct a new instance.
 	 */
-	public BaseBenchmark(){
+	public DbBaseBenchmark() {
 		new File(outputBaseDir).mkdir();
 		format.setGroupingUsed(true);
 	}
-	
+
 	@BeforeClass
-	public void setUp(){
+	public void setUp() {
 		Runtime rt = Runtime.getRuntime();
 		log("The HEAP SIZE is {} bytes", format.format(rt.maxMemory()));
-	}
-
-	/**
-	 * Return the {@link StopWatch}.
-	 * 
-	 * @return the timer.
-	 */
-	protected final StopWatch timer() {
-		return timer;
 	}
 
 	/**

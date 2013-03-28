@@ -12,24 +12,23 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import org.junit.Test;
 
 import com.cinchapi.concourse.db.Buffer;
-import com.cinchapi.concourse.internal.ConcourseServiceProvider;
-import com.cinchapi.concourse.internal.ConcourseServiceTest;
+import com.cinchapi.concourse.db.ConcourseServiceTest;
 
 /**
  * Unit tests for {@link Buffer}.
  * 
  * @author jnelson
  */
-public class CommitLogTest extends ConcourseServiceTest {
+public class BufferTest extends VolatileStorageTest {
 
 	@Override
 	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewCommitLog();
+		return ConcourseServiceProvider.provideNewBuffer();
 	}
 
 //	@Test

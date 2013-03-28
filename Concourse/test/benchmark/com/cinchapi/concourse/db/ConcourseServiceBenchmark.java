@@ -12,18 +12,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.services;
+package com.cinchapi.concourse.db;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.BaseBenchmark;
 import com.cinchapi.concourse.db.ConcourseService;
 import com.cinchapi.concourse.db.QueryService.Operator;
 
@@ -32,7 +28,7 @@ import com.cinchapi.concourse.db.QueryService.Operator;
  * 
  * @author jnelson
  */
-public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
+public abstract class ConcourseServiceBenchmark extends DbBaseBenchmark {
 
 	private static final int DEFAULT_SERVICE_CAPACITY = 1000000;
 
@@ -131,13 +127,13 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 			Object[] values, long[] rows) {
 		int length = Numbers.max(columns.length, values.length, rows.length);
 		for (int i = 0; i < length; i++) {
-			String column = columns[getRandom().nextInt(columns.length)];
-			Object value = values[getRandom().nextInt(values.length)];
-			long row = rows[getRandom().nextInt(rows.length)];
+			String column = columns[rand.nextInt(columns.length)];
+			Object value = values[rand.nextInt(values.length)];
+			long row = rows[rand.nextInt(rows.length)];
 			while (service.exists(column, value, row)) {
-				column = columns[getRandom().nextInt(columns.length)];
-				value = values[getRandom().nextInt(values.length)];
-				row = rows[getRandom().nextInt(rows.length)];
+				column = columns[rand.nextInt(columns.length)];
+				value = values[rand.nextInt(values.length)];
+				row = rows[rand.nextInt(rows.length)];
 			}
 			service.add(column, value, row);
 		}
@@ -165,12 +161,12 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		ConcourseService service = getService();
 
 		log("Writing data...");
-		timer().start();
+		watch.start();
 		for (int count = 0; count < target; count++) {
 			service.add(columns[count], values[count], rows[count]);
 		}
 
-		long elapsed = timer().stop(unit);
+		long elapsed = watch.stop(unit);
 		log("Runtime for add() with a target of {} values: {} {}",
 				format.format(target), format.format(elapsed), unit);
 		log("Wrote a total of {} bytes", format.format(service.sizeOf()));
@@ -205,9 +201,9 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		}
 
 		log("Removing data...");
-		timer().start();
+		watch.start();
 		for (int count = 0; count < removeTarget; count++) {
-			int index = getRandom().nextInt(initTarget);
+			int index = rand.nextInt(initTarget);
 
 			long row = rows[index];
 			String column = columns[index];
@@ -215,7 +211,7 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 
 			service.remove(column, value, row);
 		}
-		long elapsed = timer().stop(unit);
+		long elapsed = watch.stop(unit);
 		log("Runtime for remove() with an initial target of {} and a removal target of {} values: {} {}",
 				format.format(initTarget), format.format(removeTarget),
 				format.format(elapsed), unit);
@@ -267,25 +263,25 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		Operator[] operators = Operator.values();
 		for (Operator operator : operators) {
 			try {
-				column = columns[getRandom().nextInt(columns.length)];
-				value = values[getRandom().nextInt(values.length)];
+				column = columns[rand.nextInt(columns.length)];
+				value = values[rand.nextInt(values.length)];
 				log("Performing QUERY with {} operator", operator);
-				timer().start();
+				watch.start();
 				if(operator == Operator.BETWEEN) {
-					Object value2 = values[getRandom().nextInt(values.length)];
+					Object value2 = values[rand.nextInt(values.length)];
 					results = service.query(column, operator, value, value2);
 				}
 				else {
 					results = service.query(column, operator, value);
 				}
-				elapsed = timer().stop(unit);
+				elapsed = watch.stop(unit);
 				log("Runtime for query: {} {}", elapsed, unit);
 				log("Results for query: {}", results);
 				log(System.lineSeparator());
 			}
 			catch (UnsupportedOperationException e) {
 				log("{}", e.getMessage());
-				timer().stop();
+				watch.stop();
 				continue;
 			}
 
@@ -299,9 +295,9 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		ConcourseService service = getServiceWithColumns(column);
 
 		TimeUnit unit = TimeUnit.MILLISECONDS;
-		timer().start();
+		watch.start();
 		service.fetch(column, randomLong());
-		long elapsed = timer().stop(unit);
+		long elapsed = watch.stop(unit);
 		log("Runtime for fetch(): {} {}", elapsed, unit);
 	}
 
@@ -311,9 +307,9 @@ public abstract class ConcourseServiceBenchmark extends BaseBenchmark {
 		ConcourseService service = getServiceWithRows(row);
 
 		TimeUnit unit = TimeUnit.MILLISECONDS;
-		timer().start();
+		watch.start();
 		service.describe(row);
-		long elapsed = timer().stop(unit);
+		long elapsed = watch.stop(unit);
 		log("Runtime for describe(): {} {}", elapsed, unit);
 	}
 

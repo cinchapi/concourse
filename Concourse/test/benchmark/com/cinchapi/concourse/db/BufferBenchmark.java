@@ -12,32 +12,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
-import org.junit.Test;
-
-import com.cinchapi.concourse.db.Key;
 
 /**
- * Unit tests for {@link Key}.
+ * 
  * 
  * @author jnelson
  */
-public final class KeyTest extends BaseTest {
+public class BufferBenchmark extends ConcourseServiceBenchmark {
 
+	private static final int size = 1024 * 1024 * 100;
 
-	@Test
-	public void testUnsignedConstraint() {
-		long positive = randomPositiveLong();
-		long negative = randomNegativeLong();
-		Key positiveKey = Key.fromLong(positive);
-		Key negativeKey = Key.fromLong(negative);
-
-		// row keys should never be negative
-		assertFalse(Long.toString(positive).startsWith("-"));
-		assertFalse(positiveKey.toString().startsWith("-"));
-		assertTrue(Long.toString(negative).startsWith("-"));
-		assertFalse(negativeKey.toString().startsWith("-"));
+	@Override
+	protected Buffer getService() {
+		return ConcourseServiceProvider.provideNewBuffer();
 	}
 
 }

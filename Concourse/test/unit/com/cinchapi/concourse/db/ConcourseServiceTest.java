@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public abstract class ConcourseServiceTest extends BaseTest {
+public abstract class ConcourseServiceTest extends DbBaseTest {
 
 	protected abstract ConcourseService getService();
 
@@ -51,7 +51,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		assertFalse(service.add(column, value, row));
 
 		// multiple values in column
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			Object v = randomObject();
 			while (service.exists(column, v, row)) {
@@ -61,7 +61,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		}
 
 		// multiple columns in a row
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			String c = randomColumnName();
 			while (service.exists(c, row)) {
@@ -71,7 +71,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		}
 
 		// multiple rows
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			long r = randomLong();
 			while (service.exists(r)) {
@@ -88,7 +88,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 
 		long row = randomLong();
 
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		Set<String> columns = Sets.newTreeSet();
 		for (int i = 0; i < scale; i++) {
 			String column = randomColumnName();
@@ -119,7 +119,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		assertFalse(service.exists(row));
 
 		// adding and removing at scale yields correct exists value for row
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
 				service.add(column, value, row);
@@ -147,7 +147,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 
 		// adding and removing at scale yields correct exists value for row and
 		// column
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
 				service.add(column, value, row);
@@ -174,7 +174,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 
 		// adding and removing at scale yields correct exists value for row and
 		// column and value
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			if(Numbers.isEven(i)) {
 				service.add(column, value, row);
@@ -196,7 +196,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 
 		// fetch returns all the values in order
 		List<Object> values = Lists.newArrayList();
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			Object value = randomObject();
 			while (values.contains(value)) {
@@ -211,7 +211,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		// fetch returns correctly after removals happen
 		Iterator<Object> it = values.iterator();
 		while (it.hasNext()) {
-			if(getRandom().nextInt() % 3 == 0) {
+			if(rand.nextInt() % 3 == 0) {
 				Object value = it.next();
 				service.remove(column, value, row);
 				it.remove();
@@ -227,7 +227,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		Thread.sleep(randomSleep());
 		it = values.iterator();
 		while (it.hasNext()) {
-			if(getRandom().nextInt() % 3 == 0) {
+			if(rand.nextInt() % 3 == 0) {
 				Object value = it.next();
 				service.remove(column, value, row);
 			}
@@ -262,7 +262,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		String column = randomColumnName();
 
 		List<Object> values = Lists.newArrayList();
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			Object value = randomObject();
 			while (values.contains(value)) {
@@ -274,7 +274,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		Collections.reverse(values);
 		Iterator<Object> it = values.iterator();
 		while (it.hasNext()) {
-			if(getRandom().nextInt() % 3 == 0) {
+			if(rand.nextInt() % 3 == 0) {
 				Object value = it.next();
 				service.remove(column, value, row);
 				it.remove();
@@ -289,7 +289,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		it = Sets.newLinkedHashSet(values).iterator();
 
 		while (it.hasNext()) {
-			if(getRandom().nextInt() % 3 == 0) {
+			if(rand.nextInt() % 3 == 0) {
 				Object value = it.next();
 				service.remove(column, value, row);
 			}
@@ -321,14 +321,14 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		equal = Sets.newHashSet();
 		notEqual = Sets.newHashSet();
 
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) { // add equal values
 			long row = randomLong();
 			equal.add(row);
 			service.add(column, value, row);
 		}
 
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) { // add not values
 			long row = randomLong();
 			Object value2 = randomObject();
@@ -371,7 +371,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		equal = Sets.newHashSet();
 		greater = Sets.newHashSet();
 		less = Sets.newHashSet();
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 
 		for (int i = 0; i < scale; i++) {
 			long row = randomLong();
@@ -416,8 +416,8 @@ public abstract class ConcourseServiceTest extends BaseTest {
 				service.query(column, Operator.LESS_THAN_OR_EQUALS, value));
 
 		assertEquals(equal, service.query(column, Operator.EQUALS, value));
-		
-		//TODO REGEX and NOT REGEX
+
+		// TODO REGEX and NOT REGEX
 
 	}
 
@@ -427,7 +427,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 
 		long row = randomLong();
 		String column = randomColumnName();
-		int scale = getScaleFrequency();
+		int scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			service.add(column, randomObject(), row);
 		}
@@ -440,7 +440,7 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		assertTrue(service.fetch(column, row).contains(value));
 
 		// setting an existing value works
-		scale = getScaleFrequency();
+		scale = randomScaleFrequency();
 		for (int i = 0; i < scale; i++) {
 			service.add(column, randomObject(), row);
 		}
@@ -457,42 +457,42 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		good.add(randomColumnName());
 
 		String withNumbers = "";
-		int scale = getRandom().nextInt(7) + 1;
+		int scale = rand.nextInt(7) + 1;
 		for (int i = 0; i < scale; i++) {
 			withNumbers += randomColumnName().concat(randomNumber().toString());
 		}
 		good.add(withNumbers);
 
-		Operator operator = Operator.values()[getRandom().nextInt(
-				Operator.values().length)];
+		Operator operator = Operator.values()[rand
+				.nextInt(Operator.values().length)];
 		String withOperator = "";
-		scale = getRandom().nextInt(3);
+		scale = rand.nextInt(3);
 		for (int i = 0; i < scale; i++) {
 			withOperator += randomColumnName();
 		}
 		withOperator += operator;
-		scale = getRandom().nextInt(3);
+		scale = rand.nextInt(3);
 		for (int i = 0; i < scale; i++) {
 			withOperator += randomColumnName();
 		}
 		bad.add(withOperator);
 
 		String withSpace = "";
-		scale = getRandom().nextInt(5) + 1;
+		scale = rand.nextInt(5) + 1;
 		for (int i = 0; i < scale; i++) {
 			withSpace += randomColumnName() + " ";
 		}
 		bad.add(withSpace.trim());
 
-		CharSequence illegal = ConcourseService.ILLEGAL_COLUMN_NAME_CHARS[getRandom()
+		CharSequence illegal = ConcourseService.ILLEGAL_COLUMN_NAME_CHARS[rand
 				.nextInt(ConcourseService.ILLEGAL_COLUMN_NAME_CHARS.length)];
 		String withIllegal = "";
-		scale = getRandom().nextInt(3);
+		scale = rand.nextInt(3);
 		for (int i = 0; i < scale; i++) {
 			withIllegal += randomColumnName();
 		}
 		withIllegal += illegal;
-		scale = getRandom().nextInt(3);
+		scale = rand.nextInt(3);
 		for (int i = 0; i < scale; i++) {
 			withIllegal += randomColumnName();
 		}
@@ -518,20 +518,20 @@ public abstract class ConcourseServiceTest extends BaseTest {
 		log("Running testReindex");
 		ConcourseService service = getService();
 		if(IndexingService.class.isAssignableFrom(service.getClass())) {
-			int scale = getScaleFrequency() * 5;
-			
+			int scale = randomScaleFrequency() * 5;
+
 			int pool = Math.round(0.09f * scale);
 			log("The column pool is {}", pool);
 			String[] columnPool = new String[pool];
-			
+
 			pool = Math.round(0.4f * scale);
 			log("The row pool is {}", pool);
 			long[] rowPool = new long[pool];
-			
-			for(int i = 0; i < rowPool.length; i++){
+
+			for (int i = 0; i < rowPool.length; i++) {
 				rowPool[i] = randomLong();
 			}
-			for(int i = 0; i < columnPool.length; i++){
+			for (int i = 0; i < columnPool.length; i++) {
 				columnPool[i] = randomColumnName();
 			}
 
@@ -542,9 +542,9 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			// generate data
 			log("Generating {} values", scale);
 			for (int i = 0; i < scale; i++) {
-				columns[i] = columnPool[getRandom().nextInt(columnPool.length)];
+				columns[i] = columnPool[rand.nextInt(columnPool.length)];
 				values[i] = randomObject();
-				rows[i] = rowPool[getRandom().nextInt(rowPool.length)];
+				rows[i] = rowPool[rand.nextInt(rowPool.length)];
 			}
 
 			// add data
@@ -557,29 +557,31 @@ public abstract class ConcourseServiceTest extends BaseTest {
 			// remove data
 			log("Removing up to {} values", scale);
 			for (int i = 0; i < scale; i++) {
-				int index = getRandom().nextInt(values.length);
+				int index = rand.nextInt(values.length);
 				service.remove(columns[index], values[index], rows[index]);
 			}
 
 			// perform query before the reindex
-			Operator operator = Operator.values()[getRandom().nextInt(
-					Operator.values().length)];
+			Operator operator = Operator.values()[rand.nextInt(Operator
+					.values().length)];
 			while (operator == Operator.BETWEEN
 					|| operator == Operator.CONTAINS) {
-				operator = Operator.values()[getRandom().nextInt(
-						Operator.values().length)];
+				operator = Operator.values()[rand
+						.nextInt(Operator.values().length)];
 			}
-			String column = columns[getRandom().nextInt(columns.length)];
-			Object value = values[getRandom().nextInt(values.length)];
-			
-			log("Performing query for {} {} {} BEFORE reindex", column, operator, value);
+			String column = columns[rand.nextInt(columns.length)];
+			Object value = values[rand.nextInt(values.length)];
+
+			log("Performing query for {} {} {} BEFORE reindex", column,
+					operator, value);
 			Set<Long> pre = service.query(column, operator, values);
 			log("The results of the query were {}", pre);
 
 			// run reindex
 			log("Running a reindex");
 			((IndexingService) service).reindex();
-			log("Performing query for {} {} {} AFTER index", column, operator, value);
+			log("Performing query for {} {} {} AFTER index", column, operator,
+					value);
 			Set<Long> post = service.query(column, operator, values);
 			log("The results of the query were {}", post);
 			assertEquals(pre, post);

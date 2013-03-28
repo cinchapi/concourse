@@ -12,25 +12,23 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store;
+package com.cinchapi.concourse.db;
 
-import com.cinchapi.concourse.db.Buffer;
-import com.cinchapi.concourse.internal.ConcourseServiceProvider;
-import com.cinchapi.concourse.services.ConcourseServiceBenchmark;
+import com.cinchapi.concourse.db.ConcourseService;
+import com.cinchapi.concourse.db.ConcourseServiceProvider;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class CommitLogBenchmark extends ConcourseServiceBenchmark {
-
-	private static final String location = "test/output/benchmark/commitlog";
-	private static final int size = 1024 * 1024 * 100;
+public class VolatileStorageBenchmark extends CommitServiceBenchmark {
 
 	@Override
-	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewCommitLog(location, size);
+	protected ConcourseService getService() {
+		return ConcourseServiceProvider.provideVolatileStorage();
 	}
+	
+	
 
 }

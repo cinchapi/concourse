@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.internal;
+package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -29,7 +29,7 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-public class ValueTest extends BaseTest {
+public class ValueTest extends DbBaseTest {
 
 	@Test
 	public void testCompare() {
@@ -54,8 +54,7 @@ public class ValueTest extends BaseTest {
 
 		// a notForStorage value should always be equal to an forStorage one
 		// with the same quantity using default comparison
-		Value d = new ValueBuilder().forStorage(false)
-				.quantity(a.getQuantity()).build();
+		Value d = Value.notForStorage(a.getQuantity());
 		assertTrue(d.compareTo(a) == 0);
 
 		// a notForStorage value should always be "greater" than an forStorage
@@ -66,7 +65,7 @@ public class ValueTest extends BaseTest {
 		// logical comparison of numbers, regardless of type and timestamp`
 		Number p = randomPositiveLong();
 		Value[] pos = new Value[4];
-		pos[0] = new ValueBuilder().quantity(p.longValue()).build();
+		pos[0] = Value.forStorage(p.longValue());
 		int intValP = p.intValue() < 0 ? -1 * p.intValue() : p.intValue(); // sometimes
 																			// a
 																			// pos
@@ -77,13 +76,13 @@ public class ValueTest extends BaseTest {
 																			// is
 																			// cast
 																			// negative
-		pos[1] = new ValueBuilder().quantity(intValP).build();
-		pos[2] = new ValueBuilder().quantity(p.doubleValue()).build();
-		pos[3] = new ValueBuilder().quantity(p.floatValue()).build();
+		pos[1] = Value.forStorage(intValP);
+		pos[2] = Value.forStorage(p.doubleValue());
+		pos[3] = Value.forStorage(p.floatValue());
 
 		Number n = randomNegativeLong();
 		Value[] neg = new Value[4];
-		neg[0] = new ValueBuilder().quantity(n.longValue()).build();
+		neg[0] = Value.forStorage(n.longValue());
 		int intValN = n.intValue() > 0 ? -1 * n.intValue() : n.intValue(); // sometimes
 																			// a
 																			// neg
@@ -94,9 +93,9 @@ public class ValueTest extends BaseTest {
 																			// is
 																			// cast
 																			// positive
-		neg[1] = new ValueBuilder().quantity(intValN).build();
-		neg[2] = new ValueBuilder().quantity(n.doubleValue()).build();
-		neg[3] = new ValueBuilder().quantity(n.floatValue()).build();
+		neg[1] = Value.forStorage(intValN);
+		neg[2] = Value.forStorage(n.doubleValue());
+		neg[3] = Value.forStorage(n.floatValue());
 
 		for (int i = 0; i < pos.length; i++) { // all positives should be
 												// greater than the negatives
@@ -107,29 +106,25 @@ public class ValueTest extends BaseTest {
 		}
 
 		// logical comparison of strings that look like numbers
-		assertTrue(new ValueBuilder()
-				.quantity(p.toString())
-				.build()
-				.compareToLogically(
-						new ValueBuilder().quantity(n.toString()).build()) > 0);
+		assertTrue(Value.forStorage(p.toString()).compareToLogically(
+				Value.forStorage(n.toString())) > 0);
 
 		// logical comparison of strings that look like booleans
-		assertTrue(new ValueBuilder().quantity("true").build()
-				.compareToLogically(new ValueBuilder().quantity(true).build()) == 0);
-		assertTrue(new ValueBuilder().quantity("false").build()
-				.compareToLogically(new ValueBuilder().quantity(false).build()) == 0);
+		assertTrue(Value.forStorage("true").compareToLogically(
+				Value.forStorage(true)) == 0);
+		assertTrue(Value.forStorage("false").compareToLogically(
+				Value.forStorage(false)) == 0);
 
 		// logical comparison of strings
 		String s1 = randomString();
 		String s2 = randomString();
-		assertEquals(s1.compareTo(s2), new ValueBuilder().quantity(s1).build()
-				.compareToLogically(new ValueBuilder().quantity(s2).build()));
+		assertEquals(s1.compareTo(s2),
+				Value.forStorage(s1).compareToLogically(Value.forStorage(s2)));
 
 		// logical comparison regardless of storage type
 		Value v1 = randomValueForStorage();
 		Value v2 = randomValueForStorage();
-		Value v2nfs = new ValueBuilder().quantity(v2.getQuantity())
-				.forStorage(false).build();
+		Value v2nfs = Value.notForStorage(v2.getQuantity());
 		assertEquals(v1.compareToLogically(v2), v1.compareToLogically(v2nfs));
 	}
 
@@ -153,7 +148,7 @@ public class ValueTest extends BaseTest {
 		while (v2.getQuantity().equals(v1.getQuantity())) {
 			v2 = randomValueForStorage();
 		}
-		Value v3 = new ValueBuilder().quantity(v1.getQuantity()).build();
+		Value v3 = Value.forStorage(v1.getQuantity());
 		assertTrue(v1.equals(v3));
 		assertFalse(v1.equals(v2));
 		assertFalse(v2.equals(v3));
@@ -164,7 +159,7 @@ public class ValueTest extends BaseTest {
 									// quantity is represented back and forth as
 									// a byte buffer
 		Object quantity = randomObject();
-		Value v = new ValueBuilder().quantity(quantity).build();
+		Value v = Value.forStorage(quantity);
 		assertEquals(v.getQuantity(), quantity);
 	}
 
@@ -173,7 +168,7 @@ public class ValueTest extends BaseTest {
 		// testing for correctness here is impractical because we can't
 		// anticipate time latency through method calls, but we can ensure that
 		// there are no duplicate timestamps with forStorage values
-		int size = getScaleFrequency();
+		int size = randomScaleFrequency();
 		List<Value> values = Lists.newArrayList();
 		for (int i = 0; i < size; i++) {
 			values.add(randomValueForStorage());
@@ -192,7 +187,7 @@ public class ValueTest extends BaseTest {
 		}
 
 		// test that notForStorage values all have the same timestamp
-		size = getScaleFrequency();
+		size = randomScaleFrequency();
 		values = Lists.newArrayList();
 		for (int i = 0; i < size; i++) {
 			values.add(randomValueNotForStorage());
@@ -210,34 +205,34 @@ public class ValueTest extends BaseTest {
 
 	@Test
 	public void testGetType() {
-		Value intVal = new ValueBuilder().quantity(randomInt()).build();
-		Value longVal = new ValueBuilder().quantity(randomLong()).build();
-		Value doubleVal = new ValueBuilder().quantity(randomDouble()).build();
-		Value floatVal = new ValueBuilder().quantity(randomFloat()).build();
-		Value stringVal = new ValueBuilder().quantity(randomString()).build();
-		Value boolVal = new ValueBuilder().quantity(randomBoolean()).build();
-		Value keyVal = new ValueBuilder().quantity(randomKey()).build();
-		assertEquals(Value.WriteType.INTEGER.toString(), intVal.getType());
-		assertEquals(Value.WriteType.LONG.toString(), longVal.getType());
-		assertEquals(Value.WriteType.DOUBLE.toString(), doubleVal.getType());
-		assertEquals(Value.WriteType.FLOAT.toString(), floatVal.getType());
-		assertEquals(Value.WriteType.STRING.toString(), stringVal.getType());
-		assertEquals(Value.WriteType.BOOLEAN.toString(), boolVal.getType());
-		assertEquals(Value.WriteType.RELATION.toString(), keyVal.getType());
+		Value intVal = Value.forStorage(randomInt());
+		Value longVal = Value.forStorage(randomLong());
+		Value doubleVal = Value.forStorage(randomDouble());
+		Value floatVal = Value.forStorage(randomFloat());
+		Value stringVal = Value.forStorage(randomString());
+		Value boolVal = Value.forStorage(randomBoolean());
+		Value keyVal = Value.forStorage(randomKey());
+		assertEquals(Value.Type.INTEGER.toString(), intVal.getType());
+		assertEquals(Value.Type.LONG.toString(), longVal.getType());
+		assertEquals(Value.Type.DOUBLE.toString(), doubleVal.getType());
+		assertEquals(Value.Type.FLOAT.toString(), floatVal.getType());
+		assertEquals(Value.Type.STRING.toString(), stringVal.getType());
+		assertEquals(Value.Type.BOOLEAN.toString(), boolVal.getType());
+		assertEquals(Value.Type.RELATION.toString(), keyVal.getType());
 	}
 
 	@Test
 	public void testForStorageStatus() {
-		Value forStorage = new ValueBuilder().forStorage(true).build();
-		Value notForStorage = new ValueBuilder().forStorage(false).build();
+		Value forStorage = randomValueForStorage();
+		Value notForStorage = randomValueNotForStorage();
 		assertTrue(forStorage.isForStorage());
 		assertFalse(forStorage.isNotForStorage());
 		assertTrue(notForStorage.isNotForStorage());
 		assertFalse(notForStorage.isForStorage());
 	}
-	
+
 	@Test
-	public void testSize(){
+	public void testSize() {
 		Value v = randomValueForStorage();
 		assertEquals(v.size(), v.getBytes().length);
 	}

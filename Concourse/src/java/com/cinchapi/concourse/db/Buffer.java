@@ -366,11 +366,11 @@ class Buffer extends VolatileStorage implements
 			Preconditions
 					.checkState(
 							buffer.remaining() >= write.size() + 4,
-							"The buffer does not have enough capacity to store the commit. "
-									+ "The buffer has %s bytes remaining and the write requires %s bytes. "
-									+ "Consider increasing the value of "
-									+ "PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION or the value of "
-									+ "BUFFER_SIZE_IN_BYTES.",
+							"The buffer does not have enough capacity to store "
+									+ "the commit. The buffer has %s bytes remaining and "
+									+ "the write requires %s bytes. Consider increasing the "
+									+ "value of PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION "
+									+ "or the value of BUFFER_SIZE_IN_BYTES.",
 							buffer.remaining(), write.size() + 4);
 			buffer.putInt(write.size());
 			buffer.put(write.getBytes());
@@ -388,11 +388,11 @@ class Buffer extends VolatileStorage implements
 	 */
 	private void checkForOverflow() {
 		if(isFull()) {
-			log.warn("The buffer has exceeded its usable capacity of {} bytes and is now "
-							+ "in the overflow prevention region. There are {} bytes left in "
-							+ "this region. If these bytes are consumed an oveflow exception "
-							+ "will be thrown.", usableCapacity,
-					buffer.remaining());
+			log.warn("The buffer has exceeded its usable capacity of {} bytes "
+					+ "and is now in the overflow prevention region. "
+					+ "There are {} bytes left in this region. If these "
+					+ "bytes are consumed an oveflow exception will be "
+					+ "thrown.", usableCapacity, buffer.remaining());
 		}
 	}
 
