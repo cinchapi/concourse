@@ -24,8 +24,8 @@ import com.cinchapi.concourse.config.ConcourseConfiguration;
 public class ConcourseServiceProvider {
 
 	public static final int VOLATILE_STORAGE_DEFAULT_EXPECTED_CAPACITY = 100000;
-	public static final String COMMIT_LOG_DEFAULT_LOCATION = "test/buffer";
-	public static final String CONCOURSE_PREFS = "test/concourse.prefs";
+	public static final String COMMIT_LOG_DEFAULT_LOCATION = ".test.out/buffer";
+	public static final String CONCOURSE_PREFS = "test/resources/concourse.prefs";
 
 	/**
 	 * Return a {@link VolatileStorage} with default capacity.
