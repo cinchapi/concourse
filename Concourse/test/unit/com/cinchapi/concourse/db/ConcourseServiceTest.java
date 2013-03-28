@@ -565,7 +565,7 @@ public abstract class ConcourseServiceTest extends DbBaseTest {
 			Operator operator = Operator.values()[rand.nextInt(Operator
 					.values().length)];
 			while (operator == Operator.BETWEEN
-					|| operator == Operator.CONTAINS) {
+					|| operator == Operator.SEARCH) {
 				operator = Operator.values()[rand
 						.nextInt(Operator.values().length)];
 			}

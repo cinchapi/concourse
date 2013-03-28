@@ -57,7 +57,7 @@ public interface QueryService {
 		 * Select rows where at least one value in the column is a substring of
 		 * the query.
 		 */
-		CONTAINS("CONTAINS"),
+		SEARCH("SEARCH"),
 		/**
 		 * Select rows where at least one value in the column matches the regex
 		 * query.
