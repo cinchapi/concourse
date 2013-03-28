@@ -299,8 +299,8 @@ class Buffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Check to see if a {@link DroppedWrite} exists. A write is dropped if the
-	 * buffer is interrupted in the middle of being flushed.
+	 * Check to see if a {@link DroppedWrite} exists because the buffer was
+	 * interrupted in the middle of being flushed.
 	 * 
 	 * @return the dropped write or {@code null}
 	 */
@@ -323,7 +323,7 @@ class Buffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Return {@code true} if the buffer is full and should be {@code flushed}.
+	 * Return {@code true} if the buffer has exceeded its usable capacity.
 	 * 
 	 * @return {@code true} if the buffer is full
 	 */
@@ -363,11 +363,10 @@ class Buffer extends VolatileStorage implements
 	 */
 	private boolean append(Write write, boolean index) {
 		synchronized (buffer) {
-			// Must attempt to write to the file before writing to memory
 			Preconditions
 					.checkState(
 							buffer.remaining() >= write.size() + 4,
-							"The Buffer does not have enough capacity to store the commit. "
+							"The buffer does not have enough capacity to store the commit. "
 									+ "The buffer has %s bytes remaining and the write requires %s bytes. "
 									+ "Consider increasing the value of "
 									+ "PCT_CAPACITY_FOR_BUFFER_OVERFLOW_PROTECTION or the value of "
@@ -389,8 +388,7 @@ class Buffer extends VolatileStorage implements
 	 */
 	private void checkForOverflow() {
 		if(isFull()) {
-			log.warn(
-					"The Buffer has exceeded its usable capacity of {} bytes and is now "
+			log.warn("The buffer has exceeded its usable capacity of {} bytes and is now "
 							+ "in the overflow prevention region. There are {} bytes left in "
 							+ "this region. If these bytes are consumed an oveflow exception "
 							+ "will be thrown.", usableCapacity,
