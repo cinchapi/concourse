@@ -308,7 +308,16 @@ class Buffer extends VolatileStorage implements
 	DroppedWrite checkForDroppedWrite() {
 		File backupFile = new File(backup);
 		if(backupFile.exists()) {
-			return DroppedWrite.fromFile(backupFile);
+			DroppedWrite write = DroppedWrite.fromFile(backupFile);
+			if(!write.isIdenticalTo(ordered.get(0))) {
+				return write;
+			}
+			else {
+				write.discard(); // the buffer was ungracefully shutdown before
+									// the dropped write was removed so it
+									// can be discarded since its still in the
+									// buffer and is still ready to be flushed
+			}
 		}
 		return null;
 	}
@@ -426,11 +435,11 @@ class Buffer extends VolatileStorage implements
 			else {
 				counts.put(next, count); // authorized
 			}
-			int nextSize = next.size() + 4;
-			Write.drop(next, backup); // backup the write in case of failure
-										// before flushing
+			int nextSize = next.size() + FIXED_SIZE_PER_WRITE;
+			Write.drop(next, backup);
 			buffer.position(buffer.position() + nextSize);
-			buffer.compact().position(0);
+			buffer.compact();
+			buffer.position(0);
 			expectedCount--;
 			size -= nextSize;
 			return next;

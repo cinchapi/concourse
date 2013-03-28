@@ -19,7 +19,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.db.QueryService.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -129,13 +128,13 @@ public abstract class ConcourseService implements DataStoreService {
 	}
 
 	@Override
-	public final Set<Long> query(Set<Object> base, String column,
+	public final Set<Long> query(Set<Object> within, String column,
 			Operator operator, Object... values) {
 		Set<Long> all = query(column, operator, values);
 		@SuppressWarnings({ "unchecked", "rawtypes" })// See
 		// http://stackoverflow.com/a/1177788/1336833. This conversion is okay
 		// because the intersection of the sets can only possibly contain longs
-		Set<Long> intersection = (Set) Sets.intersection(base, all);
+		Set<Long> intersection = (Set) Sets.intersection(within, all);
 		return intersection;
 	}
 

@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
 /**
  * <p>
  * A {@link ConcourseService} that maintains two embedded services for the
- * purpose of staggering writes.
+ * purpose of buffering writes.
  * </p>
  * <p>
  * Writes are initially written to the {@code secondary} service and must be
@@ -53,33 +53,35 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public abstract class StaggeredWriteService extends ConcourseService {
+public abstract class BufferedWriteService extends ConcourseService {
 
 	private static final int EXECUTOR_SHUTDOWN_WAIT_IN_SECS = 60;
 	private static final Logger log = LoggerFactory
-			.getLogger(StaggeredWriteService.class);
+			.getLogger(BufferedWriteService.class);
 
-	protected final ConcourseService initial;
+	protected final ConcourseService buffer;
 	protected final ConcourseService primary;
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * Construct a new instance.
-	 * @param initial
+	 * 
+	 * @param buffer
 	 * @param primary
 	 */
-	protected StaggeredWriteService(ConcourseService initial,
+	protected BufferedWriteService(ConcourseService buffer,
 			ConcourseService primary) {
 		Preconditions.checkArgument(
 				!this.getClass().isAssignableFrom(primary.getClass()),
 				"Cannot embed a %s into %s", primary.getClass(),
 				this.getClass());
-		Preconditions.checkArgument(
-				!this.getClass().isAssignableFrom(initial.getClass()),
-				"Cannot embed a %s into %s", initial.getClass(),
-				this.getClass());
+		Preconditions
+				.checkArgument(
+						!this.getClass().isAssignableFrom(buffer.getClass()),
+						"Cannot embed a %s into %s", buffer.getClass(),
+						this.getClass());
 		this.primary = primary;
-		this.initial = initial;
+		this.buffer = buffer;
 	}
 
 	@Override
@@ -105,8 +107,8 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected boolean addSpi(String column, Object value, long row) {
-		Future<Boolean> clr = executor.submit(Threads.add(initial, row,
-				column, value));
+		Future<Boolean> clr = executor.submit(Threads.add(buffer, row, column,
+				value));
 		try {
 			return clr.get();
 		}
@@ -120,8 +122,8 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	protected final Set<String> describeSpi(long row) {
 		Future<Set<String>> dbr = executor.submit(Threads
 				.describe(primary, row));
-		Future<Set<String>> clr = executor.submit(Threads.describe(initial,
-				row));
+		Future<Set<String>> clr = executor
+				.submit(Threads.describe(buffer, row));
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
 		}
@@ -135,7 +137,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	protected final boolean existsSpi(String column, Object value, long row) {
 		Future<Boolean> dbr = executor.submit(Threads.exists(primary, row,
 				column, value));
-		Future<Boolean> clr = executor.submit(Threads.exists(initial, row,
+		Future<Boolean> clr = executor.submit(Threads.exists(buffer, row,
 				column, value));
 		try {
 			return dbr.get() ^ clr.get();
@@ -150,7 +152,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 	protected final Set<Object> fetchSpi(String column, long timestamp, long row) {
 		Future<Set<Object>> dbr = executor.submit(Threads.fetch(primary, row,
 				column, timestamp));
-		Future<Set<Object>> clr = executor.submit(Threads.fetch(initial, row,
+		Future<Set<Object>> clr = executor.submit(Threads.fetch(buffer, row,
 				column, timestamp));
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
@@ -166,8 +168,8 @@ public abstract class StaggeredWriteService extends ConcourseService {
 			Object... values) {
 		Future<Set<Long>> dbr = executor.submit(Threads.query(primary, column,
 				operator, values));
-		Future<Set<Long>> clr = executor.submit(Threads.query(initial,
-				column, operator, values));
+		Future<Set<Long>> clr = executor.submit(Threads.query(buffer, column,
+				operator, values));
 		try {
 			return Sets.symmetricDifference(dbr.get(), clr.get());
 		}
@@ -179,7 +181,7 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected boolean removeSpi(String column, Object value, long row) {
-		Future<Boolean> clr = executor.submit(Threads.remove(initial, row,
+		Future<Boolean> clr = executor.submit(Threads.remove(buffer, row,
 				column, value));
 		try {
 			return clr.get();
@@ -192,12 +194,12 @@ public abstract class StaggeredWriteService extends ConcourseService {
 
 	@Override
 	protected final long sizeOfSpi(String column, Long row) {
-		return primary.sizeOf(column, row) + initial.sizeOf(column, row);
+		return primary.sizeOf(column, row) + buffer.sizeOf(column, row);
 	}
 
 	/**
 	 * Contains various callables and runnables to enable concurrent operations
-	 * within a {@link StaggeredWriteService}.
+	 * within a {@link BufferedWriteService}.
 	 * 
 	 * @author jnelson
 	 */

@@ -35,18 +35,18 @@ public interface QueryService {
 	public Set<Long> query(String column, Operator operator, Object... values);
 
 	/**
-	 * Return the rows from {@code base} that satisfy the {@code operator} in
+	 * Return the rows from {@code within} that satisfy the {@code operator} in
 	 * relation to the {@code column} and the appropriate number of
 	 * {@code values}.
 	 * 
-	 * @param base
+	 * @param within
 	 * @param column
-	 * @param operatior
-	 * @param value
+	 * @param operator
+	 * @param values
 	 * @return the result set
 	 */
-	public Set<Long> query(Set<Object> base, String column, Operator operatior,
-			Object... value);
+	public Set<Long> query(Set<Object> within, String column,
+			Operator operator, Object... values);
 
 	/**
 	 * The operators that can be used with

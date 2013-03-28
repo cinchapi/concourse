@@ -30,17 +30,16 @@ import com.google.common.collect.Sets;
 
 /**
  * <p>
- * A full scale {@link ConcourseService} that is maintained mostly on disk and
- * loads components into memory on demand.
+ * A heavyweight {@link ConcourseService} that is maintained entirely on disk
+ * and loads components into memory as necessary.
  * </p>
  * <p>
- * The service stores data in both {@link Row} and {@link Column}
- * indexes<sup>1</sup>. Since the service is disk based, it has no limits on
- * storage<sup>2</sup> beyond those imposed by the underlying filesystem. Once
- * loaded into memory, data will take up more space than it does on disk. A
- * cache is implemented so that frequently used components can be deserialized
- * more quickly and less frequently used components will be evicted from memory
- * before throwing an OOM.
+ * The service stores both rows<sup>1</sup> and columns<sup>2</sup> distinctly.
+ * Since the service is disk based, it has no limits on storage beyond those
+ * imposed by the underlying filesystem. Once loaded into memory, data will take
+ * up more space than it does on disk. A cache is implemented so that frequently
+ * used components can be deserialized more quickly and less frequently used
+ * components will be evicted from memory before throwing an OOM.
  * </p>
  * <sup>1</sup> - A red-black tree is used to index <em>every</em> column for
  * logarithmic query operations. Additionally, a hashmap is used to index
@@ -51,23 +50,22 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-class DurableStorage extends FlushingService {
+class Storage extends FlushingService {
 
 	/**
-	 * Return {@link DurableStorage} based in {@code dir}.
+	 * Return {@link Storage} based in {@code dir}.
 	 * 
 	 * @param dir
-	 * @return durable storage
+	 * @return storage
 	 */
-	public static DurableStorage in(String dir) {
-		return new DurableStorage(dir);
+	public static Storage in(String dir) {
+		return new Storage(dir);
 	}
 
 	private static final int EXECUTOR_SHUTDOWN_WAIT_IN_SECS = 60;
 	private static final String ROW_HOME = "cr";
 	private static final String COLUMN_HOME = "cc";
-	private static final Logger log = LoggerFactory
-			.getLogger(DurableStorage.class);
+	private static final Logger log = LoggerFactory.getLogger(Storage.class);
 
 	private final String home;
 	private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -77,9 +75,9 @@ class DurableStorage extends FlushingService {
 	 * 
 	 * @param home
 	 */
-	private DurableStorage(String home) {
+	private Storage(String home) {
 		this.home = home;
-		log.info("The durable storage is ready.");
+		log.info("The storage is ready.");
 	}
 
 	@Override
@@ -102,7 +100,7 @@ class DurableStorage extends FlushingService {
 			if(!executor.awaitTermination(EXECUTOR_SHUTDOWN_WAIT_IN_SECS,
 					TimeUnit.SECONDS)) {
 				List<Runnable> tasks = executor.shutdownNow();
-				log.error("The durable storage could not properly shutdown. "
+				log.error("The storage could not properly shutdown. "
 						+ "The following tasks were dropped: {}", tasks);
 			}
 		}
@@ -110,7 +108,7 @@ class DurableStorage extends FlushingService {
 			log.error("An error occured while shutting down the {}: {}", this
 					.getClass().getName(), e);
 		}
-		log.info("The durable storage has shutdown gracefully.");
+		log.info("The storage has shutdown gracefully.");
 
 	}
 
@@ -163,7 +161,7 @@ class DurableStorage extends FlushingService {
 			}
 			catch (Exception e) {
 				log.error("An error occured while trying to flush "
-						+ "write {} to durable storage: {}", write, e);
+						+ "write {} to storage: {}", write, e);
 				throw new ConcourseRuntimeException(e);
 			}
 			flusher.ack();

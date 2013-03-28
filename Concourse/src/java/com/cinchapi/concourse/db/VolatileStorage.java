@@ -113,9 +113,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	 * @see {@link #getValueIndexForColumn(String)}
 	 * @see {@link #getKeySetForColumnAndValue(String, Value)}
 	 */
-	private HashMap<String, TreeMap<Value, Set<Key>>> columns; // treemap is a
-																// red-black
-																// tree
+	private HashMap<String, TreeMap<Value, Set<Key>>> columns; 
 
 	/**
 	 * Construct a new empty instance with the {@code expectedCapacity}.

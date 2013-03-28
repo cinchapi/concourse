@@ -1,24 +1,78 @@
 package com.cinchapi.concourse.db;
 
 import java.io.File;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
  * The Concourse storage engine handles concurrent CRUD operations, provides
  * ACID-compliant transactions, and automatically indexes and versions data. The
- * engine is a {@link StaggeredWriteService} that first writes data to the
- * {@link Buffer} and eventually flushes to {@link DurableStorage}.
+ * engine is a {@link BufferedWriteService} that first writes data to a
+ * {@link Buffer} and eventually flushes to {@link Storage}.
  * </p>
- * <h2>ACID Transactions</h2>
+ * <h2>Write Buffering</h2>
  * <p>
- * By default, Concourse writes data immediately, but does provides the option
- * to dynamically defer writes to a transaction that provides full ACID
+ * Because Concourse is schemaless and indexes everything<sup>1</sup>,
+ * committing a single write to storage requires deserializing the entire row to
+ * modify the cell and deserializing the entire column to modify the index.
+ * Those changes must then flushed back to disk before the write is considered
+ * committed.
+ * </p>
+ * <p>
+ * Concourse avoids the overhead of committing individual writes to storage by
+ * using a durable buffer. The buffer is append-only and maintained entirely in
+ * memory with append-only indexing. All writes are first committed to the
+ * buffer. When the buffer is full or when manually triggered, the engine locks
+ * and flushes all buffered writes to storage.
+ * </p>
+ * <p>
+ * The buffered write system provides CD guarantees.
+ * <ol>
+ * <li><strong>Consistency</strong>: Each buffered write individually
+ * transitions the database from one consistent state to another. Thus the flush
+ * operation is guaranteed to maintain the consistency of the database.</li>
+ * <li><strong>Durability</strong>: The buffer itself is durable, so writes are
+ * not lost in the event of irregular shutdown. During a flush, writes are
+ * dropped from the buffer individually and placed in storage. A backup of the
+ * write currently being flushed is saved to disk before it is dropped and the
+ * backup is removed once the write is in storage. Saving the dropped write
+ * allows Concourse to recover it in the case that a shutdown occurs after the
+ * write was dropped, but before it was placed in storage. This guarantees
+ * durability in the transition from buffer to storage.</li>
+ * </ol>
+ * </p>
+ * <p>
+ * <sup>1</sup> - Databases typically take advantage of predefined and regular
+ * structure to map only the necessary parts of files into memory during
+ * read/write operations.
+ * </p>
+ * <h2>Consistent Reading</h2>
+ * <p>
+ * The buffer keeps a running count of write occurrences<sup>2</sup> to easily
+ * determine if a write currently exists or not. Before committing a write to
+ * the buffer, the engine checks both the buffer and storage to see if the write
+ * exists. The same protocol&mdash;consulting both the buffer and
+ * storage&mdash;is used for all reads. The results from the buffer and storage
+ * are resolved by taking their XOR (see
+ * {@link Sets#symmetricDifference(Set, Set)} or <a
+ * href="https://en.wikipedia.org/wiki/Exclusive_or#Truth_table">XOR truth</a>
+ * before being returned.
+ * <p>
+ * <p>
+ * <sup>2</sup> - Write equality is based only on row, column and value (not
+ * write type).
+ * </p>
+ * </p> <h2>Transactions</h2>
+ * <p>
+ * By default, Concourse commits writes immediately, but does provides the
+ * option to dynamically defer writes to a transaction that provides full ACID
  * guarantees.
  * <ul>
  * <li><strong>Atomicity</strong>: The writes in a transaction are all or
@@ -51,7 +105,7 @@ import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
  * 
  * @author jnelson
  */
-public final class Engine extends StaggeredWriteService implements
+public final class Engine extends BufferedWriteService implements
 		TransactionService {
 
 	/**
@@ -78,17 +132,17 @@ public final class Engine extends StaggeredWriteService implements
 			bufferIsFlushed = true;
 		}
 
-		// Setup the DurableStorage
-		DurableStorage durable;
+		// Setup the Storage
+		Storage storage;
 		File databaseDir = new File(home + File.separator + "ds");
 		databaseDir.mkdirs();
-		durable = DurableStorage.in(databaseDir.getAbsolutePath());
+		storage = Storage.in(databaseDir.getAbsolutePath());
 
 		// Setup for Transactions
 		String transactionFile = home + File.separator + TRANSACTION_FILE_NAME;
 
 		// Return the Engine
-		return new Engine(buffer, durable, bufferIsFlushed, transactionFile);
+		return new Engine(buffer, storage, bufferIsFlushed, transactionFile);
 	}
 
 	/**
@@ -107,13 +161,13 @@ public final class Engine extends StaggeredWriteService implements
 	 * Construct a new instance.
 	 * 
 	 * @param buffer
-	 * @param durable
+	 * @param storage
 	 * @param flushed
 	 * @param transactionFile
 	 */
-	private Engine(Buffer buffer, DurableStorage durable, boolean flushed,
+	private Engine(Buffer buffer, Storage storage, boolean flushed,
 			String transactionFile) {
-		super(buffer, durable);
+		super(buffer, storage);
 		this.flushed = flushed;
 		this.transactionFile = transactionFile;
 		log.info("The engine has started.");
@@ -126,7 +180,7 @@ public final class Engine extends StaggeredWriteService implements
 	 * a GC.
 	 */
 	public synchronized void flush() {
-		((DurableStorage) primary).flush((Buffer) initial);
+		((Storage) primary).flush((Buffer) buffer);
 		flushed = true;
 		System.gc();
 		log.info("The buffer has been flushed.");
@@ -143,7 +197,7 @@ public final class Engine extends StaggeredWriteService implements
 			if(!flushed) {
 				log.warn("The buffer was not flushed prior to shutdown.");
 			}
-			initial.shutdown();
+			buffer.shutdown();
 			primary.shutdown();
 			log.info("The engine has shutdown gracefully.");
 			super.shutdown();
@@ -178,7 +232,7 @@ public final class Engine extends StaggeredWriteService implements
 	 * @param row
 	 */
 	private void checkFlush(String column, Object value, long row) {
-		if(((Buffer) initial).isFull(column, value, row)) {
+		if(((Buffer) buffer).isFull(column, value, row)) {
 			flush();
 		}
 	}
@@ -189,13 +243,13 @@ public final class Engine extends StaggeredWriteService implements
 	 */
 	private void recover() {
 		// Recover dropped write
-		DroppedWrite write = ((Buffer) initial).checkForDroppedWrite();
+		DroppedWrite write = ((Buffer) buffer).checkForDroppedWrite();
 		if(write != null) {
 			log.info("It appears that the engine was last shutdown while "
 					+ "flushing the buffer and a write was dropped. "
 					+ "The engine will attempt to flush that write "
 					+ "now: {}", write);
-			((DurableStorage) primary).flush(write);
+			((Storage) primary).flush(write);
 			write.discard();
 		}
 

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.api.Concourse;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.db.Engine;
 import com.cinchapi.concourse.db.Key;

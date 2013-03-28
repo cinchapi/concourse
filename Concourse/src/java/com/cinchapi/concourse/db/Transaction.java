@@ -55,7 +55,7 @@ import com.google.gson.JsonSerializer;
  * 
  * @author jnelson
  */
-public final class Transaction extends StaggeredWriteService {
+public final class Transaction extends BufferedWriteService {
 	// NOTE: This class does not define hashCode() or equals() because the
 	// defaults are the desired behaviour.
 
@@ -216,7 +216,7 @@ public final class Transaction extends StaggeredWriteService {
 
 	@Override
 	public synchronized void shutdown() {
-		initial.shutdown(); // shutdown the volatile db
+		buffer.shutdown(); // shutdown the volatile db
 		super.shutdown();
 	}
 
@@ -302,7 +302,7 @@ public final class Transaction extends StaggeredWriteService {
 	 * Assert that the number of operations is equal to the number of commits.
 	 */
 	private void assertSize() {
-		assert operations.size() == ((VolatileStorage) initial).ordered.size() : "There is a discrepency between the number of operations and the number of commits";
+		assert operations.size() == ((VolatileStorage) buffer).ordered.size() : "There is a discrepency between the number of operations and the number of commits";
 	}
 
 	/**

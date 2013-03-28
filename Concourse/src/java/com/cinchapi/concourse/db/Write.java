@@ -189,6 +189,17 @@ class Write implements ByteSized {
 		return hashCode;
 	}
 
+	/**
+	 * Return {@code true} if this is equal to {@code other} and also has the
+	 * same {@link #type} as {@code other}.
+	 * 
+	 * @param other
+	 * @return {@code true} if this is identical to {@code other}
+	 */
+	public boolean isIdenticalTo(Write other) {
+		return this.equals(other) && type == other.type;
+	}
+
 	@Override
 	public int size() {
 		return FIXED_SIZE_IN_BYTES + columnSize + valueSize + row.size();
