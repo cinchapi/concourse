@@ -17,10 +17,6 @@ package com.cinchapi.concourse.api;
 import java.util.Set;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.db.DataStoreService;
-import com.cinchapi.concourse.db.Engine;
-import com.cinchapi.concourse.db.Transaction;
-import com.cinchapi.concourse.db.TransactionService;
 import com.google.common.collect.Sets;
 
 /**
@@ -88,120 +84,21 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class Concourse implements DataStoreService, TransactionService {
+public abstract class Concourse {
+
+	public static final String PREFS_FILE = "concourse.prefs";
 
 	/**
-	 * Start {@code Concourse}.
+	 * Start an embedded concourse database. An embedded concourse requires the
+	 * presence of a concourse.prefs configuration file in the working
+	 * directory.
 	 * 
-	 * @return Concourse
+	 * @return the embedded Concourse
 	 */
-	public static Concourse start() {
+	public static EmbeddedConcourse startEmbedded() {
 		ConcourseConfiguration prefs = ConcourseConfiguration
 				.fromFile(PREFS_FILE);
-		Engine engine = Engine.start(prefs);
-		return new Concourse(engine);
-	}
-
-	private static final String PREFS_FILE = "concourse.prefs";
-
-	private final Engine engine;
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param engine
-	 */
-	private Concourse(Engine engine) {
-		this.engine = engine;
-	}
-
-	@Override
-	public boolean add(String column, Object value, long row) {
-		return engine.add(column, value, row);
-	}
-	
-	public boolean addRelation(long fromRow, long toRow, String column){
-		return false;
-	}
-
-	@Override
-	public Set<String> describe(long row) {
-		return engine.describe(row);
-	}
-
-	@Override
-	public boolean exists(long row) {
-		return engine.exists(row);
-	}
-
-	@Override
-	public boolean exists(String column, long row) {
-		return engine.exists(column, row);
-	}
-
-	@Override
-	public boolean exists(String column, Object value, long row) {
-		return engine.exists(column, value, row);
-	}
-
-	@Override
-	public Set<Object> fetch(String column, long row) {
-		return engine.fetch(column, row);
-	}
-
-	@Override
-	public Set<Object> fetch(String column, long timestamp, long row) {
-		return engine.fetch(column, timestamp, row);
-	}
-
-	@Override
-	public Set<Long> query(String column, Operator operator, Object... values) {
-		return engine.query(column, operator, values);
-	}
-
-	@Override
-	public boolean remove(String column, Object value, long row) {
-		return engine.remove(column, value, row);
-	}
-
-	@Override
-	public boolean revert(String column, long timestamp, long row) {
-		return engine.revert(column, timestamp, row);
-	}
-
-	@Override
-	public boolean set(String column, Object value, long row) {
-		return engine.set(column, value, row);
-	}
-
-	@Override
-	public void shutdown() {
-		engine.shutdown();
-	}
-
-	@Override
-	public long sizeOf() {
-		return engine.sizeOf();
-	}
-
-	@Override
-	public long sizeOf(long row) {
-		return engine.sizeOf(row);
-	}
-
-	@Override
-	public long sizeOf(String column, Long row) {
-		return engine.sizeOf(column, row);
-	}
-
-	@Override
-	public Transaction startTransaction() {
-		return engine.startTransaction();
-	}
-
-	@Override
-	public String getTransactionFileName() {
-		throw new UnsupportedOperationException("Do not call this method");
+		return new EmbeddedConcourse(prefs);
 	}
 
 }

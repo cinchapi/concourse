@@ -12,33 +12,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.store.structure;
+package com.cinchapi.concourse.api;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import com.cinchapi.common.time.StopWatch;
-import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.api.Concourse;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.db.Engine;
-import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.Transaction;
-import com.cinchapi.concourse.db.QueryService.Operator;
-
-
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class Test {
-	
-	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
-		Concourse concourse = Concourse.startEmbedded();
-		
+class EmbeddedConcourse extends Concourse {
+
+	private final Engine engine;
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param prefs
+	 */
+	public EmbeddedConcourse(ConcourseConfiguration prefs) {
+		engine = Engine.start(prefs);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				engine.shutdown();
+			}
+		});
 	}
 
 }
