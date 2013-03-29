@@ -89,4 +89,25 @@ public abstract class DbBaseTest extends BaseTest {
 		return Value.notForStorage(randomObject());
 	}
 
+	/**
+	 * Return a random forStorage write.
+	 * 
+	 * @return the write
+	 */
+	protected Write randomWriteForStorage() {
+		return Write.forStorage(randomColumnName(), randomObject(),
+				randomLong(),
+				WriteType.values()[rand.nextInt(WriteType.values().length)]);
+	}
+
+	/**
+	 * Return a random notForStorage write.
+	 * 
+	 * @return the write
+	 */
+	protected Write randomWriteNotForStorage() {
+		return Write.notForStorage(randomColumnName(), randomObject(),
+				randomLong());
+	}
+
 }

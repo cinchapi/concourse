@@ -37,7 +37,7 @@ import com.cinchapi.concourse.db.QueryService.Operator;
 public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
-		Concourse concourse = Concourse.startEmbedded();
+		Concourse concourse = Concourse.embeddedServer();
 		
 	}
 

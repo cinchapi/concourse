@@ -25,5 +25,5 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ BufferTest.class, CellTest.class, KeyTest.class, RowTest.class,
-		ValueTest.class, VolatileStorageTest.class })
+		ValueTest.class, VolatileStorageTest.class, WriteTest.class })
 public class TestSuite {/* Test Suite */}

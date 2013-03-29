@@ -22,7 +22,7 @@ import com.cinchapi.concourse.db.Engine;
  * 
  * @author jnelson
  */
-class EmbeddedConcourse extends Concourse {
+class EmbeddedServerHandler extends Concourse {
 
 	private final Engine engine;
 
@@ -31,7 +31,7 @@ class EmbeddedConcourse extends Concourse {
 	 * 
 	 * @param prefs
 	 */
-	public EmbeddedConcourse(ConcourseConfiguration prefs) {
+	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
 		engine = Engine.start(prefs);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override

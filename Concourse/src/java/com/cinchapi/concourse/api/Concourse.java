@@ -89,16 +89,18 @@ public abstract class Concourse {
 	public static final String PREFS_FILE = "concourse.prefs";
 
 	/**
-	 * Start an embedded concourse database. An embedded concourse requires the
-	 * presence of a concourse.prefs configuration file in the working
+	 * Start an embedded Concourse database server, which requires the
+	 * presence of a {@value #PREFS_FILE} configuration file in the working
 	 * directory.
 	 * 
-	 * @return the embedded Concourse
+	 * @return the handler for the embedded server
 	 */
-	public static EmbeddedConcourse startEmbedded() {
+	public static EmbeddedServerHandler embeddedServer() {
 		ConcourseConfiguration prefs = ConcourseConfiguration
 				.fromFile(PREFS_FILE);
-		return new EmbeddedConcourse(prefs);
+		return new EmbeddedServerHandler(prefs);
 	}
+
+	// TODO remoteServer()
 
 }
