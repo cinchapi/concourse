@@ -12,33 +12,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
+package com.cinchapi.concourse.engine;
 
-import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite.SuiteClasses;
+import org.junit.runners.Suite;
 
 /**
  * 
  * 
  * @author jnelson
  */
-class EmbeddedServerHandler extends Concourse {
-
-	private final Engine engine;
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param prefs
-	 */
-	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
-		engine = Engine.start(prefs);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				engine.shutdown();
-			}
-		});
-	}
-
-}
+@RunWith(Suite.class)
+@SuiteClasses({ BufferTest.class, CellTest.class, KeyTest.class, RowTest.class,
+		ValueTest.class, VolatileStorageTest.class, WriteTest.class })
+public class TestSuite {/* Test Suite */}

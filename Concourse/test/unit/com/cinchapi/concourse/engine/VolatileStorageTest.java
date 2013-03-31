@@ -12,33 +12,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
+package com.cinchapi.concourse.engine;
 
-import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+import com.cinchapi.concourse.engine.ConcourseServiceProvider;
+import com.cinchapi.concourse.engine.VolatileStorage;
 
 /**
  * 
  * 
  * @author jnelson
  */
-class EmbeddedServerHandler extends Concourse {
+public class VolatileStorageTest extends ConcourseServiceTest {
 
-	private final Engine engine;
-
-	/**
-	 * Construct a new instance.
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * @param prefs
+	 * @see com.cinchapi.concourse.ConcourseServiceTest#getService()
 	 */
-	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
-		engine = Engine.start(prefs);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				engine.shutdown();
-			}
-		});
+	@Override
+	protected VolatileStorage getService() {
+		return ConcourseServiceProvider.provideVolatileStorage();
 	}
 
 }

@@ -12,33 +12,31 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
-
-import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+package com.cinchapi.concourse.engine;
 
 /**
- * 
+ * A service that flushes writes from a {@link FlushableService}, but cannot
+ * receive writes directly.
  * 
  * @author jnelson
  */
-class EmbeddedServerHandler extends Concourse {
+public abstract class FlushingService extends ConcourseService {
 
-	private final Engine engine;
+	@Override
+	protected final boolean addSpi(String column, Object value, long row) {
+		return false;
+	}
+
+	@Override
+	protected final boolean removeSpi(String column, Object value, long row) {
+		return false;
+	}
 
 	/**
-	 * Construct a new instance.
+	 * Flush the contents of the {@code service}.
 	 * 
-	 * @param prefs
+	 * @param service
 	 */
-	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
-		engine = Engine.start(prefs);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				engine.shutdown();
-			}
-		});
-	}
+	abstract void flush(FlushableService service);
 
 }

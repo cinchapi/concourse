@@ -12,33 +12,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
+package com.cinchapi.concourse.engine;
 
-import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+import java.util.Iterator;
 
 /**
  * 
  * 
  * @author jnelson
  */
-class EmbeddedServerHandler extends Concourse {
-
-	private final Engine engine;
+public interface WriteFlusher extends Iterator<Write> {
 
 	/**
-	 * Construct a new instance.
-	 * 
-	 * @param prefs
+	 * Acknowledge that the most recently returned {@link Write} has been
+	 * flushed.
 	 */
-	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
-		engine = Engine.start(prefs);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				engine.shutdown();
-			}
-		});
-	}
+	public void ack();
 
 }

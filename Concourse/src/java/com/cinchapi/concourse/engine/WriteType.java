@@ -12,33 +12,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
-
-import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+package com.cinchapi.concourse.engine;
 
 /**
- * 
- * 
- * @author jnelson
+ * Enumerates the possible writes.
  */
-class EmbeddedServerHandler extends Concourse {
-
-	private final Engine engine;
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param prefs
-	 */
-	public EmbeddedServerHandler(ConcourseConfiguration prefs) {
-		engine = Engine.start(prefs);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				engine.shutdown();
-			}
-		});
-	}
-
+public enum WriteType {
+	ADD, REMOVE, NOT_FOR_STORAGE
 }
