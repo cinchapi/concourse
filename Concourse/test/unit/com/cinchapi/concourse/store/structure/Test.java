@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.api.Concourse;
+import com.cinchapi.concourse.client.Concourse;
+import com.cinchapi.concourse.client.Concourse;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.engine.Engine;
 import com.cinchapi.concourse.engine.Key;
@@ -37,7 +38,7 @@ import com.cinchapi.concourse.engine.QueryService.Operator;
 public class Test {
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
-		Concourse concourse = Concourse.embeddedServer();
+		Concourse concourse = Concourse.forEmbeddedServer();
 		
 	}
 

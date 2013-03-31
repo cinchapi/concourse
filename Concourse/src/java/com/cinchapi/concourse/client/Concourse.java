@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.api;
+package com.cinchapi.concourse.client;
 
 import java.util.Set;
 
@@ -86,6 +86,7 @@ import com.google.common.collect.Sets;
  */
 public abstract class Concourse {
 
+	
 	public static final String PREFS_FILE = "concourse.prefs";
 
 	/**
@@ -95,12 +96,12 @@ public abstract class Concourse {
 	 * 
 	 * @return the handler for the embedded server
 	 */
-	public static EmbeddedServerHandler embeddedServer() {
+	public static EmbeddedHandle forEmbeddedServer() {
 		ConcourseConfiguration prefs = ConcourseConfiguration
 				.fromFile(PREFS_FILE);
-		return new EmbeddedServerHandler(prefs);
+		return new EmbeddedHandle(prefs);
 	}
 
-	// TODO remoteServer()
+	// TODO forRemoteServer() forEmbeddedServer()
 
 }

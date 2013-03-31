@@ -12,22 +12,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.client;
 
-import com.cinchapi.concourse.engine.Buffer;
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
-
+import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.engine.Engine;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class BufferBenchmark extends ConcourseServiceBenchmark {
+class EmbeddedController extends Concourse {
 
-	@Override
-	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewBuffer();
+	private final Engine engine;
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param prefs
+	 */
+	public EmbeddedController(ConcourseConfiguration prefs) {
+		engine = Engine.start(prefs);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				engine.shutdown();
+			}
+		});
 	}
 
 }
