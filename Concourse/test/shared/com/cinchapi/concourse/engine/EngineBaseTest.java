@@ -58,6 +58,32 @@ public abstract class EngineBaseTest extends BaseTest {
 	}
 
 	/**
+	 * Return a random cell that has been populated with a random number of
+	 * revisions.
+	 * 
+	 * @return the cell
+	 */
+	protected Cell randomPopulatedCell() {
+		Cell cell = randomNewCell();
+		int scale = randomScaleFrequency();
+		for (int i = 0; i < scale; i++) {
+			Value value = null;
+			while (value == null || cell.contains(value)) {
+				value = randomValueForStorage();
+			}
+			cell.add(value);
+			if(rand.nextInt() % 3 == 0) {
+				cell.remove(value);
+				cell.add(value);
+			}
+			if(rand.nextInt() % 6 == 0) {
+				cell.remove(value);
+			}
+		}
+		return cell;
+	}
+
+	/**
 	 * Return a random new Row
 	 * 
 	 * @return the row

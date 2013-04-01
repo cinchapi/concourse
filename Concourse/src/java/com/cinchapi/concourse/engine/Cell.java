@@ -258,7 +258,7 @@ class Cell implements ByteSized {
 				snapshot.add(value);
 			}
 		}
-		return history.rewind(at);
+		return snapshot;
 	}
 
 	/**
@@ -286,7 +286,11 @@ class Cell implements ByteSized {
 						"Cannot remove value '%s' because it is not a forStorage value",
 						value);
 		state = state.remove(value);
-		history.log(value);
+		history.log(Value.forStorage(value.getQuantity())); // Make a copy of
+															// the value so it
+															// has a distinct
+															// timestamp in
+															// history
 	}
 
 	/**
@@ -530,11 +534,16 @@ class Cell implements ByteSized {
 		 */
 		List<Value> rewind(long to) {
 			List<Value> snapshot = Lists.newArrayList();
-			ListIterator<Value> it = values.listIterator();
+			Iterator<Value> it = values.iterator();
 			while (it.hasNext()) {
 				Value value = it.next();
 				if(value.getTimestamp() <= to) {
 					snapshot.add(value);
+				}
+				else {
+					break; // since the values are sorted in insertion order, I
+							// can stop looking once I find a timestamp greater
+							// than {@code to}
 				}
 			}
 			return snapshot;

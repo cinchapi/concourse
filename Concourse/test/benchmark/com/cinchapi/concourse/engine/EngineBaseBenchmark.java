@@ -28,7 +28,7 @@ import com.cinchapi.concourse.engine.EngineBaseTest;
  * 
  * @author jnelson
  */
-public class DbBaseBenchmark extends EngineBaseTest {
+public class EngineBaseBenchmark extends EngineBaseTest {
 
 	protected final String outputBaseDir = "test/benchmarks/";
 	protected final NumberFormat format = NumberFormat.getNumberInstance();
@@ -36,7 +36,7 @@ public class DbBaseBenchmark extends EngineBaseTest {
 	/**
 	 * Construct a new instance.
 	 */
-	public DbBaseBenchmark() {
+	public EngineBaseBenchmark() {
 		new File(outputBaseDir).mkdir();
 		format.setGroupingUsed(true);
 	}

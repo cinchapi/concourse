@@ -28,7 +28,7 @@ import com.cinchapi.concourse.engine.QueryService.Operator;
  * 
  * @author jnelson
  */
-public abstract class ConcourseServiceBenchmark extends DbBaseBenchmark {
+public abstract class ConcourseServiceBenchmark extends EngineBaseBenchmark {
 
 	private static final int DEFAULT_SERVICE_CAPACITY = 1000000;
 

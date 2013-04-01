@@ -184,6 +184,18 @@ public abstract class BaseTest extends TestCase {
 	}
 
 	/**
+	 * Pause execution for a random number of milliseconds.
+	 */
+	protected void sleep() {
+		try {
+			Thread.sleep(randomSleep());
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * Return a random string, possibly with digits.
 	 * 
 	 * @return the string
