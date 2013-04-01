@@ -12,32 +12,35 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.client;
+package com.cinchapi.concourse;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.engine.Engine;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class ConcourseController {
+class EmbeddedServer extends Concourse {
 	
-	public static final String PREFS_FILE = "concourse.prefs";
+	//TODO implement ImportService, ExportService
+
+	private final Engine engine;
 
 	/**
-	 * Start an embedded Concourse database server, which requires the
-	 * presence of a {@value #PREFS_FILE} configuration file in the working
-	 * directory.
+	 * Construct a new instance.
 	 * 
-	 * @return the handler for the embedded server
+	 * @param prefs
 	 */
-	public static EmbeddedController forEmbeddedServer() {
-		ConcourseConfiguration prefs = ConcourseConfiguration
-				.fromFile(PREFS_FILE);
-		return new EmbeddedController(prefs);
+	public EmbeddedServer(ConcourseConfiguration prefs) {
+		engine = Engine.start(prefs);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				engine.shutdown();
+			}
+		});
 	}
-
-	// TODO forRemoteServer() forEmbeddedServer()
 
 }
