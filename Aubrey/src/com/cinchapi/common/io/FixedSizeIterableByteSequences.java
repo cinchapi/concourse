@@ -40,7 +40,7 @@ public interface FixedSizeIterableByteSequences extends IterableByteSequences {
 
 	/**
 	 * An {@link Iterator} that traverses a byte array and returns sequences as
-	 * a byte buffer. The iterator assumes that each the first 4 bytes of the
+	 * a byte buffer. The iterator assumes that the first 4 bytes of the
 	 * sequence specifies the number of sequences, the next four bytes specify
 	 * the size of each sequence and the remaining bytes are the sequences over
 	 * which to iterate. The iterator will fail to return a next element when
@@ -106,7 +106,10 @@ public interface FixedSizeIterableByteSequences extends IterableByteSequences {
 		}
 
 		@Override
-		protected void readNext() {} // do nothing
+		protected void readNext() {} // Do nothing. I am not overriding this
+										// method because it is called by the
+										// parent constructor and its execution
+										// would cause unexpected behaviour
 	}
 
 }
