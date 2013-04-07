@@ -50,7 +50,7 @@ import com.google.gson.JsonSerializer;
 
 /**
  * A {@link Transaction} is initiated from a {@link TransactionService} for the
- * purpose of conducting an set of ACID operations. This object provides a
+ * purpose of conducting an set of ACID writes. This object provides a
  * similar action interface as the the parent.
  * 
  * @author jnelson
@@ -279,11 +279,11 @@ public final class Transaction extends BufferedWriteService {
 				}
 				else {
 					log.warn(
-							"Failed attempt to save transaction operation {} because it appears "
-									+ "that the primary service was previously shutdown while "
-									+ "committing this transaction, yet managed to successfully "
-									+ "commit this particular operation.",
-							operation);
+							"Failed attempt to save transaction operation "
+									+ "{} because it appears that the primary service "
+									+ "was previously shutdown while committing this "
+									+ "transaction, yet managed to successfully commit "
+									+ "this particular operation.", operation);
 				}
 			}
 			cleanup.run();

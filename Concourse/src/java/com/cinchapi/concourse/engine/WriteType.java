@@ -17,6 +17,6 @@ package com.cinchapi.concourse.engine;
 /**
  * Enumerates the possible writes.
  */
-public enum WriteType {
+enum WriteType implements ActionType {
 	ADD, REMOVE, NOT_FOR_STORAGE
 }

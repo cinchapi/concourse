@@ -26,11 +26,10 @@ import com.google.common.collect.Sets;
  * committed.
  * </p>
  * <p>
- * Concourse avoids the overhead of committing individual writes to storage by
- * using a durable buffer. The buffer is append-only and maintained entirely in
- * memory with append-only indexing. All writes are first committed to the
- * buffer. When the buffer is full or when manually triggered, the engine locks
- * and flushes all buffered writes to storage.
+ * The overhead of committing individual writes to storage is avoided by using a
+ * durable buffer. The buffer is append-only and maintained entirely in memory
+ * with append-only indexing. All writes are first committed to the buffer and
+ * eventually flushed to storage.
  * </p>
  * <p>
  * The buffered write system provides CD guarantees.
@@ -100,6 +99,10 @@ import com.google.common.collect.Sets;
  * transaction can be recovered and resumed. Once the transaction is fully
  * committed, the file on disk is deleted.</li>
  * </ul>
+ * <strong>NOTE</strong>: ACID compliance is not guaranteed for transaction
+ * reads because a failure is not detected if a read value changes before the
+ * transaction is committed unless the value was also involved in a write. This
+ * may change in the future.
  * </p>
  * 
  * 
@@ -221,7 +224,7 @@ public final class Engine extends BufferedWriteService implements
 	}
 
 	/**
-	 * Flush the {@code writeBuffer} to the {@code database} iff it is too full
+	 * Flush the {@code buffer} to {@code storage} iff it is too full
 	 * for the specified write.
 	 * 
 	 * @param column
@@ -229,7 +232,7 @@ public final class Engine extends BufferedWriteService implements
 	 * @param row
 	 */
 	private void checkFlush(String column, Object value, long row) {
-		if(((Buffer) buffer).isFull(column, value, row)) {
+		if(((Buffer) buffer).doesNotHaveCapacityForWrite(column, value, row)) {
 			flush();
 		}
 	}

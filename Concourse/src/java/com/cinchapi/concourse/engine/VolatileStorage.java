@@ -182,7 +182,7 @@ class VolatileStorage extends ConcourseService implements IndexingService {
 	 * Return the count for {@code write} in the storage. Many operations
 	 * build upon this functionality (i.e the {@code exists} method, which is
 	 * called by both the {@code add} and {@code remove} methods
-	 * before issuing writes is built upon this method.
+	 * before issuing writes.
 	 * 
 	 * @param write
 	 * @return the count

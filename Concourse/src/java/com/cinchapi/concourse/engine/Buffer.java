@@ -323,15 +323,6 @@ class Buffer extends VolatileStorage implements
 	}
 
 	/**
-	 * Return {@code true} if the buffer has exceeded its usable capacity.
-	 * 
-	 * @return {@code true} if the buffer is full
-	 */
-	boolean isFull() {
-		return size >= usableCapacity;
-	}
-
-	/**
 	 * Return {@code true} if the buffer is too full to write the revision
 	 * for {@code value} in {@code row}: {@code column}.
 	 * 
@@ -340,9 +331,18 @@ class Buffer extends VolatileStorage implements
 	 * @param row
 	 * @return {@code true} if the buffer is full
 	 */
-	boolean isFull(String column, Object value, long row) {
+	boolean doesNotHaveCapacityForWrite(String column, Object value, long row) {
 		Write write = Write.notForStorage(column, value, row);
 		return size + write.size() + FIXED_SIZE_PER_WRITE > usableCapacity;
+	}
+
+	/**
+	 * Return {@code true} if the buffer has exceeded its usable capacity.
+	 * 
+	 * @return {@code true} if the buffer is full
+	 */
+	boolean isFull() {
+		return size >= usableCapacity;
 	}
 
 	/**
