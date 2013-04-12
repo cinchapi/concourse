@@ -19,8 +19,8 @@ import java.util.Set;
 import com.cinchapi.concourse.db.Operator;
 
 /**
- * A highly available distributed service that can handle reads on a
- * previous database state.
+ * A highly available service that can handle operations on a
+ * previous state of the data store.
  * 
  * @author jnelson
  */
@@ -73,5 +73,16 @@ public interface HistoricalService {
 	 */
 	public Set<Long> queryAt(long timestamp, String column, Operator operator,
 			Object... values);
+
+	/**
+	 * Revert to {@code column} for {@code row} to {@code timestamp}.
+	 * 
+	 * @param column
+	 * @param row
+	 * @param timestamp
+	 * @return {@code true} if the cell at {@code row} x {@code column} is
+	 *         reverted
+	 */
+	public boolean revert(String column, long row, long timestamp);
 
 }

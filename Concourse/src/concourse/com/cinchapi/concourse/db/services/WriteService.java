@@ -15,8 +15,8 @@
 package com.cinchapi.concourse.db.services;
 
 /**
- * A highly available distributed service that can handle {@code writes}, each
- * of which transitions the database from one consistent state to another.
+ * A highly available service that can handle {@code writes}, each
+ * of which transitions the data store from one consistent state to another.
  * 
  * @author jnelson
  */

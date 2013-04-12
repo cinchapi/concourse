@@ -23,9 +23,9 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.services.IndexingService;
 import com.cinchapi.concourse.engine.EngineBaseTest;
 import com.cinchapi.concourse.engine.old.ConcourseService;
-import com.cinchapi.concourse.engine.old.IndexingService;
 import com.cinchapi.concourse.engine.old.QueryService.Operator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

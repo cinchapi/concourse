@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.db.Key;
+import com.cinchapi.concourse.db.services.IndexingService;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
