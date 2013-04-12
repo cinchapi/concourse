@@ -15,11 +15,11 @@
 package com.cinchapi.concourse.engine;
 
 import com.cinchapi.concourse.BaseTest;
+import com.cinchapi.concourse.db.old.Value;
 import com.cinchapi.concourse.engine.old.Cell;
 import com.cinchapi.concourse.engine.old.ConcourseService;
 import com.cinchapi.concourse.engine.old.Key;
 import com.cinchapi.concourse.engine.old.Row;
-import com.cinchapi.concourse.engine.old.Value;
 import com.cinchapi.concourse.engine.old.Write;
 import com.cinchapi.concourse.engine.old.WriteType;
 

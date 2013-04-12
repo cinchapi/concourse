@@ -12,9 +12,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.db.services;
 
 import java.util.Set;
+
+import com.cinchapi.concourse.db.Operator;
 
 /**
  * A service that can handle historical reads.

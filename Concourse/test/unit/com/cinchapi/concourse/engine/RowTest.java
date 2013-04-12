@@ -23,10 +23,10 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.old.Value;
 import com.cinchapi.concourse.engine.EngineBaseTest;
 import com.cinchapi.concourse.engine.old.Cell;
 import com.cinchapi.concourse.engine.old.Row;
-import com.cinchapi.concourse.engine.old.Value;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
