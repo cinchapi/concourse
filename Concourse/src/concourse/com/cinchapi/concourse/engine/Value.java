@@ -35,9 +35,9 @@ import com.google.common.primitives.Longs;
  * </p>
  * <p>
  * Both {@code naturally} sortable in descending order by timestamp and
- * {@code logically} sortable in ascending order by quantity( regardless of
- * {@code type}). This is the most basic element of data in {@link Engine}. A
- * single value cannot be larger than 2GB. <br>
+ * {@code logically} sortable in ascending order by quantity(regardless of
+ * {@code type}). This is the most basic element of data in the {@link Engine}.
+ * A single value cannot be larger than 2GB. <br>
  * <br>
  * <sup>1</sup> - No two values can have the same timestamp
  * </p>
@@ -542,8 +542,7 @@ final class Value implements Comparable<Value>, ByteSized {
 		 * @param type
 		 * @return the object.
 		 */
-		static Object getObjectFromByteBuffer(ByteBuffer buffer,
-				Type type) {
+		static Object getObjectFromByteBuffer(ByteBuffer buffer, Type type) {
 			Object object = null;
 
 			switch (type) {

@@ -12,22 +12,20 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
-
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
-import com.cinchapi.concourse.engine.old.Buffer;
-
+package com.cinchapi.concourse.engine.old;
 
 /**
- * 
+ * An service whose writes can be flushed by a {@link FlushingService}.
  * 
  * @author jnelson
  */
-public class BufferBenchmark extends ConcourseServiceBenchmark {
+public interface FlushableService {
 
-	@Override
-	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewBuffer();
-	}
+	/**
+	 * Return an iterator over the writes in the service.
+	 * 
+	 * @return the flusher
+	 */
+	public WriteFlusher flusher();
 
 }

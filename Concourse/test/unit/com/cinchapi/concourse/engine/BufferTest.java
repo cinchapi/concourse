@@ -16,9 +16,9 @@ package com.cinchapi.concourse.engine;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.engine.Buffer;
 import com.cinchapi.concourse.engine.ConcourseServiceProvider;
 import com.cinchapi.concourse.engine.ConcourseServiceTest;
+import com.cinchapi.concourse.engine.old.Buffer;
 
 /**
  * Unit tests for {@link Buffer}.

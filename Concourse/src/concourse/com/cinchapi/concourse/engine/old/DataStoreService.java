@@ -12,35 +12,46 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.engine.old;
+
 
 /**
- * A service that can handle writes.
+ * A single {@link QueryService}, {@link ReadService} and {@link WriteService}.
  * 
  * @author jnelson
  */
-public interface WriteService {
+public interface DataStoreService extends
+		QueryService,
+		ReadService,
+		WriteService {
 
 	/**
-	 * Add {@code column} as {@code value} for {@code row}.
-	 * 
-	 * @param column
-	 * @param value
-	 * @param row
-	 * @return {@code true} if {@code value} is added to the cell at {@code row}
-	 *         x {@code column} where it did not previously exist.
+	 * Shutdown the service.
 	 */
-	public boolean add(String column, Object value, long row);
+	public abstract void shutdown();
 
 	/**
-	 * Remove {@code column} as {@code value} for {@code row}.
+	 * Return the size of all the data stored in service.
+	 * 
+	 * @return the total size
+	 */
+	public long sizeOf();
+
+	/**
+	 * Return the size in {@code row}
+	 * 
+	 * @param row
+	 * @return the size of the data stored in {@code row}
+	 */
+	public long sizeOf(long row);
+
+	/**
+	 * Return the size of {@code column} in {@code row}.
 	 * 
 	 * @param column
-	 * @param value
 	 * @param row
-	 * @return {@code true} if {@code value} is removed from the cell at
-	 *         {@code row} x {@code column} where it did previously exist.
+	 * @return the size of the data stored in the cell at {@code row}:
+	 *         {@code column}
 	 */
-	public boolean remove(String column, Object value, long row);
-
+	public long sizeOf(String column, Long row);
 }

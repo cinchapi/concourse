@@ -12,22 +12,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
-
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
-import com.cinchapi.concourse.engine.old.Buffer;
-
+package com.cinchapi.concourse.engine.old;
 
 /**
- * 
+ * A service that indexes data.
  * 
  * @author jnelson
  */
-public class BufferBenchmark extends ConcourseServiceBenchmark {
+public interface IndexingService {
 
-	@Override
-	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewBuffer();
-	}
+	/**
+	 * Reindex the data stored by the service.
+	 * <em>This may be a resource intensive operation</em>.
+	 */
+	public void reindex();
 
 }

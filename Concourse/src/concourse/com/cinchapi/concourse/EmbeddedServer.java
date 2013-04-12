@@ -15,7 +15,7 @@
 package com.cinchapi.concourse;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Engine;
+import com.cinchapi.concourse.engine.old.Engine;
 
 /**
  * 

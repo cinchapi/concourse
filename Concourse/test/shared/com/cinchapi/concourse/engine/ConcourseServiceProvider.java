@@ -15,8 +15,8 @@
 package com.cinchapi.concourse.engine;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.Buffer;
-import com.cinchapi.concourse.engine.VolatileStorage;
+import com.cinchapi.concourse.engine.old.Buffer;
+import com.cinchapi.concourse.engine.old.VolatileStorage;
 
 /**
  * Provides Concourse services for testing

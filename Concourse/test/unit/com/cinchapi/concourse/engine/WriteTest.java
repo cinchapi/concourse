@@ -19,8 +19,8 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import com.cinchapi.concourse.engine.EngineBaseTest;
-import com.cinchapi.concourse.engine.Write;
-import com.cinchapi.concourse.engine.WriteType;
+import com.cinchapi.concourse.engine.old.Write;
+import com.cinchapi.concourse.engine.old.WriteType;
 
 /**
  * Unit tests for {@link Write}.

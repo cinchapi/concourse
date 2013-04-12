@@ -12,22 +12,21 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.engine.old;
 
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
-import com.cinchapi.concourse.engine.old.Buffer;
-
+import java.util.Iterator;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class BufferBenchmark extends ConcourseServiceBenchmark {
+public interface WriteFlusher extends Iterator<Write> {
 
-	@Override
-	protected Buffer getService() {
-		return ConcourseServiceProvider.provideNewBuffer();
-	}
+	/**
+	 * Acknowledge that the most recently returned {@link Write} has been
+	 * flushed.
+	 */
+	public void ack();
 
 }

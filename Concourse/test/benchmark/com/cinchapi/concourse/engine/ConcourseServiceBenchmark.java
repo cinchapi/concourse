@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.concourse.engine.ConcourseService;
-import com.cinchapi.concourse.engine.QueryService.Operator;
+import com.cinchapi.concourse.engine.old.ConcourseService;
+import com.cinchapi.concourse.engine.old.QueryService.Operator;
 
 /**
  * Base benchmark tests for the {@link ConcourseService} interface.

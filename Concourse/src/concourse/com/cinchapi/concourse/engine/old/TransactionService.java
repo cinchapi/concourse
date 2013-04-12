@@ -12,35 +12,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.engine.old;
 
 /**
- * A service that can handle writes.
+ * A service that can start a {@link Transaction}.
  * 
  * @author jnelson
  */
-public interface WriteService {
+public interface TransactionService {
 
 	/**
-	 * Add {@code column} as {@code value} for {@code row}.
+	 * Start and return a {@link Transaction} which can be used for
+	 * performing ACID operations.
 	 * 
-	 * @param column
-	 * @param value
-	 * @param row
-	 * @return {@code true} if {@code value} is added to the cell at {@code row}
-	 *         x {@code column} where it did not previously exist.
+	 * @return the transaction
 	 */
-	public boolean add(String column, Object value, long row);
+	public Transaction startTransaction();
 
 	/**
-	 * Remove {@code column} as {@code value} for {@code row}.
+	 * Return the name of the transaction file used by the service.
 	 * 
-	 * @param column
-	 * @param value
-	 * @param row
-	 * @return {@code true} if {@code value} is removed from the cell at
-	 *         {@code row} x {@code column} where it did previously exist.
+	 * @return the transaction filename
 	 */
-	public boolean remove(String column, Object value, long row);
+	public String getTransactionFileName(); // This method should NOT be called
+											// publicly, but Java does not allow
+											// non-public methods in an
+											// interface...furthermore, Java
+											// does not allow an interface to
+											// specify variables that a class
+											// should define :-/
 
 }
