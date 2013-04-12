@@ -19,11 +19,11 @@ import java.util.Set;
 import com.cinchapi.concourse.db.Operator;
 
 /**
- * A service that can handle historical reads.
+ * A service that can handle operations on a possibly previous database state.
  * 
  * @author jnelson
  */
-public interface HistoricalReadService {
+public interface HistoricalService {
 
 	/**
 	 * Describe {@code row} at {@code timestamp}.

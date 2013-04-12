@@ -15,7 +15,8 @@
 package com.cinchapi.concourse.db.services;
 
 /**
- * A service that can handle writes.
+ * A service that can handle {@code writes}, each of which transitions the
+ * database from one consistent state to another.
  * 
  * @author jnelson
  */
