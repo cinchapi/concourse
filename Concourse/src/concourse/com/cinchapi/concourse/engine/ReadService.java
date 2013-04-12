@@ -27,7 +27,7 @@ public interface ReadService {
 	 * Describe {@code row}.
 	 * 
 	 * @param row
-	 * @return the set of non-empty columns in {@code row}.
+	 * @return the set of non-empty columns in {@code row}
 	 */
 	public Set<String> describe(long row);
 
@@ -38,7 +38,7 @@ public interface ReadService {
 	 * @param value
 	 * @param row
 	 * @return {@code true} if the cell at {@code row} x {@code column} contains
-	 *         {@code value}.
+	 *         {@code value}
 	 */
 	public boolean exists(String column, Object value, long row);
 
@@ -48,13 +48,13 @@ public interface ReadService {
 	 * @param column
 	 * @param row
 	 * @return the set of {@code values} that exist in the cell at {@code row} x
-	 *         {@code column}.
+	 *         {@code column}
 	 */
 	public Set<Object> fetch(String column, long row);
 
 	/**
 	 * Query {@code column} for the the rows that satisfy {@code operator} in
-	 * relation to the appropriate number of {@code values}.
+	 * relation to the appropriate number of {@code values}
 	 * 
 	 * @param column
 	 * @param operator

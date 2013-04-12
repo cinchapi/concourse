@@ -28,7 +28,7 @@ public interface WriteService {
 	 * @param value
 	 * @param row
 	 * @return {@code true} if {@code value} is added to the cell at {@code row}
-	 *         x {@code column} where it did not previously exist.
+	 *         x {@code column} where it did not previously exist
 	 */
 	public boolean add(String column, Object value, long row);
 
@@ -39,7 +39,7 @@ public interface WriteService {
 	 * @param value
 	 * @param row
 	 * @return {@code true} if {@code value} is removed from the cell at
-	 *         {@code row} x {@code column} where it did previously exist.
+	 *         {@code row} x {@code column} where it did previously exist
 	 */
 	public boolean remove(String column, Object value, long row);
 

@@ -28,7 +28,7 @@ public interface HistoricalReadService {
 	 * 
 	 * @param timestamp
 	 * @param row
-	 * @return the set of non-empty columns in {@code row} at {@code timestamp}.
+	 * @return the set of non-empty columns in {@code row} at {@code timestamp}
 	 */
 	public Set<String> describeAt(long timestamp, long row);
 
@@ -41,7 +41,7 @@ public interface HistoricalReadService {
 	 * @param value
 	 * @param row
 	 * @return {@code true} if the cell at {@code row} x {@code column} contains
-	 *         {@code value} at {@code timestamp}.
+	 *         {@code value} at {@code timestamp}
 	 */
 	public boolean existsAt(long timestamp, String column, Object value,
 			long row);
@@ -53,7 +53,7 @@ public interface HistoricalReadService {
 	 * @param column
 	 * @param row
 	 * @return the set of {@code values} that existed in the cell at {@code row}
-	 *         x {@code column} at {@code timestamp}.
+	 *         x {@code column} at {@code timestamp}
 	 */
 	public Set<Object> fetchAt(long timestamp, String column, long row);
 
@@ -66,7 +66,7 @@ public interface HistoricalReadService {
 	 * @param column
 	 * @param operator
 	 * @param values
-	 * @return the result set at {@code timestamp}.
+	 * @return the result set at {@code timestamp}
 	 */
 	public Set<Long> queryAt(long timestamp, String column, Operator operator,
 			Object... values);
