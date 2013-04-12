@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.collect.Sets;
 

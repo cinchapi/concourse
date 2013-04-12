@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.db.old.Value.Values;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.base.Preconditions;

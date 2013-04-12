@@ -19,8 +19,8 @@ import java.util.Set;
 import com.cinchapi.concourse.db.Operator;
 
 /**
- * A service that can handle {@code reads}, each of which retrieves data from
- * the current database state.
+ * A highly available distributed service that can handle {@code reads} from the
+ * current database state.
  * 
  * @author jnelson
  */

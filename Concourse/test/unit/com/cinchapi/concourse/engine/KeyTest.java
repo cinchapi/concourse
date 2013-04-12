@@ -16,8 +16,8 @@ package com.cinchapi.concourse.engine;
 
 import org.junit.Test;
 
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.engine.EngineBaseTest;
-import com.cinchapi.concourse.engine.old.Key;
 
 /**
  * Unit tests for {@link Key}.

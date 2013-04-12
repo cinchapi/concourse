@@ -32,6 +32,7 @@ import com.cinchapi.common.Hash;
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;

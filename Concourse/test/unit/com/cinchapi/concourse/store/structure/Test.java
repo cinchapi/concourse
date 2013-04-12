@@ -22,8 +22,8 @@ import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.engine.old.Engine;
-import com.cinchapi.concourse.engine.old.Key;
 import com.cinchapi.concourse.engine.old.Transaction;
 import com.cinchapi.concourse.engine.old.QueryService.Operator;
 

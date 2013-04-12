@@ -19,7 +19,8 @@ import java.util.Set;
 import com.cinchapi.concourse.db.Operator;
 
 /**
- * A service that can handle operations on a possibly previous database state.
+ * A highly available distributed service that can handle reads on a
+ * previous database state.
  * 
  * @author jnelson
  */

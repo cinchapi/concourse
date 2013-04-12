@@ -21,6 +21,7 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
