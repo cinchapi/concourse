@@ -24,7 +24,7 @@ import com.cinchapi.concourse.db.Operator;
  * 
  * @author jnelson
  */
-public interface HistoricalService {
+public interface HistoryService {
 
 	/**
 	 * Describe {@code row} at {@code timestamp}.

@@ -12,11 +12,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.db;
 
 import com.cinchapi.concourse.config.ConcourseConfiguration;
-import com.cinchapi.concourse.engine.old.Buffer;
-import com.cinchapi.concourse.engine.old.VolatileStorage;
 
 /**
  * Provides Concourse services for testing
@@ -29,46 +27,46 @@ public class ConcourseServiceProvider {
 	public static final String COMMIT_LOG_DEFAULT_LOCATION = ".test.out/buffer";
 	public static final String CONCOURSE_PREFS = "test/resources/concourse.prefs";
 
-	/**
-	 * Return a {@link VolatileStorage} with default capacity.
-	 * 
-	 * @return the service
-	 */
-	public static VolatileStorage provideVolatileStorage() {
-		return ConcourseServiceProvider
-				.provideVolatileStorage(VOLATILE_STORAGE_DEFAULT_EXPECTED_CAPACITY);
-	}
-
-	/**
-	 * Return a {@link VolatileStorage} with specified capacity
-	 * 
-	 * @param expectedCapacity
-	 * @return the service
-	 */
-	public static VolatileStorage provideVolatileStorage(int expectedCapacity) {
-		return VolatileStorage
-				.newInstancewithExpectedCapacity(expectedCapacity);
-	}
-
-	/**
-	 * Return a new {@link Buffer} at the default location.
-	 * 
-	 * @return the service
-	 */
-	public static Buffer provideNewBuffer() {
-		return ConcourseServiceProvider
-				.provideNewBuffer(COMMIT_LOG_DEFAULT_LOCATION);
-
-	}
-
-	/**
-	 * Return a new {@link Buffer} at the specified location
-	 * 
-	 * @param location
-	 * @return the service
-	 */
-	public static Buffer provideNewBuffer(String location) {
-		return Buffer.newInstance(location,
-				ConcourseConfiguration.fromFile(CONCOURSE_PREFS));
-	}
+//	/**
+//	 * Return a {@link VolatileStorage} with default capacity.
+//	 * 
+//	 * @return the service
+//	 */
+//	public static VolatileStorage provideVolatileStorage() {
+//		return ConcourseServiceProvider
+//				.provideVolatileStorage(VOLATILE_STORAGE_DEFAULT_EXPECTED_CAPACITY);
+//	}
+//
+//	/**
+//	 * Return a {@link VolatileStorage} with specified capacity
+//	 * 
+//	 * @param expectedCapacity
+//	 * @return the service
+//	 */
+//	public static VolatileStorage provideVolatileStorage(int expectedCapacity) {
+//		return VolatileStorage
+//				.newInstancewithExpectedCapacity(expectedCapacity);
+//	}
+//
+//	/**
+//	 * Return a new {@link Buffer} at the default location.
+//	 * 
+//	 * @return the service
+//	 */
+//	public static Buffer provideNewBuffer() {
+//		return ConcourseServiceProvider
+//				.provideNewBuffer(COMMIT_LOG_DEFAULT_LOCATION);
+//
+//	}
+//
+//	/**
+//	 * Return a new {@link Buffer} at the specified location
+//	 * 
+//	 * @param location
+//	 * @return the service
+//	 */
+//	public static Buffer provideNewBuffer(String location) {
+//		return Buffer.newInstance(location,
+//				ConcourseConfiguration.fromFile(CONCOURSE_PREFS));
+//	}
 }

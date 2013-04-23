@@ -22,14 +22,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 /**
- * A highly available service that handles the storage and retrieval of data.
+ * A highly available service that handles the physical storage and retrieval of
+ * data.
  * 
  * @author jnelson
  */
 public abstract class DataStoreService implements
 		WriteService,
 		ReadService,
-		HistoricalService {
+		HistoryService {
 
 	/**
 	 * Return {@code true} if {@code column} is a legal name. See
@@ -268,8 +269,7 @@ public abstract class DataStoreService implements
 	protected abstract boolean removeSpi(String column, Object value, long row);
 
 	/**
-	 * Check to see if {@code value} is valid. This method will throw an
-	 * {@link IllegalArgumentException} if the value is not valid.
+	 * Check to see if {@code value} is valid.
 	 * 
 	 * @param value
 	 * @return {@code true} if the value is valid

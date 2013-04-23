@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.db.old.Value;
-import com.cinchapi.concourse.engine.EngineBaseTest;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
@@ -30,7 +28,7 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-public class ValueTest extends EngineBaseTest {
+public class ValueTest extends DatabaseTest {
 
 	@Test
 	public void testCompare() {

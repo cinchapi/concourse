@@ -26,7 +26,13 @@ import com.cinchapi.common.time.Time;
 import junit.framework.TestCase;
 
 /**
+ * <p>
  * Base class for all unit tests that implements commonly needed functionality.
+ * </p>
+ * <p>
+ * <strong>NOTE:</strong> Methods that return random values have a name that
+ * starts with <em>random</em> (i.e. randomFloat()).
+ * </p>
  * 
  * @author jnelson
  */

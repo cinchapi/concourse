@@ -19,7 +19,7 @@ package com.cinchapi.concourse.db.services;
  * 
  * @author jnelson
  */
-public interface IndexingService {
+public interface IndexService {
 
 	/**
 	 * Reindex the data stored by the service.
