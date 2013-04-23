@@ -19,11 +19,11 @@ import java.util.Comparator;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -177,9 +177,11 @@ final class Value implements Comparable<Value>, ByteSized {
 	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
 			+ WEIGHTED_QTY_SIZE_IN_BYTES;
 
+	// The timestamp is stored directly with the value so that it is guaranteed
+	// to be available in every read, regardless of the write context.
+	private final long timestamp;
 	private final ByteBuffer quantity;
 	private final Type type;
-	private final long timestamp;
 	private final int size;
 	private transient final ByteBuffer buffer;
 
