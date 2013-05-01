@@ -14,36 +14,64 @@
  */
 package com.cinchapi.concourse.db;
 
+import java.nio.ByteBuffer;
+
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.cache.ObjectReuseCache;
-import com.cinchapi.concourse.io.ByteSized;
+import com.cinchapi.common.time.Time;
 import com.google.common.base.Objects;
-import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
  * <p>
- * The primary identifier for a {@link Row}. Each key is an unsigned long, which
- * means that the total pool of identifiers is between 0 and 2^64 - 1 inclusive.
+ * An immutable and {@link Storable} identifier for a {@link Row}. Each key is
+ * based on an unsigned long, which means that the total pool of identifiers is
+ * between 0 and 2^64 - 1 inclusive.
  * </p>
  * 
  * @author jnelson
  */
 @Immutable
-public final class Key extends Number implements Comparable<Key>, ByteSized {
-
-	private static final long serialVersionUID = 1L;
-	static final int SIZE_IN_BYTES = Long.SIZE / 8;
+public final class Key extends Number implements Comparable<Key>, Storable {
 
 	/**
-	 * Return a row key that represents the same value as the inverse two's
-	 * complement of {@code value}.
+	 * Return a key that is appropriate for storage, with the current
+	 * timestamp.
 	 * 
 	 * @param value
+	 * @return the new instance.
+	 */
+	public static Key forStorage(long value) {
+		return new Key(value, Time.now()); // do not use cache because
+											// forStorage values must have a
+											// unique timestamp and will
+											// thus never be duplicated
+	}
+
+	/**
+	 * Return the key represented by {@code bytes}. Use this method when
+	 * reading and reconstructing from a file. This method assumes that
+	 * {@code bytes} was generated using {@link #getBytes()}.
+	 * 
+	 * @param bytes
 	 * @return the key
 	 */
-	public static Key fromLong(long value) {
+	public static Key fromByteSequence(ByteBuffer bytes) {
+		long key = bytes.getLong();
+		long timestamp = bytes.getLong();
+		return new Key(key, timestamp);
+	}
+
+	/**
+	 * Return a key that is not appropriate for storage, but can be used in
+	 * comparisons. This is the preferred way to create keys unless the key
+	 * will be stored.
+	 * 
+	 * @param value
+	 * @return the new instance.
+	 */
+	public static Key notForStorage(long value) {
 		Key key = cache.get(value);
 		if(key == null) {
 			key = new Key(value);
@@ -52,16 +80,32 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 		return key;
 	}
 
+	static final int SIZE_IN_BYTES = 2 * (Long.SIZE / 8);
+
+	private static final long serialVersionUID = 1L;
 	private static final ObjectReuseCache<Key> cache = new ObjectReuseCache<Key>();
+
 	private final long key;
+	private final long timestamp;
+
+	/**
+	 * Construct a new notForStorage instance.
+	 * 
+	 * @param key
+	 */
+	private Key(long key) {
+		this(key, NIL);
+	}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param key
+	 * @param timestamp
 	 */
-	private Key(long key) {
+	private Key(long key, long timestamp) {
 		this.key = key;
+		this.timestamp = timestamp;
 	}
 
 	/**
@@ -82,6 +126,11 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	}
 
 	@Override
+	public double doubleValue() {
+		return (double) key;
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof Key) {
 			final Key other = (Key) obj;
@@ -91,8 +140,18 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	}
 
 	@Override
+	public float floatValue() {
+		return (float) key;
+	}
+
+	@Override
 	public byte[] getBytes() {
-		return Longs.toByteArray(key);
+		return asByteBuffer().array();
+	}
+
+	@Override
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	@Override
@@ -101,8 +160,28 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 	}
 
 	@Override
+	public int intValue() {
+		return (int) key;
+	}
+
+	@Override
+	public boolean isForStorage() {
+		return Storables.isForStorage(this);
+	}
+
+	@Override
+	public boolean isNotForStorage() {
+		return Storables.isNotForStorage(this);
+	}
+
+	@Override
+	public long longValue() {
+		return asLong();
+	}
+
+	@Override
 	public int size() {
-		return Long.SIZE / 8;
+		return SIZE_IN_BYTES;
 	}
 
 	@Override
@@ -112,24 +191,22 @@ public final class Key extends Number implements Comparable<Key>, ByteSized {
 											// Number)}
 	}
 
-	@Override
-	public int intValue() {
-		return (int) key;
-	}
-
-	@Override
-	public long longValue() {
-		return asLong();
-	}
-
-	@Override
-	public float floatValue() {
-		return (float) key;
-	}
-
-	@Override
-	public double doubleValue() {
-		return (double) key;
+	/**
+	 * Return a new byte buffer that contains the value with the following
+	 * order:
+	 * <ol>
+	 * <li><strong>key</strong> - first 8 bytes</li>
+	 * <li><strong>timestamp</strong> - last 8 bytes</li>
+	 * </ol>
+	 * 
+	 * @return a byte buffer.
+	 */
+	private ByteBuffer asByteBuffer() {
+		ByteBuffer buffer = ByteBuffer.allocate(size());
+		buffer.putLong(key);
+		buffer.putLong(timestamp);
+		buffer.rewind();
+		return buffer;
 	}
 
 }

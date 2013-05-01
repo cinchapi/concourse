@@ -44,11 +44,11 @@ public abstract class DataStoreService implements
 	public static boolean checkColumnName(String column)
 			throws IllegalArgumentException {
 		Preconditions.checkArgument(
-				!com.cinchapi.common.Strings.containsWhitespace(column),
+				!com.cinchapi.common.util.Strings.containsWhitespace(column),
 				"The column name cannot contain whitespace");
 		Preconditions
 				.checkArgument(
-						!com.cinchapi.common.Strings.contains(column,
+						!com.cinchapi.common.util.Strings.contains(column,
 								ILLEGAL_COLUMN_NAME_CHARS),
 						"The column name connot contained any of the following banned characters : %s",
 						(Object[]) ILLEGAL_COLUMN_NAME_CHARS);

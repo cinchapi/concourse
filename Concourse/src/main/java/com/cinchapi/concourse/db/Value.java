@@ -24,7 +24,6 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.common.util.Strings;
-import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -64,7 +63,7 @@ import com.google.common.primitives.Longs;
  * @author jnelson
  */
 @Immutable
-final class Value implements Comparable<Value>, ByteSized {
+final class Value implements Comparable<Value>, Storable {
 
 	/**
 	 * Return a value that is appropriate for storage, with the current
@@ -123,7 +122,6 @@ final class Value implements Comparable<Value>, ByteSized {
 			+ (Long.SIZE / 8);
 	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
 			- FIXED_SIZE_IN_BYTES;
-	private static final long NIL = 0L;
 
 	/**
 	 * <p>
@@ -177,8 +175,6 @@ final class Value implements Comparable<Value>, ByteSized {
 	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
 			+ WEIGHTED_QTY_SIZE_IN_BYTES;
 
-	// The timestamp is stored directly with the value so that it is guaranteed
-	// to be available in every read, regardless of the write context.
 	private final long timestamp;
 	private final ByteBuffer quantity;
 	private final Type type;
@@ -204,15 +200,7 @@ final class Value implements Comparable<Value>, ByteSized {
 	}
 
 	/**
-	 * <p>
-	 * Construct a new <em>unstorable</em> instance for use with non-storing
-	 * methods which typically use {@link #equals(Object)} or a
-	 * {@code timestamp} ignoring {@link Comparator}.
-	 * </p>
-	 * <p>
-	 * <strong>Note:</strong> The constructed object is <strong>not</strong>
-	 * suitable for performing functions that add to the underlying datastore.
-	 * </p>
+	 * Construct a new notForStorage instance.
 	 * 
 	 * @param quantity
 	 */
@@ -221,8 +209,7 @@ final class Value implements Comparable<Value>, ByteSized {
 	}
 
 	/**
-	 * Construct a new instance for use with storing methods that sort based on
-	 * {@code timestamp}.
+	 * Construct a new forStorage instance.
 	 * 
 	 * @param quantity
 	 * @param timestamp
@@ -274,8 +261,23 @@ final class Value implements Comparable<Value>, ByteSized {
 	}
 
 	@Override
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	@Override
 	public int hashCode() {
 		return Objects.hashCode(getQuantity(), type);
+	}
+
+	@Override
+	public boolean isForStorage() {
+		return Storables.isForStorage(this);
+	}
+
+	@Override
+	public boolean isNotForStorage() {
+		return Storables.isNotForStorage(this);
 	}
 
 	@Override
@@ -350,43 +352,12 @@ final class Value implements Comparable<Value>, ByteSized {
 	}
 
 	/**
-	 * Return the associated {@code timestamp}. This is guaranteed to be unique
-	 * amongst forStorage values so it a defacto identifier. For notForStorage
-	 * values, the timestamp is always {@link #NIL}.
-	 * 
-	 * @return the {@code timestamp}
-	 */
-	long getTimestamp() {
-		return timestamp;
-	}
-
-	/**
 	 * Return a string description of the value type.
 	 * 
 	 * @return the value type
 	 */
 	String getType() {
 		return type.toString();
-	}
-
-	/**
-	 * Return {@code true} if the value is suitable for use in storage
-	 * functions.
-	 * 
-	 * @return {@code true} of {@link Value#isNotForStorage()} is {@code false}.
-	 */
-	boolean isForStorage() {
-		return !isNotForStorage();
-	}
-
-	/**
-	 * Return {@code true} if the value is not suitable for storage functions
-	 * and is only suitable for comparisons.
-	 * 
-	 * @return {@code true} if the timestamp is null.
-	 */
-	boolean isNotForStorage() {
-		return timestamp == NIL;
 	}
 
 	/**
@@ -564,7 +535,7 @@ final class Value implements Comparable<Value>, ByteSized {
 				object = ByteBuffers.getLong(buffer);
 				break;
 			case RELATION:
-				object = Key.fromLong(ByteBuffers.getLong(buffer));
+				object = Key.notForStorage(ByteBuffers.getLong(buffer));
 				break;
 			default:
 				object = ByteBuffers.getString(buffer);
