@@ -16,6 +16,7 @@ package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -28,6 +29,7 @@ import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -135,7 +137,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 
 		byte[] idBytes = new byte[idSize];
 		bytes.get(idBytes);
-		this.id = extractId(ByteBuffer.wrap(idBytes));
+		this.id = deserializeId(ByteBuffer.wrap(idBytes));
 
 		byte[] stateBytes = new byte[stateSize];
 		bytes.get(stateBytes);
@@ -174,7 +176,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the id
 	 */
-	protected abstract I extractId(ByteBuffer bytes);
+	protected abstract I deserializeId(ByteBuffer bytes);
 
 	/**
 	 * Return the object that is represented by the {@code bytes}.
@@ -182,7 +184,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the object
 	 */
-	protected abstract O extractObject(ByteBuffer bytes);
+	protected abstract O deserializeObject(ByteBuffer bytes);
 
 	/**
 	 * Add the forStorage{@code object} to the cell. This will modify the
@@ -350,7 +352,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(array);
 			while (bsit.hasNext()) {
-				objects.add(extractObject(bsit.next()));
+				objects.add(deserializeObject(bsit.next()));
 			}
 		}
 
@@ -436,6 +438,15 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	private final class History extends Bucket {
 
 		/**
+		 * The set of timestamps that appear in the history so that we can
+		 * enforce the unique timestamp policy. This means that each Cell will
+		 * take up an additional 8n bytes (n = number of revisions) in memory
+		 * than
+		 * on disk.
+		 */
+		private final HashSet<Long> timestamps = Sets.newHashSet();
+
+		/**
 		 * Construct a new instance.
 		 */
 		private History() {
@@ -451,6 +462,26 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 */
 		private History(ByteBuffer bytes) {
 			super(bytes);
+			Iterator<O> it = getObjects().iterator();
+			while (it.hasNext()) {
+				timestamps.add(it.next().getTimestamp());
+			}
+		}
+
+		@Override
+		boolean add(O object) {
+			// This check is very important because all sorts of weird behaviour
+			// will happen if the history has objects with duplicate timestamps
+			Preconditions.checkArgument(
+					!timestamps.contains(object.getTimestamp()),
+					"Cannot add %s to history because its "
+							+ "timestamp has already appeared", object);
+
+			if(super.add(object)) {
+				timestamps.add(object.getTimestamp());
+				return true;
+			}
+			return false;
 		}
 
 		/**
@@ -509,8 +540,8 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		}
 
 		@Override
-		boolean remove(O item) {
-			return add(item); // History is append only, so a removal means we
+		boolean remove(O object) {
+			return add(object); // History is append only, so a removal means we
 								// should add the item to the bucket with a
 								// new timestamp
 		}
