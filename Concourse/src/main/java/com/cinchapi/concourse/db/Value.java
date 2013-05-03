@@ -26,7 +26,6 @@ import com.cinchapi.common.time.Time;
 import com.cinchapi.common.util.Strings;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.primitives.Longs;
 
 /**
  * <p>
@@ -90,9 +89,9 @@ final class Value implements Comparable<Value>, Storable {
 	public static Value fromByteSequence(ByteBuffer bytes) {
 		long timestamp = bytes.getLong();
 		Type type = Type.values()[bytes.getInt()];
-		int size = bytes.getInt() - FIXED_SIZE_IN_BYTES;
+		int qtySize = bytes.getInt();
 
-		byte[] qty = new byte[size];
+		byte[] qty = new byte[qtySize];
 		bytes.get(qty);
 		ByteBuffer quantity = ByteBuffer.wrap(qty);
 		quantity.rewind();
@@ -122,6 +121,7 @@ final class Value implements Comparable<Value>, Storable {
 			+ (Long.SIZE / 8);
 	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
 			- FIXED_SIZE_IN_BYTES;
+	private static final LogicalComparator comparator = new LogicalComparator();
 
 	/**
 	 * <p>
@@ -179,7 +179,7 @@ final class Value implements Comparable<Value>, Storable {
 	private final ByteBuffer quantity;
 	private final Type type;
 	private final int size;
-	private transient final ByteBuffer buffer;
+	private transient ByteBuffer buffer = null; // initialize lazily
 
 	/**
 	 * Construct a new instance.
@@ -189,6 +189,10 @@ final class Value implements Comparable<Value>, Storable {
 	 * @param timestamp
 	 */
 	private Value(ByteBuffer quantity, Type type, long timestamp) {
+		// NOTE: A copy of the #quantity is not made for performance/space
+		// reasons.
+		// I am okay with this because {@link #quantity} is only used
+		// internally.
 		Preconditions.checkNotNull(quantity);
 		Preconditions.checkNotNull(type);
 
@@ -196,7 +200,6 @@ final class Value implements Comparable<Value>, Storable {
 		this.type = type;
 		this.timestamp = timestamp;
 		this.size = getQuantityBuffer().capacity() + FIXED_SIZE_IN_BYTES;
-		this.buffer = asByteBuffer();
 	}
 
 	/**
@@ -302,32 +305,11 @@ final class Value implements Comparable<Value>, Storable {
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
+	 * @see {@link Storables#compare(Storable, Storable)}
 	 */
 	int compareTo(Value o, boolean logically) {
-		if(logically) {
-			if(this.getQuantity() instanceof Number
-					&& o.getQuantity() instanceof Number) {
-				return Numbers.compare((Number) this.getQuantity(),
-						(Number) o.getQuantity());
-			}
-			else {
-				return this.getQuantity().toString()
-						.compareTo(o.getQuantity().toString());
-			}
-		}
-		else {
-			// push notForStorage values to the back so that we
-			// are sure to reach forStorage values
-			if(this.isNotForStorage()) {
-				return this.equals(o) ? 0 : 1;
-			}
-			else if(o.isNotForStorage()) {
-				return this.equals(o) ? 0 : -1;
-			}
-			else {
-				return -1 * Longs.compare(this.timestamp, o.timestamp);
-			}
-		}
+		return logically ? comparator.compare(this, o) : Storables.compare(
+				this, o);
 	}
 
 	/**
@@ -361,34 +343,34 @@ final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
-	 * Return a new byte buffer that contains the value with the following
-	 * order:
+	 * <p>
+	 * Rewind and return {@link #buffer}. Use this method instead of accessing
+	 * the variable directly to ensure that it is rewound.
+	 * </p>
+	 * <p>
+	 * The buffer is encoded with the following order:
 	 * <ol>
 	 * <li><strong>timestamp</strong> - first 8 bytes</li>
 	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>size</strong> - next 4 bytes</li>
+	 * <li><strong>quanitySize</strong> - next 4 bytes</li>
 	 * <li><strong>quantity</strong> - remaining bytes</li>
 	 * </ol>
+	 * </p>
 	 * 
-	 * @return a byte buffer.
-	 */
-	private ByteBuffer asByteBuffer() {
-		ByteBuffer buffer = ByteBuffer.allocate(this.size);
-		buffer.put(ByteBuffers.toByteBuffer(timestamp));
-		buffer.put(ByteBuffers.toByteBuffer(type.ordinal()));
-		buffer.put(ByteBuffers.toByteBuffer(this.size));
-		buffer.put(getQuantityBuffer());
-		buffer.rewind();
-		return buffer;
-	}
-
-	/**
-	 * Rewind and return {@link #buffer}. Use this method instead of accessing
-	 * the variable directly to ensure that it is rewound.
-	 * 
-	 * @return
+	 * @return the internal byte buffer representation
 	 */
 	private ByteBuffer getBuffer() {
+		// NOTE: A copy of the buffer is not made for performance/space reasons.
+		// I am okay with this because {@link #buffer} is only used internally.
+		if(buffer == null) {
+			buffer = ByteBuffer.allocate(this.size);
+			buffer.put(ByteBuffers.toByteBuffer(timestamp));
+			buffer.put(ByteBuffers.toByteBuffer(type.ordinal()));
+			buffer.put(ByteBuffers
+					.toByteBuffer(this.size - FIXED_SIZE_IN_BYTES));
+			buffer.put(getQuantityBuffer());
+
+		}
 		buffer.rewind();
 		return buffer;
 	}
@@ -413,7 +395,15 @@ final class Value implements Comparable<Value>, Storable {
 
 		@Override
 		public int compare(Value o1, Value o2) {
-			return o1.compareToLogically(o2);
+			if(o1.getQuantity() instanceof Number
+					&& o2.getQuantity() instanceof Number) {
+				return Numbers.compare((Number) o1.getQuantity(),
+						(Number) o2.getQuantity());
+			}
+			else {
+				return o1.getQuantity().toString()
+						.compareTo(o2.getQuantity().toString());
+			}
 		}
 
 	}

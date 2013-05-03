@@ -87,6 +87,7 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 
 	private final long key;
 	private final long timestamp;
+	private transient ByteBuffer buffer = null; // initialize lazily
 
 	/**
 	 * Construct a new notForStorage instance.
@@ -146,7 +147,7 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 
 	@Override
 	public byte[] getBytes() {
-		return asByteBuffer().array();
+		return getBuffer().array();
 	}
 
 	@Override
@@ -192,20 +193,46 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 	}
 
 	/**
-	 * Return a new byte buffer that contains the value with the following
-	 * order:
+	 * Determine if the comparison to {@code o} should be done naturally or
+	 * {@code logically}.
+	 * 
+	 * @param o
+	 * @param logically
+	 *            if {@code true} the value based comparison occurs, otherwise
+	 *            based on timestamp/equality
+	 * @return a negative integer, zero, or a positive integer as this object is
+	 *         less than, equal to, or greater than the specified object.
+	 * @see {@link #compareTo(Value)}
+	 * @see {@link #compareToLogically(Value)}
+	 * @see {@link Storables#compare(Storable, Storable)}
+	 */
+	int compareTo(Key o, boolean logically) {
+		return logically ? compareTo(o) : Storables.compare(this, o);
+	}
+
+	/**
+	 * Rewind and return {@link #buffer}. Use this method instead of accessing
+	 * the variable directly to ensure that it is rewound.
+	 * </p>
+	 * <p>
+	 * The buffer is encoded with the following order:
 	 * <ol>
 	 * <li><strong>key</strong> - first 8 bytes</li>
 	 * <li><strong>timestamp</strong> - last 8 bytes</li>
 	 * </ol>
+	 * </p>
 	 * 
-	 * @return a byte buffer.
+	 * @return the internal byte buffer representation
 	 */
-	private ByteBuffer asByteBuffer() {
-		ByteBuffer buffer = ByteBuffer.allocate(size());
-		buffer.putLong(key);
-		buffer.putLong(timestamp);
-		buffer.rewind();
+	private ByteBuffer getBuffer() {
+		// NOTE: A copy of the buffer is not made for performance/space reasons.
+		// I am okay with this because {@link #buffer} is only used internally.
+		if(buffer == null) {
+			buffer = ByteBuffer.allocate(size());
+			buffer.putLong(key);
+			buffer.putLong(timestamp);
+			buffer.rewind();
+		}
 		return buffer;
 	}
 

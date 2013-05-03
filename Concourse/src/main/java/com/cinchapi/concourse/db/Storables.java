@@ -14,6 +14,10 @@
  */
 package com.cinchapi.concourse.db;
 
+import java.util.Comparator;
+
+import com.google.common.primitives.Longs;
+
 /**
  * Utility methods for {@link Storable} objects.
  * 
@@ -22,8 +26,30 @@ package com.cinchapi.concourse.db;
 public abstract class Storables {
 
 	/**
-	 * Return {@code true} if the timestamp associated with {@code object}
-	 * is not equal to {@link #Storable()#NIL}.
+	 * A comparator that sorts objects based on timestamp.
+	 */
+	private static Comparator<Storable> comparator = new Comparator<Storable>() {
+
+		@Override
+		public int compare(Storable o1, Storable o2) {
+			// push notForStorage objects to the back so that we
+			// are sure to reach forStorage values
+			if(o1.isNotForStorage()) {
+				return o1.equals(o2) ? 0 : 1;
+			}
+			else if(o1.isNotForStorage()) {
+				return this.equals(o2) ? 0 : -1;
+			}
+			else {
+				return -1 * Longs.compare(o1.getTimestamp(), o2.getTimestamp());
+			}
+		}
+
+	};
+
+	/**
+	 * Return {@code true} if the timestamp associated with {@code object} is
+	 * not equal to {@link #Storable()#NIL}.
 	 * 
 	 * @param object
 	 * @return {@code true} if {@code object} is forStorage
@@ -33,14 +59,26 @@ public abstract class Storables {
 	}
 
 	/**
-	 * Return {@code true} if the timestamp associated with {@code object}
-	 * is equal to {@link #Storable()#NIL}.
+	 * Return {@code true} if the timestamp associated with {@code object} is
+	 * equal to {@link #Storable()#NIL}.
 	 * 
 	 * @param object
 	 * @return {@code true} if {@code object} is notForStorage
 	 */
 	public static boolean isNotForStorage(Storable object) {
 		return object.getTimestamp() == Storable.NIL;
+	}
+
+	/**
+	 * Compare to storable objects by timestamp.
+	 * 
+	 * @param o1
+	 * @param o2
+	 * @return a negative integer, zero, or a positive integer as this object is
+	 *         less than, equal to, or greater than the specified object.
+	 */
+	public static <O extends Storable> int compare(O o1, O o2) {
+		return comparator.compare(o1, o2);
 	}
 
 }
