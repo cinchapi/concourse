@@ -23,8 +23,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;

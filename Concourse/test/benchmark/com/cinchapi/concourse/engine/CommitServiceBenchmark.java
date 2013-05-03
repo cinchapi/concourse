@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import com.cinchapi.common.SizeUnit;
+import com.cinchapi.common.util.SizeUnit;
 import com.cinchapi.concourse.engine.old.ConcourseService;
 
 /**

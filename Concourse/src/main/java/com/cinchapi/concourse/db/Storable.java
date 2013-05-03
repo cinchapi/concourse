@@ -62,35 +62,4 @@ public interface Storable extends ByteSized {
 	 */
 	boolean isNotForStorage();
 
-	/**
-	 * Utility methods for {@link Storable} objects.
-	 * 
-	 * @author jnelson
-	 */
-	abstract class Storables {
-
-		/**
-		 * Return {@code true} if the timestamp associated with {@code object}
-		 * is not equal to {@link #Storable()#NIL}.
-		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} is forStorage
-		 */
-		public static boolean isForStorage(Storable object) {
-			return object.getTimestamp() != NIL;
-		}
-
-		/**
-		 * Return {@code true} if the timestamp associated with {@code object}
-		 * is equal to {@link #Storable()#NIL}.
-		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} is notForStorage
-		 */
-		public static boolean isNotForStorage(Storable object) {
-			return object.getTimestamp() == NIL;
-		}
-
-	}
-
 }

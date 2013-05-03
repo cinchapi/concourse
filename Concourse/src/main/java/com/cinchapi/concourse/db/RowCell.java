@@ -18,10 +18,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.cache.ObjectReuseCache;
+import com.cinchapi.common.lock.Lock;
+import com.cinchapi.common.lock.Lockable;
+import com.cinchapi.common.lock.Lockables;
 import com.cinchapi.concourse.io.ByteSized;
 
 /**
@@ -30,7 +34,8 @@ import com.cinchapi.concourse.io.ByteSized;
  * 
  * @author jnelson
  */
-public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
+public class RowCell extends Cell<RowCell.ByteSizedString, Value> implements
+		Lockable {
 
 	/**
 	 * Return the cell represented by {@code bytes}. Use this method when
@@ -54,14 +59,7 @@ public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
 		return new RowCell(ByteSizedString.fromString(column));
 	}
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param column
-	 */
-	private RowCell(ByteSizedString column) {
-		super(column);
-	}
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
 	/**
 	 * Construct a new instance.
@@ -72,14 +70,33 @@ public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
 		super(bytes);
 	}
 
-	@Override
-	protected Value deserializeObject(ByteBuffer bytes) {
-		return Value.fromByteSequence(bytes);
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param column
+	 */
+	private RowCell(ByteSizedString column) {
+		super(column);
 	}
 
 	@Override
-	protected ByteSizedString deserializeId(ByteBuffer bytes) {
+	public Lock readLock() {
+		return Lockables.readLock(this, lock);
+	}
+
+	@Override
+	public Lock writeLock() {
+		return Lockables.writeLock(this, lock);
+	}
+
+	@Override
+	protected ByteSizedString getIdFromBytes(ByteBuffer bytes) {
 		return ByteSizedString.fromBytes(bytes.array());
+	}
+
+	@Override
+	protected Value getObjectFromBytes(ByteBuffer bytes) {
+		return Value.fromByteSequence(bytes);
 	}
 
 	/**
@@ -89,21 +106,6 @@ public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
 	 */
 	@Immutable
 	static class ByteSizedString implements ByteSized {
-
-		/**
-		 * Return a {@link ByteSizedString} based on {@code string}.
-		 * 
-		 * @param string
-		 * @return the UTF-8 encoded string
-		 */
-		public static ByteSizedString fromString(String string) {
-			ByteSizedString utf8 = cache.get(string);
-			if(utf8 == null) {
-				utf8 = new ByteSizedString(string);
-				cache.put(utf8, string);
-			}
-			return utf8;
-		}
 
 		/**
 		 * Return a {@link ByteSizedString} from the encoded {@code bytes}.
@@ -121,6 +123,21 @@ public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
 			return utf8;
 		}
 
+		/**
+		 * Return a {@link ByteSizedString} based on {@code string}.
+		 * 
+		 * @param string
+		 * @return the UTF-8 encoded string
+		 */
+		public static ByteSizedString fromString(String string) {
+			ByteSizedString utf8 = cache.get(string);
+			if(utf8 == null) {
+				utf8 = new ByteSizedString(string);
+				cache.put(utf8, string);
+			}
+			return utf8;
+		}
+
 		private final static ObjectReuseCache<String> stringCache = new ObjectReuseCache<String>();
 		private final static ObjectReuseCache<ByteSizedString> cache = new ObjectReuseCache<ByteSizedString>();
 		private final static Charset UTF_8 = StandardCharsets.UTF_8;
@@ -129,19 +146,19 @@ public class RowCell extends Cell<RowCell.ByteSizedString, Value> {
 		/**
 		 * Construct a new instance.
 		 * 
-		 * @param string
+		 * @param bytes
 		 */
-		private ByteSizedString(String string) {
-			this(string.getBytes(UTF_8));
+		private ByteSizedString(byte[] bytes) {
+			this.bytes = bytes;
 		}
 
 		/**
 		 * Construct a new instance.
 		 * 
-		 * @param bytes
+		 * @param string
 		 */
-		private ByteSizedString(byte[] bytes) {
-			this.bytes = bytes;
+		private ByteSizedString(String string) {
+			this(string.getBytes(UTF_8));
 		}
 
 		@Override

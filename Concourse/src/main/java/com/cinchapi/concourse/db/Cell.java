@@ -23,13 +23,13 @@ import java.util.ListIterator;
 
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
-import com.cinchapi.common.time.Time;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>
@@ -40,7 +40,7 @@ import com.google.common.collect.Sets;
  * </p>
  * <p>
  * <sup>1</sup> - The identifier is used to locate they cell within a larger
- * collection of cells (i.e. in a {@link Row} or {@link Column}).
+ * collection (i.e. in a {@link Row} or {@link Column}).
  * </p>
  * <p>
  * In addition to its identifier, each cell has two variable length components:
@@ -137,7 +137,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 
 		byte[] idBytes = new byte[idSize];
 		bytes.get(idBytes);
-		this.id = deserializeId(ByteBuffer.wrap(idBytes));
+		this.id = getIdFromBytes(ByteBuffer.wrap(idBytes));
 
 		byte[] stateBytes = new byte[stateSize];
 		bytes.get(stateBytes);
@@ -176,7 +176,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the id
 	 */
-	protected abstract I deserializeId(ByteBuffer bytes);
+	protected abstract I getIdFromBytes(ByteBuffer bytes);
 
 	/**
 	 * Return the object that is represented by the {@code bytes}.
@@ -184,7 +184,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the object
 	 */
-	protected abstract O deserializeObject(ByteBuffer bytes);
+	protected abstract O getObjectFromBytes(ByteBuffer bytes);
 
 	/**
 	 * Add the forStorage{@code object} to the cell. This will modify the
@@ -193,26 +193,15 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param object
 	 */
 	void add(O object) {
-		// I am assuming that {@code object} will have a unique timestamp. This
-		// means that the caller must create a new forStorage object before
-		// calling this method.
-		Preconditions.checkState(state.isAddable(object),
+		// I am assuming that #object is a new forStorage instance, meaning it
+		// has a unique timestamp.
+		checkState(!exists(object),
 				"Cannot add object '%s' because it is already contained",
 				object);
-		Preconditions.checkArgument(object.isForStorage(),
+		checkArgument(object.isForStorage(),
 				"Cannot add object '%s' because it notForStorage", object);
 		state.add(object);
 		history.add(object);
-	}
-
-	/**
-	 * Return {@code true} if {@code object} is found in the current state.
-	 * 
-	 * @param object
-	 * @return {@code true} if {@code object} is presently contained
-	 */
-	boolean contains(O object) {
-		return state.contains(object);
 	}
 
 	/**
@@ -225,12 +214,25 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * Return the Cell identifier.
+	 * Return {@code true} if {@code object} is found in the current state.
 	 * 
-	 * @return the id
+	 * @param object
+	 * @return {@code true} if {@code object} is presently contained
 	 */
-	I getId() {
-		return id;
+	boolean exists(O object) {
+		return state.contains(object);
+	}
+
+	/**
+	 * Return {@code true} if {@code object} is found to exist in the history at
+	 * {@code timestamp}.
+	 * 
+	 * @param object
+	 * @param timestamp
+	 * @return {@code true} if object was contained at {@code timestamp}
+	 */
+	boolean existsAt(O object, long timestamp) {
+		return history.existsAt(object, timestamp);
 	}
 
 	/**
@@ -238,19 +240,18 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * 
 	 * @return the objects
 	 */
-	List<O> getObjects() {
+	List<O> fetch() {
 		return state.getObjects();
 	}
 
 	/**
-	 * Return a list of the objects contained {@code at} the specified
-	 * timestamp.
+	 * Return a list of the objects contained at {@code timestamp}.
 	 * 
-	 * @param at
+	 * @param timestamp
 	 * @return the objects
 	 */
-	List<O> getObjects(long at) {
-		Iterator<O> it = history.rewind(at).iterator();
+	List<O> fetchAt(long timestamp) {
+		Iterator<O> it = history.rewind(timestamp).iterator();
 		List<O> snapshot = Lists.newArrayList();
 		while (it.hasNext()) {
 			O object = it.next();
@@ -262,6 +263,15 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 			}
 		}
 		return snapshot;
+	}
+
+	/**
+	 * Return the Cell identifier.
+	 * 
+	 * @return the id
+	 */
+	I getId() {
+		return id;
 	}
 
 	/**
@@ -280,19 +290,12 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param object
 	 */
 	void remove(O object) {
-		// I am assuming that {@code object} will have a unique timestamp. This
-		// means that the caller must create a new forStorage object before
-		// calling this method.
-		Preconditions
-				.checkState(
-						state.isRemovable(object),
-						"Cannot remove object '%s' because it is not contained",
-						object);
-		Preconditions
-				.checkArgument(
-						object.isForStorage(),
-						"Cannot remove object '%s' because it is notForStorage",
-						object);
+		// I am assuming that #object is a new forStorage instance, meaning it
+		// has a unique timestamp.
+		checkState(exists(object),
+				"Cannot remove object '%s' because it is not contained", object);
+		checkArgument(object.isForStorage(),
+				"Cannot remove object '%s' because it is notForStorage", object);
 		state.remove(object);
 		history.remove(object);
 	}
@@ -324,20 +327,28 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * A collection of {@code V} objects that are maintained in insertion order.
+	 * A collection of {@code O} objects that are maintained in insertion order.
+	 * Each object in the bucket must have a unique timestamp.
 	 * 
 	 * @author jnelson
 	 */
 	private abstract class Bucket implements IterableByteSequences, ByteSized {
 
-		private final List<O> objects;
+		private final List<O> objects = Lists.newArrayList();
+
+		/**
+		 * The set of timestamps that appear in the history so that we can
+		 * enforce the unique timestamp policy (all sorts of weird and undefined
+		 * behaviour will happen if duplicate timestamps exist). This means that
+		 * each Cell will take up an additional 16n bytes (n = number of
+		 * revisions) in memory than on disk.
+		 */
+		private final HashSet<Long> timestamps = Sets.newHashSet();
 
 		/**
 		 * Construct a new instance.
 		 */
-		protected Bucket() {
-			this.objects = Lists.newArrayList();
-		}
+		protected Bucket() { /* Do Nothing */}
 
 		/**
 		 * Construct a new instance using a byte buffer that conforms to the
@@ -346,13 +357,12 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 * @param bytes
 		 */
 		protected Bucket(ByteBuffer bytes) {
-			this.objects = Lists.newArrayList();
 			byte[] array = new byte[bytes.remaining()];
 			bytes.get(array);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(array);
 			while (bsit.hasNext()) {
-				objects.add(deserializeObject(bsit.next()));
+				add(getObjectFromBytes(bsit.next()));
 			}
 		}
 
@@ -392,26 +402,36 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		}
 
 		/**
-		 * Return an unmodifiable view of the objects in the bucket.
-		 * 
-		 * @return the objects in the bucket
-		 */
-		protected List<O> getObjects() {
-			return Collections.unmodifiableList(objects);
-		}
-
-		/**
 		 * Add {@code object} to the bucket.
 		 * 
 		 * @param object
 		 * @return {@code true} if {@code object} is added
 		 */
 		boolean add(O object) {
-			return objects.add(object);
+			checkArgument(!timestamps.contains(object.getTimestamp()),
+					"Cannot add %s because the associated timestamp "
+							+ "already present in the bucket", object);
+			return objects.add(object) && timestamps.add(object.getTimestamp());
 		}
 
+		/**
+		 * Return {@code true} if {@code object} is present in the bucket
+		 * according to the definition of {@link O#equals(Object)}.
+		 * 
+		 * @param object
+		 * @return {@code true} if {@code object} is contained
+		 */
 		boolean contains(O object) {
 			return objects.contains(object);
+		}
+
+		/**
+		 * Return an unmodifiable view of the objects in the bucket.
+		 * 
+		 * @return the objects in the bucket
+		 */
+		List<O> getObjects() {
+			return Collections.unmodifiableList(objects);
 		}
 
 		/**
@@ -422,7 +442,14 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 *         removed
 		 */
 		boolean remove(O object) {
-			return objects.remove(object);
+			// I'm assuming that #object will have a different timestamp than
+			// what has been stored so I must get the stored timestamp
+			// and remove that instead of the timestamp of #object
+			int index = objects.indexOf(object);
+			if(index >= 0) {
+				timestamps.remove(objects.remove(index).getTimestamp());
+			}
+			return false;
 		}
 	}
 
@@ -436,15 +463,6 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @author jnelson
 	 */
 	private final class History extends Bucket {
-
-		/**
-		 * The set of timestamps that appear in the history so that we can
-		 * enforce the unique timestamp policy. This means that each Cell will
-		 * take up an additional 8n bytes (n = number of revisions) in memory
-		 * than
-		 * on disk.
-		 */
-		private final HashSet<Long> timestamps = Sets.newHashSet();
 
 		/**
 		 * Construct a new instance.
@@ -462,39 +480,6 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 */
 		private History(ByteBuffer bytes) {
 			super(bytes);
-			Iterator<O> it = getObjects().iterator();
-			while (it.hasNext()) {
-				timestamps.add(it.next().getTimestamp());
-			}
-		}
-
-		@Override
-		boolean add(O object) {
-			// This check is very important because all sorts of weird behaviour
-			// will happen if the history has objects with duplicate timestamps
-			Preconditions.checkArgument(
-					!timestamps.contains(object.getTimestamp()),
-					"Cannot add %s to history because its "
-							+ "timestamp has already appeared", object);
-
-			if(super.add(object)) {
-				timestamps.add(object.getTimestamp());
-				return true;
-			}
-			return false;
-		}
-
-		/**
-		 * Count the total number of times that {@code object} appears in the
-		 * history.
-		 * 
-		 * @param object
-		 * @return the number of appearances
-		 */
-		// this might be useful later
-		@SuppressWarnings("unused")
-		int count(O object) {
-			return count(object, Time.now());
 		}
 
 		/**
@@ -515,18 +500,6 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		}
 
 		/**
-		 * Return {@code true} if {@code object} presently exists in the cell.
-		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} exists
-		 */
-		// this might be useful later
-		@SuppressWarnings("unused")
-		boolean exists(O object) {
-			return exists(object, Time.now());
-		}
-
-		/**
 		 * Return {@code true} if {@code object} existed in the cell prior
 		 * to the specified timestamp (meaning there is an odd number of
 		 * appearances for {@code object} in the history).
@@ -535,30 +508,30 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 * @param before
 		 * @return {@code true} if {@code object} existed.
 		 */
-		boolean exists(O object, long at) {
+		boolean existsAt(O object, long at) {
 			return Numbers.isOdd(count(object, at));
 		}
 
 		@Override
 		boolean remove(O object) {
 			return add(object); // History is append only, so a removal means we
-								// should add the item to the bucket with a
-								// new timestamp
+								// assume the object parameter has a new
+								// timestamp and we add the object to the bucket
 		}
 
 		/**
 		 * Return a <em>new</em> list of revisions that were present {@code at}
 		 * the specified timestamp in insertion/ascending order.
 		 * 
-		 * @param to
+		 * @param timestamp
 		 * @return the list of revisions
 		 */
-		List<O> rewind(long to) {
+		List<O> rewind(long timestamp) {
 			List<O> snapshot = Lists.newArrayList();
 			Iterator<O> it = getObjects().iterator();
 			while (it.hasNext()) {
 				O object = it.next();
-				if(object.getTimestamp() <= to) {
+				if(object.getTimestamp() <= timestamp) {
 					snapshot.add(object);
 				}
 				else {
@@ -607,29 +580,6 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		int count() {
 			return getObjects().size();
 		}
-
-		/**
-		 * Return {@code true} if {@code object} is not contained in the state
-		 * and can therefore be added.
-		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} can be added
-		 */
-		boolean isAddable(O object) {
-			return !contains(object);
-		}
-
-		/**
-		 * Return {@code true} if {@code object} is contained in the state and
-		 * can therefore be removed.
-		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} can be removed
-		 */
-		boolean isRemovable(O object) {
-			return contains(object);
-		}
-
 	}
 
 }

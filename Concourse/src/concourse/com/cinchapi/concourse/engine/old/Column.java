@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.common.Hash;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.util.Hash;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.engine.old.QueryService.Operator;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;

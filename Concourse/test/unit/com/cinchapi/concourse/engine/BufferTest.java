@@ -16,7 +16,7 @@ package com.cinchapi.concourse.engine;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
+import com.cinchapi.concourse.db.ConcourseServiceProvider;
 import com.cinchapi.concourse.engine.ConcourseServiceTest;
 import com.cinchapi.concourse.engine.old.Buffer;
 

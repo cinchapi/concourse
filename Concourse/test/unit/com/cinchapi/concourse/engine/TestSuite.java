@@ -18,6 +18,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.Suite;
 
+import com.cinchapi.concourse.db.CellTest;
+import com.cinchapi.concourse.db.KeyTest;
+import com.cinchapi.concourse.db.ValueTest;
+
 /**
  * 
  * 

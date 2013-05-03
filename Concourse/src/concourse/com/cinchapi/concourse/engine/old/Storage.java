@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.concourse.db.Cell2;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.collect.Sets;
@@ -84,7 +85,7 @@ class Storage extends FlushingService {
 	@Override
 	public Set<Object> fetch(String column, long row) {
 		Set<Object> result = Sets.newHashSet();
-		Cell cell = use(row).fetch(column);
+		Cell2 cell = use(row).fetch(column);
 		if(cell != null) {
 			Iterable<Value> values = cell.getValues();
 			for (Value value : values) {
@@ -125,13 +126,13 @@ class Storage extends FlushingService {
 
 	@Override
 	protected boolean existsSpi(String column, Object value, long row) {
-		return use(row).exists(column, Value.notForStorage(value));
+		return use(row).existsAt(column, Value.notForStorage(value));
 	}
 
 	@Override
 	protected Set<Object> fetchSpi(String column, long timestamp, long row) {
 		Set<Object> result = Sets.newHashSet();
-		Cell cell = use(row).fetch(column);
+		Cell2 cell = use(row).fetch(column);
 		if(cell != null) {
 			Iterable<Value> values = cell.getValues(timestamp);
 			for (Value value : values) {
@@ -271,7 +272,7 @@ class Storage extends FlushingService {
 	 * @return the row
 	 */
 	private Row use(long key) {
-		return use(Key.fromLong(key));
+		return use(Key.notForStorage(key));
 	}
 
 	/**

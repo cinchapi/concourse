@@ -28,10 +28,11 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.common.Hash;
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.util.Hash;
+import com.cinchapi.common.util.Strings;
+import com.cinchapi.concourse.db.Cell2;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
 import com.google.common.collect.Maps;
@@ -39,7 +40,7 @@ import com.google.common.collect.Sets;
 
 /**
  * <p>
- * A thread-safe<sup>1</sup> {@link Cell} collection that makes it possible to
+ * A thread-safe<sup>1</sup> {@link Cell2} collection that makes it possible to
  * perform <em>request</em> reads.
  * </p>
  * <p>
@@ -69,7 +70,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-final class Row extends DurableIndex<Key, String, Cell> {
+final class Row extends DurableIndex<Key, String, Cell2> {
 	// NOTE: This class does not define hashCode() or equals() because the
 	// defaults are the desired behaviour.
 
@@ -120,8 +121,8 @@ final class Row extends DurableIndex<Key, String, Cell> {
 	 */
 	private static Row fromByteSequences(String filename, Key key,
 			ByteBuffer bytes) {
-		HashMap<String, Cell> cells = Maps.newHashMapWithExpectedSize(bytes
-				.capacity() / Cell.WEIGHTED_SIZE_IN_BYTES); // this will likely
+		HashMap<String, Cell2> cells = Maps.newHashMapWithExpectedSize(bytes
+				.capacity() / Cell2.WEIGHTED_SIZE_IN_BYTES); // this will likely
 															// take up more
 															// memory than
 															// necessary
@@ -131,7 +132,7 @@ final class Row extends DurableIndex<Key, String, Cell> {
 		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 				.over(array);
 		while (bsit.hasNext()) {
-			Cell cell = Cell.fromByteSequence(bsit.next());
+			Cell2 cell = Cell2.fromByteSequence(bsit.next());
 			cells.put(cell.getColumn(), cell);
 			nonEmptyCells += cell.isEmpty() ? 0 : 1;
 		}
@@ -160,7 +161,7 @@ final class Row extends DurableIndex<Key, String, Cell> {
 	 * very widely.
 	 */
 	public static final int MAX_NUM_CELLS = MAX_SIZE_IN_BYTES
-			/ Cell.WEIGHTED_SIZE_IN_BYTES;
+			/ Cell2.WEIGHTED_SIZE_IN_BYTES;
 	private static final Logger log = LoggerFactory.getLogger(Row.class);
 
 	private transient int nonEmptyCells;
@@ -172,7 +173,7 @@ final class Row extends DurableIndex<Key, String, Cell> {
 	 * @param cells
 	 * @param nonEmptyCells
 	 */
-	private Row(String filename, Key key, HashMap<String, Cell> cells,
+	private Row(String filename, Key key, HashMap<String, Cell2> cells,
 			int nonEmptyCells) {
 		super(filename, key, cells);
 		this.nonEmptyCells = nonEmptyCells;
@@ -216,12 +217,12 @@ final class Row extends DurableIndex<Key, String, Cell> {
 	void add(String column, Value value) {
 		lock.writeLock().lock();
 		try {
-			Cell cell;
+			Cell2 cell;
 			if(components.containsKey(column)) {
 				cell = components.get(column);
 			}
 			else {
-				cell = Cell.newInstance(column);
+				cell = Cell2.newInstance(column);
 				components.put(column, cell);
 				nonEmptyCells++;
 			}
@@ -242,9 +243,9 @@ final class Row extends DurableIndex<Key, String, Cell> {
 		try {
 			Set<String> columns = Sets.newHashSetWithExpectedSize(components
 					.size());
-			Iterator<Cell> it = components.values().iterator();
+			Iterator<Cell2> it = components.values().iterator();
 			while (it.hasNext()) {
-				Cell cell = it.next();
+				Cell2 cell = it.next();
 				if(!cell.getValues().isEmpty()) {
 					columns.add(cell.getColumn());
 				}
@@ -269,9 +270,9 @@ final class Row extends DurableIndex<Key, String, Cell> {
 		try {
 			Set<String> columns = Sets.newHashSetWithExpectedSize(components
 					.size());
-			Iterator<Cell> it = components.values().iterator();
+			Iterator<Cell2> it = components.values().iterator();
 			while (it.hasNext()) {
-				Cell cell = it.next();
+				Cell2 cell = it.next();
 				if(!cell.getValues(at).isEmpty()) {
 					columns.add(cell.getColumn());
 				}
@@ -310,7 +311,7 @@ final class Row extends DurableIndex<Key, String, Cell> {
 	 * @return the cell.
 	 */
 	@Nullable
-	Cell fetch(String column) { //O(1)
+	Cell2 fetch(String column) { //O(1)
 		lock.readLock().lock();
 		try {
 			return components.get(column);

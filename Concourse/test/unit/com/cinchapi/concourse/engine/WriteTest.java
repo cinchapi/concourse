@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import com.cinchapi.concourse.engine.EngineBaseTest;
+import com.cinchapi.concourse.db.DatabaseTest;
 import com.cinchapi.concourse.engine.old.Write;
 import com.cinchapi.concourse.engine.old.WriteType;
 
@@ -27,7 +27,7 @@ import com.cinchapi.concourse.engine.old.WriteType;
  * 
  * @author jnelson
  */
-public class WriteTest extends EngineBaseTest {
+public class WriteTest extends DatabaseTest {
 
 	@Test
 	public void testIsIdenticalTo() {

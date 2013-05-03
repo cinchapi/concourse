@@ -18,9 +18,9 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.io.ByteSized;
 import com.google.common.base.Objects;
@@ -67,7 +67,7 @@ class Write implements ByteSized {
 			WriteType type) {
 		Preconditions.checkArgument(type != WriteType.NOT_FOR_STORAGE,
 				"Cannot create a forStorage Write with a NOT_FOR_STORAGE type");
-		return new Write(column, Value.forStorage(value), Key.fromLong(row),
+		return new Write(column, Value.forStorage(value), Key.notForStorage(row),
 				type);
 	}
 
@@ -82,7 +82,7 @@ class Write implements ByteSized {
 	static Write fromByteSequence(ByteBuffer bytes) {
 		WriteType type = WriteType.values()[bytes.getInt()];
 
-		Key row = Key.fromLong(bytes.getLong());
+		Key row = Key.notForStorage(bytes.getLong());
 
 		int columnSize = bytes.getInt();
 		byte[] col = new byte[columnSize];
@@ -112,7 +112,7 @@ class Write implements ByteSized {
 		Write write = cache.get(row, column, value);
 		if(write == null) {
 			write = new Write(column, Value.notForStorage(value),
-					Key.fromLong(row), WriteType.NOT_FOR_STORAGE);
+					Key.notForStorage(row), WriteType.NOT_FOR_STORAGE);
 			cache.put(write, row, column, value);
 		}
 		return write;

@@ -23,9 +23,9 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.concourse.db.Cell2;
+import com.cinchapi.concourse.db.DatabaseTest;
 import com.cinchapi.concourse.db.old.Value;
-import com.cinchapi.concourse.engine.EngineBaseTest;
-import com.cinchapi.concourse.engine.old.Cell;
 import com.cinchapi.concourse.engine.old.Row;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -35,7 +35,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class RowTest extends EngineBaseTest {
+public class RowTest extends DatabaseTest {
 
 	@Test
 	public void testAdd() {
@@ -44,7 +44,7 @@ public class RowTest extends EngineBaseTest {
 		Value value = randomValueForStorage();
 
 		row.add(column, value);
-		assertTrue(row.fetch(column).contains(value));
+		assertTrue(row.fetchAt(column).contains(value));
 
 		// add multiple values to a column
 		int scale = randomScaleFrequency();
@@ -59,7 +59,7 @@ public class RowTest extends EngineBaseTest {
 		}
 		ListIterator<Value> it = values.listIterator();
 		while (it.hasNext()) {
-			assertTrue(row.fetch(column).contains(it.next()));
+			assertTrue(row.fetchAt(column).contains(it.next()));
 		}
 
 		// add multiple columns
@@ -76,7 +76,7 @@ public class RowTest extends EngineBaseTest {
 		}
 		ListIterator<String> it2 = columns.listIterator();
 		while (it2.hasNext()) {
-			assertTrue(row.describe().contains(it2.next()));
+			assertTrue(row.rowSet().contains(it2.next()));
 		}
 
 		// TODO concurrent modification
@@ -100,7 +100,7 @@ public class RowTest extends EngineBaseTest {
 			columns.add(column);
 			row.add(column, randomValueForStorage());
 		}
-		assertTrue(Sets.symmetricDifference(row.describe(), columns).isEmpty());
+		assertTrue(Sets.symmetricDifference(row.rowSet(), columns).isEmpty());
 
 		// column set from the past
 		long at = Time.now();
@@ -115,7 +115,7 @@ public class RowTest extends EngineBaseTest {
 		while (it.hasNext()) {
 			String c = it.next();
 			if(randomBoolean()) {
-				List<Value> values = row.fetch(c).getValues();
+				List<Value> values = row.fetchAt(c).getValues();
 				for (Value v : values) {
 					row.remove(c, v);
 				}
@@ -134,7 +134,7 @@ public class RowTest extends EngineBaseTest {
 
 		// get nonexistent cell
 		String column = randomString();
-		assertNull(row.fetch(column));
+		assertNull(row.fetchAt(column));
 
 		// get() returns a cell with all the added values
 		List<Value> values = Lists.newArrayList();
@@ -147,7 +147,7 @@ public class RowTest extends EngineBaseTest {
 			values.add(value);
 			row.add(column, value);
 		}
-		Cell cell = row.fetch(column);
+		Cell2 cell = row.fetchAt(column);
 		for (Value value : values) {
 			assertTrue(cell.contains(value));
 		}
@@ -155,7 +155,7 @@ public class RowTest extends EngineBaseTest {
 		// removing a value is reflected in the returned cell
 		Value randomValueFromCell = values.get(rand.nextInt(values.size()));
 		row.remove(column, randomValueFromCell);
-		assertFalse(row.fetch(column).contains(randomValueFromCell));
+		assertFalse(row.fetchAt(column).contains(randomValueFromCell));
 
 	}
 

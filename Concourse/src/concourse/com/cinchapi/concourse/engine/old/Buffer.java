@@ -29,8 +29,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.config.ConcourseConfiguration;
 import com.cinchapi.concourse.config.ConcourseConfiguration.PrefsKey;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;

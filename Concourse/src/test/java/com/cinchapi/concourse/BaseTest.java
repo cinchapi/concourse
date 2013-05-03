@@ -19,9 +19,9 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.common.RandomString;
 import com.cinchapi.common.time.StopWatch;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.common.util.RandomString;
 
 import junit.framework.TestCase;
 

@@ -21,14 +21,14 @@ import java.text.NumberFormat;
 
 import org.junit.BeforeClass;
 
-import com.cinchapi.concourse.engine.EngineBaseTest;
+import com.cinchapi.concourse.db.DatabaseTest;
 
 /**
  * Base class for all benchmark tests
  * 
  * @author jnelson
  */
-public class EngineBaseBenchmark extends EngineBaseTest {
+public class EngineBaseBenchmark extends DatabaseTest {
 
 	protected final String outputBaseDir = "test/benchmarks/";
 	protected final NumberFormat format = NumberFormat.getNumberInstance();

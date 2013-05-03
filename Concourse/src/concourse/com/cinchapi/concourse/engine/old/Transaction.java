@@ -31,8 +31,8 @@ import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.db.old.Value.Values;
 import com.cinchapi.concourse.exception.ConcourseRuntimeException;
@@ -480,7 +480,7 @@ public final class Transaction extends BufferedWriteService {
 					value = obj.get(VALUE_MEMBER).getAsLong();
 				}
 				else if(valueType == com.cinchapi.concourse.engine.old.Value.Type.RELATION) {
-					value = Key.fromLong(obj.get(VALUE_MEMBER).getAsLong());
+					value = Key.notForStorage(obj.get(VALUE_MEMBER).getAsLong());
 				}
 				else {
 					value = obj.get(VALUE_MEMBER).getAsString();
@@ -498,7 +498,7 @@ public final class Transaction extends BufferedWriteService {
 				object.addProperty(COLUMN_MEMBER, src.getColumn());
 				object.addProperty(VALUE_MEMBER, src.getValue().toString());
 				object.addProperty(VALUE_TYPE_MEMBER,
-						Values.getObjectType(src.getValue()).ordinal());
+						ValueSet.getObjectType(src.getValue()).ordinal());
 				return object;
 			}
 

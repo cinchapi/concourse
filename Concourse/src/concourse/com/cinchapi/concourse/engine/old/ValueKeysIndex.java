@@ -17,8 +17,8 @@ package com.cinchapi.concourse.engine.old;
 import java.nio.ByteBuffer;
 import java.util.TreeSet;
 
-import com.cinchapi.common.Strings;
 import com.cinchapi.common.io.IterableByteSequences;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.db.Key;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
@@ -193,7 +193,7 @@ class ValueIndex implements Comparable<ValueIndex>, ByteSized {
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(array);
 			while (bsit.hasNext()) {
-				keys.add(Key.fromLong(bsit.next().getLong()));
+				keys.add(Key.notForStorage(bsit.next().getLong()));
 			}
 			return new KeySet(keys);
 		}

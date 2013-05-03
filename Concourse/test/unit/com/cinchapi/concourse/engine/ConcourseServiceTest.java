@@ -23,8 +23,8 @@ import org.junit.Test;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
-import com.cinchapi.concourse.db.services.IndexingService;
-import com.cinchapi.concourse.engine.EngineBaseTest;
+import com.cinchapi.concourse.db.DatabaseTest;
+import com.cinchapi.concourse.db.services.IndexService;
 import com.cinchapi.concourse.engine.old.ConcourseService;
 import com.cinchapi.concourse.engine.old.QueryService.Operator;
 import com.google.common.collect.Lists;
@@ -35,7 +35,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public abstract class ConcourseServiceTest extends EngineBaseTest {
+public abstract class ConcourseServiceTest extends DatabaseTest {
 
 	protected abstract ConcourseService getService();
 
@@ -518,7 +518,7 @@ public abstract class ConcourseServiceTest extends EngineBaseTest {
 	public void testReindex() {
 		log("Running testReindex");
 		ConcourseService service = getService();
-		if(IndexingService.class.isAssignableFrom(service.getClass())) {
+		if(IndexService.class.isAssignableFrom(service.getClass())) {
 			int scale = randomScaleFrequency() * 5;
 
 			int pool = Math.round(0.09f * scale);
@@ -580,7 +580,7 @@ public abstract class ConcourseServiceTest extends EngineBaseTest {
 
 			// run reindex
 			log("Running a reindex");
-			((IndexingService) service).reindex();
+			((IndexService) service).reindex();
 			log("Performing query for {} {} {} AFTER index", column, operator,
 					value);
 			Set<Long> post = service.query(column, operator, values);

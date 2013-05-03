@@ -14,7 +14,7 @@
  */
 package com.cinchapi.concourse.engine;
 
-import com.cinchapi.concourse.engine.ConcourseServiceProvider;
+import com.cinchapi.concourse.db.ConcourseServiceProvider;
 import com.cinchapi.concourse.engine.old.VolatileStorage;
 
 /**

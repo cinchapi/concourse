@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.db.services.IndexingService;
+import com.cinchapi.concourse.db.services.IndexService;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -61,7 +61,7 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-class VolatileStorage extends ConcourseService implements IndexingService {
+class VolatileStorage extends ConcourseService implements IndexService {
 
 	/**
 	 * Return a new {@link VolatileStorage} with enough capacity for the

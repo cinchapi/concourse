@@ -12,27 +12,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.engine;
+package com.cinchapi.concourse.db;
 
 import org.junit.Test;
 
 import com.cinchapi.concourse.db.Key;
-import com.cinchapi.concourse.engine.EngineBaseTest;
 
 /**
  * Unit tests for {@link Key}.
  * 
  * @author jnelson
  */
-public final class KeyTest extends EngineBaseTest {
+public final class KeyTest extends DatabaseTest {
 
 
 	@Test
 	public void testUnsignedConstraint() {
 		long positive = randomPositiveLong();
 		long negative = randomNegativeLong();
-		Key positiveKey = Key.fromLong(positive);
-		Key negativeKey = Key.fromLong(negative);
+		Key positiveKey = Key.notForStorage(positive);
+		Key negativeKey = Key.notForStorage(negative);
 
 		// row keys should never be negative
 		assertFalse(Long.toString(positive).startsWith("-"));
