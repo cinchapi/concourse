@@ -36,11 +36,6 @@ public class RowCellTest extends CellTest<ColumnName, Value> {
 	}
 
 	@Override
-	protected Cell<ColumnName, Value> newInstance() {
-		return randomNewRowCell();
-	}
-
-	@Override
 	protected Cell<ColumnName, Value> newInstance(ColumnName id) {
 		return newRowCell(id.toString());
 	}
@@ -48,11 +43,6 @@ public class RowCellTest extends CellTest<ColumnName, Value> {
 	@Override
 	protected Value notForStorageObject() {
 		return randomValueNotForStorage();
-	}
-
-	@Override
-	protected Cell<ColumnName, Value> populatedInstance() {
-		return randomPopulatedRowCell();
 	}
 
 	@Override

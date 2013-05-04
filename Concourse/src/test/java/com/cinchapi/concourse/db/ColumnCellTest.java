@@ -21,42 +21,36 @@ import java.nio.ByteBuffer;
  * 
  * @author jnelson
  */
-public class ColumnCell extends Cell<Value, Key> {
-	
-	public static ColumnCell newInstance(Value value){
-		return new ColumnCell(value);
-	}
-	
-	public static ColumnCell fromByteSequence(ByteBuffer bytes){
-		return new ColumnCell(bytes);
-	}
+public class ColumnCellTest extends CellTest<Value, Key>{
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param id
-	 */
-	private ColumnCell(Value id) {
-		super(id);
-	}
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param bytes
-	 */
-	private ColumnCell(ByteBuffer bytes) {
-		super(bytes);
+	@Override
+	protected Key forStorageObject() {
+		return randomKeyForStorage();
 	}
 
 	@Override
-	protected Value getIdFromByteSequence(ByteBuffer bytes) {
-		return Value.fromByteSequence(bytes);
+	protected Value id() {
+		return randomValueNotForStorage();
 	}
 
 	@Override
-	protected Key getObjectFromByteSequence(ByteBuffer bytes) {
-		return Key.fromByteSequence(bytes);
+	protected Cell<Value, Key> newInstance(Value id) {
+		return newColumnCell(id);
+	}
+
+	@Override
+	protected Key notForStorageObject() {
+		return randomKeyNotForStorage();
+	}
+
+	@Override
+	protected Cell<Value, Key> populatedInstanceFromBytes(ByteBuffer bytes) {
+		return ColumnCell.fromByteSequence(bytes);
+	}
+
+	@Override
+	protected Key copy(Key object) {
+		return Key.forStorage(object.asLong());
 	}
 
 }

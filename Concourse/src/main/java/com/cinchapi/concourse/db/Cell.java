@@ -33,10 +33,9 @@ import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>
- * This class represents a view of a cell, which is contained at the
- * intersection of a row and column. This view is identified by some {@code key}
- * <sup>1</sup> and maintains a collection of {@code objects} in insertion
- * order.
+ * This class represents a view of a cell contained at the intersection of a row
+ * and column. This view is identified by some {@code key} <sup>1</sup> and
+ * maintains a collection of {@code objects} in insertion order.
  * </p>
  * <p>
  * <sup>1</sup> - The identifier is used to locate they cell within a larger
@@ -515,8 +514,8 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		@Override
 		boolean remove(O object) {
 			return add(object); // History is append only, so a removal means we
-								// assume the object parameter has a new
-								// timestamp and we add the object to the bucket
+								// assume the #object has a new timestamp and is
+								// added to the #objects list
 		}
 
 		/**
@@ -537,7 +536,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 				else {
 					break; // since the objects are sorted in insertion order, I
 							// can stop looking once I find a timestamp greater
-							// than {@code to}
+							// than the parameter
 				}
 			}
 			return snapshot;

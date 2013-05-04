@@ -14,49 +14,46 @@
  */
 package com.cinchapi.concourse.db;
 
-import java.nio.ByteBuffer;
-
 /**
- * 
- * 
- * @author jnelson
+ * The type contained within a {@link Value}.
  */
-public class ColumnCell extends Cell<Value, Key> {
-	
-	public static ColumnCell newInstance(Value value){
-		return new ColumnCell(value);
-	}
-	
-	public static ColumnCell fromByteSequence(ByteBuffer bytes){
-		return new ColumnCell(bytes);
-	}
+enum Type {
+	BOOLEAN, DOUBLE, FLOAT, INTEGER, LONG, RELATION, STRING;
 
 	/**
-	 * Construct a new instance.
+	 * Return the {@link Type} for {@code value}.
 	 * 
-	 * @param id
+	 * @param value
+	 * @return the value type.
 	 */
-	private ColumnCell(Value id) {
-		super(id);
-	}
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param bytes
-	 */
-	private ColumnCell(ByteBuffer bytes) {
-		super(bytes);
+	static Type of(Object value) {
+		Type type;
+		if(value instanceof Boolean) {
+			type = BOOLEAN;
+		}
+		else if(value instanceof Double) {
+			type = DOUBLE;
+		}
+		else if(value instanceof Float) {
+			type = FLOAT;
+		}
+		else if(value instanceof Integer) {
+			type = INTEGER;
+		}
+		else if(value instanceof Long) {
+			type = LONG;
+		}
+		else if(value instanceof Key) {
+			type = RELATION;
+		}
+		else {
+			type = STRING;
+		}
+		return type;
 	}
 
 	@Override
-	protected Value getIdFromByteSequence(ByteBuffer bytes) {
-		return Value.fromByteSequence(bytes);
+	public String toString() {
+		return this.name().toLowerCase();
 	}
-
-	@Override
-	protected Key getObjectFromByteSequence(ByteBuffer bytes) {
-		return Key.fromByteSequence(bytes);
-	}
-
 }

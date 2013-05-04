@@ -81,7 +81,7 @@ final class Column extends DurableIndex<String, Value, ValueIndex> {
 	private static Column fromByteSequences(String filename, String name,
 			ByteBuffer bytes) {
 		TreeMap<Value, ValueIndex> values = Maps
-				.newTreeMap(new Value.LogicalComparator());
+				.newTreeMap(new ValueComparator.LogicalComparator());
 		byte[] array = new byte[bytes.remaining()];
 		bytes.get(array);
 		IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator

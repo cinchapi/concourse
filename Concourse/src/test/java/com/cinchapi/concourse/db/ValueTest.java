@@ -210,14 +210,14 @@ public class ValueTest extends DatabaseTest {
 		Value floatVal = Value.forStorage(randomFloat());
 		Value stringVal = Value.forStorage(randomString());
 		Value boolVal = Value.forStorage(randomBoolean());
-		Value keyVal = Value.forStorage(randomKey());
-		assertEquals(Value.Type.INTEGER.toString(), intVal.getType());
-		assertEquals(Value.Type.LONG.toString(), longVal.getType());
-		assertEquals(Value.Type.DOUBLE.toString(), doubleVal.getType());
-		assertEquals(Value.Type.FLOAT.toString(), floatVal.getType());
-		assertEquals(Value.Type.STRING.toString(), stringVal.getType());
-		assertEquals(Value.Type.BOOLEAN.toString(), boolVal.getType());
-		assertEquals(Value.Type.RELATION.toString(), keyVal.getType());
+		Value keyVal = Value.forStorage(randomKeyNotForStorage());
+		assertEquals(Type.INTEGER.toString(), intVal.getType());
+		assertEquals(Type.LONG.toString(), longVal.getType());
+		assertEquals(Type.DOUBLE.toString(), doubleVal.getType());
+		assertEquals(Type.FLOAT.toString(), floatVal.getType());
+		assertEquals(Type.STRING.toString(), stringVal.getType());
+		assertEquals(Type.BOOLEAN.toString(), boolVal.getType());
+		assertEquals(Type.RELATION.toString(), keyVal.getType());
 	}
 
 	@Test

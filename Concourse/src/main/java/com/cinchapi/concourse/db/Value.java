@@ -15,13 +15,11 @@
 package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
-import java.util.Comparator;
 
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
 import com.cinchapi.common.util.Hash;
 import com.cinchapi.common.util.Strings;
@@ -138,7 +136,7 @@ final class Value implements Comparable<Value>, Storable {
 			+ (Long.SIZE / 8);
 	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
 			- FIXED_SIZE_IN_BYTES;
-	private static final LogicalComparator comparator = new LogicalComparator();
+	private static final ValueComparator comparator = new ValueComparator();
 
 	/**
 	 * <p>
@@ -234,8 +232,8 @@ final class Value implements Comparable<Value>, Storable {
 	 * @param timestamp
 	 */
 	private Value(Object quantity, long timestamp) {
-		this(Utilities.getByteBufferForObject(quantity), Utilities
-				.getObjectType(quantity), timestamp);
+		this(Utilities.getByteBufferForObject(quantity), Type.of(quantity),
+				timestamp);
 	}
 
 	/**
@@ -403,59 +401,9 @@ final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
-	 * A {@link Comparator} that sorts values logically.
-	 * 
-	 * @see {@link Value#compareToLogically(Value)}
-	 */
-	static class LogicalComparator implements Comparator<Value> {
-
-		@Override
-		public int compare(Value o1, Value o2) {
-			if(o1.getQuantity() instanceof Number
-					&& o2.getQuantity() instanceof Number) {
-				return Numbers.compare((Number) o1.getQuantity(),
-						(Number) o2.getQuantity());
-			}
-			else {
-				return o1.getQuantity().toString()
-						.compareTo(o2.getQuantity().toString());
-			}
-		}
-
-	}
-
-	/**
-	 * The value type contained within a {@link Value}.
-	 */
-	enum Type {
-		BOOLEAN, DOUBLE, FLOAT, INTEGER, LONG, RELATION, STRING;
-
-		@Override
-		public String toString() {
-			return this.name().toLowerCase();
-		}
-	}
-
-	/**
-	 * Publicly accessible utility methods for a {@link Value}.
+	 * Internal utility functions.
 	 * 
 	 * @author jnelson
-	 */
-	static class Values {
-
-		/**
-		 * Return the object type of {@code value}.
-		 * 
-		 * @param value
-		 * @return the object type
-		 */
-		public static Type getObjectType(Object value) {
-			return Utilities.getObjectType(value);
-		}
-	}
-
-	/**
-	 * Utilities for {@link Value}.
 	 */
 	private abstract static class Utilities {
 
@@ -478,7 +426,7 @@ final class Value implements Comparable<Value>, Storable {
 		 * @return the byte buffer.
 		 */
 		static ByteBuffer getByteBufferForObject(Object object) {
-			Type type = getObjectType(object);
+			Type type = Type.of(object);
 			return getByteBufferForObject(object, type);
 		}
 
@@ -565,36 +513,5 @@ final class Value implements Comparable<Value>, Storable {
 			return object;
 		}
 
-		/**
-		 * Determine the {@link Type} for {@code value}.
-		 * 
-		 * @param value
-		 * @return the value type.
-		 */
-		static Type getObjectType(Object value) {
-			Type type;
-			if(value instanceof Boolean) {
-				type = Type.BOOLEAN;
-			}
-			else if(value instanceof Double) {
-				type = Type.DOUBLE;
-			}
-			else if(value instanceof Float) {
-				type = Type.FLOAT;
-			}
-			else if(value instanceof Integer) {
-				type = Type.INTEGER;
-			}
-			else if(value instanceof Long) {
-				type = Type.LONG;
-			}
-			else if(value instanceof Key) {
-				type = Type.RELATION;
-			}
-			else {
-				type = Type.STRING;
-			}
-			return type;
-		}
 	}
 }

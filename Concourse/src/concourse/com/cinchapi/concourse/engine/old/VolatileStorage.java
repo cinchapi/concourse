@@ -92,7 +92,7 @@ class VolatileStorage extends ConcourseService implements IndexService {
 																										// read-only
 	private static final Set<Key> EMPTY_KEY_SET = Collections
 			.unmodifiableSet(new HashSet<Key>());
-	private static final Comparator<Value> comparator = new Value.LogicalComparator();
+	private static final Comparator<Value> comparator = new Value.ValueComparator();
 
 	/**
 	 * Maintains all the writes in chronological order. Elements from

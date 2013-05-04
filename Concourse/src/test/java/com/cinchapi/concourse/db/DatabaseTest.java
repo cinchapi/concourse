@@ -42,14 +42,9 @@ public abstract class DatabaseTest extends BaseTest {
 			return randomColumnName();
 		}
 	}
-
-	/**
-	 * Return a random new Cell
-	 * 
-	 * @return the cell
-	 */
-	protected RowCell randomNewRowCell() {
-		return newRowCell(randomColumnName());
+	
+	protected ColumnCell newColumnCell(Value value){
+		return ColumnCell.newInstance(value);
 	}
 
 	/**
@@ -60,32 +55,6 @@ public abstract class DatabaseTest extends BaseTest {
 	 */
 	protected RowCell newRowCell(String column) {
 		return RowCell.newInstance(column);
-	}
-
-	/**
-	 * Return a random cell that has been populated with a random number of
-	 * revisions.
-	 * 
-	 * @return the cell
-	 */
-	protected RowCell randomPopulatedRowCell() {
-		RowCell cell = randomNewRowCell();
-		int scale = randomScaleFrequency();
-		for (int i = 0; i < scale; i++) {
-			Value value = null;
-			while (value == null || cell.exists(value)) {
-				value = randomValueForStorage();
-			}
-			cell.add(value);
-			if(rand.nextInt() % 3 == 0) {
-				cell.remove(Value.forStorage(value.getQuantity()));
-				cell.add(Value.forStorage(value.getQuantity()));
-			}
-			if(rand.nextInt() % 6 == 0) {
-				cell.remove(Value.forStorage(value.getQuantity()));
-			}
-		}
-		return cell;
 	}
 
 	//
@@ -103,8 +72,12 @@ public abstract class DatabaseTest extends BaseTest {
 	 * 
 	 * @return the key
 	 */
-	protected Key randomKey() {
+	protected Key randomKeyNotForStorage() {
 		return Key.notForStorage(randomLong());
+	}
+	
+	protected Key randomKeyForStorage(){
+		return Key.forStorage(randomLong());
 	}
 
 	/**

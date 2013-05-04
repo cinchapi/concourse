@@ -215,6 +215,14 @@ public abstract class CellTest<I extends ByteSized, O extends Storable> extends
 	}
 
 	/**
+	 * Return a copy of {@code object}.
+	 * 
+	 * @param object
+	 * @return the copy
+	 */
+	protected abstract O copy(O object);
+
+	/**
 	 * Return a forStorage object.
 	 * 
 	 * @return the object
@@ -227,13 +235,6 @@ public abstract class CellTest<I extends ByteSized, O extends Storable> extends
 	 * @return the id
 	 */
 	protected abstract I id();
-
-	/**
-	 * Return a new instance.
-	 * 
-	 * @return the cell
-	 */
-	protected abstract Cell<I, O> newInstance();
 
 	/**
 	 * Return a new instance with the specified {@code id}.
@@ -251,13 +252,6 @@ public abstract class CellTest<I extends ByteSized, O extends Storable> extends
 	protected abstract O notForStorageObject();
 
 	/**
-	 * Return an populated instance.
-	 * 
-	 * @return the cell
-	 */
-	protected abstract Cell<I, O> populatedInstance();
-
-	/**
 	 * Return a populated instance from the sequence of {@code bytes}.
 	 * 
 	 * @param bytes
@@ -266,11 +260,37 @@ public abstract class CellTest<I extends ByteSized, O extends Storable> extends
 	protected abstract Cell<I, O> populatedInstanceFromBytes(ByteBuffer bytes);
 
 	/**
-	 * Return a copy of {@code object}.
+	 * Return a new instance.
 	 * 
-	 * @param object
-	 * @return the copy
+	 * @return the cell
 	 */
-	protected abstract O copy(O object);
+	private Cell<I, O> newInstance(){
+		return newInstance(id());
+	}
+
+	/**
+	 * Return an populated instance.
+	 * 
+	 * @return the cell
+	 */
+	private Cell<I, O> populatedInstance(){
+		Cell<I,O> cell = newInstance();
+		int scale = randomScaleFrequency();
+		for (int i = 0; i < scale; i++) {
+			O value = null;
+			while (value == null || cell.exists(value)) {
+				value = forStorageObject();
+			}
+			cell.add(value);
+			if(rand.nextInt() % 3 == 0) {
+				cell.remove(copy(value));
+				cell.add(copy(value));
+			}
+			if(rand.nextInt() % 6 == 0) {
+				cell.remove(copy(value));
+			}
+		}
+		return cell;
+	}
 
 }
