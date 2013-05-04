@@ -24,23 +24,26 @@ import com.cinchapi.common.time.Time;
 import com.cinchapi.common.util.Hash;
 import com.cinchapi.common.util.Strings;
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+
+import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>
- * An immutable typed quantity that is contained within a {@link Cell}.
+ * A typed quantity that is {@link Storable} within a {@link RowCell} and is
+ * also the identifier for a {@link ColumnCell}.
  * </p>
  * <p>
- * Both {@code naturally} sortable in descending order by timestamp and
- * {@code logically} sortable in ascending order by quantity(regardless of
- * {@code type}). This is the most basic element of data in the {@link Engine}.
- * A single value cannot be larger than 2GB. <br>
+ * A Value is a versioned<sup>1</sup> wrapper for a generic object that handles
+ * logical sorting amongst the various {@link Type}s and temporal sorting
+ * between forStorage and notForStorage instances. A Value is the most basic
+ * element of data in Concourse. A single value cannot exceed 2GB in memory. <br>
  * <br>
- * <sup>1</sup> - No two values can have the same timestamp
+ * <sup>1</sup> - The timestamp is unique per values and acts as a defacto
+ * version id
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
- * Each value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space.
+ * Each Value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space.
  * Additional space requirements are as follows:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
@@ -206,10 +209,9 @@ final class Value implements Comparable<Value>, Storable {
 	private Value(ByteBuffer quantity, Type type, long timestamp) {
 		// NOTE: A copy of the #quantity is not made for performance/space
 		// reasons. I am okay with this because {@link #quantity} is only used
-		// internally.
-		Preconditions.checkNotNull(quantity);
-		Preconditions.checkNotNull(type);
-
+		// locally and is never modified
+		checkNotNull(quantity);
+		checkNotNull(type);
 		this.quantity = quantity;
 		this.type = type;
 		this.timestamp = timestamp;
@@ -237,9 +239,9 @@ final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
-	 * Natural comparison where the value with the larger timestamp is less than
-	 * the other. This enables sorting by timestamp in descending order. This
-	 * method correctly accounts for comparing a forStorage value to a
+	 * Temporal comparison where the value with the larger timestamp is less
+	 * than the other. This enables sorting by timestamp in descending order.
+	 * This method correctly accounts for comparing a forStorage value to a
 	 * notForStorage one.
 	 */
 	@Override
@@ -266,7 +268,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * <ol>
 	 * <li><strong>timestamp</strong> - first 8 bytes</li>
 	 * <li><strong>type</strong> - next 4 bytes</li>
-	 * <li><strong>size</strong> - next 4 bytes</li>
+	 * <li><strong>quantitySize</strong> - next 4 bytes</li>
 	 * <li><strong>quantity</strong> - remaining bytes</li>
 	 * </ol>
 	 * 
@@ -461,11 +463,10 @@ final class Value implements Comparable<Value>, Storable {
 				break;
 			default:
 				String _object = object.toString();
-				Preconditions
-						.checkArgument(
-								_object.getBytes(ByteBuffers.charset()).length < MAX_QUANTITY_SIZE_IN_BYTES,
-								"Cannot create a byte buffer for %s because it is larger than the %s maximum allowed bytes",
-								object, MAX_QUANTITY_SIZE_IN_BYTES);
+				checkArgument(
+						_object.getBytes(ByteBuffers.charset()).length < MAX_QUANTITY_SIZE_IN_BYTES,
+						"Cannot create a byte buffer for %s because it is larger than the %s maximum allowed bytes",
+						object, MAX_QUANTITY_SIZE_IN_BYTES);
 				buffer = ByteBuffers.toByteBuffer(object.toString());
 				break;
 			}
