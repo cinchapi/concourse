@@ -23,6 +23,7 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.time.Time;
+import com.cinchapi.common.util.Hash;
 import com.cinchapi.common.util.Strings;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -72,10 +73,14 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return the new instance.
 	 */
 	public static Value forStorage(Object quantity) {
-		return new Value(quantity, Time.now()); // do not use cache because
-												// forStorage values must have a
-												// unique timestamp and will
-												// thus never be duplicated
+		// NOTE: I don't perform a cache lookup here because forStorage object
+		// must have a unique timestamp and will never be duplicated on
+		// creation. But, I do add the new object to the cache for lookup in the
+		// event that a value is read from a byte sequence.
+		Value value = new Value(quantity, Time.now());
+		Object[] cacheKey = { value.getQuantity(), value.getTimestamp() };
+		cache.put(value, cacheKey);
+		return value;
 	}
 
 	/**
@@ -96,7 +101,18 @@ final class Value implements Comparable<Value>, Storable {
 		ByteBuffer quantity = ByteBuffer.wrap(qty);
 		quantity.rewind();
 
-		return new Value(quantity, type, timestamp);
+		// The buffer -> object conversation happens both when calculating the
+		// #cacheKey and when creating the Value, but it is okay perf wise
+		// because the converted #object gets cached
+		// @see {Utilities#getObjectFromByteBuffer}
+		Object[] cacheKey = {
+				Utilities.getObjectFromByteBuffer(quantity, type), timestamp };
+		Value value = cache.get(cacheKey);
+		if(value == null) {
+			value = new Value(quantity, type, timestamp);
+			cache.put(value, cacheKey);
+		}
+		return value;
 	}
 
 	/**
@@ -108,10 +124,11 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return the new instance.
 	 */
 	public static Value notForStorage(Object quantity) {
-		Value value = cache.get(quantity);
+		Object[] cacheKey = { quantity, NIL };
+		Value value = cache.get(quantity, cacheKey);
 		if(value == null) {
 			value = new Value(quantity);
-			cache.put(value, quantity);
+			cache.put(value, cacheKey);
 		}
 		return value;
 	}
@@ -190,8 +207,7 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	private Value(ByteBuffer quantity, Type type, long timestamp) {
 		// NOTE: A copy of the #quantity is not made for performance/space
-		// reasons.
-		// I am okay with this because {@link #quantity} is only used
+		// reasons. I am okay with this because {@link #quantity} is only used
 		// internally.
 		Preconditions.checkNotNull(quantity);
 		Preconditions.checkNotNull(type);
@@ -441,7 +457,19 @@ final class Value implements Comparable<Value>, Storable {
 	/**
 	 * Utilities for {@link Value}.
 	 */
-	private static class Utilities {
+	private abstract static class Utilities {
+
+		private static final ObjectReuseCache<Object> objectCache = new ObjectReuseCache<Object>();
+
+		/**
+		 * Encode a {@link ByteBuffer} as a hex string.
+		 * 
+		 * @param buffer
+		 * @return the hex string
+		 */
+		static String encodeHexString(ByteBuffer buffer) {
+			return Hash.toString(buffer.array());
+		}
 
 		/**
 		 * Return a {@link ByteBuffer} that represents {@code object}.
@@ -449,7 +477,7 @@ final class Value implements Comparable<Value>, Storable {
 		 * @param object
 		 * @return the byte buffer.
 		 */
-		public static ByteBuffer getByteBufferForObject(Object object) {
+		static ByteBuffer getByteBufferForObject(Object object) {
 			Type type = getObjectType(object);
 			return getByteBufferForObject(object, type);
 		}
@@ -461,7 +489,7 @@ final class Value implements Comparable<Value>, Storable {
 		 * @param object
 		 * @return the byte buffer.
 		 */
-		public static ByteBuffer getByteBufferForObject(Object object, Type type) {
+		static ByteBuffer getByteBufferForObject(Object object, Type type) {
 			ByteBuffer buffer = null;
 
 			switch (type) {
@@ -506,32 +534,34 @@ final class Value implements Comparable<Value>, Storable {
 		 * @return the object.
 		 */
 		static Object getObjectFromByteBuffer(ByteBuffer buffer, Type type) {
-			Object object = null;
-
-			switch (type) {
-			case BOOLEAN:
-				object = ByteBuffers.getBoolean(buffer);
-				break;
-			case DOUBLE:
-				object = ByteBuffers.getDouble(buffer);
-				break;
-			case FLOAT:
-				object = ByteBuffers.getFloat(buffer);
-				break;
-			case INTEGER:
-				object = ByteBuffers.getInt(buffer);
-				break;
-			case LONG:
-				object = ByteBuffers.getLong(buffer);
-				break;
-			case RELATION:
-				object = Key.notForStorage(ByteBuffers.getLong(buffer));
-				break;
-			default:
-				object = ByteBuffers.getString(buffer);
-				break;
+			Object[] cacheKey = { encodeHexString(buffer), type };
+			Object object = objectCache.get(cacheKey);
+			if(object == null) {
+				switch (type) {
+				case BOOLEAN:
+					object = ByteBuffers.getBoolean(buffer);
+					break;
+				case DOUBLE:
+					object = ByteBuffers.getDouble(buffer);
+					break;
+				case FLOAT:
+					object = ByteBuffers.getFloat(buffer);
+					break;
+				case INTEGER:
+					object = ByteBuffers.getInt(buffer);
+					break;
+				case LONG:
+					object = ByteBuffers.getLong(buffer);
+					break;
+				case RELATION:
+					object = Key.notForStorage(ByteBuffers.getLong(buffer));
+					break;
+				default:
+					object = ByteBuffers.getString(buffer);
+					break;
+				}
+				objectCache.put(object, cacheKey);
 			}
-
 			return object;
 		}
 

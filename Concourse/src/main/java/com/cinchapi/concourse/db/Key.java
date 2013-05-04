@@ -43,10 +43,14 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 	 * @return the new instance.
 	 */
 	public static Key forStorage(long value) {
-		return new Key(value, Time.now()); // do not use cache because
-											// forStorage values must have a
-											// unique timestamp and will
-											// thus never be duplicated
+		// NOTE: I don't perform a cache lookup here because forStorage object
+		// must have a unique timestamp and will never be duplicated on
+		// creation. But, I do add the new object to the cache for lookup in the
+		// event that a value is read from a byte sequence.
+		Key key = new Key(value, Time.now());
+		Object[] cacheKey = { value, key.getTimestamp() };
+		cache.put(key, cacheKey);
+		return key;
 	}
 
 	/**
@@ -58,9 +62,16 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 	 * @return the key
 	 */
 	public static Key fromByteSequence(ByteBuffer bytes) {
-		long key = bytes.getLong();
+		long value = bytes.getLong();
 		long timestamp = bytes.getLong();
-		return new Key(key, timestamp);
+
+		Object[] cacheKey = { value, timestamp };
+		Key key = cache.get(cacheKey);
+		if(key == null) {
+			key = new Key(value, timestamp);
+			cache.put(key, cacheKey);
+		}
+		return key;
 	}
 
 	/**
