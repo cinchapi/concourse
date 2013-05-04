@@ -137,7 +137,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 
 		byte[] idBytes = new byte[idSize];
 		bytes.get(idBytes);
-		this.id = getIdFromBytes(ByteBuffer.wrap(idBytes));
+		this.id = getIdFromByteSequence(ByteBuffer.wrap(idBytes));
 
 		byte[] stateBytes = new byte[stateSize];
 		bytes.get(stateBytes);
@@ -176,7 +176,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the id
 	 */
-	protected abstract I getIdFromBytes(ByteBuffer bytes);
+	protected abstract I getIdFromByteSequence(ByteBuffer bytes);
 
 	/**
 	 * Return the object that is represented by the {@code bytes}.
@@ -184,7 +184,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 * @param bytes
 	 * @return the object
 	 */
-	protected abstract O getObjectFromBytes(ByteBuffer bytes);
+	protected abstract O getObjectFromByteSequence(ByteBuffer bytes);
 
 	/**
 	 * Add the forStorage{@code object} to the cell. This will modify the
@@ -362,7 +362,7 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(array);
 			while (bsit.hasNext()) {
-				add(getObjectFromBytes(bsit.next()));
+				add(getObjectFromByteSequence(bsit.next()));
 			}
 		}
 

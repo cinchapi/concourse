@@ -16,14 +16,14 @@ package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 
-import com.cinchapi.concourse.db.RowCell.ByteSizedString;
+import com.cinchapi.concourse.db.ColumnName;
 
 /**
  * 
  * 
  * @author jnelson
  */
-public class RowCellTest extends CellTest<ByteSizedString, Value> {
+public class RowCellTest extends CellTest<ColumnName, Value> {
 
 	@Override
 	protected Value forStorageObject() {
@@ -31,17 +31,17 @@ public class RowCellTest extends CellTest<ByteSizedString, Value> {
 	}
 
 	@Override
-	protected ByteSizedString id() {
-		return ByteSizedString.fromString(randomColumnName());
+	protected ColumnName id() {
+		return ColumnName.fromString(randomColumnName());
 	}
 
 	@Override
-	protected Cell<ByteSizedString, Value> newInstance() {
+	protected Cell<ColumnName, Value> newInstance() {
 		return randomNewRowCell();
 	}
 
 	@Override
-	protected Cell<ByteSizedString, Value> newInstance(ByteSizedString id) {
+	protected Cell<ColumnName, Value> newInstance(ColumnName id) {
 		return newRowCell(id.toString());
 	}
 
@@ -51,12 +51,12 @@ public class RowCellTest extends CellTest<ByteSizedString, Value> {
 	}
 
 	@Override
-	protected Cell<ByteSizedString, Value> populatedInstance() {
+	protected Cell<ColumnName, Value> populatedInstance() {
 		return randomPopulatedRowCell();
 	}
 
 	@Override
-	protected Cell<ByteSizedString, Value> populatedInstanceFromBytes(
+	protected Cell<ColumnName, Value> populatedInstanceFromBytes(
 			ByteBuffer bytes) {
 		return RowCell.fromByteSequence(bytes);
 	}

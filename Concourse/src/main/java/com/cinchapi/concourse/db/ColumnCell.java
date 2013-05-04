@@ -25,37 +25,30 @@ public class ColumnCell extends Cell<Value, Key> {
 
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param id
 	 */
 	public ColumnCell(Value id) {
 		super(id);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param bytes
 	 */
 	protected ColumnCell(ByteBuffer bytes) {
 		super(bytes);
-		// TODO Auto-generated constructor stub
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.db.Cell#getIdFromBytes(java.nio.ByteBuffer)
-	 */
 	@Override
-	protected Value getIdFromBytes(ByteBuffer bytes) {
+	protected Value getIdFromByteSequence(ByteBuffer bytes) {
 		return Value.fromByteSequence(bytes);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.cinchapi.concourse.db.Cell#getObjectFromBytes(java.nio.ByteBuffer)
-	 */
 	@Override
-	protected Key getObjectFromBytes(ByteBuffer bytes) {
-		// TODO Auto-generated method stub
-		return null;
+	protected Key getObjectFromByteSequence(ByteBuffer bytes) {
+		return Key.fromByteSequence(bytes);
 	}
 
 }
