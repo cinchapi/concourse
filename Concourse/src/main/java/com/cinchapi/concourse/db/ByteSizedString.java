@@ -24,47 +24,46 @@ import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.concourse.io.ByteSized;
 
 /**
- * Represents a {@link ByteSized} UTF-8 encoded string that is used internally
- * for column names.
+ * Represents a {@link ByteSized} UTF-8 encoded string that is used internally.
  * 
  * @author jnelson
  */
 @Immutable
-class ColumnName implements ByteSized {
+class ByteSizedString implements ByteSized {
 
 	/**
-	 * Return a {@link ColumnName} from the encoded {@code bytes}.
+	 * Return a {@link ByteSizedString} from the encoded {@code bytes}.
 	 * 
 	 * @param bytes
 	 * @return the UTF-8 encoded string
 	 */
-	public static ColumnName fromBytes(byte[] bytes) {
+	public static ByteSizedString fromBytes(byte[] bytes) {
 		String string = Utilities.bytesToString(bytes);
-		ColumnName utf8 = cache.get(string);
+		ByteSizedString utf8 = cache.get(string);
 		if(utf8 == null) {
-			utf8 = new ColumnName(bytes);
+			utf8 = new ByteSizedString(bytes);
 			cache.put(utf8, string);
 		}
 		return utf8;
 	}
 
 	/**
-	 * Return a {@link ColumnName} based on {@code string}.
+	 * Return a {@link ByteSizedString} based on {@code string}.
 	 * 
 	 * @param string
 	 * @return the UTF-8 encoded string
 	 */
-	public static ColumnName fromString(String string) {
-		ColumnName utf8 = cache.get(string);
+	public static ByteSizedString fromString(String string) {
+		ByteSizedString utf8 = cache.get(string);
 		if(utf8 == null) {
-			utf8 = new ColumnName(string);
+			utf8 = new ByteSizedString(string);
 			cache.put(utf8, string);
 		}
 		return utf8;
 	}
 
 	private final static ObjectReuseCache<String> stringCache = new ObjectReuseCache<String>();
-	private final static ObjectReuseCache<ColumnName> cache = new ObjectReuseCache<ColumnName>();
+	private final static ObjectReuseCache<ByteSizedString> cache = new ObjectReuseCache<ByteSizedString>();
 	private final static Charset UTF_8 = StandardCharsets.UTF_8;
 	private final byte[] bytes;
 
@@ -73,7 +72,7 @@ class ColumnName implements ByteSized {
 	 * 
 	 * @param bytes
 	 */
-	private ColumnName(byte[] bytes) {
+	private ByteSizedString(byte[] bytes) {
 		this.bytes = bytes;
 	}
 
@@ -82,7 +81,7 @@ class ColumnName implements ByteSized {
 	 * 
 	 * @param string
 	 */
-	private ColumnName(String string) {
+	private ByteSizedString(String string) {
 		this(string.getBytes(UTF_8));
 	}
 
@@ -102,7 +101,7 @@ class ColumnName implements ByteSized {
 	}
 
 	/**
-	 * Utilities for the {@link ColumnName} class.
+	 * Utilities for the {@link ByteSizedString} class.
 	 * 
 	 * @author jnelson
 	 */

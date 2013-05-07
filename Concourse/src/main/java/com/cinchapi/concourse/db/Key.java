@@ -25,15 +25,25 @@ import com.google.common.primitives.UnsignedLongs;
 
 /**
  * <p>
- * An immutable and {@link Storable} identifier for a {@link Row}. Each key is
- * based on an unsigned long, which means that the total pool of identifiers is
- * between 0 and 2^64 - 1 inclusive.
+ * The primary identifier for a {@link Row}.
+ * </p>
+ * <p>
+ * A key is {@link Bucketable} as the content of a {@link ColumnCell}. Each key is
+ * an unsigned 8 byte long paired with an 8 byte timestamp. The total required
+ * storage space is {@value #SIZE_IN_BYTES} bytes.
+ * </p>
+ * <p>
+ * The pool of possible keys ranges from 0 to 2^64 - 1 inclusive.
  * </p>
  * 
  * @author jnelson
  */
 @Immutable
-public final class Key extends Number implements Comparable<Key>, Storable {
+public final class Key extends Number implements Comparable<Key>, Bucketable {
+	// NOTE: This class extends Number so that it can be treated like other
+	// numerical values during comparisons. Whenever a cell contains a relation,
+	// the related Key is stored as a {@link Value} which is expected to be
+	// sorted amongst other values as if it were a Long.
 
 	/**
 	 * Return a key that is appropriate for storage, with the current
@@ -93,6 +103,7 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 
 	static final int SIZE_IN_BYTES = 2 * (Long.SIZE / 8);
 
+	// serializability inherited from {@link Number}
 	private static final long serialVersionUID = 1L;
 	private static final ObjectReuseCache<Key> cache = new ObjectReuseCache<Key>();
 
@@ -178,12 +189,12 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 
 	@Override
 	public boolean isForStorage() {
-		return Storables.isForStorage(this);
+		return Bucketables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
+		return Bucketables.isNotForStorage(this);
 	}
 
 	@Override
@@ -215,10 +226,10 @@ public final class Key extends Number implements Comparable<Key>, Storable {
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Storables#compare(Storable, Storable)}
+	 * @see {@link Bucketables#compare(Bucketable, Bucketable)}
 	 */
 	int compareTo(Key o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
+		return logically ? compareTo(o) : Bucketables.compare(this, o);
 	}
 
 	/**

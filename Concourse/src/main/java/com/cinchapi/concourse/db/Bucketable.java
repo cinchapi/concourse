@@ -18,24 +18,34 @@ import com.cinchapi.concourse.io.ByteSized;
 
 /**
  * <p>
- * A {@link ByteSized} object that is stored within a {@link Cell}.
+ * A {@link ByteSized} object that is stored within a {@link Bucket}.
  * </p>
  * <p>
- * Each {@code Storable} object is versioned by a unique timestamp. The
+ * Each {@code Bucketable} object is versioned by a unique timestamp. The
  * timestamp is stored directly with the object so that the version information
  * does not change when the object's storage context changes (i.e. when the
  * write buffer is flushed, when data is replicated, or when shards are
- * re-balanced, etc)
+ * re-balanced, etc).
  * </p>
  * 
  * @author jnelson
  */
-public interface Storable extends ByteSized {
+public interface Bucketable extends ByteSized {
 
 	/**
 	 * Represents a null timestamp, indicating the object is notForStorage.
 	 */
 	public static final long NIL = 0L;
+
+	/**
+	 * This method does not take timestamp into account because it is expected
+	 * that there will be instances when two objects have different timestamps
+	 * but are otherwise equal and should be treated as such. The associated
+	 * #timestamp is meant to version the object and not necessarily to alter
+	 * its essence in relation to other objects outside of temporal sorting.
+	 */
+	@Override
+	public boolean equals(Object obj);
 
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique

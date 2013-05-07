@@ -22,12 +22,25 @@ import com.cinchapi.common.lock.Lockable;
 import com.cinchapi.common.lock.Lockables;
 
 /**
- * A {@link Row} based {@link Cell} that is is identified by a {@code column}
- * name and maintains a collection of {@link Value} objects.
+ * <p>
+ * A RowCell represents the view of stored data from the perspective of a
+ * {@link Row} and is designed to efficiently handle <em>direct</em> reads
+ * <sup>1</sup> in Concourse.
+ * </p>
+ * <sup>1</sup>- A request to a single cell
+ * <p>
+ * This class models the traditional notion of a table cell because it is
+ * identified by the name of the column under which it sits and maintains a
+ * collection of values.
+ * </p>
+ * <p>
+ * Each RowCell is individually {@link Lockable}, which enables maximum levels
+ * of concurrency.
+ * </p>
  * 
  * @author jnelson
  */
-public class RowCell extends Cell<ColumnName, Value> implements Lockable {
+class RowCell extends Bucket<ByteSizedString, Value> implements Lockable {
 
 	/**
 	 * Return the cell represented by {@code bytes}. Use this method when
@@ -42,16 +55,16 @@ public class RowCell extends Cell<ColumnName, Value> implements Lockable {
 	}
 
 	/**
-	 * Return a <em>new</em> cell for storage under {@code column}, with a clean
-	 * state and no history.
+	 * Return a <em>new</em> RowCell for storage under {@code column}, with a
+	 * clean state and no history.
 	 * 
-	 * @return the new instance
+	 * @return the cell
 	 */
 	static RowCell newInstance(String column) {
-		return new RowCell(ColumnName.fromString(column));
+		return new RowCell(ByteSizedString.fromString(column));
 	}
 
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	private final transient ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
 	/**
 	 * Construct a new instance.
@@ -67,7 +80,7 @@ public class RowCell extends Cell<ColumnName, Value> implements Lockable {
 	 * 
 	 * @param column
 	 */
-	private RowCell(ColumnName column) {
+	protected RowCell(ByteSizedString column) {
 		super(column);
 	}
 
@@ -82,12 +95,12 @@ public class RowCell extends Cell<ColumnName, Value> implements Lockable {
 	}
 
 	@Override
-	protected ColumnName getIdFromByteSequence(ByteBuffer bytes) {
-		return ColumnName.fromBytes(bytes.array());
+	protected ByteSizedString getKeyFromByteSequence(ByteBuffer bytes) {
+		return ByteSizedString.fromBytes(bytes.array());
 	}
 
 	@Override
-	protected Value getObjectFromByteSequence(ByteBuffer bytes) {
+	protected Value getValueFromByteSequence(ByteBuffer bytes) {
 		return Value.fromByteSequence(bytes);
 	}
 

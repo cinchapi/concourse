@@ -16,10 +16,11 @@ package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+
+import org.mockito.Mockito;
 
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
@@ -27,116 +28,132 @@ import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.*;
+import static org.mockito.Matchers.*;
 
 /**
  * <p>
- * This class represents a view of a cell contained at the intersection of a row
- * and column. This view is identified by some {@code key} <sup>1</sup> and
- * maintains a collection of {@code objects} in insertion order.
- * </p>
+ * A Bucket is a version controlled collection of {@code values} that are mapped
+ * from a {@code key}. The key is the unique locator and the of values are
+ * maintained in insertion order.
  * <p>
- * <sup>1</sup> - The identifier is used to locate they cell within a larger
- * collection (i.e. in a {@link Row} or {@link Column}).
- * </p>
- * <p>
- * In addition to its identifier, each cell has two variable length components:
+ * The bucket key never changes, but the collection of values form two variable
+ * length components:
  * <ul>
- * <li><strong>State</strong> - An immutable snapshot of the forStorage objects
- * currently in the cell. The state for the cell changes whenever a write occurs
- * to the cell.</li>
- * <li><strong>History</strong> - A list of forStorage objects sorted by
- * timestamp in insertion/ascending order. Every time a write occurs, the
- * written object is logged in the history. From the perspective of the history,
- * an object O is considered present at time T if there are an odd number of
- * objects in the history equal to O with a timestamp less than or equal to T.</li>
+ * <li><strong>State</strong> - A snapshot of the forStorage values currently in
+ * the bucket. The state of the bucket changes whenever a relevant write occurs.
+ * </li>
+ * <li><strong>History</strong> - An append-only list of forStorage values
+ * sorted by timestamp in insertion/ascending order. Every time a write occurs,
+ * the written value is logged in the history. From the perspective of the
+ * history, a value V is considered present at time T if there are an odd number
+ * of values in the history equal to V with a timestamp less than or equal to T.
+ * </li>
  * </ul>
- * </p>
- * <p>
  * <h2>Storage Requirements</h2>
  * <ul>
  * <li>The size required for the {@code state} is the summation of the size of
- * each object plus 4 bytes. A {@code state} (and therefore a cell) can
+ * each value plus 4 bytes. A {@code state} (and therefore a bucket) can
  * theoretically hold up to {@value #MAX_NUM_VALUES} values at once, but in
  * actuality this limit is much lower.</li>
  * <li>The size required for the {@code history} is the product of 4 times the
- * total number of revisions plus the summation of the size of each object
- * multiplied by the number revisions involving that object. A history can
+ * total number of revisions plus the summation of the size of each value
+ * multiplied by the number revisions involving that value. A history can
  * theoretically hold up to {@value #MAX_NUM_REVISIONS} revisions, but in
  * actuality this limit is much lower.</li>
  * </ul>
- * <strong>Note:</strong> The size of the Cell is guaranteed to increase by at
- * least the size of O for each revision involving O. Therefore, removing an
- * item from a Cell will not reduce the size of the cell, but will
- * <em>increase</em> it!
+ * <strong>Note:</strong> Because a Bucket is version controlled, it's size is
+ * guaranteed to increase by at least the size of V for each write.
  * </p>
  * 
- * @param <I> - the identifier type
- * @param <O> - the stored object type
+ * @param <K> - the {@link ByteSized} key type
+ * @param <V> - the {@link Bucketable} value type
  * @author jnelson
  */
-public abstract class Cell<I extends ByteSized, O extends Storable> implements
+abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
 		ByteSized {
 
-	private static final int FIXED_SIZE_IN_BYTES = 3 * (Integer.SIZE / 8); // idSize,
+	/**
+	 * Return a <em>mock</em> bucket of {@code type}.
+	 * 
+	 * @param type
+	 * @return the {@code bucket}
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	static <T extends Bucket> T mock(Class<T> type) {
+		T cell = Mockito.mock(type);
+		Mockito.doNothing().when(cell).add(any(Bucketable.class));
+		Mockito.doNothing().when(cell).remove(any(Bucketable.class));
+		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+				.getBytes();
+		Mockito.doThrow(UnsupportedOperationException.class).when(cell).size();
+		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+				.getKeyFromByteSequence(any(ByteBuffer.class));
+		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+				.getValueFromByteSequence(any(ByteBuffer.class));
+		return cell;
+	}
+
+	private static final int FIXED_SIZE_IN_BYTES = 3 * (Integer.SIZE / 8); // keySize,
 																			// stateSize,
 																			// historySize
 
 	/**
-	 * The maximum allowable size of a cell.
+	 * The maximum allowable size of a bucket.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
-	 * The theoretical max number of values that can be simultaneously contained
-	 * in the cell. In actuality this limit is much lower because the size of a
-	 * value may vary widely.
+	 * The theoretical max number of values that can be simultaneously
+	 * contained in the bucket. In actuality this limit is much lower because
+	 * the
+	 * size of an value may vary widely.
 	 */
 	public static final int MAX_NUM_VALUES = MAX_SIZE_IN_BYTES
 			/ (4 + Value.MIN_SIZE_IN_BYTES);
 
 	/**
-	 * The theoretical max number of revisions that can occur to a cell. In
-	 * actuality this limit is much lower because the size of a value may vary
+	 * The theoretical max number of revisions that can occur to a bucket. In
+	 * actuality this limit is much lower because the size of an value may vary
 	 * widely.
 	 */
 	public static final int MAX_NUM_REVISIONS = MAX_NUM_VALUES;
 
 	/**
-	 * The minimum size of a cell (e.g. the size of an empty Cell with no values
-	 * or history).
+	 * The minimum size of a bucket (e.g. the size of an empty Bucket with
+	 * no
+	 * values or history).
 	 */
 	public static final int MIN_SIZE_IN_BYTES = FIXED_SIZE_IN_BYTES;
 
 	/**
 	 * This is a more realistic measure of the storage required for a single
-	 * cell with one revision.
+	 * bucket with one revision.
 	 */
 	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
 			+ (2 * Value.WEIGHTED_SIZE_IN_BYTES);
 
-	private final I id;
+	private final K key;
 	private final State state;
 	private final History history;
 
 	/**
-	 * Construct the cell instance represented by {@code bytes}. Use this
-	 * constructor when reading and reconstructing from a file. This construct
+	 * Construct the bucket instance represented by {@code bytes}. Use this
+	 * constructor when reading and reconstructing from a file. This constructor
 	 * assumes that {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
-	 * @return the cell
+	 * @return the Bucket
 	 */
-	protected Cell(ByteBuffer bytes) {
+	protected Bucket(ByteBuffer bytes) {
 		int idSize = bytes.getInt();
 		int stateSize = bytes.getInt();
 		int historySize = bytes.getInt();
 
 		byte[] idBytes = new byte[idSize];
 		bytes.get(idBytes);
-		this.id = getIdFromByteSequence(ByteBuffer.wrap(idBytes));
+		this.key = getKeyFromByteSequence(ByteBuffer.wrap(idBytes));
 
 		byte[] stateBytes = new byte[stateSize];
 		bytes.get(stateBytes);
@@ -148,13 +165,13 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * Construct a <em>new</em> cell identified by {@code id}, with a clean
+	 * Construct a <em>new</em> bucket identified by {@code id}, with a clean
 	 * state and no history.
 	 * 
-	 * @return the new instance
+	 * @return the new Bucket
 	 */
-	protected Cell(I id) {
-		this.id = id;
+	protected Bucket(K key) {
+		this.key = key;
 		this.state = new State();
 		this.history = new History();
 	}
@@ -166,45 +183,46 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 
 	@Override
 	public int size() {
-		return id.size() + state.size() + history.size() + FIXED_SIZE_IN_BYTES;
+		return key.size() + state.size() + history.size() + FIXED_SIZE_IN_BYTES;
 	}
 
 	/**
-	 * Return the id that is represented by the {@code bytes}.
+	 * Return the key that is represented by the sequence of {@code bytes}.
 	 * 
 	 * @param bytes
-	 * @return the id
+	 * @return the key
 	 */
-	protected abstract I getIdFromByteSequence(ByteBuffer bytes);
+	protected abstract K getKeyFromByteSequence(ByteBuffer bytes);
 
 	/**
-	 * Return the object that is represented by the {@code bytes}.
+	 * Return the value that is represented by the sequence of {@code bytes}.
 	 * 
 	 * @param bytes
-	 * @return the object
+	 * @return the value
 	 */
-	protected abstract O getObjectFromByteSequence(ByteBuffer bytes);
+	protected abstract V getValueFromByteSequence(ByteBuffer bytes);
 
 	/**
-	 * Add the forStorage{@code object} to the cell. This will modify the
-	 * {@code state} and log {@code object} in the {@code history}.
+	 * Add the forStorage {@code value} to the bucket. This will modify the
+	 * {@code state} and log {@code value} in the {@code history}.
 	 * 
-	 * @param object
+	 * @param value
+	 * @throws IllegalStateException if {@code value} is already contained
+	 * @throws IllegalArgumentException if {@code value} is notForStorage
 	 */
-	void add(O object) {
-		// I am assuming that #object is a new forStorage instance, meaning it
-		// has a unique timestamp.
-		checkState(!exists(object),
-				"Cannot add object '%s' because it is already contained",
-				object);
-		checkArgument(object.isForStorage(),
-				"Cannot add object '%s' because it notForStorage", object);
-		state.add(object);
-		history.add(object);
+	void add(V value) throws IllegalStateException, IllegalArgumentException {
+		// I am assuming that #value is a new forStorage instance, meaning it
+		// has a unique timestamp. The caller must ensure compliance.
+		checkState(!exists(value),
+				"Cannot add value '%s' because it is already contained", value);
+		checkArgument(value.isForStorage(),
+				"Cannot add value '%s' because it notForStorage", value);
+		state.add(value);
+		history.add(value);
 	}
 
 	/**
-	 * Return the number of objects presently contained in the cell.
+	 * Return the number of values presently contained in the bucket.
 	 * 
 	 * @return the count
 	 */
@@ -213,68 +231,69 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * Return {@code true} if {@code object} is found in the current state.
+	 * Return {@code true} if {@code value} is found in the current
+	 * {@code state}.
 	 * 
-	 * @param object
-	 * @return {@code true} if {@code object} is presently contained
+	 * @param value
+	 * @return {@code true} if {@code value} is presently contained
 	 */
-	boolean exists(O object) {
-		return state.contains(object);
+	boolean exists(V value) {
+		return state.contains(value);
 	}
 
 	/**
-	 * Return {@code true} if {@code object} is found to exist in the history at
+	 * Return {@code true} if {@code value} is found to exist in the history at
 	 * {@code timestamp}.
 	 * 
-	 * @param object
+	 * @param value
 	 * @param timestamp
-	 * @return {@code true} if object was contained at {@code timestamp}
+	 * @return {@code true} if value was contained at {@code timestamp}
 	 */
-	boolean existsAt(O object, long timestamp) {
-		return history.existsAt(object, timestamp);
+	boolean exists(V value, long timestamp) {
+		return history.existsAt(value, timestamp);
 	}
 
 	/**
-	 * Return a list of the presently contained objects.
+	 * Return the key.
 	 * 
-	 * @return the objects
+	 * @return the id
 	 */
-	List<O> fetch() {
-		return state.getObjects();
+	K getKey() {
+		return key;
 	}
 
 	/**
-	 * Return a list of the objects contained at {@code timestamp}.
+	 * Return a list of the presently contained values.
+	 * 
+	 * @return the values
+	 */
+	List<V> getValues() {
+		return state.getValues();
+	}
+
+	/**
+	 * Return a list of the values contained at {@code timestamp}.
 	 * 
 	 * @param timestamp
-	 * @return the objects
+	 * @return the values
 	 */
-	List<O> fetchAt(long timestamp) {
-		Iterator<O> it = history.rewind(timestamp).iterator();
-		List<O> snapshot = Lists.newArrayList();
+	List<V> getValues(long timestamp) {
+		Iterator<V> it = history.rewind(timestamp).iterator();
+		List<V> snapshot = Lists.newArrayList();
 		while (it.hasNext()) {
-			O object = it.next();
-			if(snapshot.contains(object)) {
-				snapshot.remove(object);
+			V value = it.next();
+			if(snapshot.contains(value)) {
+				snapshot.remove(value);
 			}
 			else {
-				snapshot.add(object);
+				snapshot.add(value);
 			}
 		}
 		return snapshot;
 	}
 
 	/**
-	 * Return the Cell identifier.
-	 * 
-	 * @return the id
-	 */
-	I getId() {
-		return id;
-	}
-
-	/**
-	 * Return {@code true} if the cell is empty.
+	 * Return {@code true} if the bucket is empty.
 	 * 
 	 * @return {@code true} if the state size is 0
 	 */
@@ -283,30 +302,33 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * Remove the forStorage {@code object} from the cell. This will modify the
-	 * {@code state} and log {@code object} in the {@code history}.
+	 * Remove the forStorage {@code value} from the bucket. This will modify
+	 * the {@code state} and log {@code value} in the {@code history}.
 	 * 
-	 * @param object
+	 * @param value
+	 * @throws IllegalStateException if {@code value} is not contained
+	 * @throws IllegalArgumentException if {@code value} is notForStorage
 	 */
-	void remove(O object) {
-		// I am assuming that #object is a new forStorage instance, meaning it
-		// has a unique timestamp.
-		checkState(exists(object),
-				"Cannot remove object '%s' because it is not contained", object);
-		checkArgument(object.isForStorage(),
-				"Cannot remove object '%s' because it is notForStorage", object);
-		state.remove(object);
-		history.remove(object);
+	void remove(V value) throws IllegalStateException, IllegalArgumentException {
+		// I am assuming that #value is a new forStorage instance, meaning it
+		// has a unique timestamp. The caller must ensure compliance.
+		checkState(exists(value),
+				"Cannot remove value '%s' because it is not contained", value);
+		checkArgument(value.isForStorage(),
+				"Cannot remove value '%s' because it is notForStorage", value);
+		state.remove(value);
+		history.remove(value);
 	}
 
 	/**
-	 * Return a new byte buffer that contains the current view of the cell with
+	 * Return a new byte buffer that contains the current view of the bucket
+	 * with
 	 * the following order:
 	 * <ol>
-	 * <li><strong>idSize</strong> - first 4 bytes</li>
+	 * <li><strong>keySize</strong> - first 4 bytes</li>
 	 * <li><strong>stateSize</strong> - next 4 bytes</li>
 	 * <li><strong>historySize</strong> - next 4 bytes</li>
-	 * <li><strong>id</strong> - next idSize bytes</li>
+	 * <li><strong>key</strong> - next idSize bytes</li>
 	 * <li><strong>state</strong> - next stateSize bytes</li>
 	 * <li><strong>history</strong> - remaining bytes</li>
 	 * </ol>
@@ -315,10 +337,10 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	 */
 	private ByteBuffer asByteBuffer() {
 		ByteBuffer buffer = ByteBuffer.allocate(size());
-		buffer.putInt(id.size());
+		buffer.putInt(key.size());
 		buffer.putInt(state.size());
 		buffer.putInt(history.size());
-		buffer.put(id.getBytes());
+		buffer.put(key.getBytes());
 		buffer.put(state.getBytes());
 		buffer.put(history.getBytes());
 		buffer.rewind();
@@ -326,42 +348,33 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * A collection of {@code O} objects that are maintained in insertion order.
-	 * Each object in the bucket must have a unique timestamp.
+	 * A collection of {@code V} values that are maintained in insertion order
+	 * with a Bucket. Each value in the bucket must have a unique timestamp.
 	 * 
 	 * @author jnelson
 	 */
-	private abstract class Bucket implements IterableByteSequences, ByteSized {
+	private abstract class Content implements IterableByteSequences, ByteSized {
 
-		private final List<O> objects = Lists.newArrayList();
-
-		/**
-		 * The set of timestamps that appear in the history so that we can
-		 * enforce the unique timestamp policy (all sorts of weird and undefined
-		 * behaviour will happen if duplicate timestamps exist). This means that
-		 * each Cell will take up an additional 16n bytes (n = number of
-		 * revisions) in memory than on disk.
-		 */
-		private final HashSet<Long> timestamps = Sets.newHashSet();
+		private final List<V> values = Lists.newArrayList();
 
 		/**
 		 * Construct a new instance.
 		 */
-		protected Bucket() { /* Do Nothing */}
+		protected Content() { /* Do Nothing */}
 
 		/**
 		 * Construct a new instance using a byte buffer that conforms to the
-		 * rules for a {@link IterableByteSequences}.
+		 * rules for {@link IterableByteSequences}.
 		 * 
 		 * @param bytes
 		 */
-		protected Bucket(ByteBuffer bytes) {
+		protected Content(ByteBuffer bytes) {
 			byte[] array = new byte[bytes.remaining()];
 			bytes.get(array);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(array);
 			while (bsit.hasNext()) {
-				add(getObjectFromByteSequence(bsit.next()));
+				add(getValueFromByteSequence(bsit.next()));
 			}
 		}
 
@@ -369,20 +382,20 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		@Override
 		public boolean equals(Object obj) {
 			if(obj.getClass().equals(this.getClass())) {
-				final Bucket other = (Bucket) obj;
-				return Objects.equal(objects, other.objects);
+				final Content other = (Content) obj;
+				return Objects.equal(values, other.values);
 			}
 			return false;
 		}
 
 		@Override
 		public byte[] getBytes() {
-			return ByteSizedCollections.toByteArray(objects);
+			return ByteSizedCollections.toByteArray(values);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hashCode(objects);
+			return Objects.hashCode(values);
 		}
 
 		@Override
@@ -397,71 +410,74 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 
 		@Override
 		public String toString() {
-			return objects.toString();
+			return values.toString();
 		}
 
 		/**
-		 * Add {@code object} to the bucket.
+		 * Add {@code value} to the bucket.
 		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} is added
+		 * @param value
+		 * @return {@code true} if {@code value} is added
+		 * @throws IllegalArgumentException if the #timestamp associated with
+		 *             {@code value} is not greater than the most recent
+		 *             timestamp in the bucket
 		 */
-		boolean add(O object) {
-			checkArgument(!timestamps.contains(object.getTimestamp()),
-					"Cannot add %s because the associated timestamp "
-							+ "already present in the bucket", object);
-			return objects.add(object) && timestamps.add(object.getTimestamp());
+		boolean add(V value) throws IllegalArgumentException {
+			// I check against the last timestamp to ensures that the list is
+			// kept in insertion order and that no duplicate timestamps are
+			// ever allowed
+			long timestamp = values.isEmpty() ? Bucketable.NIL : values.get(
+					values.size() - 1).getTimestamp();
+			checkArgument(value.getTimestamp() > timestamp,
+					"Cannot add %s because it's associated timestamp "
+							+ "is less than the most recent timestamp "
+							+ "in the bucket", value);
+			return values.add(value);
 		}
 
 		/**
-		 * Return {@code true} if {@code object} is present in the bucket
-		 * according to the definition of {@link O#equals(Object)}.
+		 * Return {@code true} if {@code value} is present in the bucket
+		 * according to the definition of {@link V#equals(Value)}.
 		 * 
-		 * @param object
-		 * @return {@code true} if {@code object} is contained
+		 * @param value
+		 * @return {@code true} if {@code value} is contained
 		 */
-		boolean contains(O object) {
-			return objects.contains(object);
+		boolean contains(V value) {
+			return values.contains(value);
 		}
 
 		/**
-		 * Return an unmodifiable view of the objects in the bucket.
+		 * Return an unmodifiable view of the values in the bucket.
 		 * 
-		 * @return the objects in the bucket
+		 * @return the values in the bucket
 		 */
-		List<O> getObjects() {
-			return Collections.unmodifiableList(objects);
+		List<V> getValues() {
+			return Collections.unmodifiableList(values);
 		}
 
 		/**
-		 * Remove the first instance of {@code object} from the bucket.
+		 * Remove the first instance of {@code value} from the bucket.
 		 * 
-		 * @param object
-		 * @return {@code true} if the first instance of the {@code object} is
+		 * @param value
+		 * @return {@code true} if the first instance of the {@code value} is
 		 *         removed
 		 */
-		boolean remove(O object) {
-			// I'm assuming that #object will have a different timestamp than
-			// what has been stored so I must get the stored timestamp
-			// and remove that instead of the timestamp of #object
-			int index = objects.indexOf(object);
-			if(index >= 0) {
-				timestamps.remove(objects.remove(index).getTimestamp());
-			}
-			return false;
+		boolean remove(V value) {
+			return values.remove(value);
 		}
 	}
 
 	/**
-	 * An append-only log that keeps track of {@link Cell} writes over time. The
-	 * {@code V} object associated with each write is associated with a
-	 * timestamp and added to the end of the log. An object is considered to
-	 * exist in the cell if it appears in the history an odd number of times,
+	 * An append-only log that keeps track of {@link Bucket} writes over
+	 * time. The {@code V} value associated with each write is associated with a
+	 * timestamp and added to the end of the log. An value is considered to
+	 * exist in the bucket if it appears in the history an odd number of
+	 * times,
 	 * otherwise it is considered to not exist.
 	 * 
 	 * @author jnelson
 	 */
-	private final class History extends Bucket {
+	private final class History extends Content {
 
 		/**
 		 * Construct a new instance.
@@ -482,40 +498,44 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		}
 
 		/**
-		 * Count the number of times that {@code object} appears in the history
+		 * Count the number of times that {@code value} appears in the history
 		 * with a timestamp that is less than or equal to {@code at}.
 		 * 
-		 * @param object
+		 * @param value
 		 * @param at
 		 * @return the number of appearances
 		 */
-		int count(O object, long at) {
+		int count(V value, long at) {
 			int count = 0;
-			ListIterator<O> it = rewind(at).listIterator();
+			ListIterator<V> it = rewind(at).listIterator();
 			while (it.hasNext()) {
-				count += it.next().equals(object) ? 1 : 0;
+				count += it.next().equals(value) ? 1 : 0; // I'm assuming that
+															// {@link
+															// V#equals(Value)}
+															// does not account
+															// for #timestamp
 			}
 			return count;
 		}
 
 		/**
-		 * Return {@code true} if {@code object} existed in the cell prior
+		 * Return {@code true} if {@code value} existed in the bucket prior
 		 * to the specified timestamp (meaning there is an odd number of
-		 * appearances for {@code object} in the history).
+		 * appearances for {@code value} in the history).
 		 * 
-		 * @param object
+		 * @param value
 		 * @param before
-		 * @return {@code true} if {@code object} existed.
+		 * @return {@code true} if {@code value} existed.
 		 */
-		boolean existsAt(O object, long at) {
-			return Numbers.isOdd(count(object, at));
+		boolean existsAt(V value, long at) {
+			return Numbers.isOdd(count(value, at));
 		}
 
 		@Override
-		boolean remove(O object) {
-			return add(object); // History is append only, so a removal means we
-								// assume the #object has a new timestamp and is
-								// added to the #objects list
+		boolean remove(V value) {
+			return add(value); // History is append only, so a removal means we
+								// assume the #value has a new timestamp and is
+								// added
 		}
 
 		/**
@@ -525,16 +545,16 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		 * @param timestamp
 		 * @return the list of revisions
 		 */
-		List<O> rewind(long timestamp) {
-			List<O> snapshot = Lists.newArrayList();
-			Iterator<O> it = getObjects().iterator();
+		List<V> rewind(long timestamp) {
+			List<V> snapshot = Lists.newArrayList();
+			Iterator<V> it = getValues().iterator();
 			while (it.hasNext()) {
-				O object = it.next();
-				if(object.getTimestamp() <= timestamp) {
-					snapshot.add(object);
+				V value = it.next();
+				if(value.getTimestamp() <= timestamp) {
+					snapshot.add(value);
 				}
 				else {
-					break; // since the objects are sorted in insertion order, I
+					break; // since the values are stored in insertion order, I
 							// can stop looking once I find a timestamp greater
 							// than the parameter
 				}
@@ -545,13 +565,15 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 	}
 
 	/**
-	 * A collection of the {@code V} objects that currently exist in the Cell.
-	 * The current state can be derived from the {@link Cell#history}, but it is
+	 * A collection of the {@code V} values that currently exist in the
+	 * Bucket.
+	 * The current state can be derived from the {@link Bucket#history}, but
+	 * it is
 	 * tracked explicitly for optimal performance.
 	 * 
 	 * @author jnelson
 	 */
-	private final class State extends Bucket {
+	private final class State extends Content {
 
 		/**
 		 * Construct a new instance.
@@ -572,12 +594,12 @@ public abstract class Cell<I extends ByteSized, O extends Storable> implements
 		}
 
 		/**
-		 * Return the number of objects in the state.
+		 * Return the number of values in the state.
 		 * 
 		 * @return the count
 		 */
 		int count() {
-			return getObjects().size();
+			return getValues().size();
 		}
 	}
 

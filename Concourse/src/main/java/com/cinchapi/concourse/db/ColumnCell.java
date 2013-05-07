@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
  * 
  * @author jnelson
  */
-public class ColumnCell extends Cell<Value, Key> {
+public class ColumnCell extends Bucket<Value, Key> {
 	
 	public static ColumnCell newInstance(Value value){
 		return new ColumnCell(value);
@@ -50,12 +50,12 @@ public class ColumnCell extends Cell<Value, Key> {
 	}
 
 	@Override
-	protected Value getIdFromByteSequence(ByteBuffer bytes) {
+	protected Value getKeyFromByteSequence(ByteBuffer bytes) {
 		return Value.fromByteSequence(bytes);
 	}
 
 	@Override
-	protected Key getObjectFromByteSequence(ByteBuffer bytes) {
+	protected Key getValueFromByteSequence(ByteBuffer bytes) {
 		return Key.fromByteSequence(bytes);
 	}
 
