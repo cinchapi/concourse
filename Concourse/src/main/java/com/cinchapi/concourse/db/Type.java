@@ -43,7 +43,7 @@ enum Type {
 		else if(value instanceof Long) {
 			type = LONG;
 		}
-		else if(value instanceof Key) {
+		else if(value instanceof PrimaryKey) {
 			type = RELATION;
 		}
 		else {

@@ -75,7 +75,9 @@ abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
 		ByteSized {
 
 	/**
-	 * Return a <em>mock</em> bucket of {@code type}.
+	 * Return a <em>mock</em> bucket of {@code type}. Use this method instead of
+	 * mocking {@code type} directly to ensure that the mock is compatible with
+	 * the assumptions made in {@link FileStore}.
 	 * 
 	 * @param type
 	 * @return the {@code bucket}
@@ -295,10 +297,10 @@ abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
 	/**
 	 * Return {@code true} if the bucket is empty.
 	 * 
-	 * @return {@code true} if the state size is 0
+	 * @return {@code true} if the state count is 0
 	 */
 	boolean isEmpty() {
-		return state.size() == 0;
+		return state.count() == 0;
 	}
 
 	/**

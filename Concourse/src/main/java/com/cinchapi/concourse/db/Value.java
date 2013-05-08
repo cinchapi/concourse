@@ -455,7 +455,7 @@ final class Value implements Comparable<Value>, Bucketable {
 				buffer = ByteBuffers.toByteBuffer((long) object);
 				break;
 			case RELATION:
-				buffer = ByteBuffers.toByteBuffer(((Key) (object)).asLong());
+				buffer = ByteBuffers.toByteBuffer(((PrimaryKey) (object)).asLong());
 				break;
 			default:
 				String _object = object.toString();
@@ -499,7 +499,7 @@ final class Value implements Comparable<Value>, Bucketable {
 					object = ByteBuffers.getLong(buffer);
 					break;
 				case RELATION:
-					object = Key.notForStorage(ByteBuffers.getLong(buffer));
+					object = PrimaryKey.notForStorage(ByteBuffers.getLong(buffer));
 					break;
 				default:
 					object = ByteBuffers.getString(buffer);

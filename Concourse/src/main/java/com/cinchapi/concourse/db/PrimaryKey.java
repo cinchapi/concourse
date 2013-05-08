@@ -25,7 +25,7 @@ import com.google.common.primitives.UnsignedLongs;
 
 /**
  * <p>
- * The primary identifier for a {@link Row}.
+ * The primary identifier for a {@link FileRow}.
  * </p>
  * <p>
  * A key is {@link Bucketable} as the content of a {@link ColumnCell}. Each key is
@@ -39,7 +39,7 @@ import com.google.common.primitives.UnsignedLongs;
  * @author jnelson
  */
 @Immutable
-public final class Key extends Number implements Comparable<Key>, Bucketable {
+public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, Bucketable {
 	// NOTE: This class extends Number so that it can be treated like other
 	// numerical values during comparisons. Whenever a cell contains a relation,
 	// the related Key is stored as a {@link Value} which is expected to be
@@ -52,12 +52,12 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * @param value
 	 * @return the new instance.
 	 */
-	public static Key forStorage(long value) {
+	public static PrimaryKey forStorage(long value) {
 		// NOTE: I don't perform a cache lookup here because forStorage object
 		// must have a unique timestamp and will never be duplicated on
 		// creation. But, I do add the new object to the cache for lookup in the
 		// event that a value is read from a byte sequence.
-		Key key = new Key(value, Time.now());
+		PrimaryKey key = new PrimaryKey(value, Time.now());
 		Object[] cacheKey = { value, key.getTimestamp() };
 		cache.put(key, cacheKey);
 		return key;
@@ -71,14 +71,14 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * @param bytes
 	 * @return the key
 	 */
-	public static Key fromByteSequence(ByteBuffer bytes) {
+	public static PrimaryKey fromByteSequence(ByteBuffer bytes) {
 		long value = bytes.getLong();
 		long timestamp = bytes.getLong();
 
 		Object[] cacheKey = { value, timestamp };
-		Key key = cache.get(cacheKey);
+		PrimaryKey key = cache.get(cacheKey);
 		if(key == null) {
-			key = new Key(value, timestamp);
+			key = new PrimaryKey(value, timestamp);
 			cache.put(key, cacheKey);
 		}
 		return key;
@@ -92,10 +92,10 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * @param value
 	 * @return the new instance.
 	 */
-	public static Key notForStorage(long value) {
-		Key key = cache.get(value);
+	public static PrimaryKey notForStorage(long value) {
+		PrimaryKey key = cache.get(value);
 		if(key == null) {
-			key = new Key(value);
+			key = new PrimaryKey(value);
 			cache.put(key, value);
 		}
 		return key;
@@ -105,7 +105,7 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 
 	// serializability inherited from {@link Number}
 	private static final long serialVersionUID = 1L;
-	private static final ObjectReuseCache<Key> cache = new ObjectReuseCache<Key>();
+	private static final ObjectReuseCache<PrimaryKey> cache = new ObjectReuseCache<PrimaryKey>();
 
 	private final long key;
 	private final long timestamp;
@@ -116,7 +116,7 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * 
 	 * @param key
 	 */
-	private Key(long key) {
+	private PrimaryKey(long key) {
 		this(key, NIL);
 	}
 
@@ -126,7 +126,7 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * @param key
 	 * @param timestamp
 	 */
-	private Key(long key, long timestamp) {
+	private PrimaryKey(long key, long timestamp) {
 		this.key = key;
 		this.timestamp = timestamp;
 	}
@@ -144,7 +144,7 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * Compares keys such that they are sorted in descending order.
 	 */
 	@Override
-	public int compareTo(Key o) {
+	public int compareTo(PrimaryKey o) {
 		return -1 * UnsignedLongs.compare(key, o.key);
 	}
 
@@ -155,8 +155,8 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Key) {
-			final Key other = (Key) obj;
+		if(obj instanceof PrimaryKey) {
+			final PrimaryKey other = (PrimaryKey) obj;
 			return Objects.equal(this.key, other.key);
 		}
 		return false;
@@ -228,7 +228,7 @@ public final class Key extends Number implements Comparable<Key>, Bucketable {
 	 * @see {@link #compareToLogically(Value)}
 	 * @see {@link Bucketables#compare(Bucketable, Bucketable)}
 	 */
-	int compareTo(Key o, boolean logically) {
+	int compareTo(PrimaryKey o, boolean logically) {
 		return logically ? compareTo(o) : Bucketables.compare(this, o);
 	}
 

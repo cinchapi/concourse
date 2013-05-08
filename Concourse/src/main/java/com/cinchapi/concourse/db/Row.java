@@ -15,72 +15,319 @@
 package com.cinchapi.concourse.db;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.lock.Lock;
+import com.cinchapi.common.lock.Lockable;
+import com.cinchapi.common.lock.Lockables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
- * 
+ * A collection of cells, each mapped from a column name and containing a
+ * collection of {@link Value} objects.
  * 
  * @author jnelson
  */
 final class Row extends Store<ByteSizedString, Value> {
 
 	/**
-	 * Construct a new instance.
+	 * Return the row that is located by {@code key}.
 	 * 
-	 * @param locator
+	 * @param key
+	 * @return the row
 	 */
-	protected Row(Key key) {
-		super(key);
+	public static Row fromKey(PrimaryKey key) {
+		Row row = cache.get(key.asLong());
+		if(row == null) {
+			row = new Row(key);
+			cache.put(row, key.asLong());
+		}
+		return row;
 	}
+
+	private static final Cell mock = Bucket.mock(Cell.class);
+	private static final ObjectReuseCache<Row> cache = new ObjectReuseCache<Row>();
+	protected static final String FILE_NAME_EXT = "ccr"; // @Override from
+															// {@link Store}
 
 	/**
 	 * Construct a new instance.
 	 * 
-	 * @param filename
-	 * @param bytes
+	 * @param locator
 	 */
-	public Row(String filename) {
-		super(filename);
+	private Row(PrimaryKey key) {
+		super(key);
 	}
 
-	private static final RowCell mock = Bucket.mock(RowCell.class);
-
-	// @Override from {@link Store}
-	protected static final String FILE_NAME_EXT = "ccr";
+	@Override
+	protected Bucket<ByteSizedString, Value> getBucketFromByteSequence(
+			ByteBuffer bytes) {
+		return new Cell(bytes);
+	}
 
 	@Override
-	protected Bucket<ColumnName, Value> getMockBucket() {
+	protected Bucket<ByteSizedString, Value> getMockBucket() {
 		return mock;
 	}
 
 	@Override
-	protected Bucket<ColumnName, Value> getNewBucket(ColumnName key) {
-		return RowCell.newInstance(key.toString()); // TODO make a newInstance
-													// method that takes a
-													// columnname
+	protected Bucket<ByteSizedString, Value> getNewBucket(ByteSizedString column) {
+		return new Cell(column);
+
 	}
 
 	@Override
-	protected Bucket<ColumnName, Value> getBucketFromByteSequence(
-			ByteBuffer bytes) {
-		return RowCell.fromByteSequence(bytes);
-	}
-
-	Lock readLock(ColumnName column) {
-		return ((RowCell) get(column)).readLock();
-	}
-
-	Lock writeLock(ColumnName column) {
-		return ((RowCell) get(column)).writeLock();
-	}
-
-	@Override
-	protected Map<ColumnName, Bucket<ColumnName, Value>> getNewBuckets(
+	protected Map<ByteSizedString, Bucket<ByteSizedString, Value>> getNewBuckets(
 			int expectedSize) {
 		return Maps.newHashMapWithExpectedSize(expectedSize);
 	}
 
+	/**
+	 * Return the columns that map to non-empty cells in the row.
+	 * 
+	 * @return the set of columns in the row
+	 */
+	Set<ByteSizedString> describe() {
+		return describe(false, 0);
+	}
+
+	/**
+	 * Return the columns that map to non-empty cells in the row at the
+	 * specified {@code timestamp}.
+	 * 
+	 * @param timestamp
+	 * @return the set of columns in the row
+	 */
+	Set<ByteSizedString> describe(long timestamp) {
+		return describe(true, timestamp);
+	}
+
+	/**
+	 * Return {@code true} if {@code value} exists in the cell mapped from
+	 * {@code column}.
+	 * 
+	 * @param column
+	 * @param value
+	 * @return {@code true} if {@code value} exists in the cell mapped from
+	 *         {@code column}
+	 */
+	boolean exists(ByteSizedString column, Value value) {
+		return exists(column, value, false, 0);
+	}
+
+	/**
+	 * Return {@code true} if {@code value} exists in the cell mapped from
+	 * {@code column} at the specified {@code timestamp}.
+	 * 
+	 * @param column
+	 * @param value
+	 * @param timestamp
+	 * @return {@code true} if {@code value} exists in the cell mapped from
+	 *         {@code column}
+	 */
+	boolean exists(ByteSizedString column, Value value, long timestamp) {
+		return exists(column, value, true, timestamp);
+	}
+
+	/**
+	 * Return the set of values contained in the cell mapped from {@code column}
+	 * 
+	 * @param column
+	 * @return the set of values
+	 */
+	Set<Value> fetch(ByteSizedString column) {
+		return fetch(column, false, 0);
+	}
+
+	/**
+	 * Return the set of values contained in the cell mapped from {@code column}
+	 * at the specified {@code timestamp}.
+	 * 
+	 * @param column
+	 * @param timestamp
+	 * @return the set of values
+	 */
+	Set<Value> fetch(ByteSizedString column, long timestamp) {
+		return fetch(column, true, timestamp);
+	}
+
+	/**
+	 * Read lock the cell mapped from {@code column}
+	 * 
+	 * @param column
+	 * @return the releasable lock
+	 */
+	Lock readLock(ByteSizedString column) {
+		return ((Cell) get(column)).readLock();
+	}
+
+	/**
+	 * Write lock the cell mapped from {@code column}.
+	 * 
+	 * @param column
+	 * @return the releasable lock
+	 */
+	Lock writeLock(ByteSizedString column) {
+		return ((Cell) get(column)).writeLock();
+	}
+
+	/**
+	 * Return the columns that map to non-empty cells in the row at the present
+	 * or at the specified {@code timestamp} if {@code historical} is
+	 * {@code true}.
+	 * 
+	 * @param historical - if {@code true} query the history for each cell,
+	 *            otherwise query the present state
+	 * @param timestamp - this value is ignored if {@code historical} is set to
+	 *            false, otherwise this value is the historical timestamp at
+	 *            which to query each cell
+	 * @return the set of columns in the row
+	 */
+	private Set<ByteSizedString> describe(boolean historical, long timestamp) {
+		Lock lock = readLock();
+		try {
+			Set<ByteSizedString> columns = Sets.newHashSetWithExpectedSize(buckets()
+					.size());
+			Iterator<Bucket<ByteSizedString, Value>> it = buckets().values()
+					.iterator();
+			while (it.hasNext()) {
+				Cell cell = (Cell) it.next();
+				boolean empty = historical ? cell.getValues(timestamp)
+						.isEmpty() : cell.isEmpty();
+				if(!empty) {
+					columns.add(cell.getKey());
+				}
+			}
+			return columns;
+		}
+		finally {
+			lock.release();
+		}
+	}
+
+	/**
+	 * Return {@code true} if {@code value} exists in the cell mapped from
+	 * {@code column} at the present or at the specified {@code timestamp} if
+	 * {@code historical} is set to {@code true}.
+	 * 
+	 * @param column
+	 * @param value
+	 * @param historical - if {@code true} query the history for each cell,
+	 *            otherwise query the present state
+	 * @param timestamp - this value is ignored if {@code historical} is set to
+	 *            false, otherwise this value is the historical timestamp at
+	 *            which to query each cell
+	 * @return {@code true} if {@code value} exists in the cell mapped from
+	 *         {@code column}
+	 */
+	private boolean exists(ByteSizedString column, Value value,
+			boolean historical, long timestamp) {
+		Lock lock = readLock();
+		try {
+			return historical ? get(column).getValues(timestamp)
+					.contains(value) : get(column).getValues().contains(value);
+		}
+		finally {
+			lock.release();
+		}
+	}
+
+	/**
+	 * Return the set of values contained in the cell mapped from {@code column}
+	 * at the present or at the specified {@code timestamp} if
+	 * {@code historical} is set to {@code true}.
+	 * 
+	 * @param column
+	 * @param historical - if {@code true} query the history for each cell,
+	 *            otherwise query the present state
+	 * @param timestamp - this value is ignored if {@code historical} is set to
+	 *            false, otherwise this value is the historical timestamp at
+	 *            which to query each cell
+	 * @return the set of values
+	 */
+	private Set<Value> fetch(ByteSizedString column, boolean historical,
+			long timestamp) {
+		Lock lock = readLock();
+		try {
+			Set<Value> values = Sets.newLinkedHashSet();
+			Iterator<Value> it = historical ? get(column).getValues(timestamp)
+					.iterator() : get(column).getValues().iterator();
+			while (it.hasNext()) {
+				values.add(it.next());
+			}
+			return values;
+		}
+		finally {
+			lock.release();
+		}
+	}
+
+	/**
+	 * <p>
+	 * The bucketed view of stored data from the perspective of a {@link Row}
+	 * that is designed to efficiently handle non-query reads.
+	 * </p>
+	 * <p>
+	 * This class models the traditional notion of a table cell because it is
+	 * identified by the name of the column under which it sits and maintains a
+	 * collection of values.
+	 * </p>
+	 * <p>
+	 * Each Cell is individually {@link Lockable}, which enables maximum levels
+	 * of concurrency.
+	 * </p>
+	 * 
+	 * @author jnelson
+	 */
+	static class Cell extends Bucket<ByteSizedString, Value> implements Lockable {
+		// NOTE: This class is nested because the Row mostly abstracts away the
+		// notion of a Bucket.
+
+		private final transient ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param column
+		 */
+		Cell(ByteSizedString column) {
+			super(column);
+		}
+
+		/**
+		 * Construct a new instance. Use this constructor when
+		 * reading and reconstructing from a file. This method assumes that
+		 * {@code bytes} was generated using {@link #getBytes()}.
+		 * 
+		 * @param bytes
+		 */
+		Cell(ByteBuffer bytes) {
+			super(bytes);
+		}
+
+		@Override
+		public Lock readLock() {
+			return Lockables.readLock(this, locksmith);
+		}
+
+		@Override
+		public Lock writeLock() {
+			return Lockables.writeLock(this, locksmith);
+		}
+
+		@Override
+		protected ByteSizedString getKeyFromByteSequence(ByteBuffer bytes) {
+			return ByteSizedString.fromBytes(bytes.array());
+		}
+
+		@Override
+		protected Value getValueFromByteSequence(ByteBuffer bytes) {
+			return Value.fromByteSequence(bytes);
+		}
+	}
 }

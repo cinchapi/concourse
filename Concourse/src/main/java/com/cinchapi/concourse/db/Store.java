@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -110,7 +111,7 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	 * thread contention is insertion, which is accounted for in the
 	 * {@link #newBucket()} method using a local write lock.
 	 */
-	private final Map<K, Bucket<K, V>> buckets;
+	protected final Map<K, Bucket<K, V>> buckets;
 	private transient final String filename;
 	private transient final ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
 	private transient final Logger log = LoggerFactory.getLogger(getClass());
@@ -135,17 +136,6 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 					+ "deserialize store {} from {}: {}", locator, filename, e);
 			throw new ConcourseRuntimeException(e);
 		}
-	}
-
-	/**
-	 * Construct a new instance. This constructor should only be used for
-	 * deserializing an existing store from the file at {@code filename}.
-	 * 
-	 * @param filename
-	 */
-	protected Store(String filename) {
-		this.filename = filename;
-		this.buckets = getBucketsFromFile(filename);
 	}
 
 	@Override
@@ -208,6 +198,15 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	}
 
 	/**
+	 * Return an unmodifiable view of the collection of buckets.
+	 * 
+	 * @return the collection of buckets
+	 */
+	protected Map<K, Bucket<K, V>> buckets() {
+		return Collections.unmodifiableMap(buckets);
+	}
+
+	/**
 	 * Return the appropriate {@link Bucket} from {@code bytes}.
 	 * 
 	 * @return the {@code bucket}
@@ -267,7 +266,7 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	 * file would change, the overhead of constantly moving bytes around in
 	 * an existing file is too high and unsafe.
 	 */
-	final void fsync() {
+	void fsync() {
 		if(!buckets.isEmpty()) {
 			Lock lock = readLock();
 			try {

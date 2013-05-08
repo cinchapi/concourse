@@ -16,7 +16,7 @@ package com.cinchapi.concourse.db.services;
 
 import java.util.Set;
 
-import com.cinchapi.concourse.db.Key;
+import com.cinchapi.concourse.db.PrimaryKey;
 import com.cinchapi.concourse.db.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -278,8 +278,8 @@ public abstract class DataStoreService implements
 	private boolean isValidValue(Object value) throws IllegalArgumentException {
 		Preconditions
 				.checkArgument(
-						!(value instanceof Key)
-								|| (value instanceof Key && exists(((Key) value)
+						!(value instanceof PrimaryKey)
+								|| (value instanceof PrimaryKey && exists(((PrimaryKey) value)
 										.asLong())),
 						"Cannot add a relation to row %s because that row does not exist",
 						value);
