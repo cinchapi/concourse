@@ -28,12 +28,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A collection of cells, each mapped from a column name and containing a
- * collection of {@link Value} objects.
+ * A Row is a collection of cells, each mapped from a column name and containing
+ * a collection of {@link Value} objects.
  * 
  * @author jnelson
  */
-final class Row extends Store<ByteSizedString, Value> {
+final class Row extends BucketMap<ByteSizedString, Value> {
 
 	/**
 	 * Return the row that is located by {@code key}.
@@ -191,8 +191,8 @@ final class Row extends Store<ByteSizedString, Value> {
 	private Set<ByteSizedString> describe(boolean historical, long timestamp) {
 		Lock lock = readLock();
 		try {
-			Set<ByteSizedString> columns = Sets.newHashSetWithExpectedSize(buckets()
-					.size());
+			Set<ByteSizedString> columns = Sets
+					.newHashSetWithExpectedSize(buckets().size());
 			Iterator<Bucket<ByteSizedString, Value>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
@@ -284,7 +284,8 @@ final class Row extends Store<ByteSizedString, Value> {
 	 * 
 	 * @author jnelson
 	 */
-	static class Cell extends Bucket<ByteSizedString, Value> implements Lockable {
+	final static class Cell extends Bucket<ByteSizedString, Value> implements
+			Lockable {
 		// NOTE: This class is nested because the Row mostly abstracts away the
 		// notion of a Bucket.
 

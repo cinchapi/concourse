@@ -25,6 +25,9 @@ import com.cinchapi.concourse.io.ByteSized;
 
 /**
  * Represents a {@link ByteSized} UTF-8 encoded string that is used internally.
+ * This class implements {@link #hashCode()} and {@link #equals(Object)} such
+ * that an instance is considered equivalent to the {@link String} object of its
+ * {@link #toString()} value.
  * 
  * @author jnelson
  */
@@ -98,6 +101,24 @@ class ByteSizedString implements ByteSized {
 	@Override
 	public String toString() {
 		return Utilities.bytesToString(bytes);
+	}
+
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ByteSizedString) {
+			ByteSizedString other = (ByteSizedString) obj;
+			return Arrays.equals(bytes, other.bytes);
+		}
+		else if(obj instanceof String) {
+			String other = (String) obj;
+			return toString().equals(other);
+		}
+		return false;
 	}
 
 	/**

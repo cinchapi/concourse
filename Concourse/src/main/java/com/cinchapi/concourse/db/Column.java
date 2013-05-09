@@ -31,14 +31,14 @@ import static com.cinchapi.concourse.db.Operator.*;
 
 /**
  * <p>
- * A Column is an inverted index {@link Store} that maps a Value to a collection
+ * A Column is an inverted index {@link BucketMap} that maps a Value to a collection
  * of primary keys. This structure is designed to efficiently answer most query
  * reads.
  * </p>
  * 
  * @author jnelson
  */
-class Column extends Store<Value, PrimaryKey> {
+final class Column extends BucketMap<Value, PrimaryKey> {
 
 	/**
 	 * Return the column that is located by {@code name}.
@@ -234,7 +234,7 @@ class Column extends Store<Value, PrimaryKey> {
 	 * 
 	 * @author jnelson
 	 */
-	class Cell extends Bucket<Value, PrimaryKey> {
+	final static class Cell extends Bucket<Value, PrimaryKey> {
 
 		/**
 		 * Construct a new instance. Use this constructor when

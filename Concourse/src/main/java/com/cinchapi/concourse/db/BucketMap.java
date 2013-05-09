@@ -40,29 +40,29 @@ import com.cinchapi.concourse.io.Persistable;
 import com.cinchapi.concourse.io.Persistables;
 
 import static com.google.common.base.Preconditions.*;
-import static com.cinchapi.concourse.Constants.*;
+import static com.cinchapi.concourse.conf.Constants.*;
 
 /**
  * <p>
- * A {@code Store} is a {@link Bucket} based key/value store.
+ * A {@code BucketMap} is a {@link Bucket} based key/value bucketmap.
  * </p>
  * <p>
- * Each store is identified by a {@code locator} and stored in a distinct
- * file<sup>1</sup> on disk. The entire store is deserialized or loaded from a
- * cache for each relevant read or write request. To afford the caller
+ * Each bucketmap is identified by a {@code locator} and stored in a distinct
+ * file<sup>1</sup> on disk. The entire bucketmap is deserialized or loaded from
+ * a cache for each relevant read or write request. To afford the caller
  * flexibility<sup>2</sup>, changes are not automatically flushed to disk, but
  * must be explicitly done by calling {@link #fsync()}.
  * </p>
- * <sup>1</sup> - Stores are randomly grouped into locales based on the
+ * <sup>1</sup> - BucketMaps are randomly grouped into locales based on the
  * {@code locator}.<br>
- * <sup>2</sup> - Syncing data to disk read locks the entire store, so it is
+ * <sup>2</sup> - Syncing data to disk read locks the entire bucketmap, so it is
  * ideal to give the caller discretion with the bottleneck.
  * <p>
- * In memory, each store maintains a mapping of key names to buckets. A store
- * can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its lifetime, but
- * in actuality this limit is lower because the size of a bucket can very widely
- * and is guaranteed to increase with every revision. Therefore it is more
- * useful to use the maximum allowable storage as a guide.
+ * In memory, each bucketmap maintains a mapping of key names to buckets. A
+ * bucketmap can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its
+ * lifetime, but in actuality this limit is lower because the size of a bucket
+ * can very widely and is guaranteed to increase with every revision. Therefore
+ * it is more useful to use the maximum allowable storage as a guide.
  * </p>
  * 
  * 
@@ -70,14 +70,14 @@ import static com.cinchapi.concourse.Constants.*;
  * @param <K> - the key type
  * @param <V> - the value type
  */
-abstract class Store<K extends ByteSized, V extends Bucketable> implements
+abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 		IterableByteSequences,
 		Persistable,
 		Lockable {
 
 	/*
 	 * A larger name length allows more locales (and therefore a smaller
-	 * locale:store ratio), however the filesystem can act funny if a single
+	 * locale:bucketmap ratio), however the filesystem can act funny if a single
 	 * directory has too many files. This number should seek to have the
 	 * locale:row ratio that is similar to the number of possible locales while
 	 * being mindful of not having too many files in a single directory.
@@ -92,13 +92,14 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	protected static final String FILE_NAME_EXT = "ccs";
 
 	/**
-	 * The maximum allowable size of a store. This limitation exists because the
-	 * size of the store is encoded as an integer.
+	 * The maximum allowable size of a bucketmap. This limitation exists because
+	 * the
+	 * size of the bucketmap is encoded as an integer.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
-	 * The weighted maximum number of buckets that can exist in a store.
+	 * The weighted maximum number of buckets that can exist in a bucketmap.
 	 * In actuality, this limit is much lower because the size of a bucket can
 	 * very widely.
 	 */
@@ -111,19 +112,19 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	 * thread contention is insertion, which is accounted for in the
 	 * {@link #newBucket()} method using a local write lock.
 	 */
-	protected final Map<K, Bucket<K, V>> buckets;
+	private final Map<K, Bucket<K, V>> buckets;
 	private transient final String filename;
 	private transient final ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
 	private transient final Logger log = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * Construct a new instance. This constructor can be used to create a
-	 * new/empty store or to deserialize an existing store identified by
+	 * new/empty bucketmap or to deserialize an existing bucketmap identified by
 	 * {@code locator}.
 	 * 
 	 * @param locator
 	 */
-	protected <L extends ByteSized> Store(L locator) {
+	protected <L extends ByteSized> BucketMap(L locator) {
 		this.filename = Utilities.getFileName(locator);
 		try {
 			File file = new File(filename);
@@ -133,7 +134,8 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 		}
 		catch (IOException e) {
 			log.error("An error occured while trying to "
-					+ "deserialize store {} from {}: {}", locator, filename, e);
+					+ "deserialize bucketmap {} from {}: {}", locator,
+					filename, e);
 			throw new ConcourseRuntimeException(e);
 		}
 	}
@@ -231,7 +233,7 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	protected abstract Bucket<K, V> getNewBucket(K key);
 
 	/**
-	 * Return a newly initialized map to hold the buckets in the store.
+	 * Return a newly initialized map to hold the buckets in the bucketmap.
 	 * 
 	 * @param expectedSize
 	 * @return the buckets map
@@ -251,12 +253,12 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 
 	/**
 	 * <p>
-	 * Write all the data stored in memory back to disk.
+	 * Write all the data bucketmapd in memory back to disk.
 	 * </p>
 	 * <p>
-	 * <strong>NOTE</strong>: This operation will read lock the entire store and
-	 * overwrite any data that previously existed on disk with the version of
-	 * data that is contained in memory.
+	 * <strong>NOTE</strong>: This operation will read lock the entire bucketmap
+	 * and overwrite any data that previously existed on disk with the version
+	 * of data that is contained in memory.
 	 * </p>
 	 */
 	/*
@@ -266,7 +268,7 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	 * file would change, the overhead of constantly moving bytes around in
 	 * an existing file is too high and unsafe.
 	 */
-	void fsync() {
+	final void fsync() {
 		if(!buckets.isEmpty()) {
 			Lock lock = readLock();
 			try {
@@ -287,9 +289,11 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 		}
 		else {
 			// An empty collection of {#link #buckets} usually indicates that
-			// the store was deserialized from a read operation before a write
+			// the bucketmap was deserialized from a read operation before a
+			// write
 			// operation occurred. Since deserialization creates a file for a
-			// new store in either context, it is appropriate to delete the file
+			// new bucketmap in either context, it is appropriate to delete the
+			// file
 			// at sync time if no writes have occurred.
 			new File(filename).delete();
 		}
@@ -312,11 +316,11 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	 * @param key
 	 * @param value
 	 * @throws IllegalArgumentException if there is no bucket identified by
-	 *             {@code key} in the store
+	 *             {@code key} in the bucketmap
 	 */
 	final void remove(K key, V value) throws IllegalArgumentException {
 		checkArgument(buckets.containsKey(key),
-				"There is no bucket identified by {} in the store", key);
+				"There is no bucket identified by {} in the bucketmap", key);
 		get(key).remove(value);
 	}
 
@@ -334,7 +338,8 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	}
 
 	/**
-	 * Return the collection of buckets stored in the file at {@code filename}.
+	 * Return the collection of buckets bucketmapd in the file at
+	 * {@code filename}.
 	 * 
 	 * @param filename
 	 * @return the {@code buckets}
@@ -363,7 +368,7 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	}
 
 	/**
-	 * Put a new {@code bucket} identified by {@code key} to the store.
+	 * Put a new {@code bucket} identified by {@code key} to the bucketmap.
 	 * 
 	 * @param key
 	 * @return the new {@code bucket}
@@ -381,14 +386,14 @@ abstract class Store<K extends ByteSized, V extends Bucketable> implements
 	}
 
 	/**
-	 * Utilities for the {@link Store} objects.
+	 * Utilities for the {@link BucketMap} objects.
 	 * 
 	 * @author jnelson
 	 */
 	private static abstract class Utilities {
 
 		/**
-		 * Return the absolute path of the {@code filename} for the store
+		 * Return the absolute path of the {@code filename} for the bucketmap
 		 * identified by {@code locator}.
 		 * 
 		 * @param locator

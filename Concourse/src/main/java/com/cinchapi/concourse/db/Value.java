@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>
- * A typed quantity that is {@link Bucketable} within a {@link RowCell} and is
+ * A typed quantity that is {@link Storable} within a {@link RowCell} and is
  * also the identifier for a {@link ColumnCell}.
  * </p>
  * <p>
@@ -64,7 +64,7 @@ import static com.google.common.base.Preconditions.*;
  * @author jnelson
  */
 @Immutable
-final class Value implements Comparable<Value>, Bucketable {
+final class Value implements Comparable<Value>, Storable {
 
 	/**
 	 * Return a value that is appropriate for storage, with the current
@@ -287,12 +287,12 @@ final class Value implements Comparable<Value>, Bucketable {
 
 	@Override
 	public boolean isForStorage() {
-		return Bucketables.isForStorage(this);
+		return Storables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Bucketables.isNotForStorage(this);
+		return Storables.isNotForStorage(this);
 	}
 
 	@Override
@@ -317,10 +317,10 @@ final class Value implements Comparable<Value>, Bucketable {
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Bucketables#compare(Bucketable, Bucketable)}
+	 * @see {@link Storables#compare(Storable, Storable)}
 	 */
 	int compareTo(Value o, boolean logically) {
-		return logically ? comparator.compare(this, o) : Bucketables.compare(
+		return logically ? comparator.compare(this, o) : Storables.compare(
 				this, o);
 	}
 

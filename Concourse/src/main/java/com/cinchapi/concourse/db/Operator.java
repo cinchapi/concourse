@@ -14,7 +14,7 @@
  */
 package com.cinchapi.concourse.db;
 
-import com.cinchapi.concourse.db.services.ReadService;
+import com.cinchapi.concourse.api.ReadService;
 
 /**
  * The operators that can be used with

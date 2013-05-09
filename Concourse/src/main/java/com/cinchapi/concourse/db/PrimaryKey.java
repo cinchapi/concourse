@@ -28,7 +28,7 @@ import com.google.common.primitives.UnsignedLongs;
  * The primary identifier for a {@link FileRow}.
  * </p>
  * <p>
- * A key is {@link Bucketable} as the content of a {@link ColumnCell}. Each key is
+ * A key is {@link Storable} as the content of a {@link ColumnCell}. Each key is
  * an unsigned 8 byte long paired with an 8 byte timestamp. The total required
  * storage space is {@value #SIZE_IN_BYTES} bytes.
  * </p>
@@ -39,7 +39,9 @@ import com.google.common.primitives.UnsignedLongs;
  * @author jnelson
  */
 @Immutable
-public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, Bucketable {
+final class PrimaryKey extends Number implements
+		Comparable<PrimaryKey>,
+		Storable {
 	// NOTE: This class extends Number so that it can be treated like other
 	// numerical values during comparisons. Whenever a cell contains a relation,
 	// the related Key is stored as a {@link Value} which is expected to be
@@ -93,18 +95,20 @@ public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, 
 	 * @return the new instance.
 	 */
 	public static PrimaryKey notForStorage(long value) {
-		PrimaryKey key = cache.get(value);
+		Object[] cacheKey = { value, NIL };
+		PrimaryKey key = cache.get(cacheKey);
 		if(key == null) {
 			key = new PrimaryKey(value);
-			cache.put(key, value);
+			cache.put(key, cacheKey);
 		}
 		return key;
 	}
 
 	static final int SIZE_IN_BYTES = 2 * (Long.SIZE / 8);
 
-	// serializability inherited from {@link Number}
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L; // serializability
+														// inherited from {@link
+														// Number}
 	private static final ObjectReuseCache<PrimaryKey> cache = new ObjectReuseCache<PrimaryKey>();
 
 	private final long key;
@@ -189,12 +193,12 @@ public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, 
 
 	@Override
 	public boolean isForStorage() {
-		return Bucketables.isForStorage(this);
+		return Storables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Bucketables.isNotForStorage(this);
+		return Storables.isNotForStorage(this);
 	}
 
 	@Override
@@ -215,7 +219,7 @@ public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, 
 	}
 
 	/**
-	 * Determine if the comparison to {@code o} should be done naturally or
+	 * Determine if the comparison to {@code o} should be done temporally or
 	 * {@code logically}.
 	 * 
 	 * @param o
@@ -226,10 +230,10 @@ public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, 
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Bucketables#compare(Bucketable, Bucketable)}
+	 * @see {@link Storables#compare(Storable, Storable)}
 	 */
 	int compareTo(PrimaryKey o, boolean logically) {
-		return logically ? compareTo(o) : Bucketables.compare(this, o);
+		return logically ? compareTo(o) : Storables.compare(this, o);
 	}
 
 	/**
@@ -253,8 +257,8 @@ public final class PrimaryKey extends Number implements Comparable<PrimaryKey>, 
 			buffer = ByteBuffer.allocate(size());
 			buffer.putLong(key);
 			buffer.putLong(timestamp);
-			buffer.rewind();
 		}
+		buffer.rewind();
 		return buffer;
 	}
 

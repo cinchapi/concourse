@@ -68,10 +68,10 @@ import static org.mockito.Matchers.*;
  * </p>
  * 
  * @param <K> - the {@link ByteSized} key type
- * @param <V> - the {@link Bucketable} value type
+ * @param <V> - the {@link Storable} value type
  * @author jnelson
  */
-abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
+abstract class Bucket<K extends ByteSized, V extends Storable> implements
 		ByteSized {
 
 	/**
@@ -85,8 +85,8 @@ abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	static <T extends Bucket> T mock(Class<T> type) {
 		T cell = Mockito.mock(type);
-		Mockito.doNothing().when(cell).add(any(Bucketable.class));
-		Mockito.doNothing().when(cell).remove(any(Bucketable.class));
+		Mockito.doNothing().when(cell).add(any(Storable.class));
+		Mockito.doNothing().when(cell).remove(any(Storable.class));
 		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
 				.getBytes();
 		Mockito.doThrow(UnsupportedOperationException.class).when(cell).size();
@@ -428,7 +428,7 @@ abstract class Bucket<K extends ByteSized, V extends Bucketable> implements
 			// I check against the last timestamp to ensures that the list is
 			// kept in insertion order and that no duplicate timestamps are
 			// ever allowed
-			long timestamp = values.isEmpty() ? Bucketable.NIL : values.get(
+			long timestamp = values.isEmpty() ? Storable.NIL : values.get(
 					values.size() - 1).getTimestamp();
 			checkArgument(value.getTimestamp() > timestamp,
 					"Cannot add %s because it's associated timestamp "

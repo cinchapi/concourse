@@ -30,7 +30,7 @@ import com.cinchapi.concourse.io.ByteSized;
  * 
  * @author jnelson
  */
-public interface Bucketable extends ByteSized {
+public interface Storable extends ByteSized {
 
 	/**
 	 * Represents a null timestamp, indicating the object is notForStorage.
