@@ -32,41 +32,41 @@ import com.cinchapi.concourse.io.ByteSized;
  * @author jnelson
  */
 @Immutable
-class ByteSizedString implements ByteSized {
+class SuperString implements ByteSized {
 
 	/**
-	 * Return a {@link ByteSizedString} from the encoded {@code bytes}.
+	 * Return a {@link SuperString} from the encoded {@code bytes}.
 	 * 
 	 * @param bytes
 	 * @return the UTF-8 encoded string
 	 */
-	public static ByteSizedString fromBytes(byte[] bytes) {
+	public static SuperString fromBytes(byte[] bytes) {
 		String string = Utilities.bytesToString(bytes);
-		ByteSizedString utf8 = cache.get(string);
+		SuperString utf8 = cache.get(string);
 		if(utf8 == null) {
-			utf8 = new ByteSizedString(bytes);
+			utf8 = new SuperString(bytes);
 			cache.put(utf8, string);
 		}
 		return utf8;
 	}
 
 	/**
-	 * Return a {@link ByteSizedString} based on {@code string}.
+	 * Return a {@link SuperString} based on {@code string}.
 	 * 
 	 * @param string
 	 * @return the UTF-8 encoded string
 	 */
-	public static ByteSizedString fromString(String string) {
-		ByteSizedString utf8 = cache.get(string);
+	public static SuperString fromString(String string) {
+		SuperString utf8 = cache.get(string);
 		if(utf8 == null) {
-			utf8 = new ByteSizedString(string);
+			utf8 = new SuperString(string);
 			cache.put(utf8, string);
 		}
 		return utf8;
 	}
 
 	private final static ObjectReuseCache<String> stringCache = new ObjectReuseCache<String>();
-	private final static ObjectReuseCache<ByteSizedString> cache = new ObjectReuseCache<ByteSizedString>();
+	private final static ObjectReuseCache<SuperString> cache = new ObjectReuseCache<SuperString>();
 	private final static Charset UTF_8 = StandardCharsets.UTF_8;
 	private final byte[] bytes;
 
@@ -75,7 +75,7 @@ class ByteSizedString implements ByteSized {
 	 * 
 	 * @param bytes
 	 */
-	private ByteSizedString(byte[] bytes) {
+	private SuperString(byte[] bytes) {
 		this.bytes = bytes;
 	}
 
@@ -84,7 +84,7 @@ class ByteSizedString implements ByteSized {
 	 * 
 	 * @param string
 	 */
-	private ByteSizedString(String string) {
+	private SuperString(String string) {
 		this(string.getBytes(UTF_8));
 	}
 
@@ -110,8 +110,8 @@ class ByteSizedString implements ByteSized {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof ByteSizedString) {
-			ByteSizedString other = (ByteSizedString) obj;
+		if(obj instanceof SuperString) {
+			SuperString other = (SuperString) obj;
 			return Arrays.equals(bytes, other.bytes);
 		}
 		else if(obj instanceof String) {
@@ -122,7 +122,7 @@ class ByteSizedString implements ByteSized {
 	}
 
 	/**
-	 * Utilities for the {@link ByteSizedString} class.
+	 * Utilities for the {@link SuperString} class.
 	 * 
 	 * @author jnelson
 	 */

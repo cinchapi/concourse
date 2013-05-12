@@ -29,13 +29,13 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class Index extends Tuple<ByteSizedString, PrimaryKey>{
+public class Index extends Tuple<SuperString, PrimaryKey>{
 
 	/**
 	 * Construct a new instance.
 	 * @param locator
 	 */
-	protected Index(ByteSizedString index) {
+	protected Index(SuperString index) {
 		super(index);
 	}
 
@@ -43,7 +43,7 @@ public class Index extends Tuple<ByteSizedString, PrimaryKey>{
 	 * @see com.cinchapi.concourse.db.Store#getBucketFromByteSequence(java.nio.ByteBuffer)
 	 */
 	@Override
-	protected Bucket<ByteSizedString, PrimaryKey> getBucketFromByteSequence(
+	protected Bucket<SuperString, PrimaryKey> getBucketFromByteSequence(
 			ByteBuffer bytes) {
 		// TODO Auto-generated method stub
 		return null;
@@ -53,7 +53,7 @@ public class Index extends Tuple<ByteSizedString, PrimaryKey>{
 	 * @see com.cinchapi.concourse.db.Store#getMockBucket()
 	 */
 	@Override
-	protected Bucket<ByteSizedString, PrimaryKey> getMockBucket() {
+	protected Bucket<SuperString, PrimaryKey> getMockBucket() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -62,8 +62,8 @@ public class Index extends Tuple<ByteSizedString, PrimaryKey>{
 	 * @see com.cinchapi.concourse.db.Store#getNewBucket(com.cinchapi.concourse.io.ByteSized)
 	 */
 	@Override
-	protected Bucket<ByteSizedString, PrimaryKey> getNewBucket(
-			ByteSizedString key) {
+	protected Bucket<SuperString, PrimaryKey> getNewBucket(
+			SuperString key) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -72,7 +72,7 @@ public class Index extends Tuple<ByteSizedString, PrimaryKey>{
 	 * @see com.cinchapi.concourse.db.Store#getNewBuckets(int)
 	 */
 	@Override
-	protected Map<ByteSizedString, Bucket<ByteSizedString, PrimaryKey>> getNewBuckets(
+	protected Map<SuperString, Bucket<SuperString, PrimaryKey>> getNewBuckets(
 			int expectedSize) {
 		// TODO Auto-generated method stub
 		return null;

@@ -31,9 +31,9 @@ import static com.cinchapi.concourse.db.Operator.*;
 
 /**
  * <p>
- * A Column is an inverted index {@link Tuple} that maps a Value to a collection
- * of primary keys. This structure is designed to efficiently answer most query
- * reads.
+ * A Field is a {@link Tuple} that represents a sorted inverted index that maps
+ * values to the records in which they appear. This structure is similar to a
+ * traditional B+-Tree index so that it can efficiently answer query reads.
  * </p>
  * 
  * @author jnelson
@@ -46,7 +46,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	 * @param name
 	 * @return the column
 	 */
-	public static Field fromName(ByteSizedString name) {
+	public static Field fromName(SuperString name) {
 		Field column = cache.get(name);
 		if(column == null) {
 			column = new Field(name);
@@ -55,7 +55,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 		return column;
 	}
 
-	private static final Cell mock = Bucket.mock(Cell.class);
+	private static final Element mock = Bucket.mock(Element.class);
 	private static final ObjectReuseCache<Field> cache = new ObjectReuseCache<Field>();
 	protected static final String FILE_NAME_EXT = "ccc"; // @Override from
 															// {@link Store}
@@ -65,14 +65,14 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	 * 
 	 * @param locator
 	 */
-	private Field(ByteSizedString name) {
+	private Field(SuperString name) {
 		super(name);
 	}
 
 	@Override
 	protected Bucket<Value, PrimaryKey> getBucketFromByteSequence(
 			ByteBuffer bytes) {
-		return new Cell(bytes);
+		return new Element(bytes);
 	}
 
 	@Override
@@ -82,7 +82,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 
 	@Override
 	protected Bucket<Value, PrimaryKey> getNewBucket(Value value) {
-		return new Cell(value);
+		return new Element(value);
 	}
 
 	@Override
@@ -227,14 +227,11 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	}
 
 	/**
-	 * <p>
-	 * The bucketed view of stored data from the perspective of a {@link Field}
-	 * that is designed to efficiently handle query reads.
-	 * </p>
+	 * A single element within a {@link Field}.
 	 * 
 	 * @author jnelson
 	 */
-	final static class Cell extends Bucket<Value, PrimaryKey> {
+	final static class Element extends Bucket<Value, PrimaryKey> {
 
 		/**
 		 * Construct a new instance. Use this constructor when
@@ -243,7 +240,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 		 * 
 		 * @param bytes
 		 */
-		Cell(ByteBuffer bytes) {
+		Element(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -252,7 +249,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 		 * 
 		 * @param key
 		 */
-		Cell(Value key) {
+		Element(Value key) {
 			super(key);
 		}
 

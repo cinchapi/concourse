@@ -28,12 +28,22 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A Row is a collection of cells, each mapped from a column name and containing
- * a collection of {@link Value} objects.
+ * <p>
+ * A Record is a {@link Tuple} that represents a logical grouping of related
+ * data in the form of field names mapped to values. Records are designed for
+ * high levels of concurrency by offering external callers field level
+ * read/write locking.
+ * </p>
+ * <p>
+ * Records are similar to traditional database rows in their ability to
+ * efficiently handle non-query reads, but are largely different because they
+ * lack a predefined or regular schema and allow multiple distinct values to
+ * exist for a single field.
+ * </p>
  * 
  * @author jnelson
  */
-final class Record extends Tuple<ByteSizedString, Value> {
+final class Record extends Tuple<SuperString, Value> {
 
 	/**
 	 * Return the row that is located by {@code key}.
@@ -50,7 +60,7 @@ final class Record extends Tuple<ByteSizedString, Value> {
 		return row;
 	}
 
-	private static final Cell mock = Bucket.mock(Cell.class);
+	private static final Element mock = Bucket.mock(Element.class);
 	private static final ObjectReuseCache<Record> cache = new ObjectReuseCache<Record>();
 	protected static final String FILE_NAME_EXT = "ccr"; // @Override from
 															// {@link Store}
@@ -65,119 +75,119 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	}
 
 	@Override
-	protected Bucket<ByteSizedString, Value> getBucketFromByteSequence(
+	protected Bucket<SuperString, Value> getBucketFromByteSequence(
 			ByteBuffer bytes) {
-		return new Cell(bytes);
+		return new Element(bytes);
 	}
 
 	@Override
-	protected Bucket<ByteSizedString, Value> getMockBucket() {
+	protected Bucket<SuperString, Value> getMockBucket() {
 		return mock;
 	}
 
 	@Override
-	protected Bucket<ByteSizedString, Value> getNewBucket(ByteSizedString column) {
-		return new Cell(column);
+	protected Bucket<SuperString, Value> getNewBucket(SuperString field) {
+		return new Element(field);
 
 	}
 
 	@Override
-	protected Map<ByteSizedString, Bucket<ByteSizedString, Value>> getNewBuckets(
+	protected Map<SuperString, Bucket<SuperString, Value>> getNewBuckets(
 			int expectedSize) {
 		return Maps.newHashMapWithExpectedSize(expectedSize);
 	}
 
 	/**
-	 * Return the columns that map to non-empty cells in the row.
+	 * Return the fields that map to non-empty cells in the row.
 	 * 
-	 * @return the set of columns in the row
+	 * @return the set of fields in the row
 	 */
-	Set<ByteSizedString> describe() {
+	Set<SuperString> describe() {
 		return describe(false, 0);
 	}
 
 	/**
-	 * Return the columns that map to non-empty cells in the row at the
+	 * Return the fields that map to non-empty cells in the row at the
 	 * specified {@code timestamp}.
 	 * 
 	 * @param timestamp
-	 * @return the set of columns in the row
+	 * @return the set of fields in the row
 	 */
-	Set<ByteSizedString> describe(long timestamp) {
+	Set<SuperString> describe(long timestamp) {
 		return describe(true, timestamp);
 	}
 
 	/**
 	 * Return {@code true} if {@code value} exists in the cell mapped from
-	 * {@code column}.
+	 * {@code field}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @param value
 	 * @return {@code true} if {@code value} exists in the cell mapped from
-	 *         {@code column}
+	 *         {@code field}
 	 */
-	boolean exists(ByteSizedString column, Value value) {
-		return exists(column, value, false, 0);
+	boolean exists(SuperString field, Value value) {
+		return exists(field, value, false, 0);
 	}
 
 	/**
 	 * Return {@code true} if {@code value} exists in the cell mapped from
-	 * {@code column} at the specified {@code timestamp}.
+	 * {@code field} at the specified {@code timestamp}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @param value
 	 * @param timestamp
 	 * @return {@code true} if {@code value} exists in the cell mapped from
-	 *         {@code column}
+	 *         {@code field}
 	 */
-	boolean exists(ByteSizedString column, Value value, long timestamp) {
-		return exists(column, value, true, timestamp);
+	boolean exists(SuperString field, Value value, long timestamp) {
+		return exists(field, value, true, timestamp);
 	}
 
 	/**
-	 * Return the set of values contained in the cell mapped from {@code column}
+	 * Return the set of values contained in the cell mapped from {@code field}
 	 * 
-	 * @param column
+	 * @param field
 	 * @return the set of values
 	 */
-	Set<Value> fetch(ByteSizedString column) {
-		return fetch(column, false, 0);
+	Set<Value> fetch(SuperString field) {
+		return fetch(field, false, 0);
 	}
 
 	/**
-	 * Return the set of values contained in the cell mapped from {@code column}
+	 * Return the set of values contained in the cell mapped from {@code field}
 	 * at the specified {@code timestamp}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @param timestamp
 	 * @return the set of values
 	 */
-	Set<Value> fetch(ByteSizedString column, long timestamp) {
-		return fetch(column, true, timestamp);
+	Set<Value> fetch(SuperString field, long timestamp) {
+		return fetch(field, true, timestamp);
 	}
 
 	/**
-	 * Read lock the cell mapped from {@code column}
+	 * Read lock the cell mapped from {@code field}
 	 * 
-	 * @param column
+	 * @param field
 	 * @return the releasable lock
 	 */
-	Lock readLock(ByteSizedString column) {
-		return ((Cell) get(column)).readLock();
+	Lock readLock(SuperString field) {
+		return ((Element) get(field)).readLock();
 	}
 
 	/**
-	 * Write lock the cell mapped from {@code column}.
+	 * Write lock the cell mapped from {@code field}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @return the releasable lock
 	 */
-	Lock writeLock(ByteSizedString column) {
-		return ((Cell) get(column)).writeLock();
+	Lock writeLock(SuperString field) {
+		return ((Element) get(field)).writeLock();
 	}
 
 	/**
-	 * Return the columns that map to non-empty cells in the row at the present
+	 * Return the fields that map to non-empty cells in the row at the present
 	 * or at the specified {@code timestamp} if {@code historical} is
 	 * {@code true}.
 	 * 
@@ -186,24 +196,24 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	 * @param timestamp - this value is ignored if {@code historical} is set to
 	 *            false, otherwise this value is the historical timestamp at
 	 *            which to query each cell
-	 * @return the set of columns in the row
+	 * @return the set of fields in the row
 	 */
-	private Set<ByteSizedString> describe(boolean historical, long timestamp) {
+	private Set<SuperString> describe(boolean historical, long timestamp) {
 		Lock lock = readLock();
 		try {
-			Set<ByteSizedString> columns = Sets
-					.newHashSetWithExpectedSize(buckets().size());
-			Iterator<Bucket<ByteSizedString, Value>> it = buckets().values()
+			Set<SuperString> fields = Sets.newHashSetWithExpectedSize(buckets()
+					.size());
+			Iterator<Bucket<SuperString, Value>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
-				Cell cell = (Cell) it.next();
+				Element cell = (Element) it.next();
 				boolean empty = historical ? cell.getValues(timestamp)
 						.isEmpty() : cell.isEmpty();
 				if(!empty) {
-					columns.add(cell.getKey());
+					fields.add(cell.getKey());
 				}
 			}
-			return columns;
+			return fields;
 		}
 		finally {
 			lock.release();
@@ -212,10 +222,10 @@ final class Record extends Tuple<ByteSizedString, Value> {
 
 	/**
 	 * Return {@code true} if {@code value} exists in the cell mapped from
-	 * {@code column} at the present or at the specified {@code timestamp} if
+	 * {@code field} at the present or at the specified {@code timestamp} if
 	 * {@code historical} is set to {@code true}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @param value
 	 * @param historical - if {@code true} query the history for each cell,
 	 *            otherwise query the present state
@@ -223,14 +233,14 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	 *            false, otherwise this value is the historical timestamp at
 	 *            which to query each cell
 	 * @return {@code true} if {@code value} exists in the cell mapped from
-	 *         {@code column}
+	 *         {@code field}
 	 */
-	private boolean exists(ByteSizedString column, Value value,
-			boolean historical, long timestamp) {
+	private boolean exists(SuperString field, Value value, boolean historical,
+			long timestamp) {
 		Lock lock = readLock();
 		try {
-			return historical ? get(column).getValues(timestamp)
-					.contains(value) : get(column).getValues().contains(value);
+			return historical ? get(field).getValues(timestamp).contains(value)
+					: get(field).getValues().contains(value);
 		}
 		finally {
 			lock.release();
@@ -238,11 +248,11 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	}
 
 	/**
-	 * Return the set of values contained in the cell mapped from {@code column}
+	 * Return the set of values contained in the cell mapped from {@code field}
 	 * at the present or at the specified {@code timestamp} if
 	 * {@code historical} is set to {@code true}.
 	 * 
-	 * @param column
+	 * @param field
 	 * @param historical - if {@code true} query the history for each cell,
 	 *            otherwise query the present state
 	 * @param timestamp - this value is ignored if {@code historical} is set to
@@ -250,13 +260,13 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	 *            which to query each cell
 	 * @return the set of values
 	 */
-	private Set<Value> fetch(ByteSizedString column, boolean historical,
+	private Set<Value> fetch(SuperString field, boolean historical,
 			long timestamp) {
 		Lock lock = readLock();
 		try {
 			Set<Value> values = Sets.newLinkedHashSet();
-			Iterator<Value> it = historical ? get(column).getValues(timestamp)
-					.iterator() : get(column).getValues().iterator();
+			Iterator<Value> it = historical ? get(field).getValues(timestamp)
+					.iterator() : get(field).getValues().iterator();
 			while (it.hasNext()) {
 				values.add(it.next());
 			}
@@ -268,23 +278,11 @@ final class Record extends Tuple<ByteSizedString, Value> {
 	}
 
 	/**
-	 * <p>
-	 * The bucketed view of stored data from the perspective of a {@link Record}
-	 * that is designed to efficiently handle non-query reads.
-	 * </p>
-	 * <p>
-	 * This class models the traditional notion of a table cell because it is
-	 * identified by the name of the column under which it sits and maintains a
-	 * collection of values.
-	 * </p>
-	 * <p>
-	 * Each Cell is individually {@link Lockable}, which enables maximum levels
-	 * of concurrency.
-	 * </p>
+	 * A single element within a {@link Record}. 
 	 * 
 	 * @author jnelson
 	 */
-	final static class Cell extends Bucket<ByteSizedString, Value> implements
+	final static class Element extends Bucket<SuperString, Value> implements
 			Lockable {
 		// NOTE: This class is nested because the Row mostly abstracts away the
 		// notion of a Bucket.
@@ -294,10 +292,10 @@ final class Record extends Tuple<ByteSizedString, Value> {
 		/**
 		 * Construct a new instance.
 		 * 
-		 * @param column
+		 * @param field
 		 */
-		Cell(ByteSizedString column) {
-			super(column);
+		Element(SuperString field) {
+			super(field);
 		}
 
 		/**
@@ -307,7 +305,7 @@ final class Record extends Tuple<ByteSizedString, Value> {
 		 * 
 		 * @param bytes
 		 */
-		Cell(ByteBuffer bytes) {
+		Element(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -322,8 +320,8 @@ final class Record extends Tuple<ByteSizedString, Value> {
 		}
 
 		@Override
-		protected ByteSizedString getKeyFromByteSequence(ByteBuffer bytes) {
-			return ByteSizedString.fromBytes(bytes.array());
+		protected SuperString getKeyFromByteSequence(ByteBuffer bytes) {
+			return SuperString.fromBytes(bytes.array());
 		}
 
 		@Override
