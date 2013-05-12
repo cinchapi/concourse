@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-final class Row extends BucketMap<ByteSizedString, Value> {
+final class Record extends Tuple<ByteSizedString, Value> {
 
 	/**
 	 * Return the row that is located by {@code key}.
@@ -41,17 +41,17 @@ final class Row extends BucketMap<ByteSizedString, Value> {
 	 * @param key
 	 * @return the row
 	 */
-	public static Row fromKey(PrimaryKey key) {
-		Row row = cache.get(key.asLong());
+	public static Record fromKey(PrimaryKey key) {
+		Record row = cache.get(key.asLong());
 		if(row == null) {
-			row = new Row(key);
+			row = new Record(key);
 			cache.put(row, key.asLong());
 		}
 		return row;
 	}
 
 	private static final Cell mock = Bucket.mock(Cell.class);
-	private static final ObjectReuseCache<Row> cache = new ObjectReuseCache<Row>();
+	private static final ObjectReuseCache<Record> cache = new ObjectReuseCache<Record>();
 	protected static final String FILE_NAME_EXT = "ccr"; // @Override from
 															// {@link Store}
 
@@ -60,7 +60,7 @@ final class Row extends BucketMap<ByteSizedString, Value> {
 	 * 
 	 * @param locator
 	 */
-	private Row(PrimaryKey key) {
+	private Record(PrimaryKey key) {
 		super(key);
 	}
 
@@ -269,7 +269,7 @@ final class Row extends BucketMap<ByteSizedString, Value> {
 
 	/**
 	 * <p>
-	 * The bucketed view of stored data from the perspective of a {@link Row}
+	 * The bucketed view of stored data from the perspective of a {@link Record}
 	 * that is designed to efficiently handle non-query reads.
 	 * </p>
 	 * <p>

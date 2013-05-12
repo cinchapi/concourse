@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
+import com.cinchapi.common.util.Strings;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;
@@ -34,9 +35,9 @@ import static org.mockito.Matchers.*;
 
 /**
  * <p>
- * A Bucket is a version controlled collection of {@code values} that are mapped
- * from a {@code key}. The key is the unique locator and the of values are
- * maintained in insertion order.
+ * A Bucket is a version control collection of {@code values} that are mapped
+ * from a single {@code key}. The key is the unique identifier and the values
+ * are maintained in insertion order.
  * <p>
  * The bucket key never changes, but the collection of values form two variable
  * length components:
@@ -77,7 +78,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	/**
 	 * Return a <em>mock</em> bucket of {@code type}. Use this method instead of
 	 * mocking {@code type} directly to ensure that the mock is compatible with
-	 * the assumptions made in {@link FileStore}.
+	 * the assumptions made in {@link Tuple}.
 	 * 
 	 * @param type
 	 * @return the {@code bucket}
@@ -186,6 +187,11 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	@Override
 	public int size() {
 		return key.size() + state.size() + history.size() + FIXED_SIZE_IN_BYTES;
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(this);
 	}
 
 	/**

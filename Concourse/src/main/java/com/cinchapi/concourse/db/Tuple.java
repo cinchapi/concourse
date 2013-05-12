@@ -44,25 +44,26 @@ import static com.cinchapi.concourse.conf.Constants.*;
 
 /**
  * <p>
- * A {@code BucketMap} is a {@link Bucket} based key/value bucketmap.
+ * A {@code Tuple} is a {@link Bucket} based abstract data structure that maps
+ * keys to values.
  * </p>
  * <p>
- * Each bucketmap is identified by a {@code locator} and stored in a distinct
- * file<sup>1</sup> on disk. The entire bucketmap is deserialized or loaded from
- * a cache for each relevant read or write request. To afford the caller
+ * Each Tuple is identified by a {@code locator} and is stored in a distinct
+ * file<sup>1</sup> on disk. The entire tuple is deserialized or loaded from a
+ * cache for each relevant read or write request. To afford the caller
  * flexibility<sup>2</sup>, changes are not automatically flushed to disk, but
- * must be explicitly done by calling {@link #fsync()}.
+ * must be done explicitly by calling {@link #fsync()}.
  * </p>
- * <sup>1</sup> - BucketMaps are randomly grouped into locales based on the
+ * <sup>1</sup> - Tuples are randomly grouped into locales based on the
  * {@code locator}.<br>
- * <sup>2</sup> - Syncing data to disk read locks the entire bucketmap, so it is
+ * <sup>2</sup> - Syncing data to disk read locks the entire tuple, so it is
  * ideal to give the caller discretion with the bottleneck.
  * <p>
- * In memory, each bucketmap maintains a mapping of key names to buckets. A
- * bucketmap can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its
- * lifetime, but in actuality this limit is lower because the size of a bucket
- * can very widely and is guaranteed to increase with every revision. Therefore
- * it is more useful to use the maximum allowable storage as a guide.
+ * In memory, each tuple maintains a mapping of key names to buckets. A tuple
+ * can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its lifetime, but
+ * in actuality this limit is lower because the size of a bucket can very widely
+ * and is guaranteed to increase with every revision. Therefore it is more
+ * useful to use the maximum allowable storage as a guide.
  * </p>
  * 
  * 
@@ -70,14 +71,14 @@ import static com.cinchapi.concourse.conf.Constants.*;
  * @param <K> - the key type
  * @param <V> - the value type
  */
-abstract class BucketMap<K extends ByteSized, V extends Storable> implements
+abstract class Tuple<K extends ByteSized, V extends Storable> implements
 		IterableByteSequences,
 		Persistable,
 		Lockable {
 
 	/*
 	 * A larger name length allows more locales (and therefore a smaller
-	 * locale:bucketmap ratio), however the filesystem can act funny if a single
+	 * locale:tuple ratio), however the filesystem can act funny if a single
 	 * directory has too many files. This number should seek to have the
 	 * locale:row ratio that is similar to the number of possible locales while
 	 * being mindful of not having too many files in a single directory.
@@ -92,14 +93,14 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	protected static final String FILE_NAME_EXT = "ccs";
 
 	/**
-	 * The maximum allowable size of a bucketmap. This limitation exists because
+	 * The maximum allowable size of a tuple. This limitation exists because
 	 * the
-	 * size of the bucketmap is encoded as an integer.
+	 * size of the tuple is encoded as an integer.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
-	 * The weighted maximum number of buckets that can exist in a bucketmap.
+	 * The weighted maximum number of buckets that can exist in a tuple.
 	 * In actuality, this limit is much lower because the size of a bucket can
 	 * very widely.
 	 */
@@ -108,23 +109,36 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	private static final int INITIAL_CAPACITY = 16;
 
 	/*
+	 * Since each bucket maintains its own key, it is possible to use a Set to
+	 * contain the buckets instead of a map, but I decided to go with a Map
+	 * because some Set implementations merely server as a wrapper for an
+	 * internal Map anyway and managing keys here means that the Bucket
+	 * abstraction doesn't need to worry about hashCode(), equals() and
+	 * compareTo() methods (these can be handled by implementations of the
+	 * Tuple abstraction as necessary).
+	 * 
 	 * Buckets should never be removed from the map. Therefore the only point of
 	 * thread contention is insertion, which is accounted for in the
 	 * {@link #newBucket()} method using a local write lock.
 	 */
 	private final Map<K, Bucket<K, V>> buckets;
+
+	/*
+	 * This is the absolute path filename, which is derived directly from the
+	 * locator (meaning we don't have to store the locator with the tuple).
+	 */
 	private transient final String filename;
 	private transient final ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
 	private transient final Logger log = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * Construct a new instance. This constructor can be used to create a
-	 * new/empty bucketmap or to deserialize an existing bucketmap identified by
+	 * new/empty tuple or to deserialize an existing tuple identified by
 	 * {@code locator}.
 	 * 
 	 * @param locator
 	 */
-	protected <L extends ByteSized> BucketMap(L locator) {
+	protected <L extends ByteSized> Tuple(L locator) {
 		this.filename = Utilities.getFileName(locator);
 		try {
 			File file = new File(filename);
@@ -134,8 +148,7 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 		}
 		catch (IOException e) {
 			log.error("An error occured while trying to "
-					+ "deserialize bucketmap {} from {}: {}", locator,
-					filename, e);
+					+ "deserialize tuple {} from {}: {}", locator, filename, e);
 			throw new ConcourseRuntimeException(e);
 		}
 	}
@@ -233,7 +246,7 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	protected abstract Bucket<K, V> getNewBucket(K key);
 
 	/**
-	 * Return a newly initialized map to hold the buckets in the bucketmap.
+	 * Return a newly initialized map to hold the buckets in the tuple.
 	 * 
 	 * @param expectedSize
 	 * @return the buckets map
@@ -252,21 +265,16 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * <p>
-	 * Write all the data bucketmapd in memory back to disk.
-	 * </p>
-	 * <p>
-	 * <strong>NOTE</strong>: This operation will read lock the entire bucketmap
-	 * and overwrite any data that previously existed on disk with the version
-	 * of data that is contained in memory.
-	 * </p>
+	 * Flush all the data back to disk. This operation will read lock the entire
+	 * tuple and overwrite the content of {@link #filename} with the data
+	 * that currently exists in memory.
 	 */
 	/*
 	 * I use this approach instead of a RandomAccessFile/MappedByteBuffer
 	 * combination because it isn't possible to know the precise ways in which a
 	 * file will change for a given write. Even if I could determine how the
 	 * file would change, the overhead of constantly moving bytes around in
-	 * an existing file is too high and unsafe.
+	 * an existing file is large and unsafe.
 	 */
 	final void fsync() {
 		if(!buckets.isEmpty()) {
@@ -289,12 +297,9 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 		}
 		else {
 			// An empty collection of {#link #buckets} usually indicates that
-			// the bucketmap was deserialized from a read operation before a
-			// write
-			// operation occurred. Since deserialization creates a file for a
-			// new bucketmap in either context, it is appropriate to delete the
-			// file
-			// at sync time if no writes have occurred.
+			// the tuple was deserialized from a read operation before a
+			// write operation occurred, so it is okay for me to
+			// delete the file at sync time if there have not been any writes.
 			new File(filename).delete();
 		}
 	}
@@ -316,11 +321,11 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	 * @param key
 	 * @param value
 	 * @throws IllegalArgumentException if there is no bucket identified by
-	 *             {@code key} in the bucketmap
+	 *             {@code key} in the tuple
 	 */
 	final void remove(K key, V value) throws IllegalArgumentException {
 		checkArgument(buckets.containsKey(key),
-				"There is no bucket identified by {} in the bucketmap", key);
+				"There is no bucket identified by {} in the tuple", key);
 		get(key).remove(value);
 	}
 
@@ -334,12 +339,11 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	 */
 	private Bucket<K, V> get(K key, boolean create) {
 		return buckets.containsKey(key) ? buckets.get(key)
-				: (create ? insertNewBucket(key) : getMockBucket());
+				: (create ? insert(key) : getMockBucket());
 	}
 
 	/**
-	 * Return the collection of buckets bucketmapd in the file at
-	 * {@code filename}.
+	 * Return the collection of buckets stored in the file at {@code filename}.
 	 * 
 	 * @param filename
 	 * @return the {@code buckets}
@@ -368,12 +372,12 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Put a new {@code bucket} identified by {@code key} to the bucketmap.
+	 * Put a new {@code bucket} identified by {@code key} to the tuple.
 	 * 
 	 * @param key
 	 * @return the new {@code bucket}
 	 */
-	private Bucket<K, V> insertNewBucket(K key) {
+	private Bucket<K, V> insert(K key) {
 		Bucket<K, V> bucket = getNewBucket(key);
 		Lock lock = writeLock();
 		try {
@@ -386,14 +390,14 @@ abstract class BucketMap<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Utilities for the {@link BucketMap} objects.
+	 * Utilities for the {@link Tuple} objects.
 	 * 
 	 * @author jnelson
 	 */
 	private static abstract class Utilities {
 
 		/**
-		 * Return the absolute path of the {@code filename} for the bucketmap
+		 * Return the absolute path of the {@code filename} for the tuple
 		 * identified by {@code locator}.
 		 * 
 		 * @param locator

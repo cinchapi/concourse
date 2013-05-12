@@ -31,14 +31,14 @@ import static com.cinchapi.concourse.db.Operator.*;
 
 /**
  * <p>
- * A Column is an inverted index {@link BucketMap} that maps a Value to a collection
+ * A Column is an inverted index {@link Tuple} that maps a Value to a collection
  * of primary keys. This structure is designed to efficiently answer most query
  * reads.
  * </p>
  * 
  * @author jnelson
  */
-final class Column extends BucketMap<Value, PrimaryKey> {
+final class Field extends Tuple<Value, PrimaryKey> {
 
 	/**
 	 * Return the column that is located by {@code name}.
@@ -46,17 +46,17 @@ final class Column extends BucketMap<Value, PrimaryKey> {
 	 * @param name
 	 * @return the column
 	 */
-	public static Column fromName(ByteSizedString name) {
-		Column column = cache.get(name);
+	public static Field fromName(ByteSizedString name) {
+		Field column = cache.get(name);
 		if(column == null) {
-			column = new Column(name);
+			column = new Field(name);
 			cache.put(column, name);
 		}
 		return column;
 	}
 
 	private static final Cell mock = Bucket.mock(Cell.class);
-	private static final ObjectReuseCache<Column> cache = new ObjectReuseCache<Column>();
+	private static final ObjectReuseCache<Field> cache = new ObjectReuseCache<Field>();
 	protected static final String FILE_NAME_EXT = "ccc"; // @Override from
 															// {@link Store}
 
@@ -65,7 +65,7 @@ final class Column extends BucketMap<Value, PrimaryKey> {
 	 * 
 	 * @param locator
 	 */
-	private Column(ByteSizedString name) {
+	private Field(ByteSizedString name) {
 		super(name);
 	}
 
@@ -228,7 +228,7 @@ final class Column extends BucketMap<Value, PrimaryKey> {
 
 	/**
 	 * <p>
-	 * The bucketed view of stored data from the perspective of a {@link Column}
+	 * The bucketed view of stored data from the perspective of a {@link Field}
 	 * that is designed to efficiently handle query reads.
 	 * </p>
 	 * 

@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class Index extends BucketMap<ByteSizedString, PrimaryKey>{
+public class Index extends Tuple<ByteSizedString, PrimaryKey>{
 
 	/**
 	 * Construct a new instance.
