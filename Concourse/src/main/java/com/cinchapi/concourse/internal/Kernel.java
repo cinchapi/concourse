@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.core;
+package com.cinchapi.concourse.internal;
 
 import java.util.Set;
 
@@ -21,15 +21,15 @@ import com.cinchapi.concourse.Operator;
 /**
  * The {@code Kernel} is the lowest-level abstraction layer that is both
  * exposed to external applications and implemented by core components.
- * The Kernel is a highly available and distributed service that manages disk
- * I/O, memory caching, etc
+ * The Kernel is a highly available service that manages disk I/O, memory
+ * caching, etc
  * 
  * @author jnelson
  */
 public interface Kernel {
 
 	/**
-	 * Add {@code key} as {@code value} in {@code collection} if no such mapping
+	 * Add {@code key} as {@code value} in {@code collection}.
 	 * currently exists.
 	 * 
 	 * @param key
