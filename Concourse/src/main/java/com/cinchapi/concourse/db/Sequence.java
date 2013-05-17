@@ -44,8 +44,8 @@ import static com.cinchapi.concourse.conf.Constants.*;
 
 /**
  * <p>
- * A {@code Tuple} is a {@link Bucket} based abstract data structure that maps
- * keys to values.
+ * A {@code Tuple} is a {@link Bucket} based abstract collection that maps keys
+ * to values.
  * </p>
  * <p>
  * Each Tuple is identified by a {@code locator} and is stored in a distinct
@@ -71,7 +71,7 @@ import static com.cinchapi.concourse.conf.Constants.*;
  * @param <K> - the key type
  * @param <V> - the value type
  */
-abstract class Tuple<K extends ByteSized, V extends Storable> implements
+abstract class Sequence<K extends ByteSized, V extends Storable> implements
 		IterableByteSequences,
 		Persistable,
 		Lockable {
@@ -87,10 +87,14 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * The child class should override this variable with a specific extension.
-	 * The default is "ccs" which stands for
-	 * <em><strong>c</strong>on<strong>c</strong>ourse <strong>s</strong>tore</em>
 	 */
-	protected static final String FILE_NAME_EXT = "ccs";
+	protected static final String FILE_NAME_EXT = "cct";
+
+	/**
+	 * The child class should override this variable with a specific locale
+	 * home.
+	 */
+	protected static final String LOCALE_HOME = "0";
 
 	/**
 	 * The maximum allowable size of a tuple. This limitation exists because
@@ -138,7 +142,7 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	 * 
 	 * @param locator
 	 */
-	protected <L extends ByteSized> Tuple(L locator) {
+	protected <L extends ByteSized> Sequence(L locator) {
 		this.filename = Utilities.getFileName(locator);
 		try {
 			File file = new File(filename);
@@ -260,8 +264,8 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	 * @param key
 	 * @param value
 	 */
-	final void add(K key, V value) {
-		get(key, true).add(value);
+	void add(K key, V value) {
+		getBucket(key, true).add(value);
 	}
 
 	/**
@@ -310,8 +314,8 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	 * @param key
 	 * @return the {@code bucket}
 	 */
-	final Bucket<K, V> get(K key) {
-		return get(key, false);
+	final Bucket<K, V> getBucket(K key) {
+		return getBucket(key, false);
 	}
 
 	/**
@@ -323,10 +327,10 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	 * @throws IllegalArgumentException if there is no bucket identified by
 	 *             {@code key} in the tuple
 	 */
-	final void remove(K key, V value) throws IllegalArgumentException {
+	void remove(K key, V value) throws IllegalArgumentException {
 		checkArgument(buckets.containsKey(key),
 				"There is no bucket identified by {} in the tuple", key);
-		get(key).remove(value);
+		getBucket(key).remove(value);
 	}
 
 	/**
@@ -337,7 +341,7 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	 * @param create
 	 * @return the {@code bucket}
 	 */
-	private Bucket<K, V> get(K key, boolean create) {
+	private Bucket<K, V> getBucket(K key, boolean create) {
 		return buckets.containsKey(key) ? buckets.get(key)
 				: (create ? insert(key) : getMockBucket());
 	}
@@ -390,7 +394,7 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Utilities for the {@link Tuple} objects.
+	 * Utilities for the {@link Sequence} objects.
 	 * 
 	 * @author jnelson
 	 */
@@ -405,7 +409,9 @@ abstract class Tuple<K extends ByteSized, V extends Storable> implements
 		 */
 		private static <L extends ByteSized> String getFileName(L locator) {
 			StringBuilder sb = new StringBuilder();
-			sb.append(CONCOURSE_HOME);
+			sb.append(CONCOURSE_DB_HOME);
+			sb.append(File.separator);
+			sb.append(LOCALE_HOME);
 			sb.append(File.separator);
 			sb.append(getLocale(locator));
 			sb.append(File.separator);

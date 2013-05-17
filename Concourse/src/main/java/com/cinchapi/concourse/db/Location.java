@@ -24,12 +24,13 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
- * 
+ * A Location is the association of a position and a {@link PrimaryKey}. This
+ * structure is used in a {@link Concordance} to specify the location of a term.
  * 
  * @author jnelson
  */
 @Immutable
-final class Location implements Comparable<Location>, Storable {
+final class Location implements Comparable<Location>, Containable {
 
 	/**
 	 * Return a location that is appropriate for storage, with the timestamp of
@@ -127,12 +128,12 @@ final class Location implements Comparable<Location>, Storable {
 
 	@Override
 	public boolean isForStorage() {
-		return Storables.isForStorage(this);
+		return Containables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
+		return Containables.isNotForStorage(this);
 	}
 
 	@Override
@@ -153,10 +154,10 @@ final class Location implements Comparable<Location>, Storable {
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Storables#compare(Storable, Storable)}
+	 * @see {@link Containables#compare(Containable, Containable)}
 	 */
 	int compareTo(Location o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
+		return logically ? compareTo(o) : Containables.compare(this, o);
 	}
 
 	/**

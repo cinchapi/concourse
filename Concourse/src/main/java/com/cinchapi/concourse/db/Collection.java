@@ -18,19 +18,17 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.lock.Lock;
 import com.cinchapi.common.lock.Lockable;
-import com.cinchapi.common.lock.Lockables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
  * <p>
- * A Record is a {@link Tuple} that represents a logical grouping of related
- * data in the form of field names mapped to values. Records are designed for
+ * A Record is a {@link Sequence} that represents a logical grouping of related
+ * data in the form of field names mapped to values. Records are optimized for
  * high levels of concurrency by offering external callers field level
  * read/write locking.
  * </p>
@@ -43,7 +41,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-final class Record extends Tuple<SuperString, Value> {
+final class Collection extends Sequence<SuperString, Value> {
 
 	/**
 	 * Return the row that is located by {@code key}.
@@ -51,50 +49,57 @@ final class Record extends Tuple<SuperString, Value> {
 	 * @param key
 	 * @return the row
 	 */
-	public static Record fromKey(PrimaryKey key) {
-		Record row = cache.get(key.asLong());
+	public static Collection fromKey(PrimaryKey key) {
+		Collection row = cache.get(key.asLong());
 		if(row == null) {
-			row = new Record(key);
+			row = new Collection(key);
 			cache.put(row, key.asLong());
 		}
 		return row;
 	}
 
-	private static final Element mock = Bucket.mock(Element.class);
-	private static final ObjectReuseCache<Record> cache = new ObjectReuseCache<Record>();
+	private static final Element mock = Container.mock(Element.class);
+	private static final ObjectReuseCache<Collection> cache = new ObjectReuseCache<Collection>();
 	protected static final String FILE_NAME_EXT = "ccr"; // @Override from
-															// {@link Store}
+															// {@link Tuple}
+	protected static final String LOCALE_HOME = "1";// @Override from
+													// {@link Tuple}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param locator
 	 */
-	private Record(PrimaryKey key) {
+	private Collection(PrimaryKey key) {
 		super(key);
 	}
 
 	@Override
-	protected Bucket<SuperString, Value> getBucketFromByteSequence(
+	protected Container<SuperString, Value> getBucketFromByteSequence(
 			ByteBuffer bytes) {
 		return new Element(bytes);
 	}
 
 	@Override
-	protected Bucket<SuperString, Value> getMockBucket() {
+	protected Container<SuperString, Value> getMockBucket() {
 		return mock;
 	}
 
 	@Override
-	protected Bucket<SuperString, Value> getNewBucket(SuperString field) {
+	protected Container<SuperString, Value> getNewBucket(SuperString field) {
 		return new Element(field);
 
 	}
 
 	@Override
-	protected Map<SuperString, Bucket<SuperString, Value>> getNewBuckets(
+	protected Map<SuperString, Container<SuperString, Value>> getNewBuckets(
 			int expectedSize) {
 		return Maps.newHashMapWithExpectedSize(expectedSize);
+	}
+
+	@Override
+	void add(SuperString field, Value value) {
+		super.add(field, value);
 	}
 
 	/**
@@ -173,7 +178,12 @@ final class Record extends Tuple<SuperString, Value> {
 	 * @return the releasable lock
 	 */
 	Lock readLock(SuperString field) {
-		return ((Element) get(field)).readLock();
+		return ((Element) getBucket(field)).readLock();
+	}
+
+	@Override
+	void remove(SuperString field, Value value) throws IllegalArgumentException {
+		super.remove(field, value);
 	}
 
 	/**
@@ -183,7 +193,7 @@ final class Record extends Tuple<SuperString, Value> {
 	 * @return the releasable lock
 	 */
 	Lock writeLock(SuperString field) {
-		return ((Element) get(field)).writeLock();
+		return ((Element) getBucket(field)).writeLock();
 	}
 
 	/**
@@ -203,7 +213,7 @@ final class Record extends Tuple<SuperString, Value> {
 		try {
 			Set<SuperString> fields = Sets.newHashSetWithExpectedSize(buckets()
 					.size());
-			Iterator<Bucket<SuperString, Value>> it = buckets().values()
+			Iterator<Container<SuperString, Value>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
 				Element cell = (Element) it.next();
@@ -239,8 +249,8 @@ final class Record extends Tuple<SuperString, Value> {
 			long timestamp) {
 		Lock lock = readLock();
 		try {
-			return historical ? get(field).getValues(timestamp).contains(value)
-					: get(field).getValues().contains(value);
+			return historical ? getBucket(field).getValues(timestamp).contains(
+					value) : getBucket(field).getValues().contains(value);
 		}
 		finally {
 			lock.release();
@@ -265,8 +275,9 @@ final class Record extends Tuple<SuperString, Value> {
 		Lock lock = readLock();
 		try {
 			Set<Value> values = Sets.newLinkedHashSet();
-			Iterator<Value> it = historical ? get(field).getValues(timestamp)
-					.iterator() : get(field).getValues().iterator();
+			Iterator<Value> it = historical ? getBucket(field).getValues(
+					timestamp).iterator() : getBucket(field).getValues()
+					.iterator();
 			while (it.hasNext()) {
 				values.add(it.next());
 			}
@@ -278,25 +289,12 @@ final class Record extends Tuple<SuperString, Value> {
 	}
 
 	/**
-	 * A single element within a {@link Record}. 
+	 * A single element within a {@link Collection}.
 	 * 
 	 * @author jnelson
 	 */
-	final static class Element extends Bucket<SuperString, Value> implements
+	final static class Element extends LockableBucket<SuperString, Value> implements
 			Lockable {
-		// NOTE: This class is nested because the Row mostly abstracts away the
-		// notion of a Bucket.
-
-		private final transient ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
-
-		/**
-		 * Construct a new instance.
-		 * 
-		 * @param field
-		 */
-		Element(SuperString field) {
-			super(field);
-		}
 
 		/**
 		 * Construct a new instance. Use this constructor when
@@ -309,14 +307,13 @@ final class Record extends Tuple<SuperString, Value> {
 			super(bytes);
 		}
 
-		@Override
-		public Lock readLock() {
-			return Lockables.readLock(this, locksmith);
-		}
-
-		@Override
-		public Lock writeLock() {
-			return Lockables.writeLock(this, locksmith);
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param field
+		 */
+		Element(SuperString field) {
+			super(field);
 		}
 
 		@Override

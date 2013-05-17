@@ -35,16 +35,14 @@ import static org.mockito.Matchers.*;
 
 /**
  * <p>
- * A Bucket is a version control collection of {@code values} that are mapped
- * from a single {@code key}. The key is the unique identifier and the values
- * are maintained in insertion order.
- * <p>
- * The bucket key never changes, but the collection of values form two variable
- * length components:
+ * A {@code Container} is a version controlled series of {@link Containable}
+ * values that is associated with a {@code key}. Containers are usually members
+ * of a {@link Sequence}, but can be used in other contexts. The values in the
+ * Container are maintained in insertion order and are represented by:
  * <ul>
  * <li><strong>State</strong> - A snapshot of the forStorage values currently in
- * the bucket. The state of the bucket changes whenever a relevant write occurs.
- * </li>
+ * the container. The state of the container changes whenever a relevant write
+ * occurs.</li>
  * <li><strong>History</strong> - An append-only list of forStorage values
  * sorted by timestamp in insertion/ascending order. Every time a write occurs,
  * the written value is logged in the history. From the perspective of the
@@ -55,7 +53,7 @@ import static org.mockito.Matchers.*;
  * <h2>Storage Requirements</h2>
  * <ul>
  * <li>The size required for the {@code state} is the summation of the size of
- * each value plus 4 bytes. A {@code state} (and therefore a bucket) can
+ * each value plus 4 bytes. A {@code state} (and therefore a container) can
  * theoretically hold up to {@value #MAX_NUM_VALUES} values at once, but in
  * actuality this limit is much lower.</li>
  * <li>The size required for the {@code history} is the product of 4 times the
@@ -64,30 +62,30 @@ import static org.mockito.Matchers.*;
  * theoretically hold up to {@value #MAX_NUM_REVISIONS} revisions, but in
  * actuality this limit is much lower.</li>
  * </ul>
- * <strong>Note:</strong> Because a Bucket is version controlled, it's size is
- * guaranteed to increase by at least the size of V for each write.
+ * <strong>Note:</strong> Because a Container is version controlled, it's size
+ * is guaranteed to increase by at least the size of V for each write.
  * </p>
  * 
  * @param <K> - the {@link ByteSized} key type
- * @param <V> - the {@link Storable} value type
+ * @param <V> - the {@link Containable} value type
  * @author jnelson
  */
-abstract class Bucket<K extends ByteSized, V extends Storable> implements
+abstract class Container<K extends ByteSized, V extends Containable> implements
 		ByteSized {
 
 	/**
-	 * Return a <em>mock</em> bucket of {@code type}. Use this method instead of
-	 * mocking {@code type} directly to ensure that the mock is compatible with
-	 * the assumptions made in {@link Tuple}.
+	 * Return a <em>mock</em> container of {@code type}. Use this method instead
+	 * of mocking {@code type} directly to ensure that the mock is compatible
+	 * with the assumptions made in {@link Sequence}.
 	 * 
 	 * @param type
-	 * @return the {@code bucket}
+	 * @return the {@code container}
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	static <T extends Bucket> T mock(Class<T> type) {
+	static <T extends Container> T mock(Class<T> type) {
 		T cell = Mockito.mock(type);
-		Mockito.doNothing().when(cell).add(any(Storable.class));
-		Mockito.doNothing().when(cell).remove(any(Storable.class));
+		Mockito.doNothing().when(cell).add(any(Containable.class));
+		Mockito.doNothing().when(cell).remove(any(Containable.class));
 		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
 				.getBytes();
 		Mockito.doThrow(UnsupportedOperationException.class).when(cell).size();
@@ -103,13 +101,13 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 																			// historySize
 
 	/**
-	 * The maximum allowable size of a bucket.
+	 * The maximum allowable size of a container.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
 	 * The theoretical max number of values that can be simultaneously
-	 * contained in the bucket. In actuality this limit is much lower because
+	 * contained in the container. In actuality this limit is much lower because
 	 * the
 	 * size of an value may vary widely.
 	 */
@@ -117,14 +115,14 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 			/ (4 + Value.MIN_SIZE_IN_BYTES);
 
 	/**
-	 * The theoretical max number of revisions that can occur to a bucket. In
+	 * The theoretical max number of revisions that can occur to a container. In
 	 * actuality this limit is much lower because the size of an value may vary
 	 * widely.
 	 */
 	public static final int MAX_NUM_REVISIONS = MAX_NUM_VALUES;
 
 	/**
-	 * The minimum size of a bucket (e.g. the size of an empty Bucket with
+	 * The minimum size of a container (e.g. the size of an empty Container with
 	 * no
 	 * values or history).
 	 */
@@ -132,7 +130,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * This is a more realistic measure of the storage required for a single
-	 * bucket with one revision.
+	 * container with one revision.
 	 */
 	public static final int WEIGHTED_SIZE_IN_BYTES = MIN_SIZE_IN_BYTES
 			+ (2 * Value.WEIGHTED_SIZE_IN_BYTES);
@@ -142,14 +140,14 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	private final History history;
 
 	/**
-	 * Construct the bucket instance represented by {@code bytes}. Use this
+	 * Construct the container instance represented by {@code bytes}. Use this
 	 * constructor when reading and reconstructing from a file. This constructor
 	 * assumes that {@code bytes} was generated using {@link #getBytes()}.
 	 * 
 	 * @param bytes
-	 * @return the Bucket
+	 * @return the Container
 	 */
-	protected Bucket(ByteBuffer bytes) {
+	protected Container(ByteBuffer bytes) {
 		int idSize = bytes.getInt();
 		int stateSize = bytes.getInt();
 		int historySize = bytes.getInt();
@@ -168,12 +166,12 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Construct a <em>new</em> bucket identified by {@code id}, with a clean
+	 * Construct a <em>new</em> container identified by {@code id}, with a clean
 	 * state and no history.
 	 * 
-	 * @return the new Bucket
+	 * @return the new Container
 	 */
-	protected Bucket(K key) {
+	protected Container(K key) {
 		this.key = key;
 		this.state = new State();
 		this.history = new History();
@@ -211,7 +209,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	protected abstract V getValueFromByteSequence(ByteBuffer bytes);
 
 	/**
-	 * Add the forStorage {@code value} to the bucket. This will modify the
+	 * Add the forStorage {@code value} to the container. This will modify the
 	 * {@code state} and log {@code value} in the {@code history}.
 	 * 
 	 * @param value
@@ -230,7 +228,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Return the number of values presently contained in the bucket.
+	 * Return the number of values presently contained in the container.
 	 * 
 	 * @return the count
 	 */
@@ -301,7 +299,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Return {@code true} if the bucket is empty.
+	 * Return {@code true} if the container is empty.
 	 * 
 	 * @return {@code true} if the state count is 0
 	 */
@@ -310,7 +308,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Remove the forStorage {@code value} from the bucket. This will modify
+	 * Remove the forStorage {@code value} from the container. This will modify
 	 * the {@code state} and log {@code value} in the {@code history}.
 	 * 
 	 * @param value
@@ -329,7 +327,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Return a new byte buffer that contains the current view of the bucket
+	 * Return a new byte buffer that contains the current view of the container
 	 * with
 	 * the following order:
 	 * <ol>
@@ -357,7 +355,8 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * A collection of {@code V} values that are maintained in insertion order
-	 * with a Bucket. Each value in the bucket must have a unique timestamp.
+	 * with a Container. Each value in the container must have a unique
+	 * timestamp.
 	 * 
 	 * @author jnelson
 	 */
@@ -422,29 +421,29 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 		}
 
 		/**
-		 * Add {@code value} to the bucket.
+		 * Add {@code value} to the container.
 		 * 
 		 * @param value
 		 * @return {@code true} if {@code value} is added
 		 * @throws IllegalArgumentException if the #timestamp associated with
 		 *             {@code value} is not greater than the most recent
-		 *             timestamp in the bucket
+		 *             timestamp in the container
 		 */
 		boolean add(V value) throws IllegalArgumentException {
 			// I check against the last timestamp to ensures that the list is
 			// kept in insertion order and that no duplicate timestamps are
 			// ever allowed
-			long timestamp = values.isEmpty() ? Storable.NIL : values.get(
+			long timestamp = values.isEmpty() ? Containable.NIL : values.get(
 					values.size() - 1).getTimestamp();
 			checkArgument(value.getTimestamp() > timestamp,
 					"Cannot add %s because it's associated timestamp "
 							+ "is less than the most recent timestamp "
-							+ "in the bucket", value);
+							+ "in the container", value);
 			return values.add(value);
 		}
 
 		/**
-		 * Return {@code true} if {@code value} is present in the bucket
+		 * Return {@code true} if {@code value} is present in the container
 		 * according to the definition of {@link V#equals(Value)}.
 		 * 
 		 * @param value
@@ -455,16 +454,16 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 		}
 
 		/**
-		 * Return an unmodifiable view of the values in the bucket.
+		 * Return an unmodifiable view of the values in the container.
 		 * 
-		 * @return the values in the bucket
+		 * @return the values in the container
 		 */
 		List<V> getValues() {
 			return Collections.unmodifiableList(values);
 		}
 
 		/**
-		 * Remove the first instance of {@code value} from the bucket.
+		 * Remove the first instance of {@code value} from the container.
 		 * 
 		 * @param value
 		 * @return {@code true} if the first instance of the {@code value} is
@@ -476,10 +475,10 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * An append-only log that keeps track of {@link Bucket} writes over
+	 * An append-only log that keeps track of {@link Container} writes over
 	 * time. The {@code V} value associated with each write is associated with a
 	 * timestamp and added to the end of the log. An value is considered to
-	 * exist in the bucket if it appears in the history an odd number of
+	 * exist in the container if it appears in the history an odd number of
 	 * times,
 	 * otherwise it is considered to not exist.
 	 * 
@@ -527,7 +526,7 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 		}
 
 		/**
-		 * Return {@code true} if {@code value} existed in the bucket prior
+		 * Return {@code true} if {@code value} existed in the container prior
 		 * to the specified timestamp (meaning there is an odd number of
 		 * appearances for {@code value} in the history).
 		 * 
@@ -574,8 +573,8 @@ abstract class Bucket<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * A collection of the {@code V} values that currently exist in the
-	 * Bucket.
-	 * The current state can be derived from the {@link Bucket#history}, but
+	 * Container.
+	 * The current state can be derived from the {@link Container#history}, but
 	 * it is
 	 * tracked explicitly for optimal performance.
 	 * 

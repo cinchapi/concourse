@@ -18,7 +18,7 @@ import com.cinchapi.concourse.io.ByteSized;
 
 /**
  * <p>
- * A {@link ByteSized} object that is stored within a {@link Bucket}.
+ * A {@link ByteSized} object that is stored within a {@link Container}.
  * </p>
  * <p>
  * Each {@code Bucketable} object is versioned by a unique timestamp. The
@@ -30,7 +30,7 @@ import com.cinchapi.concourse.io.ByteSized;
  * 
  * @author jnelson
  */
-public interface Storable extends ByteSized {
+public interface Containable extends ByteSized {
 
 	/**
 	 * Represents a null timestamp, indicating the object is notForStorage.
@@ -46,6 +46,19 @@ public interface Storable extends ByteSized {
 	 */
 	@Override
 	public boolean equals(Object obj);
+
+	/**
+	 * This method does not take timestamp into account because it is expected
+	 * that there will be instances when two objects have different timestamps
+	 * but otherwise hash to the same value and should be treated as such. The
+	 * associated #timestamp is meant to version the object and not necessarily
+	 * to alter its essence in relation to other objects outside of temporal
+	 * sorting.
+	 * 
+	 * @return
+	 */
+	@Override
+	public int hashCode();
 
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique

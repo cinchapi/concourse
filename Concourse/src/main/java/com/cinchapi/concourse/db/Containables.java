@@ -19,19 +19,19 @@ import java.util.Comparator;
 import com.google.common.primitives.Longs;
 
 /**
- * Utility methods for {@link Storable} objects.
+ * Utility methods for {@link Containable} objects.
  * 
  * @author jnelson
  */
-public abstract class Storables {
+public abstract class Containables {
 
 	/**
 	 * A comparator that sorts objects based on timestamp.
 	 */
-	private static Comparator<Storable> comparator = new Comparator<Storable>() {
+	private static Comparator<Containable> comparator = new Comparator<Containable>() {
 
 		@Override
-		public int compare(Storable o1, Storable o2) {
+		public int compare(Containable o1, Containable o2) {
 			// push notForStorage objects to the back so that we
 			// are sure to reach forStorage values
 			if(o1.isNotForStorage()) {
@@ -54,8 +54,8 @@ public abstract class Storables {
 	 * @param object
 	 * @return {@code true} if {@code object} is forStorage
 	 */
-	public static boolean isForStorage(Storable object) {
-		return object.getTimestamp() != Storable.NIL;
+	public static boolean isForStorage(Containable object) {
+		return object.getTimestamp() != Containable.NIL;
 	}
 
 	/**
@@ -65,8 +65,8 @@ public abstract class Storables {
 	 * @param object
 	 * @return {@code true} if {@code object} is notForStorage
 	 */
-	public static boolean isNotForStorage(Storable object) {
-		return object.getTimestamp() == Storable.NIL;
+	public static boolean isNotForStorage(Containable object) {
+		return object.getTimestamp() == Containable.NIL;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public abstract class Storables {
 	 * @return a negative integer, zero, or a positive integer as this object is
 	 *         less than, equal to, or greater than the specified object.
 	 */
-	public static <O extends Storable> int compare(O o1, O o2) {
+	public static <O extends Containable> int compare(O o1, O o2) {
 		return comparator.compare(o1, o2);
 	}
 

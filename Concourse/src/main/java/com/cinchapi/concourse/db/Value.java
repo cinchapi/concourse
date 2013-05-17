@@ -29,22 +29,16 @@ import static com.google.common.base.Preconditions.*;
 
 /**
  * <p>
- * A typed quantity that is {@link Storable} within a {@link RowCell} and is
- * also the identifier for a {@link ColumnCell}.
- * </p>
- * <p>
- * A Value is a versioned<sup>1</sup> wrapper for a generic object that handles
- * logical sorting amongst the various {@link Type}s and temporal sorting
- * between forStorage and notForStorage instances. A Value is the most basic
- * element of data in Concourse. A single value cannot exceed 2GB in memory. <br>
- * <br>
- * <sup>1</sup> - The timestamp is unique per values and acts as a defacto
- * version id
+ * A {@code Value} is a dynamically typed<sup>1</sup> quantity that is
+ * versioned<sup>2</sup> and {@link Containable}. Values are both temporally
+ * sortable by timestamp and logically sortable using weak typing. This is the
+ * most basic element of data in Concourse. A single Value cannot exceed
+ * {@value #MAX_QUANTITY_SIZE_IN_BYTES} bytes.
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
- * Each Value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space.
- * Additional space requirements are as follows:
+ * Each Value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space in
+ * addition to type specific requirements:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
  * <li>DOUBLE requires an additional 8 bytes</li>
@@ -56,15 +50,21 @@ import static com.google.common.base.Preconditions.*;
  * encoding)</li>
  * </ul>
  * <strong>NOTE</strong>: There is no way to recommend a precise storage measure
- * for a generic value, but the weighted size of
+ * for a generic value, but the weighted average size of
  * {@value #WEIGHTED_SIZE_IN_BYTES} bytes can be used with caution as a general
  * guide.
  * </p>
+ * <ul>
+ * <li><sup>1</sup> - The Value type is not determined until store time.</li>
+ * <li><sup>2</sup> - Each value is associated with a unique timestamp. The
+ * timestamp is used to version the value in storage contexts.
+ * </ul>
+ * 
  * 
  * @author jnelson
  */
 @Immutable
-final class Value implements Comparable<Value>, Storable {
+final class Value implements Comparable<Value>, Containable {
 
 	/**
 	 * Return a value that is appropriate for storage, with the current
@@ -287,12 +287,12 @@ final class Value implements Comparable<Value>, Storable {
 
 	@Override
 	public boolean isForStorage() {
-		return Storables.isForStorage(this);
+		return Containables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
+		return Containables.isNotForStorage(this);
 	}
 
 	@Override
@@ -317,16 +317,16 @@ final class Value implements Comparable<Value>, Storable {
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Storables#compare(Storable, Storable)}
+	 * @see {@link Containables#compare(Containable, Containable)}
 	 */
 	int compareTo(Value o, boolean logically) {
-		return logically ? comparator.compare(this, o) : Storables.compare(
+		return logically ? comparator.compare(this, o) : Containables.compare(
 				this, o);
 	}
 
 	/**
 	 * Logical comparison where appropriate casting is done to the encapsulated
-	 * quantities.
+	 * quantities (weak typing).
 	 * 
 	 * @param o
 	 * @return a negative integer, zero, or a positive integer as this object is
@@ -346,7 +346,8 @@ final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
-	 * Return a string description of the value type.
+	 * Return a string description of the value type. The return value is
+	 * equivalent to {@link Type#toString()}.
 	 * 
 	 * @return the value type
 	 */
@@ -455,7 +456,8 @@ final class Value implements Comparable<Value>, Storable {
 				buffer = ByteBuffers.toByteBuffer((long) object);
 				break;
 			case RELATION:
-				buffer = ByteBuffers.toByteBuffer(((PrimaryKey) (object)).asLong());
+				buffer = ByteBuffers.toByteBuffer(((PrimaryKey) (object))
+						.asLong());
 				break;
 			default:
 				String _object = object.toString();
@@ -499,7 +501,8 @@ final class Value implements Comparable<Value>, Storable {
 					object = ByteBuffers.getLong(buffer);
 					break;
 				case RELATION:
-					object = PrimaryKey.notForStorage(ByteBuffers.getLong(buffer));
+					object = PrimaryKey.notForStorage(ByteBuffers
+							.getLong(buffer));
 					break;
 				default:
 					object = ByteBuffers.getString(buffer);

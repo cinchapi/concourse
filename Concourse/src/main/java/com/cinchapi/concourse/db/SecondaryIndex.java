@@ -23,22 +23,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cinchapi.common.cache.ObjectReuseCache;
+import com.cinchapi.concourse.Operator;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import static com.cinchapi.concourse.db.Operator.*;
+import static com.cinchapi.concourse.Operator.*;
 
 /**
  * <p>
- * A Field is a {@link Tuple} that represents a sorted inverted index that maps
- * values to the records in which they appear. This structure is similar to a
- * traditional B+-Tree index so that it can efficiently answer query reads.
+ * A Field is a {@link Sequence} that represents a sorted index that maps values to
+ * the records in which they appear. This structure is similar to a traditional
+ * database B+-Tree and can efficiently answer query reads.
  * </p>
  * 
  * @author jnelson
  */
-final class Field extends Tuple<Value, PrimaryKey> {
+final class SecondaryIndex extends Sequence<Value, PrimaryKey> {
 
 	/**
 	 * Return the column that is located by {@code name}.
@@ -46,63 +47,58 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	 * @param name
 	 * @return the column
 	 */
-	public static Field fromName(SuperString name) {
-		Field column = cache.get(name);
+	public static SecondaryIndex fromName(SuperString name) {
+		SecondaryIndex column = cache.get(name);
 		if(column == null) {
-			column = new Field(name);
+			column = new SecondaryIndex(name);
 			cache.put(column, name);
 		}
 		return column;
 	}
 
-	private static final Element mock = Bucket.mock(Element.class);
-	private static final ObjectReuseCache<Field> cache = new ObjectReuseCache<Field>();
-	protected static final String FILE_NAME_EXT = "ccc"; // @Override from
-															// {@link Store}
+	private static final Element mock = Container.mock(Element.class);
+	private static final ObjectReuseCache<SecondaryIndex> cache = new ObjectReuseCache<SecondaryIndex>();
+	
+	//Override from {@link Tuple}
+	protected static final String FILE_NAME_EXT = "ccf";
+	protected static final String LOCALE_HOME = "2";
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param locator
 	 */
-	private Field(SuperString name) {
+	private SecondaryIndex(SuperString name) {
 		super(name);
 	}
 
 	@Override
-	protected Bucket<Value, PrimaryKey> getBucketFromByteSequence(
+	protected Container<Value, PrimaryKey> getBucketFromByteSequence(
 			ByteBuffer bytes) {
 		return new Element(bytes);
 	}
 
 	@Override
-	protected Bucket<Value, PrimaryKey> getMockBucket() {
+	protected Container<Value, PrimaryKey> getMockBucket() {
 		return mock;
 	}
 
 	@Override
-	protected Bucket<Value, PrimaryKey> getNewBucket(Value value) {
+	protected Container<Value, PrimaryKey> getNewBucket(Value value) {
 		return new Element(value);
 	}
 
 	@Override
-	protected Map<Value, Bucket<Value, PrimaryKey>> getNewBuckets(
+	protected Map<Value, Container<Value, PrimaryKey>> getNewBuckets(
 			int expectedSize) {
 		return Maps.newTreeMap(new ValueComparator());
 	}
 
-	/**
-	 * Return the rows that satisfy {@code operator} in relation to the
-	 * specified {@code values}.
-	 * 
-	 * @param operator
-	 * @param values
-	 * @return the set of rows that match the query
-	 */
-	Set<PrimaryKey> query(Operator operator, Value... values) {
-		return query(false, 0, operator, values);
+	@Override
+	void add(Value value, PrimaryKey key) {
+		super.add(value, key);
 	}
-
+	
 	/**
 	 * Return the rows that satisfy {@code operator} in relation to the
 	 * specified {@code values} at the specified {@code timestamp}.
@@ -118,6 +114,23 @@ final class Field extends Tuple<Value, PrimaryKey> {
 
 	/**
 	 * Return the rows that satisfy {@code operator} in relation to the
+	 * specified {@code values}.
+	 * 
+	 * @param operator
+	 * @param values
+	 * @return the set of rows that match the query
+	 */
+	Set<PrimaryKey> query(Operator operator, Value... values) {
+		return query(false, 0, operator, values);
+	}
+
+	@Override
+	void remove(Value value, PrimaryKey key) throws IllegalArgumentException {
+		super.remove(value, key);
+	}
+
+	/**
+	 * Return the records that satisfy {@code operator} in relation to the
 	 * specified {@code values} at the present or at the specified
 	 * {@code timestamp} if {@code historical is {@code true}
 	 * 
@@ -128,7 +141,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	 *            which to query each cell
 	 * @param operator
 	 * @param values
-	 * @return the set of rows that match the query
+	 * @return the set of records that match the query
 	 */
 	private Set<PrimaryKey> query(boolean historical, long timestamp,
 			Operator operator, Value... values) {
@@ -136,14 +149,14 @@ final class Field extends Tuple<Value, PrimaryKey> {
 		Value value = values[0];
 
 		if(operator == EQUALS) {
-			keys.addAll(historical ? get(value).getValues(timestamp) : get(
+			keys.addAll(historical ? getBucket(value).getValues(timestamp) : getBucket(
 					value).getValues());
 		}
 		else if(operator == NOT_EQUALS) {
-			Iterator<Bucket<Value, PrimaryKey>> it = buckets().values()
+			Iterator<Container<Value, PrimaryKey>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
-				Bucket<Value, PrimaryKey> bucket = it.next();
+				Container<Value, PrimaryKey> bucket = it.next();
 				if(!bucket.getKey().equals(value)) {
 					keys.addAll(historical ? bucket.getValues(timestamp)
 							: bucket.getValues());
@@ -151,7 +164,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == GREATER_THAN) {
-			Iterator<Bucket<Value, PrimaryKey>> it = ((TreeMap<Value, Bucket<Value, PrimaryKey>>) buckets())
+			Iterator<Container<Value, PrimaryKey>> it = ((TreeMap<Value, Container<Value, PrimaryKey>>) buckets())
 					.tailMap(value, false).values().iterator();
 			while (it.hasNext()) {
 				keys.addAll(historical ? it.next().getValues(timestamp) : it
@@ -159,7 +172,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == GREATER_THAN_OR_EQUALS) {
-			Iterator<Bucket<Value, PrimaryKey>> it = ((TreeMap<Value, Bucket<Value, PrimaryKey>>) buckets())
+			Iterator<Container<Value, PrimaryKey>> it = ((TreeMap<Value, Container<Value, PrimaryKey>>) buckets())
 					.tailMap(value, true).values().iterator();
 			while (it.hasNext()) {
 				keys.addAll(historical ? it.next().getValues(timestamp) : it
@@ -167,7 +180,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == LESS_THAN) {
-			Iterator<Bucket<Value, PrimaryKey>> it = ((TreeMap<Value, Bucket<Value, PrimaryKey>>) buckets())
+			Iterator<Container<Value, PrimaryKey>> it = ((TreeMap<Value, Container<Value, PrimaryKey>>) buckets())
 					.headMap(value, false).values().iterator();
 			while (it.hasNext()) {
 				keys.addAll(historical ? it.next().getValues(timestamp) : it
@@ -175,7 +188,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == GREATER_THAN_OR_EQUALS) {
-			Iterator<Bucket<Value, PrimaryKey>> it = ((TreeMap<Value, Bucket<Value, PrimaryKey>>) buckets())
+			Iterator<Container<Value, PrimaryKey>> it = ((TreeMap<Value, Container<Value, PrimaryKey>>) buckets())
 					.headMap(value, true).values().iterator();
 			while (it.hasNext()) {
 				keys.addAll(historical ? it.next().getValues(timestamp) : it
@@ -186,7 +199,7 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			Preconditions.checkArgument(values.length > 1,
 					"You must specify two arguments for the BETWEEN operator.");
 			Value value2 = values[1];
-			Iterator<Bucket<Value, PrimaryKey>> it = ((TreeMap<Value, Bucket<Value, PrimaryKey>>) buckets())
+			Iterator<Container<Value, PrimaryKey>> it = ((TreeMap<Value, Container<Value, PrimaryKey>>) buckets())
 					.subMap(value, true, value2, false).values().iterator();
 			while (it.hasNext()) {
 				keys.addAll(historical ? it.next().getValues(timestamp) : it
@@ -194,10 +207,10 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == REGEX) {
-			Iterator<Bucket<Value, PrimaryKey>> it = buckets().values()
+			Iterator<Container<Value, PrimaryKey>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
-				Bucket<Value, PrimaryKey> bucket = it.next();
+				Container<Value, PrimaryKey> bucket = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());
 				Matcher m = p.matcher(bucket.getKey().toString());
 				if(m.matches()) {
@@ -207,10 +220,10 @@ final class Field extends Tuple<Value, PrimaryKey> {
 			}
 		}
 		else if(operator == NOT_REGEX) {
-			Iterator<Bucket<Value, PrimaryKey>> it = buckets().values()
+			Iterator<Container<Value, PrimaryKey>> it = buckets().values()
 					.iterator();
 			while (it.hasNext()) {
-				Bucket<Value, PrimaryKey> bucket = it.next();
+				Container<Value, PrimaryKey> bucket = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());
 				Matcher m = p.matcher(bucket.getKey().toString());
 				if(!m.matches()) {
@@ -227,11 +240,11 @@ final class Field extends Tuple<Value, PrimaryKey> {
 	}
 
 	/**
-	 * A single element within a {@link Field}.
+	 * A single element within a {@link SecondaryIndex}.
 	 * 
 	 * @author jnelson
 	 */
-	final static class Element extends Bucket<Value, PrimaryKey> {
+	final static class Element extends Container<Value, PrimaryKey> {
 
 		/**
 		 * Construct a new instance. Use this constructor when

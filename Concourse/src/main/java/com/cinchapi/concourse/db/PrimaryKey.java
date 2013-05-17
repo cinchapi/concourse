@@ -28,7 +28,7 @@ import com.google.common.primitives.UnsignedLongs;
  * The primary identifier for a {@link FileRow}.
  * </p>
  * <p>
- * A key is {@link Storable} as the content of a {@link ColumnCell}. Each key is
+ * A key is {@link Containable} as the content of a {@link ColumnCell}. Each key is
  * an unsigned 8 byte long paired with an 8 byte timestamp. The total required
  * storage space is {@value #SIZE_IN_BYTES} bytes.
  * </p>
@@ -41,7 +41,7 @@ import com.google.common.primitives.UnsignedLongs;
 @Immutable
 final class PrimaryKey extends Number implements
 		Comparable<PrimaryKey>,
-		Storable {
+		Containable {
 	// NOTE: This class extends Number so that it can be treated like other
 	// numerical values during comparisons. Whenever a cell contains a relation,
 	// the related Key is stored as a {@link Value} which is expected to be
@@ -193,12 +193,12 @@ final class PrimaryKey extends Number implements
 
 	@Override
 	public boolean isForStorage() {
-		return Storables.isForStorage(this);
+		return Containables.isForStorage(this);
 	}
 
 	@Override
 	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
+		return Containables.isNotForStorage(this);
 	}
 
 	@Override
@@ -230,10 +230,10 @@ final class PrimaryKey extends Number implements
 	 *         less than, equal to, or greater than the specified object.
 	 * @see {@link #compareTo(Value)}
 	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Storables#compare(Storable, Storable)}
+	 * @see {@link Containables#compare(Containable, Containable)}
 	 */
 	int compareTo(PrimaryKey o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
+		return logically ? compareTo(o) : Containables.compare(this, o);
 	}
 
 	/**
