@@ -12,30 +12,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.core;
 
-import java.util.Comparator;
-
-import com.cinchapi.common.math.Numbers;
+import com.cinchapi.concourse.Transaction;
 
 /**
- * A {@link Comparator} that sorts values logically.
  * 
- * @see {@link Value#compareToLogically(Value)}
+ * 
+ * @author jnelson
  */
-class ValueComparator implements Comparator<Value> {
-
-	@Override
-	public int compare(Value o1, Value o2) {
-		if(o1.getQuantity() instanceof Number
-				&& o2.getQuantity() instanceof Number) {
-			return Numbers.compare((Number) o1.getQuantity(),
-					(Number) o2.getQuantity());
-		}
-		else {
-			return o1.getQuantity().toString()
-					.compareTo(o2.getQuantity().toString());
-		}
-	}
+public interface Transactional {
+	
+	public Transaction startTransaction();
 
 }

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.core;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -25,6 +25,7 @@ import org.mockito.Mockito;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.util.Strings;
+import com.cinchapi.concourse.db.Sequence;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;

@@ -12,7 +12,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.core;
+
 
 /**
  * The type contained within a {@link Value}.
