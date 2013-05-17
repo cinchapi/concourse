@@ -25,7 +25,6 @@ import org.mockito.Mockito;
 import com.cinchapi.common.io.IterableByteSequences;
 import com.cinchapi.common.math.Numbers;
 import com.cinchapi.common.util.Strings;
-import com.cinchapi.concourse.db.Sequence;
 import com.cinchapi.concourse.io.ByteSized;
 import com.cinchapi.concourse.io.ByteSizedCollections;
 import com.google.common.base.Objects;

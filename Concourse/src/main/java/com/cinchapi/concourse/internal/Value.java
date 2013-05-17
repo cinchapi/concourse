@@ -38,7 +38,7 @@ import static com.google.common.base.Preconditions.*;
  * <p>
  * <h2>Storage Requirements</h2>
  * Each Value requires at least {@value #MIN_SIZE_IN_BYTES} bytes of space in
- * addition to type specific requirements:
+ * addition to the following type specific requirements:
  * <ul>
  * <li>BOOLEAN requires an additional 1 byte</li>
  * <li>DOUBLE requires an additional 8 bytes</li>

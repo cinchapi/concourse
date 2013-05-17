@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.internal;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -22,12 +22,14 @@ import java.util.Set;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.lock.Lock;
 import com.cinchapi.common.lock.Lockable;
+import com.cinchapi.concourse.db.LockableBucket;
+import com.cinchapi.concourse.db.SuperString;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
  * <p>
- * A Record is a {@link Sequence} that represents a logical grouping of related
+ * A Record is a {@link Collection} that represents a logical grouping of related
  * data in the form of field names mapped to values. Records are optimized for
  * high levels of concurrency by offering external callers field level
  * read/write locking.
@@ -41,7 +43,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-final class Collection extends Sequence<SuperString, Value> {
+final class Collection extends Collection<SuperString, Value> {
 
 	/**
 	 * Return the row that is located by {@code key}.

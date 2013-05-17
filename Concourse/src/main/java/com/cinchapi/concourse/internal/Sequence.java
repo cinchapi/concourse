@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.internal;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,26 +44,26 @@ import static com.cinchapi.concourse.conf.Constants.*;
 
 /**
  * <p>
- * A {@code Tuple} is a {@link Bucket} based abstract collection that maps keys
- * to values.
+ * A {@code Sequence} is a {@link Container} series that is exposed through an
+ * interface that maps keys to values.
  * </p>
  * <p>
- * Each Tuple is identified by a {@code locator} and is stored in a distinct
- * file<sup>1</sup> on disk. The entire tuple is deserialized or loaded from a
- * cache for each relevant read or write request. To afford the caller
+ * Each Sequence is identified by a {@code locator} and is stored in a distinct
+ * file<sup>1</sup> on disk. The entire sequence is deserialized or loaded from
+ * a cache for each relevant read or write request. To afford the caller
  * flexibility<sup>2</sup>, changes are not automatically flushed to disk, but
  * must be done explicitly by calling {@link #fsync()}.
  * </p>
- * <sup>1</sup> - Tuples are randomly grouped into locales based on the
+ * <sup>1</sup> - Sequences are randomly grouped into locales based on the
  * {@code locator}.<br>
- * <sup>2</sup> - Syncing data to disk read locks the entire tuple, so it is
+ * <sup>2</sup> - Syncing data to disk read locks the entire sequence, so it is
  * ideal to give the caller discretion with the bottleneck.
  * <p>
- * In memory, each tuple maintains a mapping of key names to buckets. A tuple
- * can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its lifetime, but
- * in actuality this limit is lower because the size of a bucket can very widely
- * and is guaranteed to increase with every revision. Therefore it is more
- * useful to use the maximum allowable storage as a guide.
+ * In memory, each sequence maintains a mapping of key names to buckets. A
+ * sequence can hold up to {@value #MAX_NUM_BUCKETS} buckets throughout its
+ * lifetime, but in actuality this limit is lower because the size of a bucket
+ * can very widely and is guaranteed to increase with every revision. Therefore
+ * it is more useful to use the maximum allowable storage as a guide.
  * </p>
  * 
  * 
@@ -71,14 +71,14 @@ import static com.cinchapi.concourse.conf.Constants.*;
  * @param <K> - the key type
  * @param <V> - the value type
  */
-abstract class Sequence<K extends ByteSized, V extends Storable> implements
+abstract class Sequence<K extends ByteSized, V extends Containable> implements
 		IterableByteSequences,
 		Persistable,
 		Lockable {
 
 	/*
 	 * A larger name length allows more locales (and therefore a smaller
-	 * locale:tuple ratio), however the filesystem can act funny if a single
+	 * locale:sequence ratio), however the filesystem can act funny if a single
 	 * directory has too many files. This number should seek to have the
 	 * locale:row ratio that is similar to the number of possible locales while
 	 * being mindful of not having too many files in a single directory.
@@ -97,19 +97,19 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	protected static final String LOCALE_HOME = "0";
 
 	/**
-	 * The maximum allowable size of a tuple. This limitation exists because
+	 * The maximum allowable size of a sequence. This limitation exists because
 	 * the
-	 * size of the tuple is encoded as an integer.
+	 * size of the sequence is encoded as an integer.
 	 */
 	public static final int MAX_SIZE_IN_BYTES = Integer.MAX_VALUE;
 
 	/**
-	 * The weighted maximum number of buckets that can exist in a tuple.
+	 * The weighted maximum number of buckets that can exist in a sequence.
 	 * In actuality, this limit is much lower because the size of a bucket can
 	 * very widely.
 	 */
 	public static final int MAX_NUM_BUCKETS = MAX_SIZE_IN_BYTES
-			/ Bucket.WEIGHTED_SIZE_IN_BYTES;
+			/ Container.WEIGHTED_SIZE_IN_BYTES;
 	private static final int INITIAL_CAPACITY = 16;
 
 	/*
@@ -119,17 +119,17 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * internal Map anyway and managing keys here means that the Bucket
 	 * abstraction doesn't need to worry about hashCode(), equals() and
 	 * compareTo() methods (these can be handled by implementations of the
-	 * Tuple abstraction as necessary).
+	 * Sequence abstraction as necessary).
 	 * 
 	 * Buckets should never be removed from the map. Therefore the only point of
 	 * thread contention is insertion, which is accounted for in the
 	 * {@link #newBucket()} method using a local write lock.
 	 */
-	private final Map<K, Bucket<K, V>> buckets;
+	private final Map<K, Container<K, V>> buckets;
 
 	/*
 	 * This is the absolute path filename, which is derived directly from the
-	 * locator (meaning we don't have to store the locator with the tuple).
+	 * locator (meaning we don't have to store the locator with the sequence).
 	 */
 	private transient final String filename;
 	private transient final ReentrantReadWriteLock locksmith = new ReentrantReadWriteLock();
@@ -137,7 +137,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * Construct a new instance. This constructor can be used to create a
-	 * new/empty tuple or to deserialize an existing tuple identified by
+	 * new/empty sequence or to deserialize an existing sequence identified by
 	 * {@code locator}.
 	 * 
 	 * @param locator
@@ -152,7 +152,8 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 		}
 		catch (IOException e) {
 			log.error("An error occured while trying to "
-					+ "deserialize tuple {} from {}: {}", locator, filename, e);
+					+ "deserialize sequence {} from {}: {}", locator, filename,
+					e);
 			throw new ConcourseRuntimeException(e);
 		}
 	}
@@ -189,7 +190,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 		Lock lock = readLock();
 		try {
 			int size = 0;
-			Iterator<Bucket<K, V>> it = buckets.values().iterator();
+			Iterator<Container<K, V>> it = buckets.values().iterator();
 			while (it.hasNext()) {
 				size += it.next().size();
 			}
@@ -221,41 +222,43 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * 
 	 * @return the collection of buckets
 	 */
-	protected Map<K, Bucket<K, V>> buckets() {
+	protected Map<K, Container<K, V>> buckets() {
 		return Collections.unmodifiableMap(buckets);
 	}
 
 	/**
-	 * Return the appropriate {@link Bucket} from {@code bytes}.
+	 * Return the appropriate {@link Container} from {@code bytes}.
 	 * 
 	 * @return the {@code bucket}
 	 */
-	protected abstract Bucket<K, V> getBucketFromByteSequence(ByteBuffer bytes);
+	protected abstract Container<K, V> getBucketFromByteSequence(
+			ByteBuffer bytes);
 
 	/**
-	 * Return a {@code mock} bucket by calling {@link Bucket#mock(Class)} method
+	 * Return a {@code mock} bucket by calling {@link Container#mock(Class)}
+	 * method
 	 * with the appropriate class as input. Mock buckets are used as an
 	 * abstraction during read requests for buckets that do not exist so that
 	 * the caller doesn't have to perform explicit null or existence checks).
 	 * 
 	 * @return the mock {@code bucket}
 	 */
-	protected abstract Bucket<K, V> getMockBucket();
+	protected abstract Container<K, V> getMockBucket();
 
 	/**
 	 * Return a new bucket identified by {@code key}.
 	 * 
 	 * @return the new {@code bucket}
 	 */
-	protected abstract Bucket<K, V> getNewBucket(K key);
+	protected abstract Container<K, V> getNewBucket(K key);
 
 	/**
-	 * Return a newly initialized map to hold the buckets in the tuple.
+	 * Return a newly initialized map to hold the buckets in the sequence.
 	 * 
 	 * @param expectedSize
 	 * @return the buckets map
 	 */
-	protected abstract Map<K, Bucket<K, V>> getNewBuckets(int expectedSize);
+	protected abstract Map<K, Container<K, V>> getNewBuckets(int expectedSize);
 
 	/**
 	 * Add {@code value} to the bucket identified by {@code key}. If necessary,
@@ -270,7 +273,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 
 	/**
 	 * Flush all the data back to disk. This operation will read lock the entire
-	 * tuple and overwrite the content of {@link #filename} with the data
+	 * sequence and overwrite the content of {@link #filename} with the data
 	 * that currently exists in memory.
 	 */
 	/*
@@ -301,7 +304,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 		}
 		else {
 			// An empty collection of {#link #buckets} usually indicates that
-			// the tuple was deserialized from a read operation before a
+			// the sequence was deserialized from a read operation before a
 			// write operation occurred, so it is okay for me to
 			// delete the file at sync time if there have not been any writes.
 			new File(filename).delete();
@@ -314,7 +317,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * @param key
 	 * @return the {@code bucket}
 	 */
-	final Bucket<K, V> getBucket(K key) {
+	final Container<K, V> getBucket(K key) {
 		return getBucket(key, false);
 	}
 
@@ -325,11 +328,11 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * @param key
 	 * @param value
 	 * @throws IllegalArgumentException if there is no bucket identified by
-	 *             {@code key} in the tuple
+	 *             {@code key} in the sequence
 	 */
 	void remove(K key, V value) throws IllegalArgumentException {
 		checkArgument(buckets.containsKey(key),
-				"There is no bucket identified by {} in the tuple", key);
+				"There is no bucket identified by {} in the sequence", key);
 		getBucket(key).remove(value);
 	}
 
@@ -341,7 +344,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * @param create
 	 * @return the {@code bucket}
 	 */
-	private Bucket<K, V> getBucket(K key, boolean create) {
+	private Container<K, V> getBucket(K key, boolean create) {
 		return buckets.containsKey(key) ? buckets.get(key)
 				: (create ? insert(key) : getMockBucket());
 	}
@@ -352,18 +355,18 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	 * @param filename
 	 * @return the {@code buckets}
 	 */
-	private Map<K, Bucket<K, V>> getBucketsFromFile(String filename) {
+	private Map<K, Container<K, V>> getBucketsFromFile(String filename) {
 		try {
 			FileChannel channel = new FileInputStream(filename).getChannel();
 			int size = (int) channel.size();
 			ByteBuffer bytes = ByteBuffer.allocate(size);
 			channel.read(bytes);
-			Map<K, Bucket<K, V>> buckets = getNewBuckets(size
-					/ Bucket.WEIGHTED_SIZE_IN_BYTES);
+			Map<K, Container<K, V>> buckets = getNewBuckets(size
+					/ Container.WEIGHTED_SIZE_IN_BYTES);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
 					.over(bytes.array());
 			while (bsit.hasNext()) {
-				Bucket<K, V> bucket = getBucketFromByteSequence(bsit.next());
+				Container<K, V> bucket = getBucketFromByteSequence(bsit.next());
 				buckets.put(bucket.getKey(), bucket);
 			}
 			return buckets;
@@ -376,13 +379,13 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	}
 
 	/**
-	 * Put a new {@code bucket} identified by {@code key} to the tuple.
+	 * Put a new {@code bucket} identified by {@code key} to the sequence.
 	 * 
 	 * @param key
 	 * @return the new {@code bucket}
 	 */
-	private Bucket<K, V> insert(K key) {
-		Bucket<K, V> bucket = getNewBucket(key);
+	private Container<K, V> insert(K key) {
+		Container<K, V> bucket = getNewBucket(key);
 		Lock lock = writeLock();
 		try {
 			buckets.put(key, bucket);
@@ -401,7 +404,7 @@ abstract class Sequence<K extends ByteSized, V extends Storable> implements
 	private static abstract class Utilities {
 
 		/**
-		 * Return the absolute path of the {@code filename} for the tuple
+		 * Return the absolute path of the {@code filename} for the sequence
 		 * identified by {@code locator}.
 		 * 
 		 * @param locator
