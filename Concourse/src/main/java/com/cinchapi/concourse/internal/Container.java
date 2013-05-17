@@ -83,17 +83,17 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	static <T extends Container> T mock(Class<T> type) {
-		T cell = Mockito.mock(type);
-		Mockito.doNothing().when(cell).add(any(Containable.class));
-		Mockito.doNothing().when(cell).remove(any(Containable.class));
-		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+		T container = Mockito.mock(type);
+		Mockito.doNothing().when(container).add(any(Containable.class));
+		Mockito.doNothing().when(container).remove(any(Containable.class));
+		Mockito.doThrow(UnsupportedOperationException.class).when(container)
 				.getBytes();
-		Mockito.doThrow(UnsupportedOperationException.class).when(cell).size();
-		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+		Mockito.doThrow(UnsupportedOperationException.class).when(container).size();
+		Mockito.doThrow(UnsupportedOperationException.class).when(container)
 				.getKeyFromByteSequence(any(ByteBuffer.class));
-		Mockito.doThrow(UnsupportedOperationException.class).when(cell)
+		Mockito.doThrow(UnsupportedOperationException.class).when(container)
 				.getValueFromByteSequence(any(ByteBuffer.class));
-		return cell;
+		return container;
 	}
 
 	private static final int FIXED_SIZE_IN_BYTES = 3 * (Integer.SIZE / 8); // keySize,
@@ -360,14 +360,14 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 	 * 
 	 * @author jnelson
 	 */
-	private abstract class Content implements IterableByteSequences, ByteSized {
+	private abstract class Component implements IterableByteSequences, ByteSized {
 
 		private final List<V> values = Lists.newArrayList();
 
 		/**
 		 * Construct a new instance.
 		 */
-		protected Content() { /* Do Nothing */}
+		protected Component() { /* Do Nothing */}
 
 		/**
 		 * Construct a new instance using a byte buffer that conforms to the
@@ -375,7 +375,7 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 		 * 
 		 * @param bytes
 		 */
-		protected Content(ByteBuffer bytes) {
+		protected Component(ByteBuffer bytes) {
 			byte[] array = new byte[bytes.remaining()];
 			bytes.get(array);
 			IterableByteSequences.ByteSequencesIterator bsit = IterableByteSequences.ByteSequencesIterator
@@ -389,7 +389,7 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 		@Override
 		public boolean equals(Object obj) {
 			if(obj.getClass().equals(this.getClass())) {
-				final Content other = (Content) obj;
+				final Component other = (Component) obj;
 				return Objects.equal(values, other.values);
 			}
 			return false;
@@ -484,7 +484,7 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 	 * 
 	 * @author jnelson
 	 */
-	private final class History extends Content {
+	private final class History extends Component {
 
 		/**
 		 * Construct a new instance.
@@ -580,7 +580,7 @@ abstract class Container<K extends ByteSized, V extends Containable> implements
 	 * 
 	 * @author jnelson
 	 */
-	private final class State extends Content {
+	private final class State extends Component {
 
 		/**
 		 * Construct a new instance.

@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this project. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.cinchapi.concourse.db;
+package com.cinchapi.concourse.internal;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -27,7 +27,7 @@ import com.cinchapi.concourse.io.ByteSized;
  * 
  * @author jnelson
  */
-abstract class LockableBucket<K extends ByteSized, V extends Containable> extends
+abstract class LockableContainer<K extends ByteSized, V extends Containable> extends
 		Container<K, V> implements Lockable {
 
 	private final transient ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -37,7 +37,7 @@ abstract class LockableBucket<K extends ByteSized, V extends Containable> extend
 	 * 
 	 * @param key
 	 */
-	LockableBucket(K key) {
+	LockableContainer(K key) {
 		super(key);
 	}
 
@@ -48,7 +48,7 @@ abstract class LockableBucket<K extends ByteSized, V extends Containable> extend
 	 * 
 	 * @param bytes
 	 */
-	LockableBucket(ByteBuffer bytes) {
+	LockableContainer(ByteBuffer bytes) {
 		super(bytes);
 	}
 

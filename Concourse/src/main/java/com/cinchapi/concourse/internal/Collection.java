@@ -22,7 +22,6 @@ import java.util.Set;
 import com.cinchapi.common.cache.ObjectReuseCache;
 import com.cinchapi.common.lock.Lock;
 import com.cinchapi.common.lock.Lockable;
-import com.cinchapi.concourse.db.LockableBucket;
 import com.cinchapi.concourse.db.SuperString;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -295,7 +294,7 @@ final class Collection extends Collection<SuperString, Value> {
 	 * 
 	 * @author jnelson
 	 */
-	final static class Element extends LockableBucket<SuperString, Value> implements
+	final static class Element extends LockableContainer<SuperString, Value> implements
 			Lockable {
 
 		/**

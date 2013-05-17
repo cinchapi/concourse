@@ -19,11 +19,13 @@ import java.util.Comparator;
 import com.cinchapi.common.math.Numbers;
 
 /**
- * A {@link Comparator} that sorts values logically.
+ * A {@link Comparator} that sorts {@link Value} objects logically using weak
+ * typing.
  * 
  * @see {@link Value#compareToLogically(Value)}
+ * @author jnelson
  */
-class ValueComparator implements Comparator<Value> {
+class WeakTypingValueComparator implements Comparator<Value> {
 
 	@Override
 	public int compare(Value o1, Value o2) {

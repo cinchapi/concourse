@@ -139,7 +139,7 @@ final class Value implements Comparable<Value>, Containable {
 			+ (Long.SIZE / 8);
 	private static final int MAX_QUANTITY_SIZE_IN_BYTES = Integer.MAX_VALUE
 			- FIXED_SIZE_IN_BYTES;
-	private static final ValueComparator comparator = new ValueComparator();
+	private static final WeakTypingValueComparator comparator = new WeakTypingValueComparator();
 
 	/**
 	 * <p>
