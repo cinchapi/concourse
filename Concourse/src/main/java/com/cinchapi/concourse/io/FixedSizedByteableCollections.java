@@ -19,31 +19,30 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 
-import com.cinchapi.common.io.IterableByteSequences;
 
 /**
- * Utility class for collections of {@link ByteSized} objects.
+ * Utility class for fixed size collections of {@link Byteable} objects.
  * 
  * @author jnelson
  */
-public class ByteSizedCollections {
+public class FixedSizedByteableCollections {
 
 	/**
 	 * Return a byte array that represents the collection and conforms to the
-	 * {@link IterableByteSequences} interface.
+	 * {@link FixedSizeByteableCollection} interface.
 	 * 
 	 * @param collection
+	 * @param sizePerElement
 	 * @return a byte array
 	 */
 	public static byte[] toByteArray(
-			Collection<? extends ByteSized> collection) {
+			Collection<? extends Byteable> collection, int sizePerElement) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		for (ByteSized object : collection) {
+		out.write(collection.size());
+		out.write(sizePerElement);
+		for (Byteable object : collection) {
 			byte[] bytes = object.getBytes();
 			try {
-				// for some reason writing the length of the array doesn't work
-				// properly, so it must be wrapped in a byte buffer :-/
-				out.write(ByteBuffer.allocate(4).putInt(bytes.length).array());
 				out.write(bytes);
 			}
 			catch (IOException e) {
@@ -55,14 +54,15 @@ public class ByteSizedCollections {
 
 	/**
 	 * Return a byte buffer that represents the collection and conforms to the
-	 * {@link IterableByteSequences} interface.
+	 * {@link FixedSizeByteableCollection} interface.
 	 * 
 	 * @param collection
+	 * @param sizePerElement
 	 * @return a byte buffer
 	 */
 	public static ByteBuffer toByteBuffer(
-			Collection<? extends ByteSized> collection) {
-		return ByteBuffer.wrap(toByteArray(collection));
+			Collection<? extends Byteable> collection, int sizePerElement) {
+		return ByteBuffer.wrap(toByteArray(collection, sizePerElement));
 	}
 
 }

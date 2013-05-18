@@ -19,31 +19,30 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 
-import com.cinchapi.common.io.FixedSizeIterableByteSequences;
-
 /**
- * Utility class for fixed size collections of {@link ByteSized} objects.
+ * This class contains utilities for encoding collections of {@link Byteable}
+ * objects into a {@link ByteableCollection} compatible byte array or byte
+ * buffer.
  * 
  * @author jnelson
  */
-public class FixedByteSizedCollections {
+public class ByteableCollections {
 
 	/**
 	 * Return a byte array that represents the collection and conforms to the
-	 * {@link FixedSizeIterableByteSequences} interface.
+	 * {@link ByteableCollection} interface.
 	 * 
 	 * @param collection
-	 * @param sizePerElement
 	 * @return a byte array
 	 */
-	public static byte[] toByteArray(
-			Collection<? extends ByteSized> collection, int sizePerElement) {
+	public static byte[] toByteArray(Collection<? extends Byteable> collection) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		out.write(collection.size());
-		out.write(sizePerElement);
-		for (ByteSized object : collection) {
+		for (Byteable object : collection) {
 			byte[] bytes = object.getBytes();
 			try {
+				// for some reason writing the length of the array doesn't work
+				// properly, so it must be wrapped in a byte buffer :-/
+				out.write(ByteBuffer.allocate(4).putInt(bytes.length).array());
 				out.write(bytes);
 			}
 			catch (IOException e) {
@@ -55,15 +54,14 @@ public class FixedByteSizedCollections {
 
 	/**
 	 * Return a byte buffer that represents the collection and conforms to the
-	 * {@link FixedSizeIterableByteSequences} interface.
+	 * {@link ByteableCollection} interface.
 	 * 
 	 * @param collection
-	 * @param sizePerElement
 	 * @return a byte buffer
 	 */
 	public static ByteBuffer toByteBuffer(
-			Collection<? extends ByteSized> collection, int sizePerElement) {
-		return ByteBuffer.wrap(toByteArray(collection, sizePerElement));
+			Collection<? extends Byteable> collection) {
+		return ByteBuffer.wrap(toByteArray(collection));
 	}
 
 }

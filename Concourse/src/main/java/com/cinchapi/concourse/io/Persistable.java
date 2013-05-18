@@ -15,21 +15,19 @@
 package com.cinchapi.concourse.io;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 
 /**
  * An object that can be written to a {@link FileChannel}.
  * 
  * @author jnelson
  */
-public interface Persistable extends ByteSized {
+public interface Persistable extends Byteable {
 
 	/**
 	 * Encodes the object into a sequence for the purpose of writing the bytes
 	 * to a {@link FileChannel}. This method is called from
-	 * {@link Writer#write(Persistable, FileChannel)}.
+	 * {@link Persistables#write(Persistable, FileChannel)}.
 	 */
 	@Override
 	public byte[] getBytes();
@@ -40,37 +38,13 @@ public interface Persistable extends ByteSized {
 	 * the {@link #size()} of the value. The caller is responsible for ensuring
 	 * that the channel is in the correct position before and after this method
 	 * has run. In general, call
-	 * {@link Persistable.Writer#write(Persistable, FileChannel)} from this
+	 * {@link Persistables#write(Persistable, FileChannel)} from this
 	 * method.
 	 * 
 	 * @param channel
 	 * @throws IOException
-	 * @see {@link Persistable.Writer#write(Persistable, FileChannel)}
+	 * @see {@link Persistables#write(Persistable, FileChannel)}
 	 */
 	public void writeTo(FileChannel channel) throws IOException;
-
-	/**
-	 * A class that implements the {@link Persistable#writeTo(FileChannel)}
-	 * method.
-	 * 
-	 * @author jnelson
-	 */
-	public class Writer {
-
-		/**
-		 * Write {@code obj} to {@code channel} in accordance with
-		 * {@link Persistable#writeTo(FileChannel)}.
-		 * 
-		 * @param obj
-		 * @param channel
-		 * @throws IOException
-		 */
-		public static void write(Persistable obj, FileChannel channel)
-				throws IOException {
-			FileLock lock = channel.lock(channel.position(), obj.size(), false);
-			channel.write(ByteBuffer.wrap(obj.getBytes()));
-			lock.release();
-		}
-	}
 
 }

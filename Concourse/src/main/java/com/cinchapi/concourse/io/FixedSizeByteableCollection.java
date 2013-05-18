@@ -14,25 +14,26 @@
  */
 package com.cinchapi.concourse.io;
 
+
 /**
- * An object that can return the number of bytes used to represent it in memory.
+ * A {@link IterableByteSequences} object where every sequence is the same size.
+ * Therefore, it only necessary to have 4 bytes at the beginning of the
+ * collection that specifies how many sequences are present and another 4 bytes
+ * the specifies the size of each sequence once (instead of 4 bytes before every
+ * sequence in the collection).
  * 
  * @author jnelson
  */
-public interface ByteSized {
+public interface FixedSizeByteableCollection extends ByteableCollection {
 
 	/**
-	 * Return the total number of bytes used to represent this object.
+	 * Return a {@link FixedSizeByteableCollectionIterator} over an array of
+	 * {@code bytes}.
 	 * 
-	 * @return the number of bytes.
+	 * @param bytes
+	 * @return the iterator.
 	 */
-	public int size();
-
-	/**
-	 * Encodes the object into a sequence of bytes.
-	 * 
-	 * @return the byte sequence.
-	 */
-	public byte[] getBytes();
+	@Override
+	public FixedSizeByteableCollectionIterator iterator();
 
 }
