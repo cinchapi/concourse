@@ -32,6 +32,7 @@ import org.cinchapi.common.annotate.UtilityClass;
 import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.ByteableCollections;
+import org.cinchapi.common.io.Files;
 
 /**
  * Tools used in the {@link Transaction} class.
@@ -68,6 +69,7 @@ final class Transactions {
 		out.write(transaction.locks, TransactionLock.SIZE);
 		out.write(((Limbo) transaction.buffer).writes); /* Authorized */
 		out.close();
+		Files.open(file);
 		return out.toMappedByteBuffer(file, 0);
 	}
 

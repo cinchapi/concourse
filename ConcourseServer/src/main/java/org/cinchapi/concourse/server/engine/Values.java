@@ -72,8 +72,10 @@ abstract class Values {
 		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
 		TObject object = quantityCache.get(cacheKey);
 		if(object == null) {
-			object = new TObject(ByteBuffers.slice(buffer, buffer.remaining()),
-					type);
+			// Must allocate a heap buffer because TObject assumes it has a
+			// backing array.
+			object = new TObject(ByteBuffer.allocate(buffer.remaining()).put(
+					buffer), type);
 			quantityCache.put(object, cacheKey);
 		}
 		return object;

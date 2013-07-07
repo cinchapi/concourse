@@ -43,6 +43,8 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.Convert;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -358,6 +360,9 @@ public interface Concourse {
 	 */
 	public final static class Client implements Concourse {
 
+		private static final Logger log = LoggerFactory
+				.getLogger(Concourse.class);
+
 		/**
 		 * All configuration information is contained in this prefs file.
 		 */
@@ -375,8 +380,6 @@ public interface Concourse {
 		 */
 		private static DateTime now = new DateTime(0);
 
-		private final String host;
-		private final int port;
 		private final String username;
 		private final String password;
 
@@ -408,16 +411,44 @@ public interface Concourse {
 		 * interaction.
 		 */
 		public Client() {
-			this.host = config.getString("CONCOURSE_SERVER_HOST", "localhost");
-			this.port = config.getInt("CONCOURSE_SERVER_PORT", 1717);
-			this.username = config.getString("USERNAME", "admin");
-			this.password = config.getString("PASSWORD", "admin");
+			this(config.getString("CONCOURSE_SERVER_HOST", "localhost"), config
+					.getInt("CONCOURSE_SERVER_PORT", 1717), config.getString(
+					"USERNAME", "admin"), config.getString("PASSWORD", "admin"));
+		}
+
+		/**
+		 * Create a new Client connection to a Concourse server and return a
+		 * handler to facilitate database interaction.
+		 * 
+		 * @param host
+		 * @param port
+		 * @param username
+		 * @param password
+		 */
+		private Client(String host, int port, String username, String password) {
+			this.username = username;
+			this.password = password;
 			TTransport transport = new TSocket(host, port);
 			try {
 				transport.open();
 				TProtocol protocol = new TBinaryProtocol(transport);
 				this.client = new ConcourseService.Client(protocol);
 				authenticate();
+				log.info("Connected to Concourse server at {}:{}", host, port);
+				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
+
+					@Override
+					public void run() {
+						if(transaction != null) {
+							abort();
+							log.warn("Prior to shutdown, the client was in the middle "
+									+ "of an uncommitted transaction. That transaction "
+									+ "has been aborted and all of its uncommited changes "
+									+ "have been lost.");
+						}
+					}
+
+				});
 			}
 			catch (TTransportException e) {
 				throw Throwables.propagate(e);
@@ -431,6 +462,7 @@ public interface Concourse {
 				@Override
 				public Void call() throws Exception {
 					client.abort(creds, transaction);
+					transaction = null;
 					return null;
 				}
 
@@ -510,6 +542,11 @@ public interface Concourse {
 		}
 
 		@Override
+		public Set<String> describe(long record) {
+			return describe(record, now);
+		}
+
+		@Override
 		public Set<String> describe(final long record, final DateTime timestamp) {
 			return execute(new Callable<Set<String>>() {
 
@@ -520,6 +557,11 @@ public interface Concourse {
 				}
 
 			});
+		}
+
+		@Override
+		public Set<Object> fetch(String key, long record) {
+			return fetch(key, record, now);
 		}
 
 		@Override
@@ -566,6 +608,11 @@ public interface Concourse {
 				}
 
 			});
+		}
+
+		@Override
+		public Set<Long> find(String key, Operator operator, Object... values) {
+			return find(now, key, operator, values);
 		}
 
 		@Override
@@ -623,16 +670,30 @@ public interface Concourse {
 		}
 
 		@Override
+		public boolean set(String key, Object value, long record) {
+			Set<Object> values = fetch(key, record);
+			for (Object v : values) {
+				remove(key, v, record);
+			}
+			return add(key, value, record);
+		}
+
+		@Override
 		public void transaction() {
 			execute(new Callable<Void>() {
 
 				@Override
 				public Void call() throws Exception {
-					client.stage(creds);
+					transaction = client.stage(creds);
 					return null;
 				}
 
 			});
+		}
+
+		@Override
+		public boolean verify(String key, Object value, long record) {
+			return verify(key, value, record, now);
 		}
 
 		@Override
@@ -683,35 +744,6 @@ public interface Concourse {
 			catch (Exception e) {
 				throw Throwables.propagate(e);
 			}
-		}
-
-		@Override
-		public Set<String> describe(long record) {
-			return describe(record, now);
-		}
-
-		@Override
-		public Set<Object> fetch(String key, long record) {
-			return fetch(key, record, now);
-		}
-
-		@Override
-		public Set<Long> find(String key, Operator operator, Object... values) {
-			return find(now, key, operator, values);
-		}
-
-		@Override
-		public boolean set(String key, Object value, long record) {
-			Set<Object> values = fetch(key, record);
-			for (Object v : values) {
-				remove(key, v, record);
-			}
-			return add(key, value, record);
-		}
-
-		@Override
-		public boolean verify(String key, Object value, long record) {
-			return verify(key, value, record, now);
 		}
 	}
 

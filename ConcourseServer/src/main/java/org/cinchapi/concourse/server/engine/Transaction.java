@@ -36,6 +36,8 @@ import org.cinchapi.common.time.Time;
 import org.cinchapi.concourse.server.ServerConstants;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
@@ -75,6 +77,9 @@ public final class Transaction extends BufferingService {
 	public static Transaction start(Engine engine) {
 		return new Transaction(engine);
 	}
+
+	private static final Logger log = LoggerFactory
+			.getLogger(Transaction.class);
 
 	/**
 	 * The location where transaction backups are stored in order to enforce the
@@ -125,40 +130,7 @@ public final class Transaction extends BufferingService {
 	public void abort() {
 		open = false;
 		releaseLocks();
-	}
-
-	/**
-	 * Commit the changes in the Transaction to the database. This
-	 * operation will succeed if and only if all the contained reads/writes are
-	 * successfully applied to the current state of the database.
-	 * 
-	 * @return {@code true} if the Transaction was successfully committed
-	 */
-	public boolean commit() {
-		checkState(open, "Cannot commit a closed transaction");
-		open = false;
-		String backup = transactionStore + File.separator + Time.now() + ".txn";
-		Transactions.encodeAsByteBuffer(this, backup).force();
-		doCommit();
-		Files.delete(backup);
-		return true;
-	}
-
-	/**
-	 * Transport the writes to {@code destination} and release the held locks.
-	 */
-	private void doCommit() {
-		buffer.transport(destination);
-		releaseLocks();
-	}
-
-	/**
-	 * Release all the locks held by this Transaction.
-	 */
-	private void releaseLocks() {
-		for (Lock lock : locks) {
-			lock.release();
-		}
+		log.info("Aborted transaction {}", hashCode());
 	}
 
 	@Override
@@ -180,6 +152,27 @@ public final class Transaction extends BufferingService {
 		checkState(open, "Cannot modify a closed transaction");
 		locks.add((TransactionLock) destination.lockAndShare(key, record));
 		return super.audit(key, record);
+	}
+
+	/**
+	 * Commit the changes in the Transaction to the database. This
+	 * operation will succeed if and only if all the contained reads/writes are
+	 * successfully applied to the current state of the database.
+	 * 
+	 * @return {@code true} if the Transaction was successfully committed
+	 */
+	public boolean commit() {
+		checkState(open, "Cannot commit a closed transaction");
+		open = false;
+		String backup = transactionStore + File.separator + Time.now() + ".txn";
+		Transactions.encodeAsByteBuffer(this, backup).force();
+		log.info("Created backup for transaction {} at '{}'", hashCode(),
+				backup);
+		doCommit();
+		Files.delete(backup);
+		log.info("Deleted backup for transaction {} at '{}'", hashCode(),
+				backup);
+		return true;
 	}
 
 	@Override
@@ -265,6 +258,25 @@ public final class Transaction extends BufferingService {
 		checkState(open, "Cannot modify a closed transaction");
 		locks.add((TransactionLock) destination.lockAndShare(key, record));
 		return super.verify(key, value, record, timestamp);
+	}
+
+	/**
+	 * Transport the writes to {@code destination} and release the held locks.
+	 */
+	private void doCommit() {
+		log.info("Starting commit for transaction {}", hashCode());
+		buffer.transport(destination);
+		releaseLocks();
+		log.info("Finished commit for transaction {}", hashCode());
+	}
+
+	/**
+	 * Release all the locks held by this Transaction.
+	 */
+	private void releaseLocks() {
+		for (Lock lock : locks) {
+			lock.release();
+		}
 	}
 
 }

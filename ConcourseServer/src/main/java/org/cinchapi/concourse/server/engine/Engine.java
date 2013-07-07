@@ -103,7 +103,7 @@ public final class Engine extends BufferingService implements
 						+ "itself from backup and finish committing.", write);
 			}
 			else {
-				log.debug("Write {} was accepted by the Engine", write);
+				log.debug("'{}' was accepted by the Engine", write);
 			}
 		}
 		finally {

@@ -294,9 +294,12 @@ public class ConcourseServer implements ConcourseService.Iface {
 	@Override
 	public TransactionToken stage(AccessToken creds) throws TException {
 		authenticate(creds);
-		TransactionToken transaction = new TransactionToken(creds, Time.now());
-		transactions.put(transaction, engine.startTransaction());
-		return transaction;
+		TransactionToken token = new TransactionToken(creds, Time.now());
+		Transaction transaction = engine.startTransaction();
+		transactions.put(token, transaction);
+		log.info("Started a Transaction identifid by hashcode {}",
+				transaction.hashCode());
+		return token;
 	}
 
 	/**
@@ -305,7 +308,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	public void start() throws TTransportException {
-		log.info("The Concourse Server has started");
+		log.info("The Concourse server has started");
 		server.serve();
 
 	}
@@ -313,6 +316,8 @@ public class ConcourseServer implements ConcourseService.Iface {
 	public void stop() {
 		engine.shutdown();
 		server.stop();
+		log.info("The Concourse server has stoped");
+		System.exit(0);
 	}
 
 	@Override

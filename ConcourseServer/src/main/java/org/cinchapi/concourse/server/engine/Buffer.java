@@ -72,6 +72,11 @@ final class Buffer extends Limbo implements Transportable {
 	final MappedByteBuffer content;
 
 	/**
+	 * The amount of bytes that are currently occupied.
+	 */
+	private int occupied;
+
+	/**
 	 * Construct a Buffer that is backed by the default location, which is a
 	 * file called "buffer" in the DATA_HOME.
 	 */
@@ -105,10 +110,12 @@ final class Buffer extends Limbo implements Transportable {
 			Write write = Write.fromByteBuffer(it.next());
 			insert(write); // this will only record the write in memory and not
 							// the backingStore (because its already there!)
+			occupied += write.size() + 4;
 			log.debug("Found existing write '{}' in the Buffer", write);
 		}
-		log.info("Using Buffer at '{}' with a capacity of {} bytes",
-				backingStore, size);
+		log.info("Using Buffer at '{}' with a total capacity of {} bytes. "
+				+ "{} bytes are currently occupied.", backingStore, size,
+				occupied);
 	}
 
 	/**
@@ -182,6 +189,9 @@ final class Buffer extends Limbo implements Transportable {
 				Write write = transporter.next();
 				destination.accept(write);
 				transporter.ack();
+				log.info("Transported '{}' from the Buffer", write);
+				occupied -= write.size() - 4;
+				log.info("{} bytes of the Buffer are now occupied", occupied);
 			}
 		}
 		finally {
@@ -206,6 +216,8 @@ final class Buffer extends Limbo implements Transportable {
 				content.putInt(write.size());
 				content.put(write.getBytes());
 				content.force();
+				occupied += write.size() + 4;
+				log.info("{} bytes of the Buffer are now occupied", occupied);
 			}
 			else {
 				log.warn("Attempt to append '{}' to the Buffer failed "
