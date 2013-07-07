@@ -44,10 +44,10 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.engine.BufferingServices.*;
+import static org.cinchapi.concourse.server.engine.BufferedStores.*;
 
 /**
- * A {@code BufferingStore} holds data in a {@link Transportable} buffer before
+ * A {@link BufferedStore} holds data in a {@link Transportable} buffer before
  * making batch commits to some other permanent {@link Destination}.
  * <p>
  * Data is written to the buffer until the buffer is full, at which point the
@@ -63,7 +63,7 @@ import static org.cinchapi.concourse.server.engine.BufferingServices.*;
  */
 @PackagePrivate
 @ThreadSafe
-abstract class BufferingService implements
+abstract class BufferedStore implements
 		Readable,
 		Writable,
 		Revisioning,
@@ -98,7 +98,7 @@ abstract class BufferingService implements
 	 * @param transportable
 	 * @param destination
 	 */
-	protected BufferingService(Transportable transportable,
+	protected BufferedStore(Transportable transportable,
 			Destination destination) {
 		checkArgument(
 				!this.getClass().isAssignableFrom(destination.getClass()),

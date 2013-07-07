@@ -40,17 +40,17 @@ import static com.google.common.base.Preconditions.*;
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
  * transactions, versions writes and indexes data.
  * <p>
- * The Engine is a {@link BufferingService}. Writing to the {@link Database} is
+ * The Engine is a {@link BufferedStore}. Writing to the {@link Database} is
  * expensive because multiple index records must be deserialized, updated and
  * flushed back to disk for each revision. By using a {@link Buffer}, the Engine
- * can handles writes in a more efficient manner which minimal impact on Read
+ * can handle writes in a more efficient manner which minimal impact on Read
  * performance. The buffering system provides full CD guarantees.
  * </p>
  * 
  * @author jnelson
  */
 @ThreadSafe
-public final class Engine extends BufferingService implements
+public final class Engine extends BufferedStore implements
 		Transactional,
 		Destination {
 

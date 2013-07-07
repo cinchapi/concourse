@@ -39,7 +39,7 @@ interface Transportable extends Readable, Writable {
 	/**
 	 * Insert a write without performing validity checks in situations where the
 	 * normal checks are not appropriate and the caller has other means to
-	 * ensure the validity of the revision (i.e. a {@link BufferingService} that
+	 * ensure the validity of the revision (i.e. a {@link BufferedStore} that
 	 * must resolve reads from two sources). This method should
 	 * only be invoked from authorized callers.
 	 * 
@@ -54,7 +54,7 @@ interface Transportable extends Readable, Writable {
 	/**
 	 * Insert a write without performing validity checks in situations where the
 	 * normal checks are not appropriate and the caller has other means to
-	 * ensure the validity of the revision (i.e. a {@link BufferingService} that
+	 * ensure the validity of the revision (i.e. a {@link BufferedStore} that
 	 * must resolve reads from two sources). This method should
 	 * only be invoked from authorized callers.
 	 * 

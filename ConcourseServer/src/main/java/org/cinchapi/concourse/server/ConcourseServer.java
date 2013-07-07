@@ -51,8 +51,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
- * Accepts requests from clients and servers to read and write data in
- * Concourse. The server is configured with a {@code concourse.prefs} file.
+ * Accepts requests from clients to read and write data in Concourse. The server
+ * is configured with a {@code concourse.prefs} file.
  * 
  * @author jnelson
  */

@@ -34,13 +34,13 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
- * A collection of Callables and other tools for {@link BufferingService} objects.
+ * A collection of Callables and other tools for {@link BufferedStore} objects.
  * 
  * @author jnelson
  */
 @UtilityClass
 @PackagePrivate
-final class BufferingServices {
+final class BufferedStores {
 
 	/**
 	 * Invokes the {@link Readable#audit(long)} method on {@code store}.

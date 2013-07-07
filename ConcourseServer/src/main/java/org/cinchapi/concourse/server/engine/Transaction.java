@@ -49,7 +49,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * @author jnelson
  */
-public final class Transaction extends BufferingService {
+public final class Transaction extends BufferedStore {
 
 	/**
 	 * Return the Transaction for {@code destination} that is backed up to
