@@ -25,9 +25,27 @@ package org.cinchapi.concourse;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.common.configuration.Configurations;
+import org.cinchapi.common.tools.Transformers;
+import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TransactionToken;
 import org.joda.time.DateTime;
+
+import com.google.common.base.Function;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 /**
  * <p>
@@ -103,24 +121,7 @@ import org.joda.time.DateTime;
  * 
  * @author jnelson
  */
-public abstract class Concourse {
-
-	/**
-	 * Create a new connection to the Concourse server specified in
-	 * {@code concourse.prefs} and return a handler to facilitate database
-	 * interaction.
-	 * 
-	 * @return the Concourse connection handler
-	 */
-	public static Concourse connect() {
-		return new ConcourseHandler();
-	}
-
-	/**
-	 * Represents a request to respond to a query using the current state as
-	 * opposed to the history.
-	 */
-	private static DateTime now = new DateTime(0);
+public interface Concourse {
 
 	/**
 	 * Discard any changes that are currently staged for commit.
@@ -130,7 +131,7 @@ public abstract class Concourse {
 	 * database.
 	 * </p>
 	 */
-	public abstract void abort();
+	public void abort();
 
 	/**
 	 * Add {@code key} as {@code value} in {@code record} if no such mapping
@@ -142,7 +143,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return {@code true} if the mapping is added
 	 */
-	public abstract boolean add(String key, Object value, long record);
+	public boolean add(String key, Object value, long record);
 
 	/**
 	 * Audit {@code record} and return a log of revisions.
@@ -150,7 +151,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return a mapping of timestamps to revision descriptions
 	 */
-	public abstract Map<DateTime, String> audit(long record);
+	public Map<DateTime, String> audit(long record);
 
 	/**
 	 * Audit {@code key} in {@code record} and return a log of revisions.
@@ -159,7 +160,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return a mapping of timestamps to revision descriptions
 	 */
-	public abstract Map<DateTime, String> audit(String key, long record);
+	public Map<DateTime, String> audit(String key, long record);
 
 	/**
 	 * Attempt to permanently commit all the changes that are currently staged.
@@ -172,7 +173,7 @@ public abstract class Concourse {
 	 * database.
 	 * </p>
 	 */
-	public abstract boolean commit();
+	public boolean commit();
 
 	/**
 	 * Describe {@code record} and return the keys for fields that currently
@@ -182,9 +183,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return the keys for populated fields
 	 */
-	public Set<String> describe(long record) {
-		return describe(record, now);
-	}
+	public Set<String> describe(long record);
 
 	/**
 	 * Describe {@code record} at {@code timestamp} and return the keys foe
@@ -195,7 +194,7 @@ public abstract class Concourse {
 	 * @param timestamp
 	 * @return the keys for populated fields
 	 */
-	public abstract Set<String> describe(long record, DateTime timestamp);
+	public Set<String> describe(long record, DateTime timestamp);
 
 	/**
 	 * Fetch {@code key} from {@code record} and return the values currently
@@ -206,9 +205,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return the contained values
 	 */
-	public Set<Object> fetch(String key, long record) {
-		return fetch(key, record, now);
-	}
+	public Set<Object> fetch(String key, long record);
 
 	/**
 	 * Fetch {@code key} from {@code record} at {@code timestamp} and return the
@@ -220,8 +217,7 @@ public abstract class Concourse {
 	 * @param timestamp
 	 * @return the contained values
 	 */
-	public abstract Set<Object> fetch(String key, long record,
-			DateTime timestamp);
+	public Set<Object> fetch(String key, long record, DateTime timestamp);
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
@@ -235,8 +231,8 @@ public abstract class Concourse {
 	 * @param values
 	 * @return the records that match the criteria
 	 */
-	public abstract Set<Long> find(DateTime timestamp, String key,
-			Operator operator, Object... values);
+	public Set<Long> find(DateTime timestamp, String key, Operator operator,
+			Object... values);
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} and return the records
@@ -249,9 +245,7 @@ public abstract class Concourse {
 	 * @param values
 	 * @return the records that match the criteria
 	 */
-	public Set<Long> find(String key, Operator operator, Object... values) {
-		return find(now, key, operator, values);
-	}
+	public Set<Long> find(String key, Operator operator, Object... values);
 
 	/**
 	 * Ping {@code record} and return {@code true} if there is
@@ -260,7 +254,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return {@code true} if {@code record} currently contains data
 	 */
-	public abstract boolean ping(long record);
+	public boolean ping(long record);
 
 	/**
 	 * Remove {@code key} as {@code value} from {@code record} if the mapping
@@ -271,7 +265,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return {@code true} if the mapping is removed
 	 */
-	public abstract boolean remove(String key, Object value, long record);
+	public boolean remove(String key, Object value, long record);
 
 	/**
 	 * Revert {@code key} in {@code record} to {@code timestamp}. This method
@@ -287,7 +281,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @param timestamp
 	 */
-	public abstract void revert(String key, long record, DateTime timestamp);
+	public void revert(String key, long record, DateTime timestamp);
 
 	/**
 	 * Search {@code key} for {@code query} and return the records that match
@@ -298,7 +292,7 @@ public abstract class Concourse {
 	 * @param query
 	 * @return the records that match the query
 	 */
-	public abstract Set<Long> search(String key, String query);
+	public Set<Long> search(String key, String query);
 
 	/**
 	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
@@ -311,13 +305,7 @@ public abstract class Concourse {
 	 * @return {@code true} if the old mappings are removed and the new one is
 	 *         added
 	 */
-	public boolean set(String key, Object value, long record) {
-		Set<Object> values = fetch(key, record);
-		for (Object v : values) {
-			remove(key, v, record);
-		}
-		return add(key, value, record);
-	}
+	public boolean set(String key, Object value, long record);
 
 	/**
 	 * Turn on {@code staging} mode so that all subsequent changes are
@@ -333,7 +321,7 @@ public abstract class Concourse {
 	 * is invoked.
 	 * </p>
 	 */
-	public abstract void stage();
+	public void stage();
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
@@ -344,9 +332,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return {@code true} if the mapping exists
 	 */
-	public boolean verify(String key, Object value, long record) {
-		return verify(key, value, record, now);
-	}
+	public boolean verify(String key, Object value, long record);
 
 	/**
 	 * Verify {@code key} equaled {@code value} in {@code record} at
@@ -359,7 +345,375 @@ public abstract class Concourse {
 	 * @param timestamp
 	 * @return {@code true} if the mapping existed
 	 */
-	public abstract boolean verify(String key, Object value, long record,
+	public boolean verify(String key, Object value, long record,
 			DateTime timestamp);
+
+	/**
+	 * The implementation of the {@link Concourse} interface that establishes a
+	 * connection with the remote server and handles communication. This class
+	 * is a
+	 * more user friendly wrapper around a Thrift
+	 * {@link ConcourseService.Client}.
+	 * 
+	 * @author jnelson
+	 */
+	public static class Client implements Concourse {
+
+		/**
+		 * All configuration information is contained in this prefs file.
+		 */
+		private static final String configFileName = "concourse.prefs";
+
+		/**
+		 * Handler for configuration preferences.
+		 */
+		private static final PropertiesConfiguration config = Configurations
+				.loadPropertiesConfiguration(configFileName);
+
+		/**
+		 * Represents a request to respond to a query using the current state as
+		 * opposed to the history.
+		 */
+		private static DateTime now = new DateTime(0);
+
+		private final String host;
+		private final int port;
+		private final String username;
+		private final String password;
+
+		/**
+		 * The Thrift client that actually handles all RPC communication.
+		 */
+		private final ConcourseService.Client client;
+
+		/**
+		 * The client keeps a copy of its {@link AccessToken} and passes it to
+		 * the
+		 * server for each remote procedure call. The client will
+		 * re-authenticate
+		 * when necessary using the username/password read from the prefs file.
+		 */
+		private AccessToken creds = null;
+
+		/**
+		 * Whenever the client starts a Transaction, it keeps a
+		 * {@link TransactionToken} so that the server can stage the changes in
+		 * the
+		 * appropriate place.
+		 */
+		private TransactionToken transaction = null;
+
+		/**
+		 * Create a new Client connection to the Concourse server specified in
+		 * {@code concourse.prefs} and return a handler to facilitate database
+		 * interaction.
+		 */
+		public Client() {
+			this.host = config.getString("CONCOURSE_SERVER_HOST", "localhost");
+			this.port = config.getInt("CONCOURSE_SERVER_PORT", 1717);
+			this.username = config.getString("USERNAME", "admin");
+			this.password = config.getString("PASSWORD", "admin");
+			TTransport transport = new TSocket(host, port);
+			try {
+				transport.open();
+				TProtocol protocol = new TBinaryProtocol(transport);
+				this.client = new ConcourseService.Client(protocol);
+				authenticate();
+			}
+			catch (TTransportException e) {
+				throw Throwables.propagate(e);
+			}
+		}
+
+		@Override
+		public void abort() {
+			execute(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					client.abort(creds, transaction);
+					return null;
+				}
+
+			});
+		}
+
+		@Override
+		public boolean add(final String key, final Object value,
+				final long record) {
+			return execute(new Callable<Boolean>() {
+
+				@Override
+				public Boolean call() throws Exception {
+					return client.add(key, Convert.javaToThrift(value), record,
+							creds, transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public Map<DateTime, String> audit(final long record) {
+			return execute(new Callable<Map<DateTime, String>>() {
+
+				@Override
+				public Map<DateTime, String> call() throws Exception {
+					Map<Long, String> audit = client.audit(record, null, creds,
+							transaction);
+					return Transformers.transformMap(audit,
+							new Function<Long, DateTime>() {
+
+								@Override
+								public DateTime apply(Long input) {
+									return Convert.unixToJoda(input);
+								}
+
+							});
+				}
+
+			});
+		}
+
+		@Override
+		public Map<DateTime, String> audit(final String key, final long record) {
+			return execute(new Callable<Map<DateTime, String>>() {
+
+				@Override
+				public Map<DateTime, String> call() throws Exception {
+					Map<Long, String> audit = client.audit(record, key, creds,
+							transaction);
+					return Transformers.transformMap(audit,
+							new Function<Long, DateTime>() {
+
+								@Override
+								public DateTime apply(Long input) {
+									return Convert.unixToJoda(input);
+								}
+
+							});
+				}
+
+			});
+		}
+
+		@Override
+		public boolean commit() {
+			return execute(new Callable<Boolean>() {
+
+				@Override
+				public Boolean call() throws Exception {
+					boolean result = client.commit(creds, transaction);
+					transaction = null;
+					return result;
+				}
+
+			});
+		}
+
+		@Override
+		public Set<String> describe(final long record, final DateTime timestamp) {
+			return execute(new Callable<Set<String>>() {
+
+				@Override
+				public Set<String> call() throws Exception {
+					return client.describe(record,
+							Convert.jodaToUnix(timestamp), creds, transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public Set<Object> fetch(final String key, final long record,
+				final DateTime timestamp) {
+			return execute(new Callable<Set<Object>>() {
+
+				@Override
+				public Set<Object> call() throws Exception {
+					Set<TObject> values = client.fetch(key, record,
+							Convert.jodaToUnix(timestamp), creds, transaction);
+					return Transformers.transformSet(values,
+							new Function<TObject, Object>() {
+
+								@Override
+								public Object apply(TObject input) {
+									return Convert.thriftToJava(input);
+								}
+
+							});
+				}
+
+			});
+		}
+
+		@Override
+		public Set<Long> find(final DateTime timestamp, final String key,
+				final Operator operator, final Object... values) {
+			return execute(new Callable<Set<Long>>() {
+
+				@Override
+				public Set<Long> call() throws Exception {
+					return client.find(key, operator, Lists.transform(
+							Lists.newArrayList(values),
+							new Function<Object, TObject>() {
+
+								@Override
+								public TObject apply(Object input) {
+									return Convert.javaToThrift(input);
+								}
+
+							}), Convert.jodaToUnix(timestamp), creds,
+							transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public boolean ping(final long record) {
+			return execute(new Callable<Boolean>() {
+
+				@Override
+				public Boolean call() throws Exception {
+					return client.ping(record, creds, transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public boolean remove(final String key, final Object value,
+				final long record) {
+			return execute(new Callable<Boolean>() {
+
+				@Override
+				public Boolean call() throws Exception {
+					return client.remove(key, Convert.javaToThrift(value),
+							record, creds, transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public void revert(final String key, final long record,
+				final DateTime timestamp) {
+			execute(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					client.revert(key, record, Convert.jodaToUnix(timestamp),
+							creds, transaction);
+					return null;
+				}
+
+			});
+
+		}
+
+		@Override
+		public Set<Long> search(final String key, final String query) {
+			return execute(new Callable<Set<Long>>() {
+
+				@Override
+				public Set<Long> call() throws Exception {
+					return client.search(key, query, creds, transaction);
+				}
+
+			});
+		}
+
+		@Override
+		public void stage() {
+			execute(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					client.stage(creds);
+					return null;
+				}
+
+			});
+		}
+
+		@Override
+		public boolean verify(final String key, final Object value,
+				final long record, final DateTime timestamp) {
+			return execute(new Callable<Boolean>() {
+
+				@Override
+				public Boolean call() throws Exception {
+					return client.verify(key, Convert.javaToThrift(value),
+							record, Convert.jodaToUnix(timestamp), creds,
+							transaction);
+				}
+
+			});
+		}
+
+		/**
+		 * Authenticate the {@link #username} and {@link #password} and return
+		 * an
+		 * populated {@link #creds} with the appropriate AccessToken.
+		 */
+		private void authenticate() {
+			try {
+				creds = client.login(username, password);
+			}
+			catch (TException e) {
+				throw Throwables.propagate(e);
+			}
+		}
+
+		/**
+		 * Execute the task defined in {@code callable}. This method contains
+		 * retry
+		 * logic to handle cases when {@code creds} expires and must be updated.
+		 * 
+		 * @param callable
+		 * @return the task result
+		 */
+		private <T> T execute(Callable<T> callable) {
+			try {
+				return callable.call();
+			}
+			catch (SecurityException e) {
+				authenticate();
+				return execute(callable);
+			}
+			catch (Exception e) {
+				throw Throwables.propagate(e);
+			}
+		}
+
+		@Override
+		public Set<String> describe(long record) {
+			return describe(record, now);
+		}
+
+		@Override
+		public Set<Object> fetch(String key, long record) {
+			return fetch(key, record, now);
+		}
+
+		@Override
+		public Set<Long> find(String key, Operator operator, Object... values) {
+			return find(now, key, operator, values);
+		}
+
+		@Override
+		public boolean set(String key, Object value, long record) {
+			Set<Object> values = fetch(key, record);
+			for (Object v : values) {
+				remove(key, v, record);
+			}
+			return add(key, value, record);
+		}
+
+		@Override
+		public boolean verify(String key, Object value, long record) {
+			return verify(key, value, record, now);
+		}
+	}
 
 }
