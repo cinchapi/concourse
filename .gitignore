@@ -4,3 +4,4 @@
 .settings*
 *.test.out*
 /ConcourseOld
+/ConcourseServer/data
