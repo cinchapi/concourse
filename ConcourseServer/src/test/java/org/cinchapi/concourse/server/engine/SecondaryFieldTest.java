@@ -25,7 +25,7 @@ package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.util.Tests;
-import org.cinchapi.concourse.Convert;
+import org.cinchapi.concourse.util.Convert;
 
 /**
  * Unit tests for {@link SecondaryField}.

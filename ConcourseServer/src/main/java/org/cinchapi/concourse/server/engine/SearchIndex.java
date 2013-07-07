@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.concourse.Convert;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Strings;

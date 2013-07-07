@@ -27,7 +27,7 @@ import java.util.Comparator;
 
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.tools.Numbers;
-import org.cinchapi.concourse.Convert;
+import org.cinchapi.concourse.util.Convert;
 
 /**
  * A {@link Comparator} that sorts {@link Value} objects logically using weak

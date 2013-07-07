@@ -41,6 +41,7 @@ import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.util.Convert;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
@@ -111,7 +112,7 @@ import com.google.common.collect.Lists;
  * consistent, isolated, and durable (ACID).
  * 
  * <pre>
- * concourse.stage(); # starts the transaction
+ * concourse.transaction(); # starts the transaction
  * concourse.add("name", "John Doe", 1);
  * concourse.verify("name", "John Doe", 1); # returns {@code true} for this client, but {@code false} for others since the operation is isolated
  * concourse.commit(); # permanently writes changes for other clients to see
@@ -309,19 +310,18 @@ public interface Concourse {
 
 	/**
 	 * Turn on {@code staging} mode so that all subsequent changes are
-	 * collected
-	 * in a staging area before possibly being committed to the database. Staged
-	 * operations are guaranteed to be reliable, all or nothing units of work
-	 * that allow correct recovery from failures and provide isolation between
-	 * clients so the database is always in a consistent state (i.e. a
-	 * transaction).
+	 * collected in a staging area before possibly being committed to the
+	 * database. Staged operations are guaranteed to be reliable, all or nothing
+	 * units of work that allow correct recovery from failures and provide
+	 * isolation between clients so the database is always in a consistent state
+	 * (i.e. a transaction).
 	 * <p>
 	 * After this method returns, all subsequent operations will be done in
 	 * {@code staging} mode until either {@link #abort()} or {@link #commit()}
 	 * is invoked.
 	 * </p>
 	 */
-	public void stage();
+	public void transaction();
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
@@ -351,13 +351,12 @@ public interface Concourse {
 	/**
 	 * The implementation of the {@link Concourse} interface that establishes a
 	 * connection with the remote server and handles communication. This class
-	 * is a
-	 * more user friendly wrapper around a Thrift
+	 * is a more user friendly wrapper around a Thrift
 	 * {@link ConcourseService.Client}.
 	 * 
 	 * @author jnelson
 	 */
-	public static class Client implements Concourse {
+	public final static class Client implements Concourse {
 
 		/**
 		 * All configuration information is contained in this prefs file.
@@ -624,7 +623,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public void stage() {
+		public void transaction() {
 			execute(new Callable<Void>() {
 
 				@Override

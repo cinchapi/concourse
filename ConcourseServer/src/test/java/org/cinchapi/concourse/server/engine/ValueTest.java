@@ -28,7 +28,7 @@ import junit.framework.Assert;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.common.util.Tests;
-import org.cinchapi.concourse.Convert;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.Pointer;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
