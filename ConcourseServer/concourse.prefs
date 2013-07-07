@@ -1,0 +1,13 @@
+#
+# Preferences for Concourse Server 
+#
+
+###################################
+###  CONFIGURATION INFORMATION  ###
+###################################
+
+# The path to the directory where Concourse should store data.
+# This directory is relative to the Concourse install directory.
+# 
+# DEFAULT: data
+DATA_HOME = data

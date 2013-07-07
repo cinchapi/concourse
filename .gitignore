@@ -3,3 +3,4 @@
 *.swp
 .settings*
 *.test.out*
+/ConcourseOld
