@@ -20,7 +20,7 @@ Releases will be numbered with the following format:
 <major>.<minor>.<patch>
 
 And constructed with the following guidelines :
-* Breaking backward compatibility bumps the major after major version 1
+* Breaking backward compatibility bumps the major (after version 1.0)
 * New additions while maintaining backward compatibility bumps the minor
 * Bug fixes and miscellaneous changes bumps the patch
 
