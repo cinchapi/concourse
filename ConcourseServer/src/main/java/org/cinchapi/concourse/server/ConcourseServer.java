@@ -88,22 +88,23 @@ public class ConcourseServer implements ConcourseService.Iface {
 			.getLogger(ConcourseServer.class);
 
 	/**
-	 * The Thrift server that controls the RPC protocol. Use
+	 * The Thrift server controls the RPC protocol. Use
 	 * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
 	 * a reference.
 	 */
 	private final TServer server;
 
 	/**
-	 * The Engine that controls all the logic.
+	 * The Engine controls all the logic for data storage and retrieval.
 	 */
 	private final Engine engine;
 
 	/**
-	 * A collection of {@link Transaction} objects. When the client makes a call
-	 * to {@link #stage(AccessToken)}, a Transaction is started on the server
-	 * and a {@link TransactionToken} is used for the client to reference that
-	 * Transaction in future calls.
+	 * The server maintains a collection of {@link Transaction} objects to
+	 * ensure that client requests are properly routed. When the client makes a
+	 * call to {@link #stage(AccessToken)}, a Transaction is started on the
+	 * server and a {@link TransactionToken} is used for the client to reference
+	 * that Transaction in future calls.
 	 */
 	private final Map<TransactionToken, Transaction> transactions = Maps
 			.newHashMap();

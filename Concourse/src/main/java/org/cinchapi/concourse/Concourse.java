@@ -324,7 +324,7 @@ public interface Concourse {
 	 * is invoked.
 	 * </p>
 	 */
-	public void transaction();
+	public void stage();
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
@@ -687,7 +687,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public void transaction() {
+		public void stage() {
 			execute(new Callable<Void>() {
 
 				@Override
