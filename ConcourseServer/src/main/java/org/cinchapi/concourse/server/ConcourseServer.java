@@ -297,8 +297,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		TransactionToken token = new TransactionToken(creds, Time.now());
 		Transaction transaction = engine.startTransaction();
 		transactions.put(token, transaction);
-		log.info("Started a Transaction identifid by hashcode {}",
-				transaction.hashCode());
+		log.info("Started Transaction {}", transaction.hashCode());
 		return token;
 	}
 
@@ -313,6 +312,9 @@ public class ConcourseServer implements ConcourseService.Iface {
 
 	}
 
+	/**
+	 * Stop the server.
+	 */
 	public void stop() {
 		engine.shutdown();
 		server.stop();

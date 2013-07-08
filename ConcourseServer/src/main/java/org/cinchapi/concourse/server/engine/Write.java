@@ -43,7 +43,7 @@ import org.cinchapi.concourse.thrift.TObject;
  * A Write is a necessary component for two reasons:
  * <ul>
  * <li>
- * It is the bridge from the Java primitives accepted in API to the the engine
+ * It is the bridge from the Java objects accepted in API to the the engine
  * friendly counterparts which contain necessary metadata (i.e timestamp).</li>
  * <li>It ensures that metadata does not change when storage contexts change
  * (i.e. we keep the same timestamp when moving a revision from a {@link Buffer}

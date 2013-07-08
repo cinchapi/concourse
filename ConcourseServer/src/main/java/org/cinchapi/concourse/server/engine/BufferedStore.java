@@ -90,16 +90,15 @@ abstract class BufferedStore implements
 	 */
 	protected final ExecutorService executor = Executors
 			.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-					"buffering-service-read-thread-%d").build());
-	
+					"buffered-store-read-thread-%d").build());
+
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param transportable
 	 * @param destination
 	 */
-	protected BufferedStore(Transportable transportable,
-			Destination destination) {
+	protected BufferedStore(Transportable transportable, Destination destination) {
 		checkArgument(
 				!this.getClass().isAssignableFrom(destination.getClass()),
 				"Cannot embed a %s into %s", destination.getClass(),
@@ -408,7 +407,7 @@ abstract class BufferedStore implements
 			lock.release();
 		}
 	}
-	
+
 	@Override
 	public Lock writeLock() {
 		return Lockables.writeLock(this);

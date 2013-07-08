@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse;
 
+import java.net.ConnectException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -434,7 +435,7 @@ public interface Concourse {
 				TProtocol protocol = new TBinaryProtocol(transport);
 				this.client = new ConcourseService.Client(protocol);
 				authenticate();
-				log.info("Connected to Concourse server at {}:{}", host, port);
+				log.info("Connected to Concourse server at {}:{}.", host, port);
 				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
 					@Override
@@ -451,6 +452,13 @@ public interface Concourse {
 				});
 			}
 			catch (TTransportException e) {
+				if(e.getCause() instanceof ConnectException) {
+					log.error("Unable to establish a connection with the "
+							+ "Concourse server at {}:{}. Please check "
+							+ "that the remote service is actually running "
+							+ "and accepting connections.", host, port);
+
+				}
 				throw Throwables.propagate(e);
 			}
 		}
@@ -712,9 +720,8 @@ public interface Concourse {
 		}
 
 		/**
-		 * Authenticate the {@link #username} and {@link #password} and return
-		 * an
-		 * populated {@link #creds} with the appropriate AccessToken.
+		 * Authenticate the {@link #username} and {@link #password} and populate
+		 * {@link #creds} with the appropriate AccessToken.
 		 */
 		private void authenticate() {
 			try {
@@ -727,8 +734,8 @@ public interface Concourse {
 
 		/**
 		 * Execute the task defined in {@code callable}. This method contains
-		 * retry
-		 * logic to handle cases when {@code creds} expires and must be updated.
+		 * retry logic to handle cases when {@code creds} expires and must be
+		 * updated.
 		 * 
 		 * @param callable
 		 * @return the task result
