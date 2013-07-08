@@ -44,7 +44,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.engine.BufferedStores.*;
+import static org.cinchapi.concourse.server.engine.Readables.*;
 
 /**
  * A {@link BufferedStore} holds data in a {@link Transportable} buffer before

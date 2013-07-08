@@ -26,8 +26,8 @@ package org.cinchapi.concourse.server.engine;
 import org.cinchapi.common.annotate.PackagePrivate;
 
 /**
- * A {@code Destination} can store {@link Write} objects that are delivered from
- * {@link Transportable} object.
+ * A {@code Destination} accepts and stores {@link Write} objects that are
+ * delivered from {@link Transportable} service.
  * 
  * @author jnelson
  */
@@ -35,7 +35,7 @@ import org.cinchapi.common.annotate.PackagePrivate;
 interface Destination extends Readable, Isolatable {
 
 	/**
-	 * Store {@code write}.
+	 * Process and store {@code write}.
 	 * 
 	 * @param write
 	 */
