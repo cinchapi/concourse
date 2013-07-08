@@ -36,15 +36,12 @@ import org.cinchapi.common.io.Byteables;
 
 /**
  * A {@link Storable} UTF-8 sequence of characters.
- * <p>
- * </p>
  * 
  * @author jnelson
  */
 @Immutable
 @PackagePrivate
 final class Text implements Byteable, Comparable<Text> {
-	
 
 	/**
 	 * Return the Text encoded in {@code buffer} so long as those bytes adhere
@@ -141,7 +138,7 @@ final class Text implements Byteable, Comparable<Text> {
 	 * @param text
 	 */
 	private Text(String text) {
-		this.bytes = TextUtils.encodeAsByteBuffer(text);
+		this.bytes = TextTools.encodeAsByteBuffer(text);
 	}
 
 	@Override

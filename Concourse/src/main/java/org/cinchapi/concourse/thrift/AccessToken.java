@@ -7,6 +7,8 @@
  */
 package org.cinchapi.concourse.thrift;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
 import org.apache.thrift.scheme.StandardScheme;
@@ -279,19 +281,7 @@ public class AccessToken implements
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("AccessToken(");
-		boolean first = true;
-
-		sb.append("data:");
-		if(this.data == null) {
-			sb.append("null");
-		}
-		else {
-			org.apache.thrift.TBaseHelper.toString(this.data, sb);
-		}
-		first = false;
-		sb.append(")");
-		return sb.toString();
+		return Hex.encodeHexString(getData());
 	}
 
 	public void validate() throws org.apache.thrift.TException {

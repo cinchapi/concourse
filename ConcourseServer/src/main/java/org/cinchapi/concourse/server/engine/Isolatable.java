@@ -27,10 +27,9 @@ import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
 
 /**
- * An {@code Isolatable} store allows an external caller to lock records and
- * keys for serializable concurrency.
- * <em>The store does not, itself, automatically isolate
- * using the provided methods.</em>
+ * An {@code Isolatable} service allows external callers to lock resources on
+ * the fly for serializable concurrency.
+ * <em>This service does not, itself, automatically isolate using the provided methods.</em>
  * 
  * @author jnelson
  */
@@ -54,8 +53,8 @@ interface Isolatable {
 	public Lock lockAndShare(String key);
 
 	/**
-	 * Returns a shared {@link Lock} for the field identified by
-	 * {@code key} in {@code record}.
+	 * Returns a shared {@link Lock} for the field identified by {@code key} in
+	 * {@code record}.
 	 * 
 	 * @param key
 	 * @param record
@@ -64,8 +63,8 @@ interface Isolatable {
 	public Lock lockAndShare(String key, long record);
 
 	/**
-	 * Returns an exclusive {@link Lock} for the field identified by
-	 * {@code key} in {@code record}.
+	 * Returns an exclusive {@link Lock} for the field identified by {@code key}
+	 * in {@code record}.
 	 * 
 	 * @param key
 	 * @param record

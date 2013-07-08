@@ -34,7 +34,7 @@ import org.cinchapi.common.io.ByteBufferOutputStream;
  * @author jnelson
  */
 @PackagePrivate
-abstract class TextUtils {
+abstract class TextTools {
 
 	/**
 	 * Encode {@code text} and {@code timestamp} into a ByteBuffer that

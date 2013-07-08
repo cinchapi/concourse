@@ -49,7 +49,7 @@ import com.google.common.base.Preconditions;
 public class TransactionLock implements Lock, Byteable {
 
 	/**
-	 * Return the {@code IsolationLock} that is encoded in {@code bytes}.
+	 * Return the {@code TransactionLock} that is encoded in {@code bytes}.
 	 * 
 	 * @param bytes
 	 * @return the Lock
@@ -114,8 +114,21 @@ public class TransactionLock implements Lock, Byteable {
 	@PackagePrivate
 	static final int SIZE = SOURCE_SIZE + TYPE_SIZE;
 
+	/**
+	 * The actual lock/release functionality is delegated to this object.
+	 */
 	private final transient Lock lock;
+
+	/**
+	 * A Representation is used to refer to the locked resource before and after
+	 * serialization.
+	 */
 	private final Representation source;
+
+	/**
+	 * The Type ensures that the same level of isolation is maintained before
+	 * and after serialization.
+	 */
 	private final Type type;
 
 	/**

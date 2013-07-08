@@ -42,8 +42,9 @@ import com.google.common.collect.Maps;
 /**
  * A grouping of data for efficient fulltext searching.
  * <p>
- * Each SerchIndex maps a term index (substring of a word) to a set of positions
- * and provides an interface for fulltext searching.
+ * Each SerchIndex is identified by a {@code key} and maps a term index
+ * (substring of a word) to a set of positions and provides an interface for
+ * fulltext searching.
  * </p>
  * 
  * @author jnelson

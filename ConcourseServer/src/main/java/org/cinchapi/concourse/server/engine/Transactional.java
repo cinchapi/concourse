@@ -23,15 +23,13 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-
-
 /**
- * 
+ * A service that can initiate a {@link Transaction}.
  * 
  * @author jnelson
  */
 public interface Transactional {
-	
+
 	public Transaction startTransaction();
 
 }
