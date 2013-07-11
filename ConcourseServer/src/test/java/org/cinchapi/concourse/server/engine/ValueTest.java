@@ -29,7 +29,7 @@ import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.common.util.Tests;
 import org.cinchapi.concourse.util.Convert;
-import org.cinchapi.concourse.Pointer;
+import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 import org.junit.Test;
@@ -95,12 +95,12 @@ public class ValueTest extends StorableTest {
 
 	@Test
 	public void testGetLinkQuantity() {
-		assertQuantity(Convert.javaToThrift(Pointer.to(Tests.getLong())));
+		assertQuantity(Convert.javaToThrift(Link.to(Tests.getLong())));
 	}
 
 	@Test
 	public void testGetLinkType() {
-		assertType(Value.forStorage(Convert.javaToThrift(Pointer.to(Tests
+		assertType(Value.forStorage(Convert.javaToThrift(Link.to(Tests
 				.getLong()))), Type.LINK);
 	}
 

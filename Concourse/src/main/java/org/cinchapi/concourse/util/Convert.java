@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.cinchapi.common.annotate.UtilityClass;
 import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.concourse.Pointer;
+import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 import org.joda.time.DateTime;
@@ -66,8 +66,8 @@ public final class Convert {
 			out.write((float) object);
 			type = Type.FLOAT;
 		}
-		else if(object instanceof Pointer) {
-			out.write(((Pointer) object).longValue());
+		else if(object instanceof Link) {
+			out.write(((Link) object).longValue());
 			type = Type.LINK;
 		}
 		else if(object instanceof Long) {
@@ -122,7 +122,7 @@ public final class Convert {
 			java = buffer.getInt();
 			break;
 		case LINK:
-			java = Pointer.to(buffer.getLong());
+			java = Link.to(buffer.getLong());
 			break;
 		case LONG:
 			java = buffer.getLong();

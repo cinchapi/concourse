@@ -25,76 +25,76 @@ package org.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
 
 import com.google.common.primitives.Longs;
 
 /**
- * A {@code Pointer} is a reference to the PrimaryKey of a Record used to add
- * Links in Concourse. Create Pointers using the {@link Pointer#to(long)}
- * method.
+ * A {@link Link} is a pointer to the Primary Key of a Record.
  * 
  * @author jnelson
  */
 @Immutable
-public final class Pointer {
+public final class Link {
 
 	/**
-	 * Return a Reference to the Record identified by {@code primaryKey}.
+	 * Return a Link to {@code record}
 	 * 
-	 * @param primaryKey
-	 * @return the Pointer
+	 * @param record
+	 * @return the Link
 	 */
-	public static Pointer to(long primaryKey) {
-		Pointer pointer = cache.get(primaryKey);
+	@PackagePrivate
+	public static Link to(long record) {
+		Link pointer = cache.get(record);
 		if(pointer == null) {
-			pointer = new Pointer(primaryKey);
-			cache.put(pointer, primaryKey);
+			pointer = new Link(record);
+			cache.put(pointer, record);
 		}
 		return pointer;
 	}
 
-	// Since Pointers are unique, we use a cache to ensure that we don't
+	// Since Links are unique, we use a cache to ensure that we don't
 	// create duplicate objects in memory;
-	private static final ReferenceCache<Pointer> cache = new ReferenceCache<Pointer>();
+	private static final ReferenceCache<Link> cache = new ReferenceCache<Link>();
 
-	private final long primaryKey;
+	private final long record;
 
 	/**
 	 * Construct a new instance.
 	 * 
-	 * @param primaryKey
+	 * @param record
 	 */
-	private Pointer(long primaryKey) {
-		this.primaryKey = primaryKey;
+	private Link(long record) {
+		this.record = record;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Pointer) {
-			Pointer other = (Pointer) obj;
-			return Longs.compare(primaryKey, other.primaryKey) == 0;
+		if(obj instanceof Link) {
+			Link other = (Link) obj;
+			return Longs.compare(record, other.record) == 0;
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return Longs.hashCode(primaryKey);
+		return Longs.hashCode(record);
 	}
 
 	/**
-	 * Return the long value that is wrapped within the Pointer.
+	 * Return the long value that is wrapped within the Link.
 	 * 
 	 * @return the long value
 	 */
 	public long longValue() {
-		return primaryKey;
+		return record;
 	}
 
 	@Override
 	public String toString() {
-		return Long.toString(primaryKey);
+		return Long.toString(record);
 	}
 
 }

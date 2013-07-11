@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -36,6 +38,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.common.configuration.Configurations;
+import org.cinchapi.common.time.Time;
 import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -97,7 +100,7 @@ import com.google.common.collect.Lists;
  * <p>
  * Concourse supports links between Records and enforces referential integrity
  * with the ability to map a key in one Record to the PrimaryKey of another
- * Record using a {@link Pointer}.
+ * Record using a {@link Link}.
  * 
  * <pre>
  * concourse.add("name", "John Doe", 1);
@@ -115,10 +118,24 @@ import com.google.common.collect.Lists;
  * consistent, isolated, and durable (ACID).
  * 
  * <pre>
- * concourse.transaction(); # starts the transaction
- * concourse.add("name", "John Doe", 1);
- * concourse.verify("name", "John Doe", 1); # returns {@code true} for this client, but {@code false} for others since the operation is isolated
- * concourse.commit(); # permanently writes changes for other clients to see
+ * #################################################################
+ * # Transfer money from myAccount to yourAccount in a Transaction # 
+ * #################################################################
+ * long myAccount = 1;
+ * long yourAccount = 2;
+ * double transferAmount = 250.84;
+ * concourse.stage(); 
+ * double myBalance = concourse.get(&quot;balance&quot;, myAccount);
+ * double yourBalance = concourse.get(&quot;balance&quot;, yourAccount);
+ * if(myBalance &gt;= transferAmount) {
+ * 	concourse.set(&quot;balance&quot;, myBalance - transferAmount, myAccount);
+ * 	concourse.set(&quot;balance&quot;, yourBalance + transferAmount, yourAccount);
+ * 	concourse.commit();
+ * }
+ * else {
+ * 	concourse.abort();
+ * 	throw new InsufficientFundsException();
+ * }
  * </pre>
  * 
  * </p>
@@ -167,6 +184,14 @@ public interface Concourse {
 	public Map<DateTime, String> audit(String key, long record);
 
 	/**
+	 * Clear {@code key} in {@code record} and remove all the currently
+	 * contained mappings.
+	 * 
+	 * @param record
+	 */
+	public void clear(String key, long record);
+
+	/**
 	 * Attempt to permanently commit all the changes that are currently staged.
 	 * This function returns {@code true} if and only if all the changes can be
 	 * successfully applied to the database.Otherwise, this function returns
@@ -178,6 +203,13 @@ public interface Concourse {
 	 * </p>
 	 */
 	public boolean commit();
+
+	/**
+	 * Create a new Record and return its Primary Key.
+	 * 
+	 * @return the Primary Key of the new Record
+	 */
+	public long create();
 
 	/**
 	 * Describe {@code record} and return the keys for fields that currently
@@ -199,6 +231,11 @@ public interface Concourse {
 	 * @return the keys for populated fields
 	 */
 	public Set<String> describe(long record, DateTime timestamp);
+
+	/**
+	 * Disconnect from the remote Concourse server.
+	 */
+	public void disconnect();
 
 	/**
 	 * Fetch {@code key} from {@code record} and return the values currently
@@ -252,6 +289,60 @@ public interface Concourse {
 	public Set<Long> find(String key, Operator operator, Object... values);
 
 	/**
+	 * Get {@code key} from {@code record} and return the first value contained
+	 * in the mapped field. If the field is empty or does not exist, then
+	 * {@code null} is returned. This method is convenient for cases when the
+	 * caller is certain that a field only contains one item of a certain type.
+	 * 
+	 * @param key
+	 * @param record
+	 * @return the first contained value
+	 */
+	public <T> T get(String key, long record);
+
+	/**
+	 * Get {@code key} from {@code record} at {@code timestamp} and return the
+	 * first value that was contained in the mapped field. If the field was
+	 * empty or did not exist, then {@code null} is returned. This method is
+	 * convenient for cases when the caller is certain that a field only
+	 * contained one item of a certain type at {@code timestamp}.
+	 * 
+	 * @param key
+	 * @param record
+	 * @return the first contained value
+	 */
+	public <T> T get(String key, long record, DateTime timestamp);
+
+	/**
+	 * Link {@code key} in {@code source} to {@code destination}. A {@link Link}
+	 * to {@code destination} is added to the field mapped from {@code key} in
+	 * {@code source}.
+	 * 
+	 * @param key
+	 * @param source
+	 * @param destination
+	 * @return {@code true} if the one way link is added
+	 */
+	public boolean link(String key, long source, long destination);
+
+	/**
+	 * Link {@code sourceKey} in {@code source} to {@code destinationKey} in
+	 * {@code destination}. A {@link Link} to {@code destination} is added to
+	 * the field mapped from {@code sourceKey} in {@code source} and a
+	 * {@link Link} to {@code source} is added to the field mapped from
+	 * {@code destinationKey} in {@code destination}.
+	 * 
+	 * @param sourceKey
+	 * @param source
+	 * @param destinationKey
+	 * @param destination
+	 * @return {@code true} if a two way link exists between {@code source} and
+	 *         {@code destination}
+	 */
+	public boolean link(String sourceKey, long source, String destinationKey,
+			long destination);
+
+	/**
 	 * Ping {@code record} and return {@code true} if there is
 	 * <em>currently</em> at least one populated field.
 	 * 
@@ -300,7 +391,7 @@ public interface Concourse {
 
 	/**
 	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
-	 * method that removes the values currently contained in the field and adds
+	 * method that clears the values currently contained in the field and adds
 	 * {@code value}.
 	 * 
 	 * @param key
@@ -433,7 +524,7 @@ public interface Concourse {
 			try {
 				transport.open();
 				TProtocol protocol = new TBinaryProtocol(transport);
-				this.client = new ConcourseService.Client(protocol);
+				client = new ConcourseService.Client(protocol);
 				authenticate();
 				log.info("Connected to Concourse server at {}:{}.", host, port);
 				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
@@ -469,8 +560,13 @@ public interface Concourse {
 
 				@Override
 				public Void call() throws Exception {
-					client.abort(creds, transaction);
-					transaction = null;
+					if(transaction != null) {
+						client.abort(creds, transaction);
+						transaction = null;
+					}
+					else {
+						log.warn("There is no transaction to abort.");
+					}
 					return null;
 				}
 
@@ -536,6 +632,14 @@ public interface Concourse {
 		}
 
 		@Override
+		public void clear(String key, long record) {
+			Set<Object> values = fetch(key, record);
+			for (Object value : values) {
+				remove(key, value, record);
+			}
+		}
+
+		@Override
 		public boolean commit() {
 			return execute(new Callable<Boolean>() {
 
@@ -547,6 +651,11 @@ public interface Concourse {
 				}
 
 			});
+		}
+
+		@Override
+		public long create() {
+			return Time.now(); // TODO get a primary key using a plugin
 		}
 
 		@Override
@@ -565,6 +674,13 @@ public interface Concourse {
 				}
 
 			});
+		}
+
+		@Override
+		public void disconnect() {
+			client.getInputProtocol().getTransport().close();
+			client.getOutputProtocol().getTransport().close();
+			log.info("The client has disconnected");
 		}
 
 		@Override
@@ -621,6 +737,35 @@ public interface Concourse {
 		@Override
 		public Set<Long> find(String key, Operator operator, Object... values) {
 			return find(now, key, operator, values);
+		}
+
+		@Override
+		@Nullable
+		public <T> T get(String key, long record) {
+			return get(key, record, now);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		@Nullable
+		public <T> T get(String key, long record, DateTime timestamp) {
+			Set<Object> values = fetch(key, record, timestamp);
+			if(!values.isEmpty()) {
+				return (T) values.iterator().next();
+			}
+			return null;
+		}
+
+		@Override
+		public boolean link(String key, long source, long destination) {
+			return add(key, Link.to(destination), source);
+		}
+
+		@Override
+		public boolean link(String sourceKey, long source,
+				String destinationKey, long destination) {
+			return link(sourceKey, source, destination)
+					^ link(destinationKey, destination, source);
 		}
 
 		@Override
@@ -752,6 +897,7 @@ public interface Concourse {
 				throw Throwables.propagate(e);
 			}
 		}
+
 	}
 
 }
