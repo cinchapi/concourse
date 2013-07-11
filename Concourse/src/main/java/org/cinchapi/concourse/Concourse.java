@@ -235,7 +235,7 @@ public interface Concourse {
 	/**
 	 * Disconnect from the remote Concourse server.
 	 */
-	public void disconnect();
+	public void exit();
 
 	/**
 	 * Fetch {@code key} from {@code record} and return the values currently
@@ -677,7 +677,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public void disconnect() {
+		public void exit() {
 			client.getInputProtocol().getTransport().close();
 			client.getOutputProtocol().getTransport().close();
 			log.info("The client has disconnected");
