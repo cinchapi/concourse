@@ -68,75 +68,44 @@ import com.google.common.collect.Lists;
  * The Concourse data model is lightweight and flexible which enables it to
  * support any kind of data at very large scales. Concourse trades unnecessary
  * structural notions of predefined schemas, tables and indexes for a more
- * natural modeling of data based only on the following concepts:
+ * natural modeling of data based solely on the following concepts:
  * </p>
  * <p>
  * <ul>
  * <li><strong>Record</strong> &mdash; A logical grouping of information about a
- * single person, place, thing (i.e. object). Each record is an independent
- * first class item in the database.
- * <li><strong>Primary Key</strong> &mdash; A value that is used to identify a
- * single Record. Each Record has a unique Primary Key.
+ * single person, place, thing (i.e. object). Each record is a collection of
+ * key/value mappings.
+ * <li><strong>Primary Key</strong> &mdash; An immutable marker that is used to
+ * identify a single Record. Each Record has a unique Primary Key.
  * <li><strong>Key</strong> &mdash; A label that maps to one or more distinct
  * Values. A Record can have many different Keys. And since Records are
- * independent, the Keys in one Record do not affect the Keys in any other
- * Record.
- * <li><strong>Field</strong> &mdash; A division within a Record that is used to
- * store the data mapped from a single Key.</li>
- * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
- * mapped from a Key and stored in a Field.
+ * independent, the Keys in one Record do not affect the Keys in another Record.
+ * <li><strong>Value</strong> &mdash; A typed quantity that is mapped from a Key
+ * in a Record.
  * </ul>
  * </p>
  * <h4>Data Types</h4>
  * <p>
- * Concourse is a dynamically typed system. Values are cast as one of the
- * following native types: boolean, double, float, integer, long, link, string
- * (UTF-8) if possible, otherwise the {@link #toString()} method of the value is
- * stored. Therefore non-primitive objects should implement a string
- * representation from which the object can be reconstructed (i.e. JSON, base64
- * encoded binary, etc).
+ * Concourse natively stores most of the Java primitives: boolean, double,
+ * float, integer, long, and string (utf-8 encoded). Otherwise, the value of the
+ * {@link #toString()} method for other, non-primitive Objects is used to so
+ * those Objects should return a string representation from which the Object can
+ * be reconstructed (i.e. JSON, base64 encoded binary, etc).
  * </p>
  * <h4>Links</h4>
  * <p>
  * Concourse supports links between Records and enforces referential integrity
  * with the ability to map a key in one Record to the PrimaryKey of another
- * Record using a {@link Link}.
+ * Record using the {@link #link(String, long, long)} and
+ * {@link #link(String, long, String, long)} methods.
  * 
- * <pre>
- * concourse.add("name", "John Doe", 1);
- * concourse.add("name", "Jane Doe", 2);
- * concourse.add("spouse", Pointer.to(1), 2); # adds a link from Record 2 to Record 1
- * concourse.add("spouse", Pointer.to(2), 1); # adds a link from Record 1 to Record 2
- * </pre>
- * 
- * </p>
  * <h2>Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
- * where every change is immediately written. Concourse also supports the
- * ability to group and stage operations in transactions that are atomic,
- * consistent, isolated, and durable (ACID).
- * 
- * <pre>
- * #################################################################
- * # Transfer money from myAccount to yourAccount in a Transaction # 
- * #################################################################
- * long myAccount = 1;
- * long yourAccount = 2;
- * double transferAmount = 250.84;
- * concourse.stage(); 
- * double myBalance = concourse.get(&quot;balance&quot;, myAccount);
- * double yourBalance = concourse.get(&quot;balance&quot;, yourAccount);
- * if(myBalance &gt;= transferAmount) {
- * 	concourse.set(&quot;balance&quot;, myBalance - transferAmount, myAccount);
- * 	concourse.set(&quot;balance&quot;, yourBalance + transferAmount, yourAccount);
- * 	concourse.commit();
- * }
- * else {
- * 	concourse.abort();
- * 	throw new InsufficientFundsException();
- * }
- * </pre>
+ * where every change is immediately written. Concourse supports the ability to
+ * group and stage operations in transactions that are atomic, consistent,
+ * isolated, and durable (ACID) using the {@link #stage()}, {@link #commit()}
+ * and {@link #abort()} methods.
  * 
  * </p>
  * 
@@ -156,8 +125,8 @@ public interface Concourse {
 
 	/**
 	 * Add {@code key} as {@code value} in {@code record} if no such mapping
-	 * currently exist. No other mappings are affected because a field may
-	 * contain multiple distinct values.
+	 * currently exist. No other mappings are affected because {@code key} in
+	 * {@code record} may map to multiple distinct values.
 	 * 
 	 * @param key
 	 * @param value
@@ -212,23 +181,22 @@ public interface Concourse {
 	public long create();
 
 	/**
-	 * Describe {@code record} and return the keys for fields that currently
-	 * contain at least one value. If there are no such fields, an empty Set is
-	 * returned.
+	 * Describe {@code record} and return its keys that currently map to at
+	 * least one value. If there are no such keys, an empty Set is returned.
 	 * 
 	 * @param record
-	 * @return the keys for populated fields
+	 * @return the populated keys
 	 */
 	public Set<String> describe(long record);
 
 	/**
-	 * Describe {@code record} at {@code timestamp} and return the keys foe
-	 * fields that contained at least one value. If there were no such fields,
-	 * an empty Set is returned.
+	 * Describe {@code record} at {@code timestamp} and return its keys that
+	 * mapped to at least one value. If there were no such keys, an empty Set is
+	 * returned.
 	 * 
 	 * @param record
 	 * @param timestamp
-	 * @return the keys for populated fields
+	 * @return the keys for populated keys
 	 */
 	public Set<String> describe(long record, DateTime timestamp);
 
@@ -238,9 +206,8 @@ public interface Concourse {
 	public void exit();
 
 	/**
-	 * Fetch {@code key} from {@code record} and return the values currently
-	 * contained in the mapped field. If the field is empty or does not exist,
-	 * an empty Set is returned.
+	 * Fetch {@code key} from {@code record} and return the currently mapped
+	 * values. If there are none, an empty Set is returned.
 	 * 
 	 * @param key
 	 * @param record
@@ -250,8 +217,7 @@ public interface Concourse {
 
 	/**
 	 * Fetch {@code key} from {@code record} at {@code timestamp} and return the
-	 * values that were contained in the mapped field. If the field was empty of
-	 * did not exist, an empty Set is returned.
+	 * values that were mapped. If there were none, an empty Set is returned.
 	 * 
 	 * @param key
 	 * @param record
@@ -289,34 +255,35 @@ public interface Concourse {
 	public Set<Long> find(String key, Operator operator, Object... values);
 
 	/**
-	 * Get {@code key} from {@code record} and return the first value contained
-	 * in the mapped field. If the field is empty or does not exist, then
-	 * {@code null} is returned. This method is convenient for cases when the
-	 * caller is certain that a field only contains one item of a certain type.
+	 * Get {@code key} from {@code record} and return the first mapped value or
+	 * {@code null} if there are none. Compared to {@link #fetch(String, long)},
+	 * this method is suited for cases when the caller is certain that
+	 * {@code key} in {@code record} maps to a single value of type {@code T}.
 	 * 
 	 * @param key
 	 * @param record
-	 * @return the first contained value
+	 * @return the first mapped value
 	 */
 	public <T> T get(String key, long record);
 
 	/**
 	 * Get {@code key} from {@code record} at {@code timestamp} and return the
-	 * first value that was contained in the mapped field. If the field was
-	 * empty or did not exist, then {@code null} is returned. This method is
-	 * convenient for cases when the caller is certain that a field only
-	 * contained one item of a certain type at {@code timestamp}.
+	 * first mapped value or {@code null} if there were none. Compared to
+	 * {@link #fetch(String, long, long)}, this method is suited for cases when
+	 * the caller is certain that {@code key} in {@code record} mapped to a
+	 * single value of type {@code T} at {@code timestamp}.
 	 * 
 	 * @param key
 	 * @param record
-	 * @return the first contained value
+	 * @param timestamp
+	 * @return the first mapped value
 	 */
 	public <T> T get(String key, long record, DateTime timestamp);
 
 	/**
-	 * Link {@code key} in {@code source} to {@code destination}. A {@link Link}
-	 * to {@code destination} is added to the field mapped from {@code key} in
-	 * {@code source}.
+	 * Link {@code key} in {@code source} to {@code destination}. In other
+	 * words, a {@link Link} to {@code destination} is mapped from {@code key}
+	 * in {@code source}.
 	 * 
 	 * @param key
 	 * @param source
@@ -327,9 +294,9 @@ public interface Concourse {
 
 	/**
 	 * Link {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. A {@link Link} to {@code destination} is added to
-	 * the field mapped from {@code sourceKey} in {@code source} and a
-	 * {@link Link} to {@code source} is added to the field mapped from
+	 * {@code destination}. In other words, a {@link Link} to
+	 * {@code destination} is mapped from {@code sourceKey} in {@code source}
+	 * and a {@link Link} to {@code source} is mapped from
 	 * {@code destinationKey} in {@code destination}.
 	 * 
 	 * @param sourceKey
@@ -344,7 +311,7 @@ public interface Concourse {
 
 	/**
 	 * Ping {@code record} and return {@code true} if there is
-	 * <em>currently</em> at least one populated field.
+	 * <em>currently</em> at least one populated key.
 	 * 
 	 * @param record
 	 * @return {@code true} if {@code record} currently contains data
@@ -364,7 +331,7 @@ public interface Concourse {
 
 	/**
 	 * Revert {@code key} in {@code record} to {@code timestamp}. This method
-	 * restores the field to its state at {@code timestamp} by reversing all
+	 * restores the key to its state at {@code timestamp} by reversing all
 	 * revisions that have occurred since.
 	 * <p>
 	 * Please note that this method <strong>does not</strong> {@code rollback}
@@ -391,8 +358,8 @@ public interface Concourse {
 
 	/**
 	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
-	 * method that clears the values currently contained in the field and adds
-	 * {@code value}.
+	 * method that clears the values currently mapped from {@code key} and adds
+	 * a new mapping for {@code value}.
 	 * 
 	 * @param key
 	 * @param value
@@ -419,7 +386,7 @@ public interface Concourse {
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
-	 * {@code true} if {@code value} is currently contained in the field.
+	 * {@code true} if {@code value} is currently mapped.
 	 * 
 	 * @param key
 	 * @param value
@@ -430,8 +397,7 @@ public interface Concourse {
 
 	/**
 	 * Verify {@code key} equaled {@code value} in {@code record} at
-	 * {@code timestamp} and return {@code true} if {@code value} was contained
-	 * in the field.
+	 * {@code timestamp} and return {@code true} if {@code value} was mapped.
 	 * 
 	 * @param key
 	 * @param value
