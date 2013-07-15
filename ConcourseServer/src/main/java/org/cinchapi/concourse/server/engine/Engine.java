@@ -112,26 +112,6 @@ public final class Engine extends BufferedStore implements
 
 	}
 
-	@Override
-	public TransactionLock lockAndIsolate(String key, long record) {
-		return TransactionLock.lockAndIsolate(key, record);
-	}
-
-	@Override
-	public TransactionLock lockAndShare(long record) {
-		return TransactionLock.lockandShare(record);
-	}
-
-	@Override
-	public TransactionLock lockAndShare(String key) {
-		return TransactionLock.lockAndShare(key);
-	}
-
-	@Override
-	public TransactionLock lockAndShare(String key, long record) {
-		return TransactionLock.lockAndShare(key, record);
-	}
-
 	/**
 	 * Shutdown the database gracefully. Make sure any blocked tasks
 	 * have a chance to complete before being dropped.

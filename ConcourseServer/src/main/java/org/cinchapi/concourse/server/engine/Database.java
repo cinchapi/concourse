@@ -31,7 +31,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -162,28 +161,6 @@ public class Database implements Readable, Destination {
 						Transformers.transformArray(values,
 								Functions.TOBJECT_TO_VALUE, Value.class)),
 				Functions.PRIMARY_KEY_TO_LONG);
-	}
-
-	@Override
-	public Lock lockAndIsolate(String key, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).get(
-				Text.fromString(key)).writeLock();
-	}
-
-	@Override
-	public Lock lockAndShare(long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).readLock();
-	}
-
-	@Override
-	public Lock lockAndShare(String key) {
-		return loadSecondaryIndex(Text.fromString(key)).readLock();
-	}
-
-	@Override
-	public Lock lockAndShare(String key, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).get(
-				Text.fromString(key)).readLock();
 	}
 
 	@Override

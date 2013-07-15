@@ -58,54 +58,6 @@ public class TransactionLock implements Lock, Byteable {
 		return Byteables.read(bytes, TransactionLock.class);
 	}
 
-	/**
-	 * Return a lock that conforms to
-	 * {@link Isolatable#lockAndIsolate(String, long)}.
-	 * 
-	 * @param key
-	 * @param record
-	 * @return the Lock
-	 */
-	public static TransactionLock lockAndIsolate(String key, long record) {
-		return new TransactionLock(Representation.forObjects(key, record),
-				Type.ISOLATED_FIELD);
-	}
-
-	/**
-	 * Return a lock that conforms to {@link Isolatable#lockAndShare(long)}.
-	 * 
-	 * @param record
-	 * @return the Lock
-	 */
-	public static TransactionLock lockandShare(long record) {
-		return new TransactionLock(Representation.forObjects(record),
-				Type.SHARED_RECORD);
-	}
-
-	/**
-	 * Return a lock that conforms to {@link Isolatable#lockAndShare(String)}.
-	 * 
-	 * @param key
-	 * @return the Lock
-	 */
-	public static TransactionLock lockAndShare(String key) {
-		return new TransactionLock(Representation.forObjects(key),
-				Type.SHARED_KEY);
-	}
-
-	/**
-	 * Return a lock that conforms to
-	 * {@link Isolatable#lockAndShare(String, long)}.
-	 * 
-	 * @param key
-	 * @param record
-	 * @return the Lock
-	 */
-	public static TransactionLock lockAndShare(String key, long record) {
-		return new TransactionLock(Representation.forObjects(key, record),
-				Type.SHARED_FIELD);
-	}
-
 	private static final int SOURCE_OFFSET = 0;
 	private static final int SOURCE_SIZE = 16;
 	private static final int TYPE_OFFSET = SOURCE_OFFSET + SOURCE_SIZE;
@@ -153,7 +105,7 @@ public class TransactionLock implements Lock, Byteable {
 	 * @param source
 	 * @param type
 	 */
-	private TransactionLock(Representation source, Type type) {
+	public TransactionLock(Representation source, Type type) {
 		this.source = source;
 		this.type = type;
 		this.lock = type == Type.ISOLATED_FIELD ? this.source.writeLock()
@@ -178,6 +130,24 @@ public class TransactionLock implements Lock, Byteable {
 		return out.toByteBuffer();
 	}
 
+	/**
+	 * Return the locked source.
+	 * 
+	 * @return the source
+	 */
+	public Representation getSource() {
+		return source;
+	}
+
+	/**
+	 * Return the TransactionLock type
+	 * 
+	 * @return the Type
+	 */
+	public Type getType() {
+		return type;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(source, type);
@@ -198,7 +168,8 @@ public class TransactionLock implements Lock, Byteable {
 	 * 
 	 * @author jnelson
 	 */
-	private enum Type {
+	@PackagePrivate
+	enum Type {
 		SHARED_RECORD, SHARED_KEY, SHARED_FIELD, ISOLATED_FIELD
 	}
 

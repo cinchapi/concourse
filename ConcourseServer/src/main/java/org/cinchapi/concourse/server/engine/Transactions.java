@@ -33,6 +33,8 @@ import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Files;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tools used in the {@link Transaction} class.
@@ -43,9 +45,8 @@ import org.cinchapi.common.io.Files;
 @PackagePrivate
 final class Transactions {
 
-	private static final int LOCKS_SIZE_OFFSET = 0;
-	private static final int LOCKS_SIZE_SIZE = 4;
-	private static final int LOCKS_OFFSET = LOCKS_SIZE_OFFSET + LOCKS_SIZE_SIZE;
+	private static final Logger log = LoggerFactory
+			.getLogger(Transaction.class);
 
 	/**
 	 * Encode {@code transaction} as a MappedByteBuffer with the following
@@ -61,16 +62,65 @@ final class Transactions {
 	 * @param file
 	 * @return the encoded ByteBuffer
 	 */
-	public static MappedByteBuffer encodeAsByteBuffer(
-			Transaction transaction, String file) {
+	public static MappedByteBuffer encodeAsByteBuffer(Transaction transaction,
+			String file) {
 		ByteBufferOutputStream out = new ByteBufferOutputStream();
 		int lockSize = 4 + (transaction.locks.size() * TransactionLock.SIZE);
 		out.write(lockSize);
-		out.write(transaction.locks, TransactionLock.SIZE);
+		out.write(transaction.locks.values(), TransactionLock.SIZE);
 		out.write(((Limbo) transaction.buffer).writes); /* Authorized */
 		out.close();
 		Files.open(file);
 		return out.toMappedByteBuffer(file, 0);
+	}
+
+	/**
+	 * Grab an exclusive lock on the field identified by {@code key} in
+	 * {@code record}.
+	 * 
+	 * @param key
+	 * @param record
+	 */
+	public static void lockAndIsolate(Transaction transaction, String key,
+			long record) {
+		lock(transaction, Representation.forObjects(key, record),
+				TransactionLock.Type.ISOLATED_FIELD);
+	}
+
+	/**
+	 * Grab a shared lock on {@code record}.
+	 * 
+	 * @param transaction
+	 * @param record
+	 */
+	public static void lockAndShare(Transaction transaction, long record) {
+		lock(transaction, Representation.forObjects(record),
+				TransactionLock.Type.SHARED_RECORD);
+	}
+
+	/**
+	 * Grab a shared lock for {@code key}.
+	 * 
+	 * @param transaction
+	 * @param key
+	 */
+	public static void lockAndShare(Transaction transaction, String key) {
+		lock(transaction, Representation.forObjects(key),
+				TransactionLock.Type.SHARED_KEY);
+	}
+
+	/**
+	 * Grab a shared lock on the field identified by {@code key} in
+	 * {@code record}.
+	 * 
+	 * @param transaction
+	 * @param key
+	 * @param record
+	 */
+	public static void lockAndShare(Transaction transaction, String key,
+			long record) {
+		lock(transaction, Representation.forObjects(key, record),
+				TransactionLock.Type.SHARED_FIELD);
 	}
 
 	/**
@@ -93,7 +143,7 @@ final class Transactions {
 				TransactionLock.SIZE);
 		while (it.hasNext()) {
 			TransactionLock lock = TransactionLock.fromByteBuffer(it.next());
-			transaction.locks.add(lock);
+			transaction.locks.put(lock.getSource(), lock);
 		}
 
 		it = ByteableCollections.iterator(writes);
@@ -102,5 +152,42 @@ final class Transactions {
 			((Limbo) transaction.buffer).insert(write);
 		}
 	}
+
+	/**
+	 * Grab the specified lock.
+	 * 
+	 * @param transaction
+	 * @param representation
+	 * @param type
+	 */
+	private static void lock(Transaction transaction,
+			Representation representation, TransactionLock.Type type) {
+		if(transaction.locks.containsKey(representation)) {
+			if(transaction.locks.get(representation).getType() != TransactionLock.Type.ISOLATED_FIELD) {
+				// We must release the previously held shared lock to prevent
+				// deadlock situations where one or more read locks are blocking
+				// an attempt to grab a write lock.
+				transaction.locks.remove(representation).release();
+				log.debug("Removed shared lock for representation {} "
+						+ "in transaction {}", representation, transaction);
+			}
+			else {
+				// Existing write locks must be preserved to enforce the
+				// serializable isolation guarantee
+				return;
+			}
+		}
+		transaction.locks.put(representation, new TransactionLock(
+				representation, type));
+		log.debug("Grabbed lock of type {} for representation {} "
+				+ "in transaction {}", type, representation, transaction);
+
+	}
+
+	private static final int LOCKS_SIZE_OFFSET = 0;
+
+	private static final int LOCKS_SIZE_SIZE = 4;
+
+	private static final int LOCKS_OFFSET = LOCKS_SIZE_OFFSET + LOCKS_SIZE_SIZE;
 
 }

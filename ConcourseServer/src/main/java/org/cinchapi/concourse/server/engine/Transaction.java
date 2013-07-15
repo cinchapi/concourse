@@ -39,7 +39,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -99,8 +99,8 @@ public final class Transaction extends BufferedStore {
 	 * enforce the serializable isolation guarantee.
 	 */
 	@PackagePrivate
-	final Set<TransactionLock> locks = Sets
-			.newHashSetWithExpectedSize(initialCapacity);
+	final Map<Representation, TransactionLock> locks = Maps
+			.newHashMapWithExpectedSize(initialCapacity);
 
 	/**
 	 * Construct a new instance.
@@ -136,21 +136,21 @@ public final class Transaction extends BufferedStore {
 	@Override
 	public boolean add(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndIsolate(key, record));
+		Transactions.lockAndIsolate(this, key, record);
 		return super.add(key, value, record);
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(record));
+		Transactions.lockAndShare(this, record);
 		return super.audit(record);
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key, record));
+		Transactions.lockAndShare(this, key, record);
 		return super.audit(key, record);
 	}
 
@@ -178,28 +178,28 @@ public final class Transaction extends BufferedStore {
 	@Override
 	public Set<String> describe(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(record));
+		Transactions.lockAndShare(this, record);
 		return super.describe(record);
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(record));
+		Transactions.lockAndShare(this, record);
 		return super.describe(record, timestamp);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key, record));
+		Transactions.lockAndShare(this, key, record);
 		return super.fetch(key, record);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key, record));
+		Transactions.lockAndShare(this, key, record);
 		return super.fetch(key, record, timestamp);
 	}
 
@@ -207,56 +207,61 @@ public final class Transaction extends BufferedStore {
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key));
+		Transactions.lockAndShare(this, key);
 		return super.find(timestamp, key, operator, values);
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key));
+		Transactions.lockAndShare(this, key);
 		return super.find(key, operator, values);
 	}
 
 	@Override
 	public boolean ping(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(record));
+		Transactions.lockAndShare(this, record);
 		return super.ping(record);
 	}
 
 	@Override
 	public boolean remove(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndIsolate(key, record));
+		Transactions.lockAndIsolate(this, key, record);
 		return super.remove(key, value, record);
 	}
 
 	@Override
 	public void revert(String key, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndIsolate(key, record));
+		Transactions.lockAndIsolate(this, key, record);
 		super.revert(key, record, timestamp);
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key));
+		Transactions.lockAndShare(this, key);
 		return super.search(key, query);
+	}
+	
+	@Override
+	public String toString(){
+		return Integer.toString(hashCode());
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key, record));
+		Transactions.lockAndShare(this, key, record);
 		return super.verify(key, value, record);
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		locks.add((TransactionLock) destination.lockAndShare(key, record));
+		Transactions.lockAndShare(this, key, record);
 		return super.verify(key, value, record, timestamp);
 	}
 
@@ -274,7 +279,7 @@ public final class Transaction extends BufferedStore {
 	 * Release all the locks held by this Transaction.
 	 */
 	private void releaseLocks() {
-		for (Lock lock : locks) {
+		for (Lock lock : locks.values()) {
 			lock.release();
 		}
 	}
