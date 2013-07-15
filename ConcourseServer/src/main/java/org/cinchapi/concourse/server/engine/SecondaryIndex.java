@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
+final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 
 	/**
 	 * Return the SearchIndex that is identified by {@code key}.

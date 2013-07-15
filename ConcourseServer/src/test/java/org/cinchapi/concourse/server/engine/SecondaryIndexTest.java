@@ -23,47 +23,39 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.nio.ByteBuffer;
-
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.util.Random;
+import org.cinchapi.concourse.util.Convert;
 
 /**
- * The {@link Field} used in a {@link SecondaryIndex}.
+ * 
  * 
  * @author jnelson
  */
-class SecondaryField extends Field<Value, PrimaryKey> {
+public class SecondaryIndexTest extends RecordTest<Text, Value, PrimaryKey>{
 
-	/**
-	 * Construct a new instance.
-	 * @param buffer
-	 * @throws ClassNotFoundException
-	 */
-	@DoNotInvoke
-	public SecondaryField(ByteBuffer buffer) throws ClassNotFoundException {
-		super(buffer);
+	@Override
+	protected Record<Text, Value, PrimaryKey> getInstance(Text locator) {
+		return SecondaryIndex.loadSecondaryIndex(locator);
 	}
 
-	/**
-	 * Copy Constructor
-	 * @param key
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	public SecondaryField(Value key) {
-		super(key);
+	@Override
+	protected Text getLocator() {
+		return Text.fromString(Random.getString());
 	}
 
-	/**
-	 * Construct a new instance.
-	 * @param source
-	 */
-	@DoNotInvoke
-	SecondaryField(Field<Value, PrimaryKey> source) {
-		super(source);
+	@Override
+	protected Value getKey() {
+		return Value.forStorage(Convert.javaToThrift(Random.getObject()));
 	}
-	
-	
+
+	@Override
+	protected PrimaryKey getValue() {
+		return PrimaryKey.forStorage(Random.getLong());
+	}
+
+	@Override
+	protected PrimaryKey copy(PrimaryKey value) {
+		return PrimaryKey.forStorage(value.longValue());
+	}
 
 }

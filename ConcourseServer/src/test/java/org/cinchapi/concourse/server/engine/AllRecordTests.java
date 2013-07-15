@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ })
+@SuiteClasses({ PrimaryRecordTest.class, SecondaryIndexTest.class, SearchIndexTest.class })
 public class AllRecordTests {
 
 }

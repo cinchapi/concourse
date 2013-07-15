@@ -24,19 +24,18 @@
 package org.cinchapi.concourse.server.engine;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import junit.framework.Assert;
 
 import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.io.ByteableTest;
-import org.cinchapi.common.util.Tests;
-import org.junit.After;
+import org.cinchapi.common.tests.BaseTest;
+import org.cinchapi.common.util.Random;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -45,60 +44,167 @@ import com.google.common.collect.Maps;
  * @author jnelson
  */
 public abstract class RecordTest<L extends Byteable, K extends Byteable, V extends Storable>
-		extends ByteableTest {
+		extends BaseTest {
 
-	private Record<L, K, V> record;
-
-	@After
-	public void tearDown() {
-		record.delete(); //authorized
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.common.io.ByteableTest#getObject()
+	/**
+	 * The record that is being used in the current test. This means that there
+	 * should only be one test used per method.
 	 */
-	@Override
-	protected Byteable getObject() {
-		// TODO Auto-generated method stub
-		return null;
+	private Record<L, K, V> record = null;
+
+	@Rule
+	public TestWatcher myWatcher = new TestWatcher() {
+
+		@Override
+		protected void finished(Description description) {
+			if(record != null) {
+				record.delete();
+				log.info("{} has been deleted", record);
+			}
+			record = null;
+		}
+
+	};
+
+	@Test
+	public void testAddToPopulatedRecord() {
+
 	}
 
-	/*
-	 * (non-Javadoc)
+	@Test
+	public void testCanAddMultipleDistinctValuesToField() {
+		record = getInstance();
+		K key = getKey();
+		int count = Random.getScaleCount();
+		log.info("Adding {} values", count);
+		for (int i = 0; i < count; i++) {
+			V value = getValue();
+			while (record.get(key).contains(value)) {
+				log.info("'{}' is already contained in the field", value);
+				value = getValue();
+			}
+			record.add(key, value);
+		}
+		Assert.assertEquals(count, record.get(key).count());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testCannnotAddDuplicateValueToField() {
+		record = getInstance();
+		K key = getKey();
+		V value = getValue();
+		record.add(key, value);
+		record.add(key, value);
+	}
+
+	@Test
+	public void testFsync() {
+		L locator = getLocator();
+		record = getInstance(locator);
+		populateWithAddAndRemove(record);
+		record.fsync();
+		Record<L, K, V> copy = getInstance(locator);
+		Assert.assertEquals(record, copy);
+	}
+
+	@Test
+	public void testInitialAdd() {
+		record = getInstance();
+		K key = getKey();
+		V value = getValue();
+		record.add(key, value);
+		Assert.assertTrue(record.get(key).contains(value));
+	}
+
+	@Test
+	public void testInitialRemove() {
+		K key = getKey();
+		V value = getValue();
+		record = getInstanceWith(key, value);
+		record.remove(key, copy(value));
+		Assert.assertFalse(record.get(key).contains(value));
+	}
+
+	@Test
+	public void testNonExistingFieldInteroperability() {
+		record = getInstance();
+		K key = getKey();
+		Assert.assertFalse(record.get(key).contains(getValue()));
+		Assert.assertTrue(record.fields().isEmpty());
+	}
+
+	/**
+	 * Return a copy of {@code value} with a unique timestamp.
 	 * 
-	 * @see
-	 * org.cinchapi.common.io.ByteableTest#copy(org.cinchapi.common.io.Byteable)
+	 * @param value
+	 * @return the copy of {@code value}
 	 */
-	@Override
-	protected Byteable copy(Byteable object) {
-		// TODO Auto-generated method stub
-		return null;
+	protected abstract V copy(V value);
+
+	/**
+	 * Return an instance.
+	 * 
+	 * @return the instance
+	 */
+	protected Record<L, K, V> getInstance() {
+		return getInstance(getLocator());
 	}
 
-	protected Record<L, K, V> newInstance() {
-		return newInstance(getLocator());
+	/**
+	 * Return an instance.
+	 * 
+	 * @return the instance
+	 */
+	protected abstract Record<L, K, V> getInstance(L locator);
+
+	/**
+	 * Return a record with {@code key} as {@code value}.
+	 * 
+	 * @param key
+	 * @param value
+	 * @return the instance
+	 */
+	protected Record<L, K, V> getInstanceWith(K key, V value) {
+		Record<L, K, V> record = getInstance();
+		record.add(key, value);
+		return record;
 	}
 
-	protected abstract Record<L, K, V> newInstance(L locator);
-
-	protected abstract L getLocator();
-
+	/**
+	 * Return a key.
+	 * 
+	 * @return the Key
+	 */
 	protected abstract K getKey();
 
-	protected abstract V getForStorageValue();
-	
-	protected abstract V getForStorageValueCopy(V value);
+	/**
+	 * Return a locator.
+	 * 
+	 * @return the Locator
+	 */
+	protected abstract L getLocator();
 
+	/**
+	 * Return a value.
+	 * 
+	 * @return the Value
+	 */
+	protected abstract V getValue();
+
+	/**
+	 * Populate {@code record} with ADD writes.
+	 * 
+	 * @param record
+	 * @return the mappings contained in {@code record}
+	 */
 	protected Map<K, V> populateWithAdd(Record<L, K, V> record) {
 		Map<K, V> writes = Maps.newHashMap();
-		int count = Tests.getScaleCount();
+		int count = Random.getScaleCount();
 		for (int i = 0; i < count; i++) {
 			K key = getKey();
-			V value = getForStorageValue();
+			V value = getValue();
 			while (record.get(key).contains(value)) {
-				value = getForStorageValue();
+				value = getValue();
 			}
 			writes.put(key, value);
 			record.add(key, value);
@@ -106,97 +212,43 @@ public abstract class RecordTest<L extends Byteable, K extends Byteable, V exten
 		return writes;
 	}
 
+	/**
+	 * Populate {@code record} with ADD and REMOVE writes.
+	 * 
+	 * @param record
+	 * @return the mappings contained in {@code record}
+	 */
 	protected Map<K, V> populateWithAddAndRemove(Record<L, K, V> record) {
 		Map<K, V> writes = populateWithAdd(record);
 		Iterator<Entry<K, V>> it = writes.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<K, V> entry = it.next();
-			if(Tests.getInt() % 2 == 0) {
-				record.remove(entry.getKey(), getForStorageValueCopy(entry.getValue()));
+			if(Random.getInt() % 2 == 0) {
+				record.remove(entry.getKey(), copy(entry.getValue()));
 				it.remove();
 			}
 		}
 		return writes;
 	}
 
-	@Test
-	public void testFsync() {
-		L locator = getLocator();
-		record = newInstance(locator);
-		populateWithAddAndRemove(record);
-		record.fsync();
-		Record<L,K,V> copy = newInstance(locator);
-		try{
-			Assert.assertEquals(record, copy);
-		}
-		finally{
-			copy.delete();
-		}
-
-	}
-
-	@Test
-	public void testAdd() {
-		record = newInstance();
-		K key = getKey();
-		V value = getForStorageValue();
-		record.add(key, value);
-		Assert.assertTrue(record.get(key).contains(value));
-	}
-	
-	@Test
-	public void testAddMultipleValuesForKey(){
-		record = newInstance();
-		K key = getKey();
-		List<V> values = Lists.newArrayList();
-		int count = Tests.getScaleCount();
-		for(int i = 0; i < count; i++){
-			V value = getForStorageValue();
-			while(record.get(key).contains(value)){
-				value = getForStorageValue();
-			}
-			record.add(key, value);
-			values.add(value);
-		}
-		for(V value : values){
-			Assert.assertTrue(record.get(key).contains(value));
-		}
-	}
-	
-	@Test
-	public void testNonExistingFieldInteroperability(){
-		record = newInstance();
-		Assert.assertFalse(record.get(getKey()).contains(getForStorageValue()));
-		Assert.assertTrue(record.fields().isEmpty());
-	}
-	
-	@Test(expected=IllegalStateException.class)
-	public void testAddExistingValueToKey(){
-		record = newInstance();
-		K key = getKey();
-		V value = getForStorageValue();
-		record.add(key, value);
-		record.add(key, value);
-	}
-	
-	@Test
-	public void testAddMultipleKeys(){
-		List<K> keys = Lists.newArrayList();
-		record = newInstance();
-		int count = Tests.getScaleCount();
-		for(int i = 0; i < count; i++){
-			K key = getKey();
-			while(keys.contains(key)){
-				key = getKey();
-			}
-			record.add(key, getForStorageValue());
-		}
-		for(K key : keys){
-			Assert.assertTrue(record.fields().keySet().contains(key));
-		}
-	}
-	
-	
-	
+	// @Test
+	// public void testAddMultipleKeys(){
+	// List<K> keys = Lists.newArrayList();
+	// record = newInstance();
+	// int count = Tests.getScaleCount();
+	// for(int i = 0; i < count; i++){
+	// K key = getKey();
+	// while(keys.contains(key)){
+	// key = getKey();
+	// }
+	// record.add(key, getForStorageValue());
+	// }
+	// for(K key : keys){
+	// Assert.assertTrue(record.fields().keySet().contains(key));
+	// }
+	// }
+	//
+	//
+	//
 
 }

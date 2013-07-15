@@ -23,47 +23,39 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.nio.ByteBuffer;
-
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.util.Random;
 
 /**
- * The {@link Field} used in a {@link SecondaryIndex}.
+ * 
  * 
  * @author jnelson
  */
-class SecondaryField extends Field<Value, PrimaryKey> {
+public class SearchIndexTest extends RecordTest<Text, Text, Position> {
 
-	/**
-	 * Construct a new instance.
-	 * @param buffer
-	 * @throws ClassNotFoundException
-	 */
-	@DoNotInvoke
-	public SecondaryField(ByteBuffer buffer) throws ClassNotFoundException {
-		super(buffer);
+	@Override
+	protected Record<Text, Text, Position> getInstance(Text locator) {
+		return SearchIndex.loadSearchIndex(locator);
 	}
 
-	/**
-	 * Copy Constructor
-	 * @param key
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	public SecondaryField(Value key) {
-		super(key);
+	@Override
+	protected Text getLocator() {
+		return Text.fromString(Random.getString());
 	}
 
-	/**
-	 * Construct a new instance.
-	 * @param source
-	 */
-	@DoNotInvoke
-	SecondaryField(Field<Value, PrimaryKey> source) {
-		super(source);
+	@Override
+	protected Text getKey() {
+		return Text.fromString(Random.getString());
+	}
+
+	@Override
+	protected Position getValue() {
+		return Position.fromPrimaryKeyAndMarker(PrimaryKey.forStorage(Random
+				.getLong()), Random.getPositiveNumber().intValue());
 	}
 	
-	
+	@Override
+	protected Position copy(Position value) {
+		return Position.fromPrimaryKeyAndMarker(value.getPrimaryKey(), value.getPosition());
+	}
 
 }

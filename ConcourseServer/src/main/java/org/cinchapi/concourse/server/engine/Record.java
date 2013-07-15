@@ -136,6 +136,19 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 	}
 
+	/**
+	 * Add {@code value} to the field mapped from {@code key}. This method will
+	 * writeLock the entire Record.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	@GuardedBy("this.writeLock, Field.writeLock")
+	public void add(K key, V value) {
+		get(key, true).add(value);
+		buffer = null;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean equals(Object obj) {
@@ -144,6 +157,34 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			return this.filename.equals(other.filename);
 		}
 		return false;
+	}
+
+	/**
+	 * Flush all the data in the Record back to disk. This operation read locks
+	 * the entire Record and overwrites the content of {@link #filename} with
+	 * the data that currently exists in memory.
+	 */
+	@GuardedBy("this.readLock")
+	public final void fsync() {
+		if(!fields.isEmpty()) {
+			Lock lock = readLock();
+			try {
+				String backup = filename + ".bak";
+				Files.copy(filename, backup);
+				Byteables.write(this, Files.getChannel(filename));
+				Files.delete(backup);
+			}
+			finally {
+				lock.release();
+			}
+		}
+		else {
+			// An empty collection of {#link #fields} usually indicates that
+			// the Record was deserialized from a read operation before a
+			// write operation occurred, so it is okay for me to
+			// delete the file at sync time if there have not been any writes.
+			delete();
+		}
 	}
 
 	@Override
@@ -170,6 +211,19 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	@Override
 	public Lock readLock() {
 		return Lockables.readLock(this);
+	}
+
+	/**
+	 * Remove {@code value} from the field mapped from {@code key}. This method
+	 * will writeLock the entire Record.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	@GuardedBy("this.writeLock, Field.writeLock")
+	public void remove(K key, V value) {
+		get(key).remove(value);
+		buffer = null;
 	}
 
 	@Override
@@ -237,67 +291,14 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	protected abstract Class<K> keyClass();
 
 	/**
-	 * Add {@code value} to the field mapped from {@code key}. This method will
-	 * writeLock the entire Record.
-	 * 
-	 * @param key
-	 * @param value
-	 */
-	@GuardedBy("this.writeLock, Field.writeLock")
-	public void add(K key, V value) {
-		get(key, true).add(value);
-		buffer = null;
-	}
-
-	/**
 	 * Delete this Record. This method will delete the backing file, but the
 	 * content of the Record will continue to reside in memory until it the
 	 * object is garbage collected.
 	 */
 	@DoNotInvoke
-	public final void delete() {
+	@PackagePrivate
+	final void delete() {
 		Files.delete(filename);
-	}
-
-	/**
-	 * Flush all the data in the Record back to disk. This operation read locks
-	 * the entire Record and overwrites the content of {@link #filename} with
-	 * the data that currently exists in memory.
-	 */
-	@GuardedBy("this.readLock")
-	public final void fsync() {
-		if(!fields.isEmpty()) {
-			Lock lock = readLock();
-			try {
-				String backup = filename + ".bak";
-				Files.copy(filename, backup);
-				Byteables.write(this, Files.getChannel(filename));
-				Files.delete(backup);
-			}
-			finally {
-				lock.release();
-			}
-		}
-		else {
-			// An empty collection of {#link #fields} usually indicates that
-			// the Record was deserialized from a read operation before a
-			// write operation occurred, so it is okay for me to
-			// delete the file at sync time if there have not been any writes.
-			delete();
-		}
-	}
-
-	/**
-	 * Remove {@code value} from the field mapped from {@code key}. This method
-	 * will writeLock the entire Record.
-	 * 
-	 * @param key
-	 * @param value
-	 */
-	@GuardedBy("this.writeLock, Field.writeLock")
-	public void remove(K key, V value) {
-		get(key).remove(value);
-		buffer = null;
 	}
 
 	/**
