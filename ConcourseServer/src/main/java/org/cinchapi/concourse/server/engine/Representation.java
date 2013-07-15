@@ -26,10 +26,12 @@ package org.cinchapi.concourse.server.engine;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
+import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
@@ -133,6 +135,11 @@ class Representation implements Lockable, Byteable {
 	@Override
 	public int size() {
 		return getBytes().capacity();
+	}
+
+	@Override
+	public String toString() {
+		return Hex.encodeHexString(ByteBuffers.toByteArray(getBytes()));
 	}
 
 	@Override
