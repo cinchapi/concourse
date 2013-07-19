@@ -154,7 +154,8 @@ final class Transactions {
 	}
 
 	/**
-	 * Grab the specified lock.
+	 * Grab a lock of {@code type} for {@code representation} in
+	 * {@code transaction}.
 	 * 
 	 * @param transaction
 	 * @param representation
@@ -162,25 +163,25 @@ final class Transactions {
 	 */
 	private static void lock(Transaction transaction,
 			Representation representation, TransactionLock.Type type) {
-		if(transaction.locks.containsKey(representation)) {
-			if(transaction.locks.get(representation).getType() != TransactionLock.Type.ISOLATED_FIELD) {
-				// We must release the previously held shared lock to prevent
-				// deadlock situations where one or more read locks are blocking
-				// an attempt to grab a write lock.
-				transaction.locks.remove(representation).release();
-				log.debug("Removed shared lock for representation {} "
-						+ "in transaction {}", representation, transaction);
-			}
-			else {
-				// Existing write locks must be preserved to enforce the
-				// serializable isolation guarantee
-				return;
-			}
+		if(transaction.locks.containsKey(representation)
+				&& transaction.locks.get(representation).getType() == TransactionLock.Type.SHARED_FIELD
+				&& type == TransactionLock.Type.ISOLATED_FIELD) {
+			// Lock "upgrades" should only occur in the event that we previously
+			// held a shared field lock and now we need an isolated field lock
+			// (i.e we were reading a field and now we want to write to that
+			// field). It is technically, not possible to upgrade a read lock to
+			// a write lock, so we must first release the read lock and grab a
+			// new write lock.
+			transaction.locks.remove(representation).release();
+			log.debug("Removed shared field lock for representation {} "
+					+ "in transaction {}", representation, transaction);
 		}
-		transaction.locks.put(representation, new TransactionLock(
-				representation, type));
-		log.debug("Grabbed lock of type {} for representation {} "
-				+ "in transaction {}", type, representation, transaction);
+		if(!transaction.locks.containsKey(representation)) {
+			transaction.locks.put(representation, new TransactionLock(
+					representation, type));
+			log.debug("Grabbed {} lock for representation {} "
+					+ "in transaction {}", type, representation, transaction);
+		}
 
 	}
 
