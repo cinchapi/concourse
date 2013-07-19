@@ -516,7 +516,7 @@ public interface Concourse {
 				TProtocol protocol = new TBinaryProtocol(transport);
 				client = new ConcourseService.Client(protocol);
 				authenticate();
-				log.info("Connected to Concourse server at {}:{}.", host, port);
+				log.info("Connected to Concourse at {}:{}", host, port);
 				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
 					@Override
@@ -670,7 +670,7 @@ public interface Concourse {
 		public void exit() {
 			client.getInputProtocol().getTransport().close();
 			client.getOutputProtocol().getTransport().close();
-			log.info("The client has disconnected");
+			log.info("The Concourse connection is closed");
 		}
 
 		@Override
