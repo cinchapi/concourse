@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.text.NumberFormat;
 import java.util.Iterator;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -62,6 +63,11 @@ final class Buffer extends Limbo implements Transportable {
 	 */
 	private static final int AVG_WRITE_SIZE = 72; /* arbitrary */
 	private static final Logger log = LoggerFactory.getLogger(Buffer.class);
+	private static final NumberFormat pct;
+	static {
+		pct = NumberFormat.getPercentInstance();
+		pct.setMaximumFractionDigits(2);
+	}
 
 	/**
 	 * To guarantee data durability, the Buffer is backed by a file on disk that
@@ -114,8 +120,9 @@ final class Buffer extends Limbo implements Transportable {
 			log.debug("Found existing write '{}' in the Buffer", write);
 		}
 		log.info("Using Buffer at '{}' with a total capacity of {} bytes. "
-				+ "{} bytes are currently occupied.", backingStore, size,
-				occupied);
+				+ "{} percent of the buffer is currently occupied.",
+				backingStore, size,
+				pct.format(100.00 * occupied / content.capacity()));
 	}
 
 	/**
@@ -217,7 +224,8 @@ final class Buffer extends Limbo implements Transportable {
 				content.put(write.getBytes());
 				content.force();
 				occupied += write.size() + 4;
-				log.info("{} bytes of the Buffer are now occupied", occupied);
+				log.info("{} percent of the Buffer is now occupied",
+						pct.format(100.00 * occupied / content.capacity()));
 			}
 			else {
 				log.warn("Attempt to append '{}' to the Buffer failed "
