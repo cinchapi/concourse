@@ -26,9 +26,7 @@ package org.cinchapi.concourse.server.engine;
 import java.nio.ByteBuffer;
 
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBufferOutputStream;
-import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
@@ -69,23 +67,10 @@ abstract class Values {
 	 * @return the object.
 	 */
 	static TObject getQuantityFromByteBuffer(ByteBuffer buffer, Type type) {
-		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
-		TObject object = quantityCache.get(cacheKey);
-		if(object == null) {
-			// Must allocate a heap buffer because TObject assumes it has a
-			// backing array.
-			object = new TObject(ByteBuffer.allocate(buffer.remaining()).put(
-					buffer), type);
-			quantityCache.put(object, cacheKey);
-		}
-		return object;
+		// Must allocate a heap buffer because TObject assumes it has a
+		// backing array.
+		return new TObject(ByteBuffer.allocate(buffer.remaining()).put(buffer),
+				type);
 	}
-
-	/**
-	 * Maintains a cache of all the quantities that are extracted from
-	 * ByteBuffers in the {@link #getQuantityFromByteBuffer(ByteBuffer, Type)}
-	 * method.
-	 */
-	private static final ReferenceCache<TObject> quantityCache = new ReferenceCache<TObject>();
 
 }
