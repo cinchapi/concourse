@@ -173,8 +173,9 @@ final class Transactions {
 			// a write lock, so we must first release the read lock and grab a
 			// new write lock.
 			transaction.locks.remove(representation).release();
-			log.debug("Removed shared field lock for representation {} "
-					+ "in transaction {}", representation, transaction);
+			log.debug("Removed {} lock for representation {} "
+					+ "in transaction {}", TransactionLock.Type.SHARED_FIELD,
+					representation, transaction);
 		}
 		if(!transaction.locks.containsKey(representation)) {
 			transaction.locks.put(representation, new TransactionLock(
