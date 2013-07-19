@@ -33,6 +33,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.time.Time;
 import org.cinchapi.concourse.server.engine.Engine;
 import org.cinchapi.concourse.server.engine.Transaction;
@@ -56,23 +57,8 @@ import com.google.common.collect.Maps;
  * 
  * @author jnelson
  */
-public class ConcourseServer implements ConcourseService.Iface {
-
-	/**
-	 * Run the server.
-	 * 
-	 * @param args
-	 */
-	public static void main(String... args) {
-		try {
-			ConcourseServer server = new ConcourseServer();
-			server.start();
-		}
-		catch (TTransportException e) {
-			log.error("An unexpected error has occured");
-			log.error("", e);
-		}
-	}
+@PackagePrivate
+class ConcourseServer implements ConcourseService.Iface {
 
 	private static final int SERVER_PORT = 1717; // This may become
 													// configurable in a
@@ -114,7 +100,8 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * 
 	 * @throws TTransportException
 	 */
-	private ConcourseServer() throws TTransportException {
+	@PackagePrivate
+	ConcourseServer() throws TTransportException {
 		this.engine = new Engine();
 		TServerSocket socket = new TServerSocket(SERVER_PORT);
 		ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
