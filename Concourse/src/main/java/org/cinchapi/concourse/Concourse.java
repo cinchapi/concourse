@@ -67,38 +67,38 @@ import com.google.common.collect.Lists;
  * <p>
  * The Concourse data model is lightweight and flexible which enables it to
  * support any kind of data at very large scales. Concourse trades unnecessary
- * structural notions of predefined schemas, tables and indexes for a more
- * natural modeling of data based solely on the following concepts:
+ * structural notions of schemas, tables and indexes for a more natural modeling
+ * of data based solely on the following concepts:
  * </p>
  * <p>
  * <ul>
- * <li><strong>Record</strong> &mdash; A logical grouping of information about a
- * single person, place, thing (i.e. object). Each record is a collection of
- * key/value mappings.
- * <li><strong>Primary Key</strong> &mdash; An immutable marker that is used to
- * identify a single Record. Each Record has a unique Primary Key.
- * <li><strong>Key</strong> &mdash; A label that maps to one or more distinct
- * Values. A Record can have many different Keys. And since Records are
- * independent, the Keys in one Record do not affect the Keys in another Record.
- * <li><strong>Value</strong> &mdash; A typed quantity that is mapped from a Key
- * in a Record.
+ * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
+ * person, place, or thing (i.e. an object). Each {@code record} is a collection
+ * of key/value pairs.
+ * <li><strong>Primary Key</strong> &mdash; The identifier for a {@code record}.
+ * Each {@code record} has a unique {@code primaryKey}.
+ * <li><strong>Key</strong> &mdash; An attribute that maps to
+ * <em>one or more</em> distinct {@code values}. A {@code record} can have many
+ * different {@code keys}, and the {@code keys} in one {@code record} do not
+ * affect the those in another {@code record}.
+ * <li><strong>Value</strong> &mdash; A typed quantity that is mapped from a
+ * {@code key} in a {@code record}.
  * </ul>
  * </p>
  * <h4>Data Types</h4>
  * <p>
  * Concourse natively stores most of the Java primitives: boolean, double,
- * float, integer, long, and string (utf-8 encoded). Otherwise, the value of the
- * {@link #toString()} method for other, non-primitive Objects is used to so
- * those Objects should return a string representation from which the Object can
- * be reconstructed (i.e. JSON, base64 encoded binary, etc).
+ * float, integer, long, and string (UTF-8). Otherwise, the value of the
+ * {@link #toString()} method for the Object is stored.
  * </p>
  * <h4>Links</h4>
  * <p>
- * Concourse supports links between Records and enforces referential integrity
- * with the ability to map a key in one Record to the PrimaryKey of another
- * Record using the {@link #link(String, long, long)} and
- * {@link #link(String, long, String, long)} methods.
- * 
+ * Concourse supports mapping a {@code key} in one {@code record} to another
+ * {@code record} using a {@link Link}. Links are one-directional, but it is
+ * possible to add two links that are the inverse of each other to simulate
+ * bi-directionality (i.e. link "friend" in Record 1 to Record 2 and link
+ * "friend" in Record 2 to Record 1).
+ * </p>
  * <h2>Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
@@ -124,16 +124,16 @@ public interface Concourse {
 	public void abort();
 
 	/**
-	 * Add {@code key} as {@code value} in {@code record} if no such mapping
-	 * currently exist. No other mappings are affected because {@code key} in
-	 * {@code record} may map to multiple distinct values.
+	 * Add {@code key} as {@code value} to {@code record} and return
+	 * {@code true} if the mapping does not currently exist in {@code record}
+	 * and is successfully added.
 	 * 
 	 * @param key
 	 * @param value
 	 * @param record
 	 * @return {@code true} if the mapping is added
 	 */
-	public boolean add(String key, Object value, long record);
+	public <T> boolean add(String key, T value, long record);
 
 	/**
 	 * Audit {@code record} and return a log of revisions.
@@ -153,8 +153,8 @@ public interface Concourse {
 	public Map<DateTime, String> audit(String key, long record);
 
 	/**
-	 * Clear {@code key} in {@code record} and remove all the currently
-	 * contained mappings.
+	 * Clear {@code key} in {@code record} and remove every mapping
+	 * from {@code key} that currently exists in {@code record}.
 	 * 
 	 * @param record
 	 */
@@ -181,8 +181,8 @@ public interface Concourse {
 	public long create();
 
 	/**
-	 * Describe {@code record} and return its keys that currently map to at
-	 * least one value. If there are no such keys, an empty Set is returned.
+	 * Describe {@code record} and return its set of keys that currently map to
+	 * at least one value.
 	 * 
 	 * @param record
 	 * @return the populated keys
@@ -190,9 +190,8 @@ public interface Concourse {
 	public Set<String> describe(long record);
 
 	/**
-	 * Describe {@code record} at {@code timestamp} and return its keys that
-	 * mapped to at least one value. If there were no such keys, an empty Set is
-	 * returned.
+	 * Describe {@code record} at {@code timestamp} and return its set keys that
+	 * mapped to at least one value.
 	 * 
 	 * @param record
 	 * @param timestamp
@@ -206,8 +205,9 @@ public interface Concourse {
 	public void exit();
 
 	/**
-	 * Fetch {@code key} from {@code record} and return the currently mapped
-	 * values. If there are none, an empty Set is returned.
+	 * Fetch {@code key} from {@code record} and return the set of currently
+	 * mapped
+	 * values.
 	 * 
 	 * @param key
 	 * @param record
@@ -217,7 +217,7 @@ public interface Concourse {
 
 	/**
 	 * Fetch {@code key} from {@code record} at {@code timestamp} and return the
-	 * values that were mapped. If there were none, an empty Set is returned.
+	 * set of values that were mapped.
 	 * 
 	 * @param key
 	 * @param record
@@ -228,9 +228,8 @@ public interface Concourse {
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
-	 * return the records that satisfied the criteria. This is analogous to a
-	 * SELECT query in a RDBMS. If there were no records that matched the
-	 * criteria, an empty Set is returned.
+	 * return the set of records that satisfied the criteria. This is analogous
+	 * to the SELECT action in SQL.
 	 * 
 	 * @param timestamp
 	 * @param key
@@ -242,10 +241,9 @@ public interface Concourse {
 			Object... values);
 
 	/**
-	 * Find {@code key} {@code operator} {@code values} and return the records
-	 * that satisfy the criteria. This is analogous to a SELECT query in a
-	 * RDBMS. If there are now records that match the criteria, an empty Set is
-	 * returned.
+	 * Find {@code key} {@code operator} {@code values} and return the set of
+	 * records that satisfy the criteria. This is analogous to the SELECT action
+	 * in SQL.
 	 * 
 	 * @param key
 	 * @param operator
@@ -256,7 +254,7 @@ public interface Concourse {
 
 	/**
 	 * Get {@code key} from {@code record} and return the first mapped value or
-	 * {@code null} if there are none. Compared to {@link #fetch(String, long)},
+	 * {@code null} if there is none. Compared to {@link #fetch(String, long)},
 	 * this method is suited for cases when the caller is certain that
 	 * {@code key} in {@code record} maps to a single value of type {@code T}.
 	 * 
@@ -268,7 +266,7 @@ public interface Concourse {
 
 	/**
 	 * Get {@code key} from {@code record} at {@code timestamp} and return the
-	 * first mapped value or {@code null} if there were none. Compared to
+	 * first mapped value or {@code null} if there was none. Compared to
 	 * {@link #fetch(String, long, long)}, this method is suited for cases when
 	 * the caller is certain that {@code key} in {@code record} mapped to a
 	 * single value of type {@code T} at {@code timestamp}.
@@ -282,8 +280,7 @@ public interface Concourse {
 
 	/**
 	 * Link {@code key} in {@code source} to {@code destination}. In other
-	 * words, a {@link Link} to {@code destination} is mapped from {@code key}
-	 * in {@code source}.
+	 * words, add {@code key} as {@link Link#to(destination)} in {@code source}.
 	 * 
 	 * @param key
 	 * @param source
@@ -294,24 +291,22 @@ public interface Concourse {
 
 	/**
 	 * Link {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. In other words, a {@link Link} to
-	 * {@code destination} is mapped from {@code sourceKey} in {@code source}
-	 * and a {@link Link} to {@code source} is mapped from
-	 * {@code destinationKey} in {@code destination}.
+	 * {@code destination}. In other words, add {@code sourceKey} as
+	 * {@link Link#to(destination)} in {@code source} and add
+	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
 	 * 
 	 * @param sourceKey
 	 * @param source
 	 * @param destinationKey
 	 * @param destination
-	 * @return {@code true} if a two way link exists between {@code source} and
-	 *         {@code destination}
+	 * @return {@code true} the links are added
 	 */
 	public boolean link(String sourceKey, long source, String destinationKey,
 			long destination);
 
 	/**
-	 * Ping {@code record} and return {@code true} if there is
-	 * <em>currently</em> at least one populated key.
+	 * Ping {@code record} and return {@code true} if there is currently at
+	 * least one populated key.
 	 * 
 	 * @param record
 	 * @return {@code true} if {@code record} currently contains data
@@ -319,15 +314,16 @@ public interface Concourse {
 	public boolean ping(long record);
 
 	/**
-	 * Remove {@code key} as {@code value} from {@code record} if the mapping
-	 * currently exists. No other mappings are affected.
+	 * Remove {@code key} as {@code value} from {@code record} and return
+	 * {@code true} if the mapping currently exists in {@code record} and is
+	 * successfully removed.
 	 * 
 	 * @param key
 	 * @param value
 	 * @param record
 	 * @return {@code true} if the mapping is removed
 	 */
-	public boolean remove(String key, Object value, long record);
+	public <T> boolean remove(String key, T value, long record);
 
 	/**
 	 * Revert {@code key} in {@code record} to {@code timestamp}. This method
@@ -346,9 +342,8 @@ public interface Concourse {
 	public void revert(String key, long record, DateTime timestamp);
 
 	/**
-	 * Search {@code key} for {@code query} and return the records that match
-	 * the fulltext query. If there are no such records, an empty Set is
-	 * returned.
+	 * Search {@code key} for {@code query} and return the set of records that
+	 * match the fulltext query.
 	 * 
 	 * @param key
 	 * @param query
@@ -359,7 +354,7 @@ public interface Concourse {
 	/**
 	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
 	 * method that clears the values currently mapped from {@code key} and adds
-	 * a new mapping for {@code value}.
+	 * a new mapping to {@code value}.
 	 * 
 	 * @param key
 	 * @param value
@@ -367,7 +362,7 @@ public interface Concourse {
 	 * @return {@code true} if the old mappings are removed and the new one is
 	 *         added
 	 */
-	public boolean set(String key, Object value, long record);
+	public <T> boolean set(String key, T value, long record);
 
 	/**
 	 * Turn on {@code staging} mode so that all subsequent changes are
@@ -385,8 +380,36 @@ public interface Concourse {
 	public void stage();
 
 	/**
+	 * Unlink {@code key} in {@code source} to {@code destination}. In other
+	 * words, remove{@code key} as {@link Link#to(destination)} in
+	 * {@code source}.
+	 * 
+	 * @param key
+	 * @param source
+	 * @param destination
+	 * @return {@code true} if the one way link is removed
+	 */
+	public boolean unlink(String key, long source, long destination);
+
+	/**
+	 * Unlink {@code sourceKey} in {@code source} to {@code destinationKey} in
+	 * {@code destination}. In other words, remove {@code sourceKey} as
+	 * {@link Link#to(destination)} in {@code source} and remove
+	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
+	 * 
+	 * @param sourceKey
+	 * @param source
+	 * @param destinationKey
+	 * @param destination
+	 * @return {@code true} if the links are removed
+	 */
+	public boolean unlink(String sourceKey, long source, String destinationKey,
+			long destination);
+
+	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
-	 * {@code true} if {@code value} is currently mapped.
+	 * {@code true} if {@code value} is currently mapped from {@code key} in
+	 * {@code record}.
 	 * 
 	 * @param key
 	 * @param value
@@ -397,7 +420,8 @@ public interface Concourse {
 
 	/**
 	 * Verify {@code key} equaled {@code value} in {@code record} at
-	 * {@code timestamp} and return {@code true} if {@code value} was mapped.
+	 * {@code timestamp} and return {@code true} if {@code value} was mapped
+	 * from {@code key} in {@code record}.
 	 * 
 	 * @param key
 	 * @param value
@@ -540,7 +564,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean add(final String key, final Object value,
+		public <T> boolean add(final String key, final T value,
 				final long record) {
 			return execute(new Callable<Boolean>() {
 
@@ -789,7 +813,7 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean set(String key, Object value, long record) {
+		public <T> boolean set(String key, T value, long record) {
 			Set<Object> values = fetch(key, record);
 			for (Object v : values) {
 				remove(key, v, record);
@@ -808,6 +832,18 @@ public interface Concourse {
 				}
 
 			});
+		}
+
+		@Override
+		public boolean unlink(String key, long source, long destination) {
+			return remove(key, Link.to(destination), source);
+		}
+
+		@Override
+		public boolean unlink(String sourceKey, long source,
+				String destinationKey, long destination) {
+			return unlink(sourceKey, source, destination)
+					^ unlink(destinationKey, destination, source);
 		}
 
 		@Override
