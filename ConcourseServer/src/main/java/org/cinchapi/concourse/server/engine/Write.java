@@ -30,7 +30,6 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
@@ -95,14 +94,8 @@ final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write notForStorage(String key, TObject value, long record) {
-		Object[] cacheKey = { key, value, record };
-		Write write = cache.get(cacheKey);
-		if(write == null) {
-			write = new Write(WriteType.NOT_FOR_STORAGE, Text.fromString(key),
-					Value.notForStorage(value),
-					PrimaryKey.notForStorage(record));
-		}
-		return write;
+		return new Write(WriteType.NOT_FOR_STORAGE, Text.fromString(key),
+				Value.notForStorage(value), PrimaryKey.notForStorage(record));
 	}
 
 	/**
@@ -118,8 +111,6 @@ final class Write implements Byteable {
 		return new Write(WriteType.REMOVE, Text.fromString(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
 	}
-
-	private static final ReferenceCache<Write> cache = new ReferenceCache<Write>();
 
 	/**
 	 * The start position of the encoded type in {@link #bytes}.

@@ -30,7 +30,6 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 
@@ -57,19 +56,11 @@ final class Position implements Comparable<Position>, Storable {
 	 * @return the Position
 	 */
 	public static Position fromPrimaryKeyAndMarker(PrimaryKey key, int marker) {
-		if(key.isForStorage()) {
-			key = PrimaryKey.forStorage(key.longValue()); // need to make a new
-														// PrimaryKey to ensure
-														// that timestamp is
-														// unique
+		if(key.isForStorage()) { // need to make a new PrimaryKey to ensure that
+									// timestamp is unique
+			key = PrimaryKey.forStorage(key.longValue());
 		}
-		Object[] cacheKey = { key, marker, key.getTimestamp() };
-		Position position = cache.get(cacheKey);
-		if(position == null) {
-			position = new Position(key, marker);
-			cache.put(position, cacheKey);
-		}
-		return position;
+		return new Position(key, marker);
 	}
 
 	/**
@@ -125,12 +116,6 @@ final class Position implements Comparable<Position>, Storable {
 	 */
 	@PackagePrivate
 	static final int SIZE = PK_SIZE + POS_SIZE;
-
-	/**
-	 * A ReferenceCache is generated in {@link Byteables} for Positions read
-	 * from ByteBuffers, so this cache is only for notForStorage Positions.
-	 */
-	private static final ReferenceCache<Position> cache = new ReferenceCache<Position>();
 
 	/**
 	 * <p>

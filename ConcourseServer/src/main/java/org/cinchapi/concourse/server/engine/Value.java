@@ -29,7 +29,6 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 import org.cinchapi.common.time.Time;
@@ -65,7 +64,7 @@ import com.google.common.base.Objects;
  */
 @Immutable
 @PackagePrivate
-final class Value implements Comparable<Value>, Storable { 
+final class Value implements Comparable<Value>, Storable {
 
 	/**
 	 * Return a Value that is appropriate for storage, with the current
@@ -109,13 +108,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return the Value
 	 */
 	public static Value notForStorage(TObject quantity) {
-		Object[] cacheKey = { quantity, NIL };
-		Value value = cache.get(quantity, cacheKey);
-		if(value == null) {
-			value = new Value(quantity);
-			cache.put(value, cacheKey);
-		}
-		return value;
+		return new Value(quantity);
 	}
 
 	/**
@@ -153,13 +146,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * The maximum number of bytes that can be used to encode a single Value.
 	 */
 	@PackagePrivate
-	static final int MAX_SIZE = Integer.MAX_VALUE; 
-
-	/**
-	 * A ReferenceCache is generated in {@link Byteables} for Values read from
-	 * ByteBuffers, so this cache is only for notForStorage Values.
-	 */
-	private static final ReferenceCache<Value> cache = new ReferenceCache<Value>();
+	static final int MAX_SIZE = Integer.MAX_VALUE;
 	private static final ValueComparator comparator = new ValueComparator();
 
 	/**
@@ -237,7 +224,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * @see {@link #compareToLogically(Value)}
 	 * @see {@link Storables#compare(Storable, Storable)}
 	 */
-	public int compareTo(Value o, boolean logically) { 
+	public int compareTo(Value o, boolean logically) {
 		return logically ? comparator.compare(this, o) : Storables.compare(
 				this, o);
 	}
@@ -301,7 +288,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * 
 	 * @return the type
 	 */
-	public Type getType() { 
+	public Type getType() {
 		bytes.position(TYPE_POS);
 		return Type.values()[bytes.getInt()];
 	}

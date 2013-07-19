@@ -29,7 +29,6 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 import org.cinchapi.common.time.Time;
@@ -50,8 +49,8 @@ import com.google.common.primitives.UnsignedLongs;
  * @author jnelson
  */
 // NOTE: This class extends Number so that it can be treated like other
-// numerical values during comparisons. Whenever a cell contains a relation,
-// the related Key is stored as a {@link Value} which is expected to be
+// numerical values during comparisons. Whenever a field contains a link,
+// the linked PrimaryKey is stored as a {@link Value} which is expected to be
 // sorted amongst other values as if it were a Long.
 @Immutable
 @PackagePrivate
@@ -107,13 +106,7 @@ final class PrimaryKey extends Number implements
 	 * @return the PrimaryKey
 	 */
 	public static PrimaryKey notForStorage(long value) {
-		Object[] cacheKey = { value, NIL };
-		PrimaryKey key = cache.get(cacheKey);
-		if(key == null) {
-			key = new PrimaryKey(value);
-			cache.put(key, cacheKey);
-		}
-		return key;
+		return new PrimaryKey(value);
 	}
 
 	/**
@@ -146,12 +139,6 @@ final class PrimaryKey extends Number implements
 	 * Serializability is inherited from {@link Number}.
 	 */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * A ReferenceCache is generated in {@link Byteables} for PrimaryKeys read
-	 * from ByteBuffers, so this cache is only for notForStorage PrimaryKeys.
-	 */
-	private static final ReferenceCache<PrimaryKey> cache = new ReferenceCache<PrimaryKey>();
 
 	/**
 	 * <p>
@@ -290,11 +277,12 @@ final class PrimaryKey extends Number implements
 	@Override
 	public String toString() {
 		int position = bytes.position();
-		String string = UnsignedLongs.toString(longValue()); // for compatibility
-															// with
-															// {@link
-															// com.cinchapi.common.Numbers.compare(Number,
-															// Number)}
+		String string = UnsignedLongs.toString(longValue()); // for
+																// compatibility
+																// with
+																// {@link
+																// com.cinchapi.common.Numbers.compare(Number,
+																// Number)}
 		bytes.position(position);
 		return string;
 	}
