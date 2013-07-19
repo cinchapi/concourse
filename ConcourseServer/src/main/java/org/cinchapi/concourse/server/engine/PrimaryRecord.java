@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -103,7 +104,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
-			for (Text field : fields().keySet()) {
+			for (Text field : fields.keySet()) {
 				audit.putAll(get(field).audit());
 			}
 			return audit;
@@ -226,7 +227,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	private Set<Text> describe(boolean historical, long timestamp) {
 		Lock lock = readLock();
 		try {
-			Map<Text, Field<Text, Value>> fields = fields();
+			Map<Text, Field<Text, Value>> fields = this.fields;
 			Set<Text> description = Sets.newHashSetWithExpectedSize(fields
 					.size());
 			Iterator<Field<Text, Value>> it = fields.values().iterator();

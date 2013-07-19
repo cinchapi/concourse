@@ -140,8 +140,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 					value).getValues());
 		}
 		else if(operator == Operator.NOT_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = fields().values()
-					.iterator();
+			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
 				if(field.getKey().equals(value)) {
@@ -151,7 +150,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.GREATER_THAN) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields())
+			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
 					.tailMap(value, false).values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
@@ -160,7 +159,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields())
+			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
 					.tailMap(value, true).values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
@@ -169,7 +168,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.LESS_THAN) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields())
+			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
 					.headMap(value, false).values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
@@ -178,7 +177,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields())
+			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
 					.headMap(value, true).values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
@@ -189,7 +188,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 		else if(operator == Operator.BETWEEN) {
 			Preconditions.checkArgument(values.length > 1);
 			Value value2 = values[1];
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields())
+			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
 					.subMap(value, true, value2, false).values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> field = it.next();
@@ -198,8 +197,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.REGEX) {
-			Iterator<Field<Value, PrimaryKey>> it = fields().values()
-					.iterator();
+			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> bucket = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());
@@ -211,8 +209,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.NOT_REGEX) {
-			Iterator<Field<Value, PrimaryKey>> it = fields().values()
-					.iterator();
+			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
 			while (it.hasNext()) {
 				Field<Value, PrimaryKey> bucket = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());

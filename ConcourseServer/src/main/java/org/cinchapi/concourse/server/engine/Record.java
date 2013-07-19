@@ -88,7 +88,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * compareTo() methods. If those things matter, we can just assume that
 	 * they chosen Key type reflects that.
 	 */
-	private final Map<K, Field<K, V>> fields;
+	protected final Map<K, Field<K, V>> fields;
 
 	/**
 	 * The mock is returned to callers to allow transparent interaction in the
@@ -248,15 +248,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @return the class
 	 */
 	protected abstract <T extends Field<K, V>> Class<T> fieldImplClass();
-
-	/**
-	 * Return an unmodifiable view of {@link #fields}.
-	 * 
-	 * @return the view of {@link #fields}.
-	 */
-	protected Map<K, Field<K, V>> fields() {
-		return Collections.unmodifiableMap(fields);
-	}
 
 	/**
 	 * The extension used for the storage filename.
