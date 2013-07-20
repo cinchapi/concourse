@@ -448,7 +448,7 @@ public interface Concourse {
 		/**
 		 * All configuration information is contained in this prefs file.
 		 */
-		private static final String configFileName = "concourse.prefs";
+		private static final String configFileName = "concourse_client.prefs";
 
 		/**
 		 * Handler for configuration preferences.
@@ -493,8 +493,8 @@ public interface Concourse {
 		 * interaction.
 		 */
 		public Client() {
-			this(config.getString("CONCOURSE_SERVER_HOST", "localhost"), config
-					.getInt("CONCOURSE_SERVER_PORT", 1717), config.getString(
+			this(config.getString("CONCOURSE_HOST", "localhost"), config
+					.getInt("CONCOURSE_PORT", 1717), config.getString(
 					"USERNAME", "admin"), config.getString("PASSWORD", "admin"));
 		}
 
@@ -510,7 +510,7 @@ public interface Concourse {
 		private Client(String host, int port, String username, String password) {
 			this.username = username;
 			this.password = password;
-			TTransport transport = new TSocket(host, port);
+			final TTransport transport = new TSocket(host, port);
 			try {
 				transport.open();
 				TProtocol protocol = new TBinaryProtocol(transport);
@@ -521,7 +521,7 @@ public interface Concourse {
 
 					@Override
 					public void run() {
-						if(transaction != null) {
+						if(transaction != null && transport.isOpen()) {
 							abort();
 							log.warn("Prior to shutdown, the client was in the middle "
 									+ "of an uncommitted transaction. That transaction "
@@ -534,8 +534,8 @@ public interface Concourse {
 			}
 			catch (TTransportException e) {
 				if(e.getCause() instanceof ConnectException) {
-					log.error("Unable to establish a connection with the "
-							+ "Concourse server at {}:{}. Please check "
+					log.error("Unable to establish a connection with "
+							+ "Concourse at {}:{}. Please check "
 							+ "that the remote service is actually running "
 							+ "and accepting connections.", host, port);
 
