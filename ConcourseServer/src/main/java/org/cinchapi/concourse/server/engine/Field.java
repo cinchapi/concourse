@@ -144,13 +144,6 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 			out.write(component);
 		}
 		out.close();
-		log.debug("INFO FOR FIELD IDENTIFIED BY {}", key);
-		log.debug("keyClassName is {} and {} bytes", keyClassName, keyClassName.size());
-		log.debug("valueClassName is {} and {} bytes", valueClassName, valueClassName.size());
-		log.debug("key is {} and {} bytes", key, key.size());
-		log.debug("state is {} and {} bytes", components[0], components[0].size());
-		log.debug("history is {} and {} bytes", components[1], components[1].size());
-		log.debug("Total buffer is {} bytes", out.size());
 		return out.toByteBuffer();
 	}
 	/**
