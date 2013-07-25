@@ -57,7 +57,7 @@ import com.google.common.base.Objects;
  * <li>INTEGER requires an additional 4 bytes</li>
  * <li>LONG requires an additional 8 bytes</li>
  * <li>RELATION requires an additional 8 bytes</li>
- * <li>STRING requires an additional 1-4 bytes for every character (uses UTF-8
+ * <li>STRING requires an additional 14 bytes for every character (uses UTF8
  * encoding)</li>
  * </ul>
  * </p>
@@ -150,9 +150,24 @@ final class Value implements Comparable<Value>, Storable {
 	static TObject getQuantityFromByteBuffer(ByteBuffer buffer, Type type) {
 		// Must allocate a heap buffer because TObject assumes it has a
 		// backing array.
-		return new TObject(ByteBuffer.allocate(buffer.remaining()).put(buffer),
-				type);
+		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
+		TObject object = quantityCache.get(cacheKey);
+		if(object == null) {
+			// Must allocate a heap buffer because TObject assumes it has a
+			// backing array.
+			object = new TObject(ByteBuffer.allocate(buffer.remaining()).put(
+					buffer), type);
+			quantityCache.put(object, cacheKey);
+		}
+		return object;
 	}
+
+	/**
+	 * Maintains a cache of all the quantities that are extracted from
+	 * ByteBuffers in the {@link #getQuantityFromByteBuffer(ByteBuffer, Type)}
+	 * method.
+	 */
+	private static final ReferenceCache<TObject> quantityCache = new ReferenceCache<TObject>();
 
 	/**
 	 * The start position of the encoded timestamp in {@link #bytes}.
@@ -303,9 +318,9 @@ final class Value implements Comparable<Value>, Storable {
 	/**
 	 * Return a byte buffer that represents the value with the following order:
 	 * <ol>
-	 * <li><strong>timestamp</strong> - position {@value #TS_POS}</li>
-	 * <li><strong>type</strong> - position {@value #TYPE_POS}</li>
-	 * <li><strong>quantity</strong> - position {@value #QTY_POS}</li>
+	 * <li><strong>timestamp</strong> position {@value #TS_POS}</li>
+	 * <li><strong>type</strong> position {@value #TYPE_POS}</li>
+	 * <li><strong>quantity</strong> position {@value #QTY_POS}</li>
 	 * </ol>
 	 * 
 	 * @return a byte array.

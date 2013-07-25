@@ -188,12 +188,12 @@ public class TObject implements
 
 	}
 
-	public byte[] getData() {
+	public synchronized byte[] getData() {
 		setData(org.apache.thrift.TBaseHelper.rightSize(data));
 		return data == null ? null : data.array();
 	}
 
-	public ByteBuffer bufferForData() {
+	public synchronized ByteBuffer bufferForData() {
 		data.rewind();
 		return data;
 	}
