@@ -30,6 +30,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
@@ -72,7 +73,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return a string that describes the revision encapsulated in the 
+	 * Return a string that describes the revision encapsulated in the
 	 * 
 	 * @param write
 	 * @return a description of the Write
@@ -113,8 +114,14 @@ final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write notForStorage(String key, TObject value, long record) {
-		return new Write(WriteType.NOT_FOR_STORAGE, Text.fromString(key),
-				Value.notForStorage(value), PrimaryKey.notForStorage(record));
+		Object[] cacheKey = { key, value, record };
+		Write write = cache.get(cacheKey);
+		if(write == null) {
+			write = new Write(WriteType.NOT_FOR_STORAGE, Text.fromString(key),
+					Value.notForStorage(value),
+					PrimaryKey.notForStorage(record));
+		}
+		return write;
 	}
 
 	/**
@@ -142,8 +149,8 @@ final class Write implements Byteable {
 	 * @param record
 	 * @return the ByteBuffer encoding
 	 */
-	static ByteBuffer encodeAsByteBuffer(WriteType type, Text key,
-			Value value, PrimaryKey record) {
+	static ByteBuffer encodeAsByteBuffer(WriteType type, Text key, Value value,
+			PrimaryKey record) {
 		ByteBufferOutputStream out = new ByteBufferOutputStream();
 		out.write(type);
 		out.write(record);
@@ -176,6 +183,8 @@ final class Write implements Byteable {
 		bytes.position(VALUE_SIZE_POS);
 		return bytes.getInt();
 	}
+
+	private static final ReferenceCache<Write> cache = new ReferenceCache<Write>();
 
 	/**
 	 * The start position of the encoded type in {@link #bytes}.
@@ -306,12 +315,12 @@ final class Write implements Byteable {
 	/**
 	 * Return a byte buffer that represents the write with the following order:
 	 * <ol>
-	 * <li><strong>type</strong> - position {@value #TYPE_POS}</li>
-	 * <li><strong>record</strong> - position {@value #RECORD_POS}</li>
-	 * <li><strong>keySize</strong> - position {@value #KEY_SIZE_POS}</li>
-	 * <li><strong>valueSize</strong> - position {@value #VALUE_SIZE_POS}</li>
-	 * <li><strong>key</strong> - position {@value #KEY_POS}</li>
-	 * <li><strong>value</strong> - position (key) + keySize</li>
+	 * <li><strong>type</strong> position {@value #TYPE_POS}</li>
+	 * <li><strong>record</strong> position {@value #RECORD_POS}</li>
+	 * <li><strong>keySize</strong> position {@value #KEY_SIZE_POS}</li>
+	 * <li><strong>valueSize</strong> position {@value #VALUE_SIZE_POS}</li>
+	 * <li><strong>key</strong> position {@value #KEY_POS}</li>
+	 * <li><strong>value</strong> position (key) + keySize</li>
 	 * </ol>
 	 * 
 	 * @return a byte array.
@@ -324,7 +333,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return the {@code key} associated with this 
+	 * Return the {@code key} associated with this
 	 * 
 	 * @return the {@code key}
 	 */
@@ -338,7 +347,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return the {@code record} associated with this 
+	 * Return the {@code record} associated with this
 	 * 
 	 * @return the {@code record}
 	 */
@@ -353,7 +362,7 @@ final class Write implements Byteable {
 
 	/**
 	 * Return the {@code timestamp} of the {@code value} associated with this
-	 *  This is equivalent to calling {@link #getValue()}
+	 * This is equivalent to calling {@link #getValue()}
 	 * {@link Value#getTimestamp()}.
 	 * 
 	 * @return the {@code timestamp}
@@ -364,7 +373,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return the write {@code type} associated with this 
+	 * Return the write {@code type} associated with this
 	 * 
 	 * @return the write {@code type}
 	 */
@@ -378,7 +387,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return the {@code value} associated with this 
+	 * Return the {@code value} associated with this
 	 * 
 	 * @return the {@code value}
 	 */

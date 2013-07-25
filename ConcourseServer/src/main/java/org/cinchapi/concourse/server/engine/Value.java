@@ -29,6 +29,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
@@ -127,7 +128,13 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return the Value
 	 */
 	public static Value notForStorage(TObject quantity) {
-		return new Value(quantity);
+		Object[] cacheKey = { quantity, NIL };
+		Value value = cache.get(quantity, cacheKey);
+		if(value == null) {
+			value = new Value(quantity);
+			cache.put(value, cacheKey);
+		}
+		return value;
 	}
 
 	/**
@@ -182,6 +189,12 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	@PackagePrivate
 	static final int MAX_SIZE = Integer.MAX_VALUE;
+
+	/**
+	 * A ReferenceCache is generated in {@link Byteables} for Values read from
+	 * ByteBuffers, so this cache is only for notForStorage Values.
+	 */
+	private static final ReferenceCache<Value> cache = new ReferenceCache<Value>();
 
 	private static final ValueComparator comparator = new ValueComparator();
 

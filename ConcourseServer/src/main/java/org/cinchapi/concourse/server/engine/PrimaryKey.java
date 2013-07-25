@@ -29,6 +29,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
@@ -44,7 +45,7 @@ import com.google.common.primitives.UnsignedLongs;
  * total required storage space is {@value #SIZE} bytes.
  * </p>
  * <p>
- * The pool of possible keys ranges from 0 to 2^64 - 1 inclusive.
+ * The pool of possible keys ranges from 0 to 2^64 1 inclusive.
  * </p>
  * 
  * @author jnelson
@@ -107,7 +108,13 @@ final class PrimaryKey extends Number implements
 	 * @return the PrimaryKey
 	 */
 	public static PrimaryKey notForStorage(long value) {
-		return new PrimaryKey(value);
+		Object[] cacheKey = { value, NIL };
+		PrimaryKey key = cache.get(cacheKey);
+		if(key == null) {
+			key = new PrimaryKey(value);
+			cache.put(key, cacheKey);
+		}
+		return key;
 	}
 
 	/**
@@ -152,6 +159,12 @@ final class PrimaryKey extends Number implements
 	 */
 	@PackagePrivate
 	static final int SIZE = TS_SIZE + KEY_SIZE;
+
+	/**
+	 * A ReferenceCache is generated in {@link Byteables} for PrimaryKeys read
+	 * from ByteBuffers, so this cache is only for notForStorage PrimaryKeys.
+	 */
+	private static final ReferenceCache<PrimaryKey> cache = new ReferenceCache<PrimaryKey>();
 
 	/**
 	 * Serializability is inherited from {@link Number}.
@@ -213,7 +226,7 @@ final class PrimaryKey extends Number implements
 	 */
 	@Override
 	public int compareTo(PrimaryKey o) {
-		return -1 * UnsignedLongs.compare(longValue(), o.longValue());
+		return 1 * UnsignedLongs.compare(longValue(), o.longValue());
 	}
 
 	@Override
@@ -238,8 +251,8 @@ final class PrimaryKey extends Number implements
 	/**
 	 * Return a byte array that represents the value with the following order:
 	 * <ol>
-	 * <li><strong>timestamp</strong> - position {@value #TS_POS}</li>
-	 * <li><strong>key</strong> - position {@value #KEY_POS}</li>
+	 * <li><strong>timestamp</strong> position {@value #TS_POS}</li>
+	 * <li><strong>key</strong> position {@value #KEY_POS}</li>
 	 * </ol>
 	 * 
 	 * @return a byte array.
