@@ -31,7 +31,7 @@ import junit.framework.Assert;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.ByteableTest;
 import org.cinchapi.common.time.Time;
-import org.cinchapi.common.util.Tests;
+import org.cinchapi.common.util.Random;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -198,7 +198,7 @@ public abstract class FieldTest<K extends Byteable, V extends Storable> extends
 		Iterator<V> it = values.iterator();
 		while (it.hasNext()) {
 			V value = it.next();
-			if(Tests.getInt() % 2 == 0) {
+			if(Random.getInt() % 2 == 0) {
 				field.remove(getForStorageValueCopy(value));
 			}
 		}
@@ -298,7 +298,7 @@ public abstract class FieldTest<K extends Byteable, V extends Storable> extends
 	 */
 	private List<V> populateWithAdd(Field<K, V> field) {
 		List<V> values = Lists.newArrayList();
-		int count = Tests.getScaleCount();
+		int count = Random.getScaleCount();
 		for (int i = 0; i < count; i++) {
 			V value = getForStorageValue();
 			while (field.contains(value)) {
@@ -318,7 +318,7 @@ public abstract class FieldTest<K extends Byteable, V extends Storable> extends
 	 */
 	private List<V> populateWithAddAndRemove(Field<K, V> field) {
 		List<V> values = Lists.newArrayList();
-		int count = Tests.getScaleCount();
+		int count = Random.getScaleCount();
 		for (int i = 0; i < count; i++) {
 			V value = getForStorageValue();
 			while (field.contains(value)) {
@@ -330,7 +330,7 @@ public abstract class FieldTest<K extends Byteable, V extends Storable> extends
 		Iterator<V> it = values.iterator();
 		while (it.hasNext()) {
 			V value = it.next();
-			if(Tests.getInt() % 2 == 0) {
+			if(Random.getInt() % 2 == 0) {
 				it.remove();
 				field.remove(getForStorageValueCopy(value));
 			}

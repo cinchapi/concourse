@@ -30,6 +30,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
@@ -68,6 +69,24 @@ final class Write implements Byteable {
 	public static Write add(String key, TObject value, long record) {
 		return new Write(WriteType.ADD, Text.fromString(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
+	}
+
+	/**
+	 * Return a string that describes the revision encapsulated in the 
+	 * 
+	 * @param write
+	 * @return a description of the Write
+	 */
+	public static String describe(Write write) {
+		String verb = write.getType().name();
+		String key = write.getKey().toString();
+		String value = write.getValue().toString();
+		String preposition = write.getType() == WriteType.ADD ? "TO" : "FROM";
+		String record = write.getRecord().toString();
+		return new StringBuilder().append(verb).append(" ").append(key)
+				.append(" ").append("AS").append(" ").append(value).append(" ")
+				.append(preposition).append(" ").append(record).append(" ")
+				.toString();
 	}
 
 	/**
@@ -113,6 +132,52 @@ final class Write implements Byteable {
 	}
 
 	/**
+	 * Encode the Write of {@code type} {@code key} as {@code value} in
+	 * {@code record} into a ByteBuffer that conforms to the format specified in
+	 * {@link Write#getBytes()}.
+	 * 
+	 * @param type
+	 * @param key
+	 * @param value
+	 * @param record
+	 * @return the ByteBuffer encoding
+	 */
+	static ByteBuffer encodeAsByteBuffer(WriteType type, Text key,
+			Value value, PrimaryKey record) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(type);
+		out.write(record);
+		out.write(key.size());
+		out.write(value.size());
+		out.write(key);
+		out.write(value);
+		out.close();
+		return out.toByteBuffer();
+	}
+
+	/**
+	 * Return the keySize that is encoded in {@code bytes}.
+	 * 
+	 * @param bytes
+	 * @return the keySize
+	 */
+	static int getKeySize(ByteBuffer bytes) {
+		bytes.position(KEY_SIZE_POS);
+		return bytes.getInt();
+	}
+
+	/**
+	 * Return the valueSize that is encoded in {@code bytes}.
+	 * 
+	 * @param bytes
+	 * @return the valueSize
+	 */
+	static int getValueSize(ByteBuffer bytes) {
+		bytes.position(VALUE_SIZE_POS);
+		return bytes.getInt();
+	}
+
+	/**
 	 * The start position of the encoded type in {@link #bytes}.
 	 */
 	private static final int TYPE_POS = 0;
@@ -153,19 +218,16 @@ final class Write implements Byteable {
 	 * The number of bytes used to encoded the valueSize in {@link #bytes}.
 	 */
 	private static final int VALUE_SIZE_SIZE = Integer.SIZE / 8;
-
 	/**
 	 * The start position of the encoded key in {@link #bytes}.
 	 */
 	@PackagePrivate
 	private static final int KEY_POS = VALUE_SIZE_POS + VALUE_SIZE_SIZE;
-
 	/**
 	 * The start position of the encoded value {@link #bytes}.
 	 */
 	@PackagePrivate
 	private final int VALUE_POS;
-
 	/**
 	 * <p>
 	 * In order to optimize heap usage, we encode the Write as a single
@@ -185,8 +247,11 @@ final class Write implements Byteable {
 
 	// Cached components that are encoded in {@link #bytes}
 	private transient PrimaryKey record = null;
+
 	private transient Text key = null;
+
 	private transient Value value = null;
+
 	private transient WriteType type = null;
 
 	/**
@@ -201,7 +266,7 @@ final class Write implements Byteable {
 	@DoNotInvoke
 	public Write(ByteBuffer bytes) {
 		this.bytes = bytes;
-		this.VALUE_POS = KEY_POS + Writes.getKeySize(bytes);
+		this.VALUE_POS = KEY_POS + getKeySize(bytes);
 	}
 
 	/**
@@ -215,7 +280,7 @@ final class Write implements Byteable {
 	@DoNotInvoke
 	public Write(WriteType type, Text key, Value value, PrimaryKey record) {
 		this.VALUE_POS = KEY_POS + key.size();
-		this.bytes = Writes.encodeAsByteBuffer(type, key, value, record);
+		this.bytes = encodeAsByteBuffer(type, key, value, record);
 		this.record = record;
 		this.key = key;
 		this.value = value;
@@ -252,9 +317,78 @@ final class Write implements Byteable {
 	 * @return a byte array.
 	 */
 	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+	public synchronized ByteBuffer getBytes() {
+		ByteBuffer clone = ByteBuffers.clone(bytes);
+		clone.rewind();
+		return clone;
+	}
+
+	/**
+	 * Return the {@code key} associated with this 
+	 * 
+	 * @return the {@code key}
+	 */
+	@PackagePrivate
+	public synchronized Text getKey() {
+		if(key == null) {
+			key = Text.fromByteBuffer(ByteBuffers.slice(bytes, KEY_POS,
+					getKeySize(bytes)));
+		}
+		return key;
+	}
+
+	/**
+	 * Return the {@code record} associated with this 
+	 * 
+	 * @return the {@code record}
+	 */
+	@PackagePrivate
+	public synchronized PrimaryKey getRecord() {
+		if(record == null) {
+			record = PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes,
+					RECORD_POS, RECORD_SIZE));
+		}
+		return record;
+	}
+
+	/**
+	 * Return the {@code timestamp} of the {@code value} associated with this
+	 *  This is equivalent to calling {@link #getValue()}
+	 * {@link Value#getTimestamp()}.
+	 * 
+	 * @return the {@code timestamp}
+	 */
+	@PackagePrivate
+	public synchronized long getTimestamp() {
+		return getValue().getTimestamp();
+	}
+
+	/**
+	 * Return the write {@code type} associated with this 
+	 * 
+	 * @return the write {@code type}
+	 */
+	@PackagePrivate
+	public synchronized WriteType getType() {
+		if(type == null) {
+			bytes.position(TYPE_POS);
+			type = ByteBuffers.getEnum(bytes, WriteType.class);
+		}
+		return type;
+	}
+
+	/**
+	 * Return the {@code value} associated with this 
+	 * 
+	 * @return the {@code value}
+	 */
+	@PackagePrivate
+	public synchronized Value getValue() {
+		if(value == null) {
+			value = Value.fromByteBuffer(ByteBuffers.slice(bytes, VALUE_POS,
+					getValueSize(bytes)));
+		}
+		return value;
 	}
 
 	/**
@@ -266,84 +400,6 @@ final class Write implements Byteable {
 		return Objects.hash(getRecord(), getKey(), getValue());
 	}
 
-	@Override
-	public int size() {
-		return bytes.capacity();
-	}
-
-	@Override
-	public String toString() {
-		return Writes.describe(this);
-	}
-
-	/**
-	 * Return the {@code key} associated with this Write.
-	 * 
-	 * @return the {@code key}
-	 */
-	@PackagePrivate
-	Text getKey() {
-		if(key == null) {
-			key = Text.fromByteBuffer(ByteBuffers.slice(bytes, KEY_POS,
-					Writes.getKeySize(bytes)));
-		}
-		return key;
-	}
-
-	/**
-	 * Return the {@code record} associated with this Write.
-	 * 
-	 * @return the {@code record}
-	 */
-	@PackagePrivate
-	PrimaryKey getRecord() {
-		if(record == null) {
-			record = PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes,
-					RECORD_POS, RECORD_SIZE));
-		}
-		return record;
-	}
-
-	/**
-	 * Return the {@code timestamp} of the {@code value} associated with this
-	 * Write. This is equivalent to calling {@link #getValue()}
-	 * {@link Value#getTimestamp()}.
-	 * 
-	 * @return the {@code timestamp}
-	 */
-	@PackagePrivate
-	long getTimestamp() {
-		return getValue().getTimestamp();
-	}
-
-	/**
-	 * Return the write {@code type} associated with this Write.
-	 * 
-	 * @return the write {@code type}
-	 */
-	@PackagePrivate
-	WriteType getType() {
-		if(type == null) {
-			bytes.position(TYPE_POS);
-			type = ByteBuffers.getEnum(bytes, WriteType.class);
-		}
-		return type;
-	}
-
-	/**
-	 * Return the {@code value} associated with this Write.
-	 * 
-	 * @return the {@code value}
-	 */
-	@PackagePrivate
-	Value getValue() {
-		if(value == null) {
-			value = Value.fromByteBuffer(ByteBuffers.slice(bytes, VALUE_POS,
-					Writes.getValueSize(bytes)));
-		}
-		return value;
-	}
-
 	/**
 	 * Return {@code true} if the Write is forStorage, meaning both the
 	 * {@code record} and {@code value} are forStorage.
@@ -351,7 +407,7 @@ final class Write implements Byteable {
 	 * @return {@code true} if the Write is forStorage
 	 */
 	@PackagePrivate
-	boolean isForStorage() {
+	public boolean isForStorage() {
 		return getType() != WriteType.NOT_FOR_STORAGE;
 	}
 
@@ -362,8 +418,18 @@ final class Write implements Byteable {
 	 * @return {@code true} if the Write is notForStorage
 	 */
 	@PackagePrivate
-	boolean isNotForStorage() {
+	public boolean isNotForStorage() {
 		return getType() == WriteType.NOT_FOR_STORAGE;
+	}
+
+	@Override
+	public int size() {
+		return bytes.capacity();
+	}
+
+	@Override
+	public String toString() {
+		return describe(this);
 	}
 
 	/**

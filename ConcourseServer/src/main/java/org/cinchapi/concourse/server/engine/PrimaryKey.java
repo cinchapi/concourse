@@ -29,6 +29,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 import org.cinchapi.common.time.Time;
@@ -110,6 +111,23 @@ final class PrimaryKey extends Number implements
 	}
 
 	/**
+	 * Encode {@code key} and {@code timestamp} into a ByteBuffer that
+	 * conforms to the format specified for {@link PrimaryKey#getBytes()}.
+	 * 
+	 * @param key
+	 * @param timestamp
+	 * @return the ByteBuffer encoding
+	 */
+	static ByteBuffer encodeAsByteBuffer(long key, long timestamp) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream(SIZE);
+		out.write(timestamp);
+		out.write(key);
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
+	}
+
+	/**
 	 * The start position of the encoded timestamp in {@link #bytes}.
 	 */
 	private static final int TS_POS = 0;
@@ -187,18 +205,7 @@ final class PrimaryKey extends Number implements
 	 * @param timestamp
 	 */
 	private PrimaryKey(long key, long timestamp) {
-		this.bytes = PrimaryKeys.encodeAsByteBuffer(key, timestamp);
-	}
-
-	/**
-	 * Return a long that represents the two's complement.
-	 * 
-	 * @return the long value
-	 */
-	@Override
-	public long longValue() {
-		bytes.position(KEY_POS);
-		return bytes.getLong();
+		this.bytes = encodeAsByteBuffer(key, timestamp);
 	}
 
 	/**
@@ -238,13 +245,14 @@ final class PrimaryKey extends Number implements
 	 * @return a byte array.
 	 */
 	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+	public synchronized ByteBuffer getBytes() {
+		ByteBuffer clone = ByteBuffers.clone(bytes);
+		clone.rewind();
+		return clone;
 	}
 
 	@Override
-	public long getTimestamp() {
+	public synchronized long getTimestamp() {
 		bytes.position(TS_POS);
 		return bytes.getLong();
 	}
@@ -267,6 +275,17 @@ final class PrimaryKey extends Number implements
 	@Override
 	public boolean isNotForStorage() {
 		return Storables.isNotForStorage(this);
+	}
+
+	/**
+	 * Return a long that represents the two's complement.
+	 * 
+	 * @return the long value
+	 */
+	@Override
+	public synchronized long longValue() {
+		bytes.position(KEY_POS);
+		return bytes.getLong();
 	}
 
 	@Override

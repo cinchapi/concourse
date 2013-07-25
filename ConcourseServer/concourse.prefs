@@ -11,3 +11,13 @@
 # 
 # DEFAULT: data
 DATA_HOME = data
+
+# The maximum number of bytes that the Buffer should store before
+# transporting its content to the Database. A larger Buffer 
+# optimizes writes and a smaller Buffer optimizes reads.
+#
+# WARNING: Altering this value without first flushing any existing
+# Buffer content may lead to permanent data loss.
+# 
+# DEFAULT: = 5242880 (5M)
+BUFFER_SIZE_IN_BYTES 500

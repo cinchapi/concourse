@@ -23,9 +23,6 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
@@ -110,26 +107,6 @@ public final class Engine extends BufferedStore implements
 			lock.release();
 		}
 
-	}
-
-	/**
-	 * Shutdown the database gracefully. Make sure any blocked tasks
-	 * have a chance to complete before being dropped.
-	 */
-	public void shutdown() {
-		((Database) this.destination).shutdown();
-		executor.shutdown();
-		try {
-			if(!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-				List<Runnable> tasks = executor.shutdownNow();
-				log.error("The Engine could not properly shutdown. "
-						+ "The following tasks were dropped: {}", tasks);
-			}
-		}
-		catch (InterruptedException e) {
-			log.error("An error occured while shutting down the Engine: {}", e);
-		}
-		log.info("The Engine has shutdown");
 	}
 
 	@Override

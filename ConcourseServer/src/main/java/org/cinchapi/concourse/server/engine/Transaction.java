@@ -25,11 +25,16 @@ package org.cinchapi.concourse.server.engine;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
+import org.cinchapi.common.io.ByteBuffers;
+import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.time.Time;
@@ -78,6 +83,139 @@ public final class Transaction extends BufferedStore {
 		return new Transaction(engine);
 	}
 
+	/**
+	 * Encode {@code transaction} as a MappedByteBuffer with the following
+	 * format:
+	 * <ol>
+	 * <li><strong>locksSize</strong> - position
+	 * {@value Transaction#LOCKS_SIZE_OFFSET}</li>
+	 * <li><strong>locks</strong> - position {@value Transaction#LOCKS_OFFSET}</li>
+	 * <li><strong>writes</strong> - position {@value Transaction#LOCKS_OFFSET}
+	 * + locksSize</li>
+	 * </ol>
+	 * 
+	 * @param transaction
+	 * @param file
+	 * @return the encoded ByteBuffer
+	 */
+	static MappedByteBuffer encodeAsByteBuffer(Transaction transaction,
+			String file) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		int lockSize = 4 + (transaction.locks.size() * TransactionLock.SIZE);
+		out.write(lockSize);
+		out.write(transaction.locks.values(), TransactionLock.SIZE);
+		out.write(((Limbo) transaction.buffer).writes); /* Authorized */
+		out.close();
+		Files.open(file);
+		return out.toMappedByteBuffer(file, 0);
+	}
+
+	/**
+	 * Grab an exclusive lock on the field identified by {@code key} in
+	 * {@code record}.
+	 * 
+	 * @param key
+	 * @param record
+	 */
+	static void lockAndIsolate(Transaction transaction, String key, long record) {
+		lock(transaction, Representation.forObjects(key, record),
+				TransactionLock.Type.ISOLATED_FIELD);
+	}
+	/**
+	 * Grab a shared lock on {@code record}.
+	 * 
+	 * @param transaction
+	 * @param record
+	 */
+	static void lockAndShare(Transaction transaction, long record) {
+		lock(transaction, Representation.forObjects(record),
+				TransactionLock.Type.SHARED_RECORD);
+	}
+
+	/**
+	 * Grab a shared lock for {@code key}.
+	 * 
+	 * @param transaction
+	 * @param key
+	 */
+	static void lockAndShare(Transaction transaction, String key) {
+		lock(transaction, Representation.forObjects(key),
+				TransactionLock.Type.SHARED_KEY);
+	}
+
+	/**
+	 * Grab a shared lock on the field identified by {@code key} in
+	 * {@code record}.
+	 * 
+	 * @param transaction
+	 * @param key
+	 * @param record
+	 */
+	static void lockAndShare(Transaction transaction, String key, long record) {
+		lock(transaction, Representation.forObjects(key, record),
+				TransactionLock.Type.SHARED_FIELD);
+	}
+
+	/**
+	 * Populate {@code transaction} with the data encoded in {@code bytes}. This
+	 * method assumes that {@code transaction} is empty.
+	 * 
+	 * @param serverTransaction
+	 * @param bytes
+	 */
+	static void populateFromByteBuffer(Transaction transaction, ByteBuffer bytes) {
+		int locksSize = bytes.getInt();
+		int writesPosition = LOCKS_OFFSET + locksSize;
+		int writesSize = bytes.capacity() - writesPosition;
+		ByteBuffer locks = ByteBuffers.slice(bytes, LOCKS_OFFSET, locksSize);
+		ByteBuffer writes = ByteBuffers
+				.slice(bytes, writesPosition, writesSize);
+
+		Iterator<ByteBuffer> it = ByteableCollections.iterator(locks,
+				TransactionLock.SIZE);
+		while (it.hasNext()) {
+			TransactionLock lock = TransactionLock.fromByteBuffer(it.next());
+			transaction.locks.put(lock.getSource(), lock);
+		}
+
+		it = ByteableCollections.iterator(writes);
+		while (it.hasNext()) {
+			Write write = Write.fromByteBuffer(it.next());
+			((Limbo) transaction.buffer).insert(write);
+		}
+	}
+	/**
+	 * Grab a lock of {@code type} for {@code representation} in
+	 * {@code transaction}.
+	 * 
+	 * @param transaction
+	 * @param representation
+	 * @param type
+	 */
+	private static void lock(Transaction transaction,
+			Representation representation, TransactionLock.Type type) {
+		if(transaction.locks.containsKey(representation)
+				&& transaction.locks.get(representation).getType() == TransactionLock.Type.SHARED_FIELD
+				&& type == TransactionLock.Type.ISOLATED_FIELD) {
+			// Lock "upgrades" should only occur in the event that we previously
+			// held a shared field lock and now we need an isolated field lock
+			// (i.e we were reading a field and now we want to write to that
+			// field). It is technically, not possible to upgrade a read lock to
+			// a write lock, so we must first release the read lock and grab a
+			// new write lock.
+			transaction.locks.remove(representation).release();
+			log.debug("Removed {} lock for representation {} "
+					+ "in transaction {}", TransactionLock.Type.SHARED_FIELD,
+					representation, transaction);
+		}
+		if(!transaction.locks.containsKey(representation)) {
+			transaction.locks.put(representation, new TransactionLock(
+					representation, type));
+			log.debug("Grabbed {} lock for representation {} "
+					+ "in transaction {}", type, representation, transaction);
+		}
+
+	}
 	private static final Logger log = LoggerFactory
 			.getLogger(Transaction.class);
 
@@ -87,6 +225,7 @@ public final class Transaction extends BufferedStore {
 	 */
 	private static final String transactionStore = ServerConstants.DATA_HOME
 			+ File.separator + "transactions";
+
 	private static final int initialCapacity = 50;
 
 	/**
@@ -101,6 +240,12 @@ public final class Transaction extends BufferedStore {
 	@PackagePrivate
 	final Map<Representation, TransactionLock> locks = Maps
 			.newHashMapWithExpectedSize(initialCapacity);
+
+	private static final int LOCKS_SIZE_OFFSET = 0;
+
+	private static final int LOCKS_SIZE_SIZE = 4;
+
+	private static final int LOCKS_OFFSET = LOCKS_SIZE_OFFSET + LOCKS_SIZE_SIZE;
 
 	/**
 	 * Construct a new instance.
@@ -119,7 +264,7 @@ public final class Transaction extends BufferedStore {
 	 */
 	private Transaction(Engine destination, ByteBuffer bytes) {
 		this(destination);
-		Transactions.populateFromByteBuffer(this, bytes);
+		populateFromByteBuffer(this, bytes);
 		open = false;
 	}
 
@@ -136,21 +281,21 @@ public final class Transaction extends BufferedStore {
 	@Override
 	public boolean add(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndIsolate(this, key, record);
+		lockAndIsolate(this, key, record);
 		return super.add(key, value, record);
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, record);
+		lockAndShare(this, record);
 		return super.audit(record);
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key, record);
+		lockAndShare(this, key, record);
 		return super.audit(key, record);
 	}
 
@@ -165,7 +310,7 @@ public final class Transaction extends BufferedStore {
 		checkState(open, "Cannot commit a closed transaction");
 		open = false;
 		String backup = transactionStore + File.separator + Time.now() + ".txn";
-		Transactions.encodeAsByteBuffer(this, backup).force();
+		encodeAsByteBuffer(this, backup).force();
 		log.info("Created backup for transaction {} at '{}'", hashCode(),
 				backup);
 		doCommit();
@@ -178,28 +323,28 @@ public final class Transaction extends BufferedStore {
 	@Override
 	public Set<String> describe(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, record);
+		lockAndShare(this, record);
 		return super.describe(record);
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, record);
+		lockAndShare(this, record);
 		return super.describe(record, timestamp);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key, record);
+		lockAndShare(this, key, record);
 		return super.fetch(key, record);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key, record);
+		lockAndShare(this, key, record);
 		return super.fetch(key, record, timestamp);
 	}
 
@@ -207,61 +352,61 @@ public final class Transaction extends BufferedStore {
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key);
+		lockAndShare(this, key);
 		return super.find(timestamp, key, operator, values);
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key);
+		lockAndShare(this, key);
 		return super.find(key, operator, values);
 	}
 
 	@Override
 	public boolean ping(long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, record);
+		lockAndShare(this, record);
 		return super.ping(record);
 	}
 
 	@Override
 	public boolean remove(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndIsolate(this, key, record);
+		lockAndIsolate(this, key, record);
 		return super.remove(key, value, record);
 	}
 
 	@Override
 	public void revert(String key, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndIsolate(this, key, record);
+		lockAndIsolate(this, key, record);
 		super.revert(key, record, timestamp);
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key);
+		lockAndShare(this, key);
 		return super.search(key, query);
 	}
-	
+
 	@Override
-	public String toString(){
+	public String toString() {
 		return Integer.toString(hashCode());
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key, record);
+		lockAndShare(this, key, record);
 		return super.verify(key, value, record);
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		checkState(open, "Cannot modify a closed transaction");
-		Transactions.lockAndShare(this, key, record);
+		lockAndShare(this, key, record);
 		return super.verify(key, value, record, timestamp);
 	}
 

@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,8 +40,6 @@ import org.cinchapi.concourse.thrift.TObject;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.engine.Readables.*;
 
@@ -68,6 +65,8 @@ abstract class BufferedStore implements
 		Writable,
 		Revisioning,
 		Lockable {
+	
+	private static final String threadNamePrefix = "buffered-store-read-thread";
 
 	/**
 	 * The {@code buffer} is the place where data is initially stored. The
@@ -83,14 +82,6 @@ abstract class BufferedStore implements
 	 * method.
 	 */
 	protected final Destination destination;
-
-	/**
-	 * Responsible for creating threads to asynchronously read from
-	 * the {@link #buffer} and {@link #destination}.
-	 */
-	protected final ExecutorService executor = Executors
-			.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-					"buffered-store-read-thread-%d").build());
 
 	/**
 	 * Construct a new instance.
@@ -131,6 +122,7 @@ abstract class BufferedStore implements
 
 	@Override
 	public Map<Long, String> audit(long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Map<Long, String>> bufferResult = executor
@@ -147,11 +139,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Map<Long, String>> bufferResult = executor
@@ -168,11 +162,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<String>> bufferResult = executor
@@ -187,11 +183,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<String>> bufferResult = executor
@@ -207,11 +205,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<TObject>> bufferResult = executor
@@ -226,11 +226,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<TObject>> bufferResult = executor
@@ -246,12 +248,14 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<Long>> bufferResult = executor
@@ -267,12 +271,14 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		Lock lock = readLock();
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		try {
 			Future<Set<Long>> bufferResult = executor
 					.submit(invokeFindCallable(buffer, key, operator, values));
@@ -286,11 +292,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean ping(long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Boolean> bufferResult = executor.submit(invokePingCallable(
@@ -304,6 +312,7 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
@@ -354,6 +363,7 @@ abstract class BufferedStore implements
 
 	@Override
 	public Set<Long> search(String key, String query) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Set<Long>> bufferResult = executor
@@ -368,11 +378,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Boolean> bufferResult = executor
@@ -386,11 +398,13 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
+		ExecutorService executor = Threads.newThreadPool(2, threadNamePrefix);
 		Lock lock = readLock();
 		try {
 			Future<Boolean> bufferResult = executor
@@ -405,6 +419,7 @@ abstract class BufferedStore implements
 		}
 		finally {
 			lock.release();
+			executor.shutdown();
 		}
 	}
 

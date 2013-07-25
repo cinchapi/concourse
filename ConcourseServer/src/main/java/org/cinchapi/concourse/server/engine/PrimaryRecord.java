@@ -58,7 +58,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the PrimaryRecord
 	 */
 	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key) {
-		return Records.open(PrimaryRecord.class, PrimaryKey.class, key);
+		return Record.open(PrimaryRecord.class, PrimaryKey.class, key);
 	}
 
 	/**

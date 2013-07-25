@@ -35,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.ByteableCollections;
@@ -44,12 +45,17 @@ import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.common.tools.Strings;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
+import static org.mockito.Matchers.any;
 
 /**
  * A versioned controlled collection of values, each of which is associated with
@@ -88,12 +94,96 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 		Lockable { /* package-private */
 
 	/**
+	 * Encode a Field identified by {@code key} with values belong to
+	 * {@code valueClass} and {@code components} into a ByteBuffer. The encoded
+	 * format is:
+	 * <ol>
+	 * <li>keyClassSize</li>
+	 * <li>valueClassSize</li>
+	 * <li>keySize</li>
+	 * <li>component1Size</li>
+	 * <li>...</li>
+	 * <li>componentNSize</li>
+	 * <li>keyClass</li>
+	 * <li>valueClass</li>
+	 * <li>key</li>
+	 * <li>component1</li>
+	 * <li>...</li>
+	 * <li>componentN</li>
+	 * </ol>
+	 * 
+	 * @param key
+	 * @param valueClass
+	 * @param components
+	 * @return the encoded ByteBuffer
+	 */
+	@SafeVarargs
+	public static <K extends Byteable, V extends Storable> ByteBuffer encodeAsByteBuffer(
+			K key, Class<V> valueClass, Field<K, V>.Component... components) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+	
+		// The key and value class names are stored in the Field so that the
+		// components can be deserialized reflectively.
+		Text keyClassName = Text.fromString(key.getClass().getName());
+		Text valueClassName = valueClass == null ? Text.EMPTY : Text
+				.fromString(valueClass.getName());
+	
+		// encode sizes
+		out.write(keyClassName.size());
+		out.write(valueClassName.size());
+		out.write(key.size());
+		for (Field<K, V>.Component component : components) {
+			out.write(component.size());
+		}
+	
+		// encode data
+		out.write(keyClassName);
+		out.write(valueClassName);
+		out.write(key);
+		for (Field<K, V>.Component component : components) {
+			out.write(component);
+		}
+		out.close();
+		log.debug("INFO FOR FIELD IDENTIFIED BY {}", key);
+		log.debug("keyClassName is {} and {} bytes", keyClassName, keyClassName.size());
+		log.debug("valueClassName is {} and {} bytes", valueClassName, valueClassName.size());
+		log.debug("key is {} and {} bytes", key, key.size());
+		log.debug("state is {} and {} bytes", components[0], components[0].size());
+		log.debug("history is {} and {} bytes", components[1], components[1].size());
+		log.debug("Total buffer is {} bytes", out.size());
+		return out.toByteBuffer();
+	}
+	/**
+	 * Return a <em>mock</em> field of {@code type}. Use this method instead
+	 * of mocking {@code type} directly to ensure that the mock is compatible
+	 * with the assumptions made in {@link Record}.
+	 * 
+	 * @param type
+	 * @return the {@code field}
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T extends Field<K, V>, K extends Byteable, V extends Storable> T mock(
+			Class<T> type) {
+		T field = Mockito.mock(type);
+		Mockito.doReturn(Lists.<V>newArrayList()).when(field).getValues();
+		Mockito.doNothing().when(field).add((V) any(Storable.class));
+		Mockito.doNothing().when(field).remove((V) any(Storable.class));
+		Mockito.doThrow(UnsupportedOperationException.class).when(field)
+				.getBytes();
+		Mockito.doThrow(UnsupportedOperationException.class).when(field).size();
+		return field;
+	
+	}
+
+	/**
 	 * The maximum number of bytes that can be used to encode a single Value.
 	 */
 	static final int MAX_SIZE = Integer.MAX_VALUE; /* package-private */
-
+	protected static final Logger log = LoggerFactory.getLogger(Field.class);
 	private final K key;
+
 	private final State state;
+
 	private final History history;
 
 	// The valueClass is here so that we can make more efficient reflection
@@ -137,12 +227,20 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 		int keySize = buffer.getInt();
 		int stateSize = buffer.getInt();
 		int historySize = buffer.getInt();
+		int totalSize = keyClassSize + valueClassSize + keySize + stateSize
+				+ historySize + 20;
 
 		int keyClassPosition = buffer.position();
 		int valueClassPosition = keyClassPosition + keyClassSize;
 		int keyPosition = valueClassPosition + valueClassSize;
 		int statePosition = keyPosition + keySize;
 		int historyPosition = statePosition + stateSize;
+
+		Preconditions.checkState(buffer.capacity() == totalSize, "Cannot "
+				+ "deserialize the %s because there are an insufficient "
+				+ "number of bytes in the file. Expecting %s bytes, but only "
+				+ "%s bytes present.", getClass().getSimpleName(), totalSize,
+				buffer.capacity());
 
 		buffer.position(keyClassPosition);
 		String keyClass = ByteBuffers.getString(ByteBuffers.slice(buffer,
@@ -325,7 +423,7 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 	public ByteBuffer getBytes() {
 		Lock lock = readLock();
 		try {
-			return Fields.encodeAsByteBuffer(key, valueClass, state, history);
+			return encodeAsByteBuffer(key, valueClass, state, history);
 		}
 		finally {
 			lock.release();
@@ -550,13 +648,19 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 
 		@Override
 		public ByteBuffer getBytes() {
-			int hashCode = hashCode();
-			if(hashCode != hcc || bytes == null) {
-				bytes = ByteableCollections.toByteBuffer(values);
-				hcc = hashCode;
+			Lock lock = readLock();
+			try{
+				int hashCode = hashCode();
+				if(hashCode != hcc || bytes == null) {
+					bytes = ByteableCollections.toByteBuffer(values);
+					hcc = hashCode;
+				}
+				bytes.rewind();
+				return bytes;
 			}
-			bytes.rewind();
-			return bytes;
+			finally{
+				lock.release();
+			}
 		}
 
 		/**
@@ -572,7 +676,7 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 		}
 
 		@Override
-		public int hashCode() {
+		public synchronized int hashCode() {
 			return Objects.hashCode(values);
 		}
 
@@ -589,17 +693,7 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 
 		@Override
 		public int size() {
-			Lock lock = readLock();
-			try {
-				int size = 0;
-				for (V value : values) {
-					size += value.size() + 4;
-				}
-				return size;
-			}
-			finally {
-				lock.release();
-			}
+			return getBytes().capacity();
 		}
 
 		@Override

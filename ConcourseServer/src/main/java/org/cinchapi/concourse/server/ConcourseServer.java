@@ -304,7 +304,6 @@ class ConcourseServer implements ConcourseService.Iface {
 	 * Stop the server.
 	 */
 	public void stop() {
-		engine.shutdown();
 		server.stop();
 		log.info("The Concourse server has stoped");
 		System.exit(0);

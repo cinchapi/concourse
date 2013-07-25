@@ -23,26 +23,19 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import static org.cinchapi.concourse.server.engine.PrimaryRecord.loadPrimaryRecord;
 import static org.cinchapi.concourse.server.engine.SecondaryIndex.loadSecondaryIndex;
 import static org.cinchapi.concourse.server.engine.SearchIndex.loadSearchIndex;
-import static org.cinchapi.concourse.server.engine.DatabaseTools.invokeWriteRunnable;
 
 /**
  * The {@code Database} is the permanent {@link Destination} for {@link Write}
@@ -56,49 +49,81 @@ import static org.cinchapi.concourse.server.engine.DatabaseTools.invokeWriteRunn
  */
 public class Database implements Readable, Destination {
 
-	private static final Logger log = LoggerFactory.getLogger(Database.class);
-
 	/**
-	 * Catches exceptions thrown from threads in {@link #executor}. Exceptions
-	 * will occur in the event that an attempt is made to write a duplicate
-	 * non-offset write when the system shuts down in the middle of a buffer
-	 * flush. Those exceptions can be ignored, so we catch them here and print
-	 * log statements.
+	 * Return a {@link Runnable} that will execute the appropriate write
+	 * function in {@code record} to store {@code write} in the {@link Database}
+	 * .
+	 * 
+	 * @param record
+	 * @param write
+	 * @return the appropriate Runnable
 	 */
-	private static final UncaughtExceptionHandler uncaughtExceptionHandler;
-	static {
-		uncaughtExceptionHandler = new UncaughtExceptionHandler() {
+	public static <L extends Byteable, K extends Byteable, V extends Storable> Runnable getWriteRunnable(
+			final Record<L, K, V> record, final Write write) {
+		return new Runnable() {
 
 			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				log.warn("Uncaught exception in thread '{}'. This possibly "
-						+ "indicates that the system shutdown prematurely "
-						+ "during a buffer flushing operation.", t);
-				log.warn("", e);
-
+			public void run() {
+				log.debug("Writing {} to {}...", write, record);
+				if(record instanceof PrimaryRecord) {
+					if(write.getType() == WriteType.ADD) {
+						((PrimaryRecord) record).add(write.getKey(),
+								write.getValue());
+					}
+					else if(write.getType() == WriteType.REMOVE) {
+						((PrimaryRecord) record).remove(write.getKey(),
+								write.getValue());
+					}
+					else {
+						throw new IllegalArgumentException();
+					}
+				}
+				else if(record instanceof SecondaryIndex) {
+					if(write.getType() == WriteType.ADD) {
+						((SecondaryIndex) record).add(write.getValue(),
+								write.getRecord());
+					}
+					else if(write.getType() == WriteType.REMOVE) {
+						((SecondaryIndex) record).remove(write.getValue(),
+								write.getRecord());
+					}
+					else {
+						throw new IllegalArgumentException();
+					}
+				}
+				else if(record instanceof SearchIndex) {
+					if(write.getType() == WriteType.ADD) {
+						((SearchIndex) record).add(write.getValue(),
+								write.getRecord());
+					}
+					else if(write.getType() == WriteType.REMOVE) {
+						((SearchIndex) record).remove(write.getValue(),
+								write.getRecord());
+					}
+					else {
+						throw new IllegalArgumentException();
+					}
+				}
+				else {
+					throw new IllegalArgumentException();
+				}
+				record.fsync();
 			}
 
 		};
 	}
 
-	/**
-	 * Responsible for creating threads to asynchronously write to all the
-	 * necessary record views in the database.
-	 */
-	private final ExecutorService executor = Executors
-			.newCachedThreadPool(new ThreadFactoryBuilder()
-					.setNameFormat("database-write-thread-%d")
-					.setUncaughtExceptionHandler(uncaughtExceptionHandler)
-					.build());
+	private static final String threadNamePrefix = "database-write-thread";
+
+	private static final Logger log = LoggerFactory.getLogger(Database.class);
 
 	@Override
 	public void accept(Write write) {
-		executor.execute(invokeWriteRunnable(
-				loadPrimaryRecord(write.getRecord()), write));
-		executor.execute(invokeWriteRunnable(
-				loadSecondaryIndex(write.getKey()), write));
-		executor.execute(invokeWriteRunnable(loadSearchIndex(write.getKey()),
-				write));
+		Threads.executeAndAwaitTermination(threadNamePrefix, Database
+				.getWriteRunnable(loadPrimaryRecord(write.getRecord()), write),
+				Database.getWriteRunnable(loadSecondaryIndex(write.getKey()),
+						write), Database.getWriteRunnable(
+						loadSearchIndex(write.getKey()), write));
 	}
 
 	@Override
@@ -172,26 +197,6 @@ public class Database implements Readable, Destination {
 	public Set<Long> search(String key, String query) {
 		return Transformers.transformSet(loadSearchIndex(Text.fromString(key))
 				.search(Text.fromString(query)), Functions.PRIMARY_KEY_TO_LONG);
-	}
-
-	/**
-	 * Shutdown the database gracefully. Make sure any blocked tasks
-	 * have a chance to complete before being dropped.
-	 */
-	public synchronized void shutdown() {
-		executor.shutdown();
-		try {
-			if(!executor.awaitTermination(60, TimeUnit.SECONDS)) {
-				List<Runnable> tasks = executor.shutdownNow();
-				log.error("The Database could not properly shutdown. "
-						+ "The following tasks were dropped: {}", tasks);
-			}
-		}
-		catch (InterruptedException e) {
-			log.error("An error occured while shutting down the Database: {}",
-					e);
-		}
-		log.info("The Database has shutdown");
 	}
 
 	@Override

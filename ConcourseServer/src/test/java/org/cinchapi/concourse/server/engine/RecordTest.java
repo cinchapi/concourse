@@ -130,7 +130,7 @@ public abstract class RecordTest<L extends Byteable, K extends Byteable, V exten
 		record = getInstance();
 		K key = getKey();
 		Assert.assertFalse(record.get(key).contains(getValue()));
-		Assert.assertTrue(record.fields().isEmpty());
+		Assert.assertTrue(record.fields.isEmpty());
 	}
 
 	/**

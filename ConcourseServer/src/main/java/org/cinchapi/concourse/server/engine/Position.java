@@ -30,6 +30,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 
@@ -47,20 +48,20 @@ import org.cinchapi.common.io.Byteables;
 final class Position implements Comparable<Position>, Storable {
 
 	/**
-	 * Return a Position based on the {@code key} and {@code marker}. The
-	 * Position will have the storage properties of {@code key} and a unique
-	 * timestamp.
+	 * Encode {@code key} and {@code position} into a ByteBuffer that
+	 * conforms to the format specified for {@link Position#getBytes()}.
 	 * 
 	 * @param key
-	 * @param marker
-	 * @return the Position
+	 * @param timestamp
+	 * @return the ByteBuffer encoding
 	 */
-	public static Position fromPrimaryKeyAndMarker(PrimaryKey key, int marker) {
-		if(key.isForStorage()) { // need to make a new PrimaryKey to ensure that
-									// timestamp is unique
-			key = PrimaryKey.forStorage(key.longValue());
-		}
-		return new Position(key, marker);
+	public static ByteBuffer encodeAsByteBuffer(PrimaryKey key, int position) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream(PrimaryKey.SIZE);
+		out.write(key);
+		out.write(position);
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
 	}
 
 	/**
@@ -89,6 +90,23 @@ final class Position implements Comparable<Position>, Storable {
 														// provided in the
 														// utility
 														// class
+	}
+
+	/**
+	 * Return a Position based on the {@code key} and {@code marker}. The
+	 * Position will have the storage properties of {@code key} and a unique
+	 * timestamp.
+	 * 
+	 * @param key
+	 * @param marker
+	 * @return the Position
+	 */
+	public static Position fromPrimaryKeyAndMarker(PrimaryKey key, int marker) {
+		if(key.isForStorage()) { // need to make a new PrimaryKey to ensure that
+									// timestamp is unique
+			key = PrimaryKey.forStorage(key.longValue());
+		}
+		return new Position(key, marker);
 	}
 
 	/**
@@ -155,7 +173,7 @@ final class Position implements Comparable<Position>, Storable {
 	 * @param position
 	 */
 	private Position(PrimaryKey key, int position) {
-		this.bytes = Positions.encodeAsByteBuffer(key, position);
+		this.bytes = encodeAsByteBuffer(key, position);
 	}
 
 	@Override
@@ -176,9 +194,32 @@ final class Position implements Comparable<Position>, Storable {
 	}
 
 	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+	public synchronized ByteBuffer getBytes() {
+		ByteBuffer clone = ByteBuffers.clone(bytes);
+		clone.rewind();
+		return clone;
+	}
+
+	/**
+	 * Return the location marker that is associated with this Position.
+	 * 
+	 * @return the position
+	 */
+	@PackagePrivate
+	public synchronized int getPosition() {
+		bytes.position(POS_POS);
+		return bytes.getInt();
+	}
+
+	/**
+	 * Return the PrimaryKey that is associated with this Position.
+	 * 
+	 * @return the PrimaryKey
+	 */
+	@PackagePrivate
+	public synchronized PrimaryKey getPrimaryKey() {
+		return PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes, PK_POS,
+				PK_SIZE));
 	}
 
 	@Override
@@ -228,28 +269,6 @@ final class Position implements Comparable<Position>, Storable {
 	@PackagePrivate
 	int compareTo(Position o, boolean logically) {
 		return logically ? compareTo(o) : Storables.compare(this, o);
-	}
-
-	/**
-	 * Return the location marker that is associated with this Position.
-	 * 
-	 * @return the position
-	 */
-	@PackagePrivate
-	int getPosition() {
-		bytes.position(POS_POS);
-		return bytes.getInt();
-	}
-
-	/**
-	 * Return the PrimaryKey that is associated with this Position.
-	 * 
-	 * @return the PrimaryKey
-	 */
-	@PackagePrivate
-	PrimaryKey getPrimaryKey() {
-		return PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes, PK_POS,
-				PK_SIZE));
 	}
 
 }

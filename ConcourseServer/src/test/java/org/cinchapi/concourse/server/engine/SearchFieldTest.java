@@ -24,7 +24,7 @@
 package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.util.Tests;
+import org.cinchapi.common.util.Random;
 
 /**
  * 
@@ -47,14 +47,14 @@ public class SearchFieldTest extends FieldTest<Text, Position> {
 
 	@Override
 	protected Text getKey() {
-		return Text.fromString(Tests.getString());
+		return Text.fromString(Random.getString());
 	}
 
 	@Override
 	protected Position getForStorageValue() {
 		return Position.fromPrimaryKeyAndMarker(
-				PrimaryKey.forStorage(Tests.getLong()),
-				Math.abs(Tests.getInt()));
+				PrimaryKey.forStorage(Random.getLong()),
+				Math.abs(Random.getInt()));
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public class SearchFieldTest extends FieldTest<Text, Position> {
 	@Override
 	protected Position getNotForStorageValue() {
 		return Position.fromPrimaryKeyAndMarker(
-				PrimaryKey.notForStorage(Tests.getLong()),
-				Math.abs(Tests.getInt()));
+				PrimaryKey.notForStorage(Random.getLong()),
+				Math.abs(Random.getInt()));
 	}
 
 }

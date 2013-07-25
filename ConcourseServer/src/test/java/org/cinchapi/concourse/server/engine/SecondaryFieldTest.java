@@ -24,7 +24,7 @@
 package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.util.Tests;
+import org.cinchapi.common.util.Random;
 import org.cinchapi.concourse.util.Convert;
 
 /**
@@ -46,12 +46,12 @@ public class SecondaryFieldTest extends FieldTest<Value, PrimaryKey>{
 
 	@Override
 	protected Value getKey() {
-		return Value.forStorage(Convert.javaToThrift(Tests.getObject()));
+		return Value.forStorage(Convert.javaToThrift(Random.getObject()));
 	}
 
 	@Override
 	protected PrimaryKey getForStorageValue() {
-		return PrimaryKey.forStorage(Tests.getLong());
+		return PrimaryKey.forStorage(Random.getLong());
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class SecondaryFieldTest extends FieldTest<Value, PrimaryKey>{
 
 	@Override
 	protected PrimaryKey getNotForStorageValue() {
-		return PrimaryKey.notForStorage(Tests.getLong());
+		return PrimaryKey.notForStorage(Random.getLong());
 	}
 
 }

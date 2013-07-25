@@ -24,7 +24,7 @@
 package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.util.Tests;
+import org.cinchapi.common.util.Random;
 
 /**
  * 
@@ -45,13 +45,13 @@ public class PositionTest extends StorableTest {
 	@Override
 	protected Storable getForStorage() {
 		return Position.fromPrimaryKeyAndMarker(
-				PrimaryKey.forStorage(Tests.getLong()), Math.abs(Tests.getInt()));
+				PrimaryKey.forStorage(Random.getLong()), Math.abs(Random.getInt()));
 	}
 
 	@Override
 	protected Storable getNotForStorage() {
 		return Position.fromPrimaryKeyAndMarker(
-				PrimaryKey.notForStorage(Tests.getLong()), Math.abs(Tests.getInt()));
+				PrimaryKey.notForStorage(Random.getLong()), Math.abs(Random.getInt()));
 	}
 
 }

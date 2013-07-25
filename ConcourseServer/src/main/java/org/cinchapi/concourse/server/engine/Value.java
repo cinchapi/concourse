@@ -29,6 +29,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 import org.cinchapi.common.time.Time;
@@ -65,6 +66,24 @@ import com.google.common.base.Objects;
 @Immutable
 @PackagePrivate
 final class Value implements Comparable<Value>, Storable {
+
+	/**
+	 * Encode {@code quantity} and {@code timestamp} into a ByteBuffer that
+	 * conforms to the format specified for {@link Value#getBytes()}.
+	 * 
+	 * @param quantity
+	 * @param timestamp
+	 * @return the ByteBuffer encoding
+	 */
+	public static ByteBuffer encodeAsByteBuffer(TObject quantity, long timestamp) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(timestamp);
+		out.write(quantity.getType().ordinal());
+		out.write(quantity.bufferForData());
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
+	}
 
 	/**
 	 * Return a Value that is appropriate for storage, with the current
@@ -112,6 +131,23 @@ final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
+	 * Get an object of {@code type} from {@code buffer}. This method will read
+	 * starting from the current position up until enough bytes for {@code type}
+	 * have been read. If {@code type} equals {@link Type#STRING}, all of the
+	 * remaining bytes in the buffer will be read.
+	 * 
+	 * @param buffer
+	 * @param type
+	 * @return the object.
+	 */
+	static TObject getQuantityFromByteBuffer(ByteBuffer buffer, Type type) {
+		// Must allocate a heap buffer because TObject assumes it has a
+		// backing array.
+		return new TObject(ByteBuffer.allocate(buffer.remaining()).put(buffer),
+				type);
+	}
+
+	/**
 	 * The start position of the encoded timestamp in {@link #bytes}.
 	 */
 	private static final int TS_POS = 0;
@@ -135,7 +171,6 @@ final class Value implements Comparable<Value>, Storable {
 	 * The start position of the encoded quantity in {@link #bytes}.
 	 */
 	private static final int QTY_POS = TYPE_POS + TYPE_SIZE;
-
 	/**
 	 * The number of bytes needed to encode every Value.
 	 */
@@ -147,6 +182,7 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	@PackagePrivate
 	static final int MAX_SIZE = Integer.MAX_VALUE;
+
 	private static final ValueComparator comparator = new ValueComparator();
 
 	/**
@@ -196,7 +232,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * @param timestamp
 	 */
 	private Value(TObject quantity, long timestamp) {
-		this.bytes = Values.encodeAsByteBuffer(quantity, timestamp);
+		this.bytes = Value.encodeAsByteBuffer(quantity, timestamp);
 	}
 
 	/**
@@ -262,9 +298,10 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return a byte array.
 	 */
 	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+	public synchronized ByteBuffer getBytes() {
+		ByteBuffer clone = ByteBuffers.clone(bytes);
+		clone.rewind();
+		return clone;
 	}
 
 	/**
@@ -272,13 +309,13 @@ final class Value implements Comparable<Value>, Storable {
 	 * 
 	 * @return the value.
 	 */
-	public TObject getQuantity() {
+	public synchronized TObject getQuantity() {
 		bytes.position(QTY_POS);
-		return Values.getQuantityFromByteBuffer(bytes, getType());
+		return Value.getQuantityFromByteBuffer(bytes, getType());
 	}
 
 	@Override
-	public long getTimestamp() {
+	public synchronized long getTimestamp() {
 		bytes.position(TS_POS);
 		return bytes.getLong();
 	}
@@ -288,7 +325,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * 
 	 * @return the type
 	 */
-	public Type getType() {
+	public synchronized Type getType() {
 		bytes.position(TYPE_POS);
 		return Type.values()[bytes.getInt()];
 	}

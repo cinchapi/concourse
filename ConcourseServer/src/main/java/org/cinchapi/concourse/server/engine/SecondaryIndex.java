@@ -56,7 +56,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * @return the SearchIndex
 	 */
 	public static SecondaryIndex loadSecondaryIndex(Text key) {
-		return Records.open(SecondaryIndex.class, Text.class, key);
+		return Record.open(SecondaryIndex.class, Text.class, key);
 	}
 
 	/**

@@ -122,7 +122,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getRecord().longValue() == record) {
-					audit.put(write.getTimestamp(), Writes.describe(write));
+					audit.put(write.getTimestamp(), Write.describe(write));
 				}
 			}
 			return audit;
@@ -142,7 +142,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 				Write write = it.next();
 				if(write.getKey().toString().equals(key)
 						&& write.getRecord().longValue() == record) {
-					audit.put(write.getTimestamp(), Writes.describe(write));
+					audit.put(write.getTimestamp(), Write.describe(write));
 				}
 			}
 			return audit;
@@ -423,10 +423,12 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 	}
 
 	/**
-	 * Insert {@code write} into {@link #writes}. This method exists so that the
+	 * Insert {@code write} into {@link #writes}. This method exists so that a
 	 * subclass can override the {@code add()} and {@code remove()} methods to
-	 * do additional things (i.e. flush the revision to disk) whilst using the
-	 * same Write (with the same timestamp).
+	 * do additional things (i.e. when the {@link Buffer} copies the revision to
+	 * disk for durability) whilst using the same Write with the same
+	 * timestamp. In these cases, the overridden method should call this method
+	 * once it is ready to store {@code write} in memory.
 	 * <p>
 	 * <em><strong>WARNING:</strong> This method does not verify that {@code write}
 	 * is a legal argument (i.e. when trying to add data there is no check done
@@ -437,7 +439,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 	 * @param write
 	 * @return {@code true} if the {@code write} is inserted into the store.
 	 */
-	protected boolean insert(Write write) {
+	protected final boolean insert(Write write) {
 		Lock lock = writeLock();
 		try {
 			return writes.add(write);

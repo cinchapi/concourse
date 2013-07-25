@@ -26,7 +26,7 @@ package org.cinchapi.concourse.server.engine;
 import junit.framework.Assert;
 
 import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.util.Tests;
+import org.cinchapi.common.util.Random;
 import org.junit.Test;
 
 /**
@@ -43,52 +43,52 @@ public class PrimaryKeyTest extends StorableTest {
 
 	@Override
 	protected Storable getForStorage() {
-		return PrimaryKey.forStorage(Tests.getLong());
+		return PrimaryKey.forStorage(Random.getLong());
 	}
 
 	@Override
 	protected Storable getNotForStorage() {
-		return PrimaryKey.notForStorage(Tests.getLong());
+		return PrimaryKey.notForStorage(Random.getLong());
 	}
 
 	@Test
 	public void testLongValue() {
-		Long value = Tests.getLong();
+		Long value = Random.getLong();
 		PrimaryKey key = PrimaryKey.forStorage(value);
 		Assert.assertEquals(value.longValue(), key.longValue());
 	}
 
 	@Test
 	public void testIntValue() {
-		Long value = Tests.getLong();
+		Long value = Random.getLong();
 		PrimaryKey key = PrimaryKey.forStorage(value);
 		Assert.assertEquals(value.intValue(), key.intValue());
 	}
 
 	@Test
 	public void testFloatValue() {
-		Long value = Tests.getLong();
+		Long value = Random.getLong();
 		PrimaryKey key = PrimaryKey.forStorage(value);
 		Assert.assertEquals(value.floatValue(), key.floatValue());
 	}
 
 	@Test
 	public void testDoubleValue() {
-		Long value = Tests.getLong();
+		Long value = Random.getLong();
 		PrimaryKey key = PrimaryKey.forStorage(value);
 		Assert.assertEquals(value.doubleValue(), key.doubleValue());
 	}
 
 	@Test
 	public void testByteValue() {
-		Long value = Tests.getLong();
+		Long value = Random.getLong();
 		PrimaryKey key = PrimaryKey.forStorage(value);
 		Assert.assertEquals(value.byteValue(), key.byteValue());
 	}
 
 	@Test
 	public void testCompareToLogically() {
-		Long value = Math.abs(Tests.getLong());
+		Long value = Math.abs(Random.getLong());
 		Long value2 = value + 1;
 		Assert.assertTrue(PrimaryKey.forStorage(value).compareTo(
 				PrimaryKey.forStorage(value2)) > 0);

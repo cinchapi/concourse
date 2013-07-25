@@ -29,7 +29,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
@@ -74,19 +74,24 @@ final class Text implements Byteable, Comparable<Text> {
 	 * @return the Text
 	 */
 	public static Text fromString(String string) {
-		Text text = cache.get(string);
-		if(text == null) {
-			text = new Text(string);
-			cache.put(text, string);
-		}
-		return text;
+		return new Text(string);
 	}
 
 	/**
-	 * A ReferenceCache is generated in {@link Byteables} for Text read from
-	 * ByteBuffers, so this cache is only for notForStorage Text.
+	 * Encode {@code text} and {@code timestamp} into a ByteBuffer that
+	 * conforms to the format specified for {@link Text#getBytes()}.
+	 * 
+	 * @param quantity
+	 * @param timestamp
+	 * @return the ByteBuffer encoding
 	 */
-	private static final ReferenceCache<Text> cache = new ReferenceCache<Text>();
+	static ByteBuffer encodeAsByteBuffer(Object text) {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(text);
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
+	}
 
 	/**
 	 * The maximum number of bytes that can be used to encode a single Text.
@@ -138,7 +143,7 @@ final class Text implements Byteable, Comparable<Text> {
 	 * @param text
 	 */
 	private Text(String text) {
-		this.bytes = TextTools.encodeAsByteBuffer(text);
+		this.bytes = encodeAsByteBuffer(text);
 	}
 
 	@Override
@@ -156,9 +161,10 @@ final class Text implements Byteable, Comparable<Text> {
 	}
 
 	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+	public synchronized ByteBuffer getBytes() {
+		ByteBuffer clone = ByteBuffers.clone(bytes);
+		clone.rewind();
+		return clone;
 	}
 
 	@Override

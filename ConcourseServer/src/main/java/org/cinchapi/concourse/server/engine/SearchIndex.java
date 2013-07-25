@@ -60,7 +60,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @return the SearchIndex
 	 */
 	public static SearchIndex loadSearchIndex(Text key) {
-		return Records.open(SearchIndex.class, Text.class, key);
+		return Record.open(SearchIndex.class, Text.class, key);
 	}
 
 	/**

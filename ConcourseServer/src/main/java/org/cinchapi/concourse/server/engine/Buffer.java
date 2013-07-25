@@ -121,8 +121,7 @@ final class Buffer extends Limbo implements Transportable {
 		}
 		log.info("Using Buffer at '{}' with a total capacity of {} bytes. "
 				+ "{} percent of the buffer is currently occupied.",
-				backingStore, size,
-				pct.format(100.00 * occupied / content.capacity()));
+				backingStore, size, usage());
 	}
 
 	/**
@@ -189,6 +188,7 @@ final class Buffer extends Limbo implements Transportable {
 	 */
 	@Override
 	public void transport(Destination destination) {
+		log.debug("Starting a Buffer flush...");
 		Lock lock = writeLock();
 		try {
 			Transporter transporter = new Transporter(this);
@@ -197,8 +197,8 @@ final class Buffer extends Limbo implements Transportable {
 				destination.accept(write);
 				transporter.ack();
 				log.info("Transported '{}' from the Buffer", write);
-				occupied -= write.size() - 4;
-				log.info("{} bytes of the Buffer are now occupied", occupied);
+				occupied -= (write.size() + 4);
+				log.info("{} percent of the Buffer is now occupied", usage());
 			}
 		}
 		finally {
@@ -216,21 +216,20 @@ final class Buffer extends Limbo implements Transportable {
 	 *             than the remaining capacity of the Buffer
 	 */
 	private boolean append(Write write) throws BufferCapacityException {
-		super.insert(write);
 		Lock lock = writeLock();
 		try {
 			if(content.remaining() >= write.size() + 4) {
+				super.insert(write);
 				content.putInt(write.size());
 				content.put(write.getBytes());
 				content.force();
 				occupied += write.size() + 4;
-				log.info("{} percent of the Buffer is now occupied",
-						pct.format(100.00 * occupied / content.capacity()));
+				log.info("{} percent of the Buffer is now occupied", usage());
 			}
 			else {
 				log.warn("Attempt to append '{}' to the Buffer failed "
 						+ "because there is insufficient capacity. "
-						+ "Please flush the Buffer.");
+						+ "Please flush the Buffer.", write);
 				throw new BufferCapacityException();
 			}
 		}
@@ -240,4 +239,18 @@ final class Buffer extends Limbo implements Transportable {
 		return true;
 	}
 
+	/**
+	 * Return a string that describes the percent usage for the Buffer.
+	 * 
+	 * @return a formatted description of the usage
+	 */
+	private String usage() {
+		Lock lock = readLock();
+		try {
+			return pct.format((double) occupied / content.capacity());
+		}
+		finally {
+			lock.release();
+		}
+	}
 }

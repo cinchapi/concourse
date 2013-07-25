@@ -1,20 +1,5 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
-
-repositories {
-	mavenCentral()
-}
-
 dependencies {
-	compile 'com.google.guava:guava:13.0.1'
-	compile 'org.mockito:mockito-all:1.9.5'
-	compile 'commons-codec:commons-codec:1.8'
-	compile 'com.google.code.findbugs:jsr305:2.0.1'
-	compile 'org.slf4j:slf4j-api:1.7.5'
-	compile 'ch.qos.logback:logback-classic:1.0.13'
-	compile 'joda-time:joda-time:2.2'
-	compile 'com.intellij:annotations:12.0'
-	compile 'commons-configuration:commons-configuration:1.9'
+    compile project(':Concourse')
 }
 
 

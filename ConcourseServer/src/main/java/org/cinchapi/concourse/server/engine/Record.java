@@ -23,18 +23,21 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Byteables;
@@ -44,6 +47,8 @@ import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.tools.Path;
 import org.cinchapi.concourse.server.ServerConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -75,6 +80,57 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		Byteable {
 
 	/**
+	 * Return the locale for {@code locator}. There is a 1:1 mapping between
+	 * locators and locales.
+	 * 
+	 * @param locator
+	 * @return the locale
+	 */
+	static <L extends Byteable> String getLocale(L locator) {
+		byte[] bytes = ByteBuffers.toByteArray(locator.getBytes());
+		if(locator instanceof PrimaryKey) {
+			// The first 8 bytes of PrimaryKey {@code bytes} differs depending
+			// upon whether the key is forStorage or notForStorage, so we must
+			// ignore those to guarantee consistency.
+			bytes = ArrayUtils.subarray(bytes, 8, bytes.length);
+		}
+		char[] hex = DigestUtils.sha256Hex(bytes).toCharArray();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < hex.length; i++) {
+			sb.append(hex[i]);
+			int next = i + 1;
+			if(next >= LOCALE_NESTING_FACTOR
+					&& next % LOCALE_NESTING_FACTOR == 0 && next < hex.length) {
+				sb.append(File.separator);
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Open the record of type {@code clazz} identified by a {@code locator} of
+	 * type {@code locatorClass}. This method will store a reference to the
+	 * record in a dynamically created cache.
+	 * 
+	 * @param clazz
+	 * @param locatorClass
+	 * @param locator
+	 * @return the Record
+	 */
+	static <T extends Record<L, ?, ?>, L extends Byteable> T open(
+			Class<T> clazz, Class<L> locatorClass, L locator) {
+		try {
+			Constructor<T> constructor = clazz.getConstructor(locatorClass);
+			constructor.setAccessible(true);
+			return constructor.newInstance(locator);
+	
+		}
+		catch (ReflectiveOperationException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+
+	/**
 	 * Determines the depth of directory nesting for locales (64/N) and the
 	 * number of possible entries in a single directory along the path (16^N).
 	 * This number should be a multiple of 2.
@@ -95,7 +151,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * event that a field does not exist in the record without compromising data
 	 * consistency (i.e. trying to read from a field that does not exist).
 	 */
-	private final transient Field<K, V> mock = Fields
+	private final transient Field<K, V> mock = Field
 			.mock((Class<Field<K, V>>) fieldImplClass());
 
 	/**
@@ -113,6 +169,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	private final transient String filename;
 
+	private static final Logger log = LoggerFactory.getLogger(Record.class);
+
 	/**
 	 * Construct the Record found by {@code locator}. If the Record exists, its
 	 * existing content is loaded. Otherwise, a new Record is created.
@@ -121,7 +179,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	protected Record(L locator) {
 		this.filename = new Path(false, ServerConstants.DATA_HOME,
-				Records.getLocale(locator)).setExt(fileNameExt()).toString();
+				Record.getLocale(locator)).setExt(fileNameExt()).toString();
 		Files.makeParentDirs(filename);
 		this.fields = init();
 		long length = Files.length(filename);
@@ -166,31 +224,36 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	@GuardedBy("this.readLock")
 	public final void fsync() {
-		if(!fields.isEmpty()) {
-			Lock lock = readLock();
-			try {
+		Lock lock = writeLock();
+		try {
+			if(!fields.isEmpty()) {
 				String backup = filename + ".bak";
 				Files.copy(filename, backup);
 				Byteables.write(this, Files.getChannel(filename));
 				Files.delete(backup);
+				log.debug("Wrote a total of {} bytes during fsync of {}",
+						size(), this);
 			}
-			finally {
-				lock.release();
+			else {
+				// An empty collection of {#link #fields} usually indicates that
+				// the Record was deserialized from a read operation before a
+				// write operation occurred, so it is okay for me to
+				// delete the file at sync time if there have not been any
+				// writes.
+				delete();
+				log.debug("DELETED {} because it does not contain "
+						+ "any data to fsync", this);
 			}
 		}
-		else {
-			// An empty collection of {#link #fields} usually indicates that
-			// the Record was deserialized from a read operation before a
-			// write operation occurred, so it is okay for me to
-			// delete the file at sync time if there have not been any writes.
-			delete();
+		finally {
+			lock.release();
 		}
 	}
 
 	@Override
 	@GuardedBy("writeLock")
 	public ByteBuffer getBytes() {
-		Lock lock = readLock();
+		Lock lock = writeLock();
 		try {
 			if(buffer == null) {
 				buffer = ByteableCollections.toByteBuffer(fields.values());
@@ -314,6 +377,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 				constructor.setAccessible(true);
 				Field<K, V> field = constructor.newInstance(key);
 				fields.put(key, field);
+				log.debug("Created new field for {} in {}", key, this);
 				return field;
 			}
 			catch (Exception e) {
@@ -324,6 +388,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			}
 		}
 		else {
+			log.debug("Returning a mock field for {} in {}", key, this);
 			return mock;
 		}
 	}
