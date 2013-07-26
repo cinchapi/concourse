@@ -59,9 +59,8 @@ import com.google.common.collect.Lists;
  * Concourse is a schemaless distributed version control database with
  * serializable transactions and full-text search. Concourse provides a more
  * intuitive approach to data management that is easy to deploy, access and
- * scale with minimal tuning while also maintaining the referential integrity,
- * atomicity, consistency, isolability and durability found in traditional
- * database systems.
+ * scale with minimal tuning while also maintaining the referential integrity
+ * and ACID characteristics of traditional database systems.
  * </p>
  * <h2>Data Model</h2>
  * <p>
@@ -91,19 +90,19 @@ import com.google.common.collect.Lists;
  * </p>
  * <h4>Links</h4>
  * <p>
- * Concourse supports mapping a {@code key} in one {@code record} to another
- * {@code record} using a {@link Link}. Links are one-directional, but it is
- * possible to add two links that are the inverse of each other to simulate
- * bi-directionality (i.e. link "friend" in Record 1 to Record 2 and link
- * "friend" in Record 2 to Record 1).
+ * Concourse supports linking a {@code key} in one {@code record} to another
+ * {@code record}. Links are one-directional, but it is possible to add two
+ * links that are the inverse of each other to simulate bi-directionality (i.e.
+ * link "friend" in Record 1 to Record 2 and link "friend" in Record 2 to Record
+ * 1).
  * </p>
  * <h2>Transactions</h2>
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
- * where every change is immediately written. Concourse supports the ability to
- * group and stage operations in transactions that are atomic, consistent,
- * isolated, and durable (ACID) using the {@link #stage()}, {@link #commit()}
- * and {@link #abort()} methods.
+ * where every change is immediately written. Concourse also supports the
+ * ability to group and stage operations in transactions that are atomic,
+ * consistent, isolated, and durable using the {@link #stage()},
+ * {@link #commit()} and {@link #abort()} methods.
  * 
  * </p>
  * 
@@ -161,7 +160,7 @@ public interface Concourse {
 	/**
 	 * Attempt to permanently commit all the changes that are currently staged.
 	 * This function returns {@code true} if and only if all the changes can be
-	 * successfully applied to the database.Otherwise, this function returns
+	 * successfully applied to the database. Otherwise, this function returns
 	 * {@code false} and all the changes are aborted.
 	 * <p>
 	 * After this function returns, Concourse will return to {@code autocommit}
