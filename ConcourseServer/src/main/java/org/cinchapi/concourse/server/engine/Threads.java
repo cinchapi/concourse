@@ -90,8 +90,10 @@ public final class Threads {
 	 * @param threadNamePrefix
 	 * @param commands
 	 */
-	public static void executeAndAwaitTermination(String threadNamePrefix, Runnable... commands) {
-		execute(newThreadPool(commands.length, threadNamePrefix), commands);
+	public static void executeAndAwaitTermination(String threadNamePrefix,
+			Runnable... commands) {
+		executeAndAwaitTermination(
+				newThreadPool(commands.length, threadNamePrefix), commands);
 	}
 
 	/**
@@ -101,7 +103,8 @@ public final class Threads {
 	 * @param executor
 	 * @param commands
 	 */
-	public static void execute(ExecutorService executor, Runnable... commands) {
+	public static void executeAndAwaitTermination(ExecutorService executor,
+			Runnable... commands) {
 		for (Runnable command : commands) {
 			executor.execute(command);
 		}
