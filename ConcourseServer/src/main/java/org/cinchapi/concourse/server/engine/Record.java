@@ -123,7 +123,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			Constructor<T> constructor = clazz.getConstructor(locatorClass);
 			constructor.setAccessible(true);
 			return constructor.newInstance(locator);
-	
+
 		}
 		catch (ReflectiveOperationException e) {
 			throw Throwables.propagate(e);
@@ -178,7 +178,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param locator
 	 */
 	protected Record(L locator) {
-		this.filename = new Path(false, ServerConstants.DATA_HOME,
+		this.filename = new Path(false, ServerConstants.DATA_HOME, "db",
 				Record.getLocale(locator)).setExt(fileNameExt()).toString();
 		Files.makeParentDirs(filename);
 		this.fields = init();
@@ -346,7 +346,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 
 	/**
 	 * Delete this Record. This method will delete the backing file, but the
-	 * content of the Record will continue to reside in memory until it the
+	 * Record object will continue to reside in memory until it the
 	 * object is garbage collected.
 	 */
 	@DoNotInvoke
@@ -377,7 +377,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 				constructor.setAccessible(true);
 				Field<K, V> field = constructor.newInstance(key);
 				fields.put(key, field);
-				log.debug("Created new field for {} in {}", key, this);
 				return field;
 			}
 			catch (Exception e) {
@@ -388,7 +387,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			}
 		}
 		else {
-			log.debug("Returning a mock field for {} in {}", key, this);
 			return mock;
 		}
 	}
