@@ -38,7 +38,6 @@ import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.time.Time;
-import org.cinchapi.concourse.server.ServerConstants;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
@@ -121,6 +120,7 @@ public final class Transaction extends BufferedStore {
 		lock(transaction, Representation.forObjects(key, record),
 				TransactionLock.Type.ISOLATED_FIELD);
 	}
+
 	/**
 	 * Grab a shared lock on {@code record}.
 	 * 
@@ -184,6 +184,7 @@ public final class Transaction extends BufferedStore {
 			((Limbo) transaction.buffer).insert(write);
 		}
 	}
+
 	/**
 	 * Grab a lock of {@code type} for {@code representation} in
 	 * {@code transaction}.
@@ -216,6 +217,7 @@ public final class Transaction extends BufferedStore {
 		}
 
 	}
+
 	private static final Logger log = LoggerFactory
 			.getLogger(Transaction.class);
 
@@ -223,9 +225,7 @@ public final class Transaction extends BufferedStore {
 	 * The location where transaction backups are stored in order to enforce the
 	 * durability guarantee.
 	 */
-	private static final String transactionStore = ServerConstants.DATA_HOME
-			+ File.separator + "transactions";
-
+	private final String transactionStore;
 	private static final int initialCapacity = 50;
 
 	/**
@@ -242,9 +242,7 @@ public final class Transaction extends BufferedStore {
 			.newHashMapWithExpectedSize(initialCapacity);
 
 	private static final int LOCKS_SIZE_OFFSET = 0;
-
 	private static final int LOCKS_SIZE_SIZE = 4;
-
 	private static final int LOCKS_OFFSET = LOCKS_SIZE_OFFSET + LOCKS_SIZE_SIZE;
 
 	/**
@@ -254,6 +252,8 @@ public final class Transaction extends BufferedStore {
 	 */
 	private Transaction(Engine destination) {
 		super(new Limbo(initialCapacity), destination);
+		this.transactionStore = destination.baseStore + File.separator
+				+ "transactions";
 	}
 
 	/**

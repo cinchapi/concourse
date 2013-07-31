@@ -54,23 +54,14 @@ import com.google.common.collect.Maps;
 class SearchIndex extends Record<Text, Text, Position> {
 
 	/**
-	 * Return the SearchIndex that is identified by {@code key}.
-	 * 
-	 * @param key
-	 * @return the SearchIndex
-	 */
-	public static SearchIndex loadSearchIndex(Text key) {
-		return Record.open(SearchIndex.class, Text.class, key);
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param key
+	 * @param parentStore
 	 */
 	@DoNotInvoke
-	public SearchIndex(Text key) {
-		super(key);
+	public SearchIndex(Text key, String parentStore) {
+		super(key, parentStore);
 	}
 
 	@SuppressWarnings("unchecked")

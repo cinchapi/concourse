@@ -84,7 +84,9 @@ final class Buffer extends Limbo implements Transportable {
 
 	/**
 	 * Construct a Buffer that is backed by the default location, which is a
-	 * file called "buffer" in the DATA_HOME.
+	 * file called "buffer" in the {@link ServerConstants#DATA_HOME} directory.
+	 * Existing content, if available, will be loaded from the file. Otherwise,
+	 * a new and empty Buffer will be returned.
 	 */
 	public Buffer() {
 		this(ServerConstants.DATA_HOME + File.separator + "buffer");
@@ -92,7 +94,7 @@ final class Buffer extends Limbo implements Transportable {
 
 	/**
 	 * 
-	 * Construct a a Buffer that is backed by {@link backingStore}. Existing
+	 * Construct a a Buffer that is backed by {@code backingStore}. Existing
 	 * content, if available, will be loaded from the file. Otherwise, a new and
 	 * empty Buffer will be returned.
 	 * 
@@ -103,7 +105,8 @@ final class Buffer extends Limbo implements Transportable {
 	}
 
 	/**
-	 * Construct a new instance.
+	 * Construct a Buffer that is backed by {@code backingStore} and is limited
+	 * to {@code size} bytes.
 	 * 
 	 * @param backingStore
 	 * @param size

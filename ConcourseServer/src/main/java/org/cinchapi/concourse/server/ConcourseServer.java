@@ -96,20 +96,33 @@ class ConcourseServer implements ConcourseService.Iface {
 			.newHashMap();
 
 	/**
-	 * Construct a new instance.
+	 * Construct a ConcourseServer that listens on {@code port} and store data
+	 * in {@code backingStore}.
 	 * 
+	 * @param port
+	 * @param backingStore
 	 * @throws TTransportException
 	 */
-	@PackagePrivate
-	ConcourseServer() throws TTransportException {
-		this.engine = new Engine();
-		TServerSocket socket = new TServerSocket(SERVER_PORT);
+	public ConcourseServer(int port, String backingStore)
+			throws TTransportException {
+		this.engine = new Engine(backingStore);
+		TServerSocket socket = new TServerSocket(port);
 		ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
 				this);
 		Args args = new TThreadPoolServer.Args(socket);
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
 		this.server = new TThreadPoolServer(args);
+	}
+
+	/**
+	 * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
+	 * stores data in {@link ServerConstants#DATA_HOME}.
+	 * 
+	 * @throws TTransportException
+	 */
+	public ConcourseServer() throws TTransportException {
+		this(SERVER_PORT, ServerConstants.DATA_HOME);
 	}
 
 	@Override

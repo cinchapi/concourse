@@ -50,23 +50,14 @@ import com.google.common.collect.Sets;
 final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 
 	/**
-	 * Return the SearchIndex that is identified by {@code key}.
-	 * 
-	 * @param key
-	 * @return the SearchIndex
-	 */
-	public static SecondaryIndex loadSecondaryIndex(Text key) {
-		return Record.open(SecondaryIndex.class, Text.class, key);
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param locator
+	 * @param parentStore
 	 */
 	@DoNotInvoke
-	public SecondaryIndex(Text locator) {
-		super(locator);
+	public SecondaryIndex(Text locator, String parentStore) {
+		super(locator, parentStore);
 	}
 
 	@SuppressWarnings("unchecked")

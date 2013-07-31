@@ -52,23 +52,14 @@ import com.google.common.collect.Sets;
 final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 
 	/**
-	 * Return the PrimaryRecord that is identified by {@code key}.
-	 * 
-	 * @param key
-	 * @return the PrimaryRecord
-	 */
-	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key) {
-		return Record.open(PrimaryRecord.class, PrimaryKey.class, key);
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param locator
+	 * @param parentStore
 	 */
 	@DoNotInvoke
-	public PrimaryRecord(PrimaryKey key) {
-		super(key);
+	public PrimaryRecord(PrimaryKey key, String parentStore) {
+		super(key, parentStore);
 	}
 
 	@SuppressWarnings("unchecked")

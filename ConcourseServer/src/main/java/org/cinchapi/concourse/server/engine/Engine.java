@@ -23,10 +23,14 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import java.io.File;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
+import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.concourse.server.ServerConstants;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,20 +58,41 @@ public final class Engine extends BufferedStore implements
 	private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
 	/**
-	 * Construct a new Engine instance.
+	 * The location that the engine uses as the base store for its components.
+	 */
+	@PackagePrivate
+	final String baseStore; // visible for Transaction backups
+
+	/**
+	 * Construct an Engine that is made up of a {@link Buffer} and
+	 * {@link Database} in the default locations.
 	 */
 	public Engine() {
-		super(new Buffer(), new Database());
+		this(new Buffer(), new Database(), ServerConstants.DATA_HOME);
 	}
 
 	/**
+	 * Construct an Engine that is made up of a {@link Buffer} and
+	 * {@link Database} that are both backed by {@code baseStore}.
 	 * Construct a new instance.
+	 * 
+	 * @param baseStore
+	 */
+	public Engine(String baseStore) {
+		this(new Buffer(baseStore + File.separator + "buffer"), new Database(
+				baseStore + File.separator + "db"), baseStore);
+	}
+
+	/**
+	 * Construct an Engine that is made up of {@code buffer} and
+	 * {@code database}.
 	 * 
 	 * @param buffer
 	 * @param database
 	 */
-	private Engine(Buffer buffer, Database database) {
+	private Engine(Buffer buffer, Database database, String baseStore) {
 		super(buffer, database);
+		this.baseStore = baseStore;
 	}
 
 	/*

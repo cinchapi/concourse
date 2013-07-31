@@ -23,19 +23,21 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
+import org.cinchapi.concourse.server.ServerConstants;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.cinchapi.concourse.server.engine.PrimaryRecord.loadPrimaryRecord;
-import static org.cinchapi.concourse.server.engine.SecondaryIndex.loadSecondaryIndex;
-import static org.cinchapi.concourse.server.engine.SearchIndex.loadSearchIndex;
+import static org.cinchapi.concourse.server.engine.Record.loadPrimaryRecord;
+import static org.cinchapi.concourse.server.engine.Record.loadSecondaryIndex;
+import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
 
 /**
  * The {@code Database} is the permanent {@link Destination} for {@link Write}
@@ -48,6 +50,30 @@ import static org.cinchapi.concourse.server.engine.SearchIndex.loadSearchIndex;
  * @author jnelson
  */
 public class Database implements Readable, Destination {
+
+	/**
+	 * The location where the Database stores data.
+	 */
+	private final String backingStore;
+
+	/**
+	 * Construct a Database that is backed by the default location which is in a
+	 * "db" directory under {@link ServerConstants#DATA_HOME}.
+	 */
+	public Database() {
+		this(ServerConstants.DATA_HOME + File.separator + "db");
+	}
+
+	/**
+	 * Construct a Database that is backed by {@link backingStore} directory.
+	 * The {@link backingStore} is passed to each {@link Record} as the
+	 * {@code parentStore}.
+	 * 
+	 * @param backingStore
+	 */
+	public Database(String backingStore) {
+		this.backingStore = backingStore;
+	}
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write
@@ -120,49 +146,54 @@ public class Database implements Readable, Destination {
 	@Override
 	public void accept(Write write) {
 		Threads.executeAndAwaitTermination(threadNamePrefix, Database
-				.getWriteRunnable(loadPrimaryRecord(write.getRecord()), write),
-				Database.getWriteRunnable(loadSecondaryIndex(write.getKey()),
+				.getWriteRunnable(
+						loadPrimaryRecord(write.getRecord(), backingStore),
 						write), Database.getWriteRunnable(
-						loadSearchIndex(write.getKey()), write));
+				loadSecondaryIndex(write.getKey(), backingStore), write),
+				Database.getWriteRunnable(
+						loadSearchIndex(write.getKey(), backingStore), write));
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).audit();
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.audit();
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).audit(
-				Text.fromString(key));
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.audit(Text.fromString(key));
 	}
 
 	@Override
 	public Set<String> describe(long record) {
 		return Transformers.transformSet(
-				loadPrimaryRecord(PrimaryKey.notForStorage(record)).describe(),
-				Functions.TEXT_TO_STRING);
+				loadPrimaryRecord(PrimaryKey.notForStorage(record),
+						backingStore).describe(), Functions.TEXT_TO_STRING);
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
 		return Transformers.transformSet(
-				loadPrimaryRecord(PrimaryKey.notForStorage(record)).describe(
-						timestamp), Functions.TEXT_TO_STRING);
+				loadPrimaryRecord(PrimaryKey.notForStorage(record),
+						backingStore).describe(timestamp),
+				Functions.TEXT_TO_STRING);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
 		return Transformers.transformSet(
-				loadPrimaryRecord(PrimaryKey.notForStorage(record)).fetch(
-						Text.fromString(key)), Functions.VALUE_TO_TOBJECT);
+				loadPrimaryRecord(PrimaryKey.notForStorage(record),
+						backingStore).fetch(Text.fromString(key)),
+				Functions.VALUE_TO_TOBJECT);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		return Transformers.transformSet(
-				loadPrimaryRecord(PrimaryKey.notForStorage(record)).fetch(
-						Text.fromString(key), timestamp),
+				loadPrimaryRecord(PrimaryKey.notForStorage(record),
+						backingStore).fetch(Text.fromString(key), timestamp),
 				Functions.VALUE_TO_TOBJECT);
 	}
 
@@ -170,7 +201,7 @@ public class Database implements Readable, Destination {
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key)).find(
+				loadSecondaryIndex(Text.fromString(key), backingStore).find(
 						timestamp,
 						operator,
 						Transformers.transformArray(values,
@@ -181,7 +212,7 @@ public class Database implements Readable, Destination {
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key)).find(
+				loadSecondaryIndex(Text.fromString(key), backingStore).find(
 						operator,
 						Transformers.transformArray(values,
 								Functions.TOBJECT_TO_VALUE, Value.class)),
@@ -190,24 +221,27 @@ public class Database implements Readable, Destination {
 
 	@Override
 	public boolean ping(long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).ping();
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.ping();
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		return Transformers.transformSet(loadSearchIndex(Text.fromString(key))
-				.search(Text.fromString(query)), Functions.PRIMARY_KEY_TO_LONG);
+		return Transformers.transformSet(
+				loadSearchIndex(Text.fromString(key), backingStore).search(
+						Text.fromString(query)), Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).verify(
-				Text.fromString(key), Value.notForStorage(value));
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.verify(Text.fromString(key), Value.notForStorage(value));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record)).verify(
-				Text.fromString(key), Value.notForStorage(value), timestamp);
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.verify(Text.fromString(key), Value.notForStorage(value),
+						timestamp);
 	}
 }

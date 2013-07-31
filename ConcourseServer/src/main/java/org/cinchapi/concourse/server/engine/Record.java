@@ -45,8 +45,6 @@ import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
-import org.cinchapi.common.tools.Path;
-import org.cinchapi.concourse.server.ServerConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +76,40 @@ import com.google.common.base.Throwables;
 abstract class Record<L extends Byteable, K extends Byteable, V extends Storable> implements
 		Lockable,
 		Byteable {
+
+	/**
+	 * Return the {@link PrimaryRecord} that is identified by {@code key}.
+	 * 
+	 * @param key
+	 * @param parentStore
+	 * @return the PrimaryRecord
+	 */
+	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key,
+			String parentStore) {
+		return open(PrimaryRecord.class, PrimaryKey.class, key, parentStore);
+	}
+
+	/**
+	 * Return the {@link SearchIndex} that is identified by {@code key}.
+	 * 
+	 * @param key
+	 * @param parentStore
+	 * @return the SearchIndex
+	 */
+	public static SearchIndex loadSearchIndex(Text key, String parentStore) {
+		return open(SearchIndex.class, Text.class, key, parentStore);
+	}
+
+	/**
+	 * Return the {@link SecondaryIndex} that is identified by {@code key}.
+	 * 
+	 * @param key
+	 * @param parentStore
+	 * @return the SecondaryIndex
+	 */
+	public static SecondaryIndex loadSecondaryIndex(Text key, String parentStore) {
+		return open(SecondaryIndex.class, Text.class, key, parentStore);
+	}
 
 	/**
 	 * Return the locale for {@code locator}. There is a 1:1 mapping between
@@ -115,14 +147,16 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param clazz
 	 * @param locatorClass
 	 * @param locator
+	 * @param parentStore
 	 * @return the Record
 	 */
-	static <T extends Record<L, ?, ?>, L extends Byteable> T open(
-			Class<T> clazz, Class<L> locatorClass, L locator) {
+	private static <T extends Record<L, ?, ?>, L extends Byteable> T open(
+			Class<T> clazz, Class<L> locatorClass, L locator, String parentStore) {
 		try {
-			Constructor<T> constructor = clazz.getConstructor(locatorClass);
+			Constructor<T> constructor = clazz.getConstructor(locatorClass,
+					String.class);
 			constructor.setAccessible(true);
-			return constructor.newInstance(locator);
+			return constructor.newInstance(locator, parentStore);
 
 		}
 		catch (ReflectiveOperationException e) {
@@ -176,10 +210,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * existing content is loaded. Otherwise, a new Record is created.
 	 * 
 	 * @param locator
+	 * @param parentStore
 	 */
-	protected Record(L locator) {
-		this.filename = new Path(false, ServerConstants.DATA_HOME, "db",
-				Record.getLocale(locator)).setExt(fileNameExt()).toString();
+	protected Record(L locator, String parentStore) {
+		this.filename = parentStore + File.separator
+				+ Record.getLocale(locator) + "." + fileNameExt();
 		Files.makeParentDirs(filename);
 		this.fields = init();
 		long length = Files.length(filename);
