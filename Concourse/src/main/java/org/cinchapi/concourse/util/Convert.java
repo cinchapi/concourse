@@ -107,7 +107,6 @@ public final class Convert {
 	public static Object thriftToJava(TObject object) {
 		Object java = null;
 		ByteBuffer buffer = object.bufferForData();
-		buffer.position(0);
 		switch (object.getType()) {
 		case BOOLEAN:
 			java = ByteBuffers.getBoolean(buffer);

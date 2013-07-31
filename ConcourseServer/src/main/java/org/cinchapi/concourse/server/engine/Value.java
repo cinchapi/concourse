@@ -154,9 +154,11 @@ final class Value implements Comparable<Value>, Storable {
 		TObject object = quantityCache.get(cacheKey);
 		if(object == null) {
 			// Must allocate a heap buffer because TObject assumes it has a
-			// backing array.
-			object = new TObject(ByteBuffer.allocate(buffer.remaining()).put(
-					buffer), type);
+			// backing array and because of THRIFT-2104 that buffer must wrap a
+			// byte array in order to assume that the TObject does not lose data
+			// when transferred over the wire
+			object = new TObject(ByteBuffer.wrap(ByteBuffers
+					.toByteArray(buffer)), type);
 			quantityCache.put(object, cacheKey);
 		}
 		return object;
@@ -339,7 +341,7 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	public synchronized TObject getQuantity() {
 		bytes.position(QTY_POS);
-		return Value.getQuantityFromByteBuffer(bytes, getType());
+		return getQuantityFromByteBuffer(bytes, getType());
 	}
 
 	@Override

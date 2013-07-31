@@ -16,6 +16,7 @@ import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.EncodingUtils;
 import org.apache.thrift.TException;
+import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 
 import java.util.List;
@@ -194,8 +195,9 @@ public class TObject implements
 	}
 
 	public synchronized ByteBuffer bufferForData() {
-		data.rewind();
-		return data;
+		ByteBuffer clone = ByteBuffers.clone(data);
+		clone.rewind();
+		return clone;
 	}
 
 	public TObject setData(byte[] data) {
