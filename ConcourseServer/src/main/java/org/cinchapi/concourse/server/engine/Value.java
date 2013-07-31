@@ -148,17 +148,20 @@ final class Value implements Comparable<Value>, Storable {
 	 * @return the object.
 	 */
 	static TObject getQuantityFromByteBuffer(ByteBuffer buffer, Type type) {
-		// Must allocate a heap buffer because TObject assumes it has a
-		// backing array.
 		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
 		TObject object = quantityCache.get(cacheKey);
 		if(object == null) {
 			// Must allocate a heap buffer because TObject assumes it has a
 			// backing array and because of THRIFT-2104 that buffer must wrap a
 			// byte array in order to assume that the TObject does not lose data
-			// when transferred over the wire
-			object = new TObject(ByteBuffer.wrap(ByteBuffers
-					.toByteArray(buffer)), type);
+			// when transferred over the wire.
+			byte[] array = new byte[buffer.remaining()];
+			buffer.get(array); // We CANNOT simply slice {@code buffer} and use
+								// the slice's backing array because the backing
+								// array of the slice is the same as the
+								// original, which contains more data than we
+								// need for the quantity
+			object = new TObject(ByteBuffer.wrap(array), type);
 			quantityCache.put(object, cacheKey);
 		}
 		return object;
