@@ -73,13 +73,13 @@ import com.google.common.collect.Lists;
  * <ul>
  * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
  * person, place, or thing (i.e. an object). Each {@code record} is a collection
- * of key/value pairs that are collectively identify by a unique primary key.
+ * of key/value pairs that are together identify by a unique primary key.
  * <li><strong>Key</strong> &mdash; An attribute that maps to
  * <em>one or more</em> distinct {@code values}. A {@code record} can have many
  * different {@code keys}, and the {@code keys} in one {@code record} do not
  * affect the those in another {@code record}.
- * <li><strong>Value</strong> &mdash; A typed quantity that is mapped from a
- * {@code key} in a {@code record}.
+ * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
+ * mapped from a {@code key} in a {@code record}.
  * </ul>
  * </p>
  * <h4>Data Types</h4>
@@ -100,7 +100,7 @@ import com.google.common.collect.Lists;
  * <p>
  * By default, Concourse conducts every operation in {@code autocommit} mode
  * where every change is immediately written. Concourse also supports the
- * ability to group and stage operations in transactions that are atomic,
+ * ability to stage a group of operations in transactions that are atomic,
  * consistent, isolated, and durable using the {@link #stage()},
  * {@link #commit()} and {@link #abort()} methods.
  * 
@@ -158,8 +158,8 @@ public interface Concourse {
 	public void clear(String key, long record);
 
 	/**
-	 * Attempt to permanently commit all the changes that are currently staged.
-	 * This function returns {@code true} if and only if all the changes can be
+	 * Attempt to permanently commit all the currently staged changes. This
+	 * function returns {@code true} if and only if all the changes can be
 	 * successfully applied to the database. Otherwise, this function returns
 	 * {@code false} and all the changes are aborted.
 	 * <p>
@@ -187,8 +187,8 @@ public interface Concourse {
 	public Set<String> describe(long record);
 
 	/**
-	 * Describe {@code record} at {@code timestamp} and return its set keys that
-	 * mapped to at least one value.
+	 * Describe {@code record} at {@code timestamp} and return its set of keys
+	 * that mapped to at least one value.
 	 * 
 	 * @param record
 	 * @param timestamp
@@ -203,8 +203,7 @@ public interface Concourse {
 
 	/**
 	 * Fetch {@code key} from {@code record} and return the set of currently
-	 * mapped
-	 * values.
+	 * mapped values.
 	 * 
 	 * @param key
 	 * @param record
