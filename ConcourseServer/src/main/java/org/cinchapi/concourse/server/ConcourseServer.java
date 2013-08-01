@@ -23,6 +23,10 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
@@ -58,12 +63,77 @@ import com.google.common.collect.Maps;
  * @author jnelson
  */
 @PackagePrivate
-class ConcourseServer implements ConcourseService.Iface {
+public class ConcourseServer implements ConcourseService.Iface {
+
+	/**
+	 * Run the server...
+	 * 
+	 * @param args
+	 * @throws TTransportException
+	 */
+	public static void main(String... args) throws TTransportException {
+		final ConcourseServer server = new ConcourseServer();
+
+		// Shutdown hook that runs as a last effort to stop things gracefully in
+		// the event that the normal shutdown routine doesn't occur (i.e.
+		// ctrl+c).
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				server.stop();
+			}
+
+		}, "shutdown-hook"));
+
+		// Start the server...
+		Thread serverThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					server.start();
+				}
+				catch (TTransportException e) {
+					throw Throwables.propagate(e);
+				}
+			}
+
+		}, "server-thread");
+		serverThread.start();
+
+		// Prepare for graceful shutdown...
+		Thread shutdownThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					ServerSocket socket = new ServerSocket(SHUTDOWN_PORT);
+					socket.accept(); // block until a shutdown request is made
+					log.info("Shutdown request received");
+					server.stop();
+					socket.close();
+					System.exit(0);
+				}
+				catch (IOException e) {
+					e.printStackTrace();
+					System.exit(-1);
+				}
+
+			}
+
+		}, "shutdown-thread");
+		shutdownThread.start();
+	}
 
 	private static final int SERVER_PORT = 1717; // This may become
 													// configurable in a
 													// prefs file in a
 													// future release.
+
+	private static final int SHUTDOWN_PORT = 3434; // This may become
+													// configurable in a prefs
+													// file in a future release.
 
 	private static final int NUM_WORKER_THREADS = 100; // This may become
 														// configurable in a
@@ -96,6 +166,16 @@ class ConcourseServer implements ConcourseService.Iface {
 			.newHashMap();
 
 	/**
+	 * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
+	 * stores data in {@link ServerConstants#DATA_HOME}.
+	 * 
+	 * @throws TTransportException
+	 */
+	public ConcourseServer() throws TTransportException {
+		this(SERVER_PORT, ServerConstants.DATA_HOME);
+	}
+
+	/**
 	 * Construct a ConcourseServer that listens on {@code port} and store data
 	 * in {@code backingStore}.
 	 * 
@@ -113,16 +193,6 @@ class ConcourseServer implements ConcourseService.Iface {
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
 		this.server = new TThreadPoolServer(args);
-	}
-
-	/**
-	 * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
-	 * stores data in {@link ServerConstants#DATA_HOME}.
-	 * 
-	 * @throws TTransportException
-	 */
-	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, ServerConstants.DATA_HOME);
 	}
 
 	@Override
@@ -317,9 +387,10 @@ class ConcourseServer implements ConcourseService.Iface {
 	 * Stop the server.
 	 */
 	public void stop() {
-		server.stop();
-		log.info("The Concourse server has stoped");
-		System.exit(0);
+		if(server.isServing()) {
+			server.stop();
+			log.info("The Concourse server has stopped");
+		}
 	}
 
 	@Override
@@ -370,6 +441,33 @@ class ConcourseServer implements ConcourseService.Iface {
 	private void validate(String username, String password)
 			throws SecurityException {
 		// TODO check if creds are correct
+	}
+
+	/**
+	 * Connects to the {@link ConcourseServer#SHUTDOWN_PORT} in order to
+	 * initiate a graceful shutdown.
+	 * 
+	 * @author jnelson
+	 */
+	public static class ShutdownRunner {
+
+		/**
+		 * Run as org.cinchapi.concourse.server.ConcourseServer$ShutdownRunner
+		 * 
+		 * @param args
+		 * @throws IOException
+		 * @throws UnknownHostException
+		 */
+		public static void main(String... args) {
+			try {
+				log.info("Binding to shutdown port {}", SHUTDOWN_PORT);
+				Socket socket = new Socket("localhost", SHUTDOWN_PORT);
+				socket.close();
+			}
+			catch (IOException e) {
+				// do nothing
+			}
+		}
 	}
 
 }
