@@ -113,7 +113,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 					log.info("Shutdown request received");
 					server.stop();
 					socket.close();
-					System.exit(0);
 				}
 				catch (IOException e) {
 					e.printStackTrace();
@@ -167,12 +166,12 @@ public class ConcourseServer implements ConcourseService.Iface {
 
 	/**
 	 * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
-	 * stores data in {@link ServerConstants#DATA_HOME}.
+	 * stores data in {@link Constants#DATA_HOME}.
 	 * 
 	 * @throws TTransportException
 	 */
 	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, ServerConstants.DATA_HOME);
+		this(SERVER_PORT, Constants.DATA_HOME);
 	}
 
 	/**
@@ -390,6 +389,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		if(server.isServing()) {
 			server.stop();
 			log.info("The Concourse server has stopped");
+			System.exit(0);
 		}
 	}
 
@@ -463,6 +463,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 				log.info("Binding to shutdown port {}", SHUTDOWN_PORT);
 				Socket socket = new Socket("localhost", SHUTDOWN_PORT);
 				socket.close();
+				System.exit(0);
 			}
 			catch (IOException e) {
 				// do nothing

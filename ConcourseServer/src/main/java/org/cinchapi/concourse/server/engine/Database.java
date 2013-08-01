@@ -29,7 +29,7 @@ import java.util.Set;
 
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
-import org.cinchapi.concourse.server.ServerConstants;
+import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
@@ -58,10 +58,10 @@ public class Database implements Readable, Destination {
 
 	/**
 	 * Construct a Database that is backed by the default location which is in a
-	 * "db" directory under {@link ServerConstants#DATA_HOME}.
+	 * "db" directory under {@link Constants#DATA_HOME}.
 	 */
 	public Database() {
-		this(ServerConstants.DATA_HOME + File.separator + "db");
+		this(Constants.DATA_HOME + File.separator + "db");
 	}
 
 	/**

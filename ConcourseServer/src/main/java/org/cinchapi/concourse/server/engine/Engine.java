@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.concourse.server.ServerConstants;
+import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public final class Engine extends BufferedStore implements
 	 * {@link Database} in the default locations.
 	 */
 	public Engine() {
-		this(new Buffer(), new Database(), ServerConstants.DATA_HOME);
+		this(new Buffer(), new Database(), Constants.DATA_HOME);
 	}
 
 	/**

@@ -36,7 +36,7 @@ import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.concourse.server.ServerConstants;
+import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,12 +84,12 @@ final class Buffer extends Limbo implements Transportable {
 
 	/**
 	 * Construct a Buffer that is backed by the default location, which is a
-	 * file called "buffer" in the {@link ServerConstants#DATA_HOME} directory.
+	 * file called "buffer" in the {@link Constants#DATA_HOME} directory.
 	 * Existing content, if available, will be loaded from the file. Otherwise,
 	 * a new and empty Buffer will be returned.
 	 */
 	public Buffer() {
-		this(ServerConstants.DATA_HOME + File.separator + "buffer");
+		this(Constants.DATA_HOME + File.separator + "buffer");
 	}
 
 	/**
@@ -101,7 +101,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * @param backingStore
 	 */
 	public Buffer(String backingStore) {
-		this(backingStore, ServerConstants.BUFFER_SIZE_IN_BYTES);
+		this(backingStore, Constants.BUFFER_SIZE_IN_BYTES);
 	}
 
 	/**
