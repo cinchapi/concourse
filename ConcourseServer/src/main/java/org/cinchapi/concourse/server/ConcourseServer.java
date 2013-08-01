@@ -122,6 +122,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 			}
 
 		}, "shutdown-thread");
+		shutdownThread.setDaemon(true);
 		shutdownThread.start();
 	}
 
