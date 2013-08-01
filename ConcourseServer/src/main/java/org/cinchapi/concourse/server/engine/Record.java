@@ -51,8 +51,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 /**
- * A version controlled collection of key/value mappings that are encapsulated
- * as Fields.
+ * A version controlled collection of key/value mappings that are contained
+ * in Fields.
  * <p>
  * Each Record is identified by a {@code locator} and is stored in a distinct
  * file<sup>1</sup> on disk. The entire Record is deserialized or loaded from a
@@ -259,7 +259,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	@GuardedBy("this.readLock")
 	public final void fsync() {
-		Lock lock = writeLock();
+		Lock lock = readLock();
 		try {
 			if(!fields.isEmpty()) {
 				String backup = filename + ".bak";
