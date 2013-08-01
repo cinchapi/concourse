@@ -257,7 +257,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * the entire Record and overwrites the content of {@link #filename} with
 	 * the data that currently exists in memory.
 	 */
-	@GuardedBy("this.readLock")
+	@GuardedBy("this.writeLock")
 	public final void fsync() {
 		Lock lock = writeLock();
 		log.debug("Starting fsync for {}", this);
