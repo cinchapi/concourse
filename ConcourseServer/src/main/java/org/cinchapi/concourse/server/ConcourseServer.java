@@ -73,18 +73,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 	public static void main(String... args) throws TTransportException {
 		final ConcourseServer server = new ConcourseServer();
 
-		// Shutdown hook that runs as a last effort to stop things gracefully in
-		// the event that the normal shutdown routine doesn't occur (i.e.
-		// ctrl+c).
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				server.stop();
-			}
-
-		}, "shutdown-hook"));
-
 		// Start the server...
 		Thread serverThread = new Thread(new Runnable() {
 

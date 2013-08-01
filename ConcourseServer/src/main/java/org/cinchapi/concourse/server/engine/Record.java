@@ -165,8 +165,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
-	 * Determines the depth of directory nesting for locales (64/N) and the
-	 * number of possible entries in a single directory along the path (16^N).
+	 * Determines the depth of directory nesting for locales (=64/N) and the
+	 * number of possible entries in a single directory along the path (=16^N).
 	 * This number should be a multiple of 2.
 	 */
 	@PackagePrivate
@@ -259,7 +259,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	@GuardedBy("this.readLock")
 	public final void fsync() {
-		Lock lock = readLock();
+		Lock lock = writeLock();
+		log.debug("Starting fsync for {}", this);
 		try {
 			if(!fields.isEmpty()) {
 				String backup = filename + ".bak";

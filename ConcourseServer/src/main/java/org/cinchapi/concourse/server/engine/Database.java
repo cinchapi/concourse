@@ -90,7 +90,7 @@ public class Database implements Readable, Destination {
 
 			@Override
 			public void run() {
-				log.debug("Writing {} to {}...", write, record);
+				log.debug("Writing {} to {}", write, record);
 				if(record instanceof PrimaryRecord) {
 					if(write.getType() == WriteType.ADD) {
 						((PrimaryRecord) record).add(write.getKey(),

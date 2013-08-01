@@ -24,16 +24,13 @@
 package org.cinchapi.concourse.server.engine;
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.common.annotate.UtilityClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -109,15 +106,8 @@ public final class Threads {
 			executor.execute(command);
 		}
 		executor.shutdown();
-		try {
-			if(!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-				List<Runnable> tasks = executor.shutdownNow();
-				log.error("An ExecutorService could not properly shutdown "
-						+ "and the following tasks were dropped: {}", tasks);
-			}
-		}
-		catch (InterruptedException e) {
-			throw Throwables.propagate(e);
+		while (!executor.isTerminated()) {
+			continue; // block until all tasks have completed
 		}
 	}
 
