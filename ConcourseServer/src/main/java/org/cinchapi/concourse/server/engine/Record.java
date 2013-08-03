@@ -198,12 +198,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	/**
 	 * A reference to the {@code locator} is not stored with the Record, so the
 	 * filename is the only identifying information available once the Record is
-	 * loaded into memory. It is not possible to convert from filename to
-	 * locator.
+	 * loaded into memory. It is NOT guaranteed to be possible to convert from
+	 * filename to locator.
 	 */
 	private final transient String filename;
-
-	private static final Logger log = LoggerFactory.getLogger(Record.class);
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	/**
 	 * Construct the Record found by {@code locator}. If the Record exists, its
@@ -214,7 +213,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	protected Record(L locator, String parentStore) {
 		this.filename = parentStore + File.separator
-				+ Record.getLocale(locator) + "." + fileNameExt();
+				+ Record.getLocale(locator) + File.separator + locator + "."
+				+ fileNameExt();
 		Files.makeParentDirs(filename);
 		this.fields = init();
 		long length = Files.length(filename);
