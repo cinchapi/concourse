@@ -9,8 +9,8 @@
 # The path to the directory where Concourse should store data.
 # This directory is relative to the Concourse install directory.
 # 
-# DEFAULT: data
-DATA_HOME = data
+# DEFAULT: /var/lib/concourse
+DATA_HOME = /Users/jnelson/concourse
 
 # The maximum number of bytes that the Buffer should store before
 # transporting its content to the Database. A larger Buffer 

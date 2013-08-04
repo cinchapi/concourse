@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.File;
+
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cinchapi.common.annotate.UtilityClass;
 import org.cinchapi.common.configuration.Configurations;
@@ -51,7 +53,9 @@ public final class Constants {
 	 * The path to the directory where Concourse should store data.
 	 * This directory is relative to the Concourse install directory.
 	 */
-	public static final String DATA_HOME = "data";
+	public static final String DATA_HOME = config.getString("DATA_HOME",
+			File.separator + "var" + File.separator + "lib" + File.separator
+					+ "concourse");
 
 	/**
 	 * The number of bytes available for write buffering. A larger buffer allows
