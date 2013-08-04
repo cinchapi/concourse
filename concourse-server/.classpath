@@ -2,10 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry exported="true" kind="src" path="/concourse"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="con" path="org.springsource.ide.eclipse.gradle.classpathcontainer"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Concourse"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JetBridge"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

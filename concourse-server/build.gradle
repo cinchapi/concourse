@@ -1,0 +1,8 @@
+apply plugin: 'application'
+
+dependencies {
+    compile project(':concourse')
+}
+
+mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
+
