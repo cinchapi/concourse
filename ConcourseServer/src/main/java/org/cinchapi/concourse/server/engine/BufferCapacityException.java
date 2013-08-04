@@ -27,7 +27,8 @@ import org.cinchapi.common.annotate.PackagePrivate;
 
 /**
  * An unchecked exception that is thrown when an attempt is made to insert a
- * {@link Write} into a {@link Buffer} that does not have enough capacity.
+ * {@link Write} into a {@link Transportable} that does not have enough
+ * capacity.
  * 
  * @author jnelson
  */

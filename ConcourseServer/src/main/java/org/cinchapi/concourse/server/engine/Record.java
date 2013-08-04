@@ -212,9 +212,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param parentStore
 	 */
 	protected Record(L locator, String parentStore) {
-		this.filename = parentStore + File.separator
-				+ Record.getLocale(locator) + File.separator + locator + "."
-				+ fileNameExt();
+		this.filename = new StringBuilder().append(parentStore)
+				.append(File.separator).append(getLocale(locator))
+				.append(File.separator).append(locator).append(".")
+				.append(fileNameExt()).toString();
 		Files.makeParentDirs(filename);
 		this.fields = init();
 		long length = Files.length(filename);
