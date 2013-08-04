@@ -73,7 +73,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 
 	@Override
 	protected Map<Value, Field<Value, PrimaryKey>> init() {
-		return Maps.newTreeMap();
+		return Maps.newTreeMap(new ValueComparator());
 	}
 
 	@Override
