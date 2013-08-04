@@ -251,7 +251,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 							matches = !value.equals(writeValue);
 						}
 						else if(operator == Operator.GREATER_THAN) {
-							matches = value.compareToLogically(writeValue) > 0;
+							matches = value.compareToLogically(writeValue) < 0;
 						}
 						else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
 							matches = value.compareToLogically(writeValue) >= 0;
