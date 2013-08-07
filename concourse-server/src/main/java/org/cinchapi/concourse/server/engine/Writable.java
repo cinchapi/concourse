@@ -27,7 +27,7 @@ import org.cinchapi.concourse.thrift.TObject;
 
 /**
  * A {@code Writable} service provides mechanisms for storing new data and
- * modifying existing data,
+ * modifying existing data.
  * 
  * @author jnelson
  */

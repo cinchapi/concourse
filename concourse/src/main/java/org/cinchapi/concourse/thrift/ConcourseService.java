@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.EnumMap;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.util.BitSet;
@@ -9346,7 +9346,7 @@ public class ConcourseService {
      */
     public describe_result(describe_result other) {
       if (other.isSetSuccess()) {
-        Set<String> __this__success = new HashSet<String>();
+        Set<String> __this__success = new LinkedHashSet<String>();
         for (String other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -9373,7 +9373,7 @@ public class ConcourseService {
 
     public void addToSuccess(String elem) {
       if (this.success == null) {
-        this.success = new HashSet<String>();
+        this.success = new LinkedHashSet<String>();
       }
       this.success.add(elem);
     }
@@ -9559,7 +9559,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set10 = iprot.readSetBegin();
-                  struct.success = new HashSet<String>(2*_set10.size);
+                  struct.success = new LinkedHashSet<String>(2*_set10.size);
                   for (int _i11 = 0; _i11 < _set10.size; ++_i11)
                   {
                     String _elem12; // required
@@ -9640,7 +9640,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set15 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new HashSet<String>(2*_set15.size);
+            struct.success = new LinkedHashSet<String>(2*_set15.size);
             for (int _i16 = 0; _i16 < _set15.size; ++_i16)
             {
               String _elem17; // required
@@ -10508,7 +10508,7 @@ public class ConcourseService {
      */
     public fetch_result(fetch_result other) {
       if (other.isSetSuccess()) {
-        Set<TObject> __this__success = new HashSet<TObject>();
+        Set<TObject> __this__success = new LinkedHashSet<TObject>();
         for (TObject other_element : other.success) {
           __this__success.add(new TObject(other_element));
         }
@@ -10535,7 +10535,7 @@ public class ConcourseService {
 
     public void addToSuccess(TObject elem) {
       if (this.success == null) {
-        this.success = new HashSet<TObject>();
+        this.success = new LinkedHashSet<TObject>();
       }
       this.success.add(elem);
     }
@@ -10721,7 +10721,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set18 = iprot.readSetBegin();
-                  struct.success = new HashSet<TObject>(2*_set18.size);
+                  struct.success = new LinkedHashSet<TObject>(2*_set18.size);
                   for (int _i19 = 0; _i19 < _set18.size; ++_i19)
                   {
                     TObject _elem20; // required
@@ -10803,7 +10803,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set23 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<TObject>(2*_set23.size);
+            struct.success = new LinkedHashSet<TObject>(2*_set23.size);
             for (int _i24 = 0; _i24 < _set23.size; ++_i24)
             {
               TObject _elem25; // required
@@ -11848,7 +11848,7 @@ public class ConcourseService {
      */
     public find_result(find_result other) {
       if (other.isSetSuccess()) {
-        Set<Long> __this__success = new HashSet<Long>();
+        Set<Long> __this__success = new LinkedHashSet<Long>();
         for (Long other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -11875,7 +11875,7 @@ public class ConcourseService {
 
     public void addToSuccess(long elem) {
       if (this.success == null) {
-        this.success = new HashSet<Long>();
+        this.success = new LinkedHashSet<Long>();
       }
       this.success.add(elem);
     }
@@ -12061,7 +12061,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set34 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set34.size);
+                  struct.success = new LinkedHashSet<Long>(2*_set34.size);
                   for (int _i35 = 0; _i35 < _set34.size; ++_i35)
                   {
                     long _elem36; // required
@@ -12142,7 +12142,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set39 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set39.size);
+            struct.success = new LinkedHashSet<Long>(2*_set39.size);
             for (int _i40 = 0; _i40 < _set39.size; ++_i40)
             {
               long _elem41; // required
@@ -13834,7 +13834,7 @@ public class ConcourseService {
      */
     public search_result(search_result other) {
       if (other.isSetSuccess()) {
-        Set<Long> __this__success = new HashSet<Long>();
+        Set<Long> __this__success = new LinkedHashSet<Long>();
         for (Long other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -13861,7 +13861,7 @@ public class ConcourseService {
 
     public void addToSuccess(long elem) {
       if (this.success == null) {
-        this.success = new HashSet<Long>();
+        this.success = new LinkedHashSet<Long>();
       }
       this.success.add(elem);
     }
@@ -14047,7 +14047,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set42 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set42.size);
+                  struct.success = new LinkedHashSet<Long>(2*_set42.size);
                   for (int _i43 = 0; _i43 < _set42.size; ++_i43)
                   {
                     long _elem44; // required
@@ -14128,7 +14128,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set47 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set47.size);
+            struct.success = new LinkedHashSet<Long>(2*_set47.size);
             for (int _i48 = 0; _i48 < _set47.size; ++_i48)
             {
               long _elem49; // required

@@ -234,7 +234,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 			TObject... values) {
 		Lock lock = readLock();
 		try {
-			Map<Long, Set<Value>> rtv = Maps.newHashMap();
+			Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
 			Iterator<Write> it = writes.iterator();
 			Value value = Value.notForStorage(values[0]);
 			while (it.hasNext()) {
