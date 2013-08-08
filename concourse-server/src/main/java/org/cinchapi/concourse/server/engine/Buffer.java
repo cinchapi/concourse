@@ -39,7 +39,8 @@ import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.cinchapi.concourse.util.Logging.getServerLog;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -62,7 +63,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
 	private static final int AVG_WRITE_SIZE = 72; /* arbitrary */
-	private static final Logger log = LoggerFactory.getLogger(Buffer.class);
+	private static final Logger log = getServerLog();
 	private static final NumberFormat pct;
 	static {
 		pct = NumberFormat.getPercentInstance();

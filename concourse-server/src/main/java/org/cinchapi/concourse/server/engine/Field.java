@@ -47,7 +47,6 @@ import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.common.tools.Strings;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -55,6 +54,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
+import static org.cinchapi.concourse.util.Logging.getServerLog;
 import static org.mockito.Matchers.any;
 
 /**
@@ -172,7 +172,7 @@ abstract class Field<K extends Byteable, V extends Storable> implements
 	 * The maximum number of bytes that can be used to encode a single Value.
 	 */
 	static final int MAX_SIZE = Integer.MAX_VALUE; /* package-private */
-	protected static final Logger log = LoggerFactory.getLogger(Field.class);
+	protected static final Logger log = getServerLog();
 	private final K key;
 
 	private final State state;

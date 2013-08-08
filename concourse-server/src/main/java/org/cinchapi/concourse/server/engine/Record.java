@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import static org.cinchapi.concourse.util.Logging.getServerLog;
+
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
@@ -202,7 +204,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * filename to locator.
 	 */
 	private final transient String filename;
-	private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = getServerLog();
 
 	/**
 	 * Construct the Record found by {@code locator}. If the Record exists, its

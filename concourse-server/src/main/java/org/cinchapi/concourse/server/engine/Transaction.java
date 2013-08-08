@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
+import static org.cinchapi.concourse.util.Logging.getServerLog;
 
 /**
  * A server side representation of a {@link Transaction} that contains resources
@@ -218,8 +219,7 @@ public final class Transaction extends BufferedStore {
 
 	}
 
-	private static final Logger log = LoggerFactory
-			.getLogger(Transaction.class);
+	private static final Logger log = getServerLog();
 
 	/**
 	 * The location where transaction backups are stored in order to enforce the

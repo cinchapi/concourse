@@ -46,9 +46,9 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Logging;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -438,8 +438,8 @@ public interface Concourse {
 	 */
 	public final static class Client implements Concourse {
 
-		private static final Logger log = LoggerFactory
-				.getLogger(Concourse.class);
+		private static final Logger log = Logging.getLogger("concourse-client",
+				"concourse_client.log");
 
 		/**
 		 * All configuration information is contained in this prefs file.
