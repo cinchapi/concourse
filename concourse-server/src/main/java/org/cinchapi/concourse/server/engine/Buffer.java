@@ -38,6 +38,7 @@ import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.TObject;
+import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
 import static org.cinchapi.concourse.util.Logging.getServerLog;
@@ -191,6 +192,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * underlying {@link #content}.
 	 */
 	@Override
+	@Profiled(tag = "Buffer.transport", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void transport(Destination destination) {
 		log.debug("Starting a Buffer flush...");
 		Lock lock = writeLock();
@@ -219,6 +221,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * @throws BufferCapacityException - if the size of {@code write} is greater
 	 *             than the remaining capacity of the Buffer
 	 */
+	@Profiled(tag = "Buffer.write_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	private boolean append(Write write) throws BufferCapacityException {
 		Lock lock = writeLock();
 		try {
