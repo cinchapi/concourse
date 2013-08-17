@@ -47,6 +47,10 @@ public final class Logging {
 	 * A cache to prevent duplicate loggers from being created.
 	 */
 	private static Map<String, Logger> cache = Maps.newHashMap();
+	static {
+		String perf = "org.cinchapi.concourse.server.engine.PerformanceLogger";
+		cache.put(perf, getLogger(perf, "log/performance.log"));
+	}
 
 	/**
 	 * Return a Logger for {@code name} that is configured programmatically to
