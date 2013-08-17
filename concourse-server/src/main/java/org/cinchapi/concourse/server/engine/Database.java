@@ -32,6 +32,7 @@ import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.server.Constants;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +145,7 @@ public class Database implements Readable, Destination {
 	private static final Logger log = LoggerFactory.getLogger(Database.class);
 
 	@Override
+	@Profiled(tag = "Database.accept_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void accept(Write write) {
 		Threads.executeAndAwaitTermination(threadNamePrefix, Database
 				.getWriteRunnable(
