@@ -73,24 +73,6 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Return a string that describes the revision encapsulated in the
-	 * 
-	 * @param write
-	 * @return a description of the Write
-	 */
-	public static String describe(Write write) {
-		String verb = write.getType().name();
-		String key = write.getKey().toString();
-		String value = write.getValue().toString();
-		String preposition = write.getType() == WriteType.ADD ? "TO" : "FROM";
-		String record = write.getRecord().toString();
-		return new StringBuilder().append(verb).append(" ").append(key)
-				.append(" ").append("AS").append(" ").append(value).append(" ")
-				.append(preposition).append(" ").append(record).append(" ")
-				.toString();
-	}
-
-	/**
 	 * Return the Write encoded in {@code buffer} so long as those bytes adhere
 	 * to the format specified by the {@link #getBytes()} method. This method
 	 * assumes that all the bytes in the {@code buffer} belong to the Value. In
@@ -438,7 +420,14 @@ final class Write implements Byteable {
 
 	@Override
 	public String toString() {
-		return describe(this);
+		String verb = getType().name();
+		String key = getKey().toString();
+		String value = getValue().toString();
+		String preposition = getType() == WriteType.ADD ? "TO" : "FROM";
+		String record = getRecord().toString();
+		return new StringBuilder().append(verb).append(" ").append(key)
+				.append(" ").append("AS").append(" ").append(value).append(" ")
+				.append(preposition).append(" ").append(record).toString();
 	}
 
 	/**

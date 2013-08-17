@@ -122,7 +122,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getRecord().longValue() == record) {
-					audit.put(write.getTimestamp(), Write.describe(write));
+					audit.put(write.getTimestamp(), write.toString());
 				}
 			}
 			return audit;
@@ -142,7 +142,7 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 				Write write = it.next();
 				if(write.getKey().toString().equals(key)
 						&& write.getRecord().longValue() == record) {
-					audit.put(write.getTimestamp(), Write.describe(write));
+					audit.put(write.getTimestamp(), write.toString());
 				}
 			}
 			return audit;
