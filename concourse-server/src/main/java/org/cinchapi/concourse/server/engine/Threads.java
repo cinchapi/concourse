@@ -28,8 +28,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.cinchapi.common.annotate.UtilityClass;
+import org.cinchapi.concourse.util.Logging;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -41,7 +41,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @UtilityClass
 public final class Threads {
 
-	private static final Logger log = LoggerFactory.getLogger(Threads.class);
+	private static final Logger log = Logging.getServerLog();
 
 	/**
 	 * Catches exceptions thrown from pooled threads. For the Database,
