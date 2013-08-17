@@ -22,10 +22,25 @@ subprojects {
 	compile 'org.cinchapi:jetbridge:1.0-SNAPSHOT'
 
 	testCompile 'junit:junit:4.11'
-	}
+   }
 
     jar {
         manifest.attributes provider: 'gradle'
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+    	classifier = 'sources'
+    	from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+    	classifier = 'javadoc'
+    	from javadoc.destinationDir
+    }
+
+    artifacts {
+    	archives sourcesJar
+    	archives javadocJar
     }
 
     group = 'org.cinchapi'

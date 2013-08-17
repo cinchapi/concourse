@@ -2,6 +2,11 @@ apply plugin: 'application'
 
 dependencies {
     compile project(':concourse')
+    compile 'org.perf4j:perf4j:0.9.16'
+    compile 'org.aspectj:aspectjweaver:1.7.3'
+    compile 'org.aspectj:aspectjrt:1.7.3'
+    compile 'commons-jexl:commons-jexl:1.1'
+    compile 'commons-logging:commons-logging:1.1.3'
 }
 
 mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
