@@ -28,17 +28,25 @@ import static org.cinchapi.concourse.util.Logging.getServerLog;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.cache.ReferenceCache;
+import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.ByteableCollections;
@@ -47,25 +55,28 @@ import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
+import org.cinchapi.common.tools.Numbers;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
- * A version controlled collection of key/value mappings that are contained
- * in Fields.
+ * A version controlled collection of key/value mappings that are represented on
+ * disk as an append-only {@link Revision} list. This class provides a wrapper
+ * that contains read optimizing indices.
  * <p>
  * Each Record is identified by a {@code locator} and is stored in a distinct
  * file<sup>1</sup> on disk. The entire Record is deserialized or loaded from a
- * cache for each relevant read or write request. In memory, each Record
- * maintains a key to {@link Field} mapping. To afford the caller
- * flexibility<sup>2</sup>, changes are not automatically flushed to disk, but
- * must be done explicitly by calling {@link #fsync()}.
+ * cache for each relevant read or write request.
  * </p>
  * <sup>1</sup> - Records are randomly grouped into locales. <br>
- * <sup>2</sup> - Syncing data to disk read locks the entire Record, so it is
- * ideal to give the caller discretion with the bottleneck.
  * 
  * 
  * @author jnelson
@@ -76,8 +87,7 @@ import com.google.common.base.Throwables;
 @PackagePrivate
 @ThreadSafe
 abstract class Record<L extends Byteable, K extends Byteable, V extends Storable> implements
-		Lockable,
-		Byteable {
+		Lockable {
 
 	/**
 	 * Return the {@link PrimaryRecord} that is identified by {@code key}.
@@ -120,7 +130,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param locator
 	 * @return the locale
 	 */
-	static <L extends Byteable> String getLocale(L locator) {
+	private static <L extends Byteable> String getLocale(L locator) {
 		byte[] bytes = ByteBuffers.toByteArray(locator.getBytes());
 		if(locator instanceof PrimaryKey) {
 			// The first 8 bytes of PrimaryKey {@code bytes} differs depending
@@ -152,18 +162,31 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param parentStore
 	 * @return the Record
 	 */
+	@SuppressWarnings("unchecked")
 	private static <T extends Record<L, ?, ?>, L extends Byteable> T open(
 			Class<T> clazz, Class<L> locatorClass, L locator, String parentStore) {
-		try {
-			Constructor<T> constructor = clazz.getConstructor(locatorClass,
-					String.class);
-			constructor.setAccessible(true);
-			return constructor.newInstance(locator, parentStore);
+		// Find RefereceCache for Record class
+		ReferenceCache<T> cache = (ReferenceCache<T>) caches.get(clazz);
+		if(cache == null) {
+			cache = new ReferenceCache<T>();
+			caches.put(clazz, cache);
+		}
 
+		// Find Record
+		T record = (T) cache.get(locator, parentStore);
+		if(record == null) {
+			try {
+				Constructor<T> constructor = clazz.getConstructor(locatorClass,
+						String.class);
+				constructor.setAccessible(true);
+				record = constructor.newInstance(locator, parentStore);
+				cache.put(record, locator, parentStore);
+			}
+			catch (ReflectiveOperationException e) {
+				throw Throwables.propagate(e);
+			}
 		}
-		catch (ReflectiveOperationException e) {
-			throw Throwables.propagate(e);
-		}
+		return record;
 	}
 
 	/**
@@ -171,31 +194,16 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * number of possible entries in a single directory along the path (=16^N).
 	 * This number should be a multiple of 2.
 	 */
-	@PackagePrivate
-	static final int LOCALE_NESTING_FACTOR = 4;
-
+	private static final int LOCALE_NESTING_FACTOR = 4;
+	
 	/**
-	 * I use a Map instead of a Set here so that the we don't have to rely on
-	 * the Field implementation class to specify hashCode(), equals() and
-	 * compareTo() methods. If those things matter, we can just assume that
-	 * they chosen Key type reflects that.
+	 * We maintain a dynamically generated ReferenceCache for each Record sub
+	 * class, each of which holds a SoftReference to the deserialized and
+	 * up-to-date Record objects. This helps to reduce the number of disk reads
+	 * that must occur when accessing a Record.
 	 */
-	protected final Map<K, Field<K, V>> fields;
-
-	/**
-	 * The mock is returned to callers to allow transparent interaction in the
-	 * event that a field does not exist in the record without compromising data
-	 * consistency (i.e. trying to read from a field that does not exist).
-	 */
-	private final transient Field<K, V> mock = Field
-			.mock((Class<Field<K, V>>) fieldImplClass());
-
-	/**
-	 * This is a cache of the most recent byte encoding for the record. Every
-	 * call to {@link #add(Byteable, Storable)} and
-	 * {@link #remove(Byteable, Storable)} will nullify this variable.
-	 */
-	private transient ByteBuffer buffer = null;
+	private static final Map<Class<?>, ReferenceCache<?>> caches = Maps
+			.newHashMap();
 
 	/**
 	 * A reference to the {@code locator} is not stored with the Record, so the
@@ -204,32 +212,77 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * filename to locator.
 	 */
 	private final transient String filename;
+
+	/**
+	 * The size is equal to the first free byte in the backing file that can
+	 * used when appending a new revision.
+	 */
+	private transient long size = 0;
+
+	/**
+	 * The record version is equal to the version of its most recent
+	 * {@link Revision}.
+	 */
+	private transient long version = 0;
+
+	/**
+	 * The index is used to efficiently determine the set of values currently
+	 * mapped from a key. The subclass should specify the appropriate type of
+	 * key sorting via the returned type for {@link #init()}.
+	 */
+	protected final transient Map<K, Set<V>> present = init();
+
+	/**
+	 * The index is used to efficiently see the number of times that a revision
+	 * appears in the Record and therefore determine if the revision (e.g. the
+	 * key/value pair) currently exists.
+	 */
+	protected final transient HashMap<Revision, Integer> counts = Maps
+			.newHashMap();
+
+	/**
+	 * This index is used to efficiently handle historical reads. Given a
+	 * revision (e.g key/value pair), and historical timestamp, we can count the
+	 * number of times that the value appears <em>beforehand</em> at determine
+	 * if the mapping existed or not.
+	 */
+	protected final transient HashMap<K, List<Revision>> history = Maps
+			.newHashMap();
+
+	/**
+	 * This set is returned when a key does not map to any values so that the
+	 * caller can transparently interact without performing checks or
+	 * compromising data consistency.
+	 */
+	private final Set<V> emptyValues;
 	private final Logger log = getServerLog();
 
 	/**
-	 * Construct the Record found by {@code locator}. If the Record exists, its
-	 * existing content is loaded. Otherwise, a new Record is created.
+	 * Construct a new instance from the revisions that exist in
+	 * {@code backingStore}.
 	 * 
-	 * @param locator
-	 * @param parentStore
+	 * @param backingStore
 	 */
+	@SuppressWarnings("unchecked")
 	protected Record(L locator, String parentStore) {
-		this.filename = new StringBuilder().append(parentStore)
-				.append(File.separator).append(getLocale(locator))
-				.append(File.separator).append(locator).append(".")
-				.append(fileNameExt()).toString();
-		Files.makeParentDirs(filename);
-		this.fields = init();
+		this.filename = parentStore + File.separator + getLocale(locator)
+				+ File.separator + locator + "." + fileNameExt();
 		long length = Files.length(filename);
+		ByteBuffer buffer = Files.map(filename, MapMode.READ_ONLY, 0, length);
 		if(length > 0) {
-			this.buffer = Files.map(filename, MapMode.READ_ONLY, 0, length);
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
 			while (it.hasNext()) {
-				Field<K, V> field = (Field<K, V>) Byteables.read(it.next(),
-						fieldImplClass());
-				fields.put(field.getKey(), field);
+				append(new Revision(it.next()), false);
 			}
 		}
+
+		// Setup #emptyValues
+		this.emptyValues = Mockito.mock(Set.class);
+		Mockito.doReturn(false).when(emptyValues).add((V) Matchers.anyObject());
+		Mockito.doReturn(false).when(emptyValues)
+				.remove((V) Matchers.anyObject());
+		Mockito.doReturn(false).when(emptyValues)
+				.contains((V) Matchers.anyObject());
 	}
 
 	/**
@@ -239,10 +292,18 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param key
 	 * @param value
 	 */
-	@GuardedBy("this.writeLock, Field.writeLock")
 	public void add(K key, V value) {
-		get(key, true).add(value);
-		buffer = null;
+		Lock lock = writeLock();
+		try {
+			Revision revision = new Revision(key, value);
+			Preconditions.checkArgument(!contains(revision),
+					"Cannot add %s because the mapping already exists",
+					revision);
+			append(revision, true);
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -253,56 +314,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			return this.filename.equals(other.filename);
 		}
 		return false;
-	}
-
-	/**
-	 * Flush all the data in the Record back to disk. This operation read locks
-	 * the entire Record and overwrites the content of {@link #filename} with
-	 * the data that currently exists in memory.
-	 */
-	@GuardedBy("this.writeLock")
-	public final void fsync() {
-		Lock lock = writeLock();
-		log.debug("Starting fsync for {}", this);
-		try {
-			if(!fields.isEmpty()) {
-				String backup = filename + ".bak";
-				Files.copy(filename, backup);
-				Byteables.write(this, Files.getChannel(filename));
-				Files.delete(backup);
-				log.debug("Wrote a total of {} bytes during fsync of {}",
-						size(), this);
-			}
-			else {
-				// An empty collection of {#link #fields} usually indicates that
-				// the Record was deserialized from a read operation before a
-				// write operation occurred, so it is okay for me to
-				// delete the file at sync time if there have not been any
-				// writes.
-				delete();
-				log.debug("DELETED {} because it does not contain "
-						+ "any data to fsync", this);
-			}
-		}
-		finally {
-			lock.release();
-		}
-	}
-
-	@Override
-	@GuardedBy("writeLock")
-	public ByteBuffer getBytes() {
-		Lock lock = writeLock();
-		try {
-			if(buffer == null) {
-				buffer = ByteableCollections.toByteBuffer(fields.values());
-			}
-			buffer.rewind();
-			return buffer;
-		}
-		finally {
-			lock.release();
-		}
 	}
 
 	@Override
@@ -324,13 +335,17 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	@GuardedBy("this.writeLock, Field.writeLock")
 	public void remove(K key, V value) {
-		get(key).remove(value);
-		buffer = null;
-	}
-
-	@Override
-	public int size() {
-		return getBytes().capacity();
+		Lock lock = writeLock();
+		try {
+			Revision revision = new Revision(key, value);
+			Preconditions.checkArgument(contains(revision),
+					"Cannot remove %s because the mapping does not exist",
+					revision);
+			append(revision, true);
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	@Override
@@ -344,89 +359,313 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
-	 * The class of the Field implementation that is used to store data within
-	 * the Record.
-	 * 
-	 * @return the class
-	 */
-	protected abstract <T extends Field<K, V>> Class<T> fieldImplClass();
-
-	/**
-	 * The extension used for the storage filename.
+	 * The extension used for the name of the backing file.
 	 * 
 	 * @return the filename extensions
 	 */
 	protected abstract String fileNameExt();
 
 	/**
-	 * Lazily retrieve the field mapped from {@code key}.
+	 * Lazily retrieve an unmodifiable view of the current set of values mapped
+	 * from {@code key}.
 	 * 
 	 * @param key
-	 * @return the Field for {@code key}
+	 * @return the set of mapped values for {@code key}
 	 */
-	@GuardedBy("this.writeLock")
-	protected Field<K, V> get(K key) {
-		return get(key, false);
+	protected Set<V> get(K key) {
+		Lock lock = readLock();
+		try {
+			return present.containsKey(key) ? Collections
+					.unmodifiableSet(present.get(key)) : emptyValues;
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	/**
-	 * Return a mapping from {@code K} objects to {@link Field} objects.
+	 * Lazily retrieve the historical set of values for {@code key} at
+	 * {@code timestamp}.
 	 * 
-	 * @return the fields mapping
+	 * @param key
+	 * @param timestamp
+	 * @return the set of mapped values for {@code key} at {@code timestamp}.
 	 */
-	protected abstract Map<K, Field<K, V>> init();
+	protected Set<V> get(K key, long timestamp) {
+		Lock lock = readLock();
+		try {
+			Set<V> values = emptyValues;
+			if(history.containsKey(key)) {
+				values = Sets.newLinkedHashSet();
+				Iterator<Revision> it = history.get(key).iterator();
+				while (it.hasNext()) {
+					Revision revision = it.next();
+					if(revision.getVersion() <= timestamp) {
+						if(values.contains(revision.getValue())) {
+							values.remove(revision.getValue());
+						}
+						else {
+							values.add(revision.getValue());
+						}
+					}
+					else {
+						break;
+					}
+				}
+			}
+			return values;
+		}
+		finally {
+			lock.release();
+		}
+
+	}
 
 	/**
-	 * The class of the Key that is used to identify fields within the Record.
+	 * Initialize the appropriate data structure for the {@link #mappings}.
 	 * 
-	 * @return the class
+	 * @return the initialized mappings
+	 */
+	protected abstract Map<K, Set<V>> init();
+
+	/**
+	 * The class for each {@code key} in the Record.
+	 * <p>
+	 * Since the parameterized types associated with a Record should
+	 * <strong>never</strong> change, this metadata is transient and not stored
+	 * with the Record. This means that <em> any changes to the return value
+	 * of this method are not backwards compatible.</em>
+	 * </p>
+	 * 
+	 * @return the key class
 	 */
 	protected abstract Class<K> keyClass();
 
 	/**
-	 * Delete this Record. This method will delete the backing file, but the
-	 * Record object will continue to reside in memory until it the
-	 * object is garbage collected.
+	 * The class for each {@code value} in the Record.
+	 * <p>
+	 * Since the parameterized types associated with a Record should
+	 * <strong>never</strong> change, this metadata is transient and not stored
+	 * with the Record. This means that <em> any changes to the return value
+	 * of this method are not backwards compatible.</em>
+	 * </p>
+	 * 
+	 * @return the value class
 	 */
-	@DoNotInvoke
-	@PackagePrivate
-	final void delete() {
-		Files.delete(filename);
+	protected abstract Class<V> valueClass();
+
+	/**
+	 * Append {@code revision} to the record by update the in-memory indices and
+	 * optionally the backing file.
+	 * 
+	 * @param revision
+	 * @param fsync - set to {@code true} if the revision should be appended to
+	 *            the backing file, which is usually the case, except when this
+	 *            method is called while deserializing an existing record
+	 */
+	@Profiled(tag = "Record.append_{$0}//fsync={$1}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
+	private void append(Revision revision, boolean fsync) {
+		Preconditions.checkArgument(revision.getVersion() > version,
+				"Cannot add %s because its version is not greater than the "
+						+ "Record's current version.");
+		Lock lock = writeLock();
+		try {
+			int tSize = revision.size() + 4;
+			if(fsync) {
+				MappedByteBuffer buffer = Files.map(filename,
+						MapMode.READ_WRITE, size, tSize);
+				buffer.putInt(revision.size());
+				buffer.put(revision.getBytes());
+				buffer.force();
+				log.debug("Wrote {} bytes to {}.", tSize, filename);
+			}
+
+			// Update revision count
+			int count = count(revision) + 1;
+			counts.put(revision, count);
+
+			// Update present index
+			Set<V> values = present.get(revision.getKey());
+			if(values == null) {
+				values = Sets.<V> newLinkedHashSet();
+				present.put(revision.getKey(), values);
+			}
+			if(Numbers.isOdd(count)) {
+				values.add(revision.getValue());
+			}
+			else {
+				values.remove(revision.getValue());
+				if(values.isEmpty()) {
+					present.remove(revision.getKey());
+				}
+			}
+
+			// Update history index
+			List<Revision> revisions = history.get(revision.getKey());
+			if(revisions == null) {
+				revisions = Lists.newArrayList();
+				history.put(revision.getKey(), revisions);
+			}
+			revisions.add(revision);
+
+			// Update metadata
+			version = revision.getVersion();
+			size += tSize;
+			log.debug("Record {} is now {} bytes at version {}", filename,
+					size, version);
+		}
+		finally {
+			lock.release();
+		}
+
 	}
 
 	/**
-	 * Lazily retrieve a field from {@link #fields} with the option to
-	 * {@code create} a new field for {@code key} if one does not already exist
-	 * or to return {@code mock}.
+	 * Return {@code true} if {@code revision} appears an odd number of times in
+	 * the Record and therefore currently exists.
 	 * 
-	 * @param key
-	 * @param create
-	 * @return the Field for {@code key}
+	 * @param revision
+	 * @return {@code true} if {@code revision} exists
 	 */
-	@GuardedBy("this.writeLock")
-	private Field<K, V> get(K key, boolean create) {
-		if(fields.containsKey(key)) {
-			return fields.get(key);
+	private boolean contains(Revision revision) {
+		return Numbers.isOdd(count(revision));
+	}
+
+	/**
+	 * Count the number of times that {@code revision} appears in the Record.
+	 * This method uses the {@link #counts} index for efficiency. <strong>If
+	 * {@code revision} does not appear, this method will create a mapping from
+	 * the nonexistent revision to the count of 0.</strong> Therefore, this
+	 * method should only be called if it will follow an operation that appends
+	 * {@code revision} to the Record.
+	 * 
+	 * @param revision
+	 * @return the number of times {@code revision} appears
+	 */
+	private int count(Revision revision) {
+		Integer count = counts.get(revision);
+		if(count == null) {
+			count = 0;
+			counts.put(revision, count);
 		}
-		else if(create) {
-			Lock lock = writeLock();
-			try {
-				Constructor<Field<K, V>> constructor = fieldImplClass()
-						.getConstructor((Class<K>) keyClass());
-				constructor.setAccessible(true);
-				Field<K, V> field = constructor.newInstance(key);
-				fields.put(key, field);
-				return field;
-			}
-			catch (Exception e) {
-				throw Throwables.propagate(e);
-			}
-			finally {
-				lock.release();
-			}
+		return count;
+	}
+
+	/**
+	 * A {@link Revision} is a modification involving a {@code key} and
+	 * {@code value} that is versioned by the value's associated timestamp.
+	 * 
+	 * @author jnelson
+	 */
+	@Immutable
+	protected class Revision implements Byteable {
+
+		/**
+		 * Each {@link Revision} contains {@value #CONSTANT_SIZE} bytes of
+		 * metadata for the keySize and valueSize.
+		 */
+		private static final int CONSTANT_SIZE = 8;
+
+		private final K key;
+		private final V value;
+
+		/**
+		 * Deserialize an instance from {@code bytes}.
+		 * 
+		 * @param bytes
+		 */
+		public Revision(ByteBuffer bytes) {
+			// Decode size metadata
+			int keySize = bytes.getInt();
+			int valueSize = bytes.getInt();
+
+			// Calculate position offsets
+			int keyPosition = bytes.position();
+			int valuePosition = keyPosition + keySize;
+
+			// Deserialize components
+			this.key = Byteables.read(
+					ByteBuffers.slice(bytes, keyPosition, keySize), keyClass());
+			this.value = Byteables.read(
+					ByteBuffers.slice(bytes, valuePosition, valueSize),
+					valueClass());
 		}
-		else {
-			return mock;
+
+		/**
+		 * Construct a new instance from the specified {@code key} and
+		 * {@code value}.
+		 * 
+		 * @param key
+		 * @param value
+		 */
+		public Revision(K key, V value) {
+			this.key = key;
+			this.value = value;
 		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof Record.Revision) {
+				Record<L, K, V>.Revision other = (Record<L, K, V>.Revision) obj;
+				return key.equals(other.key) && value.equals(other.value);
+			}
+			return false;
+		}
+
+		@Override
+		public ByteBuffer getBytes() {
+			ByteBufferOutputStream out = new ByteBufferOutputStream();
+			out.write(key.size());
+			out.write(value.size());
+			out.write(key);
+			out.write(value);
+			out.close();
+			return out.toByteBuffer();
+		}
+
+		/**
+		 * Return the associated {@code key}.
+		 * 
+		 * @return the key
+		 */
+		public K getKey() {
+			return key;
+		}
+
+		/**
+		 * Return the associated {@code value}.
+		 * 
+		 * @return the value
+		 */
+		public V getValue() {
+			return value;
+		}
+
+		/**
+		 * Return the unique {@code version} identifier for this revision, which
+		 * is equal to the timestamp of the {@link #value}.
+		 * 
+		 * @return the version id
+		 */
+		public long getVersion() {
+			return value.getTimestamp();
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(key, value);
+		}
+
+		@Override
+		public int size() {
+			return key.size() + value.size() + CONSTANT_SIZE;
+		}
+
+		@Override
+		public String toString() {
+			return key + " AS " + value + " AT " + getVersion();
+		}
+
 	}
 }

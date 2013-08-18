@@ -26,7 +26,7 @@ package org.cinchapi.concourse.server.engine;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,19 +60,13 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 		super(locator, parentStore);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected <T extends Field<Value, PrimaryKey>> Class<T> fieldImplClass() {
-		return (Class<T>) SecondaryField.class;
-	}
-
 	@Override
 	protected String fileNameExt() {
 		return "csi";
 	}
 
 	@Override
-	protected Map<Value, Field<Value, PrimaryKey>> init() {
+	protected Map<Value, Set<PrimaryKey>> init() {
 		return Maps.newTreeMap(new ValueComparator());
 	}
 
@@ -81,17 +75,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 		return Value.class;
 	}
 
-	/**
-	 * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
-	 * in relation to the specified {@code values}.
-	 * 
-	 * @param operator
-	 * @param values
-	 * @return they Set of PrimaryKeys that match the query
-	 */
-	@PackagePrivate
-	Set<PrimaryKey> find(Operator operator, Value... values) {
-		return find(false, 0, operator, values);
+	@Override
+	protected Class<PrimaryKey> valueClass() {
+		return PrimaryKey.class;
 	}
 
 	/**
@@ -109,6 +95,19 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	}
 
 	/**
+	 * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
+	 * in relation to the specified {@code values}.
+	 * 
+	 * @param operator
+	 * @param values
+	 * @return they Set of PrimaryKeys that match the query
+	 */
+	@PackagePrivate
+	Set<PrimaryKey> find(Operator operator, Value... values) {
+		return find(false, 0, operator, values);
+	}
+
+	/**
 	 * Return the Set of PrimaryKeys that currently satisfy {@code operator} in
 	 * relation to the specified {@code values} or at the specified
 	 * {@code timestamp} if {@code historical} is {@code true}
@@ -123,91 +122,83 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * @return the Set of PrimaryKeys that match the query
 	 */
 	private Set<PrimaryKey> find(boolean historical, long timestamp,
-			Operator operator, Value... values) {
+			Operator operator, Value... values) { /* authorized */
 		Set<PrimaryKey> keys = Sets.newTreeSet();
 		Value value = values[0];
 		if(operator == Operator.EQUALS) {
-			keys.addAll(historical ? get(value).getValues(timestamp) : get(
-					value).getValues());
+			keys.addAll(historical ? get(value, timestamp) : get(value));
 		}
 		else if(operator == Operator.NOT_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
+			Iterator<Value> it = history.keySet().iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				if(field.getKey().equals(value)) {
-					keys.addAll(historical ? field.getValues(timestamp) : field
-							.getValues());
+				Value v = it.next();
+				if(!value.equals(v)) {
+					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
 		}
 		else if(operator == Operator.GREATER_THAN) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
-					.tailMap(value, false).values().iterator();
+			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			Iterator<Value> it = sortedValues.tailSet(value, false).iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				keys.addAll(historical ? field.getValues(timestamp) : field
-						.getValues());
+				Value v = it.next();
+				keys.addAll(historical ? get(v, timestamp) : get(v));
 			}
 		}
 		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
-					.tailMap(value, true).values().iterator();
+			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			Iterator<Value> it = sortedValues.tailSet(value, true).iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				keys.addAll(historical ? field.getValues(timestamp) : field
-						.getValues());
+				Value v = it.next();
+				keys.addAll(historical ? get(v, timestamp) : get(v));
 			}
 		}
 		else if(operator == Operator.LESS_THAN) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
-					.headMap(value, false).values().iterator();
+			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			Iterator<Value> it = sortedValues.headSet(value, false).iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				keys.addAll(historical ? field.getValues(timestamp) : field
-						.getValues());
+				Value v = it.next();
+				keys.addAll(historical ? get(v, timestamp) : get(v));
 			}
 		}
 		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
-					.headMap(value, true).values().iterator();
+			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			Iterator<Value> it = sortedValues.headSet(value, true).iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				keys.addAll(historical ? field.getValues(timestamp) : field
-						.getValues());
+				Value v = it.next();
+				keys.addAll(historical ? get(v, timestamp) : get(v));
 			}
 		}
 		else if(operator == Operator.BETWEEN) {
 			Preconditions.checkArgument(values.length > 1);
 			Value value2 = values[1];
-			Iterator<Field<Value, PrimaryKey>> it = ((TreeMap<Value, Field<Value, PrimaryKey>>) fields)
-					.subMap(value, true, value2, false).values().iterator();
+			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			Iterator<Value> it = sortedValues
+					.subSet(value, true, value2, false).iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> field = it.next();
-				keys.addAll(historical ? field.getValues(timestamp) : field
-						.getValues());
+				Value v = it.next();
+				keys.addAll(historical ? get(v, timestamp) : get(v));
 			}
 		}
 		else if(operator == Operator.REGEX) {
-			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
+			Iterator<Value> it = history.keySet().iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> bucket = it.next();
+				Value v = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());
-				Matcher m = p.matcher(bucket.getKey().toString());
+				Matcher m = p.matcher(v.getQuantity().toString());
 				if(m.matches()) {
-					keys.addAll(historical ? it.next().getValues(timestamp)
-							: it.next().getValues());
+					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
 		}
 		else if(operator == Operator.NOT_REGEX) {
-			Iterator<Field<Value, PrimaryKey>> it = fields.values().iterator();
+			Iterator<Value> it = history.keySet().iterator();
 			while (it.hasNext()) {
-				Field<Value, PrimaryKey> bucket = it.next();
+				Value v = it.next();
 				Pattern p = Pattern.compile(value.getQuantity().toString());
-				Matcher m = p.matcher(bucket.getKey().toString());
-				if(!m.matches()) {
-					keys.addAll(historical ? it.next().getValues(timestamp)
-							: it.next().getValues());
+				Matcher m = p.matcher(v.getQuantity().toString());
+				if(m.matches()) {
+					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
 		}

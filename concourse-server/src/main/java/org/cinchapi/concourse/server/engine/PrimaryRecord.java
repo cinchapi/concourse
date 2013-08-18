@@ -23,7 +23,9 @@
  */
 package org.cinchapi.concourse.server.engine;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.common.tools.Numbers;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -62,19 +65,13 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		super(key, parentStore);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected <T extends Field<Text, Value>> Class<T> fieldImplClass() {
-		return (Class<T>) PrimaryField.class;
-	}
-
 	@Override
 	protected String fileNameExt() {
 		return "cpr";
 	}
 
 	@Override
-	protected Map<Text, Field<Text, Value>> init() {
+	protected Map<Text, Set<Value>> init() {
 		return Maps.newHashMap();
 	}
 
@@ -83,19 +80,23 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		return Text.class;
 	}
 
+	@Override
+	protected Class<Value> valueClass() {
+		return Value.class;
+	}
+
 	/**
 	 * Return a log of revision to the entire Record.
 	 * 
 	 * @return the revision log
 	 */
-	@GuardedBy("this.readLock")
 	@PackagePrivate
 	Map<Long, String> audit() {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
-			for (Text field : fields.keySet()) {
-				audit.putAll(get(field).audit());
+			for (Text key : present.keySet()) {
+				audit.putAll(audit(key));
 			}
 			return audit;
 		}
@@ -110,10 +111,35 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param key
 	 * @return the revision log
 	 */
-	@GuardedBy("Field.readLock")
 	@PackagePrivate
 	Map<Long, String> audit(Text key) {
-		return get(key).audit();
+		Lock lock = readLock();
+		try {
+			Map<Long, String> audit = Maps.newLinkedHashMap();
+			Map<Revision, Integer> counts = Maps.newHashMap();
+			List<Revision> revisions = history.get(key); /* authorized */
+			if(revisions != null) {
+				Iterator<Revision> it = revisions.iterator();
+				while (it.hasNext()) {
+					Revision revision = it.next();
+
+					// Update count
+					Integer count = counts.get(revision);
+					count = 1 + (count == null ? 0 : count);
+					counts.put(revision, count);
+
+					// Determine verb
+					String verb = Numbers.isOdd(count) ? "ADD" : "REMOVE";
+
+					// Add audit entry
+					audit.put(revision.getVersion(), verb + revision.toString());
+				}
+			}
+			return audit;
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	/**
@@ -152,16 +178,6 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	}
 
 	/**
-	 * Return {@code true} if the Record <em>currently</em> contains data.
-	 * 
-	 * @return {@code true} if {@link #describe()} is not an empty Set
-	 */
-	@PackagePrivate
-	boolean ping() {
-		return !describe().isEmpty();
-	}
-
-	/**
 	 * Return the Set of values contained in the field mapped from {@code key}
 	 * at {@code timestamp}.
 	 * 
@@ -172,6 +188,16 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	@PackagePrivate
 	Set<Value> fetch(Text key, long timestamp) {
 		return fetch(key, true, timestamp);
+	}
+
+	/**
+	 * Return {@code true} if the Record <em>currently</em> contains data.
+	 * 
+	 * @return {@code true} if {@link #describe()} is not an empty Set
+	 */
+	@PackagePrivate
+	boolean ping() {
+		return !describe().isEmpty();
 	}
 
 	/**
@@ -202,7 +228,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	}
 
 	/**
-	 * Return the Set of {@code keys} that map to fields which
+	 * Return an unmodifiable view of the Set of {@code keys} that
 	 * <em>currently</em> contain values or contained values at
 	 * {@code timestamp} if {@code historical} is {@code true}.
 	 * 
@@ -217,18 +243,20 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	private Set<Text> describe(boolean historical, long timestamp) {
 		Lock lock = readLock();
 		try {
-			Map<Text, Field<Text, Value>> fields = this.fields;
-			Set<Text> description = Sets.newHashSetWithExpectedSize(fields
-					.size());
-			Iterator<Field<Text, Value>> it = fields.values().iterator();
-			while (it.hasNext()) {
-				Field<Text, Value> field = it.next();
-				if(historical ? !field.getValues(timestamp).isEmpty() : !field
-						.isEmpty()) {
-					description.add(field.getKey());
+			if(historical) {
+				Set<Text> description = Sets.newLinkedHashSet();
+				Iterator<Text> it = history.keySet().iterator(); /* authorized */
+				while (it.hasNext()) {
+					Text key = it.next();
+					if(!get(key, timestamp).isEmpty()) {
+						description.add(key);
+					}
 				}
+				return description;
 			}
-			return description;
+			else {
+				return Collections.unmodifiableSet(present.keySet()); /* authorized */
+			}
 		}
 		finally {
 			lock.release();
@@ -236,9 +264,9 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	}
 
 	/**
-	 * Return the Set of values <em>currently</em> contained in the field mapped
-	 * from {@code key} or contained at {@code timestamp} if {@code historical}
-	 * is {@code true}.
+	 * Return an unmodifiable view of the Set of values <em>currently</em>
+	 * contained in the field mapped from {@code key} or contained at
+	 * {@code timestamp} if {@code historical} is {@code true}.
 	 * 
 	 * @param key
 	 * @param historical - if {@code true}, read from the history, otherwise
@@ -248,10 +276,14 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 *            which to read
 	 * @return the Set of contained values
 	 */
-	@GuardedBy("Field.readLock")
 	private Set<Value> fetch(Text key, boolean historical, long timestamp) {
-		return Sets.newLinkedHashSet(historical ? get(key).getValues(timestamp)
-				: get(key).getValues());
+		Lock lock = readLock();
+		try {
+			return historical ? get(key, timestamp) : get(key);
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	/**
@@ -268,11 +300,16 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 *            which to read
 	 * @return {@code true} if {@code key} as {@code value} is a valid mapping
 	 */
-	@GuardedBy("Field.readLock")
 	private boolean verify(Text key, Value value, boolean historical,
 			long timestamp) {
-		return historical ? get(key).getValues(timestamp).contains(value)
-				: get(key).getValues().contains(value);
+		Lock lock = readLock();
+		try {
+			return historical ? get(key, timestamp).contains(value) : get(key)
+					.contains(value);
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 }

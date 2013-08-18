@@ -23,11 +23,9 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
@@ -64,10 +62,22 @@ class SearchIndex extends Record<Text, Text, Position> {
 		super(key, parentStore);
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * DO NOT CALL. Use {@link #add(Value, PrimaryKey)} instead.
+	 */
 	@Override
-	protected <T extends Field<Text, Position>> Class<T> fieldImplClass() {
-		return (Class<T>) SearchField.class;
+	@DoNotInvoke
+	public final void add(Text key, Position value) {
+		super.add(key, value);
+	}
+
+	/**
+	 * DO NOT CALL. Use {@link #remove(Value, PrimaryKey)} instead.
+	 */
+	@Override
+	@DoNotInvoke
+	public final void remove(Text key, Position value) {
+		super.remove(key, value);
 	}
 
 	@Override
@@ -76,7 +86,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	@Override
-	protected Map<Text, Field<Text, Position>> init() {
+	protected Map<Text, Set<Position>> init() {
 		return Maps.newHashMap();
 	}
 
@@ -85,14 +95,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 		return Text.class;
 	}
 
-	/**
-	 * DO NOT CALL. Use {@link #add(Value, PrimaryKey)} instead.
-	 */
 	@Override
-	@GuardedBy("this.writeLock, Field.writeLock")
-	@DoNotInvoke
-	public final void add(Text key, Position value) {
-		super.add(key, value);
+	protected Class<Position> valueClass() {
+		return Position.class;
 	}
 
 	/**
@@ -119,7 +124,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 								try {
 									add(index,
 											Position.fromPrimaryKeyAndMarker(
-													key, pos)); // **Authorized**
+													key, pos)); // *authorized*
 								}
 								catch (IllegalStateException
 										| IllegalArgumentException e) {
@@ -138,16 +143,6 @@ class SearchIndex extends Record<Text, Text, Position> {
 				lock.release();
 			}
 		}
-	}
-
-	/**
-	 * DO NOT CALL. Use {@link #remove(Value, PrimaryKey)} instead.
-	 */
-	@Override
-	@GuardedBy("this.writeLock, Field.writeLock")
-	@DoNotInvoke
-	public final void remove(Text key, Position value) {
-		super.remove(key, value);
 	}
 
 	/**
@@ -199,7 +194,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 		for (String tok : toks) {
 			Map<PrimaryKey, Integer> temp = Maps.newHashMap();
 			// TODO check if tok is a stopword and if so remove
-			List<Position> positions = get(Text.fromString(tok)).getValues();
+			Set<Position> positions = get(Text.fromString(tok));
 			for (Position position : positions) {
 				PrimaryKey key = position.getPrimaryKey();
 				int pos = position.getPosition();

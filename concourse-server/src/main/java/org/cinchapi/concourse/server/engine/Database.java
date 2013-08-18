@@ -134,7 +134,6 @@ public class Database implements Readable, Destination {
 				else {
 					throw new IllegalArgumentException();
 				}
-				record.fsync();
 			}
 
 		};
