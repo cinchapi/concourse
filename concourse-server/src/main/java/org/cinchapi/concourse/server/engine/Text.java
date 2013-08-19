@@ -24,18 +24,18 @@
 package org.cinchapi.concourse.server.engine;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
 
 /**
- * A {@link Storable} UTF-8 sequence of characters.
+ * A {@link Byteable} wrapper for a string of UTF-8 encoded characters.
  * 
  * @author jnelson
  */
@@ -78,22 +78,6 @@ final class Text implements Byteable, Comparable<Text> {
 	}
 
 	/**
-	 * Encode {@code text} and {@code timestamp} into a ByteBuffer that
-	 * conforms to the format specified for {@link Text#getBytes()}.
-	 * 
-	 * @param quantity
-	 * @param timestamp
-	 * @return the ByteBuffer encoding
-	 */
-	static ByteBuffer encodeAsByteBuffer(Object text) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(text);
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
-		return bytes;
-	}
-
-	/**
 	 * The maximum number of bytes that can be used to encode a single Text.
 	 */
 	@PackagePrivate
@@ -107,24 +91,19 @@ final class Text implements Byteable, Comparable<Text> {
 	static final Text EMPTY = Text.fromString("");
 
 	/**
-	 * <p>
-	 * In order to optimize heap usage, we encode the Text as a single
-	 * ByteBuffer instead of storing each component as a member variable.
-	 * </p>
-	 * <p>
-	 * To retrieve a component, we navigate to the appropriate position and
-	 * convert the necessary bytes to the correct type, which is a cheap since
-	 * binary conversion is trivial. Once a component is loaded onto the heap,
-	 * it may be stored in an ReferenceCache for further future efficiency.
-	 * </p>
-	 * 
-	 * The content conforms to the specification described by the
-	 * {@link #getBytes()} method.
+	 * The wrapped string.
 	 */
-	private final ByteBuffer bytes;
+	private final String text;
 
 	/**
-	 * Construct an instance that represents an existing Text from a
+	 * A cache of the UTF-8 encoded representation of the {@link #text} so we
+	 * don't have to convert back and forth between strings and binary in the
+	 * event that the text is large.
+	 */
+	private final transient byte[] utf8;
+
+	/**
+	 * Construct an instance that represents existing Text from a
 	 * ByteBuffer. This constructor is public so as to comply with the
 	 * {@link Byteable} interface. Calling this constructor directly is not
 	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
@@ -134,16 +113,17 @@ final class Text implements Byteable, Comparable<Text> {
 	 */
 	@DoNotInvoke
 	public Text(ByteBuffer bytes) {
-		this.bytes = bytes;
+		this(ByteBuffers.getString(bytes, StandardCharsets.UTF_8));
 	}
 
 	/**
-	 * Construct a notForStorage instance.
+	 * Construct an instance that wraps the {@code text} string.
 	 * 
 	 * @param text
 	 */
 	private Text(String text) {
-		this.bytes = encodeAsByteBuffer(text);
+		this.text = text;
+		this.utf8 = text.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
@@ -161,10 +141,8 @@ final class Text implements Byteable, Comparable<Text> {
 	}
 
 	@Override
-	public synchronized ByteBuffer getBytes() {
-		ByteBuffer clone = ByteBuffers.clone(bytes);
-		clone.rewind();
-		return clone;
+	public ByteBuffer getBytes() {
+		return ByteBuffer.wrap(utf8);
 	}
 
 	@Override
@@ -174,12 +152,12 @@ final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public int size() {
-		return bytes.capacity();
+		return utf8.length;
 	}
 
 	@Override
 	public String toString() {
-		return ByteBuffers.getString(getBytes());
+		return text;
 	}
 
 }

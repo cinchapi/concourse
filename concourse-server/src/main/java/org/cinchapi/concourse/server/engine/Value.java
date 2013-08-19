@@ -69,24 +69,6 @@ import com.google.common.base.Objects;
 final class Value implements Comparable<Value>, Storable {
 
 	/**
-	 * Encode {@code quantity} and {@code timestamp} into a ByteBuffer that
-	 * conforms to the format specified for {@link Value#getBytes()}.
-	 * 
-	 * @param quantity
-	 * @param timestamp
-	 * @return the ByteBuffer encoding
-	 */
-	public static ByteBuffer encodeAsByteBuffer(TObject quantity, long timestamp) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(timestamp);
-		out.write(quantity.getType().ordinal());
-		out.write(quantity.bufferForData());
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
-		return bytes;
-	}
-
-	/**
 	 * Return a Value that is appropriate for storage, with the current
 	 * timestamp.
 	 * 
@@ -147,7 +129,7 @@ final class Value implements Comparable<Value>, Storable {
 	 * @param type
 	 * @return the object.
 	 */
-	static TObject getQuantityFromByteBuffer(ByteBuffer buffer, Type type) {
+	private static TObject extractQuantity(ByteBuffer buffer, Type type) {
 		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
 		TObject object = quantityCache.get(cacheKey);
 		if(object == null) {
@@ -169,40 +151,15 @@ final class Value implements Comparable<Value>, Storable {
 
 	/**
 	 * Maintains a cache of all the quantities that are extracted from
-	 * ByteBuffers in the {@link #getQuantityFromByteBuffer(ByteBuffer, Type)}
-	 * method.
+	 * ByteBuffers in the {@link #extractQuantity(ByteBuffer, Type)} method.
 	 */
 	private static final ReferenceCache<TObject> quantityCache = new ReferenceCache<TObject>();
 
 	/**
-	 * The start position of the encoded timestamp in {@link #bytes}.
-	 */
-	private static final int TS_POS = 0;
-
-	/**
-	 * The number of bytes used to encoded the timestamp in {@link #bytes}.
-	 */
-	private static final int TS_SIZE = Long.SIZE / 8;
-
-	/**
-	 * The start position of the encoded type in {@link #bytes}.
-	 */
-	private static final int TYPE_POS = TS_POS + TS_SIZE;
-
-	/**
-	 * The number of bytes used to encoded the type in {@link #bytes}.
-	 */
-	private static final int TYPE_SIZE = Integer.SIZE / 8;
-
-	/**
-	 * The start position of the encoded quantity in {@link #bytes}.
-	 */
-	private static final int QTY_POS = TYPE_POS + TYPE_SIZE;
-	/**
 	 * The number of bytes needed to encode every Value.
 	 */
 	@PackagePrivate
-	static final int CONSTANT_SIZE = TS_SIZE + TYPE_SIZE;
+	static final int CONSTANT_SIZE = 12; // timestamp(8), type(4)
 
 	/**
 	 * The maximum number of bytes that can be used to encode a single Value.
@@ -215,25 +172,19 @@ final class Value implements Comparable<Value>, Storable {
 	 * ByteBuffers, so this cache is only for notForStorage Values.
 	 */
 	private static final ReferenceCache<Value> cache = new ReferenceCache<Value>();
-
 	private static final ValueComparator comparator = new ValueComparator();
 
 	/**
-	 * <p>
-	 * In order to optimize heap usage, we encode the Value as a single
-	 * ByteBuffer instead of storing each component as a member variable.
-	 * </p>
-	 * <p>
-	 * To retrieve a component, we navigate to the appropriate position and
-	 * convert the necessary bytes to the correct type, which is a cheap since
-	 * binary conversion is trivial. Once a component is loaded onto the heap,
-	 * it may be stored in an ReferenceCache for further future efficiency.
-	 * </p>
-	 * 
-	 * The content conforms to the specification described by the
-	 * {@link #getBytes()} method.
+	 * The {@code timestamp} is used to version the PrimaryKey when used as a
+	 * {@link Storable} value.
 	 */
-	private final ByteBuffer bytes;
+	private final long timestamp;
+
+	/**
+	 * The quantity is the expressed essence of the Value.
+	 */
+	private final TObject quantity;
+	private final transient int size;
 
 	/**
 	 * Construct an instance that represents an existing Value from a
@@ -246,7 +197,10 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	@DoNotInvoke
 	public Value(ByteBuffer bytes) {
-		this.bytes = bytes;
+		this.timestamp = bytes.getLong();
+		Type type = Type.values()[bytes.getInt()];
+		this.quantity = extractQuantity(bytes, type);
+		this.size = bytes.capacity();
 	}
 
 	/**
@@ -265,7 +219,9 @@ final class Value implements Comparable<Value>, Storable {
 	 * @param timestamp
 	 */
 	private Value(TObject quantity, long timestamp) {
-		this.bytes = Value.encodeAsByteBuffer(quantity, timestamp);
+		this.timestamp = timestamp;
+		this.quantity = quantity;
+		this.size = quantity.bufferForData().capacity() + CONSTANT_SIZE;
 	}
 
 	/**
@@ -323,18 +279,22 @@ final class Value implements Comparable<Value>, Storable {
 	/**
 	 * Return a byte buffer that represents the value with the following order:
 	 * <ol>
-	 * <li><strong>timestamp</strong> position {@value #TS_POS}</li>
-	 * <li><strong>type</strong> position {@value #TYPE_POS}</li>
-	 * <li><strong>quantity</strong> position {@value #QTY_POS}</li>
+	 * <li><strong>timestamp</strong> position 0</li>
+	 * <li><strong>type</strong> position 8</li>
+	 * <li><strong>quantity</strong> position 12</li>
 	 * </ol>
 	 * 
 	 * @return a byte array.
 	 */
 	@Override
-	public synchronized ByteBuffer getBytes() {
-		ByteBuffer clone = ByteBuffers.clone(bytes);
-		clone.rewind();
-		return clone;
+	public ByteBuffer getBytes() {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(timestamp);
+		out.write(quantity.getType().ordinal());
+		out.write(quantity.bufferForData());
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
 	}
 
 	/**
@@ -342,15 +302,13 @@ final class Value implements Comparable<Value>, Storable {
 	 * 
 	 * @return the value.
 	 */
-	public synchronized TObject getQuantity() {
-		bytes.position(QTY_POS);
-		return getQuantityFromByteBuffer(bytes, getType());
+	public TObject getQuantity() {
+		return quantity;
 	}
 
 	@Override
-	public synchronized long getTimestamp() {
-		bytes.position(TS_POS);
-		return bytes.getLong();
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	/**
@@ -358,14 +316,13 @@ final class Value implements Comparable<Value>, Storable {
 	 * 
 	 * @return the type
 	 */
-	public synchronized Type getType() {
-		bytes.position(TYPE_POS);
-		return Type.values()[bytes.getInt()];
+	public Type getType() {
+		return quantity.getType();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(getQuantity(), getType());
+		return Objects.hashCode(quantity, quantity.getType());
 	}
 
 	@Override
@@ -380,11 +337,11 @@ final class Value implements Comparable<Value>, Storable {
 
 	@Override
 	public int size() {
-		return bytes.capacity();
+		return size;
 	}
 
 	@Override
 	public String toString() {
-		return getQuantity().toString();
+		return quantity.toString();
 	}
 }

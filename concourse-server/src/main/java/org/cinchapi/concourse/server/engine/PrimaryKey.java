@@ -134,31 +134,8 @@ final class PrimaryKey extends Number implements
 		return bytes;
 	}
 
-	/**
-	 * The start position of the encoded timestamp in {@link #bytes}.
-	 */
-	private static final int TS_POS = 0;
-
-	/**
-	 * The number of bytes used to encoded the timestamp in {@link #bytes}.
-	 */
-	private static final int TS_SIZE = Long.SIZE / 8;
-
-	/**
-	 * The start position of the encoded key in {@link #bytes}.
-	 */
-	private static final int KEY_POS = TS_POS + TS_SIZE;
-
-	/**
-	 * The number of bytes used to encode the key in {@link #bytes}.
-	 */
-	private static final int KEY_SIZE = Long.SIZE / 8;
-
-	/**
-	 * The total number of bytes used to encode each PrimaryKey.
-	 */
 	@PackagePrivate
-	static final int SIZE = TS_SIZE + KEY_SIZE;
+	static final int SIZE = 16; // timestamp, number
 
 	/**
 	 * A ReferenceCache is generated in {@link Byteables} for PrimaryKeys read
@@ -172,21 +149,15 @@ final class PrimaryKey extends Number implements
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * <p>
-	 * In order to optimize heap usage, we encode the PrimaryKey as a single
-	 * ByteBuffer instead of storing each component as a member variable.
-	 * </p>
-	 * <p>
-	 * To retrieve a component, we navigate to the appropriate position and
-	 * convert the necessary bytes to the correct type, which is a cheap since
-	 * binary conversion is trivial. Once a component is loaded onto the heap,
-	 * it may be stored in an ReferenceCache for further future efficiency.
-	 * </p>
-	 * 
-	 * The content conforms to the specification described by the
-	 * {@link #getBytes()} method.
+	 * The {@code timestamp} is used to version the PrimaryKey when used as a
+	 * {@link Storable} value.
 	 */
-	private final ByteBuffer bytes;
+	private final long timestamp;
+
+	/**
+	 * The {@code number} captures the numerical value quantity.
+	 */
+	private final long number;
 
 	/**
 	 * Construct an instance that represents an existing PrimaryKey from a
@@ -199,26 +170,28 @@ final class PrimaryKey extends Number implements
 	 */
 	@DoNotInvoke
 	public PrimaryKey(ByteBuffer bytes) {
-		this.bytes = bytes;
+		this.timestamp = bytes.getLong();
+		this.number = bytes.getLong();
 	}
 
 	/**
 	 * Construct a new notForStorage instance.
 	 * 
-	 * @param key
+	 * @param number
 	 */
-	private PrimaryKey(long key) {
-		this(key, NIL);
+	private PrimaryKey(long number) {
+		this(number, NIL);
 	}
 
 	/**
 	 * Construct a forStorage instance.
 	 * 
-	 * @param key
+	 * @param number
 	 * @param timestamp
 	 */
-	private PrimaryKey(long key, long timestamp) {
-		this.bytes = encodeAsByteBuffer(key, timestamp);
+	private PrimaryKey(long number, long timestamp) {
+		this.number = number;
+		this.timestamp = timestamp;
 	}
 
 	/**
@@ -251,23 +224,24 @@ final class PrimaryKey extends Number implements
 	/**
 	 * Return a byte array that represents the value with the following order:
 	 * <ol>
-	 * <li><strong>timestamp</strong> position {@value #TS_POS}</li>
-	 * <li><strong>key</strong> position {@value #KEY_POS}</li>
+	 * <li><strong>timestamp</strong> position 0</li>
+	 * <li><strong>key</strong> position 8</li>
 	 * </ol>
 	 * 
 	 * @return a byte array.
 	 */
 	@Override
-	public synchronized ByteBuffer getBytes() {
-		ByteBuffer clone = ByteBuffers.clone(bytes);
-		clone.rewind();
-		return clone;
+	public ByteBuffer getBytes() {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(timestamp);
+		out.write(number);
+		out.close();
+		return out.toByteBuffer();
 	}
 
 	@Override
-	public synchronized long getTimestamp() {
-		bytes.position(TS_POS);
-		return bytes.getLong();
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	@Override
@@ -296,9 +270,8 @@ final class PrimaryKey extends Number implements
 	 * @return the long value
 	 */
 	@Override
-	public synchronized long longValue() {
-		bytes.position(KEY_POS);
-		return bytes.getLong();
+	public long longValue() {
+		return number;
 	}
 
 	@Override
@@ -308,14 +281,12 @@ final class PrimaryKey extends Number implements
 
 	@Override
 	public String toString() {
-		int position = bytes.position();
 		String string = UnsignedLongs.toString(longValue()); // for
 																// compatibility
 																// with
 																// {@link
 																// com.cinchapi.common.Numbers.compare(Number,
 																// Number)}
-		bytes.position(position);
 		return string;
 	}
 

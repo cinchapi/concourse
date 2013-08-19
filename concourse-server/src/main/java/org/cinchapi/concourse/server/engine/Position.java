@@ -49,23 +49,6 @@ import org.cinchapi.common.io.Byteables;
 final class Position implements Comparable<Position>, Storable {
 
 	/**
-	 * Encode {@code key} and {@code position} into a ByteBuffer that
-	 * conforms to the format specified for {@link Position#getBytes()}.
-	 * 
-	 * @param key
-	 * @param timestamp
-	 * @return the ByteBuffer encoding
-	 */
-	public static ByteBuffer encodeAsByteBuffer(PrimaryKey key, int position) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream(PrimaryKey.SIZE);
-		out.write(key);
-		out.write(position);
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
-		return bytes;
-	}
-
-	/**
 	 * Return the Position encoded in {@code buffer} so long as those bytes
 	 * adhere to the format specified by the {@link #getBytes()} method. This
 	 * method assumes that all the bytes in the {@code buffer} belong to the
@@ -117,53 +100,26 @@ final class Position implements Comparable<Position>, Storable {
 	}
 
 	/**
-	 * The start position of the encoded PrimaryKey in {@link #bytes}.
-	 */
-	private static final int PK_POS = 0;
-
-	/**
-	 * The number of bytes used to encode the PrimaryKey in {@link #bytes}.
-	 */
-	private static final int PK_SIZE = PrimaryKey.SIZE;
-
-	/**
-	 * The start position of the encoded position in {@link #bytes}.
-	 */
-	private static final int POS_POS = PK_POS + PK_SIZE;
-
-	/**
-	 * The number of bytes used to encode the position in {@link #bytes}.
-	 */
-	private static final int POS_SIZE = Integer.SIZE / 8;
-
-	/**
 	 * The total number of bytes used to encoded each Position.
 	 */
 	@PackagePrivate
-	static final int SIZE = PK_SIZE + POS_SIZE;
+	static final int SIZE = PrimaryKey.SIZE + 4; //index
 
 	/**
 	 * A ReferenceCache is generated in {@link Byteables} for Positions read
 	 * from ByteBuffers, so this cache is only for notForStorage Positions.
 	 */
 	private static final ReferenceCache<Position> cache = new ReferenceCache<Position>();
-
+	
 	/**
-	 * <p>
-	 * In order to optimize heap usage, we encode the PrimaryKey as a single
-	 * ByteBuffer instead of storing each component as a member variable.
-	 * </p>
-	 * <p>
-	 * To retrieve a component, we navigate to the appropriate position and
-	 * convert the necessary bytes to the correct type, which is a cheap since
-	 * binary conversion is trivial. Once a component is loaded onto the heap,
-	 * it may be stored in an ReferenceCache for further future efficiency.
-	 * </p>
-	 * 
-	 * The content conforms to the specification described by the
-	 * {@link #getBytes()} method.
+	 * The version of the PrimaryKey is used to version the Position.
 	 */
-	private final ByteBuffer bytes;
+	private final PrimaryKey key;
+	
+	/**
+	 * The numerical index the Position represents.
+	 */
+	private final int index;
 
 	/**
 	 * Construct an instance that represents an existing Position from a
@@ -176,24 +132,26 @@ final class Position implements Comparable<Position>, Storable {
 	 */
 	@DoNotInvoke
 	public Position(ByteBuffer bytes) {
-		this.bytes = bytes;
+		this.key = PrimaryKey.fromByteBuffer(bytes);
+		this.index = bytes.getInt();
 	}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param key
-	 * @param position
+	 * @param index
 	 */
-	private Position(PrimaryKey key, int position) {
-		this.bytes = encodeAsByteBuffer(key, position);
+	private Position(PrimaryKey key, int index) {
+		this.key = key;
+		this.index = index;
 	}
 
 	@Override
 	public int compareTo(Position o) {
 		int comparison = getPrimaryKey().compareTo(o.getPrimaryKey(), true);
 		return comparison == 0 ? Integer
-				.compare(getPosition(), o.getPosition()) : comparison;
+				.compare(getIndex(), o.getIndex()) : comparison;
 	}
 
 	@Override
@@ -201,16 +159,19 @@ final class Position implements Comparable<Position>, Storable {
 		if(obj instanceof Position) {
 			Position other = (Position) obj;
 			return Objects.equals(getPrimaryKey(), other.getPrimaryKey())
-					&& Objects.equals(getPosition(), other.getPosition());
+					&& Objects.equals(getIndex(), other.getIndex());
 		}
 		return false;
 	}
 
 	@Override
-	public synchronized ByteBuffer getBytes() {
-		ByteBuffer clone = ByteBuffers.clone(bytes);
-		clone.rewind();
-		return clone;
+	public ByteBuffer getBytes() {
+		ByteBufferOutputStream out = new ByteBufferOutputStream(PrimaryKey.SIZE);
+		out.write(key);
+		out.write(index);
+		ByteBuffer bytes = out.toByteBuffer();
+		out.close();
+		return bytes;
 	}
 
 	/**
@@ -219,9 +180,8 @@ final class Position implements Comparable<Position>, Storable {
 	 * @return the position
 	 */
 	@PackagePrivate
-	public synchronized int getPosition() {
-		bytes.position(POS_POS);
-		return bytes.getInt();
+	public int getIndex() {
+		return index;
 	}
 
 	/**
@@ -230,19 +190,18 @@ final class Position implements Comparable<Position>, Storable {
 	 * @return the PrimaryKey
 	 */
 	@PackagePrivate
-	public synchronized PrimaryKey getPrimaryKey() {
-		return PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes, PK_POS,
-				PK_SIZE));
+	public PrimaryKey getPrimaryKey() {
+		return key;
 	}
 
 	@Override
 	public long getTimestamp() {
-		return getPrimaryKey().getTimestamp();
+		return key.getTimestamp();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(getPrimaryKey(), getPosition());
+		return Objects.hash(key, index);
 	}
 
 	@Override
@@ -262,7 +221,7 @@ final class Position implements Comparable<Position>, Storable {
 
 	@Override
 	public String toString() {
-		return "Position " + getPosition() + " in PrimaryRecord "
+		return "Position " + getIndex() + " in PrimaryRecord "
 				+ getPrimaryKey();
 	}
 

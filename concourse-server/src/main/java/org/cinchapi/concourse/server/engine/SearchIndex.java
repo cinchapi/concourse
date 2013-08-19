@@ -197,7 +197,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 			Set<Position> positions = get(Text.fromString(tok));
 			for (Position position : positions) {
 				PrimaryKey key = position.getPrimaryKey();
-				int pos = position.getPosition();
+				int pos = position.getIndex();
 				if(initial) {
 					temp.put(key, pos);
 				}
