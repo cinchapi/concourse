@@ -175,7 +175,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 	public ConcourseServer(int port, String backingStore)
 			throws TTransportException {
 		Files.mkdirs(backingStore);
-		this.engine = new Engine(backingStore);
 		TServerSocket socket = new TServerSocket(port);
 		ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
 				this);
@@ -183,6 +182,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
 		this.server = new TThreadPoolServer(args);
+		this.engine = new Engine(backingStore);
 	}
 
 	@Override
