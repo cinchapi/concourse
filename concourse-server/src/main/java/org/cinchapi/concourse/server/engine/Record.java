@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,6 +57,7 @@ import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.tools.Numbers;
+import org.cinchapi.concourse.server.util.BinaryFiles;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.perf4j.aop.Profiled;
@@ -84,10 +86,39 @@ import com.google.common.collect.Sets;
  * @param <K> - the key type
  * @param <V> - the value type
  */
+@SuppressWarnings("unchecked")
 @PackagePrivate
 @ThreadSafe
 abstract class Record<L extends Byteable, K extends Byteable, V extends Storable> implements
 		Lockable {
+	
+	/**
+	 * The labels used for each subclass/record type. The Record label is
+	 * primarily used for grouping records on the file system and as a filename
+	 * extension.
+	 */
+	private static final Map<String, String> LABELS;
+	static {
+		// See http://stackoverflow.com/a/2626960/1336833 for an explanation as
+		// to why the class object itself is NOT the map key.
+		LABELS = Maps.newHashMapWithExpectedSize(3);
+		LABELS.put(PrimaryRecord.class.getName(), "cpr");
+		LABELS.put(SecondaryIndex.class.getName(), "csi");
+		LABELS.put(SearchIndex.class.getName(), "cft");
+	}
+
+	/**
+	 * Returns the label used for the record type defined by {@code clazz} or
+	 * {@code null} if {@code clazz} is not a valid/defined subclass of
+	 * {@link Record}.
+	 * 
+	 * @param clazz
+	 * @return the label for the record type
+	 */
+	@Nullable
+	public static String getLabel(Class<?> clazz) {
+		return LABELS.get(clazz.getName());
+	}
 
 	/**
 	 * Return the {@link PrimaryRecord} that is identified by {@code key}.
@@ -119,6 +150,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param parentStore
 	 * @return the SecondaryIndex
 	 */
+	@Profiled(tag = "Record.init_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public static SecondaryIndex loadSecondaryIndex(Text key, String parentStore) {
 		return open(SecondaryIndex.class, Text.class, key, parentStore);
 	}
@@ -162,14 +194,13 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param parentStore
 	 * @return the Record
 	 */
-	@SuppressWarnings("unchecked")
 	private static <T extends Record<L, ?, ?>, L extends Byteable> T open(
 			Class<T> clazz, Class<L> locatorClass, L locator, String parentStore) {
 		// Find RefereceCache for Record class
-		ReferenceCache<T> cache = (ReferenceCache<T>) caches.get(clazz);
+		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
 			cache = new ReferenceCache<T>();
-			caches.put(clazz, cache);
+			CACHES.put(clazz, cache);
 		}
 
 		// Find Record
@@ -195,14 +226,14 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * This number should be a multiple of 2.
 	 */
 	private static final int LOCALE_NESTING_FACTOR = 4;
-	
+
 	/**
 	 * We maintain a dynamically generated ReferenceCache for each Record sub
 	 * class, each of which holds a SoftReference to the deserialized and
 	 * up-to-date Record objects. This helps to reduce the number of disk reads
 	 * that must occur when accessing a Record.
 	 */
-	private static final Map<Class<?>, ReferenceCache<?>> caches = Maps
+	private static final Map<Class<?>, ReferenceCache<?>> CACHES = Maps
 			.newHashMap();
 
 	/**
@@ -228,9 +259,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	/**
 	 * The index is used to efficiently determine the set of values currently
 	 * mapped from a key. The subclass should specify the appropriate type of
-	 * key sorting via the returned type for {@link #init()}.
+	 * key sorting via the returned type for {@link #__getMapType()}.
 	 */
-	protected final transient Map<K, Set<V>> present = init();
+	protected final transient Map<K, Set<V>> present = __getMapType();
 
 	/**
 	 * The index is used to efficiently see the number of times that a revision
@@ -258,25 +289,43 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	private final Logger log = getServerLog();
 
 	/**
-	 * Construct a new instance from the revisions that exist in
-	 * {@code backingStore}.
+	 * Construct a new instance from the revisions that exist in the record
+	 * located by {@code locator} in {@code backingStore}.
 	 * 
 	 * @param backingStore
 	 */
-	@SuppressWarnings("unchecked")
 	protected Record(L locator, String parentStore) {
-		this.filename = parentStore + File.separator + getLocale(locator)
-				+ File.separator + locator + "." + fileNameExt();
-		long length = Files.length(filename);
-		ByteBuffer buffer = Files.map(filename, MapMode.READ_ONLY, 0, length);
-		if(length > 0) {
-			Iterator<ByteBuffer> it = ByteableCollections.iterator(buffer);
+		this(parentStore + File.separator + getLocale(locator) + File.separator
+				+ locator, true);
+	}
+
+	/**
+	 * Construct a new instance from the record that is stored in
+	 * {@code filename}.
+	 * 
+	 * @param filename
+	 */
+	protected Record(String filename) {
+		this(filename, false);
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param filename
+	 * @param ext - set to {@code true} if it is necessary to append the
+	 *            appropriate extension to {@code filename} based on the Record
+	 *            type
+	 */
+	private Record(String filename, boolean ext) {
+		this.filename = filename + (ext ? "." + getLabel(this.getClass()) : "");
+		ByteBuffer content = BinaryFiles.read(this.filename);
+		if(content.capacity() > 0) {
+			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
 			while (it.hasNext()) {
 				append(new Revision(it.next()), false);
 			}
 		}
-
-		// Setup #emptyValues
 		this.emptyValues = Mockito.mock(Set.class);
 		Mockito.doReturn(false).when(emptyValues).add((V) Matchers.anyObject());
 		Mockito.doReturn(false).when(emptyValues)
@@ -306,7 +355,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean equals(Object obj) {
 		if(obj.getClass() == this.getClass()) {
@@ -359,11 +407,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
-	 * The extension used for the name of the backing file.
+	 * Initialize the appropriate data structure for the {@link #present}.
 	 * 
-	 * @return the filename extensions
+	 * @return the initialized mappings
 	 */
-	protected abstract String fileNameExt();
+	protected abstract Map<K, Set<V>> __getMapType();
 
 	/**
 	 * Lazily retrieve an unmodifiable view of the current set of values mapped
@@ -420,13 +468,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 
 	}
-
-	/**
-	 * Initialize the appropriate data structure for the {@link #mappings}.
-	 * 
-	 * @return the initialized mappings
-	 */
-	protected abstract Map<K, Set<V>> init();
 
 	/**
 	 * The class for each {@code key} in the Record.
@@ -559,6 +600,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	@Immutable
 	protected class Revision implements Byteable {
+		// NOTE: The location of a Revision never changes once its written, so
+		// it isn't necessary to hold references to the revision type since that
+		// information can be contextually gathered by whether the revision
+		// appears in an even or odd index relative to equal revisions in the
+		// Record.
 
 		/**
 		 * Each {@link Revision} contains {@value #CONSTANT_SIZE} bytes of
@@ -603,7 +649,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			this.value = value;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		public boolean equals(Object obj) {
 			if(obj instanceof Record.Revision) {

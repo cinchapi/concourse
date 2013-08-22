@@ -66,12 +66,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	}
 
 	@Override
-	protected String fileNameExt() {
-		return "cpr";
-	}
-
-	@Override
-	protected Map<Text, Set<Value>> init() {
+	protected Map<Text, Set<Value>> __getMapType() {
 		return Maps.newHashMap();
 	}
 

@@ -61,12 +61,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	}
 
 	@Override
-	protected String fileNameExt() {
-		return "csi";
-	}
-
-	@Override
-	protected Map<Value, Set<PrimaryKey>> init() {
+	protected Map<Value, Set<PrimaryKey>> __getMapType() {
 		return Maps.newTreeMap(new ValueComparator());
 	}
 

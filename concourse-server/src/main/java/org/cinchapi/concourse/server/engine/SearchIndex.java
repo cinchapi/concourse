@@ -81,12 +81,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	@Override
-	protected String fileNameExt() {
-		return "cft";
-	}
-
-	@Override
-	protected Map<Text, Set<Position>> init() {
+	protected Map<Text, Set<Position>> __getMapType() {
 		return Maps.newHashMap();
 	}
 
