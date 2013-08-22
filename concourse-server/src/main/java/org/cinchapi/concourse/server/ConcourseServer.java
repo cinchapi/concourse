@@ -93,6 +93,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		serverThread.start();
 
 		// Prepare for graceful shutdown...
+		//NOTE: It may be necessary to run the Java VM with -Djava.net.preferIPv4Stack=true
 		Thread shutdownThread = new Thread(new Runnable() {
 
 			@Override
