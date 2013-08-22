@@ -93,21 +93,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		Lockable {
 
 	/**
-	 * The labels used for each subclass/record type. The Record label is
-	 * primarily used for grouping records on the file system and as a filename
-	 * extension.
-	 */
-	private static final Map<String, String> LABELS;
-	static {
-		// See http://stackoverflow.com/a/2626960/1336833 for an explanation as
-		// to why the class object itself is NOT the map key.
-		LABELS = Maps.newHashMapWithExpectedSize(3);
-		LABELS.put(PrimaryRecord.class.getName(), "cpr");
-		LABELS.put(SecondaryIndex.class.getName(), "csi");
-		LABELS.put(SearchIndex.class.getName(), "cft");
-	}
-
-	/**
 	 * Returns the label used for the record type defined by {@code clazz} or
 	 * {@code null} if {@code clazz} is not a valid/defined subclass of
 	 * {@link Record}.
@@ -159,6 +144,31 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
+	 * Returns the cache key for the record found using {@code locator} in
+	 * {@code parentStore}. The cache key is equal to the absolute filename
+	 * WITHOUT the file extension.
+	 * 
+	 * @param locator
+	 * @param parentStore
+	 * @return the cache key
+	 */
+	static <L extends Byteable> String getCacheKey(L locator, String parentStore) {
+		return parentStore + File.separator + getLocale(locator)
+				+ File.separator + locator;
+	}
+
+	/**
+	 * Returns the cache key for the record stored in {@code filename}. The
+	 * cache key is equal to the absolute filename WITHOUT the file extension.
+	 * 
+	 * @param filename
+	 * @return the cache key
+	 */
+	static String getCacheKey(String filename) {
+		return filename.split("\\.")[0];
+	}
+
+	/**
 	 * Return the locale for {@code locator}. There is a 1:1 mapping between
 	 * locators and locales.
 	 * 
@@ -187,6 +197,41 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
+	 * Open the record of type {@code clazz} that is stored in {@code filename}.
+	 * This method will store a reference to the record in a dynamically created
+	 * cache.
+	 * 
+	 * @param clazz
+	 * @param filename
+	 * @return the Record
+	 */
+	static <T> T open(Class<T> clazz, String filename) {
+		// Find RefereceCache for Record class
+		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
+		if(cache == null) {
+			cache = new ReferenceCache<T>();
+			CACHES.put(clazz, cache);
+		}
+
+		// Find Record
+		String cacheKey = getCacheKey(filename);
+		T record = (T) cache.get(cacheKey);
+		if(record == null) {
+			try {
+				Constructor<T> constructor = clazz.getConstructor(String.class);
+				constructor.setAccessible(true);
+				record = constructor.newInstance(filename);
+				cache.put(record, cacheKey);
+			}
+			catch (ReflectiveOperationException e) {
+				throw Throwables.propagate(e);
+			}
+		}
+		return record;
+
+	}
+
+	/**
 	 * Open the record of type {@code clazz} identified by a {@code locator} of
 	 * type {@code locatorClass}. This method will store a reference to the
 	 * record in a dynamically created cache.
@@ -207,20 +252,37 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 
 		// Find Record
-		T record = (T) cache.get(locator, parentStore);
+		String cacheKey = getCacheKey(locator, parentStore);
+		T record = (T) cache.get(cacheKey);
 		if(record == null) {
 			try {
 				Constructor<T> constructor = clazz.getConstructor(locatorClass,
 						String.class);
 				constructor.setAccessible(true);
 				record = constructor.newInstance(locator, parentStore);
-				cache.put(record, locator, parentStore);
+				cache.put(record, cacheKey);
 			}
 			catch (ReflectiveOperationException e) {
 				throw Throwables.propagate(e);
 			}
 		}
 		return record;
+	}
+
+	/**
+	 * The labels used for each subclass/record type. The Record label is
+	 * primarily used for grouping records on the file system and as a filename
+	 * extension.
+	 */
+	private static final Map<String, String> LABELS;
+
+	static {
+		// See http://stackoverflow.com/a/2626960/1336833 for an explanation as
+		// to why the class object itself is NOT the map key.
+		LABELS = Maps.newHashMapWithExpectedSize(3);
+		LABELS.put(PrimaryRecord.class.getName(), "cpr");
+		LABELS.put(SecondaryIndex.class.getName(), "csi");
+		LABELS.put(SearchIndex.class.getName(), "cft");
 	}
 
 	/**
@@ -298,8 +360,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param backingStore
 	 */
 	protected Record(L locator, String parentStore) {
-		this(parentStore + File.separator + getLocale(locator) + File.separator
-				+ locator, true);
+		this(getCacheKey(locator, parentStore), true);
 	}
 
 	/**

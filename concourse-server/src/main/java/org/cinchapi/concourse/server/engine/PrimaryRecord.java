@@ -65,6 +65,17 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		super(key, parentStore);
 	}
 
+	/**
+	 * Construct a new instance.
+	 * @param filename
+	 */
+	@DoNotInvoke
+	public PrimaryRecord(String filename) {
+		super(filename);
+	}
+
+
+
 	@Override
 	protected Map<Text, Set<Value>> __getMapType() {
 		return Maps.newHashMap();

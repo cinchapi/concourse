@@ -24,8 +24,15 @@
 package org.cinchapi.concourse.server.engine;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
@@ -35,6 +42,8 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import static org.cinchapi.concourse.server.engine.Record.loadPrimaryRecord;
 import static org.cinchapi.concourse.server.engine.Record.loadSecondaryIndex;
@@ -51,30 +60,6 @@ import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
  * @author jnelson
  */
 public class Database implements Readable, Destination {
-
-	/**
-	 * The location where the Database stores data.
-	 */
-	private final String backingStore;
-
-	/**
-	 * Construct a Database that is backed by the default location which is in a
-	 * "db" directory under {@link Constants#DATA_HOME}.
-	 */
-	public Database() {
-		this(Constants.DATA_HOME + File.separator + "db");
-	}
-
-	/**
-	 * Construct a Database that is backed by {@link backingStore} directory.
-	 * The {@link backingStore} is passed to each {@link Record} as the
-	 * {@code parentStore}.
-	 * 
-	 * @param backingStore
-	 */
-	public Database(String backingStore) {
-		this.backingStore = backingStore;
-	}
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write
@@ -139,9 +124,37 @@ public class Database implements Readable, Destination {
 		};
 	}
 
+	/**
+	 * The location where the Database stores data.
+	 */
+	private final String backingStore;
+
 	private static final String threadNamePrefix = "database-write-thread";
 
 	private static final Logger log = LoggerFactory.getLogger(Database.class);
+
+	/**
+	 * Construct a Database that is backed by the default location which is in a
+	 * "db" directory under {@link Constants#DATA_HOME}.
+	 */
+	public Database() {
+		this(Constants.DATA_HOME + File.separator + "db");
+	}
+
+	/**
+	 * Construct a Database that is backed by {@link backingStore} directory.
+	 * The {@link backingStore} is passed to each {@link Record} as the
+	 * {@code parentStore}.
+	 * 
+	 * @param backingStore
+	 */
+	public Database(String backingStore) {
+		this.backingStore = backingStore;
+		Threads.executeAndAwaitTermination("record-loader-thread",
+				new RecordLoader(PrimaryRecord.class), new RecordLoader(
+						SecondaryIndex.class), new RecordLoader(
+						SearchIndex.class));
+	}
 
 	@Override
 	@Profiled(tag = "Database.accept_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
@@ -244,5 +257,71 @@ public class Database implements Readable, Destination {
 		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
 				.verify(Text.fromString(key), Value.notForStorage(value),
 						timestamp);
+	}
+
+	/**
+	 * A runnable that traverses the appropriate directory for a record type
+	 * under {@code backingStore} and loads the records into memory.
+	 * 
+	 * @author jnelson
+	 */
+	private final class RecordLoader implements Runnable {
+
+		private final Class<?> clazz;
+		private final ExecutorService executor = Executors
+				.newCachedThreadPool();
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param clazz
+		 */
+		public RecordLoader(Class<?> clazz) {
+			this.clazz = clazz;
+		}
+
+		@Override
+		public void run() {
+			log.info("Loading existing {} files", clazz.getSimpleName());
+			String label = Record.getLabel(clazz);
+			Path path = Paths.get(backingStore, label);
+			process(path);
+			executor.shutdown();
+			while (!executor.isTerminated()) {
+				continue;
+			}
+		}
+
+		/**
+		 * Process the records in {@code path}.
+		 * 
+		 * @param path
+		 */
+		private void process(Path path) {
+			try {
+				DirectoryStream<Path> paths = Files.newDirectoryStream(path);
+				for (final Path p : paths) {
+					if(Files.isDirectory(p)) {
+						process(p);
+					}
+					else {
+						executor.execute(new Runnable() {
+
+							@Override
+							public void run() {
+								Record.open(clazz, p.toString());
+							}
+
+						});
+
+					}
+				}
+				paths.close();
+			}
+			catch (IOException e) {
+				throw Throwables.propagate(e);
+			}
+		}
+
 	}
 }

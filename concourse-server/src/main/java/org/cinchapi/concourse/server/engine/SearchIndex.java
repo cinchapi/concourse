@@ -61,6 +61,17 @@ class SearchIndex extends Record<Text, Text, Position> {
 	public SearchIndex(Text key, String parentStore) {
 		super(key, parentStore);
 	}
+	
+	/**
+	 * Construct a new instance.
+	 * @param filename
+	 */
+	@DoNotInvoke
+	public SearchIndex(String filename) {
+		super(filename);
+	}
+
+
 
 	/**
 	 * DO NOT CALL. Use {@link #add(Value, PrimaryKey)} instead.

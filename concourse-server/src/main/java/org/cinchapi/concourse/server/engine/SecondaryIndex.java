@@ -60,6 +60,17 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 		super(locator, parentStore);
 	}
 
+	/**
+	 * Construct a new instance.
+	 * @param filename
+	 */
+	@DoNotInvoke
+	public SecondaryIndex(String filename) {
+		super(filename);
+	}
+
+
+
 	@Override
 	protected Map<Value, Set<PrimaryKey>> __getMapType() {
 		return Maps.newTreeMap(new ValueComparator());
