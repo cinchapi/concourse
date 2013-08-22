@@ -91,7 +91,7 @@ import com.google.common.collect.Sets;
 @ThreadSafe
 abstract class Record<L extends Byteable, K extends Byteable, V extends Storable> implements
 		Lockable {
-	
+
 	/**
 	 * The labels used for each subclass/record type. The Record label is
 	 * primarily used for grouping records on the file system and as a filename
@@ -129,7 +129,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key,
 			String parentStore) {
-		return open(PrimaryRecord.class, PrimaryKey.class, key, parentStore);
+		return open(PrimaryRecord.class, PrimaryKey.class, key, parentStore
+				+ File.separator + getLabel(PrimaryRecord.class));
 	}
 
 	/**
@@ -140,7 +141,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @return the SearchIndex
 	 */
 	public static SearchIndex loadSearchIndex(Text key, String parentStore) {
-		return open(SearchIndex.class, Text.class, key, parentStore);
+		return open(SearchIndex.class, Text.class, key, parentStore
+				+ File.separator + getLabel(SearchIndex.class));
 	}
 
 	/**
@@ -150,9 +152,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param parentStore
 	 * @return the SecondaryIndex
 	 */
-	@Profiled(tag = "Record.init_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
+	@Profiled(tag = "Record.loadCsi_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public static SecondaryIndex loadSecondaryIndex(Text key, String parentStore) {
-		return open(SecondaryIndex.class, Text.class, key, parentStore);
+		return open(SecondaryIndex.class, Text.class, key, parentStore
+				+ File.separator + getLabel(SecondaryIndex.class));
 	}
 
 	/**
@@ -332,6 +335,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 				.remove((V) Matchers.anyObject());
 		Mockito.doReturn(false).when(emptyValues)
 				.contains((V) Matchers.anyObject());
+		Mockito.doReturn(Collections.<V> emptyListIterator()).when(emptyValues)
+				.iterator();
 	}
 
 	/**
