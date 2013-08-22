@@ -285,6 +285,7 @@ public class Database implements Readable, Destination {
 			log.info("Loading existing {} files", clazz.getSimpleName());
 			String label = Record.getLabel(clazz);
 			Path path = Paths.get(backingStore, label);
+			org.cinchapi.common.io.Files.mkdirs(path.toString());
 			process(path);
 			executor.shutdown();
 			while (!executor.isTerminated()) {
