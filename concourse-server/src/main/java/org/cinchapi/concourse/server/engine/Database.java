@@ -151,8 +151,7 @@ public class Database implements Readable, Destination {
 	public Database(String backingStore) {
 		this.backingStore = backingStore;
 		Threads.executeAndAwaitTermination("record-loader-thread",
-				new RecordLoader(PrimaryRecord.class), new RecordLoader(
-						SecondaryIndex.class), new RecordLoader(
+				new RecordLoader(SecondaryIndex.class), new RecordLoader(
 						SearchIndex.class));
 	}
 

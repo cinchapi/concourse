@@ -169,34 +169,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
-	 * Return the locale for {@code locator}. There is a 1:1 mapping between
-	 * locators and locales.
-	 * 
-	 * @param locator
-	 * @return the locale
-	 */
-	private static <L extends Byteable> String getLocale(L locator) {
-		byte[] bytes = ByteBuffers.toByteArray(locator.getBytes());
-		if(locator instanceof PrimaryKey) {
-			// The first 8 bytes of PrimaryKey {@code bytes} differs depending
-			// upon whether the key is forStorage or notForStorage, so we must
-			// ignore those to guarantee consistency.
-			bytes = ArrayUtils.subarray(bytes, 8, bytes.length);
-		}
-		char[] hex = DigestUtils.sha256Hex(bytes).toCharArray();
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < hex.length; i++) {
-			sb.append(hex[i]);
-			int next = i + 1;
-			if(next >= LOCALE_NESTING_FACTOR
-					&& next % LOCALE_NESTING_FACTOR == 0 && next < hex.length) {
-				sb.append(File.separator);
-			}
-		}
-		return sb.toString();
-	}
-
-	/**
 	 * Open the record of type {@code clazz} that is stored in {@code filename}.
 	 * This method will store a reference to the record in a dynamically created
 	 * cache.
@@ -229,6 +201,34 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 		return record;
 
+	}
+
+	/**
+	 * Return the locale for {@code locator}. There is a 1:1 mapping between
+	 * locators and locales.
+	 * 
+	 * @param locator
+	 * @return the locale
+	 */
+	private static <L extends Byteable> String getLocale(L locator) {
+		byte[] bytes = ByteBuffers.toByteArray(locator.getBytes());
+		if(locator instanceof PrimaryKey) {
+			// The first 8 bytes of PrimaryKey {@code bytes} differs depending
+			// upon whether the key is forStorage or notForStorage, so we must
+			// ignore those to guarantee consistency.
+			bytes = ArrayUtils.subarray(bytes, 8, bytes.length);
+		}
+		char[] hex = DigestUtils.sha256Hex(bytes).toCharArray();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < hex.length; i++) {
+			sb.append(hex[i]);
+			int next = i + 1;
+			if(next >= LOCALE_NESTING_FACTOR
+					&& next % LOCALE_NESTING_FACTOR == 0 && next < hex.length) {
+				sb.append(File.separator);
+			}
+		}
+		return sb.toString();
 	}
 
 	/**
