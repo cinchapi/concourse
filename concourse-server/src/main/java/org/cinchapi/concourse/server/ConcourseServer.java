@@ -81,6 +81,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 			@Override
 			public void run() {
 				try {
+					printBanner();
 					server.start();
 				}
 				catch (TTransportException e) {
@@ -89,11 +90,38 @@ public class ConcourseServer implements ConcourseService.Iface {
 				}
 			}
 
+			/**
+			 * Print the server banner to the console.
+			 */
+			public void printBanner() {
+				StringBuilder banner = new StringBuilder();
+				banner.append(" _____").append(System.lineSeparator());
+				banner.append("/  __ \\").append(System.lineSeparator());
+				banner.append(
+						"| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
+						.append(System.lineSeparator());
+				banner.append(
+						"| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
+						.append(System.lineSeparator());
+				banner.append(
+						"| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
+						.append(System.lineSeparator());
+				banner.append(
+						" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
+						.append(System.lineSeparator());
+				banner.append("").append(System.lineSeparator());
+				banner.append(
+						"Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
+						.append(System.lineSeparator());
+				System.out.print(banner);
+			}
+
 		}, "server-thread");
 		serverThread.start();
 
 		// Prepare for graceful shutdown...
-		//NOTE: It may be necessary to run the Java VM with -Djava.net.preferIPv4Stack=true
+		// NOTE: It may be necessary to run the Java VM with
+		// -Djava.net.preferIPv4Stack=true
 		Thread shutdownThread = new Thread(new Runnable() {
 
 			@Override
