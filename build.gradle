@@ -44,5 +44,5 @@ subprojects {
     }
 
     group = 'org.cinchapi'
-    version = '0.1.0-SNAPSHOT'
+    version = '0.1.0.' + (System.currentTimeMillis()/1000)
 }

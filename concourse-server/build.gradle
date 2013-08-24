@@ -11,7 +11,7 @@ dependencies {
 
 task buildConf(type:Copy) {
 	def src = file('conf')
-	def build = file('$buildDir/conf')
+	def build = file('build/conf')
 	copy {
 		from src
 		into build
