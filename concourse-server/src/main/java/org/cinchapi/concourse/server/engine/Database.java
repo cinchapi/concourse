@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
@@ -130,8 +131,7 @@ public class Database implements Readable, Destination {
 	private final String backingStore;
 
 	private static final String threadNamePrefix = "database-write-thread";
-
-	private static final Logger log = LoggerFactory.getLogger(Database.class);
+	private static final Logger log = Loggers.getLogger();
 
 	/**
 	 * Construct a Database that is backed by the default location which is in a
