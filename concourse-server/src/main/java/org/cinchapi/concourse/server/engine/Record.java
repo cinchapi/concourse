@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import static org.cinchapi.concourse.util.Logging.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
 
 import java.io.File;
 import java.lang.reflect.Constructor;

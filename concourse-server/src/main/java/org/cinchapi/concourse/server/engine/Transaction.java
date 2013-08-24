@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.util.Logging.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
 
 /**
  * A server side representation of a {@link Transaction} that contains resources

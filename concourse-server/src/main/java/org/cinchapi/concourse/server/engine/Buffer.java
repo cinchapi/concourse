@@ -41,7 +41,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
-import static org.cinchapi.concourse.util.Logging.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to

@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server;
 
-import static org.cinchapi.concourse.util.Logging.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
 
 import java.io.IOException;
 import java.net.ServerSocket;

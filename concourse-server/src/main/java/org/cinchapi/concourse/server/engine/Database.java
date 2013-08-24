@@ -281,7 +281,7 @@ public class Database implements Readable, Destination {
 
 		@Override
 		public void run() {
-			log.info("Loading existing {} files", clazz.getSimpleName());
+			log.info("Loading existing {} files...", clazz.getSimpleName());
 			String label = Record.getLabel(clazz);
 			Path path = Paths.get(backingStore, label);
 			org.cinchapi.common.io.Files.mkdirs(path.toString());

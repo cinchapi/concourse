@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.util;
+package org.cinchapi.concourse.server.util;
 
 import java.util.Map;
 
@@ -41,7 +41,7 @@ import ch.qos.logback.core.FileAppender;
  * 
  * @author jnelson
  */
-public final class Logging {
+public final class Loggers {
 
 	/**
 	 * A cache to prevent duplicate loggers from being created.
@@ -76,7 +76,7 @@ public final class Logging {
 			appender.start();
 			logger = (Logger) LoggerFactory.getLogger(name);
 			logger.addAppender(appender);
-			logger.setLevel(Level.DEBUG);
+			logger.setLevel(Level.INFO);
 			logger.setAdditive(true);
 			cache.put(name, logger);
 		}
@@ -92,6 +92,6 @@ public final class Logging {
 		return getLogger("concourse", "log/concourse.log");
 	}
 
-	private Logging() {} /* utility class */
+	private Loggers() {} /* utility class */
 
 }
