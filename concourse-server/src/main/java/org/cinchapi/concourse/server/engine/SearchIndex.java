@@ -32,6 +32,7 @@ import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Strings;
@@ -61,17 +62,16 @@ class SearchIndex extends Record<Text, Text, Position> {
 	public SearchIndex(Text key, String parentStore) {
 		super(key, parentStore);
 	}
-	
+
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param filename
 	 */
 	@DoNotInvoke
 	public SearchIndex(String filename) {
 		super(filename);
 	}
-
-
 
 	/**
 	 * DO NOT CALL. Use {@link #add(Value, PrimaryKey)} instead.
@@ -124,7 +124,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 				for (String tok : toks) {
 					// TODO check if tok is stopword and if so remove
 					for (int i = 0; i < tok.length(); i++) {
-						for (int j = i + 1; j < tok.length() + 1; j++) {
+						for (int j = i
+								+ (Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
+								.length() + 1; j++) {
 							Text index = Text.fromString(tok.substring(i, j));
 							if(!Strings.isNullOrEmpty(index.toString())) {
 								try {
@@ -169,7 +171,8 @@ class SearchIndex extends Record<Text, Text, Position> {
 				for (String tok : toks) {
 					// TODO check if tok is stopword and if so remove
 					for (int i = 0; i < tok.length(); i++) {
-						for (int j = i + 1; j < tok.length() + 1; j++) {
+						for (int j = (i + Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
+								.length() + 1; j++) {
 							Text index = Text.fromString(tok.substring(i, j));
 							if(!Strings.isNullOrEmpty(index.toString())) {
 								remove(index, Position.fromPrimaryKeyAndMarker(
