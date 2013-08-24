@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.tools.Transformers;
-import org.cinchapi.concourse.server.Constants;
+import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
@@ -135,10 +135,10 @@ public class Database implements Readable, Destination {
 
 	/**
 	 * Construct a Database that is backed by the default location which is in a
-	 * "db" directory under {@link Constants#DATA_HOME}.
+	 * "db" directory under {@link Properties#DATA_HOME}.
 	 */
 	public Database() {
-		this(Constants.DATA_HOME + File.separator + "db");
+		this(Properties.DATA_HOME + File.separator + "db");
 	}
 
 	/**

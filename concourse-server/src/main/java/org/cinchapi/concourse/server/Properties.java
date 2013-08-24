@@ -35,7 +35,7 @@ import org.cinchapi.common.configuration.Configurations;
  * @author jnelson
  */
 @UtilityClass
-public final class Constants {
+public final class Properties {
 
 	/**
 	 * The name of the file that contains configuration information.
@@ -65,6 +65,6 @@ public final class Constants {
 	public static final int BUFFER_SIZE_IN_BYTES = config.getInt(
 			"BUFFER_SIZE_IN_BYTES", 5242880);
 
-	private Constants() {/* utility-class */}
+	private Properties() {/* utility-class */}
 
 }

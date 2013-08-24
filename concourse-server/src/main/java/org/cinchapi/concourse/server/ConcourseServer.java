@@ -185,12 +185,12 @@ public class ConcourseServer implements ConcourseService.Iface {
 
 	/**
 	 * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
-	 * stores data in {@link Constants#DATA_HOME}.
+	 * stores data in {@link Properties#DATA_HOME}.
 	 * 
 	 * @throws TTransportException
 	 */
 	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, Constants.DATA_HOME);
+		this(SERVER_PORT, Properties.DATA_HOME);
 	}
 
 	/**

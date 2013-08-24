@@ -570,7 +570,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 *            the backing file, which is usually the case, except when this
 	 *            method is called while deserializing an existing record
 	 */
-	@Profiled(tag = "Record.append_{$0}//fsync={$1}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	private void append(Revision revision, boolean fsync) {
 		Preconditions.checkArgument(revision.getVersion() > version,
 				"Cannot add %s because its version is not greater than the "
