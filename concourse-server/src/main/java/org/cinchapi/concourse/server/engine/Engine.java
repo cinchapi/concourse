@@ -35,7 +35,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -55,7 +55,7 @@ public final class Engine extends BufferedStore implements
 		Transactional,
 		Destination {
 
-	private static final Logger log = getServerLog();
+	private static final Logger log = getLogger();
 
 	/**
 	 * The location that the engine uses as the base store for its components.

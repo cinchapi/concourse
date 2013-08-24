@@ -41,7 +41,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @UtilityClass
 public final class Threads {
 
-	private static final Logger log = Loggers.getServerLog();
+	private static final Logger log = Loggers.getLogger();
 
 	/**
 	 * Catches exceptions thrown from pooled threads. For the Database,

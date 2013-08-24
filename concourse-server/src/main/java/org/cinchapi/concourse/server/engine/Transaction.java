@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 /**
  * A server side representation of a {@link Transaction} that contains resources
@@ -218,7 +218,7 @@ public final class Transaction extends BufferedStore {
 
 	}
 
-	private static final Logger log = getServerLog();
+	private static final Logger log = getLogger();
 
 	/**
 	 * The location where transaction backups are stored in order to enforce the

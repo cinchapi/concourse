@@ -34,7 +34,9 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 
 /**
  * Contains functions for dealing with logging programmatically.
@@ -44,52 +46,82 @@ import ch.qos.logback.core.FileAppender;
 public final class Loggers {
 
 	/**
-	 * A cache to prevent duplicate loggers from being created.
+	 * Return a Logger that is initialized for standard logging.
+	 * 
+	 * @return the standard Logger
 	 */
-	private static Map<String, Logger> cache = Maps.newHashMap();
-	static {
-		String perf = "org.cinchapi.concourse.server.engine.PerformanceLogger";
-		cache.put(perf, getLogger(perf, "log/performance.log"));
+	public static Logger getLogger() {
+		return getLogger("concourse", "log/concourse.log", Level.INFO);
 	}
-
 	/**
-	 * Return a Logger for {@code name} that is configured programmatically to
-	 * log to {@code file}.
+	 * Return a logger for {@code name} that writes to {@code file} at
+	 * {@code level}. This method will reuse existing cached instances located
+	 * in {@code #cache} if possible. Otherwise, a new Logger is created and
+	 * cached.
 	 * 
 	 * @param name
 	 * @param file
+	 * @param level
 	 * @return the Logger
 	 */
-	public static Logger getLogger(String name, String file) {
-		Logger logger = cache.get(name);
+	private static Logger getLogger(String name, String file, Level level) {
+		Logger logger = CACHE.get(name);
 		if(logger == null) {
 			LoggerContext context = (LoggerContext) LoggerFactory
 					.getILoggerFactory();
+			// Configure Pattern
 			PatternLayoutEncoder encoder = new PatternLayoutEncoder();
 			encoder.setPattern("%date [%thread] %level %class{36} - %msg%n");
 			encoder.setContext(context);
 			encoder.start();
-			FileAppender<ILoggingEvent> appender = new FileAppender<ILoggingEvent>();
+
+			// Initial configuration for RollingFileAppender
+			RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
 			appender.setFile(file);
 			appender.setEncoder(encoder);
 			appender.setContext(context);
-			appender.start();
+
+//			// Configure Rolling Policy
+//			FixedWindowRollingPolicy rolling = new FixedWindowRollingPolicy();
+//			rolling.setParent(appender);
+//			rolling.setMaxIndex(1);
+//			rolling.setMaxIndex(5);
+//			rolling.setFileNamePattern(file + ".%i.zip");
+//			rolling.start();
+//
+//			// Configure TriggeringPolicy
+//			SizeBasedTriggeringPolicy<ILoggingEvent> triggering = new SizeBasedTriggeringPolicy<ILoggingEvent>();
+//			triggering.setMaxFileSize("10MB");
+//			triggering.start();
+//
+//			// Finish configuration for Appender
+//			appender.setRollingPolicy(rolling);
+//			appender.setTriggeringPolicy(triggering);
+//			appender.start();
+
+			// Get Logger
 			logger = (Logger) LoggerFactory.getLogger(name);
 			logger.addAppender(appender);
-			logger.setLevel(Level.INFO);
+			logger.setLevel(level);
 			logger.setAdditive(true);
-			cache.put(name, logger);
+			CACHE.put(name, logger);
 		}
 		return logger;
 	}
 
 	/**
-	 * Return a Logger that is initialized for standard server side logging.
-	 * 
-	 * @return the standard Logger
+	 * A cache to prevent duplicate loggers from being created.
 	 */
-	public static Logger getServerLog() {
-		return getLogger("concourse", "log/concourse.log");
+	private static Map<String, Logger> CACHE = Maps.newHashMap();
+
+	static {
+		// Performance Logger
+		String perf = "org.cinchapi.concourse.server.engine.PerformanceLogger";
+		CACHE.put(perf, getLogger(perf, "log/performance.log", Level.INFO));
+		
+		// Standard Logger
+		String standard = "concourse";
+		CACHE.put(standard, getLogger(standard, "log/concourse.log", Level.INFO));
 	}
 
 	private Loggers() {} /* utility class */

@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server;
 
-import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -159,7 +159,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 														// prefs file in a
 														// future release.
 
-	private static final Logger log = getServerLog();
+	private static final Logger log = getLogger();
 
 	/**
 	 * The Thrift server controls the RPC protocol. Use

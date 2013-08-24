@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import static org.cinchapi.concourse.server.util.Loggers.getServerLog;
+import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -351,7 +351,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * compromising data consistency.
 	 */
 	private final Set<V> emptyValues;
-	private final Logger log = getServerLog();
+	private final Logger log = getLogger();
 
 	/**
 	 * Construct a new instance from the revisions that exist in the record
