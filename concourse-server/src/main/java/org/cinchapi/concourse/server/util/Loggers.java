@@ -34,6 +34,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.FileAppender;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
@@ -75,29 +76,12 @@ public final class Loggers {
 			encoder.setContext(context);
 			encoder.start();
 
-			// Initial configuration for RollingFileAppender
-			RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
+			// Configure Appender
+			FileAppender<ILoggingEvent> appender = new FileAppender<ILoggingEvent>();
 			appender.setFile(file);
 			appender.setEncoder(encoder);
 			appender.setContext(context);
-
-//			// Configure Rolling Policy
-//			FixedWindowRollingPolicy rolling = new FixedWindowRollingPolicy();
-//			rolling.setParent(appender);
-//			rolling.setMaxIndex(1);
-//			rolling.setMaxIndex(5);
-//			rolling.setFileNamePattern(file + ".%i.zip");
-//			rolling.start();
-//
-//			// Configure TriggeringPolicy
-//			SizeBasedTriggeringPolicy<ILoggingEvent> triggering = new SizeBasedTriggeringPolicy<ILoggingEvent>();
-//			triggering.setMaxFileSize("10MB");
-//			triggering.start();
-//
-//			// Finish configuration for Appender
-//			appender.setRollingPolicy(rolling);
-//			appender.setTriggeringPolicy(triggering);
-//			appender.start();
+			appender.start();
 
 			// Get Logger
 			logger = (Logger) LoggerFactory.getLogger(name);
