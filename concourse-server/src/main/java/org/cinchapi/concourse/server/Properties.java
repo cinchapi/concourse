@@ -65,6 +65,16 @@ public final class Properties {
 	public static final int BUFFER_SIZE_IN_BYTES = config.getInt(
 			"BUFFER_SIZE_IN_BYTES", 5242880);
 
+	/**
+	 * The minimum number of characters to index for searches. This value
+	 * is usually equal to the number of characters a user must enter in
+	 * an autocomplete field before seeing suggestions or results. Smaller
+	 * values allow more granular searches at the expense of larger index
+	 * sizes.
+	 */
+	public static final int SEARCH_INDEX_GRANULARITY = config.getInt(
+			"SEARCH_INDEX_GRANULARITY", 3);
+
 	private Properties() {/* utility-class */}
 
 }

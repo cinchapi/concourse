@@ -1,10 +1,6 @@
-#
-# Preferences for Concourse Server 
-#
-
-###################################
-###  CONFIGURATION INFORMATION  ###
-###################################
+##########################################
+###  PREFERENCES FOR CONCOURSE SERVER  ###
+##########################################
 
 # The path to the directory where Concourse should store data.
 # This directory is relative to the Concourse install directory.
@@ -19,5 +15,16 @@ DATA_HOME = /Users/jnelson/concourse
 # WARNING: Altering this value without first flushing any existing
 # Buffer content may lead to permanent data loss.
 # 
-# DEFAULT: = 5242880 (5M)
-BUFFER_SIZE_IN_BYTES 500
+# DEFAULT: 5242880 (5M)
+BUFFER_SIZE_IN_BYTES = 500
+
+# The minimum number of characters to index for searches. This value
+# is usually equal to the number of characters a user must enter in
+# an autocomplete field before seeing suggestions or results. Smaller
+# values allow more granular searches at the expense of larger index
+# sizes.
+#
+# DEFAULT: 3
+SEARCH_INDEX_GRANULARITY = 3
+
+
