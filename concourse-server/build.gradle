@@ -11,3 +11,17 @@ dependencies {
 
 mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
 
+task buildConf(type:Copy) {
+	def src = file("conf")
+	def build = file("$buildDir/conf")
+	copy {
+		from src
+		into build
+	}
+	outputs.dir build
+}
+
+applicationDistribution.from(buildConf) {
+    into "conf"
+}
+
