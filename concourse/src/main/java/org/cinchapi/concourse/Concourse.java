@@ -439,7 +439,8 @@ public interface Concourse {
 	 */
 	public final static class Client implements Concourse {
 
-		private static final Logger log = LoggerFactory.getLogger(Concourse.class);
+		private static final Logger log = LoggerFactory
+				.getLogger(Concourse.class);
 
 		/**
 		 * All configuration information is contained in this prefs file.
