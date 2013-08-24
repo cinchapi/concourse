@@ -9,11 +9,9 @@ dependencies {
     compile 'commons-logging:commons-logging:1.1.3'
 }
 
-mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
-
 task buildConf(type:Copy) {
-	def src = file("conf")
-	def build = file("$buildDir/conf")
+	def src = file('conf')
+	def build = file('$buildDir/conf')
 	copy {
 		from src
 		into build
@@ -22,6 +20,8 @@ task buildConf(type:Copy) {
 }
 
 applicationDistribution.from(buildConf) {
-    into "conf"
+    into 'conf'
 }
+
+mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
 
