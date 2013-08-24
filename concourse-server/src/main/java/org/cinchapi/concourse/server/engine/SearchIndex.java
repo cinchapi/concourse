@@ -122,7 +122,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 				String[] toks = text.toString().split(" ");
 				int pos = 0;
 				for (String tok : toks) {
-					// TODO check if tok is stopword and if so remove
+					if(Properties.STOPWORDS.contains(tok)) {
+						continue;
+					}
 					for (int i = 0; i < tok.length(); i++) {
 						for (int j = i
 								+ (Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
@@ -169,7 +171,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 				String[] toks = text.toString().split(" ");
 				int pos = 0;
 				for (String tok : toks) {
-					// TODO check if tok is stopword and if so remove
+					if(Properties.STOPWORDS.contains(tok)) {
+						continue;
+					}
 					for (int i = 0; i < tok.length(); i++) {
 						for (int j = (i + Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
 								.length() + 1; j++) {
@@ -202,7 +206,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 		boolean initial = true;
 		for (String tok : toks) {
 			Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-			// TODO check if tok is a stopword and if so remove
+			if(Properties.STOPWORDS.contains(tok)) {
+				continue;
+			}
 			Set<Position> positions = get(Text.fromString(tok));
 			for (Position position : positions) {
 				PrimaryKey key = position.getPrimaryKey();

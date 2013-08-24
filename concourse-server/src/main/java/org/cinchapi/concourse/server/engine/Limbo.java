@@ -38,12 +38,14 @@ import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.time.Time;
 import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.server.util.StringTools;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -349,19 +351,26 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 				Write write = it.next();
 				Value value = write.getValue();
 				long record = write.getRecord().longValue();
-				if(value.getType() == Type.STRING
-						&& ((String) (Convert.thriftToJava(value.getQuantity())))
-								.contains(query)) {
-					Set<Value> values = rtv.get(record);
-					if(values == null) {
-						values = Sets.newHashSet();
-						rtv.put(record, values);
-					}
-					if(values.contains(value)) {
-						values.remove(value);
-					}
-					else {
-						values.add(value);
+				if(value.getType() == Type.STRING) {
+					String stored = StringTools
+							.stripStopWords((String) (Convert
+									.thriftToJava(value.getQuantity())));
+					query = StringTools.stripStopWords(query);
+					if(!Strings.isNullOrEmpty(stored)
+							&& !Strings.isNullOrEmpty(query)
+							&& stored.contains(query)) {
+						Set<Value> values = rtv.get(record);
+						if(values == null) {
+							values = Sets.newHashSet();
+							rtv.put(record, values);
+						}
+						if(values.contains(value)) {
+							values.remove(value);
+						}
+						else {
+							values.add(value);
+						}
+
 					}
 				}
 			}

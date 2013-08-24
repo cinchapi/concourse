@@ -23,11 +23,18 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Set;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cinchapi.common.annotate.UtilityClass;
 import org.cinchapi.common.configuration.Configurations;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 
 /**
  * Contains constant variables used throughout this project.
@@ -74,6 +81,27 @@ public final class Properties {
 	 */
 	public static final int SEARCH_INDEX_GRANULARITY = config.getInt(
 			"SEARCH_INDEX_GRANULARITY", 3);
+
+	/**
+	 * A collection of <a
+	 * href="http://en.wikipedia.org/wiki/Stop_words">stopwords</a> that are
+	 * used to make search indexing more efficient.
+	 */
+	public static final Set<String> STOPWORDS = Sets.newHashSet();
+	static {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(
+					"conf/stopwords.txt"));
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				STOPWORDS.add(line);
+			}
+			reader.close();
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+	}
 
 	private Properties() {/* utility-class */}
 
