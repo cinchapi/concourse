@@ -19,8 +19,22 @@ task buildConf(type:Copy) {
 	outputs.dir build
 }
 
+task deployScripts(type:Copy) {
+	def src = file('scripts')
+	def build = file('build/cscripts')
+	copy {
+		from src
+		into build
+	}
+	outputs.dir build
+}
+
 applicationDistribution.from(buildConf) {
     into 'conf'
+}
+
+applicationDistribution.from(deployScripts) {
+    into '.'
 }
 
 mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'

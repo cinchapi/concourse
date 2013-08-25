@@ -47,8 +47,8 @@ public final class Properties {
 	/**
 	 * The name of the file that contains configuration information.
 	 */
-	private static final String configFileName = "opts" + File.separator
-			+ "concourse.opts";
+	private static final String configFileName = "conf" + File.separator
+			+ "concourse.prefs";
 
 	/**
 	 * A handler that provides an interface to the file that contains
@@ -92,7 +92,7 @@ public final class Properties {
 	static {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(
-					"opts/stopwords.txt"));
+					"conf/stopwords.txt"));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				STOPWORDS.add(line);
