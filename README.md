@@ -1,16 +1,15 @@
-# Concourse #
+# Concourse
 
 Concourse is a schemaless distributed version control database with
 serializable transactions and full-text search. Concourse provides a more
 intuitive approach to data management that is easy to deploy, access and
-scale with minimal tuning while also maintaining the referential integrity,
-atomicity, consistency, isolability and durability found in traditional
-database systems.
+scale with minimal tuning while also maintaining the ACID guarantees found 
+in traditional database systems.
 
-For more information on Concourse, please visit http://cinchapi.org/concourse.
+For more information on Concourse, please visit (http://cinchapi.org/concourse).
 
-Versioning
-----------
+## Versioning
+
 This is version 0.1 of Concourse.
 
 Concourse will be maintained under the Semantic Versioning guidelines as
@@ -26,7 +25,7 @@ And constructed with the following guidelines :
 
 For more information on Semantic Versioning, please visit http://semver.org.
 
-LICENSE
--------
+## License
+
 Concourse is released under the MIT License. For more information see LICENSE,
 which is included with this package.
