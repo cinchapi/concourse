@@ -16,9 +16,9 @@ guidelines such that releases will be numbered with the following format:
 `<major>.<minor>.<patch>`
 
 and constructed with the following guidelines :
--	Breaking backward compatibility bumps the major
--	New additions while maintaining backward compatibility bumps the minor
--	Bug fixes and miscellaneous changes bumps the patch
+	- Breaking backward compatibility bumps the major
+	- New additions while maintaining backward compatibility bumps the minor
+	- Bug fixes and miscellaneous changes bumps the patch
 
 ## License
 
