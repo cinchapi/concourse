@@ -121,129 +121,21 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * Encode the Write of {@code type} {@code key} as {@code value} in
-	 * {@code record} into a ByteBuffer that conforms to the format specified in
-	 * {@link Write#getBytes()}.
-	 * 
-	 * @param type
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return the ByteBuffer encoding
+	 * The minimum number of bytes needed to encode every Value.
 	 */
-	static ByteBuffer encodeAsByteBuffer(WriteType type, Text key, Value value,
-			PrimaryKey record) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(type);
-		out.write(record);
-		out.write(key.size());
-		out.write(value.size());
-		out.write(key);
-		out.write(value);
-		out.close();
-		return out.toByteBuffer();
-	}
-
-	/**
-	 * Return the keySize that is encoded in {@code bytes}.
-	 * 
-	 * @param bytes
-	 * @return the keySize
-	 */
-	static int getKeySize(ByteBuffer bytes) {
-		bytes.position(KEY_SIZE_POS);
-		return bytes.getInt();
-	}
-
-	/**
-	 * Return the valueSize that is encoded in {@code bytes}.
-	 * 
-	 * @param bytes
-	 * @return the valueSize
-	 */
-	static int getValueSize(ByteBuffer bytes) {
-		bytes.position(VALUE_SIZE_POS);
-		return bytes.getInt();
-	}
+	private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 12; // record,
+																	// type(4),
+																	// keySize
+																	// (4),
+																	// valueSize(4)
 
 	private static final ReferenceCache<Write> cache = new ReferenceCache<Write>();
 
-	/**
-	 * The start position of the encoded type in {@link #bytes}.
-	 */
-	private static final int TYPE_POS = 0;
-
-	/**
-	 * The number of bytes used to encoded the type in {@link #bytes}.
-	 */
-	private static final int TYPE_SIZE = Integer.SIZE / 8;
-
-	/**
-	 * The start position of the encoded record in {@link #bytes}.
-	 */
-	private static final int RECORD_POS = TYPE_POS + TYPE_SIZE;
-
-	/**
-	 * The number of bytes used to encoded the record in {@link #bytes}.
-	 */
-	private static final int RECORD_SIZE = PrimaryKey.SIZE;
-
-	/**
-	 * The start position of the encoded keySize in {@link #bytes}.
-	 */
-	@PackagePrivate
-	static final int KEY_SIZE_POS = RECORD_POS + RECORD_SIZE;
-
-	/**
-	 * The number of bytes used to encoded the keySize in {@link #bytes}.
-	 */
-	private static final int KEY_SIZE_SIZE = Integer.SIZE / 8;
-
-	/**
-	 * The start position of the encoded valueSize in {@link #bytes}.
-	 */
-	@PackagePrivate
-	static final int VALUE_SIZE_POS = KEY_SIZE_POS + KEY_SIZE_SIZE;
-
-	/**
-	 * The number of bytes used to encoded the valueSize in {@link #bytes}.
-	 */
-	private static final int VALUE_SIZE_SIZE = Integer.SIZE / 8;
-	/**
-	 * The start position of the encoded key in {@link #bytes}.
-	 */
-	@PackagePrivate
-	private static final int KEY_POS = VALUE_SIZE_POS + VALUE_SIZE_SIZE;
-	/**
-	 * The start position of the encoded value {@link #bytes}.
-	 */
-	@PackagePrivate
-	private final int VALUE_POS;
-	/**
-	 * <p>
-	 * In order to optimize heap usage, we encode the Write as a single
-	 * ByteBuffer instead of storing each component as a member variable.
-	 * </p>
-	 * <p>
-	 * To retrieve a component, we navigate to the appropriate position and
-	 * convert the necessary bytes to the correct type, which is a cheap since
-	 * binary conversion is trivial. Once a component is loaded onto the heap,
-	 * it may be stored in an ReferenceCache for further future efficiency.
-	 * </p>
-	 * 
-	 * The content conforms to the specification described by the
-	 * {@link #getBytes()} method.
-	 */
-	private final ByteBuffer bytes;
-
-	// Cached components that are encoded in {@link #bytes}
-	private transient PrimaryKey record = null;
-
-	private transient Text key = null;
-
-	private transient Value value = null;
-
-	private transient WriteType type = null;
+	private final PrimaryKey record;
+	private final Text key;
+	private final Value value;
+	private final WriteType type;
+	private final transient int size;
 
 	/**
 	 * Construct an instance that represents an existing Write from a
@@ -256,8 +148,15 @@ final class Write implements Byteable {
 	 */
 	@DoNotInvoke
 	public Write(ByteBuffer bytes) {
-		this.bytes = bytes;
-		this.VALUE_POS = KEY_POS + getKeySize(bytes);
+		this.type = WriteType.values()[bytes.getInt()];
+		byte[] record = new byte[PrimaryKey.SIZE];
+		bytes.get(record);
+		this.record = PrimaryKey.fromByteBuffer(ByteBuffer.wrap(record));
+		byte[] key = new byte[bytes.getInt()];
+		byte[] value = new byte[bytes.getInt()];
+		this.key = Text.fromByteBuffer(ByteBuffer.wrap(key));
+		this.value = Value.fromByteBuffer(ByteBuffer.wrap(value));
+		this.size = bytes.capacity();
 	}
 
 	/**
@@ -270,12 +169,11 @@ final class Write implements Byteable {
 	 */
 	@DoNotInvoke
 	public Write(WriteType type, Text key, Value value, PrimaryKey record) {
-		this.VALUE_POS = KEY_POS + key.size();
-		this.bytes = encodeAsByteBuffer(type, key, value, record);
 		this.record = record;
 		this.key = key;
 		this.value = value;
 		this.type = type;
+		this.size = CONSTANT_SIZE + key.size() + value.size();
 	}
 
 	/**
@@ -308,10 +206,16 @@ final class Write implements Byteable {
 	 * @return a byte array.
 	 */
 	@Override
-	public synchronized ByteBuffer getBytes() {
-		ByteBuffer clone = ByteBuffers.clone(bytes);
-		clone.rewind();
-		return clone;
+	public ByteBuffer getBytes() {
+		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		out.write(type);
+		out.write(record);
+		out.write(key.size());
+		out.write(value.size());
+		out.write(key);
+		out.write(value);
+		out.close();
+		return out.toByteBuffer();
 	}
 
 	/**
@@ -319,12 +223,7 @@ final class Write implements Byteable {
 	 * 
 	 * @return the {@code key}
 	 */
-	@PackagePrivate
-	public synchronized Text getKey() {
-		if(key == null) {
-			key = Text.fromByteBuffer(ByteBuffers.slice(bytes, KEY_POS,
-					getKeySize(bytes)));
-		}
+	public Text getKey() {
 		return key;
 	}
 
@@ -333,12 +232,7 @@ final class Write implements Byteable {
 	 * 
 	 * @return the {@code record}
 	 */
-	@PackagePrivate
-	public synchronized PrimaryKey getRecord() {
-		if(record == null) {
-			record = PrimaryKey.fromByteBuffer(ByteBuffers.slice(bytes,
-					RECORD_POS, RECORD_SIZE));
-		}
+	public PrimaryKey getRecord() {
 		return record;
 	}
 
@@ -349,9 +243,8 @@ final class Write implements Byteable {
 	 * 
 	 * @return the {@code timestamp}
 	 */
-	@PackagePrivate
-	public synchronized long getTimestamp() {
-		return getValue().getTimestamp();
+	public long getTimestamp() {
+		return value.getTimestamp();
 	}
 
 	/**
@@ -359,12 +252,7 @@ final class Write implements Byteable {
 	 * 
 	 * @return the write {@code type}
 	 */
-	@PackagePrivate
-	public synchronized WriteType getType() {
-		if(type == null) {
-			bytes.position(TYPE_POS);
-			type = ByteBuffers.getEnum(bytes, WriteType.class);
-		}
+	public WriteType getType() {
 		return type;
 	}
 
@@ -373,12 +261,7 @@ final class Write implements Byteable {
 	 * 
 	 * @return the {@code value}
 	 */
-	@PackagePrivate
-	public synchronized Value getValue() {
-		if(value == null) {
-			value = Value.fromByteBuffer(ByteBuffers.slice(bytes, VALUE_POS,
-					getValueSize(bytes)));
-		}
+	public Value getValue() {
 		return value;
 	}
 
@@ -388,7 +271,7 @@ final class Write implements Byteable {
 	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(getRecord(), getKey(), getValue());
+		return Objects.hash(record, key, value);
 	}
 
 	/**
@@ -399,7 +282,7 @@ final class Write implements Byteable {
 	 */
 	@PackagePrivate
 	public boolean isForStorage() {
-		return getType() != WriteType.NOT_FOR_STORAGE;
+		return type != WriteType.NOT_FOR_STORAGE;
 	}
 
 	/**
@@ -410,21 +293,21 @@ final class Write implements Byteable {
 	 */
 	@PackagePrivate
 	public boolean isNotForStorage() {
-		return getType() == WriteType.NOT_FOR_STORAGE;
+		return type == WriteType.NOT_FOR_STORAGE;
 	}
 
 	@Override
 	public int size() {
-		return bytes.capacity();
+		return size;
 	}
 
 	@Override
 	public String toString() {
-		String verb = getType().name();
-		String key = getKey().toString();
-		String value = getValue().toString();
-		String preposition = getType() == WriteType.ADD ? "TO" : "FROM";
-		String record = getRecord().toString();
+		String verb = this.type.name();
+		String key = this.key.toString();
+		String value = this.value.toString();
+		String preposition = this.type == WriteType.ADD ? "TO" : "FROM";
+		String record = this.record.toString();
 		return new StringBuilder().append(verb).append(" ").append(key)
 				.append(" ").append("AS").append(" ").append(value).append(" ")
 				.append(preposition).append(" ").append(record).toString();
@@ -439,7 +322,7 @@ final class Write implements Byteable {
 	 */
 	@PackagePrivate
 	boolean matches(Write other) {
-		return equals(other) && getType() == other.getType();
+		return equals(other) && type == other.type;
 	}
 
 }

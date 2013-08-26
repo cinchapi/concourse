@@ -44,7 +44,7 @@ import com.google.common.base.Objects;
  * <p>
  * A Value is the most basic element of data in Concourse. Values are both
  * temporally sortable by timestamp and logically sortable using weak typing. A
- * single value cannot exceed {@value #MAX_SIZE} bytes.
+ * single value cannot exceed 2^32 bytes.
  * </p>
  * <p>
  * <h2>Storage Requirements</h2>
@@ -156,16 +156,9 @@ final class Value implements Comparable<Value>, Storable {
 	private static final ReferenceCache<TObject> quantityCache = new ReferenceCache<TObject>();
 
 	/**
-	 * The number of bytes needed to encode every Value.
+	 * The minimum number of bytes needed to encode every Value.
 	 */
-	@PackagePrivate
-	static final int CONSTANT_SIZE = 12; // timestamp(8), type(4)
-
-	/**
-	 * The maximum number of bytes that can be used to encode a single Value.
-	 */
-	@PackagePrivate
-	static final int MAX_SIZE = Integer.MAX_VALUE;
+	private static final int CONSTANT_SIZE = 12; // timestamp(8), type(4)
 
 	/**
 	 * A ReferenceCache is generated in {@link Byteables} for Values read from
