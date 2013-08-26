@@ -573,7 +573,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	private void append(Revision revision, boolean fsync) {
 		Preconditions.checkArgument(revision.getVersion() > version,
 				"Cannot add %s because its version is not greater than the "
-						+ "Record's current version.");
+						+ "Record's current version.", revision);
 		Lock lock = writeLock();
 		try {
 			int tSize = revision.size() + 4;
@@ -666,7 +666,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	@Immutable
 	protected class Revision implements Byteable {
 		// NOTE: The location of a Revision never changes once its written, so
-		// it isn't necessary to hold a reference to the revision type since that
+		// it isn't necessary to hold a reference to the revision type since
+		// that
 		// information can be contextually gathered by whether the revision
 		// appears in an even or odd index relative to equal revisions in the
 		// Record.
