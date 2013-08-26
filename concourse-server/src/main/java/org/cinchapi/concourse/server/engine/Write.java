@@ -121,7 +121,7 @@ final class Write implements Byteable {
 	}
 
 	/**
-	 * The minimum number of bytes needed to encode every Value.
+	 * The minimum number of bytes needed to encode every Write.
 	 */
 	private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 12; // record,
 																	// type(4),
