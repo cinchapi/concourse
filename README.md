@@ -12,10 +12,10 @@ This is version 0.1.0 of Concourse.
 
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
 guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
-and constructed with the following guidelines :
-* A
-* B
-* C
+and constructed with the following guidelines
+* Breaking backward compatibility bumps the major
+* New additions while maintaining backward compatibility bumps the minor
+* Bug fixes and miscellaneous changes bumps the patch
 
 ## License
 
