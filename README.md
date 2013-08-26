@@ -11,14 +11,11 @@ maintaining the ACID characteristics of traditional database systems.
 This is version 0.1.0 of Concourse.
 
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
-guidelines such that releases will be numbered with the following format:
-
-`<major>.<minor>.<patch>`
-
+guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
 and constructed with the following guidelines :
-	- Breaking backward compatibility bumps the major
-	- New additions while maintaining backward compatibility bumps the minor
-	- Bug fixes and miscellaneous changes bumps the patch
+* Breaking backward compatibility bumps the major
+* New additions while maintaining backward compatibility bumps the minor
+* Bug fixes and miscellaneous changes bumps the patch
 
 ## License
 
