@@ -83,7 +83,15 @@ final class Write implements Byteable {
 	 * @return the Value
 	 */
 	public static Write fromByteBuffer(ByteBuffer buffer) {
-		return Byteables.read(buffer, Write.class);
+		return Byteables.read(buffer, Write.class); // We are using
+													// Byteables#read(ByteBuffer,
+													// Class) instead of calling
+													// the constructor directly
+													// so as to take advantage
+													// of the automatic
+													// reference caching that is
+													// provided in the utility
+													// class
 	}
 
 	/**

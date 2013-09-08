@@ -667,8 +667,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	protected class Revision implements Byteable {
 		// NOTE: The location of a Revision never changes once its written, so
 		// it isn't necessary to hold a reference to the revision type since
-		// that
-		// information can be contextually gathered by whether the revision
+		// that information can be contextually gathered by whether the revision
 		// appears in an even or odd index relative to equal revisions in the
 		// Record.
 

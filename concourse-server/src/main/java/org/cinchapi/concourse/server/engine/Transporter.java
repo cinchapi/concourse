@@ -69,6 +69,7 @@ class Transporter implements Iterator<Write> {
 		buffer.content.position(postAckPosition);
 		buffer.content.compact();
 		buffer.content.position(0);
+		buffer.content.force();
 	}
 
 	@Override

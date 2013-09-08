@@ -49,7 +49,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
  * {@link Destination}.
  * <p>
  * A Buffer enforces the durability guarantee because all writes are immediately
- * stored to disk. Even though there is some disk I/O, the overhead is minimal
+ * flushed to disk. Even though there is some disk I/O, the overhead is minimal
  * and writes are fast because the entire backing store is memory mapped and the
  * writes are always appended.
  * </p>

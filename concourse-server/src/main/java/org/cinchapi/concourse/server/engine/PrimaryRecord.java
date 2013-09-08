@@ -135,7 +135,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 					counts.put(revision, count);
 
 					// Determine verb
-					String verb = Numbers.isOdd(count) ? "ADD" : "REMOVE";
+					String verb = Numbers.isOdd(count) ? "ADD " : "REMOVE ";
 
 					// Add audit entry
 					audit.put(revision.getVersion(), verb + revision.toString());
