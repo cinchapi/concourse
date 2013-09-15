@@ -32,7 +32,7 @@ import org.cinchapi.common.annotate.PackagePrivate;
  * @author jnelson
  */
 @PackagePrivate
-interface Destination extends Readable {
+interface Destination extends Store {
 
 	/**
 	 * Process and store {@code write}.

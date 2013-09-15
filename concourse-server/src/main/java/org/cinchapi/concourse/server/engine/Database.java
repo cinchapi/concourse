@@ -59,7 +59,7 @@ import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
  * 
  * @author jnelson
  */
-public class Database implements Readable, Destination {
+public class Database implements Destination {
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write
@@ -322,5 +322,30 @@ public class Database implements Readable, Destination {
 			}
 		}
 
+	}
+
+	@Override
+	public boolean add(String key, TObject value, long record)
+			throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.cinchapi.concourse.server.engine.Datastore#remove(java.lang.String, org.cinchapi.concourse.thrift.TObject, long)
+	 */
+	@Override
+	public boolean remove(String key, TObject value, long record)
+			throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.cinchapi.concourse.server.engine.Datastore#revert(java.lang.String, long, long)
+	 */
+	@Override
+	public void revert(String key, long record, long timestamp)
+			throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+		
 	}
 }

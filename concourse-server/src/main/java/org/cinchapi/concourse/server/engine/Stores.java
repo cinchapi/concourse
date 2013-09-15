@@ -34,23 +34,23 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
- * A collection of callables for {@link Readable} methods.
+ * A collection of {@link Store} callables.
  * 
  * @author jnelson
  */
 @UtilityClass
 @PackagePrivate
-final class Readables {
+final class Stores {
 
 	/**
-	 * Invokes the {@link Readable#audit(long)} method on {@code store}.
+	 * Invokes the {@link Store#audit(long)} method on {@code store}.
 	 * 
 	 * @param store
 	 * @param record
 	 * @return the method result
 	 */
 	public static Callable<Map<Long, String>> invokeAuditCallable(
-			final Readable store, final long record) {
+			final Store store, final long record) {
 		return new Callable<Map<Long, String>>() {
 
 			@Override
@@ -63,13 +63,13 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#describe(long)} method on {@code store}.
+	 * Invokes the {@link Store#describe(long)} method on {@code store}.
 	 * 
 	 * @param store
 	 * @param record
 	 * @return the method result
 	 */
-	public static Callable<Set<String>> invokeDescribeCallable(final Readable store,
+	public static Callable<Set<String>> invokeDescribeCallable(final Store store,
 			final long record) {
 		return new Callable<Set<String>>() {
 
@@ -82,7 +82,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#describe(long, long)} method on
+	 * Invokes the {@link Store#describe(long, long)} method on
 	 * {@code store}.
 	 * 
 	 * @param store
@@ -90,7 +90,7 @@ final class Readables {
 	 * @param timestamp
 	 * @return the method result
 	 */
-	public static Callable<Set<String>> invokeDescribeCallable(final Readable store,
+	public static Callable<Set<String>> invokeDescribeCallable(final Store store,
 			final long record, final long timestamp) {
 		return new Callable<Set<String>>() {
 
@@ -103,7 +103,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#audit(String, long)} method on {@code store}.
+	 * Invokes the {@link Store#audit(String, long)} method on {@code store}.
 	 * 
 	 * @param store
 	 * @param key
@@ -111,7 +111,7 @@ final class Readables {
 	 * @return the method result
 	 */
 	public static Callable<Map<Long, String>> invokeAuditCallable(
-			final Readable store, final String key, final long record) {
+			final Store store, final String key, final long record) {
 		return new Callable<Map<Long, String>>() {
 
 			@Override
@@ -124,7 +124,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#fetch(String, long)} method on {@code store}.
+	 * Invokes the {@link Store#fetch(String, long)} method on {@code store}.
 	 * 
 	 * @param store
 	 * @param key
@@ -132,7 +132,7 @@ final class Readables {
 	 * @return the method result
 	 */
 	public static Callable<Set<TObject>> invokeFetchCallable(
-			final Readable store, final String key, final long record) {
+			final Store store, final String key, final long record) {
 		return new Callable<Set<TObject>>() {
 
 			@Override
@@ -144,7 +144,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#fetch(String, long, long)} method on
+	 * Invokes the {@link Store#fetch(String, long, long)} method on
 	 * {@code store}.
 	 * 
 	 * @param store
@@ -154,7 +154,7 @@ final class Readables {
 	 * @return the method result
 	 */
 	public static Callable<Set<TObject>> invokeFetchCallable(
-			final Readable store, final String key, final long record,
+			final Store store, final String key, final long record,
 			final long timestamp) {
 		return new Callable<Set<TObject>>() {
 
@@ -167,7 +167,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#find(String, Operator, TObject...)} method on
+	 * Invokes the {@link Store#find(String, Operator, TObject...)} method on
 	 * {@code store}.
 	 * 
 	 * @param store
@@ -176,7 +176,7 @@ final class Readables {
 	 * @param values
 	 * @return the method result
 	 */
-	public static Callable<Set<Long>> invokeFindCallable(final Readable store,
+	public static Callable<Set<Long>> invokeFindCallable(final Store store,
 			final String key, final Operator operator, final TObject... values) {
 		return new Callable<Set<Long>>() {
 
@@ -190,7 +190,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#find(long, String, Operator, TObject...)}
+	 * Invokes the {@link Store#find(long, String, Operator, TObject...)}
 	 * method on {@code store}.
 	 * 
 	 * @param store
@@ -200,7 +200,7 @@ final class Readables {
 	 * @param values
 	 * @return the method result
 	 */
-	public static Callable<Set<Long>> invokeFindCallable(final Readable store,
+	public static Callable<Set<Long>> invokeFindCallable(final Store store,
 			final long timestamp, final String key,
 			final Operator operator, final TObject... values) {
 		return new Callable<Set<Long>>() {
@@ -215,13 +215,13 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#ping(long)} method on {@code store}.
+	 * Invokes the {@link Store#ping(long)} method on {@code store}.
 	 * 
 	 * @param store
 	 * @param record
 	 * @return the method result
 	 */
-	public static Callable<Boolean> invokePingCallable(final Readable store,
+	public static Callable<Boolean> invokePingCallable(final Store store,
 			final long record) {
 		return new Callable<Boolean>() {
 
@@ -234,7 +234,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#search(String, String)} method on
+	 * Invokes the {@link Store#search(String, String)} method on
 	 * {@code store}.
 	 * 
 	 * @param store
@@ -243,7 +243,7 @@ final class Readables {
 	 * @return the method result
 	 */
 	public static Callable<Set<Long>> invokeSearchCallable(
-			final Readable store, final String key, final String query) {
+			final Store store, final String key, final String query) {
 		return new Callable<Set<Long>>() {
 
 			@Override
@@ -255,7 +255,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#verify(String, TObject, long)} method on
+	 * Invokes the {@link Store#verify(String, TObject, long)} method on
 	 * {@code store}.
 	 * 
 	 * @param store
@@ -264,7 +264,7 @@ final class Readables {
 	 * @param record
 	 * @return the method result
 	 */
-	public static Callable<Boolean> invokeVerifyCallable(final Readable store,
+	public static Callable<Boolean> invokeVerifyCallable(final Store store,
 			final String key, final TObject value, final long record) {
 		return new Callable<Boolean>() {
 
@@ -277,7 +277,7 @@ final class Readables {
 	}
 
 	/**
-	 * Invokes the {@link Readable#verify(String, TObject, long, long)}
+	 * Invokes the {@link Store#verify(String, TObject, long, long)}
 	 * method on {@code store}.
 	 * 
 	 * @param store
@@ -287,7 +287,7 @@ final class Readables {
 	 * @param timestamp
 	 * @return the method result
 	 */
-	public static Callable<Boolean> invokeVerifyCallable(final Readable store,
+	public static Callable<Boolean> invokeVerifyCallable(final Store store,
 			final String key, final TObject value, final long record,
 			final long timestamp) {
 		return new Callable<Boolean>() {

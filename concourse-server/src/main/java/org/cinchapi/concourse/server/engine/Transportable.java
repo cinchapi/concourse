@@ -34,7 +34,7 @@ import org.cinchapi.concourse.thrift.TObject;
  * @author jnelson
  */
 @PackagePrivate
-interface Transportable extends Readable, Writable {
+interface Transportable extends Store {
 
 	/**
 	 * Insert a write without performing validity checks in situations where the

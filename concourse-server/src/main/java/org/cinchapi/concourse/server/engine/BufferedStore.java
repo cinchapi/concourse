@@ -41,7 +41,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.engine.Readables.*;
+import static org.cinchapi.concourse.server.engine.Stores.*;
 
 /**
  * A {@link BufferedStore} holds data in a {@link Transportable} buffer before
@@ -60,12 +60,8 @@ import static org.cinchapi.concourse.server.engine.Readables.*;
  */
 @PackagePrivate
 @ThreadSafe
-abstract class BufferedStore implements
-		Readable,
-		Writable,
-		Revisioning,
-		Lockable {
-	
+abstract class BufferedStore implements Store, Lockable {
+
 	private static final String threadNamePrefix = "buffered-store-read-thread";
 
 	/**

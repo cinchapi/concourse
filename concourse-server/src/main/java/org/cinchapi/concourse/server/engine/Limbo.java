@@ -68,7 +68,7 @@ import com.google.common.primitives.Longs;
  */
 @ThreadSafe
 @PackagePrivate
-class Limbo implements Readable, Writable, Lockable, Transportable {
+class Limbo implements Lockable, Transportable {
 
 	/**
 	 * A Predicate that is used to filter out empty sets.
@@ -339,6 +339,13 @@ class Limbo implements Readable, Writable, Lockable, Transportable {
 	@Override
 	public boolean removeUnsafe(String key, TObject value, long record) {
 		return insert(Write.remove(key, value, record));
+	}
+
+	@Override
+	public void revert(String key, long record, long timestamp)
+			throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+
 	}
 
 	@Override
