@@ -58,7 +58,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
  */
 @ThreadSafe
 @PackagePrivate
-final class Buffer extends Limbo {
+final class Buffer extends Queue {
 
 	/**
 	 * The average number of bytes used to store an arbitrary Write.

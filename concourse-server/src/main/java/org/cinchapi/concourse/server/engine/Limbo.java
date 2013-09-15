@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.engine;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,18 +45,15 @@ import org.cinchapi.concourse.thrift.Type;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 
 /**
- * {@code Limbo} is a lightweight append-only in-memory data store.
+ * {@link Limbo} is a lightweight append-only in-memory data store.
  * <p>
- * {@code Limbo} is a {@link Readable} and {@link Writable} service that is a
- * suitable cache or fast, albeit temporary, store for data that will eventually
- * be persisted to disk. Within the store, data is represented as a sequence of
- * {@link Write} objects.
+ * {@code Limbo} is a {@link ProxyStore} that is a suitable cache or fast,
+ * albeit temporary, store for data that will eventually be persisted to disk.
  * <p>
  * The store is designed to write data very quickly <strong>
  * <em>at the expense of much slower read time.</em></strong> {@code Limbo} does
@@ -68,7 +64,7 @@ import com.google.common.primitives.Longs;
  */
 @ThreadSafe
 @PackagePrivate
-class Limbo implements Lockable, ProxyStore, Iterable<Write> {
+abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	/**
 	 * A Predicate that is used to filter out empty sets.
@@ -81,22 +77,6 @@ class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 		}
 
 	};
-
-	/**
-	 * Revisions are stored as a sequential list of {@link Write} objects, which
-	 * means most reads are <em>at least</em> a O(n) scan.
-	 */
-	protected final List<Write> writes;
-
-	/**
-	 * Construct a Limbo with enough capacity for {@code initialSize}. If
-	 * necessary, the structure will grow to accommodate more data.
-	 * 
-	 * @param initialSize
-	 */
-	protected Limbo(int initialSize) {
-		writes = Lists.newArrayListWithCapacity(initialSize);
-	}
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
@@ -322,9 +302,7 @@ class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	 * </p>
 	 */
 	@Override
-	public Iterator<Write> iterator() {
-		return writes.iterator();
-	}
+	public abstract Iterator<Write> iterator();
 
 	@Override
 	public boolean ping(long record) {
@@ -444,7 +422,7 @@ class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	}
 
 	/**
-	 * Insert {@code write} into {@link #writes}. This method exists so that a
+	 * Insert {@code write} into the store. This method exists so that a
 	 * subclass can override the {@code add()} and {@code remove()} methods to
 	 * do additional things (i.e. when the {@link Buffer} copies the revision to
 	 * disk for durability) whilst using the same Write with the same
@@ -460,14 +438,6 @@ class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	 * @param write
 	 * @return {@code true} if the {@code write} is inserted into the store.
 	 */
-	protected final boolean insert(Write write) {
-		Lock lock = writeLock();
-		try {
-			return writes.add(write);
-		}
-		finally {
-			lock.release();
-		}
-	}
+	protected abstract boolean insert(Write write);
 
 }

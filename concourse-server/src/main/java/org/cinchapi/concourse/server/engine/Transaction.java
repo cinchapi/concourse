@@ -103,7 +103,7 @@ public final class Transaction extends BufferedStore {
 		int lockSize = 4 + (transaction.locks.size() * TransactionLock.SIZE);
 		out.write(lockSize);
 		out.write(transaction.locks.values(), TransactionLock.SIZE);
-		out.write(((Limbo) transaction.buffer).writes); /* Authorized */
+		out.write(((Queue) transaction.buffer).writes); /* Authorized */
 		out.close();
 		Files.open(file);
 		return out.toMappedByteBuffer(file, 0);
@@ -181,7 +181,7 @@ public final class Transaction extends BufferedStore {
 		it = ByteableCollections.iterator(writes);
 		while (it.hasNext()) {
 			Write write = Write.fromByteBuffer(it.next());
-			((Limbo) transaction.buffer).insert(write);
+			((Queue) transaction.buffer).insert(write);
 		}
 	}
 
@@ -250,7 +250,7 @@ public final class Transaction extends BufferedStore {
 	 * @param destination
 	 */
 	private Transaction(Engine destination) {
-		super(new Limbo(initialCapacity), destination);
+		super(new Queue(initialCapacity), destination);
 		this.transactionStore = destination.baseStore + File.separator
 				+ "transactions";
 	}
