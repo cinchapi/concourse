@@ -26,13 +26,14 @@ package org.cinchapi.concourse.server.engine;
 import org.cinchapi.common.annotate.PackagePrivate;
 
 /**
- * A {@code Destination} accepts and stores {@link Write} objects that are
- * delivered from {@link Transportable} service.
+ * A {@link Store} that accepts {@link Write} objects that are transported from
+ * a {@link ProxyStore}. This service relies on rich indexing to offer optimal
+ * read performance.
  * 
  * @author jnelson
  */
 @PackagePrivate
-interface Destination extends Store {
+interface PermanentStore extends Store {
 
 	/**
 	 * Process and store {@code write}.

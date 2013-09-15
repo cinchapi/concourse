@@ -27,7 +27,7 @@ import org.cinchapi.common.annotate.PackagePrivate;
 
 /**
  * An unchecked exception that is thrown when an attempt is made to insert a
- * {@link Write} into a {@link Transportable} that does not have enough
+ * {@link Write} into a {@link ProxyStore} that does not have enough
  * capacity.
  * 
  * @author jnelson

@@ -46,7 +46,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
  * quickly accumulate writes in memory before performing a batch flush into some
- * {@link Destination}.
+ * {@link PermanentStore}.
  * <p>
  * A Buffer enforces the durability guarantee because all writes are immediately
  * flushed to disk. Even though there is some disk I/O, the overhead is minimal
@@ -58,7 +58,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
  */
 @ThreadSafe
 @PackagePrivate
-final class Buffer extends Limbo implements Transportable {
+final class Buffer extends Limbo implements ProxyStore {
 
 	/**
 	 * The average number of bytes used to store an arbitrary Write.
@@ -133,7 +133,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * <p>
 	 * <strong>
 	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(Destination)}.</em></strong>
+	 * and call {@link #transport(PermanentStore)}.</em></strong>
 	 * </p>
 	 * {@inheritDoc}
 	 */
@@ -149,7 +149,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * <p>
 	 * <strong>
 	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(Destination)}.</em></strong>
+	 * and call {@link #transport(PermanentStore)}.</em></strong>
 	 * </p>
 	 * {@inheritDoc}
 	 */
@@ -162,7 +162,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * <p>
 	 * <strong>
 	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(Destination)}.</em></strong>
+	 * and call {@link #transport(PermanentStore)}.</em></strong>
 	 * </p>
 	 * {@inheritDoc}
 	 */
@@ -178,7 +178,7 @@ final class Buffer extends Limbo implements Transportable {
 	 * <p>
 	 * <strong>
 	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(Destination)}.</em></strong>
+	 * and call {@link #transport(PermanentStore)}.</em></strong>
 	 * </p>
 	 * {@inheritDoc}
 	 */
@@ -193,7 +193,7 @@ final class Buffer extends Limbo implements Transportable {
 	 */
 	@Override
 	@Profiled(tag = "Buffer.transport", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
-	public void transport(Destination destination) {
+	public void transport(PermanentStore destination) {
 		log.debug("Starting a Buffer flush...");
 		Lock lock = writeLock();
 		try {

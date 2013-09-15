@@ -53,7 +53,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
 		Transactional,
-		Destination {
+		PermanentStore {
 
 	private static final Logger log = getLogger();
 

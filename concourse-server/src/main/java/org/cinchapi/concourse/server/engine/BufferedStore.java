@@ -44,8 +44,8 @@ import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.engine.Stores.*;
 
 /**
- * A {@link BufferedStore} holds data in a {@link Transportable} buffer before
- * making batch commits to some other permanent {@link Destination}.
+ * A {@link BufferedStore} holds data in a {@link ProxyStore} buffer before
+ * making batch commits to some other permanent {@link PermanentStore}.
  * <p>
  * Data is written to the buffer until the buffer is full, at which point the
  * BufferingStore will flush the data to the destination store. Reads are
@@ -60,24 +60,27 @@ import static org.cinchapi.concourse.server.engine.Stores.*;
  */
 @PackagePrivate
 @ThreadSafe
-abstract class BufferedStore implements Store, Lockable {
+abstract class BufferedStore implements
+		WritableStore,
+		VersionControlStore,
+		Lockable {
 
 	private static final String threadNamePrefix = "buffered-store-read-thread";
 
 	/**
 	 * The {@code buffer} is the place where data is initially stored. The
 	 * contained data is eventually moved to the {@link #destination} when the
-	 * {@link Transportable#transport(Destination)} method is called.
+	 * {@link ProxyStore#transport(PermanentStore)} method is called.
 	 */
-	protected final Transportable buffer;
+	protected final ProxyStore buffer;
 
 	/**
 	 * The {@code destination} is the place where data is stored when it is
 	 * transferred from the {@link #buffer}. The {@code destination} defines its
-	 * protocol for accepting data in the {@link Destination#accept(Write)}
+	 * protocol for accepting data in the {@link PermanentStore#accept(Write)}
 	 * method.
 	 */
-	protected final Destination destination;
+	protected final PermanentStore destination;
 
 	/**
 	 * Construct a new instance.
@@ -85,7 +88,7 @@ abstract class BufferedStore implements Store, Lockable {
 	 * @param transportable
 	 * @param destination
 	 */
-	protected BufferedStore(Transportable transportable, Destination destination) {
+	protected BufferedStore(ProxyStore transportable, PermanentStore destination) {
 		checkArgument(
 				!this.getClass().isAssignableFrom(destination.getClass()),
 				"Cannot embed a %s into %s", destination.getClass(),

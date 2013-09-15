@@ -50,8 +50,8 @@ import static org.cinchapi.concourse.server.engine.Record.loadSecondaryIndex;
 import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
 
 /**
- * The {@code Database} is the permanent {@link Destination} for {@link Write}
- * objects that are initially stored in a {@link Buffer}.
+ * The {@code Database} is the permanent {@link PermanentStore} for
+ * {@link Write} objects that are initially stored in a {@link Buffer}.
  * <p>
  * When the Database accepts a write, it creates relevant indexes for efficient
  * retrieval, query and search reads.
@@ -59,7 +59,7 @@ import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
  * 
  * @author jnelson
  */
-public class Database implements Destination {
+public class Database implements PermanentStore {
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write
@@ -322,30 +322,5 @@ public class Database implements Destination {
 			}
 		}
 
-	}
-
-	@Override
-	public boolean add(String key, TObject value, long record)
-			throws UnsupportedOperationException {
-		throw new UnsupportedOperationException();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cinchapi.concourse.server.engine.Datastore#remove(java.lang.String, org.cinchapi.concourse.thrift.TObject, long)
-	 */
-	@Override
-	public boolean remove(String key, TObject value, long record)
-			throws UnsupportedOperationException {
-		throw new UnsupportedOperationException();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.cinchapi.concourse.server.engine.Datastore#revert(java.lang.String, long, long)
-	 */
-	@Override
-	public void revert(String key, long record, long timestamp)
-			throws UnsupportedOperationException {
-		throw new UnsupportedOperationException();
-		
 	}
 }

@@ -68,7 +68,7 @@ import com.google.common.primitives.Longs;
  */
 @ThreadSafe
 @PackagePrivate
-class Limbo implements Lockable, Transportable {
+class Limbo implements Lockable, ProxyStore {
 
 	/**
 	 * A Predicate that is used to filter out empty sets.
@@ -342,13 +342,6 @@ class Limbo implements Lockable, Transportable {
 	}
 
 	@Override
-	public void revert(String key, long record, long timestamp)
-			throws UnsupportedOperationException {
-		throw new UnsupportedOperationException();
-
-	}
-
-	@Override
 	public Set<Long> search(String key, String query) {
 		Lock lock = readLock();
 		try {
@@ -389,7 +382,7 @@ class Limbo implements Lockable, Transportable {
 	}
 
 	@Override
-	public void transport(Destination destination) {
+	public void transport(PermanentStore destination) {
 		Lock lock = readLock();
 		try {
 			Iterator<Write> it = writes.iterator();

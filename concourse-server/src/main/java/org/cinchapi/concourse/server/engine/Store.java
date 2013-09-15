@@ -26,42 +26,32 @@ package org.cinchapi.concourse.server.engine;
 import java.util.Map;
 import java.util.Set;
 
+import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
- * A {@link Store} is a revisioning service that manages data. The service
- * automatically journals writes so it is possible to read data from both
- * current and previous states and revert changes.
+ * <p>
+ * A {@link Store} is a revisioning service that provides mechanisms to read
+ * data from both current and previous states.
+ * </p>
+ * <p>
+ * A {@code Store} can acquire data in one of two ways: directly if it is a
+ * {@link WritableStore} or eventually if it is a {@link PermanentStore}.
+ * Additionally, the {@code store} can revert data to previous versions if it is
+ * a {@link VersionControlStore}.
+ * </p>
+ * <p>
+ * In general, a {@code ProxyStore} and {@code PermanentStore} work together in
+ * a {@link BufferedStore} to improve write performance by immediately
+ * committing writes into a durable buffer before batch indexing them in the
+ * background.
+ * </p>
  * 
  * @author jnelson
  */
-public interface Store {
-
-	/**
-	 * Add {@code key} as {@code value} to {@code record}.
-	 * <p>
-	 * This method maps {@code key} to {@code value} in {@code record}, if and
-	 * only if that mapping does not <em>currently</em> exist (i.e.
-	 * {@link #verify(String, Object, long)} is {@code false}). Adding
-	 * {@code value} to {@code key} does not replace any existing mappings from
-	 * {@code key} in {@code record} because a field may contain multiple
-	 * distinct values.
-	 * </p>
-	 * <p>
-	 * To overwrite existing mappings from {@code key} in {@code record}, use
-	 * {@link #set(String, Object, long)} instead.
-	 * </p>
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the mapping is added
-	 * @throws UnsupportedOperationException if the implementing class cannot
-	 *             process a Write using this method
-	 */
-	public boolean add(String key, TObject value, long record)
-			throws UnsupportedOperationException;
+@PackagePrivate
+interface Store {
 
 	/**
 	 * Audit {@code record}.
@@ -207,107 +197,6 @@ public interface Store {
 	 * @return {@code true} if {@code record} is currently not empty
 	 */
 	public boolean ping(long record);
-
-	/**
-	 * Remove {@code key} as {@code value} from {@code record}.
-	 * <p>
-	 * This method deletes the mapping from {@code key} to {@code value} in
-	 * {@code record}, if that mapping <em>currently</em> exists (i.e.
-	 * {@link #verify(String, Object, long)} is {@code true}. No other mappings
-	 * from {@code key} in {@code record} are affected.
-	 * </p>
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the mapping is removed
-	 * @throws UnsupportedOperationException if the implementing class cannot
-	 *             process a Write using this method
-	 */
-	public boolean remove(String key, TObject value, long record)
-			throws UnsupportedOperationException;
-
-	/**
-	 * Revert {@code key} in {@code record} to {@code timestamp}.
-	 * <p>
-	 * This method returns {@code key} in {@code record} to its previous state
-	 * at {@code timestamp} by reversing all revisions in the field that have
-	 * occurred since. This method <em>does not rollback</em> any revisions, but
-	 * creates new revisions that are the reverse of the reverted revisions:
-	 * <table>
-	 * <tr>
-	 * <th>Time</th>
-	 * <th>Revision</th>
-	 * </tr>
-	 * <tr>
-	 * <td>T1</td>
-	 * <td>ADD A</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T2</td>
-	 * <td>ADD B</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T3</td>
-	 * <td>REMOVE A</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T4</td>
-	 * <td>ADD C</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T5</td>
-	 * <td>REMOVE C</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T6</td>
-	 * <td>REMOVE B</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T7</td>
-	 * <td>ADD D</td>
-	 * </tr>
-	 * </table>
-	 * In the example above, after {@code T7}, the field contains value
-	 * {@code D}. If the field is reverted to T3, the following new revisions
-	 * are added:
-	 * <table>
-	 * <tr>
-	 * <th>Time</th>
-	 * <th>Revision</th>
-	 * </tr>
-	 * <tr>
-	 * <td>T8</td>
-	 * <td>REMOVE D</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T9</td>
-	 * <td>ADD B</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T10</td>
-	 * <td>ADD C</td>
-	 * </tr>
-	 * <tr>
-	 * <td>T11</td>
-	 * <td>REMOVE C</td>
-	 * </tr>
-	 * </table>
-	 * After {@code T11}, the field contains value {@code B}. Regardless of the
-	 * current state, ever revision to the field exists in history so it is
-	 * possible to revert to any previous state, even after reverting to a much
-	 * earlier state (i.e. after reverting to {@code T3} it is possible to
-	 * revert to {@code T5}).
-	 * </p>
-	 * 
-	 * @param key
-	 * @param record
-	 * @param timestamp
-	 * @throws UnsupportedOperationException if the implementing class cannot
-	 *             revert data
-	 */
-	public void revert(String key, long record, long timestamp)
-			throws UnsupportedOperationException;
 
 	/**
 	 * Search {@code key} for {@code query}.

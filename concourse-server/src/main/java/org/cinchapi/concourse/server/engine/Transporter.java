@@ -31,12 +31,12 @@ import org.cinchapi.common.multithread.Lock;
 /**
  * A {@code Transporter} is an iterator that returns the {@link Write} objects
  * stored in a {@link Buffer} one-by-one for the purpose of moving those writes
- * to a {@link Destination}. The {@code Transporter} only moves the Writes
+ * to a {@link PermanentStore}. The {@code Transporter} only moves the Writes
  * from the Buffer. The Destination is responsible for ensuring that
- * the Writes are stored in the {@link Destination#accept(Write)} method.
+ * the Writes are stored in the {@link PermanentStore#accept(Write)} method.
  * <p>
  * <em>The Buffer must make a call to {@link #ack()} after each call to
- * {@link Destination#accept(Write)}.</em>
+ * {@link PermanentStore#accept(Write)}.</em>
  * </p>
  * 
  * @author jnelson

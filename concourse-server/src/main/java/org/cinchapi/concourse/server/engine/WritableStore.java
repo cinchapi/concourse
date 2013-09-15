@@ -23,53 +23,53 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
- * A service which has the ability to have its content transported to a
- * {@link Destination}.
+ * A {@link Store} that can process writes directly.
  * 
  * @author jnelson
  */
 @PackagePrivate
-interface Transportable extends Store {
+interface WritableStore extends Store {
 
 	/**
-	 * Insert a write without performing validity checks in situations where the
-	 * normal checks are not appropriate and the caller has other means to
-	 * ensure the validity of the revision (i.e. a {@link BufferedStore} that
-	 * must resolve reads from two sources). This method should
-	 * only be invoked from authorized callers.
+	 * Add {@code key} as {@code value} to {@code record}.
+	 * <p>
+	 * This method maps {@code key} to {@code value} in {@code record}, if and
+	 * only if that mapping does not <em>currently</em> exist (i.e.
+	 * {@link #verify(String, Object, long)} is {@code false}). Adding
+	 * {@code value} to {@code key} does not replace any existing mappings from
+	 * {@code key} in {@code record} because a field may contain multiple
+	 * distinct values.
+	 * </p>
+	 * <p>
+	 * To overwrite existing mappings from {@code key} in {@code record}, use
+	 * {@link #set(String, Object, long)} instead.
+	 * </p>
 	 * 
 	 * @param key
 	 * @param value
 	 * @param record
-	 * @return {@code true}
+	 * @return {@code true} if the mapping is added
 	 */
-	@DoNotInvoke
-	public boolean addUnsafe(String key, TObject value, long record);
+	public boolean add(String key, TObject value, long record);
 
 	/**
-	 * Insert a write without performing validity checks in situations where the
-	 * normal checks are not appropriate and the caller has other means to
-	 * ensure the validity of the revision (i.e. a {@link BufferedStore} that
-	 * must resolve reads from two sources). This method should
-	 * only be invoked from authorized callers.
+	 * Remove {@code key} as {@code value} from {@code record}.
+	 * <p>
+	 * This method deletes the mapping from {@code key} to {@code value} in
+	 * {@code record}, if that mapping <em>currently</em> exists (i.e.
+	 * {@link #verify(String, Object, long)} is {@code true}. No other mappings
+	 * from {@code key} in {@code record} are affected.
+	 * </p>
 	 * 
 	 * @param key
 	 * @param value
 	 * @param record
-	 * @return {@code true}
+	 * @return {@code true} if the mapping is removed
 	 */
-	@DoNotInvoke
-	public boolean removeUnsafe(String key, TObject value, long record);
+	public boolean remove(String key, TObject value, long record);
 
-	/**
-	 * Transfer the content to {@code destination}.
-	 * 
-	 * @param destination
-	 */
-	public void transport(Destination destination);
 }
