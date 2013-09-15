@@ -395,7 +395,7 @@ class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public void transport(PermanentStore destination) {
-		Lock lock = readLock();
+		Lock lock = writeLock();
 		try {
 			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
