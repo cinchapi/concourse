@@ -68,7 +68,7 @@ import com.google.common.primitives.Longs;
  */
 @ThreadSafe
 @PackagePrivate
-class Limbo implements Lockable, ProxyStore {
+class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	/**
 	 * A Predicate that is used to filter out empty sets.
@@ -120,7 +120,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getRecord().longValue() == record) {
@@ -139,7 +139,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getKey().toString().equals(key)
@@ -164,7 +164,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Map<String, Set<Value>> ktv = Maps.newHashMap();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			search: while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getRecord().longValue() == record) {
@@ -205,7 +205,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Set<TObject> values = Sets.newLinkedHashSet();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getTimestamp() <= timestamp) {
@@ -237,7 +237,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			Value value = Value.notForStorage(values[0]);
 			while (it.hasNext()) {
 				Write write = it.next();
@@ -314,6 +314,18 @@ class Limbo implements Lockable, ProxyStore {
 		return find(Time.now(), key, operator, values);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * <strong>NOTE:</strong> The subclass may override this method to provide
+	 * an iterator with granular locking functionality for increased throughput.
+	 * </p>
+	 */
+	@Override
+	public Iterator<Write> iterator() {
+		return writes.iterator();
+	}
+
 	@Override
 	public boolean ping(long record) {
 		return !describe(record).isEmpty();
@@ -346,7 +358,7 @@ class Limbo implements Lockable, ProxyStore {
 		Lock lock = readLock();
 		try {
 			Map<Long, Set<Value>> rtv = Maps.newHashMap();
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				Write write = it.next();
 				Value value = write.getValue();
@@ -385,7 +397,7 @@ class Limbo implements Lockable, ProxyStore {
 	public void transport(PermanentStore destination) {
 		Lock lock = readLock();
 		try {
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				destination.accept(it.next());
 				it.remove();
@@ -407,7 +419,7 @@ class Limbo implements Lockable, ProxyStore {
 		try {
 			Write comp = Write.notForStorage(key, value, record);
 			int count = 0;
-			Iterator<Write> it = writes.iterator();
+			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
 				Write write = it.next();
 				if(write.getTimestamp() <= timestamp) {
