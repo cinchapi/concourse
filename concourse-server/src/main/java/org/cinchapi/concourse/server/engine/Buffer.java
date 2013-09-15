@@ -58,7 +58,7 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
  */
 @ThreadSafe
 @PackagePrivate
-final class Buffer extends Limbo implements ProxyStore {
+final class Buffer extends Limbo {
 
 	/**
 	 * The average number of bytes used to store an arbitrary Write.
