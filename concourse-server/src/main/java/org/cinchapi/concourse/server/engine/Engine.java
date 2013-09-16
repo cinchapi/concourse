@@ -64,6 +64,17 @@ public final class Engine extends BufferedStore implements
 	final String baseStore; // visible for Transaction backups
 
 	/**
+	 * The thread that is responsible for transporting buffer content in the
+	 * background.
+	 */
+	private final Thread bufferTransportThread;
+
+	/**
+	 * A flag to indicate if the Engine is running or not.
+	 */
+	private boolean running;
+
+	/**
 	 * Construct an Engine that is made up of a {@link Buffer} and
 	 * {@link Database} in the default locations.
 	 */
@@ -93,6 +104,9 @@ public final class Engine extends BufferedStore implements
 	private Engine(Buffer buffer, Database database, String baseStore) {
 		super(buffer, database);
 		this.baseStore = baseStore;
+		this.running = true;
+		this.bufferTransportThread = new BufferTransportThread();
+		bufferTransportThread.start();
 	}
 
 	/*
@@ -137,6 +151,29 @@ public final class Engine extends BufferedStore implements
 	@Override
 	public Transaction startTransaction() {
 		return Transaction.start(this);
+	}
+
+	/**
+	 * A thread that is responsible for transporting content from
+	 * {@link #buffer} to {@link #destination}.
+	 * 
+	 * @author jnelson
+	 */
+	private class BufferTransportThread extends Thread {
+
+		@Override
+		public void run() {
+			while (running) {
+				buffer.transport(destination);
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
 	}
 
 }

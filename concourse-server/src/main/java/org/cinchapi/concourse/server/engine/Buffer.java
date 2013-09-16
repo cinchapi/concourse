@@ -27,8 +27,12 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.text.NumberFormat;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,10 +40,16 @@ import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.io.ByteableCollections;
 import org.cinchapi.common.io.Files;
 import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.common.multithread.Lockable;
+import org.cinchapi.common.multithread.Lockables;
+import org.cinchapi.common.time.Time;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Lists;
 
 import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
@@ -58,31 +68,35 @@ import static org.cinchapi.concourse.server.util.Loggers.getLogger;
  */
 @ThreadSafe
 @PackagePrivate
-final class Buffer extends Queue {
+final class Buffer extends Limbo {
 
 	/**
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
 	private static final int AVG_WRITE_SIZE = 72; /* arbitrary */
 	private static final Logger log = getLogger();
-	private static final NumberFormat pct;
-	static {
-		pct = NumberFormat.getPercentInstance();
-		pct.setMaximumFractionDigits(2);
-	}
 
 	/**
-	 * To guarantee data durability, the Buffer is backed by a file on disk that
-	 * is memory mapped. The content is package protected, so other classes that
-	 * access this member directly should handle with care.
+	 * The directory where the Buffer pages are stored.
 	 */
-	@PackagePrivate
-	final MappedByteBuffer content;
+	private final String directory;
 
 	/**
-	 * The amount of bytes that are currently occupied.
+	 * The sequence of Pages that make up the Buffer.
 	 */
-	private int occupied;
+	private final List<Page> pages = Lists.newArrayList();
+
+	/**
+	 * The transport lock makes it possible to append new Writes and transport
+	 * old writes concurrently while prohibiting reading the buffer and
+	 * transporting writes at the same time.
+	 */
+	private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
+
+	/**
+	 * A pointer to the current Page.
+	 */
+	private Page currentPage;
 
 	/**
 	 * Construct a Buffer that is backed by the default location, which is a
@@ -102,143 +116,232 @@ final class Buffer extends Queue {
 	 * 
 	 * @param backingStore
 	 */
-	public Buffer(String backingStore) {
-		this(backingStore, Properties.BUFFER_SIZE_IN_BYTES);
+	public Buffer(String directory) {
+		this.directory = directory;
+		// TODO check for any existing pages
+		addPage();
 	}
 
-	/**
-	 * Construct a Buffer that is backed by {@code backingStore} and is limited
-	 * to {@code size} bytes.
-	 * 
-	 * @param backingStore
-	 * @param size
-	 */
-	private Buffer(String backingStore, int size) {
-		super(size / AVG_WRITE_SIZE);
-		this.content = Files.map(backingStore, MapMode.READ_WRITE, 0, size);
-		Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
-		while (it.hasNext()) {
-			Write write = Write.fromByteBuffer(it.next());
-			insert(write); // this will only record the write in memory and not
-							// the backingStore (because its already there!)
-			occupied += write.size() + 4;
-			log.debug("Found existing write '{}' in the Buffer", write);
+	@Override
+	public Map<Long, String> audit(long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.audit(record);
 		}
-		log.info("Using Buffer at '{}' with a total capacity of {} bytes. "
-				+ "{} percent of the buffer is currently occupied.",
-				backingStore, size, usage());
-	}
-
-	/**
-	 * <p>
-	 * <strong>
-	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(PermanentStore)}.</em></strong>
-	 * </p>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean add(String key, TObject value, long record) {
-		if(!verify(key, value, record)) {
-			return append(Write.add(key, value, record));
+		finally {
+			transportLock.readLock().unlock();
 		}
-		return false;
 	}
 
-	/**
-	 * <p>
-	 * <strong>
-	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(PermanentStore)}.</em></strong>
-	 * </p>
-	 * {@inheritDoc}
-	 */
 	@Override
-	public boolean addUnsafe(String key, TObject value, long record) {
-		return append(Write.add(key, value, record));
-	}
-
-	/**
-	 * <p>
-	 * <strong>
-	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(PermanentStore)}.</em></strong>
-	 * </p>
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean remove(String key, TObject value, long record) {
-		if(verify(key, value, record)) {
-			return append(Write.remove(key, value, record));
+	public Map<Long, String> audit(String key, long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.audit(key, record);
 		}
-		return false;
+		finally {
+			transportLock.readLock().unlock();
+		}
 	}
 
-	/**
-	 * <p>
-	 * <strong>
-	 * <em>The caller of this method should catch a {@link BufferCapacityException}
-	 * and call {@link #transport(PermanentStore)}.</em></strong>
-	 * </p>
-	 * {@inheritDoc}
-	 */
 	@Override
-	public boolean removeUnsafe(String key, TObject value, long record) {
-		return append(Write.remove(key, value, record));
+	public Set<String> describe(long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.describe(record);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<String> describe(long record, long timestamp) {
+		transportLock.readLock().lock();
+		try {
+			return super.describe(record, timestamp);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<TObject> fetch(String key, long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.fetch(key, record);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<TObject> fetch(String key, long record, long timestamp) {
+		transportLock.readLock().lock();
+		try {
+			return super.fetch(key, record, timestamp);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> find(long timestamp, String key, Operator operator,
+			TObject... values) {
+		transportLock.readLock().lock();
+		try {
+			return super.find(timestamp, key, operator, values);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> find(String key, Operator operator, TObject... values) {
+		transportLock.readLock().lock();
+		try {
+			return super.find(key, operator, values);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Iterator<Write> iterator() {
+
+		return new Iterator<Write>() {
+
+			private Iterator<Page> pageIterator = pages.iterator();
+			private Iterator<Write> writeIterator = null;
+
+			{
+				flip();
+			}
+
+			@Override
+			public boolean hasNext() {
+				if(writeIterator == null) {
+					return false;
+				}
+				else if(writeIterator.hasNext()) {
+					return true;
+				}
+				else {
+					flip();
+					return hasNext();
+				}
+			}
+
+			@Override
+			public Write next() {
+				return writeIterator.next();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+
+			/**
+			 * Flip to the next page in the Buffer.
+			 */
+			private void flip() {
+				writeIterator = null;
+				if(pageIterator.hasNext()) {
+					Page next = pageIterator.next();
+					writeIterator = next.iterator();
+				}
+			}
+
+		};
+	}
+
+	@Override
+	public boolean ping(long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.ping(record);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> search(String key, String query) {
+		transportLock.readLock().lock();
+		try {
+			return super.search(key, query);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
 	}
 
 	/**
-	 * {@inheritDoc} This method will permanently remove writes from the
-	 * underlying {@link #content}.
+	 * {@inheritDoc} This method will transport the first write in the buffer.
 	 */
 	@Override
 	@Profiled(tag = "Buffer.transport", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void transport(PermanentStore destination) {
-		log.debug("Starting a Buffer flush...");
-		Lock lock = writeLock();
-		try {
-			Transporter transporter = new Transporter(this);
-			while (transporter.hasNext()) {
-				Write write = transporter.next();
-				destination.accept(write);
-				transporter.ack();
-				log.info("Transported '{}' from the Buffer", write);
-				occupied -= (write.size() + 4);
-				log.info("{} percent of the Buffer is now occupied", usage());
+		// It makes sense to only transport one write at a time because
+		// transporting blocks reading and all writes must read at least once,
+		// so we want to minimize the overhead per write.
+		if(pages.size() > 1 && transportLock.writeLock().tryLock()) {
+			try {
+				Page page = pages.get(0);
+				if(page.hasNext()) {
+					destination.accept(page.next());
+					page.remove();
+				}
+				else {
+					removePage();
+				}
 			}
-		}
-		finally {
-			lock.release();
+			finally {
+				transportLock.writeLock().unlock();
+			}
 		}
 	}
 
-	/**
-	 * Append {@code write} to the underlying backingStore and perform the
-	 * {@link #insert(Write)} function in memory.
-	 * 
-	 * @param write
-	 * @return
-	 * @throws BufferCapacityException - if the size of {@code write} is greater
-	 *             than the remaining capacity of the Buffer
-	 */
+	@Override
+	public boolean verify(String key, TObject value, long record) {
+		transportLock.readLock().lock();
+		try {
+			return super.verify(key, value, record);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+
+	}
+
+	@Override
+	public boolean verify(String key, TObject value, long record, long timestamp) {
+		transportLock.readLock().lock();
+		try {
+			return super.verify(key, value, record, timestamp);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
 	@Profiled(tag = "Buffer.write_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
-	private boolean append(Write write) throws BufferCapacityException {
+	protected boolean insert(Write write) {
 		Lock lock = writeLock();
 		try {
-			if(content.remaining() >= write.size() + 4) {
-				super.insert(write);
-				content.putInt(write.size());
-				content.put(write.getBytes());
-				content.force();
-				occupied += write.size() + 4;
-				log.info("{} percent of the Buffer is now occupied", usage());
-			}
-			else {
-				log.warn("Attempt to append '{}' to the Buffer failed "
-						+ "because there is insufficient capacity. "
-						+ "Please flush the Buffer.", write);
-				throw new BufferCapacityException();
-			}
+			currentPage.append(write);
+		}
+		catch (BufferCapacityException e) {
+			addPage();
+			insert(write);
 		}
 		finally {
 			lock.release();
@@ -247,17 +350,334 @@ final class Buffer extends Queue {
 	}
 
 	/**
-	 * Return a string that describes the percent usage for the Buffer.
-	 * 
-	 * @return a formatted description of the usage
+	 * Add a new Page to the Buffer.
 	 */
-	private String usage() {
-		Lock lock = readLock();
+	private void addPage() {
+		Lock lock = writeLock();
 		try {
-			return pct.format((double) occupied / content.capacity());
+			currentPage = new Page(Properties.BUFFER_PAGE_SIZE);
+			pages.add(currentPage);
+			log.debug("Added page {} to Buffer", currentPage);
 		}
 		finally {
 			lock.release();
 		}
 	}
+
+	/**
+	 * Remove the first page in the Buffer.
+	 */
+	private void removePage() {
+		Lock lock = writeLock();
+		try {
+			pages.remove(0).delete();
+		}
+		finally {
+			lock.release();
+		}
+	}
+
+	/**
+	 * A {@link Page} represents a granular section of the {@link Buffer}. Pages
+	 * are an append-only iterator over a sequence of {@link Write} objects.
+	 * Pages differ from other iterators because they do not advance in the
+	 * sequence until the {@link #remove()} method is called.
+	 * 
+	 * @author jnelson
+	 */
+	private class Page implements Iterator<Write>, Iterable<Write>, Lockable {
+
+		/**
+		 * The filename extension.
+		 */
+		private static final String ext = ".buf";
+
+		/**
+		 * The append-only list of {@link Write} objects on the Page. Elements
+		 * are never deleted from this list, but are marked as "removed"
+		 * depending on the location of the {@link #head} index.
+		 */
+		private final List<Write> writes;
+
+		/**
+		 * The append-only buffer that contains the content of the backing file
+		 * starting at position 4. Data is never deleted from the buffer, but is
+		 * marked as "removed" depending on the location of the {@link #pos}
+		 * marker.
+		 */
+		private final MappedByteBuffer content;
+
+		/**
+		 * The file that contains the content of the Page.
+		 */
+		private final String filename;
+
+		/**
+		 * <p>
+		 * Indicates the index in {@link #writes} that constitutes the first
+		 * element. When writes are "removed", elements are not actually deleted
+		 * from the list, so it is necessary to keep track of the head element
+		 * so that the correct next() element can be returned.
+		 * </p>
+		 * <p>
+		 * This value does not need to be stored to disk because the
+		 * {@link #pos} tracker ensures that, when reconstructing the page from
+		 * disk, only present Writes will be processed and added to the
+		 * {@link #writes} list, so the value of this variable should always be
+		 * 0 upon Page object construction.
+		 * </p>
+		 */
+		private transient int head = 0;
+
+		/**
+		 * <p>
+		 * Indicates the current cursor position in the {@link #content} buffer.
+		 * When writes are "removed" no data is actually deleted, so it is
+		 * necessary to keep track of the position for the next present Write so
+		 * that the page can be reconstructed from the file on disk in the
+		 * correct position, if necessary.
+		 * </p>
+		 * <p>
+		 * This variable is only held in memory. Whenever the value is updated,
+		 * it is immediately written to {@link #posbuf}.
+		 * </p>
+		 */
+		private transient int pos;
+
+		/**
+		 * A mapping for the first 4 bytes of the Page's backing file that holds
+		 * the current value of {@link #pos} so that the Page can be
+		 * reconstructed without reading old Writes in the event of a shutdown
+		 * before the page is deleted.
+		 */
+		private final MappedByteBuffer posbuf;
+
+		/**
+		 * Construct an empty Page with {@code capacity} bytes.
+		 * 
+		 * @param size
+		 */
+		public Page(int capacity) {
+			this(directory + File.separator + Time.now() + ext, capacity);
+		}
+
+		/**
+		 * Construct a Page that is backed by {@code filename}. Existing
+		 * content, if available, will be loaded from the file starting at the
+		 * position specified in {@link #pos}.
+		 * <p>
+		 * Please note that this constructor is designed to deserialize a
+		 * retired page, so the returned Object will be at capacity and unable
+		 * to append additional {@link Write} objects.
+		 * </p>
+		 * 
+		 * @param filename
+		 */
+		public Page(String filename) {
+			this(filename, Files.length(filename));
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param filename
+		 * @param capacity
+		 */
+		private Page(String filename, long capacity) {
+			this.filename = filename;
+			this.posbuf = Files.map(filename, MapMode.READ_WRITE, 0, 4);
+			this.pos = posbuf.getInt();
+			this.content = Files.map(filename, MapMode.READ_WRITE, 8, capacity);
+			this.writes = Lists
+					.newArrayListWithExpectedSize((int) (capacity / AVG_WRITE_SIZE));
+			content.position(pos);
+			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
+			while (it.hasNext()) {
+				Write write = Write.fromByteBuffer(it.next());
+				writes.add(write);
+				log.debug("Found existing write '{}' in the Buffer", write);
+			}
+		}
+
+		/**
+		 * Append {@code write} to the Page. This method <em>does not</em>
+		 * verify that {@link #content} has enough remaining capacity to store
+		 * {@code write}.
+		 * 
+		 * @param write
+		 * @throws BufferCapacityException - if the size of {@code write} is
+		 *             greater than the remaining capacity of {@link #content}
+		 */
+		public void append(Write write) throws BufferCapacityException {
+			Lock lock = writeLock();
+			try {
+				if(content.remaining() >= write.size() + 4) {
+					writes.add(write);
+					content.putInt(write.size());
+					content.put(write.getBytes());
+					content.force();
+				}
+				else {
+					throw new BufferCapacityException();
+				}
+			}
+			finally {
+				lock.release();
+			}
+		}
+
+		/**
+		 * Delete the page from disk. The Page object will reside in memory
+		 * until garbage collection.
+		 */
+		public void delete() {
+			Files.delete(filename);
+		}
+
+		/**
+		 * Returns {@code true} if {@link #head} is smaller than the largest
+		 * occupied index in {@link #writes}. This means that it is possible for
+		 * calls to this method to initially return {@code false} at t0, but
+		 * eventually return {@code true} at t1 if an element is added to the
+		 * Page between t0 and t1.
+		 */
+		@Override
+		public boolean hasNext() {
+			Lock lock = readLock();
+			try {
+				return head < writes.size();
+			}
+			finally {
+				lock.release();
+			}
+		}
+
+		/**
+		 * <p>
+		 * Returns an iterator that is appropriate for the append-only list of
+		 * {@link Write} objects that backs the Page. The iterator does not
+		 * support the {@link Iterator#remove()} method and only throws a
+		 * {@link ConcurrentModificationException} if an element is removed from
+		 * the Page using the {@link #remove()} method.
+		 * </p>
+		 * <p>
+		 * While the Page is, itself, an iterator (for transporting Writes), the
+		 * iterator returned from this method is appropriate for cases when it
+		 * is necessary to iterate through the page for reading.
+		 * </p>
+		 */
+		@Override
+		public Iterator<Write> iterator() {
+
+			return new Iterator<Write>() {
+
+				/**
+				 * The index of the "next" element in {@link #writes}.
+				 */
+				private int index = head;
+
+				/**
+				 * The distance between the {@link #head} element and the
+				 * {@code next} element. This is used to detect for concurrent
+				 * modifications.
+				 */
+				private int distance = 0;
+
+				@Override
+				public boolean hasNext() {
+					Lock lock = readLock();
+					try {
+						if(index - head != distance) {
+							throw new ConcurrentModificationException(
+									"A write has been removed from the Page");
+						}
+						return index < writes.size();
+					}
+					finally {
+						lock.release();
+					}
+				}
+
+				@Override
+				public Write next() {
+					Lock lock = readLock();
+					try {
+						if(index - head != distance) {
+							throw new ConcurrentModificationException(
+									"A write has been removed from the Page");
+						}
+						Write next = writes.get(index);
+						index++;
+						distance++;
+						return next;
+					}
+					finally {
+						lock.release();
+					}
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+
+				}
+
+			};
+		}
+
+		/**
+		 * Returns the Write at index {@link #head} in {@link #writes}.
+		 * <p>
+		 * <strong>NOTE:</strong>
+		 * <em>This method will return the same element on multiple
+		 * invocations until {@link #remove()} is called.</em>
+		 * </p>
+		 */
+		@Override
+		public Write next() {
+			Lock lock = readLock();
+			try {
+				return writes.get(head);
+			}
+			finally {
+				lock.release();
+			}
+		}
+
+		@Override
+		public Lock readLock() {
+			return Lockables.readLock(this);
+		}
+
+		/**
+		 * Simulates the removal of the head Write from the Page. This method
+		 * only updates the {@link #head} and {@link #pos} metadata and does not
+		 * actually delete any data, which is a performance optimization.
+		 */
+		@Override
+		public void remove() {
+			Lock lock = writeLock();
+			try {
+				Write write = next();
+				pos += write.size() + 4;
+				posbuf.rewind();
+				posbuf.putInt(pos);
+				head++;
+			}
+			finally {
+				lock.release();
+			}
+		}
+
+		@Override
+		public String toString(){
+			return filename;
+		}
+		
+		@Override
+		public Lock writeLock() {
+			return Lockables.writeLock(this);
+		}
+	}
+
 }

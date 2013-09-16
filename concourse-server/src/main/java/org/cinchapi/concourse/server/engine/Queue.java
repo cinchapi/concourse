@@ -32,8 +32,9 @@ import org.cinchapi.common.multithread.Lock;
 import com.google.common.collect.Lists;
 
 /**
- * A {@link Queue} is a form of {@link Limbo} that holds represents data as a
- * sequence of {@link Write} objects.
+ * A {@link Queue} is a very simple form of {@link Limbo} that represents
+ * data as a sequence of {@link Write} objects. New data is appended to the
+ * sequence and the returned {@link Iterator} traverses the list.
  * 
  * @author jnelson
  */
@@ -42,7 +43,7 @@ class Queue extends Limbo {
 
 	/**
 	 * Revisions are stored as a sequential list of {@link Write} objects, which
-	 * means most reads are <em>at least</em> a O(n) scan.
+	 * means most reads are <em>at least</em> an O(n) scan.
 	 */
 	protected final List<Write> writes;
 

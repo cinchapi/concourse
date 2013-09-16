@@ -74,6 +74,13 @@ public final class Properties {
 			"BUFFER_SIZE_IN_BYTES", 5242880);
 
 	/**
+	 * The number of bytes in a single {@link Journal} page. For optimal
+	 * performance, this value should be a multiple of 1024. TODO talk about tradeoffs big vs small page
+	 */
+	public static final int BUFFER_PAGE_SIZE = config.getInt(
+			"JOURNAL_PAGE_SIZE", 2048);
+
+	/**
 	 * The minimum number of characters to index for searches. This value
 	 * is usually equal to the number of characters a user must enter in
 	 * an autocomplete field before seeing suggestions or results. Smaller

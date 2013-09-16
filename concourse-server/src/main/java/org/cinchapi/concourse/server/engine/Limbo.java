@@ -297,8 +297,9 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * <strong>NOTE:</strong> The subclass may override this method to provide
-	 * an iterator with granular locking functionality for increased throughput.
+	 * <strong>NOTE:</strong> The subclass <em>may</em> override this method to
+	 * provide an iterator with granular locking functionality for increased
+	 * throughput.
 	 * </p>
 	 */
 	@Override
@@ -424,10 +425,10 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	/**
 	 * Insert {@code write} into the store. This method exists so that a
 	 * subclass can override the {@code add()} and {@code remove()} methods to
-	 * do additional things (i.e. when the {@link Buffer} copies the revision to
-	 * disk for durability) whilst using the same Write with the same
-	 * timestamp. In these cases, the overridden method should call this method
-	 * once it is ready to store {@code write} in memory.
+	 * do additional things (i.e. the case when the {@link Buffer} copies the
+	 * revision to disk for durability) whilst using the same Write with the
+	 * same timestamp. In these cases, the overridden method should call this
+	 * method once it is ready to store {@code write} in memory.
 	 * <p>
 	 * <em><strong>WARNING:</strong> This method does not verify that {@code write}
 	 * is a legal argument (i.e. when trying to add data there is no check done
