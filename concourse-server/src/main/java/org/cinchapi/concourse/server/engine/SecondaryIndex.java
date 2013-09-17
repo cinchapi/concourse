@@ -62,14 +62,13 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param filename
 	 */
 	@DoNotInvoke
 	public SecondaryIndex(String filename) {
 		super(filename);
 	}
-
-
 
 	@Override
 	protected Map<Value, Set<PrimaryKey>> __getMapType() {
@@ -144,7 +143,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.GREATER_THAN) {
-			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			TreeSet<Value> sortedValues = Sets
+					.newTreeSet(new ValueComparator());
+			sortedValues.addAll(history.keySet());
 			Iterator<Value> it = sortedValues.tailSet(value, false).iterator();
 			while (it.hasNext()) {
 				Value v = it.next();
@@ -152,7 +153,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			TreeSet<Value> sortedValues = Sets
+					.newTreeSet(new ValueComparator());
+			sortedValues.addAll(history.keySet());
 			Iterator<Value> it = sortedValues.tailSet(value, true).iterator();
 			while (it.hasNext()) {
 				Value v = it.next();
@@ -160,7 +163,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.LESS_THAN) {
-			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			TreeSet<Value> sortedValues = Sets
+					.newTreeSet(new ValueComparator());
+			sortedValues.addAll(history.keySet());
 			Iterator<Value> it = sortedValues.headSet(value, false).iterator();
 			while (it.hasNext()) {
 				Value v = it.next();
@@ -168,7 +173,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 			}
 		}
 		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			TreeSet<Value> sortedValues = Sets
+					.newTreeSet(new ValueComparator());
+			sortedValues.addAll(history.keySet());
 			Iterator<Value> it = sortedValues.headSet(value, true).iterator();
 			while (it.hasNext()) {
 				Value v = it.next();
@@ -178,7 +185,9 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 		else if(operator == Operator.BETWEEN) {
 			Preconditions.checkArgument(values.length > 1);
 			Value value2 = values[1];
-			TreeSet<Value> sortedValues = Sets.newTreeSet(history.keySet());
+			TreeSet<Value> sortedValues = Sets
+					.newTreeSet(new ValueComparator());
+			sortedValues.addAll(history.keySet());
 			Iterator<Value> it = sortedValues
 					.subSet(value, true, value2, false).iterator();
 			while (it.hasNext()) {
