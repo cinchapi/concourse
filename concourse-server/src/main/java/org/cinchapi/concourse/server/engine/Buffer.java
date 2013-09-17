@@ -27,11 +27,13 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,6 +52,8 @@ import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Longs;
 
 import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
@@ -117,8 +121,25 @@ final class Buffer extends Limbo {
 	 * @param backingStore
 	 */
 	public Buffer(String directory) {
+		Files.mkdirs(directory);
 		this.directory = directory;
-		// TODO check for any existing pages
+		SortedMap<File, Page> pageSorter = Maps
+				.newTreeMap(new Comparator<File>() {
+
+					@Override
+					public int compare(File o1, File o2) {
+						long t1 = Long.parseLong(o1.getName().split("\\.")[0]);
+						long t2 = Long.parseLong(o2.getName().split("\\.")[0]);
+						return Longs.compare(t1, t2);
+					}
+
+				});
+		for (File file : new File(directory).listFiles()) {
+			Page page = new Page(file.getAbsolutePath());
+			pageSorter.put(file, page);
+			log.info("Loadding existing Buffer page from {}...", page);
+		}
+		pages.addAll(pageSorter.values());
 		addPage();
 	}
 
@@ -487,7 +508,8 @@ final class Buffer extends Limbo {
 			this.filename = filename;
 			this.posbuf = Files.map(filename, MapMode.READ_WRITE, 0, 4);
 			this.pos = posbuf.getInt();
-			this.content = Files.map(filename, MapMode.READ_WRITE, 8, capacity);
+			this.content = Files.map(filename, MapMode.READ_WRITE, 4,
+					capacity - 4);
 			this.writes = Lists
 					.newArrayListWithExpectedSize((int) (capacity / AVG_WRITE_SIZE));
 			content.position(pos);
@@ -670,10 +692,10 @@ final class Buffer extends Limbo {
 		}
 
 		@Override
-		public String toString(){
+		public String toString() {
 			return filename;
 		}
-		
+
 		@Override
 		public Lock writeLock() {
 			return Lockables.writeLock(this);
