@@ -405,7 +405,26 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		if(content.capacity() > 0) {
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
 			while (it.hasNext()) {
-				append(new Revision(it.next()), false);
+				Revision revision = new Revision(it.next());
+				append(revision, false);
+				if(this instanceof SecondaryIndex) {
+					// Checking to see if the Record is one of its subclasses in
+					// an abstract constructor is very ugly, but this is
+					// necessary so that we can add items to a bloom filter as
+					// they are being read from disk. If we put this logic in
+					// the child constructor, then we would have to do a second
+					// iteration.
+					String[] parts = filename.split("\\/");
+					String key = parts[parts.length - 1].split("\\.")[0];
+					// We must add items to a bloom filter when deserializing in
+					// order to prevent that appearance of data loss (i.e. the
+					// bloom filter reporting that data does not exist, when it
+					// actually does).
+					context.getBloomFilters().add(key,
+							((Value) revision.getKey()).getQuantity(),
+							((PrimaryKey) revision.getValue()).longValue());
+
+				}
 			}
 		}
 		this.emptyValues = Mockito.mock(Set.class);

@@ -528,6 +528,13 @@ final class Buffer extends Limbo {
 			while (it.hasNext()) {
 				Write write = Write.fromByteBuffer(it.next());
 				writes.add(write);
+				// We must add items to a bloom filter when deserializing in
+				// order to prevent that appearance of data loss (i.e. the
+				// bloom filter reporting that data does not exist, when it
+				// actually does).
+				context.getBloomFilters().add(write.getKey().toString(),
+						write.getValue().getQuantity(),
+						write.getRecord().longValue());
 				log.debug("Found existing write '{}' in the Buffer", write);
 			}
 		}

@@ -169,6 +169,26 @@ public final class Engine extends BufferedStore implements
 		return Transaction.start(this);
 	}
 
+	@Override
+	public boolean verify(String key, TObject value, long record) {
+		return context.getBloomFilters().verify(key, value, record) ? super
+				.verify(key, value, record) : false;
+	}
+
+	@Override
+	public boolean verify(String key, TObject value, long record, long timestamp) {
+		return context.getBloomFilters().verify(key, value, record) ? super
+				.verify(key, value, record, timestamp) : false;
+	}
+
+	@Override
+	public boolean add(String key, TObject value, long record) {
+		if(super.add(key, value, record)){
+			context.getBloomFilters().add(key, value, record);
+		}
+		return false;
+	}
+
 	/**
 	 * A thread that is responsible for transporting content from
 	 * {@link #buffer} to {@link #destination}.
@@ -191,5 +211,4 @@ public final class Engine extends BufferedStore implements
 		}
 
 	}
-
 }
