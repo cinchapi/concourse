@@ -36,6 +36,7 @@ import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.tools.Numbers;
+import org.cinchapi.concourse.server.Context;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -59,22 +60,23 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * 
 	 * @param locator
 	 * @param parentStore
+	 * @param context
 	 */
 	@DoNotInvoke
-	public PrimaryRecord(PrimaryKey key, String parentStore) {
-		super(key, parentStore);
+	public PrimaryRecord(PrimaryKey key, String parentStore, Context context) {
+		super(key, parentStore, context);
 	}
 
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param filename
+	 * @param context
 	 */
 	@DoNotInvoke
-	public PrimaryRecord(String filename) {
-		super(filename);
+	public PrimaryRecord(String filename, Context context) {
+		super(filename, context);
 	}
-
-
 
 	@Override
 	protected Map<Text, Set<Value>> __getMapType() {

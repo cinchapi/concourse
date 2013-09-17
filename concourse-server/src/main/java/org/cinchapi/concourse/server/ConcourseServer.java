@@ -174,6 +174,12 @@ public class ConcourseServer implements ConcourseService.Iface {
 	private final Engine engine;
 
 	/**
+	 * The context that is passed to and around the Engine for global
+	 * configuration and state.
+	 */
+	private final Context context;
+
+	/**
 	 * The server maintains a collection of {@link Transaction} objects to
 	 * ensure that client requests are properly routed. When the client makes a
 	 * call to {@link #stage(AccessToken)}, a Transaction is started on the
@@ -211,7 +217,8 @@ public class ConcourseServer implements ConcourseService.Iface {
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
 		this.server = new TThreadPoolServer(args);
-		this.engine = new Engine(backingStore);
+		this.context = Context.getContext();
+		this.engine = new Engine(backingStore, context);
 	}
 
 	@Override

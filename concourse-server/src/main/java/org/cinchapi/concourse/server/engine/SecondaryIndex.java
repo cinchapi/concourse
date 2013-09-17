@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.base.Preconditions;
@@ -54,20 +55,22 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * 
 	 * @param locator
 	 * @param parentStore
+	 * @param context
 	 */
 	@DoNotInvoke
-	public SecondaryIndex(Text locator, String parentStore) {
-		super(locator, parentStore);
+	public SecondaryIndex(Text locator, String parentStore, Context context) {
+		super(locator, parentStore, context);
 	}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param filename
+	 * @param context
 	 */
 	@DoNotInvoke
-	public SecondaryIndex(String filename) {
-		super(filename);
+	public SecondaryIndex(String filename, Context context) {
+		super(filename, context);
 	}
 
 	@Override

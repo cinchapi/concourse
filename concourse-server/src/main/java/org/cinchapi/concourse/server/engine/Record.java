@@ -57,6 +57,7 @@ import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.tools.Numbers;
+import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.util.BinaryFiles;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -110,12 +111,13 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
+	 * @param context
 	 * @return the PrimaryRecord
 	 */
 	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key,
-			String parentStore) {
+			String parentStore, Context context) {
 		return open(PrimaryRecord.class, PrimaryKey.class, key, parentStore
-				+ File.separator + getLabel(PrimaryRecord.class));
+				+ File.separator + getLabel(PrimaryRecord.class), context);
 	}
 
 	/**
@@ -123,11 +125,13 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
+	 * @param context
 	 * @return the SearchIndex
 	 */
-	public static SearchIndex loadSearchIndex(Text key, String parentStore) {
+	public static SearchIndex loadSearchIndex(Text key, String parentStore,
+			Context context) {
 		return open(SearchIndex.class, Text.class, key, parentStore
-				+ File.separator + getLabel(SearchIndex.class));
+				+ File.separator + getLabel(SearchIndex.class), context);
 	}
 
 	/**
@@ -135,12 +139,14 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
+	 * @param context
 	 * @return the SecondaryIndex
 	 */
 	@Profiled(tag = "Record.loadCsi_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
-	public static SecondaryIndex loadSecondaryIndex(Text key, String parentStore) {
+	public static SecondaryIndex loadSecondaryIndex(Text key,
+			String parentStore, Context context) {
 		return open(SecondaryIndex.class, Text.class, key, parentStore
-				+ File.separator + getLabel(SecondaryIndex.class));
+				+ File.separator + getLabel(SecondaryIndex.class), context);
 	}
 
 	/**
@@ -175,9 +181,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param clazz
 	 * @param filename
+	 * @param context
 	 * @return the Record
 	 */
-	static <T> T open(Class<T> clazz, String filename) {
+	static <T> T open(Class<T> clazz, String filename, Context context) {
 		// Find RefereceCache for Record class
 		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
@@ -190,9 +197,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		T record = (T) cache.get(cacheKey);
 		if(record == null) {
 			try {
-				Constructor<T> constructor = clazz.getConstructor(String.class);
+				Constructor<T> constructor = clazz.getConstructor(String.class,
+						Context.class);
 				constructor.setAccessible(true);
-				record = constructor.newInstance(filename);
+				record = constructor.newInstance(filename, context);
 				cache.put(record, cacheKey);
 			}
 			catch (ReflectiveOperationException e) {
@@ -240,10 +248,12 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param locatorClass
 	 * @param locator
 	 * @param parentStore
+	 * @param context
 	 * @return the Record
 	 */
 	private static <T extends Record<L, ?, ?>, L extends Byteable> T open(
-			Class<T> clazz, Class<L> locatorClass, L locator, String parentStore) {
+			Class<T> clazz, Class<L> locatorClass, L locator,
+			String parentStore, Context context) {
 		// Find RefereceCache for Record class
 		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
@@ -257,9 +267,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		if(record == null) {
 			try {
 				Constructor<T> constructor = clazz.getConstructor(locatorClass,
-						String.class);
+						String.class, Context.class);
 				constructor.setAccessible(true);
-				record = constructor.newInstance(locator, parentStore);
+				record = constructor.newInstance(locator, parentStore, context);
 				cache.put(record, cacheKey);
 			}
 			catch (ReflectiveOperationException e) {
@@ -308,6 +318,12 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * filename to locator.
 	 */
 	private final transient String filename;
+
+	/**
+	 * The context that is passed to and around the Engine for global
+	 * configuration and state.
+	 */
+	protected final transient Context context;
 
 	/**
 	 * The size is equal to the first free byte in the backing file that can
@@ -359,8 +375,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param backingStore
 	 */
-	protected Record(L locator, String parentStore) {
-		this(getCacheKey(locator, parentStore), true);
+	protected Record(L locator, String parentStore, Context context) {
+		this(getCacheKey(locator, parentStore), true, context);
 	}
 
 	/**
@@ -369,8 +385,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param filename
 	 */
-	protected Record(String filename) {
-		this(filename, false);
+	protected Record(String filename, Context context) {
+		this(filename, false, context);
 	}
 
 	/**
@@ -380,8 +396,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param ext - set to {@code true} if it is necessary to append the
 	 *            appropriate extension to {@code filename} based on the Record
 	 *            type
+	 * @param context
 	 */
-	private Record(String filename, boolean ext) {
+	private Record(String filename, boolean ext, Context context) {
+		this.context = context;
 		this.filename = filename + (ext ? "." + getLabel(this.getClass()) : "");
 		ByteBuffer content = BinaryFiles.read(this.filename);
 		if(content.capacity() > 0) {

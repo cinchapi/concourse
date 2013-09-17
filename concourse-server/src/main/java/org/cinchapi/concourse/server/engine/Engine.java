@@ -30,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
@@ -70,6 +71,12 @@ public final class Engine extends BufferedStore implements
 	private final Thread bufferTransportThread;
 
 	/**
+	 * The context that is passed to and around the Engine for global
+	 * configuration and state.
+	 */
+	protected final transient Context context;
+
+	/**
 	 * A flag to indicate if the Engine is running or not.
 	 */
 	private boolean running;
@@ -77,9 +84,12 @@ public final class Engine extends BufferedStore implements
 	/**
 	 * Construct an Engine that is made up of a {@link Buffer} and
 	 * {@link Database} in the default locations.
+	 * 
+	 * @param context
 	 */
-	public Engine() {
-		this(new Buffer(), new Database(), Properties.DATA_HOME);
+	public Engine(Context context) {
+		this(new Buffer(context), new Database(context), Properties.DATA_HOME,
+				context);
 	}
 
 	/**
@@ -88,10 +98,12 @@ public final class Engine extends BufferedStore implements
 	 * Construct a new instance.
 	 * 
 	 * @param baseStore
+	 * @param context
 	 */
-	public Engine(String baseStore) {
-		this(new Buffer(baseStore + File.separator + "buffer"), new Database(
-				baseStore + File.separator + "db"), baseStore);
+	public Engine(String baseStore, Context context) {
+		this(new Buffer(baseStore + File.separator + "buffer", context),
+				new Database(baseStore + File.separator + "db", context),
+				baseStore, context);
 	}
 
 	/**
@@ -100,11 +112,15 @@ public final class Engine extends BufferedStore implements
 	 * 
 	 * @param buffer
 	 * @param database
+	 * @param baseStore
+	 * @param context
 	 */
-	private Engine(Buffer buffer, Database database, String baseStore) {
+	private Engine(Buffer buffer, Database database, String baseStore,
+			Context context) {
 		super(buffer, database);
 		this.baseStore = baseStore;
 		this.running = true;
+		this.context = context;
 		this.bufferTransportThread = new BufferTransportThread();
 		bufferTransportThread.start();
 	}

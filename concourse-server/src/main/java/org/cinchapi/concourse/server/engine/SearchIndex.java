@@ -32,6 +32,7 @@ import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.thrift.Type;
 
@@ -57,20 +58,22 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * 
 	 * @param key
 	 * @param parentStore
+	 * @param context
 	 */
 	@DoNotInvoke
-	public SearchIndex(Text key, String parentStore) {
-		super(key, parentStore);
+	public SearchIndex(Text key, String parentStore, Context context) {
+		super(key, parentStore, context);
 	}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param filename
+	 * @param context
 	 */
 	@DoNotInvoke
-	public SearchIndex(String filename) {
-		super(filename);
+	public SearchIndex(String filename, Context context) {
+		super(filename, context);
 	}
 
 	/**

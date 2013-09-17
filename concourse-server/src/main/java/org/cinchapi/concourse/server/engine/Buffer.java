@@ -45,6 +45,7 @@ import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.common.multithread.Lockable;
 import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.time.Time;
+import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -98,6 +99,12 @@ final class Buffer extends Limbo {
 	private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
 	/**
+	 * The context that is passed to and around the Engine for global
+	 * configuration and state.
+	 */
+	protected final transient Context context;
+
+	/**
 	 * A pointer to the current Page.
 	 */
 	private Page currentPage;
@@ -107,9 +114,11 @@ final class Buffer extends Limbo {
 	 * file called "buffer" in the {@link Properties#DATA_HOME} directory.
 	 * Existing content, if available, will be loaded from the file. Otherwise,
 	 * a new and empty Buffer will be returned.
+	 * 
+	 * @param context
 	 */
-	public Buffer() {
-		this(Properties.DATA_HOME + File.separator + "buffer");
+	public Buffer(Context context) {
+		this(Properties.DATA_HOME + File.separator + "buffer", context);
 	}
 
 	/**
@@ -118,11 +127,13 @@ final class Buffer extends Limbo {
 	 * content, if available, will be loaded from the file. Otherwise, a new and
 	 * empty Buffer will be returned.
 	 * 
-	 * @param backingStore
+	 * @param directory
+	 * @param context
 	 */
-	public Buffer(String directory) {
+	public Buffer(String directory, Context context) {
 		Files.mkdirs(directory);
 		this.directory = directory;
+		this.context = context;
 		SortedMap<File, Page> pageSorter = Maps
 				.newTreeMap(new Comparator<File>() {
 
@@ -137,7 +148,7 @@ final class Buffer extends Limbo {
 		for (File file : new File(directory).listFiles()) {
 			Page page = new Page(file.getAbsolutePath());
 			pageSorter.put(file, page);
-			log.info("Loadding existing Buffer page from {}...", page);
+			log.info("Loadding Buffer content from {}...", page);
 		}
 		pages.addAll(pageSorter.values());
 		addPage();
