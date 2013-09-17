@@ -162,6 +162,8 @@ final class Write implements Byteable {
 		this.record = PrimaryKey.fromByteBuffer(ByteBuffer.wrap(record));
 		byte[] key = new byte[bytes.getInt()];
 		byte[] value = new byte[bytes.getInt()];
+		bytes.get(key);
+		bytes.get(value);
 		this.key = Text.fromByteBuffer(ByteBuffer.wrap(key));
 		this.value = Value.fromByteBuffer(ByteBuffer.wrap(value));
 		this.size = bytes.capacity();
