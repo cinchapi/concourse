@@ -232,11 +232,11 @@ final class PrimaryKey extends Number implements
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(timestamp);
-		out.write(number);
-		out.close();
-		return out.toByteBuffer();
+		ByteBuffer bytes = ByteBuffer.allocate(SIZE);
+		bytes.putLong(timestamp);
+		bytes.putLong(number);
+		bytes.rewind();
+		return bytes;
 	}
 
 	@Override

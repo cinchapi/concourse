@@ -31,7 +31,6 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
@@ -39,7 +38,7 @@ import org.cinchapi.concourse.thrift.TObject;
 
 /**
  * A {@code Write} is the temporary representation of revision before it is
- * stored in the {@link Database} and indexed.
+ * stored and indexed in the {@link Database}.
  * <p>
  * A Write is a necessary component for two reasons:
  * <ul>
@@ -217,15 +216,15 @@ final class Write implements Byteable {
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(type);
-		out.write(record);
-		out.write(key.size());
-		out.write(value.size());
-		out.write(key);
-		out.write(value);
-		out.close();
-		return out.toByteBuffer();
+		ByteBuffer bytes = ByteBuffer.allocate(size);
+		bytes.putInt(type.ordinal());
+		bytes.put(record.getBytes());
+		bytes.putInt(key.size());
+		bytes.putInt(value.size());
+		bytes.put(key.getBytes());
+		bytes.put(value.getBytes());
+		bytes.rewind();
+		return bytes;
 	}
 
 	/**

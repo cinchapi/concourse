@@ -24,10 +24,10 @@
 package org.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.common.annotate.UtilityClass;
-import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.TObject;
@@ -52,38 +52,45 @@ public final class Convert {
 	 * @return the TObject
 	 */
 	public static TObject javaToThrift(Object object) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
+		ByteBuffer bytes;
 		Type type = null;
 		if(object instanceof Boolean) {
-			out.write((boolean) object);
+			bytes = ByteBuffer.allocate(1);
+			bytes.put((boolean) object ? (byte) 1 : (byte) 0);
 			type = Type.BOOLEAN;
 		}
 		else if(object instanceof Double) {
-			out.write((double) object);
+			bytes = ByteBuffer.allocate(8);
+			bytes.putDouble((double) object);
 			type = Type.DOUBLE;
 		}
 		else if(object instanceof Float) {
-			out.write((float) object);
+			bytes = ByteBuffer.allocate(4);
+			bytes.putFloat((float) object);
 			type = Type.FLOAT;
 		}
 		else if(object instanceof Link) {
-			out.write(((Link) object).longValue());
+			bytes = ByteBuffer.allocate(8);
+			bytes.putLong(((Link) object).longValue());
 			type = Type.LINK;
 		}
 		else if(object instanceof Long) {
-			out.write((long) object);
+			bytes = ByteBuffer.allocate(8);
+			bytes.putLong((long) object);
 			type = Type.LONG;
 		}
 		else if(object instanceof Integer) {
-			out.write((int) object);
+			bytes = ByteBuffer.allocate(4);
+			bytes.putInt((int) object);
 			type = Type.INTEGER;
 		}
 		else {
-			out.write(object.toString());
+			bytes = ByteBuffer.wrap(object.toString().getBytes(
+					StandardCharsets.UTF_8));
 			type = Type.STRING;
 		}
-		out.close();
-		return new TObject(out.toByteBuffer(), type);
+		bytes.rewind();
+		return new TObject(bytes, type);
 	}
 
 	/**

@@ -30,7 +30,6 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
 import org.cinchapi.common.time.Time;
@@ -281,12 +280,11 @@ final class Value implements Comparable<Value>, Storable {
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(timestamp);
-		out.write(quantity.getType().ordinal());
-		out.write(quantity.bufferForData());
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
+		ByteBuffer bytes = ByteBuffer.allocate(size);
+		bytes.putLong(timestamp);
+		bytes.putInt(quantity.getType().ordinal());
+		bytes.put(quantity.bufferForData());
+		bytes.rewind();
 		return bytes;
 	}
 
