@@ -78,7 +78,7 @@ final class Buffer extends Limbo {
 	/**
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
-	private static final int AVG_WRITE_SIZE = 72; /* arbitrary */
+	private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
 	private static final Logger log = getLogger();
 
 	/**
@@ -429,7 +429,7 @@ final class Buffer extends Limbo {
 		 * are never deleted from this list, but are marked as "removed"
 		 * depending on the location of the {@link #head} index.
 		 */
-		private final List<Write> writes;
+		private final Write[] writes;
 
 		/**
 		 * The append-only buffer that contains the content of the backing file
@@ -460,6 +460,11 @@ final class Buffer extends Limbo {
 		 * </p>
 		 */
 		private transient int head = 0;
+
+		/**
+		 * The total number of elements in the list of {@link #writes}.
+		 */
+		private transient int size = 0;
 
 		/**
 		 * <p>
@@ -521,13 +526,12 @@ final class Buffer extends Limbo {
 			this.pos = posbuf.getInt();
 			this.content = Files.map(filename, MapMode.READ_WRITE, 4,
 					capacity - 4);
-			this.writes = Lists
-					.newArrayListWithExpectedSize((int) (capacity / AVG_WRITE_SIZE));
+			this.writes = new Write[(int) (capacity / AVG_WRITE_SIZE)];
 			content.position(pos);
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
 			while (it.hasNext()) {
 				Write write = Write.fromByteBuffer(it.next());
-				writes.add(write);
+				insert(write);
 				// We must add items to a bloom filter when deserializing in
 				// order to prevent that appearance of data loss (i.e. the
 				// bloom filter reporting that data does not exist, when it
@@ -552,7 +556,7 @@ final class Buffer extends Limbo {
 			Lock lock = writeLock();
 			try {
 				if(content.remaining() >= write.size() + 4) {
-					writes.add(write);
+					insert(write);
 					content.putInt(write.size());
 					content.put(write.getBytes());
 					content.force();
@@ -585,7 +589,7 @@ final class Buffer extends Limbo {
 		public boolean hasNext() {
 			Lock lock = readLock();
 			try {
-				return head < writes.size();
+				return head < size;
 			}
 			finally {
 				lock.release();
@@ -631,7 +635,7 @@ final class Buffer extends Limbo {
 							throw new ConcurrentModificationException(
 									"A write has been removed from the Page");
 						}
-						return index < writes.size();
+						return index < size;
 					}
 					finally {
 						lock.release();
@@ -646,7 +650,7 @@ final class Buffer extends Limbo {
 							throw new ConcurrentModificationException(
 									"A write has been removed from the Page");
 						}
-						Write next = writes.get(index);
+						Write next = writes[index];
 						index++;
 						distance++;
 						return next;
@@ -677,7 +681,7 @@ final class Buffer extends Limbo {
 		public Write next() {
 			Lock lock = readLock();
 			try {
-				return writes.get(head);
+				return writes[head];
 			}
 			finally {
 				lock.release();
@@ -717,6 +721,29 @@ final class Buffer extends Limbo {
 		@Override
 		public Lock writeLock() {
 			return Lockables.writeLock(this);
+		}
+
+		/**
+		 * Insert {@code write} into the list of {@link #writes} and increment
+		 * the {@link #size} counter.
+		 * 
+		 * @param write
+		 * @throws BufferCapacityException
+		 */
+		private void insert(Write write) throws BufferCapacityException {
+			Lock lock = writeLock();
+			try {
+				if(size < writes.length) {
+					writes[size] = write;
+					size++;
+				}
+				else {
+					throw new BufferCapacityException();
+				}
+			}
+			finally {
+				lock.release();
+			}
 		}
 	}
 
