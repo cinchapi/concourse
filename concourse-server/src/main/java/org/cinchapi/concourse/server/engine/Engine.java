@@ -206,6 +206,7 @@ public final class Engine extends BufferedStore implements
 				}
 				catch (InterruptedException e) {
 					e.printStackTrace();
+					Thread.currentThread().interrupt();
 				}
 			}
 		}

@@ -110,10 +110,6 @@ abstract class BufferedStore implements
 			}
 			return false;
 		}
-		catch (BufferCapacityException e) {
-			buffer.transport(destination);
-			return add(key, value, record);
-		}
 		finally {
 			lock.release();
 		}

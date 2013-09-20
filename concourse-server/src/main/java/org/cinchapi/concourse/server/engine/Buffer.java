@@ -319,7 +319,6 @@ final class Buffer extends Limbo {
 	 * {@inheritDoc} This method will transport the first write in the buffer.
 	 */
 	@Override
-	@Profiled(tag = "Buffer.transport", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void transport(PermanentStore destination) {
 		// It makes sense to only transport one write at a time because
 		// transporting blocks reading and all writes must read at least once,
@@ -531,7 +530,7 @@ final class Buffer extends Limbo {
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
 			while (it.hasNext()) {
 				Write write = Write.fromByteBuffer(it.next());
-				insert(write);
+				index(write);
 				// We must add items to a bloom filter when deserializing in
 				// order to prevent that appearance of data loss (i.e. the
 				// bloom filter reporting that data does not exist, when it
@@ -556,7 +555,7 @@ final class Buffer extends Limbo {
 			Lock lock = writeLock();
 			try {
 				if(content.remaining() >= write.size() + 4) {
-					insert(write);
+					index(write);
 					content.putInt(write.size());
 					content.put(write.getBytes());
 					content.force();
@@ -576,6 +575,7 @@ final class Buffer extends Limbo {
 		 */
 		public void delete() {
 			Files.delete(filename);
+			log.info("Deleting Buffer page {}", filename);
 		}
 
 		/**
@@ -730,7 +730,7 @@ final class Buffer extends Limbo {
 		 * @param write
 		 * @throws BufferCapacityException
 		 */
-		private void insert(Write write) throws BufferCapacityException {
+		private void index(Write write) throws BufferCapacityException {
 			Lock lock = writeLock();
 			try {
 				if(size < writes.length) {
