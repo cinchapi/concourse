@@ -78,7 +78,7 @@ public final class Properties {
 	 * performance, this value should be a multiple of 1024. TODO talk about tradeoffs big vs small page
 	 */
 	public static final int BUFFER_PAGE_SIZE = config.getInt(
-			"JOURNAL_PAGE_SIZE", 2048);
+			"JOURNAL_PAGE_SIZE", 8192);
 
 	/**
 	 * The minimum number of characters to index for searches. This value
