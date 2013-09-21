@@ -48,14 +48,17 @@ public final class BinaryFiles {
 	 * @return the read only ByteBuffer with the content of {@code file}
 	 */
 	public static ByteBuffer read(String file) {
+		FileChannel channel = Files.getChannel(file);
 		try {
-			FileChannel channel = Files.getChannel(file);
 			MappedByteBuffer data = channel.map(MapMode.READ_ONLY, 0,
 					channel.size());
 			return data;
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);
+		}
+		finally {
+			Files.close(channel);
 		}
 	}
 

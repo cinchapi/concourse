@@ -26,10 +26,10 @@ package org.cinchapi.concourse.server.engine;
 import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +47,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBufferOutputStream;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.ByteableCollections;
@@ -615,12 +614,21 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		try {
 			int tSize = revision.size() + 4;
 			if(fsync) {
-				MappedByteBuffer buffer = Files.map(filename,
-						MapMode.READ_WRITE, size, tSize);
-				buffer.putInt(revision.size());
-				buffer.put(revision.getBytes());
-				buffer.force();
-				log.debug("Wrote {} bytes to {}.", tSize, filename);
+				FileChannel channel = Files.getChannel(filename);
+				try {
+					channel.position(size);
+					channel.write((ByteBuffer) ByteBuffer.allocate(4)
+							.putInt(revision.size()).rewind());
+					channel.write(revision.getBytes());
+					channel.force(false);
+					log.debug("Wrote {} bytes to {}.", tSize, filename);
+				}
+				catch (IOException e) {
+					throw Throwables.propagate(e);
+				}
+				finally {
+					Files.close(channel);
+				}
 			}
 
 			// Update revision count
@@ -762,13 +770,13 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 
 		@Override
 		public ByteBuffer getBytes() {
-			ByteBufferOutputStream out = new ByteBufferOutputStream();
-			out.write(key.size());
-			out.write(value.size());
-			out.write(key);
-			out.write(value);
-			out.close();
-			return out.toByteBuffer();
+			ByteBuffer buffer = ByteBuffer.allocate(size());
+			buffer.putInt(key.size());
+			buffer.putInt(value.size());
+			buffer.put(key.getBytes());
+			buffer.put(value.getBytes());
+			buffer.rewind();
+			return buffer;
 		}
 
 		/**
