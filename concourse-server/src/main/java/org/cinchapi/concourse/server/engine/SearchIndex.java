@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.engine;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,6 +57,17 @@ class SearchIndex extends Record<Text, Text, Position> {
 	/**
 	 * Construct a new instance.
 	 * 
+	 * @param filename
+	 * @param context
+	 */
+	@DoNotInvoke
+	public SearchIndex(String filename, Context context) {
+		super(filename, context);
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
 	 * @param key
 	 * @param parentStore
 	 * @param context
@@ -63,17 +75,6 @@ class SearchIndex extends Record<Text, Text, Position> {
 	@DoNotInvoke
 	public SearchIndex(Text key, String parentStore, Context context) {
 		super(key, parentStore, context);
-	}
-
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param filename
-	 * @param context
-	 */
-	@DoNotInvoke
-	public SearchIndex(String filename, Context context) {
-		super(filename, context);
 	}
 
 	/**
@@ -118,42 +119,19 @@ class SearchIndex extends Record<Text, Text, Position> {
 	@PackagePrivate
 	final void add(Value value, PrimaryKey key) {
 		if(value.getType() == Type.STRING) {
-			Lock lock = writeLock();
-			try {
-				Text text = Text.fromString((String) Convert.thriftToJava(value
-						.getQuantity()));
-				String[] toks = text.toString().split(" ");
-				int pos = 0;
-				for (String tok : toks) {
-					if(Properties.STOPWORDS.contains(tok)) {
-						continue;
-					}
-					for (int i = 0; i < tok.length(); i++) {
-						for (int j = i
-								+ (Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
-								.length() + 1; j++) {
-							Text index = Text.fromString(tok.substring(i, j));
-							if(!Strings.isNullOrEmpty(index.toString())) {
-								try {
-									add(index,
-											Position.fromPrimaryKeyAndMarker(
-													key, pos)); // *authorized*
-								}
-								catch (IllegalStateException
-										| IllegalArgumentException e) {
-									// This indicates that an attempt was made
-									// to add a duplicate index. In this
-									// instance it is safe to ignore these
-									// exceptions.
-								}
-							}
-						}
-					}
-					pos++;
-				}
+			Text text = Text.fromString((String) Convert.thriftToJava(value
+					.getQuantity()));
+			String[] toks = text.toString().split(" ");
+			int pos = 0;
+			ExecutorService executor = Threads
+					.newCachedThreadPool("search-index-worker");
+			for (String tok : toks) {
+				executor.submit(new IndexWorker(tok, pos, key));
+				pos++;
 			}
-			finally {
-				lock.release();
+			executor.shutdown();
+			while (!executor.isTerminated()) {
+				continue; // block until all tasks have completed
 			}
 		}
 	}
@@ -230,5 +208,58 @@ class SearchIndex extends Record<Text, Text, Position> {
 			reference = temp;
 		}
 		return reference.keySet();
+	}
+
+	/**
+	 * A {@link Runnable} that does the work to index a specified word at a
+	 * specified position.
+	 * 
+	 * @author jnelson
+	 */
+	private class IndexWorker implements Runnable {
+
+		private final String word;
+		private final int position;
+		private final PrimaryKey key;
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param word
+		 * @param position
+		 */
+		public IndexWorker(String word, int position, PrimaryKey key) {
+			this.word = word;
+			this.position = position;
+			this.key = key;
+		}
+
+		@Override
+		public void run() {
+			if(Properties.STOPWORDS.contains(word)) {
+				return;
+			}
+			for (int i = 0; i < word.length(); i++) {
+				for (int j = i + (Properties.SEARCH_INDEX_GRANULARITY - 1); j < word
+						.length() + 1; j++) {
+					Text index = Text.fromString(word.substring(i, j));
+					if(!Strings.isNullOrEmpty(index.toString())) {
+						try {
+							add(index, Position.fromPrimaryKeyAndMarker(key,
+									position)); // *authorized*
+						}
+						catch (IllegalStateException | IllegalArgumentException e) {
+							// This indicates that an attempt was made
+							// to add a duplicate index. In this
+							// instance it is safe to ignore these
+							// exceptions.
+							continue;
+						}
+					}
+				}
+			}
+
+		}
+
 	}
 }
