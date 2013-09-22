@@ -212,7 +212,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	}
 
 	@Override
-	protected Map<Text, Set<Value>> __getMapType() {
+	protected Map<Text, Set<Value>> mapType() {
 		return Maps.newHashMap();
 	}
 

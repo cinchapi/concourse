@@ -339,9 +339,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	/**
 	 * The index is used to efficiently determine the set of values currently
 	 * mapped from a key. The subclass should specify the appropriate type of
-	 * key sorting via the returned type for {@link #__getMapType()}.
+	 * key sorting via the returned type for {@link #mapType()}.
 	 */
-	protected final transient Map<K, Set<V>> present = __getMapType();
+	protected final transient Map<K, Set<V>> present = mapType();
 
 	/**
 	 * The index is used to efficiently see the number of times that a revision
@@ -513,7 +513,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @return the initialized mappings
 	 */
-	protected abstract Map<K, Set<V>> __getMapType();
+	protected abstract Map<K, Set<V>> mapType();
 
 	/**
 	 * Lazily retrieve an unmodifiable view of the current set of values mapped

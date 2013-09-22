@@ -31,7 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
@@ -41,12 +40,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
- * A grouping of data for efficient fulltext searching.
- * <p>
- * Each SerchIndex is identified by a {@code key} and maps a term index
- * (substring of a word) to a set of positions and provides an interface for
- * fulltext searching.
- * </p>
+ * A collection of n-gram indexes that enable fulltext infix searching. For
+ * every word in a {@link Value}, each substring index is mapped to a
+ * {@link Position}. The entire SearchIndex contains a collection of these
+ * mappings.
  * 
  * @author jnelson
  */
@@ -83,7 +80,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	@Override
 	@DoNotInvoke
 	public final void add(Text key, Position value) {
-		super.add(key, value);
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -97,9 +94,9 @@ class SearchIndex extends Record<Text, Text, Position> {
 			Text text = Text.fromString((String) Convert.thriftToJava(value
 					.getQuantity()));
 			String[] toks = text.toString().split(" ");
-			int pos = 0;
 			ExecutorService executor = Threads
 					.newCachedThreadPool("search-index-worker");
+			int pos = 0;
 			for (String tok : toks) {
 				executor.submit(new IndexWorker(tok, pos, key));
 				pos++;
@@ -117,7 +114,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	@Override
 	@DoNotInvoke
 	public final void remove(Text key, Position value) {
-		super.remove(key, value);
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -128,31 +125,19 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 */
 	public final void remove(Value value, PrimaryKey key) {
 		if(value.getType() == Type.STRING) {
-			Lock lock = writeLock();
-			try {
-				Text text = Text.fromString((String) Convert.thriftToJava(value
-						.getQuantity()));
-				String[] toks = text.toString().split(" ");
-				int pos = 0;
-				for (String tok : toks) {
-					if(Properties.STOPWORDS.contains(tok)) {
-						continue;
-					}
-					for (int i = 0; i < tok.length(); i++) {
-						for (int j = (i + Properties.SEARCH_INDEX_GRANULARITY - 1); j < tok
-								.length() + 1; j++) {
-							Text index = Text.fromString(tok.substring(i, j));
-							if(!Strings.isNullOrEmpty(index.toString())) {
-								remove(index, Position.fromPrimaryKeyAndMarker(
-										key, pos)); // **Authorized**
-							}
-						}
-					}
-					pos++;
-				}
+			Text text = Text.fromString((String) Convert.thriftToJava(value
+					.getQuantity()));
+			String[] toks = text.toString().split(" ");
+			ExecutorService executor = Threads
+					.newCachedThreadPool("search-deindex-worker");
+			int pos = 0;
+			for (String tok : toks) {
+				executor.submit(new DeIndexWorker(tok, pos, key));
+				pos++;
 			}
-			finally {
-				lock.release();
+			executor.shutdown();
+			while (!executor.isTerminated()) {
+				continue; // block until all tasks have completed
 			}
 		}
 	}
@@ -193,13 +178,13 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	@Override
-	protected Map<Text, Set<Position>> __getMapType() {
-		return Maps.newHashMap();
+	protected Class<Text> keyClass() {
+		return Text.class;
 	}
 
 	@Override
-	protected Class<Text> keyClass() {
-		return Text.class;
+	protected Map<Text, Set<Position>> mapType() {
+		return Maps.newHashMap();
 	}
 
 	@Override
@@ -208,8 +193,69 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	/**
+	 * Add an index for {@code key} to {@code value}.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	private void addIndex(Text key, Position value) {
+		super.add(key, value);
+	}
+
+	/**
+	 * Remove the index for {@code key} to {@code value}.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	private void removeIndex(Text key, Position value) {
+		super.remove(key, value);
+	}
+
+	/**
+	 * A {@link Runnable} that does the work to deindex a specified word at a
+	 * specified position in a specified record.
+	 * 
+	 * @author jnelson
+	 */
+	private class DeIndexWorker implements Runnable {
+		private final String word;
+		private final int position;
+		private final PrimaryKey key;
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param word
+		 * @param position
+		 */
+		public DeIndexWorker(String word, int position, PrimaryKey key) {
+			this.word = word;
+			this.position = position;
+			this.key = key;
+		}
+
+		@Override
+		public void run() {
+			if(Properties.STOPWORDS.contains(word)) {
+				return;
+			}
+			for (int i = 0; i < word.length(); i++) {
+				for (int j = (i + Properties.SEARCH_INDEX_GRANULARITY - 1); j < word
+						.length() + 1; j++) {
+					Text index = Text.fromString(word.substring(i, j));
+					if(!Strings.isNullOrEmpty(index.toString())) {
+						removeIndex(index,
+								Position.fromPrimaryKeyAndMarker(key, position));
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * A {@link Runnable} that does the work to index a specified word at a
-	 * specified position.
+	 * specified position in a specified record.
 	 * 
 	 * @author jnelson
 	 */
@@ -242,8 +288,8 @@ class SearchIndex extends Record<Text, Text, Position> {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
 						try {
-							add(index, Position.fromPrimaryKeyAndMarker(key,
-									position)); // *authorized*
+							addIndex(index, Position.fromPrimaryKeyAndMarker(
+									key, position));
 						}
 						catch (IllegalStateException | IllegalArgumentException e) {
 							// This indicates that an attempt was made

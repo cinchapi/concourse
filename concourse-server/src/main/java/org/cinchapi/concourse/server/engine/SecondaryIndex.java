@@ -103,7 +103,7 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	}
 
 	@Override
-	protected Map<Value, Set<PrimaryKey>> __getMapType() {
+	protected Map<Value, Set<PrimaryKey>> mapType() {
 		return Maps.newTreeMap(new ValueComparator());
 	}
 
