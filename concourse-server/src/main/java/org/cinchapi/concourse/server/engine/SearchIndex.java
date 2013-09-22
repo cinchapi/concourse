@@ -87,37 +87,12 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	/**
-	 * DO NOT CALL. Use {@link #remove(Value, PrimaryKey)} instead.
-	 */
-	@Override
-	@DoNotInvoke
-	public final void remove(Text key, Position value) {
-		super.remove(key, value);
-	}
-
-	@Override
-	protected Map<Text, Set<Position>> __getMapType() {
-		return Maps.newHashMap();
-	}
-
-	@Override
-	protected Class<Text> keyClass() {
-		return Text.class;
-	}
-
-	@Override
-	protected Class<Position> valueClass() {
-		return Position.class;
-	}
-
-	/**
 	 * Add fulltext indices for {@code} value to {@code key}.
 	 * 
 	 * @param value
 	 * @param key
 	 */
-	@PackagePrivate
-	final void add(Value value, PrimaryKey key) {
+	public final void add(Value value, PrimaryKey key) {
 		if(value.getType() == Type.STRING) {
 			Text text = Text.fromString((String) Convert.thriftToJava(value
 					.getQuantity()));
@@ -137,13 +112,21 @@ class SearchIndex extends Record<Text, Text, Position> {
 	}
 
 	/**
+	 * DO NOT CALL. Use {@link #remove(Value, PrimaryKey)} instead.
+	 */
+	@Override
+	@DoNotInvoke
+	public final void remove(Text key, Position value) {
+		super.remove(key, value);
+	}
+
+	/**
 	 * Remove the fulltext indices for {@code value} to {@code key}.
 	 * 
 	 * @param value
 	 * @param key
 	 */
-	@PackagePrivate
-	final void remove(Value value, PrimaryKey key) {
+	public final void remove(Value value, PrimaryKey key) {
 		if(value.getType() == Type.STRING) {
 			Lock lock = writeLock();
 			try {
@@ -180,8 +163,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @param query
 	 * @return the Set of PrimaryKeys
 	 */
-	@PackagePrivate
-	Set<PrimaryKey> search(Text query) {
+	public Set<PrimaryKey> search(Text query) {
 		Map<PrimaryKey, Integer> reference = Maps.newHashMap();
 		String[] toks = query.toString().split(" ");
 		boolean initial = true;
@@ -208,6 +190,21 @@ class SearchIndex extends Record<Text, Text, Position> {
 			reference = temp;
 		}
 		return reference.keySet();
+	}
+
+	@Override
+	protected Map<Text, Set<Position>> __getMapType() {
+		return Maps.newHashMap();
+	}
+
+	@Override
+	protected Class<Text> keyClass() {
+		return Text.class;
+	}
+
+	@Override
+	protected Class<Position> valueClass() {
+		return Position.class;
 	}
 
 	/**

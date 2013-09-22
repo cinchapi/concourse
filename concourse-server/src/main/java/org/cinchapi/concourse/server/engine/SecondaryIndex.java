@@ -30,6 +30,8 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
@@ -48,7 +50,20 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
+@ThreadSafe
+@PackagePrivate
 final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param filename
+	 * @param context
+	 */
+	@DoNotInvoke
+	public SecondaryIndex(String filename, Context context) {
+		super(filename, context);
+	}
 
 	/**
 	 * Construct a new instance.
@@ -63,14 +78,28 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	}
 
 	/**
-	 * Construct a new instance.
+	 * Return the PrimaryKeys that satisfied {@code operator} in relation to the
+	 * specified {@code values} at {@code timestamp}.
 	 * 
-	 * @param filename
-	 * @param context
+	 * @param timestamp
+	 * @param operator
+	 * @param values
+	 * @return the Set of PrimaryKeys that match the query
 	 */
-	@DoNotInvoke
-	public SecondaryIndex(String filename, Context context) {
-		super(filename, context);
+	public Set<PrimaryKey> find(long timestamp, Operator operator, Value... values) {
+		return find(true, timestamp, operator, values);
+	}
+
+	/**
+	 * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
+	 * in relation to the specified {@code values}.
+	 * 
+	 * @param operator
+	 * @param values
+	 * @return they Set of PrimaryKeys that match the query
+	 */
+	public Set<PrimaryKey> find(Operator operator, Value... values) {
+		return find(false, 0, operator, values);
 	}
 
 	@Override
@@ -86,33 +115,6 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	@Override
 	protected Class<PrimaryKey> valueClass() {
 		return PrimaryKey.class;
-	}
-
-	/**
-	 * Return the PrimaryKeys that satisfied {@code operator} in relation to the
-	 * specified {@code values} at {@code timestamp}.
-	 * 
-	 * @param timestamp
-	 * @param operator
-	 * @param values
-	 * @return the Set of PrimaryKeys that match the query
-	 */
-	@PackagePrivate
-	Set<PrimaryKey> find(long timestamp, Operator operator, Value... values) {
-		return find(true, timestamp, operator, values);
-	}
-
-	/**
-	 * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
-	 * in relation to the specified {@code values}.
-	 * 
-	 * @param operator
-	 * @param values
-	 * @return they Set of PrimaryKeys that match the query
-	 */
-	@PackagePrivate
-	Set<PrimaryKey> find(Operator operator, Value... values) {
-		return find(false, 0, operator, values);
 	}
 
 	/**

@@ -78,28 +78,12 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		super(filename, context);
 	}
 
-	@Override
-	protected Map<Text, Set<Value>> __getMapType() {
-		return Maps.newHashMap();
-	}
-
-	@Override
-	protected Class<Text> keyClass() {
-		return Text.class;
-	}
-
-	@Override
-	protected Class<Value> valueClass() {
-		return Value.class;
-	}
-
 	/**
 	 * Return a log of revision to the entire Record.
 	 * 
 	 * @return the revision log
 	 */
-	@PackagePrivate
-	Map<Long, String> audit() {
+	public Map<Long, String> audit() {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
@@ -119,8 +103,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param key
 	 * @return the revision log
 	 */
-	@PackagePrivate
-	Map<Long, String> audit(Text key) {
+	public Map<Long, String> audit(Text key) {
 		Lock lock = readLock();
 		try {
 			Map<Long, String> audit = Maps.newLinkedHashMap();
@@ -156,8 +139,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * 
 	 * @return the Set of non-empty field keys
 	 */
-	@PackagePrivate
-	Set<Text> describe() {
+	public Set<Text> describe() {
 		return describe(false, Storable.NIL);
 	}
 
@@ -168,8 +150,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param timestamp
 	 * @return the Set of non-empty field keys
 	 */
-	@PackagePrivate
-	Set<Text> describe(long timestamp) {
+	public Set<Text> describe(long timestamp) {
 		return describe(true, timestamp);
 	}
 
@@ -180,8 +161,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param key
 	 * @return the Set of contained values
 	 */
-	@PackagePrivate
-	Set<Value> fetch(Text key) {
+	public Set<Value> fetch(Text key) {
 		return fetch(key, false, Storable.NIL);
 	}
 
@@ -193,8 +173,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param timestamp
 	 * @return the Set of contained values
 	 */
-	@PackagePrivate
-	Set<Value> fetch(Text key, long timestamp) {
+	public Set<Value> fetch(Text key, long timestamp) {
 		return fetch(key, true, timestamp);
 	}
 
@@ -203,8 +182,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * 
 	 * @return {@code true} if {@link #describe()} is not an empty Set
 	 */
-	@PackagePrivate
-	boolean ping() {
+	public boolean ping() {
 		return !describe().isEmpty();
 	}
 
@@ -216,8 +194,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param value
 	 * @return {@code true} if {@code key} as {@code value} is a valid mapping
 	 */
-	@PackagePrivate
-	boolean verify(Text key, Value value) {
+	public boolean verify(Text key, Value value) {
 		return verify(key, value, false, Storable.NIL);
 	}
 
@@ -230,9 +207,23 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @param timestamp
 	 * @return {@code true} if {@code key} as {@code value} is a valid mapping
 	 */
-	@PackagePrivate
-	boolean verify(Text key, Value value, long timestamp) {
+	public boolean verify(Text key, Value value, long timestamp) {
 		return verify(key, value, true, timestamp);
+	}
+
+	@Override
+	protected Map<Text, Set<Value>> __getMapType() {
+		return Maps.newHashMap();
+	}
+
+	@Override
+	protected Class<Text> keyClass() {
+		return Text.class;
+	}
+
+	@Override
+	protected Class<Value> valueClass() {
+		return Value.class;
 	}
 
 	/**
