@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.engine;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.cinchapi.common.annotate.UtilityClass;
 import org.cinchapi.concourse.server.util.Loggers;
@@ -75,9 +76,19 @@ public final class Threads {
 	 * @return a new thread pool
 	 */
 	public static ExecutorService newThreadPool(int num, String threadNamePrefix) {
-		return Executors.newFixedThreadPool(num, new ThreadFactoryBuilder()
+		return Executors.newFixedThreadPool(num,
+				getThreadFactory(threadNamePrefix));
+	}
+
+	public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
+		return Executors
+				.newCachedThreadPool(getThreadFactory(threadNamePrefix));
+	}
+
+	private static ThreadFactory getThreadFactory(String threadNamePrefix) {
+		return new ThreadFactoryBuilder()
 				.setNameFormat(threadNamePrefix + "-%d")
-				.setUncaughtExceptionHandler(uncaughtExceptionHandler).build());
+				.setUncaughtExceptionHandler(uncaughtExceptionHandler).build();
 	}
 
 	/**
