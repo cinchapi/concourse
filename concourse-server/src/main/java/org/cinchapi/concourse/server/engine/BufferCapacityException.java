@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.model.Write;
 
 /**
  * An unchecked exception that is thrown when an attempt is made to insert a

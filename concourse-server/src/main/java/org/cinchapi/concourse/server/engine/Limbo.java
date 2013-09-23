@@ -37,6 +37,8 @@ import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.time.Time;
 import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.util.StringTools;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;

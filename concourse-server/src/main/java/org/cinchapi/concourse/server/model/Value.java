@@ -21,14 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteables;
@@ -64,8 +63,7 @@ import com.google.common.base.Objects;
  * @author jnelson
  */
 @Immutable
-@PackagePrivate
-final class Value implements Comparable<Value>, Storable {
+public final class Value implements Comparable<Value>, Storable {
 
 	/**
 	 * Return a Value that is appropriate for storage, with the current

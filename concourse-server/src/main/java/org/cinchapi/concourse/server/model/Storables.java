@@ -21,11 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.util.Comparator;
 
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.common.annotate.UtilityClass;
 
 import com.google.common.primitives.Longs;
 
@@ -34,8 +34,8 @@ import com.google.common.primitives.Longs;
  * 
  * @author jnelson
  */
-@PackagePrivate
-abstract class Storables {
+@UtilityClass
+public final class Storables {
 
 	/**
 	 * A comparator that sorts objects based on timestamp.
@@ -92,5 +92,7 @@ abstract class Storables {
 	public static <O extends Storable> int compare(O o1, O o2) {
 		return comparator.compare(o1, o2);
 	}
+
+	private Storables() {/* Utility Class */}
 
 }

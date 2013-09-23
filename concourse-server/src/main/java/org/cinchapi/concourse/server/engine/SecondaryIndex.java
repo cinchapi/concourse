@@ -35,6 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.common.annotate.DoNotInvoke;
 import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.ValueComparator;
 import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.base.Preconditions;

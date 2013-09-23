@@ -34,6 +34,10 @@ import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.model.Position;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Strings;

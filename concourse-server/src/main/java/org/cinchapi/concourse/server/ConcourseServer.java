@@ -461,7 +461,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	private void prepare() throws TTransportException {
-		log.info("concourse.home located at {}", context.properties().home());
+//		log.info("concourse.home located at {}", context.properties().home());
 //		long heap = Runtime.getRuntime().maxMemory() / 1048576;
 	}
 

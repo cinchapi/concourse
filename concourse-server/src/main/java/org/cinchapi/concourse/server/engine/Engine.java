@@ -32,6 +32,8 @@ import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.common.multithread.Lock;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.WriteType;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 
@@ -180,20 +182,20 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return context.bloomFilters().verify(key, value, record) ? super
+		return context.getBloomFilters().verify(key, value, record) ? super
 				.verify(key, value, record) : false;
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return context.bloomFilters().verify(key, value, record) ? super
+		return context.getBloomFilters().verify(key, value, record) ? super
 				.verify(key, value, record, timestamp) : false;
 	}
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
 		if(super.add(key, value, record)) {
-			context.bloomFilters().add(key, value, record);
+			context.getBloomFilters().add(key, value, record);
 		}
 		return false;
 	}

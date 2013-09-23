@@ -47,6 +47,7 @@ import org.cinchapi.common.multithread.Lockables;
 import org.cinchapi.common.time.Time;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.perf4j.aop.Profiled;
@@ -549,7 +550,7 @@ final class Buffer extends Limbo {
 				// order to prevent that appearance of data loss (i.e. the
 				// bloom filter reporting that data does not exist, when it
 				// actually does).
-				context.bloomFilters().add(write.getKey().toString(),
+				context.getBloomFilters().add(write.getKey().toString(),
 						write.getValue().getQuantity(),
 						write.getRecord().longValue());
 				log.debug("Found existing write '{}' in the Buffer", write);

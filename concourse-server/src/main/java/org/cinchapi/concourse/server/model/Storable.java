@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import org.cinchapi.common.io.Byteable;
 

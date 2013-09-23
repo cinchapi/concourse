@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 
@@ -55,8 +55,7 @@ import com.google.common.primitives.UnsignedLongs;
 // the linked PrimaryKey is stored as a {@link Value} which is expected to be
 // sorted amongst other values as if it were a Long.
 @Immutable
-@PackagePrivate
-final class PrimaryKey extends Number implements
+public final class PrimaryKey extends Number implements
 		Comparable<PrimaryKey>,
 		Storable {
 

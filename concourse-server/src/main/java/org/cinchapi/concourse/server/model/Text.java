@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -40,8 +40,7 @@ import org.cinchapi.common.io.Byteables;
  * @author jnelson
  */
 @Immutable
-@PackagePrivate
-final class Text implements Byteable, Comparable<Text> {
+public final class Text implements Byteable, Comparable<Text> {
 
 	/**
 	 * Return the Text encoded in {@code buffer} so long as those bytes adhere

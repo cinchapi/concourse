@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -34,6 +34,7 @@ import org.cinchapi.common.cache.ReferenceCache;
 import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.common.io.Byteable;
 import org.cinchapi.common.io.Byteables;
+import org.cinchapi.concourse.server.engine.Database;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -53,9 +54,8 @@ import org.cinchapi.concourse.thrift.TObject;
  * 
  * @author jnelson
  */
-@PackagePrivate
 @Immutable
-final class Write implements Byteable {
+public final class Write implements Byteable {
 
 	/**
 	 * Return a forStorage Write that represents a revision to ADD {@code key}

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -45,8 +45,7 @@ import org.cinchapi.common.io.Byteables;
  * @author jnelson
  */
 @Immutable
-@PackagePrivate
-final class Position implements Comparable<Position>, Storable {
+public final class Position implements Comparable<Position>, Storable {
 
 	/**
 	 * Return the Position encoded in {@code buffer} so long as those bytes
