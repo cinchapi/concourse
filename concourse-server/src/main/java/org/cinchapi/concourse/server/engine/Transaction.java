@@ -428,4 +428,9 @@ public final class Transaction extends BufferedStore {
 		}
 	}
 
+	@Override
+	public void start() {
+		// do nothing
+	}
+
 }

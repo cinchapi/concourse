@@ -213,6 +213,11 @@ interface Store {
 	public Set<Long> search(String key, String query);
 
 	/**
+	 * Start the service.
+	 */
+	public void start();
+
+	/**
 	 * Verify {@code key} equals {@code value} in {@code record}.
 	 * <p>
 	 * This method checks that there is <em>currently</em> a mapping from

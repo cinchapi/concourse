@@ -79,7 +79,7 @@ public final class Engine extends BufferedStore implements
 	/**
 	 * A flag to indicate if the Engine is running or not.
 	 */
-	private boolean running;
+	private boolean running = false;
 
 	/**
 	 * Construct an Engine that is made up of a {@link Buffer} and
@@ -119,10 +119,19 @@ public final class Engine extends BufferedStore implements
 			Context context) {
 		super(buffer, database);
 		this.baseStore = baseStore;
-		this.running = true;
 		this.context = context;
 		this.bufferTransportThread = new BufferTransportThread();
-		bufferTransportThread.start();
+	}
+
+	@Override
+	public void start() {
+		if(!running) {
+			log.info("Starting the Engine...");
+			running = true;
+			buffer.start();
+			destination.start();
+			bufferTransportThread.start();
+		}
 	}
 
 	/*
@@ -171,20 +180,20 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return context.getBloomFilters().verify(key, value, record) ? super
+		return context.bloomFilters().verify(key, value, record) ? super
 				.verify(key, value, record) : false;
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return context.getBloomFilters().verify(key, value, record) ? super
+		return context.bloomFilters().verify(key, value, record) ? super
 				.verify(key, value, record, timestamp) : false;
 	}
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		if(super.add(key, value, record)){
-			context.getBloomFilters().add(key, value, record);
+		if(super.add(key, value, record)) {
+			context.bloomFilters().add(key, value, record);
 		}
 		return false;
 	}

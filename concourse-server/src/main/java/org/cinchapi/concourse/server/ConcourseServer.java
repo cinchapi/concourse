@@ -81,39 +81,14 @@ public class ConcourseServer implements ConcourseService.Iface {
 			@Override
 			public void run() {
 				try {
-					printBanner();
+					server.prepare();
+					server.hello();
 					server.start();
 				}
 				catch (TTransportException e) {
 					e.printStackTrace();
 					System.exit(-1);
 				}
-			}
-
-			/**
-			 * Print the server banner to the console.
-			 */
-			public void printBanner() {
-				StringBuilder banner = new StringBuilder();
-				banner.append(" _____").append(System.lineSeparator());
-				banner.append("/  __ \\").append(System.lineSeparator());
-				banner.append(
-						"| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
-						.append(System.lineSeparator());
-				banner.append(
-						"| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
-						.append(System.lineSeparator());
-				banner.append(
-						"| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
-						.append(System.lineSeparator());
-				banner.append(
-						" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
-						.append(System.lineSeparator());
-				banner.append("").append(System.lineSeparator());
-				banner.append(
-						"Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
-						.append(System.lineSeparator());
-				System.out.print(banner);
 			}
 
 		}, "server-thread");
@@ -404,6 +379,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	public void start() throws TTransportException {
+		engine.start();
 		log.info("The Concourse server has started");
 		server.serve();
 
@@ -455,6 +431,38 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 */
 	private void expire(AccessToken token) throws SecurityException {
 		// TODO implement
+	}
+
+	/**
+	 * Print the server banner to the console.
+	 */
+	private void hello() {
+		StringBuilder banner = new StringBuilder();
+		banner.append(" _____").append(System.lineSeparator());
+		banner.append("/  __ \\").append(System.lineSeparator());
+		banner.append("| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
+				.append(System.lineSeparator());
+		banner.append("| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
+				.append(System.lineSeparator());
+		banner.append("| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
+				.append(System.lineSeparator());
+		banner.append(" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
+				.append(System.lineSeparator());
+		banner.append("").append(System.lineSeparator());
+		banner.append(
+				"Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
+				.append(System.lineSeparator());
+		System.out.print(banner);
+	}
+
+	/**
+	 * Prepare the server for startup by running health checks.
+	 * 
+	 * @throws TTransportException
+	 */
+	private void prepare() throws TTransportException {
+		log.info("concourse.home located at {}", context.properties().home());
+//		long heap = Runtime.getRuntime().maxMemory() / 1048576;
 	}
 
 	/**

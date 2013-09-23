@@ -110,6 +110,11 @@ final class Buffer extends Limbo {
 	private Page currentPage;
 
 	/**
+	 * A flag to indicate if the Buffer is running or not.
+	 */
+	private boolean running = false;
+
+	/**
 	 * Construct a Buffer that is backed by the default location, which is a
 	 * file called "buffer" in the {@link Properties#DATA_HOME} directory.
 	 * Existing content, if available, will be loaded from the file. Otherwise,
@@ -134,24 +139,6 @@ final class Buffer extends Limbo {
 		Files.mkdirs(directory);
 		this.directory = directory;
 		this.context = context;
-		SortedMap<File, Page> pageSorter = Maps
-				.newTreeMap(new Comparator<File>() {
-
-					@Override
-					public int compare(File o1, File o2) {
-						long t1 = Long.parseLong(o1.getName().split("\\.")[0]);
-						long t2 = Long.parseLong(o2.getName().split("\\.")[0]);
-						return Longs.compare(t1, t2);
-					}
-
-				});
-		for (File file : new File(directory).listFiles()) {
-			Page page = new Page(file.getAbsolutePath());
-			pageSorter.put(file, page);
-			log.info("Loadding Buffer content from {}...", page);
-		}
-		pages.addAll(pageSorter.values());
-		addPage();
 	}
 
 	@Override
@@ -312,6 +299,33 @@ final class Buffer extends Limbo {
 		}
 		finally {
 			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	public void start() {
+		if(!running) {
+			running = true;
+			SortedMap<File, Page> pageSorter = Maps
+					.newTreeMap(new Comparator<File>() {
+
+						@Override
+						public int compare(File o1, File o2) {
+							long t1 = Long
+									.parseLong(o1.getName().split("\\.")[0]);
+							long t2 = Long
+									.parseLong(o2.getName().split("\\.")[0]);
+							return Longs.compare(t1, t2);
+						}
+
+					});
+			for (File file : new File(directory).listFiles()) {
+				Page page = new Page(file.getAbsolutePath());
+				pageSorter.put(file, page);
+				log.info("Loadding Buffer content from {}...", page);
+			}
+			pages.addAll(pageSorter.values());
+			addPage();
 		}
 	}
 
@@ -535,7 +549,7 @@ final class Buffer extends Limbo {
 				// order to prevent that appearance of data loss (i.e. the
 				// bloom filter reporting that data does not exist, when it
 				// actually does).
-				context.getBloomFilters().add(write.getKey().toString(),
+				context.bloomFilters().add(write.getKey().toString(),
 						write.getValue().getQuantity(),
 						write.getRecord().longValue());
 				log.debug("Found existing write '{}' in the Buffer", write);

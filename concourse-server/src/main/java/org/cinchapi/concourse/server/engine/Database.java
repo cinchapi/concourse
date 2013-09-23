@@ -131,6 +131,11 @@ public class Database implements PermanentStore {
 	private final String backingStore;
 
 	/**
+	 * A flag to indicate if the Buffer is running or not.
+	 */
+	private boolean running = false;
+
+	/**
 	 * The context that is passed to and around the Engine for global
 	 * configuration and state.
 	 */
@@ -160,9 +165,6 @@ public class Database implements PermanentStore {
 	public Database(String backingStore, Context context) {
 		this.backingStore = backingStore;
 		this.context = context;
-		Threads.executeAndAwaitTermination("record-loader-thread",
-				new RecordLoader(SecondaryIndex.class), new RecordLoader(
-						SearchIndex.class));
 	}
 
 	@Override
@@ -259,6 +261,16 @@ public class Database implements PermanentStore {
 				loadSearchIndex(Text.fromString(key), backingStore, context)
 						.search(Text.fromString(query)),
 				Functions.PRIMARY_KEY_TO_LONG);
+	}
+
+	@Override
+	public void start() {
+		if(!running) {
+			running = true;
+			Threads.executeAndAwaitTermination("record-loader-thread",
+					new RecordLoader(SecondaryIndex.class), new RecordLoader(
+							SearchIndex.class));
+		}
 	}
 
 	@Override
