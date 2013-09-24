@@ -36,7 +36,9 @@ import java.util.concurrent.Executors;
 
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
@@ -176,7 +178,7 @@ public class Database implements PermanentStore {
 	@Override
 	@Profiled(tag = "Database.accept_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void accept(Write write) {
-		Threads.executeAndAwaitTermination(threadNamePrefix, Database
+		ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix, Database
 				.getWriteRunnable(
 						loadPrimaryRecord(write.getRecord(), backingStore,
 								context), write), Database.getWriteRunnable(
@@ -273,7 +275,7 @@ public class Database implements PermanentStore {
 	public void start() {
 		if(!running) {
 			running = true;
-			Threads.executeAndAwaitTermination("record-loader-thread",
+			ConcourseExecutors.executeAndAwaitTermination("record-loader-thread",
 					new RecordLoader(SecondaryIndex.class), new RecordLoader(
 							SearchIndex.class));
 		}
@@ -319,7 +321,7 @@ public class Database implements PermanentStore {
 			log.info("Loading existing {} files...", clazz.getSimpleName());
 			String label = Record.getLabel(clazz);
 			Path path = Paths.get(backingStore, label);
-			org.cinchapi.concourse.server.io.FileSystem.mkdirs(path.toString());
+			FileSystem.mkdirs(path.toString());
 			process(path);
 			executor.shutdown();
 			while (!executor.isTerminated()) {

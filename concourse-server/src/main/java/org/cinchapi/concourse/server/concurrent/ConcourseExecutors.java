@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.engine;
+package org.cinchapi.concourse.server.concurrent;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +40,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * @author jnelson
  */
 @UtilityClass
-public final class Threads {
+public final class ConcourseExecutors {
 
 	private static final Logger log = Loggers.getLogger();
 
@@ -59,7 +59,7 @@ public final class Threads {
 			public void uncaughtException(Thread t, Throwable e) {
 				log.warn("Uncaught exception in thread '{}'. This possibly "
 						+ "indicates that the system shutdown prematurely "
-						+ "during a buffer flushing operation.", t);
+						+ "during a buffer transport operation.", t);
 				log.warn("", e);
 
 			}
@@ -122,6 +122,6 @@ public final class Threads {
 		}
 	}
 
-	private Threads() {/* utility-class */}
+	private ConcourseExecutors() {/* utility-class */}
 
 }

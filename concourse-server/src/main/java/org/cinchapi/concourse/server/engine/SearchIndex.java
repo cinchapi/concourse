@@ -34,6 +34,7 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -98,7 +99,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 			Text text = Text.fromString((String) Convert.thriftToJava(value
 					.getQuantity()));
 			String[] toks = text.toString().split(" ");
-			ExecutorService executor = Threads
+			ExecutorService executor = ConcourseExecutors
 					.newCachedThreadPool("search-index-worker");
 			int pos = 0;
 			for (String tok : toks) {
@@ -132,7 +133,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 			Text text = Text.fromString((String) Convert.thriftToJava(value
 					.getQuantity()));
 			String[] toks = text.toString().split(" ");
-			ExecutorService executor = Threads
+			ExecutorService executor = ConcourseExecutors
 					.newCachedThreadPool("search-deindex-worker");
 			int pos = 0;
 			for (String tok : toks) {
