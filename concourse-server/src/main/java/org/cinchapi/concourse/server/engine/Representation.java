@@ -28,14 +28,14 @@ import java.util.Arrays;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.common.multithread.Lockable;
-import org.cinchapi.common.multithread.Lockables;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.cache.ReferenceCache;
+import org.cinchapi.concourse.server.concurrent.Lock;
+import org.cinchapi.concourse.server.concurrent.Lockable;
+import org.cinchapi.concourse.server.concurrent.Lockables;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Preconditions;
 

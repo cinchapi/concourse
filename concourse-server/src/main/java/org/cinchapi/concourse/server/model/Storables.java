@@ -25,7 +25,7 @@ package org.cinchapi.concourse.server.model;
 
 import java.util.Comparator;
 
-import org.cinchapi.common.annotate.UtilityClass;
+import org.cinchapi.concourse.annotate.UtilityClass;
 
 import com.google.common.primitives.Longs;
 

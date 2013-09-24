@@ -26,8 +26,8 @@ package org.cinchapi.concourse.server.engine;
 import java.util.Iterator;
 import java.util.List;
 
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Write;
 
 import com.google.common.collect.Lists;

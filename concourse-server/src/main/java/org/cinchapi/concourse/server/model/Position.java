@@ -28,12 +28,10 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBufferOutputStream;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteables;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.cache.ReferenceCache;
+import org.cinchapi.concourse.server.io.Byteables;
 
 /**
  * The association between a location and a {@link PrimaryKey}.
@@ -102,19 +100,19 @@ public final class Position implements Comparable<Position>, Storable {
 	 * The total number of bytes used to encoded each Position.
 	 */
 	@PackagePrivate
-	static final int SIZE = PrimaryKey.SIZE + 4; //index
+	static final int SIZE = PrimaryKey.SIZE + 4; // index
 
 	/**
 	 * A ReferenceCache is generated in {@link Byteables} for Positions read
 	 * from ByteBuffers, so this cache is only for notForStorage Positions.
 	 */
 	private static final ReferenceCache<Position> cache = new ReferenceCache<Position>();
-	
+
 	/**
 	 * The version of the PrimaryKey is used to version the Position.
 	 */
 	private final PrimaryKey key;
-	
+
 	/**
 	 * The numerical index the Position represents.
 	 */
@@ -149,8 +147,8 @@ public final class Position implements Comparable<Position>, Storable {
 	@Override
 	public int compareTo(Position o) {
 		int comparison = getPrimaryKey().compareTo(o.getPrimaryKey(), true);
-		return comparison == 0 ? Integer
-				.compare(getIndex(), o.getIndex()) : comparison;
+		return comparison == 0 ? Integer.compare(getIndex(), o.getIndex())
+				: comparison;
 	}
 
 	@Override
@@ -165,12 +163,11 @@ public final class Position implements Comparable<Position>, Storable {
 
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBufferOutputStream out = new ByteBufferOutputStream(PrimaryKey.SIZE);
-		out.write(key);
-		out.write(index);
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
-		return bytes;
+		ByteBuffer buffer = ByteBuffer.allocate(SIZE);
+		buffer.put(key.getBytes());
+		buffer.putInt(index);
+		buffer.rewind();
+		return buffer;
 	}
 
 	/**

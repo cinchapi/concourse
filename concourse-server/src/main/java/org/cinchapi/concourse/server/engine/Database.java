@@ -34,10 +34,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.tools.Transformers;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
@@ -47,6 +46,7 @@ import org.cinchapi.concourse.server.model.WriteType;
 import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.Transformers;
 import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
@@ -319,7 +319,7 @@ public class Database implements PermanentStore {
 			log.info("Loading existing {} files...", clazz.getSimpleName());
 			String label = Record.getLabel(clazz);
 			Path path = Paths.get(backingStore, label);
-			org.cinchapi.common.io.Files.mkdirs(path.toString());
+			org.cinchapi.concourse.server.io.Files.mkdirs(path.toString());
 			process(path);
 			executor.shutdown();
 			while (!executor.isTerminated()) {

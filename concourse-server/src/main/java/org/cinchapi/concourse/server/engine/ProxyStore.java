@@ -23,8 +23,8 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**

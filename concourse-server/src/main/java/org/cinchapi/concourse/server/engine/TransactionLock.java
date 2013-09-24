@@ -28,13 +28,13 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.io.ByteBufferOutputStream;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.io.Byteables;
-import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
+import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Preconditions;
 

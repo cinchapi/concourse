@@ -38,18 +38,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.io.ByteableCollections;
-import org.cinchapi.common.io.Files;
-import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.common.multithread.Lockable;
-import org.cinchapi.common.multithread.Lockables;
-import org.cinchapi.common.time.Time;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.concurrent.Lock;
+import org.cinchapi.concourse.server.concurrent.Lockable;
+import org.cinchapi.concourse.server.concurrent.Lockables;
+import org.cinchapi.concourse.server.io.ByteableCollections;
+import org.cinchapi.concourse.server.io.Files;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 

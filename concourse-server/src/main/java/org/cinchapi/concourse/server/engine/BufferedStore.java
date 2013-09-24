@@ -31,10 +31,10 @@ import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.common.multithread.Lockable;
-import org.cinchapi.common.multithread.Lockables;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
+import org.cinchapi.concourse.server.concurrent.Lockable;
+import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 

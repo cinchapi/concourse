@@ -29,7 +29,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
-import org.cinchapi.common.io.Files;
+import org.cinchapi.concourse.server.io.Files;
 
 import com.google.common.base.Throwables;
 

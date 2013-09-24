@@ -28,13 +28,11 @@ import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteable;
-import org.cinchapi.common.io.Byteables;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.engine.Database;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -289,7 +287,6 @@ public final class Write implements Byteable {
 	 * 
 	 * @return {@code true} if the Write is forStorage
 	 */
-	@PackagePrivate
 	public boolean isForStorage() {
 		return type != WriteType.NOT_FOR_STORAGE;
 	}
@@ -300,7 +297,6 @@ public final class Write implements Byteable {
 	 * 
 	 * @return {@code true} if the Write is notForStorage
 	 */
-	@PackagePrivate
 	public boolean isNotForStorage() {
 		return type == WriteType.NOT_FOR_STORAGE;
 	}
@@ -329,8 +325,7 @@ public final class Write implements Byteable {
 	 * @param other
 	 * @return {@code true} if this Write matches {@code other}
 	 */
-	@PackagePrivate
-	boolean matches(Write other) {
+	public boolean matches(Write other) {
 		return equals(other) && type == other.type;
 	}
 

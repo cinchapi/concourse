@@ -25,8 +25,8 @@ package org.cinchapi.concourse.server.model;
 
 import java.util.Comparator;
 
-import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Numbers;
 
 /**
  * A {@link Comparator} that sorts {@link Value} objects logically using weak

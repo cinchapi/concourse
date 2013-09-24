@@ -32,15 +32,15 @@ import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.common.tools.Numbers;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
+import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.util.Numbers;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;

@@ -1,0 +1,145 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.cinchapi.concourse.server.io;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+
+import org.cinchapi.concourse.util.ByteBuffers;
+
+import com.google.common.base.Throwables;
+
+/**
+ * Contains static factory methods to construct {@link Byteable} objects from
+ * ByteBuffers.
+ * <p>
+ * This class will automatically cache constructed objects in an appropriate
+ * {@link ReferenceCache}.
+ * </p>
+ * 
+ * @author jnelson
+ */
+public abstract class Byteables {
+
+	/**
+	 * Return an instance of {@code className} by reading {@code bytes}. This
+	 * method uses reflection to invoke the public single argument ByteBuffer
+	 * constructor in {@code className}.
+	 * <p>
+	 * <tt>Byteables.{@literal <Foo>}read(bytes, com.organization.module.Foo)</tt>
+	 * </p>
+	 * It is assumed that all the contents of {@code bytes} are relevant to the
+	 * object being read, so call
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or following this
+	 * protocol when using this method:
+	 * <ul>
+	 * <li>Set the position of the parent ByteBuffer to the index of the first
+	 * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
+	 * <li>Set the limit of the parent ByteBuffer to the index of its current
+	 * position + the size of the object (which is usually stored in the 4 bytes
+	 * preceding the object) using {@link ByteBuffer#limit(int)}.</li>
+	 * <li>Slice the parent buffer using {@link ByteBuffer#slice()}, which will
+	 * create a child buffer with the same content of the parent buffer between
+	 * its current position and its limit.</li>
+	 * </ul>
+	 * 
+	 * @param bytes
+	 * @param className the fully qualified class name
+	 * @return an instance of {@code className} read from {@code bytes}
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T read(ByteBuffer bytes, final String className) {
+		try {
+			return (T) read(bytes, Class.forName(className));
+		}
+		catch (ReflectiveOperationException e) {
+			throw Throwables.propagate(e);
+		}
+
+	}
+
+	/**
+	 * Return an instance of {@code classObj} by reading {@code bytes}. This
+	 * method uses reflection to invoke the public single argument ByteBuffer
+	 * constructor in {@code classObj}.
+	 * <p>
+	 * <tt>Byteables.read(bytes, Foo.class)</tt>
+	 * </p>
+	 * It is assumed that all the contents of {@code bytes} are relevant to the
+	 * object being read, so so call
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or following this
+	 * protocol when using this method:
+	 * <ul>
+	 * <li>Set the position of the parent ByteBuffer to the index of the first
+	 * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
+	 * <li>Set the limit of the parent ByteBuffer to the index of its current
+	 * position + the size of the object (which is usually stored in the 4 bytes
+	 * preceding the object) using {@link ByteBuffer#limit(int)}.</li>
+	 * <li>Slice the parent buffer using {@link ByteBuffer#slice()}, which will
+	 * create a child buffer with the same content of the parent buffer between
+	 * its current position and its limit.</li>
+	 * </ul>
+	 * 
+	 * @param bytes
+	 * @param classObj
+	 * @return an instance of {@code classObj} read from {@code bytes}
+	 */
+	public static <T> T read(ByteBuffer bytes, Class<T> classObj) {
+		try {
+			Constructor<T> constructor = classObj
+					.getConstructor(ByteBuffer.class);
+			constructor.setAccessible(true);
+			return constructor.newInstance(bytes);
+
+		}
+		catch (ReflectiveOperationException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+
+	/**
+	 * Write {@code object} to {@code channel} starting at the channel's current
+	 * position.
+	 * 
+	 * @param obj
+	 * @param channel
+	 */
+	public static void write(Byteable object, FileChannel channel) {
+		try {
+			FileLock lock = channel.lock(channel.position(), object.size(),
+					false);
+			channel.write(object.getBytes());
+			channel.force(true);
+			lock.release();
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+
+	}
+
+}

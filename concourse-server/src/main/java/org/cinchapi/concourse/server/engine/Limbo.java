@@ -30,19 +30,19 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
-import org.cinchapi.common.multithread.Lockable;
-import org.cinchapi.common.multithread.Lockables;
-import org.cinchapi.common.time.Time;
-import org.cinchapi.common.tools.Numbers;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Numbers;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
+import org.cinchapi.concourse.server.concurrent.Lockable;
+import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.util.StringTools;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.time.Time;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;

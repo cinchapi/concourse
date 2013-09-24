@@ -29,9 +29,9 @@ import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.model.Position;

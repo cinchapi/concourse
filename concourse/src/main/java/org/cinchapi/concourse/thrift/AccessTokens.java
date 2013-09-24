@@ -26,8 +26,8 @@ package org.cinchapi.concourse.thrift;
 import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.cinchapi.common.time.Time;
-import org.cinchapi.common.tools.RandomStringGenerator;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.RandomStringGenerator;
 
 /**
  * 

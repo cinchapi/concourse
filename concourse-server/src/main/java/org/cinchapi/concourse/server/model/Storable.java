@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.common.io.Byteable;
+import org.cinchapi.concourse.server.io.Byteable;
 
 /**
  * A {@link Byteable} object that can be versioned by a unique timestamp and

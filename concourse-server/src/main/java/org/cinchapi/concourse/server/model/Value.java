@@ -27,13 +27,13 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteables;
-import org.cinchapi.common.time.Time;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.cache.ReferenceCache;
+import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Objects;
 

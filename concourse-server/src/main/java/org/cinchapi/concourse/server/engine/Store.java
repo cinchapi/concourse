@@ -26,7 +26,7 @@ package org.cinchapi.concourse.server.engine;
 import java.util.Map;
 import java.util.Set;
 
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 

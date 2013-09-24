@@ -1,0 +1,12 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+  <aspects>
+    <aspect name="org.perf4j.slf4j.aop.TimingAspect"/>
+  </aspects>
+
+  <weaver options="-verbose -showWeaveInfo">
+    <include within="org.cinchapi.concourse.server.engine.*"/>
+    <include within="org.perf4j.slf4j.aop.*"/>
+	<include within="org.perf4j.aop.*"/>
+  </weaver>
+</aspectj>

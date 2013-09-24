@@ -27,11 +27,11 @@ import java.io.File;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.multithread.Lock;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
+import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.model.WriteType;
 import org.cinchapi.concourse.thrift.TObject;

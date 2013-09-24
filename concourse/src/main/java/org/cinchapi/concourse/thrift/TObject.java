@@ -16,7 +16,7 @@ import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.EncodingUtils;
 import org.apache.thrift.TException;
-import org.cinchapi.common.io.ByteBuffers;
+import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 
 import java.util.List;

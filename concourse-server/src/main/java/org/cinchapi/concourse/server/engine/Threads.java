@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import org.cinchapi.common.annotate.UtilityClass;
+import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.server.util.Loggers;
 import org.slf4j.Logger;
 

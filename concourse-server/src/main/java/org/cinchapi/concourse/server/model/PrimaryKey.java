@@ -27,13 +27,11 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.DoNotInvoke;
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
-import org.cinchapi.common.io.ByteBufferOutputStream;
-import org.cinchapi.common.io.ByteBuffers;
-import org.cinchapi.common.io.Byteables;
-import org.cinchapi.common.time.Time;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.cache.ReferenceCache;
+import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.time.Time;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.UnsignedLongs;
@@ -114,23 +112,6 @@ public final class PrimaryKey extends Number implements
 			cache.put(key, cacheKey);
 		}
 		return key;
-	}
-
-	/**
-	 * Encode {@code key} and {@code timestamp} into a ByteBuffer that
-	 * conforms to the format specified for {@link PrimaryKey#getBytes()}.
-	 * 
-	 * @param key
-	 * @param timestamp
-	 * @return the ByteBuffer encoding
-	 */
-	static ByteBuffer encodeAsByteBuffer(long key, long timestamp) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream(SIZE);
-		out.write(timestamp);
-		out.write(key);
-		ByteBuffer bytes = out.toByteBuffer();
-		out.close();
-		return bytes;
 	}
 
 	@PackagePrivate

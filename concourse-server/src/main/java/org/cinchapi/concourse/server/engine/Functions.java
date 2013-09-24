@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import org.cinchapi.common.annotate.PackagePrivate;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;

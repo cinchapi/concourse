@@ -27,9 +27,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import org.cinchapi.common.annotate.UtilityClass;
-import org.cinchapi.common.io.ByteBuffers;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 import org.joda.time.DateTime;

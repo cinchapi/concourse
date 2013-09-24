@@ -25,8 +25,8 @@ package org.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.common.annotate.PackagePrivate;
-import org.cinchapi.common.cache.ReferenceCache;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.cache.ReferenceCache;
 
 import com.google.common.primitives.Longs;
 

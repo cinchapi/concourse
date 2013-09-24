@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.cinchapi.common.annotate.UtilityClass;
-import org.cinchapi.common.configuration.Configurations;
+import org.cinchapi.concourse.annotate.UtilityClass;
+import org.cinchapi.concourse.configuration.Configurations;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
