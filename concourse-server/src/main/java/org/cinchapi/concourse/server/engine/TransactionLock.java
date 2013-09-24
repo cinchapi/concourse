@@ -31,7 +31,6 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -123,11 +122,11 @@ public class TransactionLock implements Lock, Byteable {
 
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(source);
-		out.write(type);
-		out.close();
-		return out.toByteBuffer();
+		ByteBuffer buffer = ByteBuffer.allocate(SIZE);
+		buffer.put(source.getBytes());
+		buffer.putInt(type.ordinal());
+		buffer.rewind();
+		return buffer;
 	}
 
 	/**
