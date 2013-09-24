@@ -144,7 +144,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the Set of non-empty field keys
 	 */
 	public Set<Text> describe() {
-		return describe(false, Storable.NIL);
+		return describe(false, Storable.NO_TIMESTAMP);
 	}
 
 	/**
@@ -166,7 +166,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the Set of contained values
 	 */
 	public Set<Value> fetch(Text key) {
-		return fetch(key, false, Storable.NIL);
+		return fetch(key, false, Storable.NO_TIMESTAMP);
 	}
 
 	/**
@@ -199,7 +199,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return {@code true} if {@code key} as {@code value} is a valid mapping
 	 */
 	public boolean verify(Text key, Value value) {
-		return verify(key, value, false, Storable.NIL);
+		return verify(key, value, false, Storable.NO_TIMESTAMP);
 	}
 
 	/**

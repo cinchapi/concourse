@@ -29,7 +29,8 @@ import org.cinchapi.common.io.Byteable;
  * A {@link Byteable} object that can be versioned by a unique timestamp and
  * appended sequentially to disk. The timestamp is stored directly with the
  * object so the version information does not change when the object's storage
- * context changes.
+ * context changes (i.e. buffer transport, data replication, cluster rebalance,
+ * etc).
  * 
  * @author jnelson
  */
@@ -38,14 +39,14 @@ public interface Storable extends Byteable {
 	/**
 	 * Represents a null timestamp, indicating the object is notForStorage.
 	 */
-	public static final long NIL = 0;
+	public static final long NO_TIMESTAMP = 0;
 
 	/**
 	 * Return {@code true} if {@code obj} is <em>logically</em> equal to this
 	 * one, meaning all of its attributes other than its {@code timestamp} are
 	 * equal to those in this object. The associated {@code timestamp} only
 	 * versions the object and does not alter its essence in relation to other
-	 * objects outside of sequential sorting.
+	 * objects outside of temporal sorting.
 	 */
 	@Override
 	public boolean equals(Object obj);
@@ -54,7 +55,7 @@ public interface Storable extends Byteable {
 	 * Return the <em>logical</em> hash code value for this object, which does
 	 * not take the {@code timestamp} into account. The associated
 	 * {@code timestamp} only versions the object and does not alter its essence
-	 * in relation to other objects outside of sequential sorting.
+	 * in relation to other objects outside of temporal sorting.
 	 * 
 	 * @return the hash code
 	 */
@@ -64,7 +65,7 @@ public interface Storable extends Byteable {
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique
 	 * amongst forStorage objects. For notForStorage objects, the timestamp is
-	 * always {@link #NIL}.
+	 * always {@link #NO_TIMESTAMP}.
 	 * 
 	 * @return the {@code timestamp}
 	 */
@@ -82,7 +83,7 @@ public interface Storable extends Byteable {
 	 * Return {@code true} if the object is not versioned and therefore not
 	 * appropriate for storage.
 	 * 
-	 * @return {@code true} if the timestamp is {@link #NIL}.
+	 * @return {@code true} if the timestamp is {@link #NO_TIMESTAMP}.
 	 */
 	boolean isNotForStorage();
 

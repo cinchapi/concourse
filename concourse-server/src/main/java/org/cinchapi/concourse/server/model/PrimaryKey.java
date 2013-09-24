@@ -107,7 +107,7 @@ public final class PrimaryKey extends Number implements
 	 * @return the PrimaryKey
 	 */
 	public static PrimaryKey notForStorage(long value) {
-		Object[] cacheKey = { value, NIL };
+		Object[] cacheKey = { value, NO_TIMESTAMP };
 		PrimaryKey key = cache.get(cacheKey);
 		if(key == null) {
 			key = new PrimaryKey(value);
@@ -179,7 +179,7 @@ public final class PrimaryKey extends Number implements
 	 * @param number
 	 */
 	private PrimaryKey(long number) {
-		this(number, NIL);
+		this(number, NO_TIMESTAMP);
 	}
 
 	/**

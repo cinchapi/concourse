@@ -107,7 +107,7 @@ public final class Value implements Comparable<Value>, Storable {
 	 * @return the Value
 	 */
 	public static Value notForStorage(TObject quantity) {
-		Object[] cacheKey = { quantity, NIL };
+		Object[] cacheKey = { quantity, NO_TIMESTAMP };
 		Value value = cache.get(quantity, cacheKey);
 		if(value == null) {
 			value = new Value(quantity);
@@ -199,7 +199,7 @@ public final class Value implements Comparable<Value>, Storable {
 	 * @param quantity
 	 */
 	private Value(TObject quantity) {
-		this(quantity, NIL);
+		this(quantity, NO_TIMESTAMP);
 	}
 
 	/**

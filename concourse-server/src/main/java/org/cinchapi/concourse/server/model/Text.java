@@ -84,7 +84,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	/**
 	 * Represents an empty text string, which has a timestamp of
-	 * {@value Storable#NIL} and occupies {@value #CONSTANT_SIZE} bytes.
+	 * {@value Storable#NO_TIMESTAMP} and occupies {@value #CONSTANT_SIZE} bytes.
 	 */
 	@PackagePrivate
 	static final Text EMPTY = Text.fromString("");
