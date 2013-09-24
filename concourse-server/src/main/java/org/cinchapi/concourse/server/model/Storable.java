@@ -26,16 +26,10 @@ package org.cinchapi.concourse.server.model;
 import org.cinchapi.common.io.Byteable;
 
 /**
- * <p>
- * A {@link Byteable} object that is held within a {@link Field}.
- * </p>
- * <p>
- * Each {@code Storable} object is versioned by a unique timestamp. The
- * timestamp is stored directly with the object so that the version information
- * does not change when the object's storage context changes (i.e. when the
- * write buffer is flushed, when data is replicated, or when shards are
- * re-balanced, etc).
- * </p>
+ * A {@link Byteable} object that can be versioned by a unique timestamp and
+ * appended sequentially to disk. The timestamp is stored directly with the
+ * object so the version information does not change when the object's storage
+ * context changes.
  * 
  * @author jnelson
  */
@@ -47,52 +41,49 @@ public interface Storable extends Byteable {
 	public static final long NIL = 0;
 
 	/**
-	 * This method does not take timestamp into account because it is expected
-	 * that there will be instances when two objects have different timestamps
-	 * but are otherwise equal and should be treated as such. The associated
-	 * #timestamp is meant to version the object and not necessarily to alter
-	 * its essence in relation to other objects outside of temporal sorting.
+	 * Return {@code true} if {@code obj} is <em>logically</em> equal to this
+	 * one, meaning all of its attributes other than its {@code timestamp} are
+	 * equal to those in this object. The associated {@code timestamp} only
+	 * versions the object and does not alter its essence in relation to other
+	 * objects outside of sequential sorting.
 	 */
 	@Override
 	public boolean equals(Object obj);
 
 	/**
-	 * This method does not take timestamp into account because it is expected
-	 * that there will be instances when two objects have different timestamps
-	 * but otherwise hash to the same value and should be treated as such. The
-	 * associated #timestamp is meant to version the object and not necessarily
-	 * to alter its essence in relation to other objects outside of temporal
-	 * sorting.
+	 * Return the <em>logical</em> hash code value for this object, which does
+	 * not take the {@code timestamp} into account. The associated
+	 * {@code timestamp} only versions the object and does not alter its essence
+	 * in relation to other objects outside of sequential sorting.
 	 * 
-	 * @return
+	 * @return the hash code
 	 */
 	@Override
 	public int hashCode();
 
 	/**
 	 * Return the associated {@code timestamp}. This is guaranteed to be unique
-	 * amongst forStorage values so it a defacto identifier. For notForStorage
-	 * objects, the timestamp is always {@link #NIL}.
+	 * amongst forStorage objects. For notForStorage objects, the timestamp is
+	 * always {@link #NIL}.
 	 * 
 	 * @return the {@code timestamp}
 	 */
 	public long getTimestamp();
 
 	/**
-	 * Return {@code true} if the object is suitable for use in storage
-	 * functions.
+	 * Return {@code true} if the object is versioned and therefore appropriate
+	 * for storage.
 	 * 
 	 * @return {@code true} of {@link #isNotForStorage()} is {@code false}.
 	 */
 	boolean isForStorage();
 
 	/**
-	 * Return {@code true} if the object is not suitable for storage functions
-	 * and is only suitable for comparisons.
+	 * Return {@code true} if the object is not versioned and therefore not
+	 * appropriate for storage.
 	 * 
 	 * @return {@code true} if the timestamp is {@link #NIL}.
 	 */
 	boolean isNotForStorage();
 
 }
-
