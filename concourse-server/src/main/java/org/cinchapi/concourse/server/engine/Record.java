@@ -64,7 +64,6 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.util.BinaryFiles;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
 import com.google.common.base.Preconditions;
@@ -145,36 +144,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param context
 	 * @return the SecondaryIndex
 	 */
-	@Profiled(tag = "Record.loadCsi_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public static SecondaryIndex loadSecondaryIndex(Text key,
 			String parentStore, Context context) {
 		return open(SecondaryIndex.class, Text.class, key, parentStore
 				+ File.separator + getLabel(SecondaryIndex.class), context);
-	}
-
-	/**
-	 * Returns the cache key for the record found using {@code locator} in
-	 * {@code parentStore}. The cache key is equal to the absolute filename
-	 * WITHOUT the file extension.
-	 * 
-	 * @param locator
-	 * @param parentStore
-	 * @return the cache key
-	 */
-	static <L extends Byteable> String getCacheKey(L locator, String parentStore) {
-		return parentStore + File.separator + getLocale(locator)
-				+ File.separator + locator;
-	}
-
-	/**
-	 * Returns the cache key for the record stored in {@code filename}. The
-	 * cache key is equal to the absolute filename WITHOUT the file extension.
-	 * 
-	 * @param filename
-	 * @return the cache key
-	 */
-	static String getCacheKey(String filename) {
-		return filename.split("\\.")[0];
 	}
 
 	/**
@@ -187,7 +160,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param context
 	 * @return the Record
 	 */
-	static <T> T open(Class<T> clazz, String filename, Context context) {
+	public static <T> T open(Class<T> clazz, String filename, Context context) {
 		// Find RefereceCache for Record class
 		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
@@ -212,6 +185,32 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		}
 		return record;
 
+	}
+
+	/**
+	 * Returns the cache key for the record found using {@code locator} in
+	 * {@code parentStore}. The cache key is equal to the absolute filename
+	 * WITHOUT the file extension.
+	 * 
+	 * @param locator
+	 * @param parentStore
+	 * @return the cache key
+	 */
+	private static <L extends Byteable> String getCacheKey(L locator,
+			String parentStore) {
+		return parentStore + File.separator + getLocale(locator)
+				+ File.separator + locator;
+	}
+
+	/**
+	 * Returns the cache key for the record stored in {@code filename}. The
+	 * cache key is equal to the absolute filename WITHOUT the file extension.
+	 * 
+	 * @param filename
+	 * @return the cache key
+	 */
+	private static String getCacheKey(String filename) {
+		return filename.split("\\.")[0];
 	}
 
 	/**
@@ -315,32 +314,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			.newHashMap();
 
 	/**
-	 * A reference to the {@code locator} is not stored with the Record, so the
-	 * filename is the only identifying information available once the Record is
-	 * loaded into memory. It is NOT guaranteed to be possible to convert from
-	 * filename to locator.
-	 */
-	private final transient String filename;
-
-	/**
-	 * The context that is passed to and around the Engine for global
-	 * configuration and state.
-	 */
-	protected final transient Context context;
-
-	/**
-	 * The size is equal to the first free byte in the backing file that can
-	 * used when appending a new revision.
-	 */
-	private transient long size = 0;
-
-	/**
-	 * The record version is equal to the version of its most recent
-	 * {@link Revision}.
-	 */
-	private transient long version = 0;
-
-	/**
 	 * The index is used to efficiently determine the set of values currently
 	 * mapped from a key. The subclass should specify the appropriate type of
 	 * key sorting via the returned type for {@link #mapType()}.
@@ -363,6 +336,32 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 */
 	protected final transient HashMap<K, List<Revision>> history = Maps
 			.newHashMap();
+
+	/**
+	 * The context that is passed to and around the Engine for global
+	 * configuration and state.
+	 */
+	protected final transient Context context;
+
+	/**
+	 * A reference to the {@code locator} is not stored with the Record, so the
+	 * filename is the only identifying information available once the Record is
+	 * loaded into memory. It is NOT guaranteed to be possible to convert from
+	 * filename to locator.
+	 */
+	private final transient String filename;
+
+	/**
+	 * The size is equal to the first free byte in the backing file that can
+	 * used when appending a new revision.
+	 */
+	private transient long size = 0;
+
+	/**
+	 * The record version is equal to the version of its most recent
+	 * {@link Revision}.
+	 */
+	private transient long version = 0;
 
 	/**
 	 * This set is returned when a key does not map to any values so that the
@@ -396,14 +395,15 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * Construct a new instance.
 	 * 
 	 * @param filename
-	 * @param ext - set to {@code true} if it is necessary to append the
-	 *            appropriate extension to {@code filename} based on the Record
-	 *            type
+	 * @param useExt - set to {@code true} if it is necessary to append
+	 *            extension to {@code filename}, which is usually the case when
+	 *            loading from a cache instead of disk.
 	 * @param context
 	 */
-	private Record(String filename, boolean ext, Context context) {
+	private Record(String filename, boolean useExt, Context context) {
 		this.context = context;
-		this.filename = filename + (ext ? "." + getLabel(this.getClass()) : "");
+		this.filename = filename
+				+ (useExt ? "." + getLabel(this.getClass()) : "");
 		ByteBuffer content = BinaryFiles.read(this.filename);
 		if(content.capacity() > 0) {
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
@@ -513,13 +513,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	}
 
 	/**
-	 * Initialize the appropriate data structure for the {@link #present}.
-	 * 
-	 * @return the initialized mappings
-	 */
-	protected abstract Map<K, Set<V>> mapType();
-
-	/**
 	 * Lazily retrieve an unmodifiable view of the current set of values mapped
 	 * from {@code key}.
 	 * 
@@ -587,6 +580,13 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @return the key class
 	 */
 	protected abstract Class<K> keyClass();
+
+	/**
+	 * Initialize the appropriate data structure for the {@link #present}.
+	 * 
+	 * @return the initialized mappings
+	 */
+	protected abstract Map<K, Set<V>> mapType();
 
 	/**
 	 * The class for each {@code value} in the Record.
