@@ -136,7 +136,7 @@ public class ByteBufferOutputStream extends OutputStream implements Lockable {
 	 * @return the current content of the output stream as a ByteBuffer
 	 */
 	public MappedByteBuffer toMappedByteBuffer(String file, long position) {
-		return (MappedByteBuffer) toByteBuffer(Files.map(file,
+		return (MappedByteBuffer) toByteBuffer(FileSystem.map(file,
 				MapMode.READ_WRITE, position, size()));
 	}
 

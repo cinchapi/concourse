@@ -35,7 +35,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.ByteableCollections;
-import org.cinchapi.concourse.server.io.Files;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -66,10 +66,10 @@ public final class Transaction extends BufferedStore {
 	 * @return The restored ServerTransaction
 	 */
 	public static Transaction restore(Engine destination, String file) {
-		Transaction transaction = new Transaction(destination, Files.map(file,
-				MapMode.READ_ONLY, 0, Files.length(file)));
+		Transaction transaction = new Transaction(destination, FileSystem.map(file,
+				MapMode.READ_ONLY, 0, FileSystem.getFileSize(file)));
 		transaction.doCommit();
-		Files.delete(file);
+		FileSystem.deleteFile(file);
 		return transaction;
 	}
 
@@ -106,7 +106,7 @@ public final class Transaction extends BufferedStore {
 		out.write(transaction.locks.values(), TransactionLock.SIZE);
 		out.write(((Queue) transaction.buffer).writes); /* Authorized */
 		out.close();
-		Files.open(file);
+		FileSystem.openFile(file);
 		return out.toMappedByteBuffer(file, 0);
 	}
 
@@ -314,7 +314,7 @@ public final class Transaction extends BufferedStore {
 		log.info("Created backup for transaction {} at '{}'", hashCode(),
 				backup);
 		doCommit();
-		Files.delete(backup);
+		FileSystem.deleteFile(backup);
 		log.info("Deleted backup for transaction {} at '{}'", hashCode(),
 				backup);
 		return true;

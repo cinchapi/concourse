@@ -42,7 +42,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.engine.Engine;
 import org.cinchapi.concourse.server.engine.Transaction;
-import org.cinchapi.concourse.server.io.Files;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.AccessTokens;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -184,7 +184,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 */
 	public ConcourseServer(int port, String backingStore)
 			throws TTransportException {
-		Files.mkdirs(backingStore);
+		FileSystem.mkdirs(backingStore);
 		TServerSocket socket = new TServerSocket(port);
 		ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
 				this);

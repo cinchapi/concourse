@@ -45,7 +45,7 @@ import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.ByteableCollections;
-import org.cinchapi.concourse.server.io.Files;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -137,7 +137,7 @@ final class Buffer extends Limbo {
 	 * @param context
 	 */
 	public Buffer(String directory, Context context) {
-		Files.mkdirs(directory);
+		FileSystem.mkdirs(directory);
 		this.directory = directory;
 		this.context = context;
 	}
@@ -525,7 +525,7 @@ final class Buffer extends Limbo {
 		 * @param filename
 		 */
 		public Page(String filename) {
-			this(filename, Files.length(filename));
+			this(filename, FileSystem.getFileSize(filename));
 		}
 
 		/**
@@ -536,9 +536,9 @@ final class Buffer extends Limbo {
 		 */
 		private Page(String filename, long capacity) {
 			this.filename = filename;
-			this.posbuf = Files.map(filename, MapMode.READ_WRITE, 0, 4);
+			this.posbuf = FileSystem.map(filename, MapMode.READ_WRITE, 0, 4);
 			this.pos = posbuf.getInt();
-			this.content = Files.map(filename, MapMode.READ_WRITE, 4,
+			this.content = FileSystem.map(filename, MapMode.READ_WRITE, 4,
 					capacity - 4);
 			this.writes = new Write[(int) (capacity / AVG_WRITE_SIZE)];
 			content.position(pos);
@@ -589,7 +589,7 @@ final class Buffer extends Limbo {
 		 * until garbage collection.
 		 */
 		public void delete() {
-			Files.delete(filename);
+			FileSystem.deleteFile(filename);
 			log.info("Deleting Buffer page {}", filename);
 		}
 

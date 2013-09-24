@@ -55,12 +55,11 @@ import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
-import org.cinchapi.concourse.server.io.Files;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.util.BinaryFiles;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Numbers;
 import org.mockito.Matchers;
@@ -405,7 +404,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		this.context = context;
 		this.filename = filename
 				+ (useExt ? "." + getLabel(this.getClass()) : "");
-		ByteBuffer content = BinaryFiles.read(this.filename);
+		ByteBuffer content = FileSystem.readBytes(this.filename);
 		if(content.capacity() > 0) {
 			Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
 			while (it.hasNext()) {
@@ -619,7 +618,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		try {
 			int tSize = revision.size() + 4;
 			if(fsync) {
-				FileChannel channel = Files.getChannel(filename);
+				FileChannel channel = FileSystem.getFileChannel(filename);
 				try {
 					channel.position(size);
 					channel.write((ByteBuffer) ByteBuffer.allocate(4)
@@ -632,7 +631,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 					throw Throwables.propagate(e);
 				}
 				finally {
-					Files.close(channel);
+					FileSystem.closeFileChannel(channel);
 				}
 			}
 

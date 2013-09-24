@@ -319,7 +319,7 @@ public class Database implements PermanentStore {
 			log.info("Loading existing {} files...", clazz.getSimpleName());
 			String label = Record.getLabel(clazz);
 			Path path = Paths.get(backingStore, label);
-			org.cinchapi.concourse.server.io.Files.mkdirs(path.toString());
+			org.cinchapi.concourse.server.io.FileSystem.mkdirs(path.toString());
 			process(path);
 			executor.shutdown();
 			while (!executor.isTerminated()) {
