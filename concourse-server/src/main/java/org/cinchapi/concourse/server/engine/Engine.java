@@ -125,17 +125,6 @@ public final class Engine extends BufferedStore implements
 		this.bufferTransportThread = new BufferTransportThread();
 	}
 
-	@Override
-	public void start() {
-		if(!running) {
-			log.info("Starting the Engine...");
-			running = true;
-			buffer.start();
-			destination.start();
-			bufferTransportThread.start();
-		}
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * The Engine is a Destination for Transaction commits. The accept method
@@ -176,6 +165,26 @@ public final class Engine extends BufferedStore implements
 	}
 
 	@Override
+	public boolean add(String key, TObject value, long record) {
+		if(super.add(key, value, record)) {
+			context.getBloomFilters().add(key, value, record);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public void start() {
+		if(!running) {
+			log.info("Starting the Engine...");
+			running = true;
+			buffer.start();
+			destination.start();
+			bufferTransportThread.start();
+		}
+	}
+
+	@Override
 	public Transaction startTransaction() {
 		return Transaction.start(this);
 	}
@@ -190,14 +199,6 @@ public final class Engine extends BufferedStore implements
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		return context.getBloomFilters().verify(key, value, record) ? super
 				.verify(key, value, record, timestamp) : false;
-	}
-
-	@Override
-	public boolean add(String key, TObject value, long record) {
-		if(super.add(key, value, record)) {
-			context.getBloomFilters().add(key, value, record);
-		}
-		return false;
 	}
 
 	/**
