@@ -23,15 +23,21 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
@@ -45,6 +51,21 @@ public final class GlobalState {
 
 	public static final Logger log = Loggers.getLogger();
 	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
+	public static final Set<String> STOPWORDS = Sets.newHashSet();
+	static {
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(
+					"conf/stopwords.txt"));
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				STOPWORDS.add(line);
+			}
+			reader.close();
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+	}
 
 	/**
 	 * A class that wraps a collection of {@link BloomFilter} objects. We use a

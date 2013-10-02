@@ -43,6 +43,8 @@ import org.cinchapi.concourse.thrift.Type;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+import static org.cinchapi.concourse.server.GlobalState.*;
+
 /**
  * A collection of n-gram indexes that enable fulltext infix searching. For
  * every word in a {@link Value}, each substring index is mapped to a
@@ -157,7 +159,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 		boolean initial = true;
 		for (String tok : toks) {
 			Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-			if(Properties.STOPWORDS.contains(tok)) {
+			if(STOPWORDS.contains(tok)) {
 				continue;
 			}
 			Set<Position> positions = get(Text.fromString(tok));
@@ -240,7 +242,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 
 		@Override
 		public void run() {
-			if(Properties.STOPWORDS.contains(word)) {
+			if(STOPWORDS.contains(word)) {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
@@ -282,7 +284,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 
 		@Override
 		public void run() {
-			if(Properties.STOPWORDS.contains(word)) {
+			if(STOPWORDS.contains(word)) {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
