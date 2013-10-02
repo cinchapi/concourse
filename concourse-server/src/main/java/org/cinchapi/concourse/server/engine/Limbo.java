@@ -52,15 +52,17 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 
 /**
- * {@link Limbo} is a lightweight append-only in-memory data store.
- * <p>
- * {@code Limbo} is a {@link ProxyStore} that is a suitable cache or fast,
- * albeit temporary, store for data that will eventually be persisted to disk.
+ * {@link Limbo} is a lightweight in-memory data store {@link ProxyStore} that
+ * is a suitable cache or fast, albeit temporary, store for data that will
+ * eventually be persisted to disk.
  * <p>
  * The store is designed to write data very quickly <strong>
  * <em>at the expense of much slower read time.</em></strong> {@code Limbo} does
- * not index any of the data it stores, so reads are not as efficient as they
- * would normally be in the {@link Database}.
+ * not index<sup>1</sup> any of the data it stores, so reads are not as
+ * efficient as they would normally be in the {@link Database}.
+ * </p>
+ * <sup>1</sup> - All reads are O(n) because {@code Limbo} uses an
+ * {@link #iterator()} to traverse the {@link Write} objects that it stores.
  * 
  * @author jnelson
  */
