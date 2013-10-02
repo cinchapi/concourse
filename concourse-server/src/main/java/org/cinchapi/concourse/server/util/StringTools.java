@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.util;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.Properties;
 
 /**
@@ -43,7 +44,7 @@ public final class StringTools {
 		String[] toks = string.split(" ");
 		StringBuilder sb = new StringBuilder();
 		for (String tok : toks) {
-			if(!Properties.STOPWORDS.contains(tok)) {
+			if(!GlobalState.STOPWORDS.contains(tok)) {
 				sb.append(tok);
 			}
 		}
