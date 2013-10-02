@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server;
 import java.util.Map;
 import java.util.Objects;
 
+import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
@@ -35,69 +36,39 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
 /**
- * The {@link Context} contains global configuration and state that must be
- * accessible to various parts of the Server. A single Context is created in
- * {@link ConcourseServer} and passed to and around the Engine components}.
+ * Contains configuration and state that must be accessible to various parts of
+ * the Server.
  * 
  * @author jnelson
  */
-public final class Context {
+public final class GlobalState {
+
+	public static final Logger log = Loggers.getLogger();
+	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
 
 	/**
-	 * Return the current {@link Context}.
-	 * 
-	 * @return the Context
-	 */
-	public static Context getContext() {
-		if(context == null) {
-			context = new Context();
-		}
-		return context;
-	}
-
-	/**
-	 * Enforces the singleton pattern.
-	 */
-	private static Context context = null;
-
-	/**
-	 * The expected number of bloom filters. This value should correspond to the
-	 * expected number of keys.
-	 */
-	private static final int EXPECTED_NUM_BLOOM_FILTERS = 100000;
-	private static final Logger log = Loggers.getLogger();
-
-	/* COMPONENTS */
-	private final BloomFilters bf = new BloomFilters();
-
-	/**
-	 * Construct a new instance.
-	 */
-	private Context() {} /* restricted */
-
-	/**
-	 * Return a pointer to the collection of {@link BloomFilter} objects that
-	 * are used to efficiently determine if data with {@code key} as
-	 * {@code value} in {@code record} <em>probably</em> exists.
-	 */
-	public BloomFilters getBloomFilters() {
-		return bf;
-	}
-
-	/**
-	 * A collection of {@link BloomFilter} objects that are used to efficiently
-	 * determine if data with {@code key} as {@code value} in {@code record}
-	 * <em>probably</em> exists.
+	 * A class that wraps a collection of {@link BloomFilter} objects. We use a
+	 * distinct BloomFilter for each key to determine if data with {@code key}
+	 * as {@code value} in {@code record} <em>probably</em> exists without
+	 * performing a disk lookup.
 	 * 
 	 * @author jnelson
 	 */
-	public final class BloomFilters {
+	public static final class BloomFilterWrapper {
+
+		/**
+		 * The expected number of bloom filters. This value should correspond to
+		 * the expected number of keys.
+		 */
+		private static final int EXPECTED_NUM_BLOOM_FILTERS = 100000;
 
 		/**
 		 * Mapping from key to bloom filter.
 		 */
 		private final Map<String, BloomFilter<Integer>> filters = Maps
 				.newHashMapWithExpectedSize(EXPECTED_NUM_BLOOM_FILTERS);
+
+		private BloomFilterWrapper() {/* Non-Initializable */};
 
 		/**
 		 * Add {@code key} as {@code value} to {@code record} in the appropriate
@@ -117,6 +88,22 @@ public final class Context {
 			filter.put(Objects.hash(value, record));
 			log.debug("Added {} as {} to {} in a bloom filter", key, value,
 					record);
+		}
+
+		/**
+		 * Add {@code write} to the appropriate bloom filter.
+		 * 
+		 * @param write
+		 */
+		public void add(Write write) {
+			if(write.isForStorage()) {
+				add(write.getKey().toString(), write.getValue().getQuantity(),
+						write.getRecord().longValue());
+			}
+			else {
+				throw new IllegalArgumentException(
+						"Cannot add a notForStorage Write to a bloom filter");
+			}
 		}
 
 		/**

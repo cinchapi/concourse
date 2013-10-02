@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Byteable;
@@ -143,12 +142,6 @@ public class Database implements PermanentStore {
 	 */
 	private boolean running = false;
 
-	/**
-	 * The context that is passed to and around the Engine for global
-	 * configuration and state.
-	 */
-	protected final transient Context context;
-
 	private static final String threadNamePrefix = "database-write-thread";
 	private static final Logger log = Loggers.getLogger();
 
@@ -156,10 +149,9 @@ public class Database implements PermanentStore {
 	 * Construct a Database that is backed by the default location which is in a
 	 * "db" directory under {@link Properties#DATA_HOME}.
 	 * 
-	 * @param context
 	 */
-	public Database(Context context) {
-		this(Properties.DATA_HOME + File.separator + "db", context);
+	public Database() {
+		this(Properties.DATA_HOME + File.separator + "db");
 	}
 
 	/**
@@ -168,50 +160,51 @@ public class Database implements PermanentStore {
 	 * {@code parentStore}.
 	 * 
 	 * @param backingStore
-	 * @param context
 	 */
-	public Database(String backingStore, Context context) {
+	public Database(String backingStore) {
 		this.backingStore = backingStore;
-		this.context = context;
 	}
 
 	@Override
 	@Profiled(tag = "Database.accept_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void accept(Write write) {
-		ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix, Database
-				.getWriteRunnable(
-						loadPrimaryRecord(write.getRecord(), backingStore,
-								context), write), Database.getWriteRunnable(
-				loadSecondaryIndex(write.getKey(), backingStore, context),
-				write), Database.getWriteRunnable(
-				loadSearchIndex(write.getKey(), backingStore, context), write));
+		ConcourseExecutors
+				.executeAndAwaitTermination(
+						threadNamePrefix,
+						Database.getWriteRunnable(
+								loadPrimaryRecord(write.getRecord(),
+										backingStore), write),
+						Database.getWriteRunnable(
+								loadSecondaryIndex(write.getKey(), backingStore),
+								write), Database.getWriteRunnable(
+								loadSearchIndex(write.getKey(), backingStore),
+								write));
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record),
-				backingStore, context).audit();
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.audit();
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record),
-				backingStore, context).audit(Text.fromString(key));
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.audit(Text.fromString(key));
 	}
 
 	@Override
 	public Set<String> describe(long record) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore, context).describe(),
-				Functions.TEXT_TO_STRING);
+						backingStore).describe(), Functions.TEXT_TO_STRING);
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore, context).describe(timestamp),
+						backingStore).describe(timestamp),
 				Functions.TEXT_TO_STRING);
 	}
 
@@ -219,7 +212,7 @@ public class Database implements PermanentStore {
 	public Set<TObject> fetch(String key, long record) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore, context).fetch(Text.fromString(key)),
+						backingStore).fetch(Text.fromString(key)),
 				Functions.VALUE_TO_TOBJECT);
 	}
 
@@ -227,72 +220,67 @@ public class Database implements PermanentStore {
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore, context).fetch(Text.fromString(key),
-						timestamp), Functions.VALUE_TO_TOBJECT);
+						backingStore).fetch(Text.fromString(key), timestamp),
+				Functions.VALUE_TO_TOBJECT);
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key), backingStore, context)
-						.find(timestamp,
-								operator,
-								Transformers
-										.transformArray(values,
-												Functions.TOBJECT_TO_VALUE,
-												Value.class)),
+				loadSecondaryIndex(Text.fromString(key), backingStore).find(
+						timestamp,
+						operator,
+						Transformers.transformArray(values,
+								Functions.TOBJECT_TO_VALUE, Value.class)),
 				Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key), backingStore, context)
-						.find(operator,
-								Transformers
-										.transformArray(values,
-												Functions.TOBJECT_TO_VALUE,
-												Value.class)),
+				loadSecondaryIndex(Text.fromString(key), backingStore).find(
+						operator,
+						Transformers.transformArray(values,
+								Functions.TOBJECT_TO_VALUE, Value.class)),
 				Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
 	public boolean ping(long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record),
-				backingStore, context).ping();
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.ping();
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
 		return Transformers.transformSet(
-				loadSearchIndex(Text.fromString(key), backingStore, context)
-						.search(Text.fromString(query)),
-				Functions.PRIMARY_KEY_TO_LONG);
+				loadSearchIndex(Text.fromString(key), backingStore).search(
+						Text.fromString(query)), Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
 	public void start() {
 		if(!running) {
 			running = true;
-			ConcourseExecutors.executeAndAwaitTermination("record-loader-thread",
-					new RecordLoader(SecondaryIndex.class), new RecordLoader(
+			ConcourseExecutors.executeAndAwaitTermination(
+					"record-loader-thread", new RecordLoader(
+							SecondaryIndex.class), new RecordLoader(
 							SearchIndex.class));
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record),
-				backingStore, context).verify(Text.fromString(key),
-				Value.notForStorage(value));
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.verify(Text.fromString(key), Value.notForStorage(value));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return loadPrimaryRecord(PrimaryKey.notForStorage(record),
-				backingStore, context).verify(Text.fromString(key),
-				Value.notForStorage(value), timestamp);
+		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
+				.verify(Text.fromString(key), Value.notForStorage(value),
+						timestamp);
 	}
 
 	/**
@@ -346,7 +334,7 @@ public class Database implements PermanentStore {
 
 							@Override
 							public void run() {
-								Record.open(clazz, p.toString(), context);
+								Record.open(clazz, p.toString());
 							}
 
 						});

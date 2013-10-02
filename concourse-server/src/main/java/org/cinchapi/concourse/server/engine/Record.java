@@ -48,7 +48,6 @@ import org.apache.commons.lang.ArrayUtils;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.cache.ReferenceCache;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
@@ -71,6 +70,8 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * A version controlled collection of key/value mappings that are represented on
@@ -113,13 +114,12 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
-	 * @param context
 	 * @return the PrimaryRecord
 	 */
 	public static PrimaryRecord loadPrimaryRecord(PrimaryKey key,
-			String parentStore, Context context) {
+			String parentStore) {
 		return open(PrimaryRecord.class, PrimaryKey.class, key, parentStore
-				+ File.separator + getLabel(PrimaryRecord.class), context);
+				+ File.separator + getLabel(PrimaryRecord.class));
 	}
 
 	/**
@@ -127,13 +127,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
-	 * @param context
 	 * @return the SearchIndex
 	 */
-	public static SearchIndex loadSearchIndex(Text key, String parentStore,
-			Context context) {
+	public static SearchIndex loadSearchIndex(Text key, String parentStore) {
 		return open(SearchIndex.class, Text.class, key, parentStore
-				+ File.separator + getLabel(SearchIndex.class), context);
+				+ File.separator + getLabel(SearchIndex.class));
 	}
 
 	/**
@@ -141,13 +139,11 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param key
 	 * @param parentStore
-	 * @param context
 	 * @return the SecondaryIndex
 	 */
-	public static SecondaryIndex loadSecondaryIndex(Text key,
-			String parentStore, Context context) {
+	public static SecondaryIndex loadSecondaryIndex(Text key, String parentStore) {
 		return open(SecondaryIndex.class, Text.class, key, parentStore
-				+ File.separator + getLabel(SecondaryIndex.class), context);
+				+ File.separator + getLabel(SecondaryIndex.class));
 	}
 
 	/**
@@ -157,10 +153,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param clazz
 	 * @param filename
-	 * @param context
 	 * @return the Record
 	 */
-	public static <T> T open(Class<T> clazz, String filename, Context context) {
+	public static <T> T open(Class<T> clazz, String filename) {
 		// Find RefereceCache for Record class
 		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
@@ -173,10 +168,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		T record = (T) cache.get(cacheKey);
 		if(record == null) {
 			try {
-				Constructor<T> constructor = clazz.getConstructor(String.class,
-						Context.class);
+				Constructor<T> constructor = clazz.getConstructor(String.class);
 				constructor.setAccessible(true);
-				record = constructor.newInstance(filename, context);
+				record = constructor.newInstance(filename);
 				cache.put(record, cacheKey);
 			}
 			catch (ReflectiveOperationException e) {
@@ -250,12 +244,10 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param locatorClass
 	 * @param locator
 	 * @param parentStore
-	 * @param context
 	 * @return the Record
 	 */
 	private static <T extends Record<L, ?, ?>, L extends Byteable> T open(
-			Class<T> clazz, Class<L> locatorClass, L locator,
-			String parentStore, Context context) {
+			Class<T> clazz, Class<L> locatorClass, L locator, String parentStore) {
 		// Find RefereceCache for Record class
 		ReferenceCache<T> cache = (ReferenceCache<T>) CACHES.get(clazz);
 		if(cache == null) {
@@ -269,9 +261,9 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		if(record == null) {
 			try {
 				Constructor<T> constructor = clazz.getConstructor(locatorClass,
-						String.class, Context.class);
+						String.class);
 				constructor.setAccessible(true);
-				record = constructor.newInstance(locator, parentStore, context);
+				record = constructor.newInstance(locator, parentStore);
 				cache.put(record, cacheKey);
 			}
 			catch (ReflectiveOperationException e) {
@@ -338,12 +330,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 			.newHashMap();
 
 	/**
-	 * The context that is passed to and around the Engine for global
-	 * configuration and state.
-	 */
-	protected final transient Context context;
-
-	/**
 	 * A reference to the {@code locator} is not stored with the Record, so the
 	 * filename is the only identifying information available once the Record is
 	 * loaded into memory. It is NOT guaranteed to be possible to convert from
@@ -377,8 +363,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param backingStore
 	 */
-	protected Record(L locator, String parentStore, Context context) {
-		this(getCacheKey(locator, parentStore), true, context);
+	protected Record(L locator, String parentStore) {
+		this(getCacheKey(locator, parentStore), true);
 	}
 
 	/**
@@ -387,8 +373,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * 
 	 * @param filename
 	 */
-	protected Record(String filename, Context context) {
-		this(filename, false, context);
+	protected Record(String filename) {
+		this(filename, false);
 	}
 
 	/**
@@ -398,10 +384,8 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 	 * @param useExt - set to {@code true} if it is necessary to append
 	 *            extension to {@code filename}, which is usually the case when
 	 *            loading from a cache instead of disk.
-	 * @param context
 	 */
-	private Record(String filename, boolean useExt, Context context) {
-		this.context = context;
+	private Record(String filename, boolean useExt) {
 		this.filename = filename
 				+ (useExt ? "." + getLabel(this.getClass()) : "");
 		ByteBuffer content = FileSystem.readBytes(this.filename);
@@ -423,7 +407,7 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 					// order to prevent that appearance of data loss (i.e. the
 					// bloom filter reporting that data does not exist, when it
 					// actually does).
-					context.getBloomFilters().add(key,
+					BLOOM_FILTERS.add(key,
 							((Value) revision.getKey()).getQuantity(),
 							((PrimaryKey) revision.getValue()).longValue());
 

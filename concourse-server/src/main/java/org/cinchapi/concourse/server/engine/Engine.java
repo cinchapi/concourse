@@ -29,7 +29,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Write;
@@ -39,6 +38,7 @@ import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.util.Loggers.getLogger;
+import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -73,12 +73,6 @@ public final class Engine extends BufferedStore implements
 	private final Thread bufferTransportThread;
 
 	/**
-	 * The context that is passed to and around the Engine for global
-	 * configuration and state.
-	 */
-	protected final transient Context context;
-
-	/**
 	 * A flag to indicate if the Engine is running or not.
 	 */
 	private boolean running = false;
@@ -87,11 +81,9 @@ public final class Engine extends BufferedStore implements
 	 * Construct an Engine that is made up of a {@link Buffer} and
 	 * {@link Database} in the default locations.
 	 * 
-	 * @param context
 	 */
-	public Engine(Context context) {
-		this(new Buffer(context), new Database(context), Properties.DATA_HOME,
-				context);
+	public Engine() {
+		this(new Buffer(), new Database(), Properties.DATA_HOME);
 	}
 
 	/**
@@ -100,12 +92,10 @@ public final class Engine extends BufferedStore implements
 	 * Construct a new instance.
 	 * 
 	 * @param baseStore
-	 * @param context
 	 */
-	public Engine(String baseStore, Context context) {
-		this(new Buffer(baseStore + File.separator + "buffer", context),
-				new Database(baseStore + File.separator + "db", context),
-				baseStore, context);
+	public Engine(String baseStore) {
+		this(new Buffer(baseStore + File.separator + "buffer"), new Database(
+				baseStore + File.separator + "db"), baseStore);
 	}
 
 	/**
@@ -115,13 +105,10 @@ public final class Engine extends BufferedStore implements
 	 * @param buffer
 	 * @param database
 	 * @param baseStore
-	 * @param context
 	 */
-	private Engine(Buffer buffer, Database database, String baseStore,
-			Context context) {
+	private Engine(Buffer buffer, Database database, String baseStore) {
 		super(buffer, database);
 		this.baseStore = baseStore;
-		this.context = context;
 		this.bufferTransportThread = new BufferTransportThread();
 	}
 
@@ -167,7 +154,7 @@ public final class Engine extends BufferedStore implements
 	@Override
 	public boolean add(String key, TObject value, long record) {
 		if(super.add(key, value, record)) {
-			context.getBloomFilters().add(key, value, record);
+			BLOOM_FILTERS.add(key, value, record);
 			return true;
 		}
 		return false;
@@ -191,14 +178,14 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return context.getBloomFilters().verify(key, value, record) ? super
-				.verify(key, value, record) : false;
+		return BLOOM_FILTERS.verify(key, value, record) ? super.verify(key,
+				value, record) : false;
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return context.getBloomFilters().verify(key, value, record) ? super
-				.verify(key, value, record, timestamp) : false;
+		return BLOOM_FILTERS.verify(key, value, record) ? super.verify(key,
+				value, record, timestamp) : false;
 	}
 
 	/**

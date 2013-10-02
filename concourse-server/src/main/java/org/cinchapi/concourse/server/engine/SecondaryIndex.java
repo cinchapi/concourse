@@ -34,7 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -65,8 +64,8 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * @param context
 	 */
 	@DoNotInvoke
-	public SecondaryIndex(String filename, Context context) {
-		super(filename, context);
+	public SecondaryIndex(String filename) {
+		super(filename);
 	}
 
 	/**
@@ -77,8 +76,8 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * @param context
 	 */
 	@DoNotInvoke
-	public SecondaryIndex(Text locator, String parentStore, Context context) {
-		super(locator, parentStore, context);
+	public SecondaryIndex(Text locator, String parentStore) {
+		super(locator, parentStore);
 	}
 
 	/**

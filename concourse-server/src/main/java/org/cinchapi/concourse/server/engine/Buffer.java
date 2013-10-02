@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
@@ -58,6 +57,7 @@ import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 
 import static org.cinchapi.concourse.server.util.Loggers.getLogger;
+import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -100,12 +100,6 @@ final class Buffer extends Limbo {
 	private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
 	/**
-	 * The context that is passed to and around the Engine for global
-	 * configuration and state.
-	 */
-	protected final transient Context context;
-
-	/**
 	 * A pointer to the current Page.
 	 */
 	private Page currentPage;
@@ -121,10 +115,9 @@ final class Buffer extends Limbo {
 	 * Existing content, if available, will be loaded from the file. Otherwise,
 	 * a new and empty Buffer will be returned.
 	 * 
-	 * @param context
 	 */
-	public Buffer(Context context) {
-		this(Properties.DATA_HOME + File.separator + "buffer", context);
+	public Buffer() {
+		this(Properties.DATA_HOME + File.separator + "buffer");
 	}
 
 	/**
@@ -134,12 +127,10 @@ final class Buffer extends Limbo {
 	 * empty Buffer will be returned.
 	 * 
 	 * @param directory
-	 * @param context
 	 */
-	public Buffer(String directory, Context context) {
+	public Buffer(String directory) {
 		FileSystem.mkdirs(directory);
 		this.directory = directory;
-		this.context = context;
 	}
 
 	@Override
@@ -550,9 +541,7 @@ final class Buffer extends Limbo {
 				// order to prevent that appearance of data loss (i.e. the
 				// bloom filter reporting that data does not exist, when it
 				// actually does).
-				context.getBloomFilters().add(write.getKey().toString(),
-						write.getValue().getQuantity(),
-						write.getRecord().longValue());
+				BLOOM_FILTERS.add(write);
 				log.debug("Found existing write '{}' in the Buffer", write);
 			}
 		}

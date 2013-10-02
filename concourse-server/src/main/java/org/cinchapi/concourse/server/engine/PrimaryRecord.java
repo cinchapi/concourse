@@ -34,7 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Storable;
@@ -64,22 +63,20 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * 
 	 * @param locator
 	 * @param parentStore
-	 * @param context
 	 */
 	@DoNotInvoke
-	public PrimaryRecord(PrimaryKey key, String parentStore, Context context) {
-		super(key, parentStore, context);
+	public PrimaryRecord(PrimaryKey key, String parentStore) {
+		super(key, parentStore);
 	}
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param filename
-	 * @param context
 	 */
 	@DoNotInvoke
-	public PrimaryRecord(String filename, Context context) {
-		super(filename, context);
+	public PrimaryRecord(String filename) {
+		super(filename);
 	}
 
 	/**

@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Context;
 import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.model.Position;
@@ -60,11 +59,10 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * Construct a new instance.
 	 * 
 	 * @param filename
-	 * @param context
 	 */
 	@DoNotInvoke
-	public SearchIndex(String filename, Context context) {
-		super(filename, context);
+	public SearchIndex(String filename) {
+		super(filename);
 	}
 
 	/**
@@ -75,8 +73,8 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @param context
 	 */
 	@DoNotInvoke
-	public SearchIndex(Text key, String parentStore, Context context) {
-		super(key, parentStore, context);
+	public SearchIndex(Text key, String parentStore) {
+		super(key, parentStore);
 	}
 
 	/**
