@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.util;
 
 import org.cinchapi.concourse.server.GlobalState;
-import org.cinchapi.concourse.server.Properties;
 
 /**
  * A collection of {@link String} related tools.

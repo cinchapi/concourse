@@ -57,6 +57,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+import static org.cinchapi.concourse.server.GlobalState.*;
+
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
@@ -165,7 +167,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, Properties.DATA_HOME);
+		this(SERVER_PORT, DATA_DIR);
 	}
 
 	/**

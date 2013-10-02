@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
@@ -246,7 +245,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
-				for (int j = (i + Properties.SEARCH_INDEX_GRANULARITY - 1); j < word
+				for (int j = (i + SEARCH_INDEX_GRANULARITY - 1); j < word
 						.length() + 1; j++) {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
@@ -288,7 +287,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
-				for (int j = i + (Properties.SEARCH_INDEX_GRANULARITY - 1); j < word
+				for (int j = i + (SEARCH_INDEX_GRANULARITY - 1); j < word
 						.length() + 1; j++) {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {

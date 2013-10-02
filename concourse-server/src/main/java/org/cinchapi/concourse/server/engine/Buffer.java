@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
@@ -117,7 +116,7 @@ final class Buffer extends Limbo {
 	 * 
 	 */
 	public Buffer() {
-		this(Properties.DATA_HOME + File.separator + "buffer");
+		this(DATA_DIR + File.separator + "buffer");
 	}
 
 	/**
@@ -392,7 +391,7 @@ final class Buffer extends Limbo {
 	private void addPage() {
 		Lock lock = writeLock();
 		try {
-			currentPage = new Page(Properties.BUFFER_PAGE_SIZE);
+			currentPage = new Page(BUFFER_PAGE_SIZE);
 			pages.add(currentPage);
 			log.debug("Added page {} to Buffer", currentPage);
 		}

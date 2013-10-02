@@ -24,12 +24,14 @@
 package org.cinchapi.concourse.server;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.TObject;
@@ -49,6 +51,37 @@ import com.google.common.hash.Funnels;
  */
 public final class GlobalState {
 
+	/* Config */
+	private static final ConcourseConfiguration config = ConcourseConfiguration
+			.loadConfig("conf" + File.separator + "concourse.prefs");
+
+	/**
+	 * The absolute path to the directory where Concourse stores data.
+	 */
+	public static final String DATA_DIR = config.getString("DATA_DIR",
+			File.separator + "var" + File.separator + "lib" + File.separator
+					+ "concourse");
+
+	/**
+	 * The size of a single page in the {@link Buffer}. By using multiple Pages,
+	 * the Buffer can localize its locking when performing reads and writes.
+	 * When choosing a Page size, seek to balance the potential increased
+	 * throughput that smaller pages may produce with the potential for less
+	 * fragmented data storage that larger pages may produce.
+	 */
+	public static final int BUFFER_PAGE_SIZE = (int) config.getSize(
+			"BUFFER_PAGE_SIZE", 8192);
+
+	/**
+	 * The minimum number of characters to index for searches. This value is
+	 * usually equal to the number of characters a user must enter in an
+	 * autocomplete field before seeing search results. Smaller values allow
+	 * more granular searches at the expense of larger index sizes.
+	 */
+	public static final int SEARCH_INDEX_GRANULARITY = config.getInt(
+			"SEARCH_INDEX_GRANULARITY", 3);
+
+	/* ************************************************************************ */
 	public static final Logger log = Loggers.getLogger();
 	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
 	public static final Set<String> STOPWORDS = Sets.newHashSet();

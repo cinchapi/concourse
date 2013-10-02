@@ -29,7 +29,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.server.model.WriteType;
@@ -83,7 +82,7 @@ public final class Engine extends BufferedStore implements
 	 * 
 	 */
 	public Engine() {
-		this(new Buffer(), new Database(), Properties.DATA_HOME);
+		this(new Buffer(), new Database(), DATA_DIR);
 	}
 
 	/**

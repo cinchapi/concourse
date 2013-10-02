@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.cinchapi.concourse.server.Properties;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -56,6 +55,7 @@ import com.google.common.base.Throwables;
 import static org.cinchapi.concourse.server.engine.Record.loadPrimaryRecord;
 import static org.cinchapi.concourse.server.engine.Record.loadSecondaryIndex;
 import static org.cinchapi.concourse.server.engine.Record.loadSearchIndex;
+import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * The {@code Database} is the permanent {@link PermanentStore} for
@@ -151,7 +151,7 @@ public class Database implements PermanentStore {
 	 * 
 	 */
 	public Database() {
-		this(Properties.DATA_HOME + File.separator + "db");
+		this(DATA_DIR + File.separator + "db");
 	}
 
 	/**
