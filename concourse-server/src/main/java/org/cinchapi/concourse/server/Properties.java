@@ -31,7 +31,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.cinchapi.concourse.annotate.UtilityClass;
-import org.cinchapi.concourse.configuration.Configurations;
+import org.cinchapi.concourse.config.Configurations;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
