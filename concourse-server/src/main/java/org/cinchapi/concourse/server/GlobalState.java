@@ -51,7 +51,7 @@ import com.google.common.hash.Funnels;
  */
 public final class GlobalState {
 
-	/* Config */
+	/* ***************************** CONFIG ******************************** */
 	private static final ConcourseConfiguration config = ConcourseConfiguration
 			.loadConfig("conf" + File.separator + "concourse.prefs");
 

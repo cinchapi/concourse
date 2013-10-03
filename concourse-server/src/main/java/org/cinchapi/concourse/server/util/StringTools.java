@@ -34,7 +34,7 @@ public final class StringTools {
 
 	/**
 	 * Return a copy of {@code string} with all of the stopwords removed. This
-	 * method depends on the stopwords defined in {@link Properties#STOPWORDS}.
+	 * method depends on the stopwords defined in {@link GlobalState#STOPWORDS}.
 	 * 
 	 * @param string
 	 * @return A copy of {@code string} without stopwords
@@ -45,9 +45,10 @@ public final class StringTools {
 		for (String tok : toks) {
 			if(!GlobalState.STOPWORDS.contains(tok)) {
 				sb.append(tok);
+				sb.append(" ");
 			}
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 
 	private StringTools() {/* utility class */}
