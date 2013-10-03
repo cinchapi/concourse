@@ -328,7 +328,9 @@ final class Buffer extends Limbo {
 		// It makes sense to only transport one write at a time because
 		// transporting blocks reading and all writes must read at least once,
 		// so we want to minimize the overhead per write.
-		if(pages.size() > 1 && transportLock.writeLock().tryLock()) {
+		if(pages.size() > 1
+				&& !transportLock.writeLock().isHeldByCurrentThread()
+				&& transportLock.writeLock().tryLock()) {
 			try {
 				Page page = pages.get(0);
 				if(page.hasNext()) {
