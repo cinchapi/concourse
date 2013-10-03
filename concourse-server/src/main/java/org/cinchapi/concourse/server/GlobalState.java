@@ -33,8 +33,8 @@ import java.util.Set;
 
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.server.model.Write;
-import org.cinchapi.concourse.server.util.Loggers;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.Loggers;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;

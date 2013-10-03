@@ -36,8 +36,8 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 import static org.cinchapi.concourse.server.GlobalState.*;
+import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID

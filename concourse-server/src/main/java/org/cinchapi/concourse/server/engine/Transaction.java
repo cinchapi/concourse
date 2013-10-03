@@ -48,7 +48,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.util.Loggers.getLogger;
+import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * A server side representation of a {@link Transaction} that contains resources

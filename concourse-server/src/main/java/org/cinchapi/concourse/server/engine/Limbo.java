@@ -32,13 +32,13 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
+import org.cinchapi.concourse.util.StringTools;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.Write;
-import org.cinchapi.concourse.server.util.StringTools;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;

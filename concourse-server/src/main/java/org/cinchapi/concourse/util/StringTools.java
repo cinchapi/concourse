@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.util;
+package org.cinchapi.concourse.util;
 
 import org.cinchapi.concourse.server.GlobalState;
 

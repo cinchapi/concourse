@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +71,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
+import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * A version controlled collection of key/value mappings that are represented on

@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server;
 
-import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -58,6 +57,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
+import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server

@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
-import org.cinchapi.concourse.server.util.Loggers;
+import org.cinchapi.concourse.util.Loggers;
 import org.slf4j.Logger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;

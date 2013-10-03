@@ -55,8 +55,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 
-import static org.cinchapi.concourse.server.util.Loggers.getLogger;
 import static org.cinchapi.concourse.server.GlobalState.*;
+import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
