@@ -54,7 +54,7 @@ import com.google.common.base.Objects;
  * <li>FLOAT requires an additional 4 bytes</li>
  * <li>INTEGER requires an additional 4 bytes</li>
  * <li>LONG requires an additional 8 bytes</li>
- * <li>RELATION requires an additional 8 bytes</li>
+ * <li>LINK requires an additional 8 bytes</li>
  * <li>STRING requires an additional 14 bytes for every character (uses UTF8
  * encoding)</li>
  * </ul>
