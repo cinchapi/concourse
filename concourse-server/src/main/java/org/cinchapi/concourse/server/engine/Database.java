@@ -42,7 +42,6 @@ import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.Write;
-import org.cinchapi.concourse.server.model.WriteType;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Loggers;
@@ -86,11 +85,11 @@ public class Database implements PermanentStore {
 			public void run() {
 				log.debug("Writing {} to {}", write, record);
 				if(record instanceof PrimaryRecord) {
-					if(write.getType() == WriteType.ADD) {
+					if(write.getType() == Write.Type.ADD) {
 						((PrimaryRecord) record).add(write.getKey(),
 								write.getValue());
 					}
-					else if(write.getType() == WriteType.REMOVE) {
+					else if(write.getType() == Write.Type.REMOVE) {
 						((PrimaryRecord) record).remove(write.getKey(),
 								write.getValue());
 					}
@@ -99,11 +98,11 @@ public class Database implements PermanentStore {
 					}
 				}
 				else if(record instanceof SecondaryIndex) {
-					if(write.getType() == WriteType.ADD) {
+					if(write.getType() == Write.Type.ADD) {
 						((SecondaryIndex) record).add(write.getValue(),
 								write.getRecord());
 					}
-					else if(write.getType() == WriteType.REMOVE) {
+					else if(write.getType() == Write.Type.REMOVE) {
 						((SecondaryIndex) record).remove(write.getValue(),
 								write.getRecord());
 					}
@@ -112,11 +111,11 @@ public class Database implements PermanentStore {
 					}
 				}
 				else if(record instanceof SearchIndex) {
-					if(write.getType() == WriteType.ADD) {
+					if(write.getType() == Write.Type.ADD) {
 						((SearchIndex) record).add(write.getValue(),
 								write.getRecord());
 					}
-					else if(write.getType() == WriteType.REMOVE) {
+					else if(write.getType() == Write.Type.REMOVE) {
 						((SearchIndex) record).remove(write.getValue(),
 								write.getRecord());
 					}

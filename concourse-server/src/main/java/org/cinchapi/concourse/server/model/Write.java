@@ -65,7 +65,7 @@ public final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write add(String key, TObject value, long record) {
-		return new Write(WriteType.ADD, Text.fromString(key),
+		return new Write(Type.ADD, Text.fromString(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
 	}
 
@@ -104,7 +104,7 @@ public final class Write implements Byteable {
 		Object[] cacheKey = { key, value, record };
 		Write write = cache.get(cacheKey);
 		if(write == null) {
-			write = new Write(WriteType.NOT_FOR_STORAGE, Text.fromString(key),
+			write = new Write(Type.NOT_FOR_STORAGE, Text.fromString(key),
 					Value.notForStorage(value),
 					PrimaryKey.notForStorage(record));
 		}
@@ -121,7 +121,7 @@ public final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write remove(String key, TObject value, long record) {
-		return new Write(WriteType.REMOVE, Text.fromString(key),
+		return new Write(Type.REMOVE, Text.fromString(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
 	}
 
@@ -139,7 +139,7 @@ public final class Write implements Byteable {
 	private final PrimaryKey record;
 	private final Text key;
 	private final Value value;
-	private final WriteType type;
+	private final Type type;
 	private final transient int size;
 
 	/**
@@ -153,7 +153,7 @@ public final class Write implements Byteable {
 	 */
 	@DoNotInvoke
 	public Write(ByteBuffer bytes) {
-		this.type = WriteType.values()[bytes.getInt()];
+		this.type = Type.values()[bytes.getInt()];
 		byte[] record = new byte[PrimaryKey.SIZE];
 		bytes.get(record);
 		this.record = PrimaryKey.fromByteBuffer(ByteBuffer.wrap(record));
@@ -175,7 +175,7 @@ public final class Write implements Byteable {
 	 * @param record
 	 */
 	@DoNotInvoke
-	public Write(WriteType type, Text key, Value value, PrimaryKey record) {
+	public Write(Type type, Text key, Value value, PrimaryKey record) {
 		this.record = record;
 		this.key = key;
 		this.value = value;
@@ -259,7 +259,7 @@ public final class Write implements Byteable {
 	 * 
 	 * @return the write {@code type}
 	 */
-	public WriteType getType() {
+	public Type getType() {
 		return type;
 	}
 
@@ -288,7 +288,7 @@ public final class Write implements Byteable {
 	 * @return {@code true} if the Write is forStorage
 	 */
 	public boolean isForStorage() {
-		return type != WriteType.NOT_FOR_STORAGE;
+		return type != Type.NOT_FOR_STORAGE;
 	}
 
 	/**
@@ -298,7 +298,7 @@ public final class Write implements Byteable {
 	 * @return {@code true} if the Write is notForStorage
 	 */
 	public boolean isNotForStorage() {
-		return type == WriteType.NOT_FOR_STORAGE;
+		return type == Type.NOT_FOR_STORAGE;
 	}
 
 	@Override
@@ -311,7 +311,7 @@ public final class Write implements Byteable {
 		String verb = this.type.name();
 		String key = this.key.toString();
 		String value = this.value.toString();
-		String preposition = this.type == WriteType.ADD ? "TO" : "FROM";
+		String preposition = this.type == Type.ADD ? "TO" : "FROM";
 		String record = this.record.toString();
 		return new StringBuilder().append(verb).append(" ").append(key)
 				.append(" ").append("AS").append(" ").append(value).append(" ")
@@ -327,6 +327,15 @@ public final class Write implements Byteable {
 	 */
 	public boolean matches(Write other) {
 		return equals(other) && type == other.type;
+	}
+
+	/**
+	 * The {@code Type} describes the action that generated a {@link Write}.
+	 * 
+	 * @author jnelson
+	 */
+	public enum Type {
+		ADD, REMOVE, NOT_FOR_STORAGE
 	}
 
 }

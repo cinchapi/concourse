@@ -31,7 +31,6 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Write;
-import org.cinchapi.concourse.server.model.WriteType;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 
@@ -124,13 +123,13 @@ public final class Engine extends BufferedStore implements
 	@Override
 	@DoNotInvoke
 	public void accept(Write write) {
-		checkArgument(write.getType() != WriteType.NOT_FOR_STORAGE);
+		checkArgument(write.getType() != Write.Type.NOT_FOR_STORAGE);
 		Lock lock = writeLock();
 		try {
 			String key = write.getKey().toString();
 			TObject value = write.getValue().getQuantity();
 			long record = write.getRecord().longValue();
-			boolean accepted = write.getType() == WriteType.ADD ? add(key,
+			boolean accepted = write.getType() == Write.Type.ADD ? add(key,
 					value, record) : remove(key, value, record);
 			if(!accepted) {
 				log.warn("Write {} was rejected by the Engine"
