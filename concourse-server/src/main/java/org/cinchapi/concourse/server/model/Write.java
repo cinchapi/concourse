@@ -202,11 +202,11 @@ public final class Write implements Byteable {
 	/**
 	 * Return a byte buffer that represents the write with the following order:
 	 * <ol>
-	 * <li><strong>type</strong> position {@value #TYPE_POS}</li>
-	 * <li><strong>record</strong> position {@value #RECORD_POS}</li>
-	 * <li><strong>keySize</strong> position {@value #KEY_SIZE_POS}</li>
-	 * <li><strong>valueSize</strong> position {@value #VALUE_SIZE_POS}</li>
-	 * <li><strong>key</strong> position {@value #KEY_POS}</li>
+	 * <li><strong>type</strong> position 0</li>
+	 * <li><strong>record</strong> position 4</li>
+	 * <li><strong>keySize</strong> position 20</li>
+	 * <li><strong>valueSize</strong> position 24</li>
+	 * <li><strong>key</strong> position 28</li>
 	 * <li><strong>value</strong> position (key) + keySize</li>
 	 * </ol>
 	 * 
