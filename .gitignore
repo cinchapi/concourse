@@ -3,8 +3,8 @@
 *.swp
 .settings*
 *.test.out*
-/ConcourseOld
-/ConcourseServer/data
 *.classpath
 *.project
 .gradle
+concourse/build/
+concourse-server/build/
