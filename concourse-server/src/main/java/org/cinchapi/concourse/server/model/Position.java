@@ -74,23 +74,23 @@ public final class Position implements Comparable<Position>, Storable {
 	}
 
 	/**
-	 * Return a Position based on the {@code key} and {@code marker}. The
+	 * Return a Position based on the {@code key} and {@code index}. The
 	 * Position will have the storage properties of {@code key} and a unique
 	 * timestamp.
 	 * 
 	 * @param key
-	 * @param marker
+	 * @param index
 	 * @return the Position
 	 */
-	public static Position fromPrimaryKeyAndMarker(PrimaryKey key, int marker) {
+	public static Position fromPrimaryKeyAndIndex(PrimaryKey key, int index) {
 		if(key.isForStorage()) { // need to make a new PrimaryKey to ensure that
 									// timestamp is unique
 			key = PrimaryKey.forStorage(key.longValue());
 		}
-		Object[] cacheKey = { key, marker, key.getTimestamp() };
+		Object[] cacheKey = { key, index, key.getTimestamp() };
 		Position position = cache.get(cacheKey);
 		if(position == null) {
-			position = new Position(key, marker);
+			position = new Position(key, index);
 			cache.put(position, cacheKey);
 		}
 		return position;
@@ -171,7 +171,7 @@ public final class Position implements Comparable<Position>, Storable {
 	}
 
 	/**
-	 * Return the location marker that is associated with this Position.
+	 * Return the location index that is associated with this Position.
 	 * 
 	 * @return the position
 	 */

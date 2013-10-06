@@ -250,7 +250,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
 						removeIndex(index,
-								Position.fromPrimaryKeyAndMarker(key, position));
+								Position.fromPrimaryKeyAndIndex(key, position));
 					}
 				}
 			}
@@ -292,7 +292,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
 						try {
-							addIndex(index, Position.fromPrimaryKeyAndMarker(
+							addIndex(index, Position.fromPrimaryKeyAndIndex(
 									key, position));
 						}
 						catch (IllegalStateException | IllegalArgumentException e) {
