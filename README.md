@@ -18,7 +18,13 @@ where
 * new additions while maintaining backward compatibility bumps the minor, and
 * bug fixes or miscellaneous changes bumps the patch.
 
+## Author
+
+* Jeff Nelson
+
 ## License
+
+Copyright © 2013 Cinchapi Software Collective.
 
 Concourse is released under the MIT License. For more information see LICENSE,
 which is included with this package.
