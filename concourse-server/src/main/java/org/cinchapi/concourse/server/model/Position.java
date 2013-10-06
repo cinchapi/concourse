@@ -221,22 +221,4 @@ public final class Position implements Comparable<Position>, Storable {
 				+ getPrimaryKey();
 	}
 
-	/**
-	 * Determine if the comparison to {@code o} should be done temporally or
-	 * {@code logically}.
-	 * 
-	 * @param o
-	 * @param logically
-	 *            if {@code true} the value based comparison occurs, otherwise
-	 *            based on timestamp/equality
-	 * @return a negative integer, zero, or a positive integer as this object is
-	 *         less than, equal to, or greater than the specified object.
-	 * @see {@link #compareTo(Position)}
-	 * @see {@link Storables#compare(Storable, Storable)}
-	 */
-	@PackagePrivate
-	int compareTo(Position o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
-	}
-
 }
