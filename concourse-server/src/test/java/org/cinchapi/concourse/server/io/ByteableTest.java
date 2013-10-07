@@ -23,16 +23,35 @@
  */
 package org.cinchapi.concourse.server.io;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests which must be implemented by all {@link Byteable} class tests.
+ * Tests for {@link Byteable} objects.
  * 
  * @author jnelson
  */
-public interface ByteableTest {
+public abstract class ByteableTest {
+
+	/**
+	 * Return a random instance of the test class.
+	 * 
+	 * @return a random instance
+	 */
+	protected abstract Byteable getRandomTestInstance();
+
+	/**
+	 * Return the test class
+	 * 
+	 * @return the test class
+	 */
+	protected abstract Class<?> getTestClass();
 
 	@Test
-	public void testSerialization();
+	public void testSerialization() {
+		Byteable object = getRandomTestInstance();
+		Assert.assertTrue(Byteables.read(object.getBytes(), getTestClass())
+				.equals(object));
+	}
 
 }

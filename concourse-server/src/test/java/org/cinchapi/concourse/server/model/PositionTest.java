@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.concourse.server.io.AbstractByteableTest;
+import org.cinchapi.concourse.server.io.StorableTest;
 import org.cinchapi.concourse.util.TestData;
 
 /**
@@ -31,7 +31,7 @@ import org.cinchapi.concourse.util.TestData;
  * 
  * @author jnelson
  */
-public class PositionTest extends AbstractByteableTest {
+public class PositionTest extends StorableTest {
 
 	@Override
 	protected Position getRandomTestInstance() {
@@ -42,7 +42,29 @@ public class PositionTest extends AbstractByteableTest {
 	protected Class<Position> getTestClass() {
 		return Position.class;
 	}
-	
-	
+
+	@Override
+	protected Position[] getForStorageAndNotForStorageVersionOfObject() {
+		long key = TestData.getLong();
+		int index = Math.abs(TestData.getInt());
+		Position[] array = {
+				Position.fromPrimaryKeyAndIndex(PrimaryKey.forStorage(key),
+						index),
+				Position.fromPrimaryKeyAndIndex(
+						PrimaryKey.notForStorage(key), index) };
+		return array;
+	}
+
+	@Override
+	protected Position getForStorageInstance() {
+		return TestData.getPosition();
+	}
+
+	@Override
+	protected Position getNotForStorageInstance() {
+		return Position.fromPrimaryKeyAndIndex(
+				TestData.getPrimaryKeyNotForStorage(),
+				Math.abs(TestData.getInt()));
+	}
 
 }
