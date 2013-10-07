@@ -10,11 +10,19 @@ dependencies {
     compile 'com.google.guava:guava:13.0.1'
 }
 
-task copyRoot(type:Copy){
+task copyRoot(type:Copy) {
 	def build = file('build/root')
 	copy {
-		from 'server.prefs'
+		from 'concourse.prefs'
 		from 'stopwords.txt'
+		into build
+	}
+	outputs.dir build
+}
+
+task copyBin(type:Copy) {
+	def build = file('build/bin')
+	copy {
 		from 'concourse'
 		into build
 	}
@@ -22,6 +30,9 @@ task copyRoot(type:Copy){
 }
 
 applicationDistribution.from(copyRoot) {}
+applicationDistribution.from(copyBin){
+	into 'bin'
+}
 
 mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
 

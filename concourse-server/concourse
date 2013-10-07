@@ -9,14 +9,15 @@ usage(){
 	exit -1
 }
 
-# Set APP_HOME to the current directory
-APP_HOME="`pwd -P`"
+# Set APP_HOME to the parent directory
+APP_HOME="`pwd -P`/.."
+cd $APP_HOME
 
 # Find JAVA command
 JAVA="/usr/bin/java"
 
 # Set VM Options
-VM_OPTS="-javaagent:$APP_HOME/lib/aspectjweaver-1.7.3.jar"
+#VM_OPTS="-javaagent:$APP_HOME/lib/aspectjweaver-1.7.3.jar"
 
 
 # Set CLASSPATH

@@ -53,7 +53,7 @@ public final class GlobalState {
 
 	/* ***************************** CONFIG ******************************** */
 	private static final ConcourseConfiguration config = ConcourseConfiguration
-			.loadConfig("server.prefs");
+			.loadConfig("concourse.prefs");
 
 	/**
 	 * The absolute path to the directory where Concourse stores data.
