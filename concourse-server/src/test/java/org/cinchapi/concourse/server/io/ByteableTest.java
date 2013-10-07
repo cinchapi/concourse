@@ -32,9 +32,6 @@ import org.junit.Test;
  */
 public interface ByteableTest {
 
-	/**
-	 * Use {@link ByteableTests#testSerialization(Byteable, Class)}.
-	 */
 	@Test
 	public void testSerialization();
 

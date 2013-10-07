@@ -50,8 +50,9 @@ public abstract class AbstractByteableTest implements ByteableTest {
 	@Override
 	@Test
 	public void testSerialization() {
-		Assert.assertTrue(ByteableTests.testSerialization(
-				getRandomTestInstance(), getTestClass()));
+		Byteable object = getRandomTestInstance();
+		Assert.assertTrue(Byteables.read(object.getBytes(), getTestClass())
+				.equals(object));
 	}
 
 }

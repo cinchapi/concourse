@@ -42,5 +42,7 @@ public class PositionTest extends AbstractByteableTest {
 	protected Class<Position> getTestClass() {
 		return Position.class;
 	}
+	
+	
 
 }
