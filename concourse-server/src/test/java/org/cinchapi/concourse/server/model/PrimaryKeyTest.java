@@ -67,6 +67,13 @@ public class PrimaryKeyTest extends StorableTest {
 															// always pushed to
 															// the back
 	}
+	
+	@Test
+	public void testSize(){
+		PrimaryKey key = TestData.getPrimaryKeyForStorage();
+		Assert.assertEquals(PrimaryKey.SIZE, key.size());
+		Assert.assertEquals(PrimaryKey.SIZE, key.getBytes().capacity());
+	}
 
 	@Override
 	protected PrimaryKey[] getForStorageAndNotForStorageVersionOfObject() {

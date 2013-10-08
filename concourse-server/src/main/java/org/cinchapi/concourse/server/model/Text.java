@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -77,18 +76,9 @@ public final class Text implements Byteable, Comparable<Text> {
 	}
 
 	/**
-	 * The maximum number of bytes that can be used to encode a single Text.
+	 * Represents an empty text string.
 	 */
-	@PackagePrivate
-	static final int MAX_SIZE = Integer.MAX_VALUE;
-
-	/**
-	 * Represents an empty text string, which has a timestamp of
-	 * {@value Storable#NO_TIMESTAMP} and occupies {@value #CONSTANT_SIZE}
-	 * bytes.
-	 */
-	@PackagePrivate
-	static final Text EMPTY = Text.fromString("");
+	public static final Text EMPTY = Text.fromString("");
 
 	/**
 	 * The wrapped string.

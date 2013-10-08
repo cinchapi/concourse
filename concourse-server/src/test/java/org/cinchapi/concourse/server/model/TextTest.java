@@ -21,51 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.util;
+package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.concourse.server.model.Position;
-import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.io.ByteableTest;
+import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A utility class for getting test data.
+ * Unit tests for {@link Text}.
  * 
  * @author jnelson
  */
-public final class TestData extends Random {
-
-	/**
-	 * Return a random forStorage {@link PrimaryKey}.
-	 * 
-	 * @return a PrimaryKey
-	 */
-	public static PrimaryKey getPrimaryKeyForStorage() {
-		return PrimaryKey.forStorage(getLong());
+public class TextTest extends ByteableTest{
+	
+	@Test
+	public void testCompareTo(){
+		String s1 = TestData.getString();
+		String s2 = TestData.getString();
+		Text t1 = Text.fromString(s1);
+		Text t2 = Text.fromString(s2);
+		Assert.assertEquals(s1.compareTo(s2), t1.compareTo(t2));
 	}
 
-	/**
-	 * Return a random notForStorage {@link PrimaryKey}.
-	 * 
-	 * @return a PrimaryKey
-	 */
-	public static PrimaryKey getPrimaryKeyNotForStorage() {
-		return PrimaryKey.notForStorage(getLong());
+	@Override
+	protected Text getRandomTestInstance() {
+		return TestData.getText();
 	}
 
-	/**
-	 * Return a random {@link Position}.
-	 * 
-	 * @return a Position
-	 */
-	public static Position getPosition() {
-		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
-				Math.abs(getInt()));
+	@Override
+	protected Class<Text> getTestClass() {
+		return Text.class;
 	}
 	
-	public static Text getText(){
-		return Text.fromString(getString());
-	}
-
-	private TestData() {/* Utility class */}
 
 }

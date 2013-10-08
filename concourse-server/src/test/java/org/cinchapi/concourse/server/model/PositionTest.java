@@ -71,7 +71,9 @@ public class PositionTest extends StorableTest {
 
 	@Test
 	public void testSize() {
-		Assert.assertEquals(Position.SIZE, TestData.getPosition().size());
+		Position p = TestData.getPosition();
+		Assert.assertEquals(Position.SIZE, p.size());
+		Assert.assertEquals(Position.SIZE, p.getBytes().capacity());
 	}
 
 	@Override
