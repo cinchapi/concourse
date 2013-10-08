@@ -27,7 +27,7 @@ import org.cinchapi.concourse.util.RandomStringGenerator;
 
 
 /**
- * 
+ * Random generators.
  * 
  * @author jnelson
  */
