@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
@@ -109,14 +110,12 @@ final class Buffer extends Limbo {
 	private boolean running = false;
 
 	/**
-	 * Construct a Buffer that is backed by the default location, which is a
-	 * file called "buffer" in the {@link Properties#DATA_HOME} directory.
-	 * Existing content, if available, will be loaded from the file. Otherwise,
-	 * a new and empty Buffer will be returned.
+	 * Construct a Buffer that is backed by the default location, which is
+	 * {@link GlobalState#BUFFER_STORE}.
 	 * 
 	 */
 	public Buffer() {
-		this(DATA_DIR + File.separator + "buffer");
+		this(BUFFER_STORE);
 	}
 
 	/**

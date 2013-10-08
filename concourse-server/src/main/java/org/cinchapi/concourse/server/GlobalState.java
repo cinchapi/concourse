@@ -56,11 +56,20 @@ public final class GlobalState {
 			.loadConfig("concourse.prefs");
 
 	/**
-	 * The absolute path to the directory where Concourse stores data.
+	 * The absolute path to the directory where Concourse stores permanent data
+	 * on disk.
 	 */
-	public static final String DATA_DIR = config.getString("DATA_DIR",
+	public static final String DB_STORE = config.getString("db.store",
 			File.separator + "var" + File.separator + "lib" + File.separator
-					+ "concourse");
+					+ "concourse" + File.separator + "db");
+
+	/**
+	 * The absolute path to the directory where Concourse stores buffer data on
+	 * disk.
+	 */
+	public static final String BUFFER_STORE = config.getString("buffer.store",
+			File.separator + "var" + File.separator + "lib" + File.separator
+					+ "concourse" + File.separator + "buffer");
 
 	/**
 	 * The size of a single page in the {@link Buffer}. By using multiple Pages,
@@ -70,7 +79,7 @@ public final class GlobalState {
 	 * fragmented data storage that larger pages may produce.
 	 */
 	public static final int BUFFER_PAGE_SIZE = (int) config.getSize(
-			"BUFFER_PAGE_SIZE", 8192);
+			"buffer.pageSize", 8192);
 
 	/**
 	 * The minimum number of characters to index for searches. This value is
@@ -78,8 +87,8 @@ public final class GlobalState {
 	 * autocomplete field before seeing search results. Smaller values allow
 	 * more granular searches at the expense of larger index sizes.
 	 */
-	public static final int SEARCH_INDEX_GRANULARITY = config.getInt(
-			"SEARCH_INDEX_GRANULARITY", 3);
+	public static final int MIN_SEARCH_INDEX_SIZE = config.getInt(
+			"db.minSearchIndexSize", 3);
 
 	/* ************************************************************************ */
 	public static final Logger log = Loggers.getLogger();

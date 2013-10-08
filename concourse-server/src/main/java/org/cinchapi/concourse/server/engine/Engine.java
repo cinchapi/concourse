@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.io.File;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
@@ -62,7 +60,7 @@ public final class Engine extends BufferedStore implements
 	 * The location that the engine uses as the base store for its components.
 	 */
 	@PackagePrivate
-	final String baseStore; // visible for Transaction backups
+	final String bufferStore; // visible for Transaction backups
 
 	/**
 	 * The thread that is responsible for transporting buffer content in the
@@ -81,19 +79,19 @@ public final class Engine extends BufferedStore implements
 	 * 
 	 */
 	public Engine() {
-		this(new Buffer(), new Database(), DATA_DIR);
+		this(new Buffer(), new Database(), BUFFER_STORE);
 	}
 
 	/**
 	 * Construct an Engine that is made up of a {@link Buffer} and
-	 * {@link Database} that are both backed by {@code baseStore}.
-	 * Construct a new instance.
+	 * {@link Database} that are both backed by {@code bufferStore} and
+	 * {@code dbStore} respectively.
 	 * 
-	 * @param baseStore
+	 * @param bufferStore
+	 * @param dbStore
 	 */
-	public Engine(String baseStore) {
-		this(new Buffer(baseStore + File.separator + "buffer"), new Database(
-				baseStore + File.separator + "db"), baseStore);
+	public Engine(String bufferStore, String dbStore) {
+		this(new Buffer(bufferStore), new Database(dbStore), bufferStore);
 	}
 
 	/**
@@ -102,11 +100,11 @@ public final class Engine extends BufferedStore implements
 	 * 
 	 * @param buffer
 	 * @param database
-	 * @param baseStore
+	 * @param bufferStore
 	 */
-	private Engine(Buffer buffer, Database database, String baseStore) {
+	private Engine(Buffer buffer, Database database, String bufferStore) {
 		super(buffer, database);
-		this.baseStore = baseStore;
+		this.bufferStore = bufferStore;
 		this.bufferTransportThread = new BufferTransportThread();
 	}
 

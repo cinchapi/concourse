@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server;
 
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -167,20 +166,22 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, DATA_DIR);
+		this(SERVER_PORT, BUFFER_STORE, DB_STORE);
 	}
 
 	/**
 	 * Construct a ConcourseServer that listens on {@code port} and store data
-	 * in {@code backingStore}.
+	 * in {@code dbStore} and {@code bufferStore}.
 	 * 
 	 * @param port
-	 * @param backingStore
+	 * @param bufferStore
+	 * @param dbStore
 	 * @throws TTransportException
 	 */
-	public ConcourseServer(int port, String backingStore)
+	public ConcourseServer(int port, String bufferStore, String dbStore)
 			throws TTransportException {
-		FileSystem.mkdirs(backingStore);
+		FileSystem.mkdirs(bufferStore);
+		FileSystem.mkdirs(dbStore);
 		TServerSocket socket = new TServerSocket(port);
 		ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
 				this);
@@ -188,7 +189,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
 		this.server = new TThreadPoolServer(args);
-		this.engine = new Engine(backingStore);
+		this.engine = new Engine(bufferStore, dbStore);
 	}
 
 	@Override
@@ -456,8 +457,9 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	private void prepare() throws TTransportException {
-//		log.info("concourse.home located at {}", context.properties().home());
-//		long heap = Runtime.getRuntime().maxMemory() / 1048576;
+		// log.info("concourse.home located at {}",
+		// context.properties().home());
+		// long heap = Runtime.getRuntime().maxMemory() / 1048576;
 	}
 
 	/**

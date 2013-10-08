@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.engine;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -34,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -145,12 +145,12 @@ public class Database implements PermanentStore {
 	private static final Logger log = Loggers.getLogger();
 
 	/**
-	 * Construct a Database that is backed by the default location which is in a
-	 * "db" directory under {@link Properties#DATA_HOME}.
+	 * Construct a Database that is backed by the default location which is in
+	 * {@link GlobalState#DB_STORE}.
 	 * 
 	 */
 	public Database() {
-		this(DATA_DIR + File.separator + "db");
+		this(DB_STORE);
 	}
 
 	/**

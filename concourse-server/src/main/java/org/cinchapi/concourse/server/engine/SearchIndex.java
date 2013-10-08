@@ -245,7 +245,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
-				for (int j = (i + SEARCH_INDEX_GRANULARITY - 1); j < word
+				for (int j = (i + MIN_SEARCH_INDEX_SIZE - 1); j < word
 						.length() + 1; j++) {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
@@ -287,7 +287,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 				return;
 			}
 			for (int i = 0; i < word.length(); i++) {
-				for (int j = i + (SEARCH_INDEX_GRANULARITY - 1); j < word
+				for (int j = i + (MIN_SEARCH_INDEX_SIZE - 1); j < word
 						.length() + 1; j++) {
 					Text index = Text.fromString(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
