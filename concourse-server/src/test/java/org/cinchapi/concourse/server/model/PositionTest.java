@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.model;
 
 import org.cinchapi.concourse.server.io.StorableTest;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for {@link Position}.
@@ -32,6 +34,45 @@ import org.cinchapi.concourse.util.TestData;
  * @author jnelson
  */
 public class PositionTest extends StorableTest {
+
+	@Test
+	public void testCompareToSamePrimaryKeyAndSameIndex() {
+		PrimaryKey key = TestData.getPrimaryKeyForStorage();
+		int index = Math.abs(TestData.getInt());
+		Position p1 = Position.fromPrimaryKeyAndIndex(key, index);
+		Position p2 = Position.fromPrimaryKeyAndIndex(key, index);
+		Assert.assertTrue(p1.compareTo(p2) == 0);
+	}
+
+	@Test
+	public void testCompareToSamePrimaryKeyAndDiffIndex() {
+		PrimaryKey key = TestData.getPrimaryKeyForStorage();
+		int index1 = Math.abs(TestData.getInt());
+		index1 = index1 == Integer.MAX_VALUE ? index1 - 1 : index1;
+		int index2 = index1 + 1;
+		Position p1 = Position.fromPrimaryKeyAndIndex(key, index1);
+		Position p2 = Position.fromPrimaryKeyAndIndex(key, index2);
+		Assert.assertTrue(p1.compareTo(p2) < 0);
+	}
+
+	@Test
+	public void testCompareToDiffPrimaryKey() {
+		long long1 = TestData.getLong();
+		long1 = long1 == Long.MAX_VALUE ? long1 - 1 : long1;
+		long long2 = long1 + 1;
+		PrimaryKey key1 = PrimaryKey.forStorage(long1);
+		PrimaryKey key2 = PrimaryKey.forStorage(long2);
+		Position p1 = Position.fromPrimaryKeyAndIndex(key1,
+				Math.abs(TestData.getInt()));
+		Position p2 = Position.fromPrimaryKeyAndIndex(key2,
+				Math.abs(TestData.getInt()));
+		Assert.assertTrue(p1.compareTo(p2) < 0);
+	}
+
+	@Test
+	public void testSize() {
+		Assert.assertEquals(Position.SIZE, TestData.getPosition().size());
+	}
 
 	@Override
 	protected Position getRandomTestInstance() {
@@ -47,12 +88,11 @@ public class PositionTest extends StorableTest {
 	protected Position[] getForStorageAndNotForStorageVersionOfObject() {
 		long key = TestData.getLong();
 		int index = Math.abs(TestData.getInt());
-		Position[] array = {
+		return new Position[] {
 				Position.fromPrimaryKeyAndIndex(PrimaryKey.forStorage(key),
 						index),
-				Position.fromPrimaryKeyAndIndex(
-						PrimaryKey.notForStorage(key), index) };
-		return array;
+				Position.fromPrimaryKeyAndIndex(PrimaryKey.notForStorage(key),
+						index) };
 	}
 
 	@Override

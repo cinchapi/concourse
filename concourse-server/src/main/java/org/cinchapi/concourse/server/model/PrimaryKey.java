@@ -175,11 +175,11 @@ public final class PrimaryKey extends Number implements
 	}
 
 	/**
-	 * Compares keys such that they are sorted in descending order.
+	 * Compares keys such that they are sorted in ascending order.
 	 */
 	@Override
 	public int compareTo(PrimaryKey o) {
-		return 1 * UnsignedLongs.compare(longValue(), o.longValue());
+		return UnsignedLongs.compare(longValue(), o.longValue());
 	}
 
 	/**
