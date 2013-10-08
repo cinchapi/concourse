@@ -46,11 +46,18 @@ public final class Storables {
 		public int compare(Storable o1, Storable o2) {
 			// push notForStorage objects to the back so that we
 			// are sure to reach forStorage values
+			if(o1.isNotForStorage() && o2.isNotForStorage()) {
+				// FIXME: if both objects are notForStorage then the sorting
+				// order should be based on the logical values. Unfortunately
+				// there is no way to get the logical value sorting order based
+				// on the Storable interface.
+				return o1.equals(o2) ? 0 : 0;
+			}
 			if(o1.isNotForStorage()) {
-				return o1.equals(o2) ? 0 : 1;
+				return 1;
 			}
 			else if(o2.isNotForStorage()) {
-				return o1.equals(o2) ? 0 : -1;
+				return -1;
 			}
 			else {
 				return -1 * Longs.compare(o1.getTimestamp(), o2.getTimestamp());
