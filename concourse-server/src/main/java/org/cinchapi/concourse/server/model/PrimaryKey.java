@@ -182,6 +182,23 @@ public final class PrimaryKey extends Number implements
 		return 1 * UnsignedLongs.compare(longValue(), o.longValue());
 	}
 
+	/**
+	 * Determine if the comparison to {@code o} should be done temporally or
+	 * {@code logically}.
+	 * 
+	 * @param o
+	 * @param logically
+	 *            if {@code true} the value based comparison occurs, otherwise
+	 *            based on timestamp/equality
+	 * @return a negative integer, zero, or a positive integer as this object is
+	 *         less than, equal to, or greater than the specified object.
+	 * @see {@link #compareTo(PrimaryKey)}
+	 * @see {@link Storables#compare(Storable, Storable)}
+	 */
+	public int compareTo(PrimaryKey o, boolean logically) {
+		return logically ? compareTo(o) : Storables.compare(this, o);
+	}
+
 	@Override
 	public double doubleValue() {
 		return (double) longValue();
@@ -268,24 +285,6 @@ public final class PrimaryKey extends Number implements
 																// com.cinchapi.common.Numbers.compare(Number,
 																// Number)}
 		return string;
-	}
-
-	/**
-	 * Determine if the comparison to {@code o} should be done temporally or
-	 * {@code logically}.
-	 * 
-	 * @param o
-	 * @param logically
-	 *            if {@code true} the value based comparison occurs, otherwise
-	 *            based on timestamp/equality
-	 * @return a negative integer, zero, or a positive integer as this object is
-	 *         less than, equal to, or greater than the specified object.
-	 * @see {@link #compareTo(PrimaryKey)}
-	 * @see {@link Storables#compare(Storable, Storable)}
-	 */
-	@PackagePrivate
-	int compareTo(PrimaryKey o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
 	}
 
 }
