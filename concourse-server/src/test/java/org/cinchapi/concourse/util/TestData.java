@@ -27,6 +27,7 @@ import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -35,6 +36,43 @@ import org.cinchapi.concourse.thrift.TObject;
  * @author jnelson
  */
 public final class TestData extends Random {
+
+	/**
+	 * Return a random {@link Position}.
+	 * 
+	 * @return a Position
+	 */
+	public static Position getPosition() {
+		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
+				Math.abs(getInt()));
+	}
+
+	/**
+	 * Return a random forStorage {@link PrimaryKey}.
+	 * 
+	 * @return a PrimaryKey
+	 */
+	public static PrimaryKey getPrimaryKeyForStorage() {
+		return PrimaryKey.forStorage(getLong());
+	}
+
+	/**
+	 * Return a random notForStorage {@link PrimaryKey}.
+	 * 
+	 * @return a PrimaryKey
+	 */
+	public static PrimaryKey getPrimaryKeyNotForStorage() {
+		return PrimaryKey.notForStorage(getLong());
+	}
+
+	/**
+	 * Return a random {@link Text}.
+	 * 
+	 * @return a Text
+	 */
+	public static Text getText() {
+		return Text.fromString(getString());
+	}
 
 	/**
 	 * Return a random {@link TObject}
@@ -64,40 +102,30 @@ public final class TestData extends Random {
 	}
 
 	/**
-	 * Return a random forStorage {@link PrimaryKey}.
+	 * Return a random Write with ADD type.
 	 * 
-	 * @return a PrimaryKey
+	 * @return a Write
 	 */
-	public static PrimaryKey getPrimaryKeyForStorage() {
-		return PrimaryKey.forStorage(getLong());
+	public static Write getWriteAdd() {
+		return Write.add(getString(), getTObject(), getLong());
 	}
 
 	/**
-	 * Return a random notForStorage {@link PrimaryKey}.
+	 * Return a random notForStorage Write.
 	 * 
-	 * @return a PrimaryKey
+	 * @return a Write
 	 */
-	public static PrimaryKey getPrimaryKeyNotForStorage() {
-		return PrimaryKey.notForStorage(getLong());
+	public static Write getWriteNotForStorage() {
+		return Write.notForStorage(getString(), getTObject(), getLong());
 	}
 
 	/**
-	 * Return a random {@link Position}.
+	 * Return a random Write with REMOVE type.
 	 * 
-	 * @return a Position
+	 * @return a Write
 	 */
-	public static Position getPosition() {
-		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
-				Math.abs(getInt()));
-	}
-
-	/**
-	 * Return a random {@link Text}.
-	 * 
-	 * @return a Text
-	 */
-	public static Text getText() {
-		return Text.fromString(getString());
+	public static Write getWriteRemove() {
+		return Write.add(getString(), getTObject(), getLong());
 	}
 
 	private TestData() {/* Utility class */}
