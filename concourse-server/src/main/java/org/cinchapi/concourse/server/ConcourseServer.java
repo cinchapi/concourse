@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
@@ -54,6 +55,7 @@ import org.slf4j.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 import static org.cinchapi.concourse.util.Loggers.getLogger;
@@ -188,6 +190,9 @@ public class ConcourseServer implements ConcourseService.Iface {
 		Args args = new TThreadPoolServer.Args(socket);
 		args.processor(processor);
 		args.maxWorkerThreads(NUM_WORKER_THREADS);
+		args.executorService(Executors
+				.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
+						"Server" + "-%d").build()));
 		this.server = new TThreadPoolServer(args);
 		this.engine = new Engine(bufferStore, dbStore);
 	}

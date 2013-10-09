@@ -196,7 +196,7 @@ public final class Engine extends BufferedStore implements
 		 * Construct a new instance.
 		 */
 		public BufferTransportThread(){
-			super("BufferTransportThread");
+			super("BufferTransport");
 		}
 
 		@Override
