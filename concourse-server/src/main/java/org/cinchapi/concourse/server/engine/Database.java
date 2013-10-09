@@ -262,6 +262,7 @@ public class Database implements PermanentStore {
 	public void start() {
 		if(!running) {
 			running = true;
+			log.info("Database configured to store data in {}", backingStore);
 			ConcourseExecutors.executeAndAwaitTermination(
 					"record-loader-thread", new RecordLoader(
 							SecondaryIndex.class), new RecordLoader(

@@ -296,6 +296,7 @@ final class Buffer extends Limbo {
 	public void start() {
 		if(!running) {
 			running = true;
+			log.info("Buffer configured to store data in {}", directory);
 			SortedMap<File, Page> pageSorter = Maps
 					.newTreeMap(new Comparator<File>() {
 
