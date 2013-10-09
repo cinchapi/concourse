@@ -166,7 +166,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 	 * @throws TTransportException
 	 */
 	public ConcourseServer() throws TTransportException {
-		this(SERVER_PORT, BUFFER_STORE, DB_STORE);
+		this(SERVER_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
 	}
 
 	/**

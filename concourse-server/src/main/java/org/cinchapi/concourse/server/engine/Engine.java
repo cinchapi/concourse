@@ -79,7 +79,7 @@ public final class Engine extends BufferedStore implements
 	 * 
 	 */
 	public Engine() {
-		this(new Buffer(), new Database(), BUFFER_STORE);
+		this(new Buffer(), new Database(), BUFFER_DIRECTORY);
 	}
 
 	/**

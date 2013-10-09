@@ -146,11 +146,11 @@ public class Database implements PermanentStore {
 
 	/**
 	 * Construct a Database that is backed by the default location which is in
-	 * {@link GlobalState#DB_STORE}.
+	 * {@link GlobalState#DATABASE_DIRECTORY}.
 	 * 
 	 */
 	public Database() {
-		this(DB_STORE);
+		this(DATABASE_DIRECTORY);
 	}
 
 	/**

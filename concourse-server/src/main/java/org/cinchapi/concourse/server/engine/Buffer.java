@@ -111,11 +111,11 @@ final class Buffer extends Limbo {
 
 	/**
 	 * Construct a Buffer that is backed by the default location, which is
-	 * {@link GlobalState#BUFFER_STORE}.
+	 * {@link GlobalState#BUFFER_DIRECTORY}.
 	 * 
 	 */
 	public Buffer() {
-		this(BUFFER_STORE);
+		this(BUFFER_DIRECTORY);
 	}
 
 	/**
