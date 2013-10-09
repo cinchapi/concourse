@@ -31,7 +31,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
@@ -263,9 +262,8 @@ public class Database implements PermanentStore {
 		if(!running) {
 			running = true;
 			log.info("Database configured to store data in {}", backingStore);
-			ConcourseExecutors.executeAndAwaitTermination(
-					"record-loader-thread", new RecordLoader(
-							SecondaryIndex.class), new RecordLoader(
+			ConcourseExecutors.executeAndAwaitTermination("Database",
+					new RecordLoader(SecondaryIndex.class), new RecordLoader(
 							SearchIndex.class));
 		}
 	}
@@ -292,8 +290,8 @@ public class Database implements PermanentStore {
 	private final class RecordLoader implements Runnable {
 
 		private final Class<?> clazz;
-		private final ExecutorService executor = Executors
-				.newCachedThreadPool();
+		private final ExecutorService executor = ConcourseExecutors
+				.newCachedThreadPool("StartupRecordLoader");
 
 		/**
 		 * Construct a new instance.

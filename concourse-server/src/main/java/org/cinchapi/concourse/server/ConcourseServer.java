@@ -92,7 +92,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 				}
 			}
 
-		}, "server-thread");
+		}, "main");
 		serverThread.start();
 
 		// Prepare for graceful shutdown...
@@ -116,7 +116,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 
 			}
 
-		}, "shutdown-thread");
+		}, "Shutdown");
 		shutdownThread.setDaemon(true);
 		shutdownThread.start();
 	}

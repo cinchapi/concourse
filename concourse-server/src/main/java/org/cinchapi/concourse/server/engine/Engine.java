@@ -191,6 +191,13 @@ public final class Engine extends BufferedStore implements
 	 * @author jnelson
 	 */
 	private class BufferTransportThread extends Thread {
+		
+		/**
+		 * Construct a new instance.
+		 */
+		public BufferTransportThread(){
+			super("BufferTransportThread");
+		}
 
 		@Override
 		public void run() {
