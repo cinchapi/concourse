@@ -66,7 +66,7 @@ abstract class BufferedStore implements
 		VersionControlStore,
 		Lockable {
 
-	private static final String threadNamePrefix = "buffered-store-read-thread";
+	private static final String threadNamePrefix = "BufferedStore";
 
 	/**
 	 * The {@code buffer} is the place where data is initially stored. The
