@@ -72,29 +72,29 @@ import com.google.common.collect.Lists;
  * </p>
  * <p>
  * <ul>
- * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
- * person, place, or thing (i.e. an object). Each {@code record} is a collection
+ * <li><strong>Object</strong> &mdash; A logical grouping of data about a single
+ * person, place, or thing. Each {@code object} is a collection
  * of key/value pairs that are together identify by a unique primary key.
  * <li><strong>Key</strong> &mdash; An attribute that maps to a set of
- * <em>one or more</em> distinct {@code values}. A {@code record} can have many
- * different {@code keys}, and the {@code keys} in one {@code record} do not
- * affect the those in another {@code record}.
+ * <em>one or more</em> distinct {@code values}. An {@code object} can have many
+ * different {@code keys}, and the {@code keys} in one {@code object} do not
+ * affect the those in another {@code object}.
  * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
- * mapped from a {@code key} in a {@code record}.
+ * mapped from a {@code key} in a {@code object}.
  * </ul>
  * </p>
  * <h4>Data Types</h4>
  * <p>
  * Concourse natively stores most of the Java primitives: boolean, double,
  * float, integer, long, and string (UTF-8). Otherwise, the value of the
- * {@link #toString()} method for the Object is stored.
+ * {@link #toString()} method for the data is stored.
  * </p>
  * <h4>Links</h4>
  * <p>
- * Concourse supports linking a {@code key} in one {@code record} to another
- * {@code record}. Links are one-directional, but it is possible to add two
+ * Concourse supports linking a {@code key} in one {@code object} to another
+ * {@code object}. Links are one-directional, but it is possible to add two
  * links that are the inverse of each other to simulate bi-directionality (i.e.
- * link "friend" in Record 1 to Record 2 and link "friend" in Record 2 to Record
+ * link "friend" in Object 1 to Object 2 and link "friend" in Object 2 to Object
  * 1).
  * </p>
  * <h2>Transactions</h2>
@@ -122,41 +122,41 @@ public interface Concourse {
 	public void abort();
 
 	/**
-	 * Add {@code key} as {@code value} to {@code record} and return
-	 * {@code true} if the mapping does not currently exist in {@code record}
+	 * Add {@code key} as {@code value} to {@code object} and return
+	 * {@code true} if the mapping does not currently exist in {@code object}
 	 * and is successfully added.
 	 * 
 	 * @param key
 	 * @param value
-	 * @param record
+	 * @param object
 	 * @return {@code true} if the mapping is added
 	 */
-	public <T> boolean add(String key, T value, long record);
+	public <T> boolean add(String key, T value, long object);
 
 	/**
-	 * Audit {@code record} and return a log of revisions.
+	 * Audit {@code object} and return a log of revisions.
 	 * 
-	 * @param record
+	 * @param object
 	 * @return a mapping of timestamps to revision descriptions
 	 */
-	public Map<DateTime, String> audit(long record);
+	public Map<DateTime, String> audit(long object);
 
 	/**
-	 * Audit {@code key} in {@code record} and return a log of revisions.
+	 * Audit {@code key} in {@code object} and return a log of revisions.
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @return a mapping of timestamps to revision descriptions
 	 */
-	public Map<DateTime, String> audit(String key, long record);
+	public Map<DateTime, String> audit(String key, long object);
 
 	/**
-	 * Clear {@code key} in {@code record} and remove every mapping
-	 * from {@code key} that currently exists in {@code record}.
+	 * Clear {@code key} in {@code object} and remove every mapping
+	 * from {@code key} that currently exists in {@code object}.
 	 * 
-	 * @param record
+	 * @param object
 	 */
-	public void clear(String key, long record);
+	public void clear(String key, long object);
 
 	/**
 	 * Attempt to permanently commit all the currently staged changes. This
@@ -172,30 +172,30 @@ public interface Concourse {
 	public boolean commit();
 
 	/**
-	 * Create a new Record and return its Primary Key.
+	 * Create a new Object and return its Primary Key.
 	 * 
-	 * @return the Primary Key of the new Record
+	 * @return the Primary Key of the new Object
 	 */
 	public long create();
 
 	/**
-	 * Describe {@code record} and return its set of keys that currently map to
+	 * Describe {@code object} and return its set of keys that currently map to
 	 * at least one value.
 	 * 
-	 * @param record
+	 * @param object
 	 * @return the populated keys
 	 */
-	public Set<String> describe(long record);
+	public Set<String> describe(long object);
 
 	/**
-	 * Describe {@code record} at {@code timestamp} and return its set of keys
+	 * Describe {@code object} at {@code timestamp} and return its set of keys
 	 * that mapped to at least one value.
 	 * 
-	 * @param record
+	 * @param object
 	 * @param timestamp
 	 * @return the keys for populated keys
 	 */
-	public Set<String> describe(long record, DateTime timestamp);
+	public Set<String> describe(long object, DateTime timestamp);
 
 	/**
 	 * Disconnect from the remote Concourse server.
@@ -203,77 +203,77 @@ public interface Concourse {
 	public void exit();
 
 	/**
-	 * Fetch {@code key} from {@code record} and return the set of currently
+	 * Fetch {@code key} from {@code object} and return the set of currently
 	 * mapped values.
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @return the contained values
 	 */
-	public Set<Object> fetch(String key, long record);
+	public Set<Object> fetch(String key, long object);
 
 	/**
-	 * Fetch {@code key} from {@code record} at {@code timestamp} and return the
+	 * Fetch {@code key} from {@code object} at {@code timestamp} and return the
 	 * set of values that were mapped.
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @param timestamp
 	 * @return the contained values
 	 */
-	public Set<Object> fetch(String key, long record, DateTime timestamp);
+	public Set<Object> fetch(String key, long object, DateTime timestamp);
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
-	 * return the set of records that satisfied the criteria. This is analogous
+	 * return the set of objects that satisfied the criteria. This is analogous
 	 * to the SELECT action in SQL.
 	 * 
 	 * @param timestamp
 	 * @param key
 	 * @param operator
 	 * @param values
-	 * @return the records that match the criteria
+	 * @return the objects that match the criteria
 	 */
 	public Set<Long> find(DateTime timestamp, String key, Operator operator,
 			Object... values);
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} and return the set of
-	 * records that satisfy the criteria. This is analogous to the SELECT action
+	 * objects that satisfy the criteria. This is analogous to the SELECT action
 	 * in SQL.
 	 * 
 	 * @param key
 	 * @param operator
 	 * @param values
-	 * @return the records that match the criteria
+	 * @return the objects that match the criteria
 	 */
 	public Set<Long> find(String key, Operator operator, Object... values);
 
 	/**
-	 * Get {@code key} from {@code record} and return the first mapped value or
+	 * Get {@code key} from {@code object} and return the first mapped value or
 	 * {@code null} if there is none. Compared to {@link #fetch(String, long)},
 	 * this method is suited for cases when the caller is certain that
-	 * {@code key} in {@code record} maps to a single value of type {@code T}.
+	 * {@code key} in {@code object} maps to a single value of type {@code T}.
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @return the first mapped value
 	 */
-	public <T> T get(String key, long record);
+	public <T> T get(String key, long object);
 
 	/**
-	 * Get {@code key} from {@code record} at {@code timestamp} and return the
+	 * Get {@code key} from {@code object} at {@code timestamp} and return the
 	 * first mapped value or {@code null} if there was none. Compared to
 	 * {@link #fetch(String, long, long)}, this method is suited for cases when
-	 * the caller is certain that {@code key} in {@code record} mapped to a
+	 * the caller is certain that {@code key} in {@code object} mapped to a
 	 * single value of type {@code T} at {@code timestamp}.
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @param timestamp
 	 * @return the first mapped value
 	 */
-	public <T> T get(String key, long record, DateTime timestamp);
+	public <T> T get(String key, long object, DateTime timestamp);
 
 	/**
 	 * Link {@code key} in {@code source} to {@code destination}. In other
@@ -302,28 +302,28 @@ public interface Concourse {
 			long destination);
 
 	/**
-	 * Ping {@code record} and return {@code true} if there is currently at
+	 * Ping {@code object} and return {@code true} if there is currently at
 	 * least one populated key.
 	 * 
-	 * @param record
-	 * @return {@code true} if {@code record} currently contains data
+	 * @param object
+	 * @return {@code true} if {@code object} currently contains data
 	 */
-	public boolean ping(long record);
+	public boolean ping(long object);
 
 	/**
-	 * Remove {@code key} as {@code value} from {@code record} and return
-	 * {@code true} if the mapping currently exists in {@code record} and is
+	 * Remove {@code key} as {@code value} from {@code object} and return
+	 * {@code true} if the mapping currently exists in {@code object} and is
 	 * successfully removed.
 	 * 
 	 * @param key
 	 * @param value
-	 * @param record
+	 * @param object
 	 * @return {@code true} if the mapping is removed
 	 */
-	public <T> boolean remove(String key, T value, long record);
+	public <T> boolean remove(String key, T value, long object);
 
 	/**
-	 * Revert {@code key} in {@code record} to {@code timestamp}. This method
+	 * Revert {@code key} in {@code object} to {@code timestamp}. This method
 	 * restores the key to its state at {@code timestamp} by reversing all
 	 * revisions that have occurred since.
 	 * <p>
@@ -333,33 +333,33 @@ public interface Concourse {
 	 * </p>
 	 * 
 	 * @param key
-	 * @param record
+	 * @param object
 	 * @param timestamp
 	 */
-	public void revert(String key, long record, DateTime timestamp);
+	public void revert(String key, long object, DateTime timestamp);
 
 	/**
-	 * Search {@code key} for {@code query} and return the set of records that
+	 * Search {@code key} for {@code query} and return the set of objects that
 	 * match the fulltext query.
 	 * 
 	 * @param key
 	 * @param query
-	 * @return the records that match the query
+	 * @return the objects that match the query
 	 */
 	public Set<Long> search(String key, String query);
 
 	/**
-	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
+	 * Set {@code key} as {@code value} in {@code object}. This is a convenience
 	 * method that clears the values currently mapped from {@code key} and adds
 	 * a new mapping to {@code value}.
 	 * 
 	 * @param key
 	 * @param value
-	 * @param record
+	 * @param object
 	 * @return {@code true} if the old mappings are removed and the new one is
 	 *         added
 	 */
-	public <T> boolean set(String key, T value, long record);
+	public <T> boolean set(String key, T value, long object);
 
 	/**
 	 * Turn on {@code staging} mode so that all subsequent changes are
@@ -404,29 +404,29 @@ public interface Concourse {
 			long destination);
 
 	/**
-	 * Verify {@code key} equals {@code value} in {@code record} and return
+	 * Verify {@code key} equals {@code value} in {@code object} and return
 	 * {@code true} if {@code value} is currently mapped from {@code key} in
-	 * {@code record}.
+	 * {@code object}.
 	 * 
 	 * @param key
 	 * @param value
-	 * @param record
+	 * @param object
 	 * @return {@code true} if the mapping exists
 	 */
-	public boolean verify(String key, Object value, long record);
+	public boolean verify(String key, Object value, long object);
 
 	/**
-	 * Verify {@code key} equaled {@code value} in {@code record} at
+	 * Verify {@code key} equaled {@code value} in {@code object} at
 	 * {@code timestamp} and return {@code true} if {@code value} was mapped
-	 * from {@code key} in {@code record}.
+	 * from {@code key} in {@code object}.
 	 * 
 	 * @param key
 	 * @param value
-	 * @param record
+	 * @param object
 	 * @param timestamp
 	 * @return {@code true} if the mapping existed
 	 */
-	public boolean verify(String key, Object value, long record,
+	public boolean verify(String key, Object value, long object,
 			DateTime timestamp);
 
 	/**
@@ -562,12 +562,12 @@ public interface Concourse {
 
 		@Override
 		public <T> boolean add(final String key, final T value,
-				final long record) {
+				final long object) {
 			return execute(new Callable<Boolean>() {
 
 				@Override
 				public Boolean call() throws Exception {
-					return client.add(key, Convert.javaToThrift(value), record,
+					return client.add(key, Convert.javaToThrift(value), object,
 							creds, transaction);
 				}
 
@@ -575,12 +575,12 @@ public interface Concourse {
 		}
 
 		@Override
-		public Map<DateTime, String> audit(final long record) {
+		public Map<DateTime, String> audit(final long object) {
 			return execute(new Callable<Map<DateTime, String>>() {
 
 				@Override
 				public Map<DateTime, String> call() throws Exception {
-					Map<Long, String> audit = client.audit(record, null, creds,
+					Map<Long, String> audit = client.audit(object, null, creds,
 							transaction);
 					return Transformers.transformMap(audit,
 							new Function<Long, DateTime>() {
@@ -597,12 +597,12 @@ public interface Concourse {
 		}
 
 		@Override
-		public Map<DateTime, String> audit(final String key, final long record) {
+		public Map<DateTime, String> audit(final String key, final long object) {
 			return execute(new Callable<Map<DateTime, String>>() {
 
 				@Override
 				public Map<DateTime, String> call() throws Exception {
-					Map<Long, String> audit = client.audit(record, key, creds,
+					Map<Long, String> audit = client.audit(object, key, creds,
 							transaction);
 					return Transformers.transformMap(audit,
 							new Function<Long, DateTime>() {
@@ -619,10 +619,10 @@ public interface Concourse {
 		}
 
 		@Override
-		public void clear(String key, long record) {
-			Set<Object> values = fetch(key, record);
+		public void clear(String key, long object) {
+			Set<Object> values = fetch(key, object);
 			for (Object value : values) {
-				remove(key, value, record);
+				remove(key, value, object);
 			}
 		}
 
@@ -646,17 +646,17 @@ public interface Concourse {
 		}
 
 		@Override
-		public Set<String> describe(long record) {
-			return describe(record, now);
+		public Set<String> describe(long object) {
+			return describe(object, now);
 		}
 
 		@Override
-		public Set<String> describe(final long record, final DateTime timestamp) {
+		public Set<String> describe(final long object, final DateTime timestamp) {
 			return execute(new Callable<Set<String>>() {
 
 				@Override
 				public Set<String> call() throws Exception {
-					return client.describe(record,
+					return client.describe(object,
 							Convert.jodaToUnix(timestamp), creds, transaction);
 				}
 
@@ -671,18 +671,18 @@ public interface Concourse {
 		}
 
 		@Override
-		public Set<Object> fetch(String key, long record) {
-			return fetch(key, record, now);
+		public Set<Object> fetch(String key, long object) {
+			return fetch(key, object, now);
 		}
 
 		@Override
-		public Set<Object> fetch(final String key, final long record,
+		public Set<Object> fetch(final String key, final long object,
 				final DateTime timestamp) {
 			return execute(new Callable<Set<Object>>() {
 
 				@Override
 				public Set<Object> call() throws Exception {
-					Set<TObject> values = client.fetch(key, record,
+					Set<TObject> values = client.fetch(key, object,
 							Convert.jodaToUnix(timestamp), creds, transaction);
 					return Transformers.transformSet(values,
 							new Function<TObject, Object>() {
@@ -728,15 +728,15 @@ public interface Concourse {
 
 		@Override
 		@Nullable
-		public <T> T get(String key, long record) {
-			return get(key, record, now);
+		public <T> T get(String key, long object) {
+			return get(key, object, now);
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		@Nullable
-		public <T> T get(String key, long record, DateTime timestamp) {
-			Set<Object> values = fetch(key, record, timestamp);
+		public <T> T get(String key, long object, DateTime timestamp) {
+			Set<Object> values = fetch(key, object, timestamp);
 			if(!values.isEmpty()) {
 				return (T) values.iterator().next();
 			}
@@ -756,12 +756,12 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean ping(final long record) {
+		public boolean ping(final long object) {
 			return execute(new Callable<Boolean>() {
 
 				@Override
 				public Boolean call() throws Exception {
-					return client.ping(record, creds, transaction);
+					return client.ping(object, creds, transaction);
 				}
 
 			});
@@ -769,26 +769,26 @@ public interface Concourse {
 
 		@Override
 		public boolean remove(final String key, final Object value,
-				final long record) {
+				final long object) {
 			return execute(new Callable<Boolean>() {
 
 				@Override
 				public Boolean call() throws Exception {
 					return client.remove(key, Convert.javaToThrift(value),
-							record, creds, transaction);
+							object, creds, transaction);
 				}
 
 			});
 		}
 
 		@Override
-		public void revert(final String key, final long record,
+		public void revert(final String key, final long object,
 				final DateTime timestamp) {
 			execute(new Callable<Void>() {
 
 				@Override
 				public Void call() throws Exception {
-					client.revert(key, record, Convert.jodaToUnix(timestamp),
+					client.revert(key, object, Convert.jodaToUnix(timestamp),
 							creds, transaction);
 					return null;
 				}
@@ -810,12 +810,12 @@ public interface Concourse {
 		}
 
 		@Override
-		public <T> boolean set(String key, T value, long record) {
-			Set<Object> values = fetch(key, record);
+		public <T> boolean set(String key, T value, long object) {
+			Set<Object> values = fetch(key, object);
 			for (Object v : values) {
-				remove(key, v, record);
+				remove(key, v, object);
 			}
-			return add(key, value, record);
+			return add(key, value, object);
 		}
 
 		@Override
@@ -844,19 +844,19 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean verify(String key, Object value, long record) {
-			return verify(key, value, record, now);
+		public boolean verify(String key, Object value, long object) {
+			return verify(key, value, object, now);
 		}
 
 		@Override
 		public boolean verify(final String key, final Object value,
-				final long record, final DateTime timestamp) {
+				final long object, final DateTime timestamp) {
 			return execute(new Callable<Boolean>() {
 
 				@Override
 				public Boolean call() throws Exception {
 					return client.verify(key, Convert.javaToThrift(value),
-							record, Convert.jodaToUnix(timestamp), creds,
+							object, Convert.jodaToUnix(timestamp), creds,
 							transaction);
 				}
 
