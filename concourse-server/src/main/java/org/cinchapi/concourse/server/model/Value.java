@@ -216,13 +216,14 @@ public final class Value implements Comparable<Value>, Storable {
 	 * @param timestamp
 	 */
 	private Value(TObject quantity, long timestamp) {
+		ByteBuffer qtybuf = quantity.bufferForData();
 		this.timestamp = timestamp;
 		this.quantity = quantity;
-		this.size = quantity.bufferForData().capacity() + CONSTANT_SIZE;
+		this.size = qtybuf.capacity() + CONSTANT_SIZE;
 		this.bytes = ByteBuffer.allocate(size);
 		this.bytes.putLong(timestamp);
 		this.bytes.putInt(quantity.getType().ordinal());
-		this.bytes.put(quantity.bufferForData());
+		this.bytes.put(qtybuf);
 	}
 
 	/**
