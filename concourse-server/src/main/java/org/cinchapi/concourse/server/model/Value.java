@@ -175,6 +175,12 @@ public final class Value implements Comparable<Value>, Storable {
 	 */
 	private final TObject quantity;
 	private final transient int size;
+	
+	/**
+	 * Master byte sequence that represents this object. Read-only duplicates
+	 * are made when returning from {@link #getBytes()}.
+	 */
+	private final transient ByteBuffer bytes;
 
 	/**
 	 * Construct an instance that represents an existing Value from a
@@ -187,6 +193,7 @@ public final class Value implements Comparable<Value>, Storable {
 	 */
 	@DoNotInvoke
 	public Value(ByteBuffer bytes) {
+		this.bytes = bytes;
 		this.timestamp = bytes.getLong();
 		Type type = Type.values()[bytes.getInt()];
 		this.quantity = extractQuantity(bytes, type);
@@ -212,6 +219,10 @@ public final class Value implements Comparable<Value>, Storable {
 		this.timestamp = timestamp;
 		this.quantity = quantity;
 		this.size = quantity.bufferForData().capacity() + CONSTANT_SIZE;
+		this.bytes = ByteBuffer.allocate(size);
+		this.bytes.putLong(timestamp);
+		this.bytes.putInt(quantity.getType().ordinal());
+		this.bytes.put(quantity.bufferForData());
 	}
 
 	/**
@@ -278,12 +289,7 @@ public final class Value implements Comparable<Value>, Storable {
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBuffer bytes = ByteBuffer.allocate(size);
-		bytes.putLong(timestamp);
-		bytes.putInt(quantity.getType().ordinal());
-		bytes.put(quantity.bufferForData());
-		bytes.rewind();
-		return bytes;
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	/**

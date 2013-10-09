@@ -41,6 +41,25 @@ import com.google.common.base.Throwables;
 public abstract class ByteBuffers {
 
 	/**
+	 * Return a ByteBuffer that is a new read-only buffer that shares the
+	 * content of {@code source} and has the same byte order, but maintains a
+	 * distinct position, mark and limit.
+	 * 
+	 * @param source
+	 * @return the new, read-only byte buffer
+	 */
+	public static ByteBuffer asReadOnlyBuffer(ByteBuffer source) {
+		int position = source.position();
+		source.rewind();
+		ByteBuffer duplicate = source.asReadOnlyBuffer();
+		duplicate.order(source.order()); // byte order is not natively preserved
+											// when making duplicates:
+											// http://blog.mustardgrain.com/2008/04/04/bytebufferduplicate-does-not-preserve-byte-order/
+		source.position(position);
+		return duplicate;
+	}
+
+	/**
 	 * Return a clone of {@code buffer} that has a copy of <em>all</em> its
 	 * content and the same position and limit. Unlike the
 	 * {@link ByteBuffer#slice()} method, the returned clone
@@ -155,6 +174,32 @@ public abstract class ByteBuffers {
 
 	/**
 	 * Return a new ByteBuffer whose content is a shared subsequence of the
+	 * content in {@code buffer} starting at the current position to
+	 * current position + {@code length} (non-inclusive). Invoking this method
+	 * has the same affect as doing the following:
+	 * 
+	 * <pre>
+	 * buffer.mark();
+	 * int oldLimit = buffer.limit();
+	 * buffer.limit(buffer.position() + length);
+	 * 
+	 * ByteBuffer slice = buffer.slice();
+	 * 
+	 * buffer.reset();
+	 * buffer.limit(oldLimit);
+	 * </pre>
+	 * 
+	 * @param buffer
+	 * @param length
+	 * @return the new ByteBuffer slice
+	 * @see {@link ByteBuffer#slice()}
+	 */
+	public static ByteBuffer slice(ByteBuffer buffer, int length) {
+		return slice(buffer, buffer.position(), length);
+	}
+
+	/**
+	 * Return a new ByteBuffer whose content is a shared subsequence of the
 	 * content in {@code buffer} starting at {@code position} to
 	 * {@code position} + {@code length} (non-inclusive). Invoking this method
 	 * has the same affect as doing the following:
@@ -186,32 +231,6 @@ public abstract class ByteBuffers {
 		buffer.limit(oldLimit);
 		buffer.position(oldPosition);
 		return slice;
-	}
-
-	/**
-	 * Return a new ByteBuffer whose content is a shared subsequence of the
-	 * content in {@code buffer} starting at the current position to
-	 * current position + {@code length} (non-inclusive). Invoking this method
-	 * has the same affect as doing the following:
-	 * 
-	 * <pre>
-	 * buffer.mark();
-	 * int oldLimit = buffer.limit();
-	 * buffer.limit(buffer.position() + length);
-	 * 
-	 * ByteBuffer slice = buffer.slice();
-	 * 
-	 * buffer.reset();
-	 * buffer.limit(oldLimit);
-	 * </pre>
-	 * 
-	 * @param buffer
-	 * @param length
-	 * @return the new ByteBuffer slice
-	 * @see {@link ByteBuffer#slice()}
-	 */
-	public static ByteBuffer slice(ByteBuffer buffer, int length) {
-		return slice(buffer, buffer.position(), length);
 	}
 
 	/**

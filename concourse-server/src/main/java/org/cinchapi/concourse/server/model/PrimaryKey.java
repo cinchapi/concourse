@@ -32,6 +32,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.UnsignedLongs;
@@ -140,6 +141,12 @@ public final class PrimaryKey extends Number implements
 	private final long number;
 
 	/**
+	 * Master byte sequence that represents this object. Read-only duplicates
+	 * are made when returning from {@link #getBytes()}.
+	 */
+	private final transient ByteBuffer bytes;
+
+	/**
 	 * Construct an instance that represents an existing PrimaryKey from a
 	 * ByteBuffer. This constructor is public so as to comply with the
 	 * {@link Byteable} interface. Calling this constructor directly is not
@@ -150,6 +157,7 @@ public final class PrimaryKey extends Number implements
 	 */
 	@DoNotInvoke
 	public PrimaryKey(ByteBuffer bytes) {
+		this.bytes = bytes;
 		this.timestamp = bytes.getLong();
 		this.number = bytes.getLong();
 	}
@@ -172,6 +180,9 @@ public final class PrimaryKey extends Number implements
 	private PrimaryKey(long number, long timestamp) {
 		this.number = number;
 		this.timestamp = timestamp;
+		this.bytes = ByteBuffer.allocate(SIZE);
+		this.bytes.putLong(timestamp);
+		this.bytes.putLong(number);
 	}
 
 	/**
@@ -229,11 +240,7 @@ public final class PrimaryKey extends Number implements
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBuffer bytes = ByteBuffer.allocate(SIZE);
-		bytes.putLong(timestamp);
-		bytes.putLong(number);
-		bytes.rewind();
-		return bytes;
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	@Override

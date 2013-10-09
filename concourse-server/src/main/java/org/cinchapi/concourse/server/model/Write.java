@@ -34,6 +34,7 @@ import org.cinchapi.concourse.server.engine.Database;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A {@code Write} is the temporary representation of revision before it is
@@ -141,6 +142,12 @@ public final class Write implements Byteable {
 	private final Value value;
 	private final Type type;
 	private final transient int size;
+	
+	/**
+	 * Master byte sequence that represents this object. Read-only duplicates
+	 * are made when returning from {@link #getBytes()}.
+	 */
+	private final transient ByteBuffer bytes;
 
 	/**
 	 * Construct an instance that represents an existing Write from a
@@ -153,6 +160,7 @@ public final class Write implements Byteable {
 	 */
 	@DoNotInvoke
 	public Write(ByteBuffer bytes) {
+		this.bytes = bytes;
 		this.type = Type.values()[bytes.getInt()];
 		byte[] record = new byte[PrimaryKey.SIZE];
 		bytes.get(record);
@@ -181,6 +189,13 @@ public final class Write implements Byteable {
 		this.value = value;
 		this.type = type;
 		this.size = CONSTANT_SIZE + key.size() + value.size();
+		this.bytes = ByteBuffer.allocate(size);
+		this.bytes.putInt(type.ordinal());
+		this.bytes.put(record.getBytes());
+		this.bytes.putInt(key.size());
+		this.bytes.putInt(value.size());
+		this.bytes.put(key.getBytes());
+		this.bytes.put(value.getBytes());
 	}
 
 	/**
@@ -214,15 +229,7 @@ public final class Write implements Byteable {
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBuffer bytes = ByteBuffer.allocate(size);
-		bytes.putInt(type.ordinal());
-		bytes.put(record.getBytes());
-		bytes.putInt(key.size());
-		bytes.putInt(value.size());
-		bytes.put(key.getBytes());
-		bytes.put(value.getBytes());
-		bytes.rewind();
-		return bytes;
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	/**

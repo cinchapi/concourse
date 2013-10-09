@@ -195,9 +195,7 @@ public class TObject implements
 	}
 
 	public synchronized ByteBuffer bufferForData() {
-		ByteBuffer clone = ByteBuffers.clone(data);
-		clone.rewind();
-		return clone;
+		return ByteBuffers.asReadOnlyBuffer(data);
 	}
 
 	public TObject setData(byte[] data) {

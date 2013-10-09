@@ -84,13 +84,12 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * The wrapped string.
 	 */
 	private final String text;
-
+	
 	/**
-	 * A cache of the UTF-8 encoded representation of the {@link #text} so we
-	 * don't have to convert back and forth between strings and binary in the
-	 * event that the text is large.
+	 * Master byte sequence that represents this object. Read-only duplicates
+	 * are made when returning from {@link #getBytes()}.
 	 */
-	private final transient byte[] utf8;
+	private final transient ByteBuffer bytes;
 
 	/**
 	 * Construct an instance that represents existing Text from a
@@ -103,7 +102,8 @@ public final class Text implements Byteable, Comparable<Text> {
 	 */
 	@DoNotInvoke
 	public Text(ByteBuffer bytes) {
-		this(ByteBuffers.getString(bytes, StandardCharsets.UTF_8));
+		this.text = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
+		this.bytes = bytes;
 	}
 
 	/**
@@ -113,7 +113,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	 */
 	private Text(String text) {
 		this.text = text;
-		this.utf8 = text.getBytes(StandardCharsets.UTF_8);
+		this.bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public ByteBuffer getBytes() {
-		return ByteBuffer.wrap(utf8);
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	@Override
@@ -142,7 +142,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public int size() {
-		return utf8.length;
+		return bytes.capacity();
 	}
 
 	@Override

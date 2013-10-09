@@ -32,6 +32,7 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * The association between a location and a {@link PrimaryKey}.
@@ -119,6 +120,12 @@ public final class Position implements Comparable<Position>, Storable {
 	private final int index;
 
 	/**
+	 * Master byte sequence that represents this object. Read-only duplicates
+	 * are made when returning from {@link #getBytes()}.
+	 */
+	private final transient ByteBuffer bytes;
+
+	/**
 	 * Construct an instance that represents an existing Position from a
 	 * ByteBuffer. This constructor is public so as to comply with the
 	 * {@link Byteable} interface. Calling this constructor directly is not
@@ -129,8 +136,10 @@ public final class Position implements Comparable<Position>, Storable {
 	 */
 	@DoNotInvoke
 	public Position(ByteBuffer bytes) {
+		this.bytes = bytes;
 		this.key = PrimaryKey.fromByteBuffer(bytes);
 		this.index = bytes.getInt();
+		bytes.rewind();
 	}
 
 	/**
@@ -142,6 +151,9 @@ public final class Position implements Comparable<Position>, Storable {
 	private Position(PrimaryKey key, int index) {
 		this.key = key;
 		this.index = index;
+		this.bytes = ByteBuffer.allocate(SIZE);
+		this.bytes.put(key.getBytes());
+		this.bytes.putInt(index);
 	}
 
 	@Override
@@ -163,11 +175,7 @@ public final class Position implements Comparable<Position>, Storable {
 
 	@Override
 	public ByteBuffer getBytes() {
-		ByteBuffer buffer = ByteBuffer.allocate(SIZE);
-		buffer.put(key.getBytes());
-		buffer.putInt(index);
-		buffer.rewind();
-		return buffer;
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	/**
@@ -185,7 +193,6 @@ public final class Position implements Comparable<Position>, Storable {
 	 * 
 	 * @return the PrimaryKey
 	 */
-	@PackagePrivate
 	public PrimaryKey getPrimaryKey() {
 		return key;
 	}
