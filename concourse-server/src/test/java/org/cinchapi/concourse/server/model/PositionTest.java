@@ -77,11 +77,6 @@ public class PositionTest extends StorableTest {
 	}
 
 	@Override
-	protected Position getRandomTestInstance() {
-		return TestData.getPosition();
-	}
-
-	@Override
 	protected Class<Position> getTestClass() {
 		return Position.class;
 	}

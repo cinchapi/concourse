@@ -93,11 +93,6 @@ public class PrimaryKeyTest extends StorableTest {
 	}
 
 	@Override
-	protected PrimaryKey getRandomTestInstance() {
-		return getForStorageInstance();
-	}
-
-	@Override
 	protected Class<PrimaryKey> getTestClass() {
 		return PrimaryKey.class;
 	}

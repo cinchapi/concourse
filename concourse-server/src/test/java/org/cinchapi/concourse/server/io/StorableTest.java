@@ -81,4 +81,12 @@ public abstract class StorableTest extends ByteableTest {
 	 */
 	protected abstract Storable getNotForStorageInstance();
 
+
+	@Override
+	protected final Byteable getRandomTestInstance() {
+		return getForStorageInstance();
+	}
+	
+	
+
 }

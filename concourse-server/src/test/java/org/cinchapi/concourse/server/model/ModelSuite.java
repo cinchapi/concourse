@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({PositionTest.class, PrimaryKeyTest.class, TextTest.class})
+@SuiteClasses({PositionTest.class, PrimaryKeyTest.class, TextTest.class, ValueTest.class})
 public class ModelSuite {
 
 }

@@ -26,6 +26,8 @@ package org.cinchapi.concourse.util;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.thrift.TObject;
 
 /**
  * A utility class for getting test data.
@@ -33,6 +35,33 @@ import org.cinchapi.concourse.server.model.Text;
  * @author jnelson
  */
 public final class TestData extends Random {
+
+	/**
+	 * Return a random {@link TObject}
+	 * 
+	 * @return a TObject
+	 */
+	public static TObject getTObject() {
+		return Convert.javaToThrift(getObject());
+	}
+
+	/**
+	 * Get a random forStorage {@link Value}.
+	 * 
+	 * @return a Value
+	 */
+	public static Value getValueForStorage() {
+		return Value.forStorage(getTObject());
+	}
+
+	/**
+	 * Get a random notForStorage {@link Value}.
+	 * 
+	 * @return a Value
+	 */
+	public static Value getValueNotForStorage() {
+		return Value.notForStorage(getTObject());
+	}
 
 	/**
 	 * Return a random forStorage {@link PrimaryKey}.
@@ -61,8 +90,13 @@ public final class TestData extends Random {
 		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
 				Math.abs(getInt()));
 	}
-	
-	public static Text getText(){
+
+	/**
+	 * Return a random {@link Text}.
+	 * 
+	 * @return a Text
+	 */
+	public static Text getText() {
 		return Text.fromString(getString());
 	}
 
