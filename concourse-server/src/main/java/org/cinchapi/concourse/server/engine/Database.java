@@ -45,7 +45,6 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Loggers;
 import org.cinchapi.concourse.util.Transformers;
-import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;
@@ -164,7 +163,6 @@ public class Database implements PermanentStore {
 	}
 
 	@Override
-	@Profiled(tag = "Database.accept_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	public void accept(Write write) {
 		ConcourseExecutors
 				.executeAndAwaitTermination(
