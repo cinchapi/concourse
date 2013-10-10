@@ -41,9 +41,7 @@ public class BufferTest extends LimboTest {
 	@Override
 	protected Buffer getStore() {
 		current = TEST_DATA_DIR + File.separator + Time.now();
-		Buffer buffer = new Buffer(current);
-		buffer.start();
-		return buffer;
+		return new Buffer(current);
 	}
 
 	@Override
