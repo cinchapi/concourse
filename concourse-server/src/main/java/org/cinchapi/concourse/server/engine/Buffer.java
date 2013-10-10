@@ -49,7 +49,6 @@ import org.cinchapi.concourse.server.model.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
-import org.perf4j.aop.Profiled;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
@@ -371,7 +370,6 @@ final class Buffer extends Limbo {
 	}
 
 	@Override
-	@Profiled(tag = "Buffer.write_{$0}", logger = "org.cinchapi.concourse.server.engine.PerformanceLogger")
 	protected boolean insert(Write write) {
 		Lock lock = writeLock();
 		try {
