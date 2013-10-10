@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,6 +85,29 @@ public final class FileSystem {
 	public static void deleteFile(String file) {
 		try {
 			java.nio.file.Files.delete(Paths.get(file));
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+
+	/**
+	 * Delete {@code directory}
+	 * 
+	 * @param path
+	 */
+	public static void deleteDirectory(String directory) {
+		try {
+			DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
+					.get(directory));
+			for (Path path : stream) {
+				if(Files.isDirectory(path)) {
+					deleteDirectory(path.toString());
+				}
+				else {
+					Files.delete(path);
+				}
+			}
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);
