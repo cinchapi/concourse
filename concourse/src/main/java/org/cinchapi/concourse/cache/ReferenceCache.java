@@ -23,14 +23,13 @@
  */
 package org.cinchapi.concourse.cache;
 
-import java.util.Map;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.MapMaker;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * <p>
@@ -75,22 +74,9 @@ public class ReferenceCache<T> {
 	private static final int INITIAL_CAPACITY = 500000;
 	private static final int CONCURRENCY_LEVEL = 16;
 
-	private final Map<String, T> cache = new MapMaker()
-			.initialCapacity(INITIAL_CAPACITY)
-			.concurrencyLevel(CONCURRENCY_LEVEL).softValues().makeMap();
-
-	/**
-	 * Return {@code true} if the cache contains a value identified by the
-	 * group of {@code args}.
-	 * 
-	 * @param args
-	 * @return {@code true} if a value is found.
-	 */
-	public boolean contains(Object... args) {
-		String id = getCacheKey(args);
-		return cache.containsKey(id);
-	}
-
+	private final Cache<String, T> cache = CacheBuilder
+			.newBuilder().initialCapacity(INITIAL_CAPACITY)
+			.concurrencyLevel(CONCURRENCY_LEVEL).softValues().build();
 	/**
 	 * Return the cache value associated with the group of {@code args} or
 	 * {@code null} if not value is found.
@@ -101,7 +87,7 @@ public class ReferenceCache<T> {
 	@Nullable
 	public T get(Object... args) {
 		String id = getCacheKey(args);
-		return cache.get(id);
+		return cache.getIfPresent(id);
 	}
 
 	/**
@@ -130,8 +116,7 @@ public class ReferenceCache<T> {
 	 * @return {@code true} if the associated value is successfully removed.
 	 */
 	public void remove(Object... args) {
-		String id = getCacheKey(args);
-		cache.remove(id);
+		cache.invalidate(getCacheKey(args));
 	}
 
 	/**
