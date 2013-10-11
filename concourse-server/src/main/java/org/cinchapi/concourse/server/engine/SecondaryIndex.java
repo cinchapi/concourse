@@ -34,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -89,7 +90,8 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 * @param values
 	 * @return the Set of PrimaryKeys that match the query
 	 */
-	public Set<PrimaryKey> find(long timestamp, Operator operator, Value... values) {
+	public Set<PrimaryKey> find(long timestamp, Operator operator,
+			Value... values) {
 		return find(true, timestamp, operator, values);
 	}
 
@@ -136,99 +138,110 @@ final class SecondaryIndex extends Record<Text, Value, PrimaryKey> {
 	 */
 	private Set<PrimaryKey> find(boolean historical, long timestamp,
 			Operator operator, Value... values) { /* authorized */
-		Set<PrimaryKey> keys = Sets.newTreeSet();
-		Value value = values[0];
-		if(operator == Operator.EQUALS) {
-			keys.addAll(historical ? get(value, timestamp) : get(value));
-		}
-		else if(operator == Operator.NOT_EQUALS) {
-			Iterator<Value> it = history.keySet().iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				if(!value.equals(v)) {
+		Lock lock = readLock();
+		try {
+
+			Set<PrimaryKey> keys = Sets.newTreeSet();
+			Value value = values[0];
+			if(operator == Operator.EQUALS) {
+				keys.addAll(historical ? get(value, timestamp) : get(value));
+			}
+			else if(operator == Operator.NOT_EQUALS) {
+				Iterator<Value> it = history.keySet().iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
+					if(!value.equals(v)) {
+						keys.addAll(historical ? get(v, timestamp) : get(v));
+					}
+				}
+			}
+			else if(operator == Operator.GREATER_THAN) {
+				TreeSet<Value> sortedValues = Sets
+						.newTreeSet(new ValueComparator());
+				sortedValues.addAll(history.keySet());
+				Iterator<Value> it = sortedValues.tailSet(value, false)
+						.iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
 					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
-		}
-		else if(operator == Operator.GREATER_THAN) {
-			TreeSet<Value> sortedValues = Sets
-					.newTreeSet(new ValueComparator());
-			sortedValues.addAll(history.keySet());
-			Iterator<Value> it = sortedValues.tailSet(value, false).iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				keys.addAll(historical ? get(v, timestamp) : get(v));
-			}
-		}
-		else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-			TreeSet<Value> sortedValues = Sets
-					.newTreeSet(new ValueComparator());
-			sortedValues.addAll(history.keySet());
-			Iterator<Value> it = sortedValues.tailSet(value, true).iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				keys.addAll(historical ? get(v, timestamp) : get(v));
-			}
-		}
-		else if(operator == Operator.LESS_THAN) {
-			TreeSet<Value> sortedValues = Sets
-					.newTreeSet(new ValueComparator());
-			sortedValues.addAll(history.keySet());
-			Iterator<Value> it = sortedValues.headSet(value, false).iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				keys.addAll(historical ? get(v, timestamp) : get(v));
-			}
-		}
-		else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-			TreeSet<Value> sortedValues = Sets
-					.newTreeSet(new ValueComparator());
-			sortedValues.addAll(history.keySet());
-			Iterator<Value> it = sortedValues.headSet(value, true).iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				keys.addAll(historical ? get(v, timestamp) : get(v));
-			}
-		}
-		else if(operator == Operator.BETWEEN) {
-			Preconditions.checkArgument(values.length > 1);
-			Value value2 = values[1];
-			TreeSet<Value> sortedValues = Sets
-					.newTreeSet(new ValueComparator());
-			sortedValues.addAll(history.keySet());
-			Iterator<Value> it = sortedValues
-					.subSet(value, true, value2, false).iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				keys.addAll(historical ? get(v, timestamp) : get(v));
-			}
-		}
-		else if(operator == Operator.REGEX) {
-			Iterator<Value> it = history.keySet().iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				Pattern p = Pattern.compile(value.getQuantity().toString());
-				Matcher m = p.matcher(v.getQuantity().toString());
-				if(m.matches()) {
+			else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+				TreeSet<Value> sortedValues = Sets
+						.newTreeSet(new ValueComparator());
+				sortedValues.addAll(history.keySet());
+				Iterator<Value> it = sortedValues.tailSet(value, true)
+						.iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
 					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
-		}
-		else if(operator == Operator.NOT_REGEX) {
-			Iterator<Value> it = history.keySet().iterator();
-			while (it.hasNext()) {
-				Value v = it.next();
-				Pattern p = Pattern.compile(value.getQuantity().toString());
-				Matcher m = p.matcher(v.getQuantity().toString());
-				if(m.matches()) {
+			else if(operator == Operator.LESS_THAN) {
+				TreeSet<Value> sortedValues = Sets
+						.newTreeSet(new ValueComparator());
+				sortedValues.addAll(history.keySet());
+				Iterator<Value> it = sortedValues.headSet(value, false)
+						.iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
 					keys.addAll(historical ? get(v, timestamp) : get(v));
 				}
 			}
+			else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+				TreeSet<Value> sortedValues = Sets
+						.newTreeSet(new ValueComparator());
+				sortedValues.addAll(history.keySet());
+				Iterator<Value> it = sortedValues.headSet(value, true)
+						.iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
+					keys.addAll(historical ? get(v, timestamp) : get(v));
+				}
+			}
+			else if(operator == Operator.BETWEEN) {
+				Preconditions.checkArgument(values.length > 1);
+				Value value2 = values[1];
+				TreeSet<Value> sortedValues = Sets
+						.newTreeSet(new ValueComparator());
+				sortedValues.addAll(history.keySet());
+				Iterator<Value> it = sortedValues.subSet(value, true, value2,
+						false).iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
+					keys.addAll(historical ? get(v, timestamp) : get(v));
+				}
+			}
+			else if(operator == Operator.REGEX) {
+				Iterator<Value> it = history.keySet().iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
+					Pattern p = Pattern.compile(value.getQuantity().toString());
+					Matcher m = p.matcher(v.getQuantity().toString());
+					if(m.matches()) {
+						keys.addAll(historical ? get(v, timestamp) : get(v));
+					}
+				}
+			}
+			else if(operator == Operator.NOT_REGEX) {
+				Iterator<Value> it = history.keySet().iterator();
+				while (it.hasNext()) {
+					Value v = it.next();
+					Pattern p = Pattern.compile(value.getQuantity().toString());
+					Matcher m = p.matcher(v.getQuantity().toString());
+					if(m.matches()) {
+						keys.addAll(historical ? get(v, timestamp) : get(v));
+					}
+				}
+			}
+			else {
+				throw new UnsupportedOperationException();
+			}
+			return keys;
 		}
-		else {
-			throw new UnsupportedOperationException();
+		finally {
+			lock.release();
 		}
-		return keys;
 	}
 
 }

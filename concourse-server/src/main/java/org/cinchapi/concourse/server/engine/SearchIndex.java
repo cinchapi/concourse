@@ -33,6 +33,7 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
+import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -94,21 +95,27 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @param key
 	 */
 	public final void add(Value value, PrimaryKey key) {
-		if(value.getType() == Type.STRING) {
-			Text text = Text.fromString((String) Convert.thriftToJava(value
-					.getQuantity()));
-			String[] toks = text.toString().split(" ");
-			ExecutorService executor = ConcourseExecutors
-					.newCachedThreadPool("search-index-worker");
-			int pos = 0;
-			for (String tok : toks) {
-				executor.submit(new IndexWorker(tok, pos, key));
-				pos++;
+		Lock lock = writeLock();
+		try{
+			if(value.getType() == Type.STRING) {
+				Text text = Text.fromString((String) Convert.thriftToJava(value
+						.getQuantity()));
+				String[] toks = text.toString().split(" ");
+				ExecutorService executor = ConcourseExecutors
+						.newCachedThreadPool("search-index-worker");
+				int pos = 0;
+				for (String tok : toks) {
+					executor.submit(new IndexWorker(tok, pos, key));
+					pos++;
+				}
+				executor.shutdown();
+				while (!executor.isTerminated()) {
+					continue; // block until all tasks have completed
+				}
 			}
-			executor.shutdown();
-			while (!executor.isTerminated()) {
-				continue; // block until all tasks have completed
-			}
+		}
+		finally{
+			lock.release();
 		}
 	}
 
@@ -128,21 +135,27 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @param key
 	 */
 	public final void remove(Value value, PrimaryKey key) {
-		if(value.getType() == Type.STRING) {
-			Text text = Text.fromString((String) Convert.thriftToJava(value
-					.getQuantity()));
-			String[] toks = text.toString().split(" ");
-			ExecutorService executor = ConcourseExecutors
-					.newCachedThreadPool("search-deindex-worker");
-			int pos = 0;
-			for (String tok : toks) {
-				executor.submit(new DeIndexWorker(tok, pos, key));
-				pos++;
+		Lock lock = writeLock();
+		try{
+			if(value.getType() == Type.STRING) {
+				Text text = Text.fromString((String) Convert.thriftToJava(value
+						.getQuantity()));
+				String[] toks = text.toString().split(" ");
+				ExecutorService executor = ConcourseExecutors
+						.newCachedThreadPool("search-deindex-worker");
+				int pos = 0;
+				for (String tok : toks) {
+					executor.submit(new DeIndexWorker(tok, pos, key));
+					pos++;
+				}
+				executor.shutdown();
+				while (!executor.isTerminated()) {
+					continue; // block until all tasks have completed
+				}
 			}
-			executor.shutdown();
-			while (!executor.isTerminated()) {
-				continue; // block until all tasks have completed
-			}
+		}
+		finally{
+			lock.release();
 		}
 	}
 
@@ -153,32 +166,38 @@ class SearchIndex extends Record<Text, Text, Position> {
 	 * @return the Set of PrimaryKeys
 	 */
 	public Set<PrimaryKey> search(Text query) {
-		Map<PrimaryKey, Integer> reference = Maps.newHashMap();
-		String[] toks = query.toString().split(" ");
-		boolean initial = true;
-		for (String tok : toks) {
-			Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-			if(STOPWORDS.contains(tok)) {
-				continue;
-			}
-			Set<Position> positions = get(Text.fromString(tok));
-			for (Position position : positions) {
-				PrimaryKey key = position.getPrimaryKey();
-				int pos = position.getIndex();
-				if(initial) {
-					temp.put(key, pos);
+		Lock lock = readLock();
+		try{
+			Map<PrimaryKey, Integer> reference = Maps.newHashMap();
+			String[] toks = query.toString().split(" ");
+			boolean initial = true;
+			for (String tok : toks) {
+				Map<PrimaryKey, Integer> temp = Maps.newHashMap();
+				if(STOPWORDS.contains(tok)) {
+					continue;
 				}
-				else {
-					Integer current = reference.get(key);
-					if(current != null && pos == current + 1) {
+				Set<Position> positions = get(Text.fromString(tok));
+				for (Position position : positions) {
+					PrimaryKey key = position.getPrimaryKey();
+					int pos = position.getIndex();
+					if(initial) {
 						temp.put(key, pos);
 					}
+					else {
+						Integer current = reference.get(key);
+						if(current != null && pos == current + 1) {
+							temp.put(key, pos);
+						}
+					}
 				}
+				initial = false;
+				reference = temp;
 			}
-			initial = false;
-			reference = temp;
+			return reference.keySet();
 		}
-		return reference.keySet();
+		finally{
+			lock.release();
+		}
 	}
 
 	@Override

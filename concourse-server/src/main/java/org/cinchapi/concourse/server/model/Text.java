@@ -64,9 +64,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	}
 
 	/**
-	 * Return Text that is not appropriate for storage, but can be used in
-	 * comparisons. This is the preferred way to create Texts unless the Text
-	 * will be stored.
+	 * Return Text that is backed by {@code string}.
 	 * 
 	 * @param string
 	 * @return the Text
@@ -84,7 +82,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * The wrapped string.
 	 */
 	private final String text;
-	
+
 	/**
 	 * Master byte sequence that represents this object. Read-only duplicates
 	 * are made when returning from {@link #getBytes()}.
