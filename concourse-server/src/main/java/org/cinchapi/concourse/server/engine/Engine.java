@@ -204,7 +204,7 @@ public final class Engine extends BufferedStore implements
 			while (running) {
 				buffer.transport(destination);
 				try {
-					Thread.sleep(5);
+					Thread.sleep(0);
 				}
 				catch (InterruptedException e) {
 					e.printStackTrace();
