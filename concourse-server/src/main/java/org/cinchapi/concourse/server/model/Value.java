@@ -160,7 +160,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	/**
 	 * The minimum number of bytes needed to encode every Value.
 	 */
-	private static final int CONSTANT_SIZE = 4; // type(4)
+	private static final int CONSTANT_SIZE = 1; // type(1)
 
 	/**
 	 * The comparator that is used to sort values using weak typing.
@@ -213,7 +213,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	@DoNotInvoke
 	public Value(ByteBuffer bytes) {
 		this.bytes = bytes;
-		Type type = Type.values()[bytes.getInt()];
+		Type type = Type.values()[bytes.get()];
 		this.data = extractTObjectAndCache(bytes, type);
 		this.object = extractObjectAndCache(data);
 	}
@@ -246,7 +246,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * Return a byte buffer that represents this Value with the following order:
 	 * <ol>
 	 * <li><strong>type</strong> - position 0</li>
-	 * <li><strong>data</strong> - position 4</li>
+	 * <li><strong>data</strong> - position 1</li>
 	 * </ol>
 	 * 
 	 * @return the ByteBuffer representation
@@ -255,7 +255,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	public ByteBuffer getBytes() {
 		if(bytes == null) {
 			bytes = ByteBuffer.allocate(size());
-			bytes.putInt(data.getType().ordinal());
+			bytes.put((byte) data.getType().ordinal());
 			bytes.put(data.bufferForData());
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
