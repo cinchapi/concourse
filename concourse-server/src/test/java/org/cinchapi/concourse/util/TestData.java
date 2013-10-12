@@ -24,10 +24,10 @@
 package org.cinchapi.concourse.util;
 
 import org.cinchapi.concourse.server.model.Position;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -43,8 +43,13 @@ public final class TestData extends Random {
 	 * @return a Position
 	 */
 	public static Position getPosition() {
-		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
-				Math.abs(getInt()));
+		return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
+	}
+
+	public static org.cinchapi.concourse.server.model.legacy.Position getPositionLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Position
+				.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
+						Math.abs(getInt()));
 	}
 
 	/**
@@ -52,8 +57,10 @@ public final class TestData extends Random {
 	 * 
 	 * @return a PrimaryKey
 	 */
-	public static PrimaryKey getPrimaryKeyForStorage() {
-		return PrimaryKey.forStorage(getLong());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.PrimaryKey getPrimaryKeyForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.PrimaryKey
+				.forStorage(getLong());
 	}
 
 	/**
@@ -61,8 +68,14 @@ public final class TestData extends Random {
 	 * 
 	 * @return a PrimaryKey
 	 */
-	public static PrimaryKey getPrimaryKeyNotForStorage() {
-		return PrimaryKey.notForStorage(getLong());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.PrimaryKey getPrimaryKeyNotForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.PrimaryKey
+				.notForStorage(getLong());
+	}
+
+	public static PrimaryKey getPrimaryKey() {
+		return PrimaryKey.wrap(getLong());
 	}
 
 	/**
@@ -71,7 +84,7 @@ public final class TestData extends Random {
 	 * @return a Text
 	 */
 	public static Text getText() {
-		return Text.fromString(getString());
+		return Text.wrap(getString());
 	}
 
 	/**
@@ -83,13 +96,19 @@ public final class TestData extends Random {
 		return Convert.javaToThrift(getObject());
 	}
 
+	public static Value getValue() {
+		return Value.wrap(getTObject());
+	}
+
 	/**
 	 * Get a random forStorage {@link Value}.
 	 * 
 	 * @return a Value
 	 */
-	public static Value getValueForStorage() {
-		return Value.forStorage(getTObject());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.Value getValueForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.Value
+				.forStorage(getTObject());
 	}
 
 	/**
@@ -97,8 +116,10 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Value
 	 */
-	public static Value getValueNotForStorage() {
-		return Value.notForStorage(getTObject());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.Value getValueNotForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.Value
+				.notForStorage(getTObject());
 	}
 
 	/**

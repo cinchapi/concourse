@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -69,14 +70,24 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @param string
 	 * @return the Text
 	 */
-	public static Text fromString(String string) {
-		return new Text(string);
+	public static Text wrap(String string) {
+		Text text = CACHE.get(string);
+		if(text == null) {
+			text = new Text(string);
+			CACHE.put(text, string);
+		}
+		return text;
 	}
 
 	/**
 	 * Represents an empty text string.
 	 */
-	public static final Text EMPTY = Text.fromString("");
+	public static final Text EMPTY = Text.wrap("");
+	
+	/**
+	 * Cache to store references that have already been loaded in the JVM.
+	 */
+	private static final ReferenceCache<Text> CACHE = new ReferenceCache<Text>();
 
 	/**
 	 * The wrapped string.
@@ -135,7 +146,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public int hashCode() {
-		return toString().hashCode();
+		return text.hashCode();
 	}
 
 	@Override

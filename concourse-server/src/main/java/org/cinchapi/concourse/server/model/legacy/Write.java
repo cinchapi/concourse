@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.model;
+package org.cinchapi.concourse.server.model.legacy;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -33,6 +33,7 @@ import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.engine.Database;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -66,7 +67,7 @@ public final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write add(String key, TObject value, long record) {
-		return new Write(Type.ADD, Text.fromString(key),
+		return new Write(Type.ADD, Text.wrap(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
 	}
 
@@ -105,7 +106,7 @@ public final class Write implements Byteable {
 		Object[] cacheKey = { key, value, record };
 		Write write = cache.get(cacheKey);
 		if(write == null) {
-			write = new Write(Type.NOT_FOR_STORAGE, Text.fromString(key),
+			write = new Write(Type.NOT_FOR_STORAGE, Text.wrap(key),
 					Value.notForStorage(value),
 					PrimaryKey.notForStorage(record));
 		}
@@ -122,7 +123,7 @@ public final class Write implements Byteable {
 	 * @return the Write
 	 */
 	public static Write remove(String key, TObject value, long record) {
-		return new Write(Type.REMOVE, Text.fromString(key),
+		return new Write(Type.REMOVE, Text.wrap(key),
 				Value.forStorage(value), PrimaryKey.forStorage(record));
 	}
 

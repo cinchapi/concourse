@@ -24,26 +24,24 @@
 package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.cache.ReferenceCache;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
-import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
-
-import com.google.common.base.Objects;
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Numbers;
 
 /**
- * A statically typed {@link Storable} quantity.
- * <p>
- * A Value is the most basic element of data in Concourse. Values are both
- * temporally sortable by timestamp and logically sortable using weak typing. A
- * single value cannot exceed 2^32 bytes.
- * </p>
+ * A Value is a {@link Byteable} abstraction for a {@link TObject} that records
+ * type information and serves as the most basic element of data in Concourse.
+ * Values are logically sortable using weak typing and cannot exceed 2^32 bytes.
  * <p>
  * <h2>Storage Requirements</h2>
  * Each Value requires at least {@value #CONSTANT_SIZE} bytes of space in
@@ -63,31 +61,20 @@ import com.google.common.base.Objects;
  * @author jnelson
  */
 @Immutable
-public final class Value implements Comparable<Value>, Storable {
+public final class Value implements Byteable, Comparable<Value> {
 
 	/**
-	 * Return a Value that is appropriate for storage, with the current
-	 * timestamp.
-	 * 
-	 * @param quantity
-	 * @return the Value
-	 */
-	public static Value forStorage(TObject quantity) {
-		return new Value(quantity, Time.now());
-	}
-
-	/**
-	 * Return the Value encoded in {@code buffer} so long as those bytes adhere
+	 * Return the Value encoded in {@code bytes} so long as those bytes adhere
 	 * to the format specified by the {@link #getBytes()} method. This method
-	 * assumes that all the bytes in the {@code buffer} belong to the Value. In
+	 * assumes that all the bytes in the {@code bytes} belong to the Value. In
 	 * general, it is necessary to get the appropriate Value slice from the
 	 * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
-	 * @param buffer
+	 * @param bytes
 	 * @return the Value
 	 */
-	public static Value fromByteBuffer(ByteBuffer buffer) {
-		return Byteables.read(buffer, Value.class); // We are using
+	public static Value fromByteBuffer(ByteBuffer bytes) {
+		return Byteables.read(bytes, Value.class); // We are using
 													// Byteables#read(ByteBuffer,
 													// Class) instead of calling
 													// the constructor directly
@@ -99,88 +86,120 @@ public final class Value implements Comparable<Value>, Storable {
 	}
 
 	/**
-	 * Return a Value that is not appropriate for storage, but can be used in
-	 * comparisons. This is the preferred way to create values unless the value
-	 * will be stored.
+	 * Return a Value that is backed by {@code data}.
 	 * 
-	 * @param quantity
+	 * @param data
 	 * @return the Value
 	 */
-	public static Value notForStorage(TObject quantity) {
-		Object[] cacheKey = { quantity, NO_TIMESTAMP };
-		Value value = cache.get(quantity, cacheKey);
+	public static Value wrap(TObject data) {
+		Object[] cacheKey = getCacheKey(data);
+		Value value = VALUE_CACHE.get(cacheKey);
 		if(value == null) {
-			value = new Value(quantity);
-			cache.put(value, cacheKey);
+			value = new Value(data);
 		}
 		return value;
 	}
 
 	/**
-	 * Get an object of {@code type} from {@code buffer}. This method will read
-	 * starting from the current position up until enough bytes for {@code type}
-	 * have been read. If {@code type} equals {@link Type#STRING}, all of the
-	 * remaining bytes in the buffer will be read.
+	 * Return the Java object represented by {@code data}.
 	 * 
-	 * @param buffer
-	 * @param type
-	 * @return the object.
+	 * @param data
+	 * @return the Object
 	 */
-	private static TObject extractQuantity(ByteBuffer buffer, Type type) {
-		Object[] cacheKey = { ByteBuffers.encodeAsHexString(buffer), type };
-		TObject object = quantityCache.get(cacheKey);
+	private static Object extractObjectAndCache(TObject data) {
+		Object[] cacheKey = getCacheKey(data);
+		Object object = OBJECT_CACHE.get(cacheKey);
 		if(object == null) {
-			// Must allocate a heap buffer because TObject assumes it has a
-			// backing array and because of THRIFT-2104 that buffer must wrap a
-			// byte array in order to assume that the TObject does not lose data
-			// when transferred over the wire.
-			byte[] array = new byte[buffer.remaining()];
-			buffer.get(array); // We CANNOT simply slice {@code buffer} and use
-								// the slice's backing array because the backing
-								// array of the slice is the same as the
-								// original, which contains more data than we
-								// need for the quantity
-			object = new TObject(ByteBuffer.wrap(array), type);
-			quantityCache.put(object, cacheKey);
+			object = Convert.thriftToJava(data);
+			OBJECT_CACHE.put(object, cacheKey);
 		}
 		return object;
 	}
 
 	/**
-	 * Maintains a cache of all the quantities that are extracted from
-	 * ByteBuffers in the {@link #extractQuantity(ByteBuffer, Type)} method.
+	 * Return the {@link TObject} of {@code type} represented by {@code bytes}.
+	 * This method reads the remaining bytes from the current position into the
+	 * returned TObject.
+	 * 
+	 * @param bytes
+	 * @param type
+	 * @return the TObject
 	 */
-	private static final ReferenceCache<TObject> quantityCache = new ReferenceCache<TObject>();
+	private static TObject extractTObjectAndCache(ByteBuffer bytes, Type type) {
+		Object[] cacheKey = { ByteBuffers.encodeAsHexString(bytes), type };
+		TObject data = TOBJECT_CACHE.get(cacheKey);
+		if(data == null) {
+			// Must allocate a heap buffer because TObject assumes it has a
+			// backing array and because of THRIFT-2104 that buffer must wrap a
+			// byte array in order to assume that the TObject does not lose data
+			// when transferred over the wire.
+			byte[] array = new byte[bytes.remaining()];
+			bytes.get(array); // We CANNOT simply slice {@code buffer} and use
+								// the slice's backing array because the backing
+								// array of the slice is the same as the
+								// original, which contains more data than we
+								// need for the quantity
+			data = new TObject(ByteBuffer.wrap(array), type);
+			TOBJECT_CACHE.put(data, cacheKey);
+		}
+		return data;
+	}
+
+	/**
+	 * Return the cache key that corresponds to {@code data}.
+	 * 
+	 * @param data
+	 * @return the cacheKey
+	 */
+	private static Object[] getCacheKey(TObject data) {
+		return new Object[] {
+				ByteBuffers.encodeAsHexString(data.bufferForData()),
+				data.getType() };
+	}
 
 	/**
 	 * The minimum number of bytes needed to encode every Value.
 	 */
-	private static final int CONSTANT_SIZE = 12; // timestamp(8), type(4)
+	private static final int CONSTANT_SIZE = 4; // type(4)
 
 	/**
-	 * A ReferenceCache is generated in {@link Byteables} for Values read from
-	 * ByteBuffers, so this cache is only for notForStorage Values.
+	 * The comparator that is used to sort values using weak typing.
 	 */
-	private static final ReferenceCache<Value> cache = new ReferenceCache<Value>();
-	private static final ValueComparator comparator = new ValueComparator();
+	private static final Sorter SORTER = new Sorter();
 
 	/**
-	 * The {@code timestamp} is used to version the PrimaryKey when used as a
-	 * {@link Storable} value.
+	 * Cache to store references that have already been loaded in the JVM.
 	 */
-	private final long timestamp;
-
-	/**
-	 * The quantity is the expressed essence of the Value.
-	 */
-	private final TObject quantity;
-	private final transient int size;
+	private static final ReferenceCache<Object> OBJECT_CACHE = new ReferenceCache<Object>();
 	
 	/**
-	 * Master byte sequence that represents this object. Read-only duplicates
-	 * are made when returning from {@link #getBytes()}.
+	 * Cache to store references that have already been loaded in the JVM.
 	 */
-	private final transient ByteBuffer bytes;
+	private static final ReferenceCache<TObject> TOBJECT_CACHE = new ReferenceCache<TObject>();
+	
+	/**
+	 * Cache to store references that have already been loaded in the JVM.
+	 */
+	private static final ReferenceCache<Value> VALUE_CACHE = new ReferenceCache<Value>();
+
+	/**
+	 * The underlying data represented by this Value. This representation is
+	 * used when serializing/deserializing the data for RPC or disk and network
+	 * I/O.
+	 */
+	private final TObject data;
+
+	/**
+	 * A cached copy of the binary representation that is returned from
+	 * {@link #getBytes()}.
+	 */
+	private transient ByteBuffer bytes = null;
+
+	/**
+	 * The java representation of the underlying {@link #data}. This
+	 * representation is used when interacting with other components in the JVM.
+	 */
+	private final transient Object object;
 
 	/**
 	 * Construct an instance that represents an existing Value from a
@@ -194,150 +213,106 @@ public final class Value implements Comparable<Value>, Storable {
 	@DoNotInvoke
 	public Value(ByteBuffer bytes) {
 		this.bytes = bytes;
-		this.timestamp = bytes.getLong();
 		Type type = Type.values()[bytes.getInt()];
-		this.quantity = extractQuantity(bytes, type);
-		this.size = bytes.capacity();
+		this.data = extractTObjectAndCache(bytes, type);
+		this.object = extractObjectAndCache(data);
 	}
 
 	/**
-	 * Construct a notForStorage instance.
+	 * Construct a new instance.
 	 * 
-	 * @param quantity
+	 * @param data
 	 */
-	private Value(TObject quantity) {
-		this(quantity, NO_TIMESTAMP);
+	private Value(TObject data) {
+		this.data = data;
+		this.object = extractObjectAndCache(data);
 	}
 
-	/**
-	 * Construct a forStorage instance.
-	 * 
-	 * @param quantity
-	 * @param timestamp
-	 */
-	private Value(TObject quantity, long timestamp) {
-		ByteBuffer qtybuf = quantity.bufferForData();
-		this.timestamp = timestamp;
-		this.quantity = quantity;
-		this.size = qtybuf.capacity() + CONSTANT_SIZE;
-		this.bytes = ByteBuffer.allocate(size);
-		this.bytes.putLong(timestamp);
-		this.bytes.putInt(quantity.getType().ordinal());
-		this.bytes.put(qtybuf);
-	}
-
-	/**
-	 * Temporal comparison where the value with the larger timestamp is less
-	 * than the other. This enables sorting by timestamp in descending order.
-	 * This method correctly accounts for comparing a forStorage value to a
-	 * notForStorage one.
-	 */
 	@Override
-	public int compareTo(Value o) {
-		return compareTo(o, false);
-	}
-
-	/**
-	 * Determine if the comparison to {@code o} should be done naturally or
-	 * {@code logically}.
-	 * 
-	 * @param o
-	 * @param logically
-	 *            if {@code true} the value based comparison occurs, otherwise
-	 *            based on timestamp/equality
-	 * @return a negative integer, zero, or a positive integer as this object is
-	 *         less than, equal to, or greater than the specified object.
-	 * @see {@link #compareTo(Value)}
-	 * @see {@link #compareToLogically(Value)}
-	 * @see {@link Storables#compare(Storable, Storable)}
-	 */
-	public int compareTo(Value o, boolean logically) {
-		return logically ? comparator.compare(this, o) : Storables.compare(
-				this, o);
-	}
-
-	/**
-	 * Logical comparison where appropriate casting is done to the encapsulated
-	 * quantities (weak typing) using {@link ValueComparator}.
-	 * 
-	 * @param o
-	 * @return a negative integer, zero, or a positive integer as this object is
-	 *         less than, equal to, or greater than the specified object.
-	 */
-	public int compareToLogically(Value o) {
-		return compareTo(o, true);
+	public int compareTo(Value other) {
+		return SORTER.compare(this, other);
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof Value) {
 			final Value other = (Value) obj;
-			return Objects.equal(this.getQuantity(), other.getQuantity())
-					&& Objects.equal(getType(), other.getType());
+			return object.equals(other.object);
 		}
 		return false;
 	}
 
 	/**
-	 * Return a byte buffer that represents the value with the following order:
+	 * Return a byte buffer that represents this Value with the following order:
 	 * <ol>
-	 * <li><strong>timestamp</strong> position 0</li>
-	 * <li><strong>type</strong> position 8</li>
-	 * <li><strong>quantity</strong> position 12</li>
+	 * <li><strong>type</strong> - position 0</li>
+	 * <li><strong>data</strong> - position 4</li>
 	 * </ol>
 	 * 
-	 * @return a byte array.
+	 * @return the ByteBuffer representation
 	 */
 	@Override
 	public ByteBuffer getBytes() {
+		if(bytes == null) {
+			bytes = ByteBuffer.allocate(size());
+			bytes.putInt(data.getType().ordinal());
+			bytes.put(data.bufferForData());
+		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	/**
-	 * Return an object that represents the encapsulated {@code quantity}.
+	 * Return the java object that is represented by this Value.
 	 * 
-	 * @return the value.
+	 * @return the object representation
 	 */
-	public TObject getQuantity() {
-		return quantity;
-	}
-
-	@Override
-	public long getTimestamp() {
-		return timestamp;
+	public Object getObject() {
+		return object;
 	}
 
 	/**
-	 * Return the Value {@code type}.
+	 * Return the {@link Type} that describes the underlying data represented by
+	 * this Value.
 	 * 
 	 * @return the type
 	 */
 	public Type getType() {
-		return quantity.getType();
+		return data.getType();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(quantity, quantity.getType());
-	}
-
-	@Override
-	public boolean isForStorage() {
-		return Storables.isForStorage(this);
-	}
-
-	@Override
-	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
+		return object.hashCode();
 	}
 
 	@Override
 	public int size() {
-		return size;
+		return CONSTANT_SIZE + data.bufferForData().capacity();
 	}
 
 	@Override
 	public String toString() {
-		return quantity.toString();
+		return object.toString();
 	}
+
+	/**
+	 * A {@link Comparator} that is used to sort Values using weak typing.
+	 * 
+	 * @author jnelson
+	 */
+	public static final class Sorter implements Comparator<Value> {
+
+		@Override
+		public int compare(Value v1, Value v2) {
+			Object o1 = v1.getObject();
+			Object o2 = v2.getObject();
+			if(o1 instanceof Number && o2 instanceof Number) {
+				return Numbers.compare((Number) o1, (Number) o2);
+			}
+			else {
+				return o1.toString().compareTo(o2.toString());
+			}
+		}
+	}
+
 }

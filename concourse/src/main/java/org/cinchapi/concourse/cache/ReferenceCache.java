@@ -74,9 +74,10 @@ public class ReferenceCache<T> {
 	private static final int INITIAL_CAPACITY = 500000;
 	private static final int CONCURRENCY_LEVEL = 16;
 
-	private final Cache<String, T> cache = CacheBuilder
-			.newBuilder().initialCapacity(INITIAL_CAPACITY)
+	private final Cache<String, T> cache = CacheBuilder.newBuilder()
+			.initialCapacity(INITIAL_CAPACITY)
 			.concurrencyLevel(CONCURRENCY_LEVEL).softValues().build();
+
 	/**
 	 * Return the cache value associated with the group of {@code args} or
 	 * {@code null} if not value is found.

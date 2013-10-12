@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.io;
 
-import org.cinchapi.concourse.server.model.Storable;
+import org.cinchapi.concourse.server.model.legacy.Storable;
 import org.junit.Assert;
 import org.junit.Test;
 

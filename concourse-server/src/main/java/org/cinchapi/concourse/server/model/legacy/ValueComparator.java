@@ -21,19 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.model;
+package org.cinchapi.concourse.server.model.legacy;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Comparator;
+
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Numbers;
 
 /**
+ * A {@link Comparator} that sorts {@link Value} objects logically using weak
+ * typing.
  * 
- * 
+ * @see {@link Value#compareToLogically(Value)}
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({PositionTest.class, PrimaryKeyTest.class, TextTest.class, ValueTest.class})
-public class ModelSuite {
+@Deprecated
+public class ValueComparator implements Comparator<Value> {
+
+	@Override
+	public int compare(Value o1, Value o2) {
+		Object q1 = Convert.thriftToJava(o1.getQuantity());
+		Object q2 = Convert.thriftToJava(o2.getQuantity());
+		if(q1 instanceof Number && q2 instanceof Number) {
+			return Numbers.compare((Number) q1, (Number) q2);
+		}
+		else {
+			return q1.toString().compareTo(q2.toString());
+		}
+	}
 
 }
