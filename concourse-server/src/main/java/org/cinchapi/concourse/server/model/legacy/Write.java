@@ -55,6 +55,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
  * @author jnelson
  */
 @Immutable
+@Deprecated
 public final class Write implements Byteable {
 
 	/**

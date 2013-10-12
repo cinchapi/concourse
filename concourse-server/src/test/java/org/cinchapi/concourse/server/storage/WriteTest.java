@@ -21,10 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.model.legacy;
+package org.cinchapi.concourse.server.storage;
 
 import org.cinchapi.concourse.server.io.ByteableTest;
-import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -46,8 +45,8 @@ public class WriteTest extends ByteableTest {
 				Write.add(key, value, record)));
 		Assert.assertTrue(Write.remove(key, value, record).matches(
 				Write.remove(key, value, record)));
-		Assert.assertTrue(Write.notForStorage(key, value, record).matches(
-				Write.notForStorage(key, value, record)));
+		Assert.assertTrue(Write.notStorable(key, value, record).matches(
+				Write.notStorable(key, value, record)));
 	}
 	
 	@Test
@@ -58,9 +57,9 @@ public class WriteTest extends ByteableTest {
 		Assert.assertFalse(Write.add(key, value, record).matches(
 				Write.remove(key, value, record)));
 		Assert.assertFalse(Write.add(key, value, record).matches(
-				Write.notForStorage(key, value, record)));
+				Write.notStorable(key, value, record)));
 		Assert.assertFalse(Write.remove(key, value, record).matches(
-				Write.notForStorage(key, value, record)));
+				Write.notStorable(key, value, record)));
 	}
 	
 	@Test
@@ -69,8 +68,8 @@ public class WriteTest extends ByteableTest {
 		TObject value = TestData.getTObject();
 		long record = TestData.getLong();
 		Assert.assertEquals(Write.add(key, value, record), Write.remove(key, value, record));
-		Assert.assertEquals(Write.add(key, value, record), Write.notForStorage(key, value, record));
-		Assert.assertEquals(Write.remove(key, value, record), Write.notForStorage(key, value, record));
+		Assert.assertEquals(Write.add(key, value, record), Write.notStorable(key, value, record));
+		Assert.assertEquals(Write.remove(key, value, record), Write.notStorable(key, value, record));
 	}
 	
 	@Test
@@ -80,13 +79,9 @@ public class WriteTest extends ByteableTest {
 		long record = TestData.getLong();
 		Assert.assertEquals(Write.add(key, value, record), Write.add(key, value, record));
 		Assert.assertEquals(Write.remove(key, value, record), Write.remove(key, value, record));
-		Assert.assertEquals(Write.notForStorage(key, value, record), Write.notForStorage(key, value, record));
+		Assert.assertEquals(Write.notStorable(key, value, record), Write.notStorable(key, value, record));
 	}
 
-	@Override
-	protected Write getRandomTestInstance() {
-		return TestData.getWriteAddLegacy();
-	}
 
 	@Override
 	protected Class<Write> getTestClass() {

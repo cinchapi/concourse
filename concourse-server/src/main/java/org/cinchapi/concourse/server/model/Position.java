@@ -177,7 +177,7 @@ public final class Position implements Byteable, Comparable<Position> {
 			bytes.put(primaryKey.getBytes());
 			bytes.putInt(index);
 		}
-		return bytes;
+		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	@Override

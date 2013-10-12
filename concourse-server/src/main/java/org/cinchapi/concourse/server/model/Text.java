@@ -78,16 +78,16 @@ public final class Text implements Byteable, Comparable<Text> {
 		}
 		return text;
 	}
-
-	/**
-	 * Represents an empty text string.
-	 */
-	public static final Text EMPTY = Text.wrap("");
 	
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
 	private static final ReferenceCache<Text> CACHE = new ReferenceCache<Text>();
+	
+	/**
+	 * Represents an empty text string.
+	 */
+	public static final Text EMPTY = Text.wrap("");
 
 	/**
 	 * The wrapped string.

@@ -27,7 +27,7 @@ import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.server.model.legacy.Write;
+import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
 
 /**
@@ -122,13 +122,26 @@ public final class TestData extends Random {
 				.notForStorage(getTObject());
 	}
 
+	public static Write getWriteAdd() {
+		return Write.add(getString(), getTObject(), getLong());
+	}
+
+	public static Write getWriteRemove() {
+		return Write.remove(getString(), getTObject(), getLong());
+	}
+
+	public static Write getWriteNotStorable() {
+		return Write.notStorable(getString(), getTObject(), getLong());
+	}
+
 	/**
 	 * Return a random Write with ADD type.
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteAdd() {
-		return Write.add(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteAddLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.add(
+				getString(), getTObject(), getLong());
 	}
 
 	/**
@@ -136,8 +149,9 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteNotForStorage() {
-		return Write.notForStorage(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteNotForStorageLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.notForStorage(
+				getString(), getTObject(), getLong());
 	}
 
 	/**
@@ -145,8 +159,9 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteRemove() {
-		return Write.add(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteRemoveLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.add(
+				getString(), getTObject(), getLong());
 	}
 
 	private TestData() {/* Utility class */}
