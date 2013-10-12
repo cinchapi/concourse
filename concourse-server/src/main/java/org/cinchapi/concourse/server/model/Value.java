@@ -171,12 +171,12 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
 	private static final ReferenceCache<Object> OBJECT_CACHE = new ReferenceCache<Object>();
-	
+
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
 	private static final ReferenceCache<TObject> TOBJECT_CACHE = new ReferenceCache<TObject>();
-	
+
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
@@ -268,6 +268,15 @@ public final class Value implements Byteable, Comparable<Value> {
 	 */
 	public Object getObject() {
 		return object;
+	}
+
+	/**
+	 * Return the TObject that is represented by this Value.
+	 * 
+	 * @return the TObject representation
+	 */
+	public TObject getTObject() {
+		return data;
 	}
 
 	/**

@@ -93,7 +93,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 * The total number of bytes used to encode a PrimaryKey.
 	 */
 	public static final int SIZE = 8;
-	
+
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
@@ -177,6 +177,15 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 			return Longs.compare(data, other.data) == 0;
 		}
 		return false;
+	}
+
+	/**
+	 * Return the long representation of this PrimaryKey.
+	 * 
+	 * @return the long value
+	 */
+	public long longValue() {
+		return data;
 	}
 
 	@Override

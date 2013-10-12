@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.storage;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.model.legacy.Write;
 
 /**
  * A {@link Store} that accepts {@link Write} objects that are transported from
