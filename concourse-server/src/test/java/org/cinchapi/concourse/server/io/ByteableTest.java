@@ -74,7 +74,6 @@ public abstract class ByteableTest {
 	@Test
 	public void testSerialization() {
 		Byteable object = getRandomTestInstance();
-		System.out.println(object);
 		Assert.assertTrue(Byteables.read(object.getBytes(), getTestClass())
 				.equals(object));
 	}

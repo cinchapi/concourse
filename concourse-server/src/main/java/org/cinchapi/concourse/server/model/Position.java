@@ -34,6 +34,8 @@ import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A Position is a {@link Byteable} abstraction for the association between a
  * relative location and a {@link PrimaryKey} that is used in a
@@ -92,7 +94,10 @@ public final class Position implements Byteable, Comparable<Position> {
 	/**
 	 * The total number of bytes used to encode a Position.
 	 */
-	public static final int SIZE = PrimaryKey.SIZE + 4; // index
+	public static final int MIN_SIZE = PrimaryKey.SIZE + 1; // index is stored
+															// as either 1, 2 or
+															// 4 bytes depending
+															// upon its value
 
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
@@ -114,6 +119,7 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * {@link #getBytes()}.
 	 */
 	private transient ByteBuffer bytes;
+	private transient final int size;
 
 	/**
 	 * Construct an instance that represents an existing Position from a
@@ -127,10 +133,12 @@ public final class Position implements Byteable, Comparable<Position> {
 	@DoNotInvoke
 	public Position(ByteBuffer bytes) {
 		bytes.rewind();
+		this.size = bytes.capacity();
 		this.bytes = bytes;
 		this.primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
 				PrimaryKey.SIZE));
-		this.index = bytes.getInt();
+		this.index = bytes.remaining() == 1 ? bytes.get()
+				: (bytes.remaining() == 2 ? bytes.getShort() : bytes.getInt());
 	}
 
 	/**
@@ -140,8 +148,12 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * @param index
 	 */
 	private Position(PrimaryKey primaryKey, int index) {
+		Preconditions.checkArgument(index > 0, "Cannot have an negative index");
 		this.primaryKey = primaryKey;
 		this.index = index;
+		this.size = MIN_SIZE
+				+ (index <= Byte.MAX_VALUE ? 0 : (index <= Short.MAX_VALUE ? 1
+						: 3));
 	}
 
 	@Override
@@ -173,9 +185,17 @@ public final class Position implements Byteable, Comparable<Position> {
 	@Override
 	public ByteBuffer getBytes() {
 		if(bytes == null) {
-			bytes = ByteBuffer.allocate(SIZE);
+			bytes = ByteBuffer.allocate(size());
 			bytes.put(primaryKey.getBytes());
-			bytes.putInt(index);
+			if(index <= Byte.MAX_VALUE) {
+				bytes.put((byte) index);
+			}
+			else if(index <= Short.MAX_VALUE) {
+				bytes.putShort((short) index);
+			}
+			else {
+				bytes.putInt(index);
+			}
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
@@ -187,7 +207,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
 	@Override
 	public int size() {
-		return SIZE;
+		return size;
 	}
 
 	@Override
