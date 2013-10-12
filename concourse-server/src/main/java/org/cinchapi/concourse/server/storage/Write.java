@@ -114,7 +114,7 @@ public final class Write implements Byteable, Versioned {
 	/**
 	 * The minimum number of bytes needed to encode every Write.
 	 */
-	private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 16; // type(4),
+	private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
 																	// version(8),
 																	// keySize(4)
 
@@ -148,7 +148,7 @@ public final class Write implements Byteable, Versioned {
 	public Write(ByteBuffer bytes) {
 		this.bytes = bytes;
 		int keySize = bytes.getInt();
-		this.type = Type.values()[bytes.getInt()];
+		this.type = Type.values()[bytes.get()];
 		this.version = bytes.getLong();
 		this.record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
 				PrimaryKey.SIZE));
@@ -198,9 +198,9 @@ public final class Write implements Byteable, Versioned {
 	 * <ol>
 	 * <li><strong>keySize</strong> - position 0</li>
 	 * <li><strong>type</strong> - position 4</li>
-	 * <li><strong>version</strong> - position 8</li>
-	 * <li><strong>record</strong> - position 16</li>
-	 * <li><strong>key</strong> - position 24</li>
+	 * <li><strong>version</strong> - position 5</li>
+	 * <li><strong>record</strong> - position 13</li>
+	 * <li><strong>key</strong> - position 21</li>
 	 * <li><strong>value</strong> - position(key) + keySize</li>
 	 * </ol>
 	 * 
@@ -211,7 +211,7 @@ public final class Write implements Byteable, Versioned {
 		if(bytes == null) {
 			bytes = ByteBuffer.allocate(size());
 			bytes.putInt(key.size());
-			bytes.putInt(type.ordinal());
+			bytes.put((byte) type.ordinal());
 			bytes.putLong(version);
 			bytes.put(record.getBytes());
 			bytes.put(key.getBytes());
