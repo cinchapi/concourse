@@ -37,7 +37,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.base.Preconditions;
 
 /**
- * A Position is a {@link Byteable} abstraction for the association between a
+ * A Position is an abstraction for the association between a
  * relative location and a {@link PrimaryKey} that is used in a
  * {@link SearchIndex} to specify the location of a term in a record.
  * 

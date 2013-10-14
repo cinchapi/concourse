@@ -39,9 +39,9 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
 
 /**
- * A Value is a {@link Byteable} abstraction for a {@link TObject} that records
- * type information and serves as the most basic element of data in Concourse.
- * Values are logically sortable using weak typing and cannot exceed 2^32 bytes.
+ * A Value is an abstraction for a {@link TObject} that records type information
+ * and serves as the most basic element of data in Concourse. Values are
+ * logically sortable using weak typing and cannot exceed 2^32 bytes.
  * <p>
  * <h2>Storage Requirements</h2>
  * Each Value requires at least {@value #CONSTANT_SIZE} bytes of space in

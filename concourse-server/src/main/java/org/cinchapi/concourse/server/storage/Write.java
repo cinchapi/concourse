@@ -194,7 +194,7 @@ public final class Write implements Byteable, Versioned {
 	}
 
 	/**
-	 * Return a byte buffer that represents this Value with the following order:
+	 * Return a byte buffer that represents this Write with the following order:
 	 * <ol>
 	 * <li><strong>keySize</strong> - position 0</li>
 	 * <li><strong>type</strong> - position 4</li>
