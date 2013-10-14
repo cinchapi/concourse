@@ -220,7 +220,9 @@ public final class FileSystem {
 	public static File openFile(String file) {
 		try {
 			File f = new File(file);
-			f.getParentFile().mkdirs();
+			if(f.getParentFile() != null){
+				f.getParentFile().mkdirs();
+			}
 			f.createNewFile();
 			return f;
 		}
