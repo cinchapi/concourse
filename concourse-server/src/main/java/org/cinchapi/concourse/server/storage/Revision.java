@@ -1,0 +1,287 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.cinchapi.concourse.server.storage;
+
+import java.nio.ByteBuffer;
+import java.util.Objects;
+
+import javax.annotation.concurrent.Immutable;
+
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.util.ByteBuffers;
+
+/**
+ * A Revision represents a modification involving a {@code locator}, {@code key}
+ * and {@code value} and is used to organize indexed data that is permanently
+ * stored in a {@link Block} or viewed in a {@link Record}.
+ * 
+ * 
+ * @author jnelson
+ * @param <L> - the locator type
+ * @param <K> - the key type
+ * @param <V> - the value type
+ */
+@Immutable
+public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable> implements
+		Byteable,
+		Versioned {
+
+	/**
+	 * Indicates that a component of the class has variable length and therefore
+	 * must encode the size of that component for each instance.
+	 */
+	protected static final int VARIABLE_SIZE = -1;
+
+	/**
+	 * The primary component used to locate the index, to which this Revision
+	 * belongs.
+	 */
+	private final L locator;
+
+	/**
+	 * The secondary component used to locate the field in the index, to which
+	 * this Revision belongs.
+	 */
+	private final K key;
+
+	/**
+	 * The tertiary component that typically represents the payload for what
+	 * this Revision represents.
+	 */
+	private final V value;
+
+	/**
+	 * The unique version that identifies this Revision. Versions are assumed to
+	 * be an atomically increasing values (i.e. timestamps).
+	 */
+	private final long version;
+
+	/**
+	 * A cached copy of the binary representation that is returned from
+	 * {@link #getBytes()}.
+	 */
+	private transient ByteBuffer bytes = null;
+
+	/**
+	 * The number of bytes used to store the Revision. This value depends on
+	 * the number of variable sized components.
+	 */
+	private transient final int size;
+
+	/**
+	 * Construct an instance that represents an existing Revision from a
+	 * ByteBuffer. This constructor is public so as to comply with the
+	 * {@link Byteable} interface. Calling this constructor directly is not
+	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
+	 * advantage of reference caching.
+	 * 
+	 * @param bytes
+	 */
+	@DoNotInvoke
+	public Revision(ByteBuffer bytes) {
+		this.bytes = bytes;
+		this.version = bytes.getLong();
+		this.locator = Byteables.read(ByteBuffers.get(bytes,
+				xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
+						: xLocatorSize()), xLocatorClass());
+		this.key = Byteables.read(ByteBuffers.get(bytes,
+				xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
+				xKeyClass());
+		this.value = Byteables.read(ByteBuffers.get(bytes,
+				xValueSize() == VARIABLE_SIZE ? bytes.getInt() : xValueSize()),
+				xValueClass());
+		this.size = bytes.capacity();
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param locator
+	 * @param key
+	 * @param value
+	 * @param version
+	 */
+	protected Revision(L locator, K key, V value, long version) {
+		this.locator = locator;
+		this.key = key;
+		this.value = value;
+		this.version = version;
+		this.size = 8 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
+				+ (xKeySize() == VARIABLE_SIZE ? 4 : 0)
+				+ (xValueSize() == VARIABLE_SIZE ? 4 : 0) + locator.size()
+				+ key.size() + value.size();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public boolean equals(Object obj) {
+		if(obj.getClass() == this.getClass()) {
+			Revision<L, K, V> other = (Revision<L, K, V>) obj;
+			return locator.equals(other.locator) && key.equals(other.key)
+					&& value.equals(other.value);
+		}
+		return false;
+	}
+
+	/**
+	 * Return a byte buffer that represents this Revision with the following
+	 * order:
+	 * <ol>
+	 * <li><strong>version</strong></li>
+	 * <li><strong>locatorSize</strong> -
+	 * <em>if {@link #xLocatorSize()} == {@link #VARIABLE_SIZE}</em></li>
+	 * <li><strong>locator</strong></li>
+	 * <li><strong>keySize</strong> -
+	 * <em>if {@link #xKeySize()} == {@link #VARIABLE_SIZE}</em></li>
+	 * <li><strong>key</strong></li>
+	 * <li><strong>valueSize</strong> -
+	 * <em>if {@link #xValueSize()} == {@link #VARIABLE_SIZE}</em></li>
+	 * <li><strong>value</strong></li>
+	 * 
+	 * </ol>
+	 * 
+	 * @return the ByteBuffer representation
+	 */
+	@Override
+	public ByteBuffer getBytes() {
+		if(bytes == null) {
+			int size;
+			bytes = ByteBuffer.allocate(size());
+			bytes.putLong(version);
+			if((size = xLocatorSize()) == VARIABLE_SIZE) {
+				bytes.putInt(size);
+			}
+			bytes.put(locator.getBytes());
+			if((size = xKeySize()) == VARIABLE_SIZE) {
+				bytes.putInt(size);
+			}
+			bytes.put(key.getBytes());
+			if((size = xValueSize()) == VARIABLE_SIZE) {
+				bytes.putInt(size);
+			}
+			bytes.put(value.getBytes());
+		}
+		return ByteBuffers.asReadOnlyBuffer(bytes);
+	}
+
+	/**
+	 * Return the {@link #key} associated with this Revision.
+	 * 
+	 * @return the key
+	 */
+	public K getKey() {
+		return key;
+	}
+
+	/**
+	 * Return the {@link #locator} associated with this Revision.
+	 * 
+	 * @return the locator
+	 */
+	public L getLocator() {
+		return locator;
+	}
+
+	/**
+	 * Return the {@link #value} associated with this Revision.
+	 * 
+	 * @return the value
+	 */
+	public V getValue() {
+		return value;
+	}
+
+	@Override
+	public long getVersion() {
+		return version;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(locator, key, value);
+	}
+
+	@Override
+	public boolean isStorable() {
+		return version != NO_VERSION;
+	}
+
+	@Override
+	public int size() {
+		return size;
+	}
+
+	@Override
+	public String toString() {
+		return key + " AS " + value + " IN " + locator;
+	}
+
+	/**
+	 * Return the class of the {@link #key} type.
+	 * 
+	 * @return they key class
+	 */
+	protected abstract Class<K> xKeyClass();
+
+	/**
+	 * Return the size used to store each {@link #key}. If this value is not
+	 * fixed, return {@link #VARIABLE_SIZE}.
+	 * 
+	 * @return the key size
+	 */
+	protected abstract int xKeySize();
+
+	/**
+	 * Return the class of the {@link locator} type.
+	 * 
+	 * @return the locator class
+	 */
+	protected abstract Class<L> xLocatorClass();
+
+	/**
+	 * Return the size used to store each {@link #locator}. If this value is not
+	 * fixed, return {@link #VARIABLE_SIZE}.
+	 * 
+	 * @return the locator size
+	 */
+	protected abstract int xLocatorSize();
+
+	/**
+	 * Return the class of the {@link #value} type.
+	 * 
+	 * @return the value class
+	 */
+	protected abstract Class<V> xValueClass();
+
+	/**
+	 * Return the size used to store each {@link #value}. If this value is not
+	 * fixed, return {@link #VARIABLE_SIZE}.
+	 * 
+	 * @return the value size
+	 */
+	protected abstract int xValueSize();
+
+}
