@@ -163,11 +163,6 @@ public final class Value implements Byteable, Comparable<Value> {
 	private static final int CONSTANT_SIZE = 1; // type(1)
 
 	/**
-	 * The comparator that is used to sort values using weak typing.
-	 */
-	private static final Sorter SORTER = new Sorter();
-
-	/**
 	 * Cache to store references that have already been loaded in the JVM.
 	 */
 	private static final ReferenceCache<Object> OBJECT_CACHE = new ReferenceCache<Object>();
@@ -230,7 +225,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
 	@Override
 	public int compareTo(Value other) {
-		return SORTER.compare(this, other);
+		return Sorter.INSTANCE.compare(this, other);
 	}
 
 	@Override
@@ -309,7 +304,8 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * 
 	 * @author jnelson
 	 */
-	public static final class Sorter implements Comparator<Value> {
+	public static enum Sorter implements Comparator<Value> {
+		INSTANCE;
 
 		@Override
 		public int compare(Value v1, Value v2) {
