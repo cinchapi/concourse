@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import javax.annotation.Nullable;
@@ -47,13 +48,14 @@ import org.cinchapi.concourse.time.Time;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.TreeMultiset;
+import com.google.common.primitives.Longs;
 
 /**
  * <p>
  * A Block is a sorted collection of Revisions that is used by the Database to
  * store indexed data. When a Block is initially created, it resides solely in
  * memory and is able to insert new revisions, which are sorted on the fly by a
- * {@link BlockSorter}. Once the Block is flushed to disk it becomes immutable
+ * {@link Sorter}. Once the Block is flushed to disk it becomes immutable
  * and all lookups are disk based. This means that writing to a block never
  * incurs any random disk I/O.
  * </p>
@@ -165,7 +167,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
 		this.mutable = true;
 		this.size = 0;
-		this.revisions = TreeMultiset.create(BlockSorter.INSTANCE);
+		this.revisions = TreeMultiset.create(Sorter.INSTANCE);
 		this.filter = BlockFilter.create(
 				(directory + File.separator + id + FILTER_NAME_EXTENSION),
 				EXPECTED_INSERTIONS);
@@ -414,5 +416,29 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 		finally {
 			lock.release();
 		}
+	}
+	
+	/**
+	 * A Comparator that sorts Revisions in a block. The sort order is
+	 * {@code locator} followed by {@code key} followed by {@code version}.
+	 * 
+	 * @author jnelson
+	 */
+	@SuppressWarnings("rawtypes")
+	private enum Sorter implements Comparator<Revision> {
+		INSTANCE;
+
+		/**
+		 * Sorts by locator followed by key followed by version.
+		 */
+		@Override
+		@SuppressWarnings("unchecked")
+		public int compare(Revision o1, Revision o2) {
+			int order;
+			return (order = o1.getLocator().compareTo(o2.getLocator())) != 0 ? order
+					: ((order = o1.getKey().compareTo(o2.getKey())) != 0 ? order
+							: (Longs.compare(o1.getVersion(), o2.getVersion())));
+		}
+
 	}
 }
