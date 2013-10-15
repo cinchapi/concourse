@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.io;
 
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;

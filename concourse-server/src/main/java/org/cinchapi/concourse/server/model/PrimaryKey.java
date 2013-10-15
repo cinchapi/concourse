@@ -25,12 +25,11 @@ package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.primitives.Longs;
@@ -50,7 +49,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
 	 * adhere to the format specified by the {@link #getBytes()} method. This
 	 * method assumes that all the bytes in the {@code bytes} belong to the
-	 * Value. In general, it is necessary to get the appropriate Value slice
+	 * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey slice
 	 * from the parent ByteBuffer using
 	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
@@ -58,20 +57,13 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 * @return the PrimaryKey
 	 */
 	public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, PrimaryKey.class); // We are using
-														// Byteables#read(ByteBuffer,
-														// Class) instead of
-														// calling
-														// the constructor
-														// directly
-														// so as to take
-														// advantage
-														// of the automatic
-														// reference caching
-														// that is
-														// provided in the
-														// utility
-														// class
+		long data = bytes.getLong();
+		PrimaryKey primaryKey = CACHE.get(data);
+		if(primaryKey == null) {
+			primaryKey = new PrimaryKey(data, bytes);
+			CACHE.put(primaryKey, data);
+		}
+		return primaryKey;
 	}
 
 	/**
@@ -111,27 +103,22 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	private transient ByteBuffer bytes = null;
 
 	/**
-	 * Construct an instance that represents an existing PrimaryKey from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public PrimaryKey(ByteBuffer bytes) {
-		this.bytes = bytes;
-		this.data = bytes.getLong();
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param data
 	 */
 	private PrimaryKey(long data) {
+		this(data, null);
+	}
+	
+	/**
+	 * Construct a new instance.
+	 * @param data
+	 * @param bytes
+	 */
+	private PrimaryKey(long data, @Nullable ByteBuffer bytes){
 		this.data = data;
+		this.bytes = bytes;
 	}
 
 	/**

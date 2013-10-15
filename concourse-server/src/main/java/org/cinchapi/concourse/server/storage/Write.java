@@ -26,11 +26,10 @@ package org.cinchapi.concourse.server.storage;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -73,14 +72,15 @@ public final class Write implements Byteable, Versioned {
 	 * @return the Value
 	 */
 	public static Write fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, Write.class); // We are using
-													// Byteables#read(ByteBuffer,
-													// Class) instead of calling
-													// the constructor directly
-													// so as to take advantage
-													// of the automatic
-													// reference caching that is
-													// provided in the utility
+		int keySize = bytes.getInt();
+		Type type = Type.values()[bytes.get()];
+		long version = bytes.getLong();
+		PrimaryKey record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
+				PrimaryKey.SIZE));
+		Text key = Text.fromByteBuffer(ByteBuffers.get(bytes, keySize));
+		Value value = Value.fromByteBuffer(ByteBuffers.get(bytes,
+				bytes.remaining()));
+		return new Write(type, key, value, record, version);
 	}
 
 	/**
@@ -136,28 +136,6 @@ public final class Write implements Byteable, Versioned {
 	private transient ByteBuffer bytes = null;
 
 	/**
-	 * Construct an instance that represents an existing Write from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Write(ByteBuffer bytes) {
-		this.bytes = bytes;
-		int keySize = bytes.getInt();
-		this.type = Type.values()[bytes.get()];
-		this.version = bytes.getLong();
-		this.record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
-				PrimaryKey.SIZE));
-		this.key = Text.fromByteBuffer(ByteBuffers.get(bytes, keySize));
-		this.value = Value.fromByteBuffer(ByteBuffers.get(bytes,
-				bytes.remaining()));
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param type
@@ -168,11 +146,25 @@ public final class Write implements Byteable, Versioned {
 	 */
 	private Write(Type type, Text key, Value value, PrimaryKey record,
 			long version) {
+		this(type, key, value, record, version, null);
+	}
+	
+	/**
+	 * Construct a new instance.
+	 * @param type
+	 * @param key
+	 * @param value
+	 * @param record
+	 * @param version
+	 * @param bytes
+	 */
+	private Write(Type type, Text key, Value value, PrimaryKey record, long version, @Nullable ByteBuffer bytes){
 		this.type = type;
 		this.key = key;
 		this.value = value;
 		this.record = record;
 		this.version = version;
+		this.bytes = bytes;
 	}
 
 	/**

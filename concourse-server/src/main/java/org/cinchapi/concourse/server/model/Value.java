@@ -26,12 +26,11 @@ package org.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -74,15 +73,14 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * @return the Value
 	 */
 	public static Value fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, Value.class); // We are using
-													// Byteables#read(ByteBuffer,
-													// Class) instead of calling
-													// the constructor directly
-													// so as to take advantage
-													// of the automatic
-													// reference caching that is
-													// provided in the utility
-													// class
+		Type type = Type.values()[bytes.get()];
+		TObject data = extractTObjectAndCache(bytes, type);
+		Object[] cacheKey = getCacheKey(data);
+		Value value = VALUE_CACHE.get(cacheKey);
+		if(value == null) {
+			value = new Value(data, bytes);
+		}
+		return value;
 	}
 
 	/**
@@ -197,30 +195,23 @@ public final class Value implements Byteable, Comparable<Value> {
 	private final transient Object object;
 
 	/**
-	 * Construct an instance that represents an existing Value from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Value(ByteBuffer bytes) {
-		this.bytes = bytes;
-		Type type = Type.values()[bytes.get()];
-		this.data = extractTObjectAndCache(bytes, type);
-		this.object = extractObjectAndCache(data);
-	}
-
-	/**
 	 * Construct a new instance.
 	 * 
 	 * @param data
 	 */
 	private Value(TObject data) {
+		this(data, null);
+	}
+	
+	/**
+	 * Construct a new instance.
+	 * @param data
+	 * @param bytes
+	 */
+	private Value(TObject data, @Nullable ByteBuffer bytes){
 		this.data = data;
 		this.object = extractObjectAndCache(data);
+		this.bytes = bytes;
 	}
 
 	@Override
