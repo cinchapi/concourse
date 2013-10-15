@@ -363,13 +363,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		 * 
 		 * @param bytes
 		 */
-		/*
-		 * (non-Javadoc)
-		 * This constructor exists and is public so that class instances can be
-		 * dynamically deserialized using the Byteables#read() method.
-		 */
-		@DoNotInvoke
-		public PrimaryRevision(ByteBuffer bytes) {
+		private PrimaryRevision(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -436,13 +430,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		 * 
 		 * @param bytes
 		 */
-		/*
-		 * (non-Javadoc)
-		 * This constructor exists and is public so that class instances can be
-		 * dynamically deserialized using the Byteables#read() method.
-		 */
-		@DoNotInvoke
-		public SecondaryRevision(ByteBuffer bytes) {
+		private SecondaryRevision(ByteBuffer bytes) {
 			super(bytes);
 		}
 
@@ -509,13 +497,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		 * 
 		 * @param bytes
 		 */
-		/*
-		 * (non-Javadoc)
-		 * This constructor exists and is public so that class instances can be
-		 * dynamically deserialized using the Byteables#read() method.
-		 */
-		@DoNotInvoke
-		public SearchRevision(ByteBuffer bytes) {
+		private SearchRevision(ByteBuffer bytes) {
 			super(bytes);
 		}
 
