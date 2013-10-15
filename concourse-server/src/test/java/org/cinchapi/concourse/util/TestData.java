@@ -27,8 +27,13 @@ import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.Revision;
+import org.cinchapi.concourse.server.storage.Revision.PrimaryRevision;
+import org.cinchapi.concourse.server.storage.Revision.SearchRevision;
+import org.cinchapi.concourse.server.storage.Revision.SecondaryRevision;
 import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 
 /**
  * A utility class for getting test data.
@@ -36,6 +41,18 @@ import org.cinchapi.concourse.thrift.TObject;
  * @author jnelson
  */
 public final class TestData extends Random {
+	
+	public static PrimaryRevision getPrimaryRevision(){
+		return Revision.createPrimaryRevision(getText(), getValue(), getPrimaryKey(), Time.now());
+	}
+	
+	public static SearchRevision getSearchRevision(){
+		return Revision.createSearchRevision(getText(), getText(), getPosition(), Time.now());
+	}
+	
+	public static SecondaryRevision getSecondaryRevision(){
+		return Revision.createSecondaryRevision(getText(), getValue(), getPrimaryKey(), Time.now());
+	}
 
 	/**
 	 * Return a random {@link Position}.

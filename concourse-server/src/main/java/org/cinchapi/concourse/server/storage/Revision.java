@@ -31,12 +31,16 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.server.model.Position;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
  * A Revision represents a modification involving a {@code locator}, {@code key}
- * and {@code value} and is used to organize indexed data that is permanently
- * stored in a {@link Block} or viewed in a {@link Record}.
+ * and {@code value} at a {@code version} and is used to organize indexed data
+ * that is permanently stored in a {@link Block} or viewed in a {@link Record}.
  * 
  * 
  * @author jnelson
@@ -57,10 +61,56 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		Versioned {
 
 	/**
+	 * Create a PrimaryRevision for {@code key} as {@code value} in
+	 * {@code record} at {@code version}.
+	 * 
+	 * @param key
+	 * @param value
+	 * @param record
+	 * @param version
+	 * 
+	 * @return the PrimaryRevision
+	 */
+	public static PrimaryRevision createPrimaryRevision(Text key, Value value,
+			PrimaryKey record, long version) {
+		return new PrimaryRevision(record, key, value, version);
+	}
+
+	/**
+	 * Create a SearchRevision for {@code word} at {@code position} for
+	 * {@code key} at {@code version}.
+	 * 
+	 * @param key
+	 * @param word
+	 * @param position
+	 * @param version
+	 * @return the SearchRevision
+	 */
+	public static SearchRevision createSearchRevision(Text key, Text word,
+			Position position, long version) {
+		return new SearchRevision(key, word, position, version);
+	}
+
+	/**
+	 * Create a SecondaryRevision for {@code key} as {@code value} in
+	 * {@code record} at {@code version}.
+	 * 
+	 * @param key
+	 * @param value
+	 * @param record
+	 * @param version
+	 * @return the SecondaryRevision
+	 */
+	public static SecondaryRevision createSecondaryRevision(Text key,
+			Value value, PrimaryKey record, long version) {
+		return new SecondaryRevision(key, value, record, version);
+	}
+
+	/**
 	 * Indicates that a component of the class has variable length and therefore
 	 * must encode the size of that component for each instance.
 	 */
-	protected static final int VARIABLE_SIZE = -1;
+	private static final int VARIABLE_SIZE = -1;
 
 	/**
 	 * The primary component used to locate the index, to which this Revision
@@ -107,17 +157,22 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * 
 	 * @param bytes
 	 */
+	/*
+	 * (non-Javadoc)
+	 * This constructor exists and is public so that subclass instances can be
+	 * dynamically deserialized using the Byteables#read() method.
+	 */
 	@DoNotInvoke
 	public Revision(ByteBuffer bytes) {
 		this.bytes = bytes;
 		this.version = bytes.getLong();
-		this.locator = Byteables.read(ByteBuffers.get(bytes,
+		this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
 				xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
 						: xLocatorSize()), xLocatorClass());
-		this.key = Byteables.read(ByteBuffers.get(bytes,
+		this.key = Byteables.readStatic(ByteBuffers.get(bytes,
 				xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
 				xKeyClass());
-		this.value = Byteables.read(ByteBuffers.get(bytes,
+		this.value = Byteables.readStatic(ByteBuffers.get(bytes,
 				xValueSize() == VARIABLE_SIZE ? bytes.getInt() : xValueSize()),
 				xValueClass());
 		this.size = bytes.capacity();
@@ -175,19 +230,18 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	@Override
 	public ByteBuffer getBytes() {
 		if(bytes == null) {
-			int size;
 			bytes = ByteBuffer.allocate(size());
 			bytes.putLong(version);
-			if((size = xLocatorSize()) == VARIABLE_SIZE) {
-				bytes.putInt(size);
+			if(xLocatorSize() == VARIABLE_SIZE) {
+				bytes.putInt(locator.size());
 			}
 			bytes.put(locator.getBytes());
-			if((size = xKeySize()) == VARIABLE_SIZE) {
-				bytes.putInt(size);
+			if(xKeySize() == VARIABLE_SIZE) {
+				bytes.putInt(key.size());
 			}
 			bytes.put(key.getBytes());
-			if((size = xValueSize()) == VARIABLE_SIZE) {
-				bytes.putInt(size);
+			if(xValueSize() == VARIABLE_SIZE) {
+				bytes.putInt(value.size());
 			}
 			bytes.put(value.getBytes());
 		}
@@ -290,5 +344,224 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @return the value size
 	 */
 	protected abstract int xValueSize();
+
+	/**
+	 * A {@link Revision} that is used in a {@link PrimaryBlock} and maps a
+	 * record to a key to a value.
+	 * 
+	 * @author jnelson
+	 */
+	@Immutable
+	public final static class PrimaryRevision extends
+			Revision<PrimaryKey, Text, Value> {
+
+		/**
+		 * Construct an instance that represents an existing PrimaryRevision
+		 * from a ByteBuffer. This constructor is public so as to comply with
+		 * the {@link Byteable} interface. Calling this constructor directly is
+		 * not recommend.
+		 * 
+		 * @param bytes
+		 */
+		/*
+		 * (non-Javadoc)
+		 * This constructor exists and is public so that class instances can be
+		 * dynamically deserialized using the Byteables#read() method.
+		 */
+		@DoNotInvoke
+		public PrimaryRevision(ByteBuffer bytes) {
+			super(bytes);
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param locator
+		 * @param key
+		 * @param value
+		 * @param version
+		 */
+		private PrimaryRevision(PrimaryKey locator, Text key, Value value,
+				long version) {
+			super(locator, key, value, version);
+		}
+
+		@Override
+		protected Class<Text> xKeyClass() {
+			return Text.class;
+		}
+
+		@Override
+		protected int xKeySize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<PrimaryKey> xLocatorClass() {
+			return PrimaryKey.class;
+		}
+
+		@Override
+		protected int xLocatorSize() {
+			return PrimaryKey.SIZE;
+		}
+
+		@Override
+		protected Class<Value> xValueClass() {
+			return Value.class;
+		}
+
+		@Override
+		protected int xValueSize() {
+			return VARIABLE_SIZE;
+		}
+
+	}
+
+	/**
+	 * A {@link Revision} that is used in a {@link SecondayBlock} and maps a key
+	 * to a value to a record.
+	 * 
+	 * @author jnelson
+	 */
+	@Immutable
+	public final static class SecondaryRevision extends
+			Revision<Text, Value, PrimaryKey> {
+
+		/**
+		 * Construct an instance that represents an existing SecondaryRevision
+		 * from a ByteBuffer. This constructor is public so as to comply with
+		 * the {@link Byteable} interface. Calling this constructor directly is
+		 * not recommend.
+		 * 
+		 * @param bytes
+		 */
+		/*
+		 * (non-Javadoc)
+		 * This constructor exists and is public so that class instances can be
+		 * dynamically deserialized using the Byteables#read() method.
+		 */
+		@DoNotInvoke
+		public SecondaryRevision(ByteBuffer bytes) {
+			super(bytes);
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param locator
+		 * @param key
+		 * @param value
+		 * @param version
+		 */
+		private SecondaryRevision(Text locator, Value key, PrimaryKey value,
+				long version) {
+			super(locator, key, value, version);
+		}
+
+		@Override
+		protected Class<Value> xKeyClass() {
+			return Value.class;
+		}
+
+		@Override
+		protected int xKeySize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<Text> xLocatorClass() {
+			return Text.class;
+		}
+
+		@Override
+		protected int xLocatorSize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<PrimaryKey> xValueClass() {
+			return PrimaryKey.class;
+		}
+
+		@Override
+		protected int xValueSize() {
+			return PrimaryKey.SIZE;
+		}
+
+	}
+
+	/**
+	 * A {@link Revision} that is used in a {@link SearchBlock} and maps a key
+	 * to a term to a position.
+	 * 
+	 * @author jnelson
+	 */
+	@Immutable
+	public final static class SearchRevision extends
+			Revision<Text, Text, Position> {
+
+		/**
+		 * Construct an instance that represents an existing SearchRevision from
+		 * a ByteBuffer. This constructor is public so as to comply with the
+		 * {@link Byteable} interface. Calling this constructor directly is not
+		 * recommend.
+		 * 
+		 * @param bytes
+		 */
+		/*
+		 * (non-Javadoc)
+		 * This constructor exists and is public so that class instances can be
+		 * dynamically deserialized using the Byteables#read() method.
+		 */
+		@DoNotInvoke
+		public SearchRevision(ByteBuffer bytes) {
+			super(bytes);
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param locator
+		 * @param key
+		 * @param value
+		 * @param version
+		 */
+		private SearchRevision(Text locator, Text key, Position value,
+				long version) {
+			super(locator, key, value, version);
+		}
+
+		@Override
+		protected Class<Text> xKeyClass() {
+			return Text.class;
+		}
+
+		@Override
+		protected int xKeySize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<Text> xLocatorClass() {
+			return Text.class;
+		}
+
+		@Override
+		protected int xLocatorSize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<Position> xValueClass() {
+			return Position.class;
+		}
+
+		@Override
+		protected int xValueSize() {
+			return Position.SIZE;
+		}
+
+	}
 
 }
