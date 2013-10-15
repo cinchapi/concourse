@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.io;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -36,14 +37,49 @@ import com.google.common.base.Throwables;
 /**
  * Contains static factory methods to construct {@link Byteable} objects from
  * ByteBuffers.
- * <p>
- * This class will automatically cache constructed objects in an appropriate
- * {@link ReferenceCache}.
- * </p>
  * 
  * @author jnelson
  */
 public abstract class Byteables {
+
+	/**
+	 * Return an instance of {@code classObj} by reading {@code bytes}. This
+	 * method uses reflection to invoke the public single argument ByteBuffer
+	 * constructor in {@code classObj}.
+	 * <p>
+	 * <tt>Byteables.read(bytes, Foo.class)</tt>
+	 * </p>
+	 * It is assumed that all the contents of {@code bytes} are relevant to the
+	 * object being read, so so call
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
+	 * protocol when using this method:
+	 * <ul>
+	 * <li>Set the position of the parent ByteBuffer to the index of the first
+	 * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
+	 * <li>Set the limit of the parent ByteBuffer to the index of its current
+	 * position + the size of the object (which is usually stored in the 4 bytes
+	 * preceding the object) using {@link ByteBuffer#limit(int)}.</li>
+	 * <li>Slice the parent buffer using {@link ByteBuffer#slice()}, which will
+	 * create a child buffer with the same content of the parent buffer between
+	 * its current position and its limit.</li>
+	 * </ul>
+	 * 
+	 * @param bytes
+	 * @param classObj
+	 * @return an instance of {@code classObj} read from {@code bytes}
+	 */
+	public static <T> T read(ByteBuffer bytes, Class<T> classObj) {
+		try {
+			Constructor<T> constructor = classObj
+					.getConstructor(ByteBuffer.class);
+			constructor.setAccessible(true);
+			return constructor.newInstance(bytes);
+
+		}
+		catch (ReflectiveOperationException e) {
+			throw Throwables.propagate(e);
+		}
+	}
 
 	/**
 	 * Return an instance of {@code className} by reading {@code bytes}. This
@@ -54,7 +90,7 @@ public abstract class Byteables {
 	 * </p>
 	 * It is assumed that all the contents of {@code bytes} are relevant to the
 	 * object being read, so call
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or following this
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
 	 * protocol when using this method:
 	 * <ul>
 	 * <li>Set the position of the parent ByteBuffer to the index of the first
@@ -84,14 +120,14 @@ public abstract class Byteables {
 
 	/**
 	 * Return an instance of {@code classObj} by reading {@code bytes}. This
-	 * method uses reflection to invoke the public single argument ByteBuffer
-	 * constructor in {@code classObj}.
+	 * method uses reflection to invoke the single argument static method named
+	 * <strong>fromByteBuffer</strong> in {@code classObj}.
 	 * <p>
 	 * <tt>Byteables.read(bytes, Foo.class)</tt>
 	 * </p>
 	 * It is assumed that all the contents of {@code bytes} are relevant to the
 	 * object being read, so so call
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or following this
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
 	 * protocol when using this method:
 	 * <ul>
 	 * <li>Set the position of the parent ByteBuffer to the index of the first
@@ -108,15 +144,50 @@ public abstract class Byteables {
 	 * @param classObj
 	 * @return an instance of {@code classObj} read from {@code bytes}
 	 */
-	public static <T> T read(ByteBuffer bytes, Class<T> classObj) {
+	@SuppressWarnings("unchecked")
+	public static <T> T readStatic(ByteBuffer bytes, Class<T> classObj) {
 		try {
-			Constructor<T> constructor = classObj
-					.getConstructor(ByteBuffer.class);
-			constructor.setAccessible(true);
-			return constructor.newInstance(bytes);
-
+			Method method = classObj.getMethod("fromByteBuffer",
+					ByteBuffer.class);
+			return (T) method.invoke(null, bytes);
 		}
 		catch (ReflectiveOperationException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+	
+	/**
+	 * Return an instance of {@code className} by reading {@code bytes}. This
+	 * method uses reflection to invoke the single argument static method named
+	 * <strong>fromByteBuffer</strong> in {@code className}.
+	 * <p>
+	 * <tt>Byteables.read(bytes, Foo.class)</tt>
+	 * </p>
+	 * It is assumed that all the contents of {@code bytes} are relevant to the
+	 * object being read, so so call
+	 * {@link ByteBuffers#slice(ByteBuffer, int, int)} or follow this
+	 * protocol when using this method:
+	 * <ul>
+	 * <li>Set the position of the parent ByteBuffer to the index of the first
+	 * byte relevant to the object, using {@link ByteBuffer#position(int)}.</li>
+	 * <li>Set the limit of the parent ByteBuffer to the index of its current
+	 * position + the size of the object (which is usually stored in the 4 bytes
+	 * preceding the object) using {@link ByteBuffer#limit(int)}.</li>
+	 * <li>Slice the parent buffer using {@link ByteBuffer#slice()}, which will
+	 * create a child buffer with the same content of the parent buffer between
+	 * its current position and its limit.</li>
+	 * </ul>
+	 * 
+	 * @param bytes
+	 * @param classObj
+	 * @return an instance of {@code className} read from {@code bytes}
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T readStatic(ByteBuffer bytes, String className) {
+		try {
+			return (T) readStatic(bytes, Class.forName(className));
+		}
+		catch (ClassNotFoundException e) {
 			throw Throwables.propagate(e);
 		}
 	}

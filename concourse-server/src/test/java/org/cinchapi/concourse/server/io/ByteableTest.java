@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.io;
 
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -74,7 +75,7 @@ public abstract class ByteableTest {
 	@Test
 	public void testSerialization() {
 		Byteable object = getRandomTestInstance();
-		Assert.assertTrue(Byteables.read(object.getBytes(), getTestClass())
+		Assert.assertTrue(Byteables.readStatic(object.getBytes(), getTestClass())
 				.equals(object));
 	}
 
