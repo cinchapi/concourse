@@ -23,7 +23,10 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.lang.reflect.Constructor;
+
 import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +34,8 @@ import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+
+import com.google.common.base.Throwables;
 
 /**
  * Unit tests for all the subclasses of {@link Revision}.
@@ -49,6 +54,41 @@ public class RevisionTest {
 	public void testSerialization(Revision<?, ?, ?> revision) {
 		Assert.assertTrue(Byteables.read(revision.getBytes(),
 				revision.getClass()).equals(revision));
+	}
+	
+	@Test
+	@Theory
+	public void testEquals(Revision<?,?,?> revision){
+		Assert.assertEquals(revision, duplicate(revision));
+	}
+	
+	@Test
+	@Theory
+	public void testHashCode(Revision<?,?,?> revision){
+		Assert.assertEquals(revision.hashCode(), duplicate(revision).hashCode());
+	}
+
+	/**
+	 * Duplicate {@code revision} with a different version.
+	 * @param revision
+	 * @return the duplicated revision
+	 */
+	private Revision<?, ?, ?> duplicate(Revision<?, ?, ?> revision) {
+		Constructor<?> constructor;
+		try {
+			constructor = revision.getClass().getDeclaredConstructor(
+					revision.getLocator().getClass(),
+					revision.getKey().getClass(),
+					revision.getValue().getClass(), Long.TYPE);
+			constructor.setAccessible(true);
+			return (Revision<?, ?, ?>) constructor.newInstance(
+					revision.getLocator(), revision.getKey(),
+					revision.getValue(), Time.now());
+		}
+		catch (Exception e) {
+			throw Throwables.propagate(e);
+		}
+
 	}
 
 }
