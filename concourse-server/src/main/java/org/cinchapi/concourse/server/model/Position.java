@@ -26,12 +26,11 @@ package org.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Preconditions;
@@ -50,28 +49,24 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * Return the Position encoded in {@code bytes} so long as those bytes
 	 * adhere to the format specified by the {@link #getBytes()} method. This
 	 * method assumes that all the bytes in the {@code bytes} belong to the
-	 * Value. In general, it is necessary to get the appropriate Value slice
-	 * from the parent ByteBuffer using
+	 * Position. In general, it is necessary to get the appropriate Position
+	 * slice from the parent ByteBuffer using
 	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
 	 * @param bytes
 	 * @return the Position
 	 */
 	public static Position fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, Position.class); // We are using
-														// Byteables#read(ByteBuffer,
-														// Class) instead of
-														// calling
-														// the constructor
-														// directly
-														// so as to take
-														// advantage
-														// of the automatic
-														// reference caching
-														// that is
-														// provided in the
-														// utility
-														// class
+		PrimaryKey primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(
+				bytes, PrimaryKey.SIZE));
+		int index = bytes.getInt();
+		Object[] cacheKey = { primaryKey, index };
+		Position position = CACHE.get(cacheKey);
+		if(position == null) {
+			position = new Position(primaryKey, index);
+			CACHE.put(position, cacheKey, bytes);
+		}
+		return position;
 	}
 
 	/**
@@ -92,12 +87,9 @@ public final class Position implements Byteable, Comparable<Position> {
 	}
 
 	/**
-	 * The total number of bytes used to encode a Position.
+	 * The total number of bytes used to store each Position
 	 */
-	public static final int MIN_SIZE = PrimaryKey.SIZE + 1; // index is stored
-															// as either 1, 2 or
-															// 4 bytes depending
-															// upon its value
+	public static final int SIZE = PrimaryKey.SIZE + 4; // index
 
 	/**
 	 * Cache to store references that have already been loaded in the JVM.
@@ -119,27 +111,6 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * {@link #getBytes()}.
 	 */
 	private transient ByteBuffer bytes;
-	private transient final int size;
-
-	/**
-	 * Construct an instance that represents an existing Position from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Position(ByteBuffer bytes) {
-		bytes.rewind();
-		this.size = bytes.capacity();
-		this.bytes = bytes;
-		this.primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
-				PrimaryKey.SIZE));
-		this.index = bytes.remaining() == 1 ? bytes.get()
-				: (bytes.remaining() == 2 ? bytes.getShort() : bytes.getInt());
-	}
 
 	/**
 	 * Construct a new instance.
@@ -148,12 +119,22 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * @param index
 	 */
 	private Position(PrimaryKey primaryKey, int index) {
-		Preconditions.checkArgument(index > 0, "Cannot have an negative index");
+		this(primaryKey, index, null);
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param primaryKey
+	 * @param index
+	 * @param bytes;
+	 */
+	private Position(PrimaryKey primaryKey, int index,
+			@Nullable ByteBuffer bytes) {
+		Preconditions.checkArgument(index >= 0, "Cannot have an negative index");
 		this.primaryKey = primaryKey;
 		this.index = index;
-		this.size = MIN_SIZE
-				+ (index <= Byte.MAX_VALUE ? 0 : (index <= Short.MAX_VALUE ? 1
-						: 3));
+		this.bytes = bytes;
 	}
 
 	@Override
@@ -187,15 +168,16 @@ public final class Position implements Byteable, Comparable<Position> {
 		if(bytes == null) {
 			bytes = ByteBuffer.allocate(size());
 			bytes.put(primaryKey.getBytes());
-			if(index <= Byte.MAX_VALUE) {
-				bytes.put((byte) index);
-			}
-			else if(index <= Short.MAX_VALUE) {
-				bytes.putShort((short) index);
-			}
-			else {
-				bytes.putInt(index);
-			}
+			// NOTE: Storing the index as an int instead of some size aware
+			// variable length is probably overkill since most indexes will be
+			// smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
+			// size indexes means that the size of the entire Position (as an
+			// int) must be stored before the Position for proper
+			// deserialization. By storing the index as an int, the size of each
+			// Position is constant so we won't need to store the overall size
+			// prior to the Position to deserialize it, which is actually more
+			// space efficient.
+			bytes.putInt(index);
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
@@ -207,7 +189,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
 	@Override
 	public int size() {
-		return size;
+		return SIZE;
 	}
 
 	@Override

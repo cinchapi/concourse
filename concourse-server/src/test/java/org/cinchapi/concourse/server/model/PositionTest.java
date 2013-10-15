@@ -72,19 +72,19 @@ public class PositionTest extends ByteableTest {
 	@Test
 	public void testSizeForByteSizeIndex() {
 		Position p = Position.wrap(TestData.getPrimaryKey(), Math.abs(TestData.getInt()) % Byte.MAX_VALUE);
-		Assert.assertEquals(Position.MIN_SIZE, p.size());
+		Assert.assertEquals(Position.SIZE, p.size());
 	}
 	
 	@Test
 	public void testSizeForShortSizeIndex(){
 		Position p = Position.wrap(TestData.getPrimaryKey(), (Math.abs(TestData.getInt()) % Short.MAX_VALUE) + Byte.MAX_VALUE);
-		Assert.assertEquals(Position.MIN_SIZE + 1, p.size());
+		Assert.assertEquals(Position.SIZE, p.size());
 	}
 	
 	@Test
 	public void testSizeForIntSizeIndex(){
 		Position p = Position.wrap(TestData.getPrimaryKey(), (Math.abs(TestData.getInt()) % Integer.MAX_VALUE) + Short.MAX_VALUE);
-		Assert.assertEquals(Position.MIN_SIZE + 3, p.size());
+		Assert.assertEquals(Position.SIZE, p.size());
 	}
 
 	@Override
