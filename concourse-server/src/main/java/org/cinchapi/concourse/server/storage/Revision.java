@@ -413,73 +413,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	}
 
 	/**
-	 * A {@link Revision} that is used in a {@link SecondayBlock} and maps a key
-	 * to a value to a record.
-	 * 
-	 * @author jnelson
-	 */
-	@Immutable
-	public final static class SecondaryRevision extends
-			Revision<Text, Value, PrimaryKey> {
-
-		/**
-		 * Construct an instance that represents an existing SecondaryRevision
-		 * from a ByteBuffer. This constructor is public so as to comply with
-		 * the {@link Byteable} interface. Calling this constructor directly is
-		 * not recommend.
-		 * 
-		 * @param bytes
-		 */
-		private SecondaryRevision(ByteBuffer bytes) {
-			super(bytes);
-		}
-
-		/**
-		 * Construct a new instance.
-		 * 
-		 * @param locator
-		 * @param key
-		 * @param value
-		 * @param version
-		 */
-		private SecondaryRevision(Text locator, Value key, PrimaryKey value,
-				long version) {
-			super(locator, key, value, version);
-		}
-
-		@Override
-		protected Class<Value> xKeyClass() {
-			return Value.class;
-		}
-
-		@Override
-		protected int xKeySize() {
-			return VARIABLE_SIZE;
-		}
-
-		@Override
-		protected Class<Text> xLocatorClass() {
-			return Text.class;
-		}
-
-		@Override
-		protected int xLocatorSize() {
-			return VARIABLE_SIZE;
-		}
-
-		@Override
-		protected Class<PrimaryKey> xValueClass() {
-			return PrimaryKey.class;
-		}
-
-		@Override
-		protected int xValueSize() {
-			return PrimaryKey.SIZE;
-		}
-
-	}
-
-	/**
 	 * A {@link Revision} that is used in a {@link SearchBlock} and maps a key
 	 * to a term to a position.
 	 * 
@@ -542,6 +475,73 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		@Override
 		protected int xValueSize() {
 			return Position.SIZE;
+		}
+
+	}
+
+	/**
+	 * A {@link Revision} that is used in a {@link SecondayBlock} and maps a key
+	 * to a value to a record.
+	 * 
+	 * @author jnelson
+	 */
+	@Immutable
+	public final static class SecondaryRevision extends
+			Revision<Text, Value, PrimaryKey> {
+
+		/**
+		 * Construct an instance that represents an existing SecondaryRevision
+		 * from a ByteBuffer. This constructor is public so as to comply with
+		 * the {@link Byteable} interface. Calling this constructor directly is
+		 * not recommend.
+		 * 
+		 * @param bytes
+		 */
+		private SecondaryRevision(ByteBuffer bytes) {
+			super(bytes);
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param locator
+		 * @param key
+		 * @param value
+		 * @param version
+		 */
+		private SecondaryRevision(Text locator, Value key, PrimaryKey value,
+				long version) {
+			super(locator, key, value, version);
+		}
+
+		@Override
+		protected Class<Value> xKeyClass() {
+			return Value.class;
+		}
+
+		@Override
+		protected int xKeySize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<Text> xLocatorClass() {
+			return Text.class;
+		}
+
+		@Override
+		protected int xLocatorSize() {
+			return VARIABLE_SIZE;
+		}
+
+		@Override
+		protected Class<PrimaryKey> xValueClass() {
+			return PrimaryKey.class;
+		}
+
+		@Override
+		protected int xValueSize() {
+			return PrimaryKey.SIZE;
 		}
 
 	}
