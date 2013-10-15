@@ -44,7 +44,7 @@ public abstract class Byteables {
 
 	/**
 	 * Return an instance of {@code classObj} by reading {@code bytes}. This
-	 * method uses reflection to invoke the public single argument ByteBuffer
+	 * method uses reflection to invoke the single argument ByteBuffer
 	 * constructor in {@code classObj}.
 	 * <p>
 	 * <tt>Byteables.read(bytes, Foo.class)</tt>
@@ -71,7 +71,7 @@ public abstract class Byteables {
 	public static <T> T read(ByteBuffer bytes, Class<T> classObj) {
 		try {
 			Constructor<T> constructor = classObj
-					.getConstructor(ByteBuffer.class);
+					.getDeclaredConstructor(ByteBuffer.class);
 			constructor.setAccessible(true);
 			return constructor.newInstance(bytes);
 
@@ -83,7 +83,7 @@ public abstract class Byteables {
 
 	/**
 	 * Return an instance of {@code className} by reading {@code bytes}. This
-	 * method uses reflection to invoke the public single argument ByteBuffer
+	 * method uses reflection to invoke the single argument ByteBuffer
 	 * constructor in {@code className}.
 	 * <p>
 	 * <tt>Byteables.{@literal <Foo>}read(bytes, com.organization.module.Foo)</tt>
@@ -155,7 +155,7 @@ public abstract class Byteables {
 			throw Throwables.propagate(e);
 		}
 	}
-	
+
 	/**
 	 * Return an instance of {@code className} by reading {@code bytes}. This
 	 * method uses reflection to invoke the single argument static method named
