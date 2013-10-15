@@ -409,7 +409,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 						if(revision.getLocator() == byteables[0]
 								&& ((checkSecond && revision.getKey() == byteables[1]) || !checkSecond)) {
 							processing = true;
-							// TODO append the revision to the record
+							record.append(revision);
 						}
 						else if(processing) {
 							break;
@@ -427,7 +427,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 						while (it.hasNext()) {
 							Revision<L, K, V> revision = Byteables.read(bytes,
 									xRevisionClass());
-							// TODO append the revision to the record
+							record.append(revision);
 						}
 					}
 				}
