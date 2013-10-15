@@ -381,6 +381,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value);
 
+	/**
+	 * Return the class of the {@code revision} type.
+	 * 
+	 * @return the revision class
+	 */
 	protected abstract Class<Revision<L, K, V>> xRevisionClass();
 
 	/**
