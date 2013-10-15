@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
@@ -55,9 +56,9 @@ import com.google.common.primitives.Longs;
  * A Block is a sorted collection of Revisions that is used by the Database to
  * store indexed data. When a Block is initially created, it resides solely in
  * memory and is able to insert new revisions, which are sorted on the fly by a
- * {@link Sorter}. Once the Block is flushed to disk it becomes immutable
- * and all lookups are disk based. This means that writing to a block never
- * incurs any random disk I/O.
+ * {@link Sorter}. Once the Block is flushed to disk it becomes immutable and
+ * all lookups are disk based. This means that writing to a block never incurs
+ * any random disk I/O.
  * </p>
  * <p>
  * Each Block is stored with a {@link BlockFilter} and a {@link BlockIndex} to
@@ -248,10 +249,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @throws IllegalStateException if the Block is not mutable
 	 */
 	public void insert(L locator, K key, V value) throws IllegalStateException {
-		Preconditions.checkState(mutable,
-				"Cannot modify a block that is not mutable");
 		Lock lock = writeLock();
 		try {
+			Preconditions.checkState(mutable,
+					"Cannot modify a block that is not mutable");
 			Revision<L, K, V> revision = makeRevision(locator, key, value);
 			revisions.add(revision);
 			filter.put(revision.getLocator());
@@ -284,7 +285,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @return {@code true} if it is possible that relevant revisions exists
 	 */
 	public boolean mightContain(L locator, K key, V value) {
-		return filter.mightContain(locator, key, value);
+		Lock lock = readLock();
+		try {
+			return filter.mightContain(locator, key, value);
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	@Override
@@ -301,6 +308,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param key
 	 * @param record
 	 */
+	@GuardedBy("seek(Record, Byteable...)")
 	public void seek(L locator, K key, Record<L, K, V> record) {
 		seek(record, locator, key);
 	}
@@ -313,13 +321,20 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param locator
 	 * @param record
 	 */
+	@GuardedBy("seek(Record, Byteable...)")
 	public void seek(L locator, Record<L, K, V> record) {
 		seek(record, locator);
 	}
 
 	@Override
 	public int size() {
-		return size;
+		Lock lock = readLock();
+		try {
+			return size;
+		}
+		finally {
+			lock.release();
+		}
 	}
 
 	/**
@@ -328,10 +343,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	@Override
 	public void sync() {
-		Preconditions.checkState(mutable,
-				"Cannot sync a block that is not mutable");
 		Lock lock = writeLock();
 		try {
+			Preconditions.checkState(mutable,
+					"Cannot sync a block that is not mutable");
 			mutable = false;
 			filter.sync();
 			index.sync();
@@ -417,7 +432,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			lock.release();
 		}
 	}
-	
+
 	/**
 	 * A Comparator that sorts Revisions in a block. The sort order is
 	 * {@code locator} followed by {@code key} followed by {@code version}.
