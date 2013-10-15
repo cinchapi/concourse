@@ -180,6 +180,22 @@ public final class Position implements Byteable, Comparable<Position> {
 			bytes.putInt(index);
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
+	}	
+
+	/**
+	 * Return the associated {@code index}.
+	 * @return the index
+	 */
+	public int getIndex() {
+		return index;
+	}
+
+	/**
+	 * Return the associated {@code primaryKey}.
+	 * @return the primaryKey
+	 */
+	public PrimaryKey getPrimaryKey() {
+		return primaryKey;
 	}
 
 	@Override
