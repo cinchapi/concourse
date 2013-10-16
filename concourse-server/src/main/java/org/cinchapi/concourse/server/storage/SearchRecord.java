@@ -52,7 +52,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
 
 	/**
 	 * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
-	 * {@link Record#createPartialSearchRecord(Text, Text)} instead.
+	 * {@link Record#createSearchRecordPartial(Text, Text)} instead.
 	 * 
 	 * @param locator
 	 * @param key

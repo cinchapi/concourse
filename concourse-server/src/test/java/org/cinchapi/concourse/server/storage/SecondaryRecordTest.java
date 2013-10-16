@@ -54,7 +54,7 @@ public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey>{
 
 	@Override
 	protected SecondaryRecord getRecord(Text locator, Value key) {
-		return Record.createPartialSecondaryRecord(locator, key);
+		return Record.createSecondaryRecordPartial(locator, key);
 	}
 
 	@Override

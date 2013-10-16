@@ -44,7 +44,7 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 
 	@Override
 	protected SearchRecord getRecord(Text locator, Text key) {
-		return Record.createPartialSearchRecord(locator, key);
+		return Record.createSearchRecordPartial(locator, key);
 	}
 
 	@Override

@@ -61,7 +61,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 
 	/**
 	 * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(PrimaryKey)} or
-	 * {@link Record#createPartialPrimaryRecord(PrimaryKey, Text)} instead.
+	 * {@link Record#createPrimaryRecordPartial(PrimaryKey, Text)} instead.
 	 * 
 	 * @param locator
 	 * @param key

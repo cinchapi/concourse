@@ -54,7 +54,7 @@ public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value>{
 	@Override
 	protected PrimaryRecord getRecord(PrimaryKey locator,
 			Text key) {
-		return Record.createPartialPrimaryRecord(locator, key);
+		return Record.createPrimaryRecordPartial(locator, key);
 	}
 
 	@Override

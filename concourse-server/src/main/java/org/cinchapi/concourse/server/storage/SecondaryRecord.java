@@ -60,7 +60,7 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
 
 	/**
 	 * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
-	 * {@link Record#createPartialSecondaryRecord(Text, Value)} instead.
+	 * {@link Record#createSecondaryRecordPartial(Text, Value)} instead.
 	 * 
 	 * @param locator
 	 * @param key

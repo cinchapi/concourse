@@ -84,7 +84,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * @param key
 	 * @return the PrimaryRecord.
 	 */
-	public static PrimaryRecord createPartialPrimaryRecord(PrimaryKey record,
+	public static PrimaryRecord createPrimaryRecordPartial(PrimaryKey record,
 			Text key) {
 		return new PrimaryRecord(record, key);
 	}
@@ -106,26 +106,29 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * @param term
 	 * @return the partial SearchRecord
 	 */
-	public static SearchRecord createPartialSearchRecord(Text key, Text term) {
+	public static SearchRecord createSearchRecordPartial(Text key, Text term) {
 		return new SearchRecord(key, term);
 	}
-	
+
 	/**
 	 * Return a SeconaryRecord for {@code key}.
+	 * 
 	 * @param key
 	 * @return the SecondaryRecord
 	 */
-	public static SecondaryRecord createSecondaryRecord(Text key){
+	public static SecondaryRecord createSecondaryRecord(Text key) {
 		return new SecondaryRecord(key, null);
 	}
-	
+
 	/**
 	 * Return a partial SecondaryRecord for {@code value} in {@code key}.
+	 * 
 	 * @param key
 	 * @param value
 	 * @return the SecondaryRecord
 	 */
-	public static SecondaryRecord createPartialSecondaryRecord(Text key, Value value){
+	public static SecondaryRecord createSecondaryRecordPartial(Text key,
+			Value value) {
 		return new SecondaryRecord(key, value);
 	}
 
