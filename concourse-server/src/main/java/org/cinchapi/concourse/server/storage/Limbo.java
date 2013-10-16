@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.util.Numbers;
@@ -388,33 +389,15 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	}
 
 	@Override
+	@GuardedBy("verify(Write, long)")
 	public boolean verify(String key, TObject value, long record) {
 		return verify(key, value, record, Time.now());
 	}
 
 	@Override
+	@GuardedBy("verify(Write, long)")
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		Lock lock = readLock();
-		try {
-			Write comp = Write.notStorable(key, value, record);
-			int count = 0;
-			Iterator<Write> it = iterator();
-			while (it.hasNext()) {
-				Write write = it.next();
-				if(write.getVersion() <= timestamp) {
-					if(write.equals(comp)) {
-						count++;
-					}
-				}
-				else {
-					break;
-				}
-			}
-			return Numbers.isOdd(count);
-		}
-		finally {
-			lock.release();
-		}
+		return verify(Write.notStorable(key, value, record), timestamp);
 	}
 
 	@Override
@@ -440,5 +423,37 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	 * @return {@code true} if the {@code write} is inserted into the store.
 	 */
 	protected abstract boolean insert(Write write);
+
+	/**
+	 * Return {@code true} if {@code write} represents a data modification that
+	 * exists at {@code timestamp}.
+	 * 
+	 * @param write
+	 * @param timestamp
+	 * @return {@code true} if {@code write} appears an odd number of times at
+	 *         {@code timestamp}
+	 */
+	protected boolean verify(Write write, long timestamp) {
+		Lock lock = readLock();
+		try {
+			int count = 0;
+			Iterator<Write> it = iterator();
+			while (it.hasNext()) {
+				Write stored = it.next();
+				if(stored.getVersion() <= timestamp) {
+					if(stored.equals(write)) {
+						count++;
+					}
+				}
+				else {
+					break;
+				}
+			}
+			return Numbers.isOdd(count);
+		}
+		finally {
+			lock.release();
+		}
+	}
 
 }
