@@ -549,7 +549,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		finally {
 			lock.release();
 		}
-
 	}
 
 	/**

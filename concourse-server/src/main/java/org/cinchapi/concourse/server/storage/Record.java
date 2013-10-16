@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.util.Numbers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -65,6 +66,27 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 		Lockable {
 
 	/**
+	 * Return a SearchRecord for {@code key}.
+	 * 
+	 * @param key
+	 * @return the SearchRecord
+	 */
+	public static SearchRecord createSearchRecord(Text key) {
+		return new SearchRecord(key, null);
+	}
+
+	/**
+	 * Return a partial SearchRecord for {@code term} in {@code key}.
+	 * 
+	 * @param key
+	 * @param term
+	 * @return the partial SearchRecord
+	 */
+	public static SearchRecord createPartialSearchRecord(Text key, Text term) {
+		return new SearchRecord(key, term);
+	}
+
+	/**
 	 * The index is used to efficiently determine the set of values currently
 	 * mapped from a key. The subclass should specify the appropriate type of
 	 * key sorting via the returned type for {@link #mapType()}.
@@ -79,13 +101,13 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 */
 	protected final transient HashMap<K, List<Revision<L, K, V>>> history = Maps
 			.newHashMap();
-	
+
 	/**
 	 * The index is used to efficiently see the number of times that a revision
 	 * appears in the Record and therefore determine if the revision (e.g. the
 	 * key/value pair) currently exists.
 	 */
-	 private final transient HashMap<Revision<L, K, V>, Integer> counts = Maps
+	private final transient HashMap<Revision<L, K, V>, Integer> counts = Maps
 			.newHashMap();
 
 	/**
@@ -126,10 +148,10 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * @param locator
 	 * @param key
 	 */
-	protected Record(L locator, K key) {
+	protected Record(L locator, @Nullable K key) {
 		this.locator = locator;
 		this.key = key;
-		this.partial = key == null ? true : false;
+		this.partial = key == null ? false : true;
 		this.emptyValues = Mockito.mock(Set.class);
 		Mockito.doReturn(false).when(emptyValues).add((V) Matchers.anyObject());
 		Mockito.doReturn(false).when(emptyValues)
