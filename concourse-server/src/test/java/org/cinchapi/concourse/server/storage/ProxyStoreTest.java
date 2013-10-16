@@ -23,18 +23,18 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
 /**
- * 
+ * Base unit tests for {@link ProxyStore} services.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class, QueueTest.class })
-public class StorageSuite {
+public abstract class ProxyStoreTest extends WritableStoreTest{
+
+
+	@Override
+	protected abstract ProxyStore getStore();
+	
+	//TODO write unit tests for transport
+
 
 }

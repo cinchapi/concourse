@@ -23,18 +23,59 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Iterator;
+import java.util.List;
+
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.Lock;
+
+import com.google.common.collect.Lists;
 
 /**
- * 
+ * A {@link Queue} is a very simple form of {@link Limbo} that represents
+ * data as a sequence of {@link Write} objects. New data is appended to the
+ * sequence and the returned {@link Iterator} traverses the list.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class, QueueTest.class })
-public class StorageSuite {
+@PackagePrivate
+class Queue extends Limbo {
+
+	/**
+	 * Revisions are stored as a sequential list of {@link Write} objects, which
+	 * means most reads are <em>at least</em> an O(n) scan.
+	 */
+	protected final List<Write> writes;
+
+	/**
+	 * Construct a Limbo with enough capacity for {@code initialSize}. If
+	 * necessary, the structure will grow to accommodate more data.
+	 * 
+	 * @param initialSize
+	 */
+	protected Queue(int initialSize) {
+		writes = Lists.newArrayListWithCapacity(initialSize);
+	}
+
+	@Override
+	public Iterator<Write> iterator() {
+		return writes.iterator();
+	}
+
+	@Override
+	protected boolean insert(Write write) {
+		Lock lock = writeLock();
+		try {
+			return writes.add(write);
+		}
+		finally {
+			lock.release();
+		}
+	}
+
+	@Override
+	public void start() {
+		// do nothing
+	}
 
 }

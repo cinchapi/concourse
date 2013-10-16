@@ -23,18 +23,29 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.thrift.TObject;
 
 /**
- * 
+ * Base unit test for {@link WritableStore} services.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class, QueueTest.class })
-public class StorageSuite {
+public abstract class WritableStoreTest extends StoreTest{
+
+	@Override
+	protected abstract WritableStore getStore();
+
+
+	@Override
+	protected final void add(String key, TObject value, long record) {
+		((WritableStore) store).add(key, value, record);
+		
+	}
+
+	@Override
+	protected final void remove(String key, TObject value, long record) {
+		((WritableStore) store).remove(key, value, record);
+		
+	}
 
 }

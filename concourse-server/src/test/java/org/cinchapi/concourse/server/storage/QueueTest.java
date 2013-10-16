@@ -23,18 +23,21 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
 /**
- * 
+ * Unit tests for {@link Queue}.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class, QueueTest.class })
-public class StorageSuite {
+public class QueueTest extends LimboTest {
+
+	@Override
+	protected Queue getStore() {
+		return new Queue(100);
+	}
+
+	@Override
+	protected void cleanup(Store store) {
+		// do nothing
+	}
 
 }
