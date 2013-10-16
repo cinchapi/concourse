@@ -57,6 +57,7 @@ public abstract class ByteBuffers {
 											// when making duplicates:
 											// http://blog.mustardgrain.com/2008/04/04/bytebufferduplicate-does-not-preserve-byte-order/
 		source.position(position);
+		duplicate.rewind();
 		return duplicate;
 	}
 
