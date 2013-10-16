@@ -35,7 +35,7 @@ import org.junit.Test;
 import com.google.common.collect.Sets;
 
 /**
- * 
+ * Unit tests for {@link Record} and its subclasses.
  * 
  * 
  * @author jnelson
@@ -45,34 +45,73 @@ import com.google.common.collect.Sets;
  */
 public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> {
 
-	Record<L, K, V> record;
+	protected Record<L, K, V> record;
 	
-	@Test
-	public void testPresentAfterOddNumberAppends(){
-		L locator = getLocator();
-		K key = getKey();
-		V value = getValue();
-		record = getRecord(locator, key);
-		int count = TestData.getScaleCount();
-		count+= Numbers.isEven(count) ? 1 : 0;
-		for(int i = 0; i < count; i++){
-			record.append(getRevision(locator, key, value));
+	@Test(expected=IllegalArgumentException.class)
+	public void testCannontAppendWrongLocator(){
+		L locator1 = getLocator();
+		record = getRecord(locator1);
+		L locator2 = null;
+		while(locator2 == null || locator1.equals(locator2)){
+			locator2 = getLocator();
 		}
-		Assert.assertTrue(record.get(key).contains(value));
+		record.append(getRevision(locator2, getKey(), getValue()));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCannotAppendSmallerVersion(){
+		record = getRecord();
+		Revision<L,K,V> r1 = getRevision();
+		Revision<L,K,V> r2 = getRevision();
+		record.append(r2);
+		record.append(r1);
+ 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testCannotAppendWrongKey(){
+		K key1 = getKey();
+		record = getRecord(getLocator(), key1);
+		K key2 = null;
+		while(key2 == null || key1.equals(key2)){
+			key2 = getKey();
+		}
+		record.append(getRevision(getLocator(), key2, getValue()));
 	}
 	
 	@Test
-	public void testNotPresentAfterEvenNumberAppends(){
+	public void testEqualsNotPartial(){
+		L locator = getLocator();
+		record = getRecord(locator);
+		Assert.assertEquals(record, getRecord(locator));
+	}
+	
+	@Test
+	public void testEqualsPartial(){
 		L locator = getLocator();
 		K key = getKey();
-		V value = getValue();
 		record = getRecord(locator, key);
-		int count = TestData.getScaleCount();
-		count+= Numbers.isOdd(count) ? 1 : 0;
-		for(int i = 0; i < count; i++){
-			record.append(getRevision(locator, key, value));
+		Assert.assertEquals(record, getRecord(locator, key));
+	}
+	
+	@Test
+	public void testNotEqualsNotPartial(){
+		L l1 = getLocator();
+		L l2 = null;
+		while(l2 == null || l1.equals(l2)){
+			l2 = getLocator();
 		}
-		Assert.assertFalse(record.get(key).contains(value));
+		Assert.assertFalse(getRecord(l1).equals(getRecord(l2)));
+	}
+	
+	@Test
+	public void testNotEqualsPartial(){
+		L locator = getLocator();
+		K k1 = getKey();
+		K k2 = null;
+		while(k2 == null || k1.equals(k2)){
+			k2 = getKey();
+		}
+		Assert.assertFalse(getRecord(locator, k1).equals(getRecord(locator, k2)));
 	}
 	
 	@Test
@@ -82,20 +121,6 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
 		record = getRecord(locator, key);
 		Set<V> values = populateRecord(record, locator, key);
 		Assert.assertEquals(values, record.get(key));
-	}
-	
-	private Set<V> populateRecord(Record<L,K,V> record, L locator, K key){
-		Set<V> values = Sets.newHashSet();
-		int count = TestData.getScaleCount();
-		for(int i = 0; i < count; i++){
-			V value = null;
-			while(value == null || values.contains(value)){
-				value = getValue();
-			}
-			record.append(getRevision(locator, key, value));
-			values.add(value);
-		}
-		return values;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -128,66 +153,77 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
 	}
 	
 	@Test
+	public void testIsPartialIfCreatedWithKey(){
+		record = getRecord(getLocator(), getKey());
+		Assert.assertTrue(record.isPartial());
+	}
+	
+	@Test
 	public void testNotPartialIfNotCreatedWithKey(){
 		record = getRecord(getLocator());
 		Assert.assertFalse(record.isPartial());
 	}
 	
 	@Test
-	public void testIsPartialIfCreatedWithKey(){
-		record = getRecord(getLocator(), getKey());
-		Assert.assertTrue(record.isPartial());
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testCannotAppendSmallerVersion(){
-		record = getRecord();
-		Revision<L,K,V> r1 = getRevision();
-		Revision<L,K,V> r2 = getRevision();
-		record.append(r2);
-		record.append(r1);
- 	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testCannontAppendWrongLocator(){
-		L locator1 = getLocator();
-		record = getRecord(locator1);
-		L locator2 = null;
-		while(locator2 == null || locator1.equals(locator2)){
-			locator2 = getLocator();
+	public void testNotPresentAfterEvenNumberAppends(){
+		L locator = getLocator();
+		K key = getKey();
+		V value = getValue();
+		record = getRecord(locator, key);
+		int count = TestData.getScaleCount();
+		count+= Numbers.isOdd(count) ? 1 : 0;
+		for(int i = 0; i < count; i++){
+			record.append(getRevision(locator, key, value));
 		}
-		record.append(getRevision(locator2, getKey(), getValue()));
+		Assert.assertFalse(record.get(key).contains(value));
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	public void testCannotAppendWrongKey(){
-		K key1 = getKey();
-		record = getRecord(getLocator(), key1);
-		K key2 = null;
-		while(key2 == null || key1.equals(key2)){
-			key2 = getKey();
+	@Test
+	public void testPresentAfterOddNumberAppends(){
+		L locator = getLocator();
+		K key = getKey();
+		V value = getValue();
+		record = getRecord(locator, key);
+		int count = TestData.getScaleCount();
+		count+= Numbers.isEven(count) ? 1 : 0;
+		for(int i = 0; i < count; i++){
+			record.append(getRevision(locator, key, value));
 		}
-		record.append(getRevision(getLocator(), key2, getValue()));
+		Assert.assertTrue(record.get(key).contains(value));
 	}
 	
-	private Revision<L, K, V> getRevision(){
-		return getRevision(getLocator(), getKey(), getValue());
-	}
+	protected abstract K getKey();
+	
+	protected abstract L getLocator();
+	
+	protected abstract Record<L, K, V> getRecord(L locator);
+
+	protected abstract Record<L, K, V> getRecord(L locator, K key);
 	
 	protected abstract Revision<L,K,V> getRevision(L locator, K key, V value);
+	
+	protected abstract V getValue();
 
 	private Record<L, K, V> getRecord(){
 		return getRecord(getLocator());
 	}
-	
-	protected abstract Record<L, K, V> getRecord(L locator);
-	
-	protected abstract Record<L, K, V> getRecord(L locator, K key);
 
-	protected abstract L getLocator();
+	private Revision<L, K, V> getRevision(){
+		return getRevision(getLocator(), getKey(), getValue());
+	}
 
-	protected abstract K getKey();
-
-	protected abstract V getValue();
+	private Set<V> populateRecord(Record<L,K,V> record, L locator, K key){
+		Set<V> values = Sets.newHashSet();
+		int count = TestData.getScaleCount();
+		for(int i = 0; i < count; i++){
+			V value = null;
+			while(value == null || values.contains(value)){
+				value = getValue();
+			}
+			record.append(getRevision(locator, key, value));
+			values.add(value);
+		}
+		return values;
+	}
 
 }

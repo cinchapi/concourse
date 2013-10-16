@@ -23,34 +23,18 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.server.model.Position;
+import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.storage.Revision.SearchRevision;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 
 /**
- * Unit tests for {@link SearchIndex}.
+ * 
  * 
  * @author jnelson
  */
-public class SearchRecordTest extends RecordTest<Text, Text, Position> {
-	
-
-	@Override
-	protected SearchRecord getRecord(Text locator) {
-		return Record.createSearchRecord(locator);
-	}
-
-	@Override
-	protected SearchRecord getRecord(Text locator, Text key) {
-		return Record.createPartialSearchRecord(locator, key);
-	}
-
-	@Override
-	protected Text getLocator() {
-		return TestData.getText();
-	}
+public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value>{
 
 	@Override
 	protected Text getKey() {
@@ -58,13 +42,30 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 	}
 
 	@Override
-	protected Position getValue() {
-		return TestData.getPosition();
+	protected PrimaryKey getLocator() {
+		return TestData.getPrimaryKey();
 	}
 
 	@Override
-	protected SearchRevision getRevision(Text locator, Text key, Position value) {
-		return Revision.createSearchRevision(locator, key, value, Time.now());
+	protected PrimaryRecord getRecord(PrimaryKey locator) {
+		return Record.createPrimaryRecord(locator);
+	}
+
+	@Override
+	protected PrimaryRecord getRecord(PrimaryKey locator,
+			Text key) {
+		return Record.createPartialPrimaryRecord(locator, key);
+	}
+
+	@Override
+	protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
+			Text key, Value value) {
+		return Revision.createPrimaryRevision(key, value, locator, Time.now());
+	}
+
+	@Override
+	protected Value getValue() {
+		return TestData.getValue();
 	}
 
 }

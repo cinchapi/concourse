@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.util.Numbers;
 import org.mockito.Matchers;
@@ -64,6 +65,28 @@ import com.google.common.collect.Sets;
 @SuppressWarnings("unchecked")
 abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> implements
 		Lockable {
+
+	/**
+	 * Return a PrimaryRecord for {@code primaryKey}.
+	 * 
+	 * @param primaryKey
+	 * @return the PrimaryRecord
+	 */
+	public static PrimaryRecord createPrimaryRecord(PrimaryKey record) {
+		return new PrimaryRecord(record, null);
+	}
+
+	/**
+	 * Return a PrimaryRecord for {@code key} in {@record}.
+	 * 
+	 * @param primaryKey
+	 * @param key
+	 * @return the PrimaryRecord.
+	 */
+	public static PrimaryRecord createPartialPrimaryRecord(PrimaryKey record,
+			Text key) {
+		return new PrimaryRecord(record, key);
+	}
 
 	/**
 	 * Return a SearchRecord for {@code key}.
