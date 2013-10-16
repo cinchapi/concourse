@@ -43,7 +43,7 @@ import org.cinchapi.concourse.time.Time;
 public final class TestData extends Random {
 	
 	public static PrimaryRevision getPrimaryRevision(){
-		return Revision.createPrimaryRevision(getText(), getValue(), getPrimaryKey(), Time.now());
+		return Revision.createPrimaryRevision(getPrimaryKey(), getText(), getValue(), Time.now());
 	}
 	
 	public static SearchRevision getSearchRevision(){

@@ -64,15 +64,15 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * Create a PrimaryRevision for {@code key} as {@code value} in
 	 * {@code record} at {@code version}.
 	 * 
+	 * @param record
 	 * @param key
 	 * @param value
-	 * @param record
 	 * @param version
 	 * 
 	 * @return the PrimaryRevision
 	 */
-	public static PrimaryRevision createPrimaryRevision(Text key, Value value,
-			PrimaryKey record, long version) {
+	public static PrimaryRevision createPrimaryRevision(PrimaryKey record,
+			Text key, Value value, long version) {
 		return new PrimaryRevision(record, key, value, version);
 	}
 

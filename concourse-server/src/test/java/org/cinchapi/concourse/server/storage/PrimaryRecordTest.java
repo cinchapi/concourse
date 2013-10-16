@@ -60,7 +60,7 @@ public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value>{
 	@Override
 	protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
 			Text key, Value value) {
-		return Revision.createPrimaryRevision(key, value, locator, Time.now());
+		return Revision.createPrimaryRevision(locator, key, value, Time.now());
 	}
 
 	@Override
