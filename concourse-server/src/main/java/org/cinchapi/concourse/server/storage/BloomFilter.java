@@ -166,7 +166,7 @@ public class BloomFilter implements Syncable, Lockable {
 	public boolean mightContain(Byteable... byteables) {
 		Lock lock = readLock();
 		try {
-			return source.put(ByteableComposite.create(byteables));
+			return source.mightContain(ByteableComposite.create(byteables));
 		}
 		finally {
 			lock.release();
