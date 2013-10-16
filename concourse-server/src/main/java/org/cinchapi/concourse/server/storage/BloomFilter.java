@@ -43,25 +43,22 @@ import org.cinchapi.concourse.server.io.Syncable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.hash.BloomFilter;
 
 /**
- * A BlockFilter is a wrapper around a {@link BloomFilter} with methods to make
- * it easier to add one or more {@link Byteable} objects to the filter at a time
- * while abstracting away the notion of funnels, etc. A BlockFilter is
- * associated with each {@link Block} to help efficiently determine if a
- * Revision is contained or not.
+ * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods to
+ * make it easier to add one or more {@link Byteable} objects to the filter at a
+ * time while abstracting away the notion of funnels, etc.
  * </p>
  * 
  * @author jnelson
  */
-public class BlockFilter implements Syncable, Lockable {
+public class BloomFilter implements Syncable, Lockable {
 
 	/**
-	 * Create a new BlockFilter with enough capacity for
+	 * Create a new BloomFilter with enough capacity for
 	 * {@code expectedInsertions}.
 	 * <p>
-	 * Note that overflowing a BlockFilter with significantly more elements than
+	 * Note that overflowing a BloomFilter with significantly more elements than
 	 * specified, will result in its saturation, and a sharp deterioration of
 	 * its false positive probability (source:
 	 * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
@@ -69,23 +66,40 @@ public class BlockFilter implements Syncable, Lockable {
 	 * 
 	 * @param file
 	 * @param expectedInsertions
-	 * @return the BlockFilter
+	 * @return the BloomFilter
 	 */
-	public static BlockFilter create(String file, int expectedInsertions) {
-		return new BlockFilter(file, expectedInsertions);
+	public static BloomFilter create(String file, int expectedInsertions) {
+		return new BloomFilter(file, expectedInsertions);
 	}
 
 	/**
-	 * Return the BlockFilter that is stored on disk in {@code file}.
+	 * Create a new BloomFilter with enough capacity for
+	 * {@code expectedInsertions} but cannot be synced to disk.
+	 * <p>
+	 * Note that overflowing a BloomFilter with significantly more elements than
+	 * specified, will result in its saturation, and a sharp deterioration of
+	 * its false positive probability (source:
+	 * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
+	 * <p>
+	 * 
+	 * @param expectedInsertions
+	 * @return the BloomFilter
+	 */
+	public static BloomFilter create(int expectedInsertions) {
+		return new BloomFilter(null, expectedInsertions);
+	}
+
+	/**
+	 * Return the BloomFilter that is stored on disk in {@code file}.
 	 * 
 	 * @param file
-	 * @return the BlockFilter
+	 * @return the BloomFilter
 	 */
-	public static BlockFilter open(String file) {
+	public static BloomFilter open(String file) {
 		try {
 			ObjectInput input = new ObjectInputStream(new BufferedInputStream(
 					new FileInputStream(FileSystem.openFile(file))));
-			BlockFilter filter = (BlockFilter) input.readObject();
+			BloomFilter filter = (BloomFilter) input.readObject();
 			filter.setFile(file);
 			input.close();
 			return filter;
@@ -101,7 +115,7 @@ public class BlockFilter implements Syncable, Lockable {
 	/**
 	 * The wrapped bloom filter. This is where the data is actually stored.
 	 */
-	private final BloomFilter<ByteableComposite> source;
+	private final com.google.common.hash.BloomFilter<ByteableComposite> source;
 
 	/**
 	 * The file where the content is stored.
@@ -113,9 +127,11 @@ public class BlockFilter implements Syncable, Lockable {
 	 * 
 	 * @param expectedInsertions
 	 */
-	private BlockFilter(String file, int expectedInsertions) {
-		this.source = BloomFilter.create(ByteableFunnel.INSTANCE,
-				expectedInsertions); // uses 3% false positive probability
+	private BloomFilter(String file, int expectedInsertions) {
+		this.source = com.google.common.hash.BloomFilter.create(
+				ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
+																// positive
+																// probability
 		this.file = file;
 	}
 
@@ -123,6 +139,8 @@ public class BlockFilter implements Syncable, Lockable {
 	public void sync() {
 		Lock lock = readLock();
 		try {
+			Preconditions.checkState(file != null, "Cannot sync a "
+					+ "BloomFilter that does not have an associated file");
 			ObjectOutput output = new ObjectOutputStream(
 					new BufferedOutputStream(new FileOutputStream(
 							FileSystem.openFile(file))));
@@ -159,7 +177,7 @@ public class BlockFilter implements Syncable, Lockable {
 	 * <p>
 	 * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
 	 * </p>
-	 * Puts {@link byteables} into this BlockFilter as a single element.
+	 * Puts {@link byteables} into this BloomFilter as a single element.
 	 * Ensures that subsequent invocations of {@link #mightContain(Byteable...)}
 	 * with the same elements will always return true.
 	 * 
@@ -194,7 +212,7 @@ public class BlockFilter implements Syncable, Lockable {
 
 	/**
 	 * Set {@link #file} if it was not set in the constructor. This should only
-	 * be called when deserializing the BlockFilter.
+	 * be called when deserializing the BloomFilter.
 	 * 
 	 * @param file
 	 */
