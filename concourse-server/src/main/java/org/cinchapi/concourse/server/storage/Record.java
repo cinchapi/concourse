@@ -41,6 +41,7 @@ import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.util.Numbers;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -77,7 +78,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	}
 
 	/**
-	 * Return a PrimaryRecord for {@code key} in {@record}.
+	 * Return a partial PrimaryRecord for {@code key} in {@record}.
 	 * 
 	 * @param primaryKey
 	 * @param key
@@ -107,6 +108,25 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 */
 	public static SearchRecord createPartialSearchRecord(Text key, Text term) {
 		return new SearchRecord(key, term);
+	}
+	
+	/**
+	 * Return a SeconaryRecord for {@code key}.
+	 * @param key
+	 * @return the SecondaryRecord
+	 */
+	public static SecondaryRecord createSecondaryRecord(Text key){
+		return new SecondaryRecord(key, null);
+	}
+	
+	/**
+	 * Return a partial SecondaryRecord for {@code value} in {@code key}.
+	 * @param key
+	 * @param value
+	 * @return the SecondaryRecord
+	 */
+	public static SecondaryRecord createPartialSecondaryRecord(Text key, Value value){
+		return new SecondaryRecord(key, value);
 	}
 
 	/**

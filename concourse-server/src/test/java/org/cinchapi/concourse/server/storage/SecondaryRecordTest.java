@@ -23,18 +23,49 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Revision.SecondaryRevision;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.TestData;
 
 /**
  * 
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class })
-public class StorageSuite {
+public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey>{
+
+	@Override
+	protected Value getKey() {
+		return TestData.getValue();
+	}
+
+	@Override
+	protected Text getLocator() {
+		return TestData.getText();
+	}
+
+	@Override
+	protected SecondaryRecord getRecord(Text locator) {
+		return Record.createSecondaryRecord(locator);
+	}
+
+	@Override
+	protected SecondaryRecord getRecord(Text locator, Value key) {
+		return Record.createPartialSecondaryRecord(locator, key);
+	}
+
+	@Override
+	protected SecondaryRevision getRevision(Text locator,
+			Value key, PrimaryKey value) {
+		return Revision.createSecondaryRevision(locator, key, value, Time.now());
+	}
+
+	@Override
+	protected PrimaryKey getValue() {
+		return TestData.getPrimaryKey();
+	}
 
 }
