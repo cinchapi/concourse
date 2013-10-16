@@ -34,7 +34,8 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ PrimaryRecordTest.class, RevisionTest.class,
-		SearchRecordTest.class, WriteTest.class, SecondaryRecord.class, QueueTest.class })
+		SearchRecordTest.class, WriteTest.class, SecondaryRecordTest.class,
+		QueueTest.class, BufferTest.class })
 public class StorageSuite {
 
 }
