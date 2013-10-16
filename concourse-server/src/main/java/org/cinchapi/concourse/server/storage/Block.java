@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -47,7 +46,6 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
 import org.cinchapi.concourse.time.Time;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.TreeMultiset;
 import com.google.common.primitives.Longs;
 
@@ -56,17 +54,18 @@ import com.google.common.primitives.Longs;
  * A Block is a sorted collection of Revisions that is used by the Database to
  * store indexed data. When a Block is initially created, it resides solely in
  * memory and is able to insert new revisions, which are sorted on the fly by a
- * {@link Sorter}. Once the Block is flushed to disk it becomes immutable and
- * all lookups are disk based. This means that writing to a block never incurs
- * any random disk I/O.
+ * {@link Sorter}. Once the Block is synced to disk it becomes immutable and all
+ * lookups are disk based. This means that writing to a block never incurs any
+ * random disk I/O. A Block is not durable until the {@link #sync()} method is
+ * called.
  * </p>
  * <p>
- * Each Block is stored with a {@link BlockFilter} and a {@link BlockIndex} to
+ * Each Block is stored with a {@link BloomFilter} and a {@link BlockIndex} to
  * make lookups more efficient. The BlockFilter is used to test whether a
  * Revision involving some locator and possibly key, and possibly value
  * <em>might</em> exist in the Block. The BlockIndex is used to find the exact
  * start and end positions for Revisions involving a locator and possibly some
- * key. This means that reading from a block never incurs any unnecessary disk
+ * key. This means that reading from a Block never incurs any unnecessary disk
  * I/O.
  * </p>
  * 
@@ -102,7 +101,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	private static final String BLOCK_NAME_EXTENSION = ".blk";
 
 	/**
-	 * The extension for the {@link BlockFilter} file.
+	 * The extension for the {@link BloomFilter} file.
 	 */
 	private static final String FILTER_NAME_EXTENSION = ".fltr";
 
@@ -115,14 +114,21 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * The flag that indicates whether the Block is mutable or not. A Block is
 	 * mutable until a call to {@link #sync()} stores it to disk.
 	 */
-	private boolean mutable;
+	private transient boolean mutable;
 
 	/**
 	 * The running size of the Block. This number only refers to the size of the
 	 * Revisions that are stored in the block file. The size for the filter and
 	 * index are tracked separately.
 	 */
-	private int size;
+	private transient int size;
+
+	/**
+	 * The current version of the mutable Block, which is equal to the version
+	 * of the most recently inserted Revision. If the Block is immutable, then
+	 * there are no guarantees about the value of this variable.
+	 */
+	private transient long version;
 
 	/**
 	 * The location of the block file.
@@ -150,7 +156,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * A fixed size filter that is used to test whether elements are contained
 	 * in the Block without actually looking through the Block.
 	 */
-	private final BlockFilter filter;
+	private final BloomFilter filter;
 
 	/**
 	 * The index to determine which bytes in the block pertain to a locator or
@@ -163,13 +169,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * 
 	 * @param directory
 	 */
-	public Block(String directory) {
+	protected Block(String directory) {
 		this.id = Long.toString(Time.now());
 		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
 		this.mutable = true;
 		this.size = 0;
 		this.revisions = TreeMultiset.create(Sorter.INSTANCE);
-		this.filter = BlockFilter.create(
+		this.filter = BloomFilter.create(
 				(directory + File.separator + id + FILTER_NAME_EXTENSION),
 				EXPECTED_INSERTIONS);
 		this.index = BlockIndex.create(directory + File.separator + id
@@ -182,12 +188,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param directory
 	 * @param id
 	 */
-	public Block(String directory, String id) {
+	protected Block(String directory, String id) {
 		this.id = id;
 		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
 		this.size = (int) FileSystem.getFileSize(this.file);
 		this.mutable = false;
-		this.filter = BlockFilter.open(directory + File.separator + id
+		this.filter = BloomFilter.open(directory + File.separator + id
 				+ FILTER_NAME_EXTENSION);
 		this.index = BlockIndex.open(directory + File.separator + id
 				+ INDEX_NAME_EXTENSION);
@@ -240,20 +246,26 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	}
 
 	/**
-	 * Insert a revision for {@code key} as {@code value} in {@code locator}
-	 * into this Block.
+	 * Insert a revision for {@code key} as {@code value} in {@code locator} at
+	 * {@code version} into this Block.
 	 * 
 	 * @param locator
 	 * @param key
 	 * @param value
+	 * @param version
 	 * @throws IllegalStateException if the Block is not mutable
 	 */
-	public void insert(L locator, K key, V value) throws IllegalStateException {
+	public void insert(L locator, K key, V value, long version)
+			throws IllegalStateException {
 		Lock lock = writeLock();
 		try {
 			Preconditions.checkState(mutable,
 					"Cannot modify a block that is not mutable");
-			Revision<L, K, V> revision = makeRevision(locator, key, value);
+			Preconditions.checkArgument(version > this.version,
+					"Cannot insert a revision with a version smaller than %s",
+					this.version);
+			Revision<L, K, V> revision = makeRevision(locator, key, value,
+					version);
 			revisions.add(revision);
 			filter.put(revision.getLocator());
 			filter.put(revision.getLocator(), revision.getKey());
@@ -265,6 +277,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 											// #mightContain(L,K,V) without
 											// seeking
 			size += revision.size();
+			this.version = version;
 		}
 		finally {
 			lock.release();
@@ -338,7 +351,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	}
 
 	/**
-	 * Flush the content to disk in a block file, fsync the filter and index and
+	 * Flush the content to disk in a block file, sync the filter and index and
 	 * finally make the Block immutable.
 	 */
 	@Override
@@ -348,16 +361,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			Preconditions.checkState(mutable,
 					"Cannot sync a block that is not mutable");
 			mutable = false;
+			FileChannel channel = FileSystem.getFileChannel(file);
+			Byteables.write(this, channel);
 			filter.sync();
 			index.sync();
-			FileChannel channel = FileSystem.getFileChannel(file);
-			channel.write(getBytes());
-			channel.close();
+			FileSystem.closeFileChannel(channel);
 			revisions = null; // Set to NULL so that the Set is eligible for GC
 								// while the Block stays in memory.
-		}
-		catch (IOException e) {
-			throw Throwables.propagate(e);
 		}
 		finally {
 			lock.release();
@@ -372,21 +382,23 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
 	/**
 	 * Return a {@link Revision} for {@code key} as {@code value} in
-	 * {@code locator}.
+	 * {@code locator} at {@code version}.
 	 * 
 	 * @param locator
 	 * @param key
 	 * @param value
+	 * @param version
 	 * @return the Revision
 	 */
-	protected abstract Revision<L, K, V> makeRevision(L locator, K key, V value);
+	protected abstract Revision<L, K, V> makeRevision(L locator, K key,
+			V value, long version);
 
 	/**
 	 * Return the class of the {@code revision} type.
 	 * 
 	 * @return the revision class
 	 */
-	protected abstract Class<Revision<L, K, V>> xRevisionClass();
+	protected abstract Class<? extends Revision<L, K, V>> xRevisionClass();
 
 	/**
 	 * Seek revisions that contain components from {@code byteables} and append
