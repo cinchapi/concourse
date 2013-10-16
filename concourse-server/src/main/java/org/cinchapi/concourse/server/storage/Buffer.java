@@ -61,10 +61,10 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
  * quickly accumulate writes in memory before performing a batch flush into some
  * {@link PermanentStore}.
  * <p>
- * A Buffer enforces the durability guarantee because all writes are immediately
- * flushed to disk. Even though there is some disk I/O, the overhead is minimal
- * and writes are fast because the entire backing store is memory mapped and the
- * writes are always appended.
+ * A Buffer enforces the durability guarantee because all writes are also
+ * immediately flushed to disk. Even though there is some disk I/O, the overhead
+ * is minimal and writes are fast because the entire backing store is memory
+ * mapped and the writes are always appended.
  * </p>
  * 
  * @author jnelson
