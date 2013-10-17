@@ -80,6 +80,36 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 		Lockable {
 
 	/**
+	 * Return a new PrimaryBlock that will be stored in {@code directory}.
+	 * 
+	 * @param directory
+	 * @return the PrimaryBlock
+	 */
+	public static PrimaryBlock createPrimaryBlock(String directory) {
+		return new PrimaryBlock(directory);
+	}
+
+	/**
+	 * Return a new SearchBlock that will be stored in {@code directory}.
+	 * 
+	 * @param directory
+	 * @return the SearchBlock
+	 */
+	public static SearchBlock createSearchBlock(String directory) {
+		return new SearchBlock(directory);
+	}
+
+	/**
+	 * Return a new SecondaryBlock that will be stored in {@code directory}.
+	 * 
+	 * @param directory
+	 * @return the SecondaryBlock
+	 */
+	public static SecondaryBlock createSecondaryBlock(String directory) {
+		return new SecondaryBlock(directory);
+	}
+
+	/**
 	 * Return the block id from the name of the block file.
 	 * 
 	 * @param filename
@@ -87,6 +117,42 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	public static String getId(String filename) {
 		return FileSystem.getSimpleName(filename);
+	}
+
+	/**
+	 * Return the existing PrimaryBlock with {@code id} that exists in
+	 * {@code directory}.
+	 * 
+	 * @param directory
+	 * @param id
+	 * @return the PrimaryBlock
+	 */
+	public static PrimaryBlock loadPrimaryBlock(String directory, String id) {
+		return new PrimaryBlock(directory, id);
+	}
+
+	/**
+	 * Return the existing SearchBlock with {@code id} that exists in
+	 * {@code directory}.
+	 * 
+	 * @param directory
+	 * @param id
+	 * @return the SearchBlock
+	 */
+	public static SearchBlock loadSearchBlock(String directory, String id) {
+		return new SearchBlock(directory, id);
+	}
+
+	/**
+	 * Return the existing SecondaryBlock with {@code id} that exists in
+	 * {@code directory}.
+	 * 
+	 * @param directory
+	 * @param id
+	 * @return the SecondaryBlock
+	 */
+	public static SecondaryBlock loadSecondaryBlock(String directory, String id) {
+		return new SecondaryBlock(directory, id);
 	}
 
 	/**
@@ -165,7 +231,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	private final BlockIndex index;
 
 	/**
-	 * Construct a new instance.
+	 * Construct a new mutable instance in memory
 	 * 
 	 * @param directory
 	 */
@@ -183,7 +249,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	}
 
 	/**
-	 * Construct a new instance from data on disk.
+	 * Construct a new immutable instance from data on disk.
 	 * 
 	 * @param directory
 	 * @param id
