@@ -65,6 +65,8 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author jnelson
  */
 public class Database implements PermanentStore {
+	
+	//TODO add a triggerSync() method which will be called by the Buffer when a page is full
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write

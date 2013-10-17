@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -34,9 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.StringTools;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -67,7 +65,13 @@ import com.google.common.primitives.Longs;
  */
 @ThreadSafe
 @PackagePrivate
-abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
+abstract class Limbo implements ProxyStore, Iterable<Write> {
+
+	/**
+	 * Lock used to ensure the object is ThreadSafe. This lock provides access
+	 * to a masterLock.readLock()() and masterLock.writeLock()().
+	 */
+	protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * A Predicate that is used to filter out empty sets.
@@ -83,13 +87,13 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			return !verify(key, value, record) ? addUnsafe(key, value, record)
 					: false;
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -100,7 +104,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
 			Iterator<Write> it = iterator();
@@ -113,13 +117,13 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return audit;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
 			Iterator<Write> it = iterator();
@@ -133,7 +137,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return audit;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -144,7 +148,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().unlock();
 		try {
 			Map<String, Set<Value>> ktv = Maps.newHashMap();
 			Iterator<Write> it = iterator();
@@ -174,7 +178,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -185,7 +189,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Set<TObject> values = Sets.newLinkedHashSet();
 			Iterator<Write> it = iterator();
@@ -210,14 +214,14 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return values;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
 			Iterator<Write> it = iterator();
@@ -287,7 +291,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return Maps.filterValues(rtv, emptySetFilter).keySet();
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -313,19 +317,14 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	}
 
 	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
-
-	@Override
 	public boolean remove(String key, TObject value, long record) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			return verify(key, value, record) ? removeUnsafe(key, value, record)
 					: false;
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -336,7 +335,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, Set<Value>> rtv = Maps.newHashMap();
 			Iterator<Write> it = iterator();
@@ -369,13 +368,13 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return Maps.filterValues(rtv, emptySetFilter).keySet();
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public void transport(PermanentStore destination) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			Iterator<Write> it = iterator();
 			while (it.hasNext()) {
@@ -384,7 +383,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -398,11 +397,6 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	@GuardedBy("verify(Write, long)")
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		return verify(Write.notStorable(key, value, record), timestamp);
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
 	}
 
 	/**
@@ -434,7 +428,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 	 *         {@code timestamp}
 	 */
 	protected boolean verify(Write write, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			int count = 0;
 			Iterator<Write> it = iterator();
@@ -452,7 +446,7 @@ abstract class Limbo implements Lockable, ProxyStore, Iterable<Write> {
 			return Numbers.isOdd(count);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 

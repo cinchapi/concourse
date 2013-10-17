@@ -35,7 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -117,8 +116,8 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
 	 * @return the Set of PrimaryKeys that match the query
 	 */
 	private Set<PrimaryKey> find(boolean historical, long timestamp,
-			Operator operator, Value... values) { /* authorized */
-		Lock lock = readLock();
+			Operator operator, Value... values) { /* Authorized */
+		masterLock.readLock().lock();
 		try {
 
 			Set<PrimaryKey> keys = Sets.newTreeSet();
@@ -220,7 +219,7 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
 			return keys;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 

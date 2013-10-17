@@ -30,12 +30,10 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -78,16 +76,16 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the revision log
 	 */
 	public Map<Long, String> audit() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, String> audit = Maps.newTreeMap();
-			for (Text key : present.keySet()) {
+			for (Text key : present.keySet()) { /* Authorized */
 				audit.putAll(audit(key));
 			}
 			return audit;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -98,13 +96,13 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the revision log
 	 */
 	public Map<Long, String> audit(Text key) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<Long, String> audit = Maps.newLinkedHashMap();
 			Map<Revision<PrimaryKey, Text, Value>, Integer> counts = Maps
 					.newHashMap();
 			List<Revision<PrimaryKey, Text, Value>> revisions = history
-					.get(key); /* authorized */
+					.get(key); /* Authorized */
 			if(revisions != null) {
 				Iterator<Revision<PrimaryKey, Text, Value>> it = revisions
 						.iterator();
@@ -126,7 +124,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 			return audit;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -225,13 +223,12 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 *            which to read
 	 * @return the Set of non-empty field keys
 	 */
-	@GuardedBy("this.readLock")
 	private Set<Text> describe(boolean historical, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			if(historical) {
 				Set<Text> description = Sets.newLinkedHashSet();
-				Iterator<Text> it = history.keySet().iterator(); /* authorized */
+				Iterator<Text> it = history.keySet().iterator(); /* Authorized */
 				while (it.hasNext()) {
 					Text key = it.next();
 					if(!get(key, timestamp).isEmpty()) {
@@ -241,11 +238,11 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 				return description;
 			}
 			else {
-				return Collections.unmodifiableSet(present.keySet()); /* authorized */
+				return Collections.unmodifiableSet(present.keySet()); /* Authorized */
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -263,12 +260,12 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the Set of contained values
 	 */
 	private Set<Value> fetch(Text key, boolean historical, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return historical ? get(key, timestamp) : get(key);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -288,13 +285,13 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 */
 	private boolean verify(Text key, Value value, boolean historical,
 			long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return historical ? get(key, timestamp).contains(value) : get(key)
 					.contains(value);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 

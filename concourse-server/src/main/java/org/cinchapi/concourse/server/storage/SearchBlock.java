@@ -33,7 +33,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -95,7 +94,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 */
 	public final void insert(Text key, Value value, PrimaryKey record,
 			long version) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			if(value.getType() == Type.STRING) {
 				String[] toks = value.getObject().toString().split(" ");
@@ -113,7 +112,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 

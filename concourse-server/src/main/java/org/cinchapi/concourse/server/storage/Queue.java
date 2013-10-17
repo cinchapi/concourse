@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 
 import com.google.common.collect.Lists;
 
@@ -64,12 +63,12 @@ class Queue extends Limbo {
 
 	@Override
 	protected boolean insert(Write write) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			return writes.add(write);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 

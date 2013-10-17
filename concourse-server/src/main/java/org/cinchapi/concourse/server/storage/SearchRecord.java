@@ -32,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -70,7 +69,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
 	 * @return the Set of PrimaryKeys
 	 */
 	public Set<PrimaryKey> search(Text query) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Map<PrimaryKey, Integer> reference = Maps.newHashMap();
 			String[] toks = query.toString().split(" ");
@@ -100,7 +99,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
 			return reference.keySet();
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 

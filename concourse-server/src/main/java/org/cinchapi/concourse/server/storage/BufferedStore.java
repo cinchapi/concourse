@@ -28,13 +28,11 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -61,10 +59,7 @@ import static org.cinchapi.concourse.server.storage.Stores.*;
  */
 @PackagePrivate
 @ThreadSafe
-abstract class BufferedStore implements
-		WritableStore,
-		VersionControlStore,
-		Lockable {
+abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	private static final String threadNamePrefix = "BufferedStore";
 
@@ -82,6 +77,12 @@ abstract class BufferedStore implements
 	 * method.
 	 */
 	protected final PermanentStore destination;
+
+	/**
+	 * Lock used to ensure the object is ThreadSafe. This lock provides access
+	 * to a masterLock.readLock()() and masterLock.writeLock()().
+	 */
+	protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * Construct a new instance.
@@ -104,7 +105,7 @@ abstract class BufferedStore implements
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			if(!verify(key, value, record)) {
 				return buffer.addUnsafe(key, value, record); /* Authorized */
@@ -112,7 +113,7 @@ abstract class BufferedStore implements
 			return false;
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -120,7 +121,7 @@ abstract class BufferedStore implements
 	public Map<Long, String> audit(long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Map<Long, String>> bufferResult = executor
 					.submit(invokeAuditCallable(buffer, record));
@@ -135,7 +136,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -144,7 +145,7 @@ abstract class BufferedStore implements
 	public Map<Long, String> audit(String key, long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Map<Long, String>> bufferResult = executor
 					.submit(invokeAuditCallable(buffer, key, record));
@@ -159,7 +160,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -168,7 +169,7 @@ abstract class BufferedStore implements
 	public Set<String> describe(long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<String>> bufferResult = executor
 					.submit(invokeDescribeCallable(buffer, record));
@@ -181,7 +182,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -190,7 +191,7 @@ abstract class BufferedStore implements
 	public Set<String> describe(long record, long timestamp) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<String>> bufferResult = executor
 					.submit(invokeDescribeCallable(buffer, record, timestamp));
@@ -204,7 +205,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -213,7 +214,7 @@ abstract class BufferedStore implements
 	public Set<TObject> fetch(String key, long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<TObject>> bufferResult = executor
 					.submit(invokeFetchCallable(buffer, key, record));
@@ -226,7 +227,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -235,7 +236,7 @@ abstract class BufferedStore implements
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<TObject>> bufferResult = executor
 					.submit(invokeFetchCallable(buffer, key, record, timestamp));
@@ -249,7 +250,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -259,7 +260,7 @@ abstract class BufferedStore implements
 			TObject... values) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<Long>> bufferResult = executor
 					.submit(invokeFindCallable(buffer, timestamp, key,
@@ -273,14 +274,14 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
 		try {
@@ -295,7 +296,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -304,7 +305,7 @@ abstract class BufferedStore implements
 	public boolean ping(long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Boolean> bufferResult = executor.submit(invokePingCallable(
 					buffer, record));
@@ -316,19 +317,14 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
 
 	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
-
-	@Override
 	public boolean remove(String key, TObject value, long record) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			if(verify(key, value, record)) {
 				return buffer.removeUnsafe(key, value, record); /* Authorized */
@@ -340,13 +336,13 @@ abstract class BufferedStore implements
 			return remove(key, value, record);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public void revert(String key, long record, long timestamp) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			Set<TObject> past = fetch(key, record, timestamp);
 			Set<TObject> present = fetch(key, record);
@@ -361,7 +357,7 @@ abstract class BufferedStore implements
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 
 	}
@@ -370,7 +366,7 @@ abstract class BufferedStore implements
 	public Set<Long> search(String key, String query) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Set<Long>> bufferResult = executor
 					.submit(invokeSearchCallable(buffer, key, query));
@@ -383,7 +379,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -392,7 +388,7 @@ abstract class BufferedStore implements
 	public boolean verify(String key, TObject value, long record) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Boolean> bufferResult = executor
 					.submit(invokeVerifyCallable(buffer, key, value, record));
@@ -404,7 +400,7 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
 	}
@@ -413,7 +409,7 @@ abstract class BufferedStore implements
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
 				threadNamePrefix);
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Future<Boolean> bufferResult = executor
 					.submit(invokeVerifyCallable(buffer, key, value, record,
@@ -426,14 +422,9 @@ abstract class BufferedStore implements
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			executor.shutdown();
 		}
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
 	}
 
 }

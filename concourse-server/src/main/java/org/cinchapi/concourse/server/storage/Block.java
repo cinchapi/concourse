@@ -29,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -36,9 +37,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
@@ -76,8 +74,7 @@ import com.google.common.primitives.Longs;
 @PackagePrivate
 abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>> implements
 		Byteable,
-		Syncable,
-		Lockable {
+		Syncable {
 
 	/**
 	 * Return a new PrimaryBlock that will be stored in {@code directory}.
@@ -164,7 +161,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	/**
 	 * The extension for the block file.
 	 */
-	private static final String BLOCK_NAME_EXTENSION = ".blk";
+	@PackagePrivate
+	static final String BLOCK_NAME_EXTENSION = ".blk";
 
 	/**
 	 * The extension for the {@link BloomFilter} file.
@@ -175,6 +173,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * The extension for the {@link BlockIndex} file.
 	 */
 	private static final String INDEX_NAME_EXTENSION = ".indx";
+
+	/**
+	 * Lock used to ensure the object is ThreadSafe. This lock provides access
+	 * to a masterLock.readLock()() and masterLock.writeLock()().
+	 */
+	protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * The flag that indicates whether the Block is mutable or not. A Block is
@@ -275,7 +279,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	@Override
 	public ByteBuffer getBytes() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			ByteBuffer bytes = ByteBuffer.allocate(size);
 			L locator = null;
@@ -307,8 +311,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			return bytes;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
+	}
+
+	/**
+	 * Return the block id.
+	 * 
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -323,7 +336,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	public void insert(L locator, K key, V value, long version)
 			throws IllegalStateException {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			Preconditions.checkState(mutable,
 					"Cannot modify a block that is not mutable");
@@ -346,7 +359,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			this.version = version;
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -364,18 +377,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @return {@code true} if it is possible that relevant revisions exists
 	 */
 	public boolean mightContain(L locator, K key, V value) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return filter.mightContain(locator, key, value);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
-	}
-
-	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
 	}
 
 	/**
@@ -407,12 +415,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
 	@Override
 	public int size() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return size;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -422,7 +430,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	@Override
 	public void sync() {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			Preconditions.checkState(mutable,
 					"Cannot sync a block that is not mutable");
@@ -436,14 +444,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 								// while the Block stays in memory.
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
 	}
 
 	/**
@@ -475,7 +478,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param byteables
 	 */
 	private void seek(Record<L, K, V> record, Byteable... byteables) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			if(filter.mightContain(byteables)) {
 				if(mutable) {
@@ -512,7 +515,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 

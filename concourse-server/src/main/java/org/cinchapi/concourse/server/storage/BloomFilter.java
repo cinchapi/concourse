@@ -32,10 +32,8 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableComposite;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -52,7 +50,7 @@ import com.google.common.base.Throwables;
  * 
  * @author jnelson
  */
-public class BloomFilter implements Syncable, Lockable {
+public class BloomFilter implements Syncable {
 
 	/**
 	 * Create a new BloomFilter with enough capacity for
@@ -111,6 +109,12 @@ public class BloomFilter implements Syncable, Lockable {
 			throw Throwables.propagate(e);
 		}
 	}
+	
+	/**
+	 * Lock used to ensure the object is ThreadSafe. This lock provides access
+	 * to a masterLock.readLock()() and masterLock.writeLock()().
+	 */
+	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * The wrapped bloom filter. This is where the data is actually stored.
@@ -137,7 +141,7 @@ public class BloomFilter implements Syncable, Lockable {
 
 	@Override
 	public void sync() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			Preconditions.checkState(file != null, "Cannot sync a "
 					+ "BloomFilter that does not have an associated file");
@@ -152,7 +156,7 @@ public class BloomFilter implements Syncable, Lockable {
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -164,12 +168,12 @@ public class BloomFilter implements Syncable, Lockable {
 	 * @return {@code true} if {@code byteables} might exist
 	 */
 	public boolean mightContain(Byteable... byteables) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return source.mightContain(ByteableComposite.create(byteables));
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -191,23 +195,13 @@ public class BloomFilter implements Syncable, Lockable {
 	 *         called.
 	 */
 	public boolean put(Byteable... byteables) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			return source.put(ByteableComposite.create(byteables));
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
-	}
-
-	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
 	}
 
 	/**

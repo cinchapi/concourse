@@ -35,13 +35,11 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.Operator;
@@ -324,7 +322,7 @@ final class Buffer extends Limbo {
 					page.remove();
 				}
 				else {
-					// TODO ((Database) destination).triggerSync();
+					((Database) destination).triggerSync();
 					removePage();
 				}
 			}
@@ -347,7 +345,7 @@ final class Buffer extends Limbo {
 
 	@Override
 	protected boolean insert(Write write) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			currentPage.append(write);
 		}
@@ -356,14 +354,14 @@ final class Buffer extends Limbo {
 			insert(write);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 		return true;
 	}
 
 	@Override
 	protected boolean verify(Write write, long timestamp) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		transportLock.readLock().lock();
 		try {
 			for (Page page : pages) {
@@ -374,7 +372,7 @@ final class Buffer extends Limbo {
 			return false;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 			transportLock.readLock().unlock();
 		}
 	}
@@ -383,14 +381,14 @@ final class Buffer extends Limbo {
 	 * Add a new Page to the Buffer.
 	 */
 	private void addPage() {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			currentPage = new Page(BUFFER_PAGE_SIZE);
 			pages.add(currentPage);
 			log.debug("Added page {} to Buffer", currentPage);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -398,12 +396,12 @@ final class Buffer extends Limbo {
 	 * Remove the first page in the Buffer.
 	 */
 	private void removePage() {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			pages.remove(0).delete();
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -415,7 +413,7 @@ final class Buffer extends Limbo {
 	 * 
 	 * @author jnelson
 	 */
-	private class Page implements Iterator<Write>, Iterable<Write>, Lockable {
+	private class Page implements Iterator<Write>, Iterable<Write> {
 
 		/**
 		 * The filename extension.
@@ -437,10 +435,9 @@ final class Buffer extends Limbo {
 				.create(GlobalState.BUFFER_PAGE_SIZE);
 
 		/**
-		 * The append-only buffer that contains the content of the backing file
-		 * starting at position 4. Data is never deleted from the buffer, but is
-		 * marked as "removed" depending on the location of the {@link #pos}
-		 * marker.
+		 * The append-only buffer that contains the content of the backing file.
+		 * Data is never deleted from the buffer, until the entire Page is
+		 * removed.
 		 */
 		private final MappedByteBuffer content;
 
@@ -515,21 +512,16 @@ final class Buffer extends Limbo {
 		 * @throws BufferCapacityException - if the size of {@code write} is
 		 *             greater than the remaining capacity of {@link #content}
 		 */
+		@GuardedBy("Buffer#insert(Write)")
 		public void append(Write write) throws BufferCapacityException {
-			Lock lock = writeLock();
-			try {
-				if(content.remaining() >= write.size() + 4) {
-					index(write);
-					content.putInt(write.size());
-					content.put(write.getBytes());
-					content.force();
-				}
-				else {
-					throw new BufferCapacityException();
-				}
+			if(content.remaining() >= write.size() + 4) {
+				index(write);
+				content.putInt(write.size());
+				content.put(write.getBytes());
+				content.force();
 			}
-			finally {
-				lock.release();
+			else {
+				throw new BufferCapacityException();
 			}
 		}
 
@@ -551,12 +543,12 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public boolean hasNext() {
-			Lock lock = readLock();
+			masterLock.readLock().lock();
 			try {
 				return head < size;
 			}
 			finally {
-				lock.release();
+				masterLock.readLock().unlock();
 			}
 		}
 
@@ -600,7 +592,7 @@ final class Buffer extends Limbo {
 
 				@Override
 				public boolean hasNext() {
-					Lock lock = readLock();
+					masterLock.readLock().lock();
 					try {
 						if(index - head != distance) {
 							throw new ConcurrentModificationException(
@@ -609,13 +601,13 @@ final class Buffer extends Limbo {
 						return index < size;
 					}
 					finally {
-						lock.release();
+						masterLock.readLock().unlock();
 					}
 				}
 
 				@Override
 				public Write next() {
-					Lock lock = readLock();
+					masterLock.readLock().lock();
 					try {
 						if(index - head != distance) {
 							throw new ConcurrentModificationException(
@@ -627,7 +619,7 @@ final class Buffer extends Limbo {
 						return next;
 					}
 					finally {
-						lock.release();
+						masterLock.readLock().unlock();
 					}
 				}
 
@@ -647,8 +639,14 @@ final class Buffer extends Limbo {
 		 * @return {@code true} if the write possibly exists
 		 */
 		public boolean mightContain(Write write) {
-			return filter.mightContain(write.getRecord(), write.getKey(),
-					write.getValue());
+			masterLock.readLock().lock();
+			try {
+				return filter.mightContain(write.getRecord(), write.getKey(),
+						write.getValue());
+			}
+			finally {
+				masterLock.readLock().unlock();
+			}
 		}
 
 		/**
@@ -661,18 +659,13 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public Write next() {
-			Lock lock = readLock();
+			masterLock.readLock().lock();
 			try {
 				return writes[head];
 			}
 			finally {
-				lock.release();
+				masterLock.readLock().unlock();
 			}
-		}
-
-		@Override
-		public Lock readLock() {
-			return Lockables.readLock(this);
 		}
 
 		/**
@@ -682,23 +675,18 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public void remove() {
-			Lock lock = writeLock();
+			masterLock.writeLock().lock();
 			try {
 				head++;
 			}
 			finally {
-				lock.release();
+				masterLock.writeLock().unlock();
 			}
 		}
 
 		@Override
 		public String toString() {
 			return filename;
-		}
-
-		@Override
-		public Lock writeLock() {
-			return Lockables.writeLock(this);
 		}
 
 		/**
@@ -708,26 +696,18 @@ final class Buffer extends Limbo {
 		 * @param write
 		 * @throws BufferCapacityException
 		 */
+		@GuardedBy("Buffer#insert(Write)")
 		private void index(Write write) throws BufferCapacityException {
-			Lock lock = writeLock();
-			try {
-				if(size < writes.length) {
-					filter.put(write.getRecord(), write.getKey(),
-							write.getValue()); // The individual Write
-												// components are added instead
-												// of the entire Write so that
-												// version information is not
-												// factored into the bloom
-												// filter hashing
-					writes[size] = write;
-					size++;
-				}
-				else {
-					throw new BufferCapacityException();
-				}
+			if(size < writes.length) {
+				// The individual Write components are added instead of the
+				// entire Write so that version information is not factored into
+				// the bloom filter hashing
+				filter.put(write.getRecord(), write.getKey(), write.getValue());
+				writes[size] = write;
+				size++;
 			}
-			finally {
-				lock.release();
+			else {
+				throw new BufferCapacityException();
 			}
 		}
 	}

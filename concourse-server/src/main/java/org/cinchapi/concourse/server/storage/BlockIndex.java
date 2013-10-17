@@ -29,10 +29,8 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.ByteableComposite;
@@ -53,7 +51,7 @@ import com.google.common.collect.Maps;
  * 
  * @author jnelson
  */
-public class BlockIndex implements Byteable, Syncable, Lockable {
+public class BlockIndex implements Byteable, Syncable {
 
 	/**
 	 * Return a newly created BlockIndex.
@@ -80,6 +78,12 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 	 * Represents an entry that has not been recorded.
 	 */
 	private static final int NO_ENTRY = -1;
+
+	/**
+	 * Lock used to ensure the object is ThreadSafe. This lock provides access
+	 * to a masterLock.readLock()() and masterLock.writeLock()().
+	 */
+	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * The file where the BlockIndex is stored during an diskSync.
@@ -126,7 +130,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 
 	@Override
 	public void sync() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			FileChannel channel = FileSystem.getFileChannel(file);
 			channel.write(getBytes());
@@ -135,14 +139,14 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			throw Throwables.propagate(e);
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 
 	}
 
 	@Override
 	public ByteBuffer getBytes() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			ByteBuffer bytes = ByteBuffer.allocate(size());
 			for (Entry entry : entries.values()) {
@@ -152,7 +156,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			return bytes;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -164,7 +168,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 	 * @return the end position
 	 */
 	public int getEnd(Byteable... byteables) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
 			Entry entry = entries.get(composite);
@@ -176,7 +180,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -188,7 +192,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 	 * @return the start position
 	 */
 	public int getStart(Byteable... byteables) {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
 			Entry entry = entries.get(composite);
@@ -200,7 +204,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			}
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
 	}
 
@@ -211,7 +215,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 	 * @param byteables
 	 */
 	public void putEnd(int end, Byteable... byteables) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
 			Entry entry = entries.get(composite);
@@ -221,7 +225,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			entry.setEnd(end);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
 	}
 
@@ -232,7 +236,7 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 	 * @param byteables
 	 */
 	public void putStart(int start, Byteable... byteables) {
-		Lock lock = writeLock();
+		masterLock.writeLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
 			Entry entry = entries.get(composite);
@@ -244,29 +248,19 @@ public class BlockIndex implements Byteable, Syncable, Lockable {
 			entry.setStart(start);
 		}
 		finally {
-			lock.release();
+			masterLock.writeLock().unlock();
 		}
-	}
-
-	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
 	}
 
 	@Override
 	public int size() {
-		Lock lock = readLock();
+		masterLock.readLock().lock();
 		try {
 			return size;
 		}
 		finally {
-			lock.release();
+			masterLock.readLock().unlock();
 		}
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
 	}
 
 	/**
