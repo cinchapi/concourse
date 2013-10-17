@@ -23,48 +23,75 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.server.model.PrimaryKey;
+import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.Immutable;
+
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.util.TestData;
 
 /**
- * 
+ * A {@link Revision} that is used in a {@link SearchBlock} and maps a key
+ * to a term to a position.
  * 
  * @author jnelson
  */
-public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey>{
+@Immutable
+public final class SearchRevision extends Revision<Text, Text, Position> {
 
-	@Override
-	protected Value getKey() {
-		return TestData.getValue();
+	/**
+	 * Construct an instance that represents an existing SearchRevision from
+	 * a ByteBuffer. This constructor is public so as to comply with the
+	 * {@link Byteable} interface. Calling this constructor directly is not
+	 * recommend.
+	 * 
+	 * @param bytes
+	 */
+	private SearchRevision(ByteBuffer bytes) {
+		super(bytes);
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param locator
+	 * @param key
+	 * @param value
+	 * @param version
+	 */
+	SearchRevision(Text locator, Text key, Position value, long version) {
+		super(locator, key, value, version);
 	}
 
 	@Override
-	protected Text getLocator() {
-		return TestData.getText();
+	protected Class<Text> xKeyClass() {
+		return Text.class;
 	}
 
 	@Override
-	protected SecondaryRecord getRecord(Text locator) {
-		return Record.createSecondaryRecord(locator);
+	protected int xKeySize() {
+		return VARIABLE_SIZE;
 	}
 
 	@Override
-	protected SecondaryRecord getRecord(Text locator, Value key) {
-		return Record.createSecondaryRecordPartial(locator, key);
+	protected Class<Text> xLocatorClass() {
+		return Text.class;
 	}
 
 	@Override
-	protected SecondaryRevision getRevision(Text locator,
-			Value key, PrimaryKey value) {
-		return Revision.createSecondaryRevision(locator, key, value, Time.now());
+	protected int xLocatorSize() {
+		return VARIABLE_SIZE;
 	}
 
 	@Override
-	protected PrimaryKey getValue() {
-		return TestData.getPrimaryKey();
+	protected Class<Position> xValueClass() {
+		return Position.class;
+	}
+
+	@Override
+	protected int xValueSize() {
+		return Position.SIZE;
 	}
 
 }

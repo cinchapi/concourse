@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.storage;
 
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.storage.Revision.SearchRevision;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 
