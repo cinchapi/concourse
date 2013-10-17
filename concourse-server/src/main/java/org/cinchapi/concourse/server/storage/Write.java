@@ -133,6 +133,7 @@ public final class Write implements Byteable, Versioned {
 	 * A cached copy of the binary representation that is returned from
 	 * {@link #getBytes()}.
 	 */
+	@Nullable
 	private transient ByteBuffer bytes = null;
 
 	/**
