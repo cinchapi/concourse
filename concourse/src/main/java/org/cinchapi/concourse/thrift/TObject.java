@@ -65,80 +65,9 @@ public class TObject implements
 	 */
 	public Type type; // required
 
-	/**
-	 * The set of fields this struct contains, along with convenience methods
-	 * for finding and manipulating them.
-	 */
-	public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-		DATA((short) 1, "data"),
-		/**
-		 * 
-		 * @see Type
-		 */
-		TYPE((short) 2, "type");
-
-		private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-		static {
-			for (_Fields field : EnumSet.allOf(_Fields.class)) {
-				byName.put(field.getFieldName(), field);
-			}
-		}
-
-		/**
-		 * Find the _Fields constant that matches fieldId, or null if its not
-		 * found.
-		 */
-		public static _Fields findByThriftId(int fieldId) {
-			switch (fieldId) {
-			case 1: // DATA
-				return DATA;
-			case 2: // TYPE
-				return TYPE;
-			default:
-				return null;
-			}
-		}
-
-		/**
-		 * Find the _Fields constant that matches fieldId, throwing an exception
-		 * if it is not found.
-		 */
-		public static _Fields findByThriftIdOrThrow(int fieldId) {
-			_Fields fields = findByThriftId(fieldId);
-			if(fields == null)
-				throw new IllegalArgumentException("Field " + fieldId
-						+ " doesn't exist!");
-			return fields;
-		}
-
-		/**
-		 * Find the _Fields constant that matches name, or null if its not
-		 * found.
-		 */
-		public static _Fields findByName(String name) {
-			return byName.get(name);
-		}
-
-		private final short _thriftId;
-		private final String _fieldName;
-
-		_Fields(short thriftId, String fieldName) {
-			_thriftId = thriftId;
-			_fieldName = fieldName;
-		}
-
-		public short getThriftFieldId() {
-			return _thriftId;
-		}
-
-		public String getFieldName() {
-			return _fieldName;
-		}
-	}
-
 	// isset id assignments
 	public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+
 	static {
 		Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
 				_Fields.class);
@@ -154,14 +83,12 @@ public class TObject implements
 		org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
 				TObject.class, metaDataMap);
 	}
-
 	public TObject() {
-		this.type = org.cinchapi.concourse.thrift.Type.STRING;
+		this.type = Type.STRING;
 
 	}
 
 	public TObject(ByteBuffer data, Type type) {
-		this();
 		this.data = data;
 		this.type = type;
 	}
@@ -178,8 +105,8 @@ public class TObject implements
 		}
 	}
 
-	public TObject deepCopy() {
-		return new TObject(this);
+	public ByteBuffer bufferForData() {
+		return ByteBuffers.asReadOnlyBuffer(data);
 	}
 
 	@Override
@@ -187,145 +114,6 @@ public class TObject implements
 		this.data = null;
 		this.type = org.cinchapi.concourse.thrift.Type.STRING;
 
-	}
-
-	public synchronized byte[] getData() {
-		setData(org.apache.thrift.TBaseHelper.rightSize(data));
-		return data == null ? null : data.array();
-	}
-
-	public synchronized ByteBuffer bufferForData() {
-		return ByteBuffers.asReadOnlyBuffer(data);
-	}
-
-	public TObject setData(byte[] data) {
-		setData(data == null ? (ByteBuffer) null : ByteBuffer.wrap(data));
-		return this;
-	}
-
-	public TObject setData(ByteBuffer data) {
-		this.data = data;
-		return this;
-	}
-
-	public void unsetData() {
-		this.data = null;
-	}
-
-	/**
-	 * Returns true if field data is set (has been assigned a value) and false
-	 * otherwise
-	 */
-	public boolean isSetData() {
-		return this.data != null;
-	}
-
-	public void setDataIsSet(boolean value) {
-		if(!value) {
-			this.data = null;
-		}
-	}
-
-	/**
-	 * 
-	 * @see Type
-	 */
-	public Type getType() {
-		return this.type;
-	}
-
-	/**
-	 * 
-	 * @see Type
-	 */
-	public TObject setType(Type type) {
-		this.type = type;
-		return this;
-	}
-
-	public void unsetType() {
-		this.type = null;
-	}
-
-	/**
-	 * Returns true if field type is set (has been assigned a value) and false
-	 * otherwise
-	 */
-	public boolean isSetType() {
-		return this.type != null;
-	}
-
-	public void setTypeIsSet(boolean value) {
-		if(!value) {
-			this.type = null;
-		}
-	}
-
-	public void setFieldValue(_Fields field, Object value) {
-		switch (field) {
-		case DATA:
-			if(value == null) {
-				unsetData();
-			}
-			else {
-				setData((ByteBuffer) value);
-			}
-			break;
-
-		case TYPE:
-			if(value == null) {
-				unsetType();
-			}
-			else {
-				setType((Type) value);
-			}
-			break;
-
-		}
-	}
-
-	public Object getFieldValue(_Fields field) {
-		switch (field) {
-		case DATA:
-			return getData();
-
-		case TYPE:
-			return getType();
-
-		}
-		throw new IllegalStateException();
-	}
-
-	/**
-	 * Returns true if field corresponding to fieldID is set (has been assigned
-	 * a value) and false otherwise
-	 */
-	public boolean isSet(_Fields field) {
-		if(field == null) {
-			throw new IllegalArgumentException();
-		}
-
-		switch (field) {
-		case DATA:
-			return isSetData();
-		case TYPE:
-			return isSetType();
-		}
-		throw new IllegalStateException();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof TObject) {
-			TObject other = (TObject) obj;
-			return bufferForData().equals(other.bufferForData()) && type == other.type;
-		}
-		return false;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(data, type);
 	}
 
 	public int compareTo(TObject other) {
@@ -363,8 +151,85 @@ public class TObject implements
 		return 0;
 	}
 
+	public TObject deepCopy() {
+		return new TObject(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof TObject) {
+			TObject other = (TObject) obj;
+			return bufferForData().equals(other.bufferForData()) && type == other.type;
+		}
+		return false;
+	}
+
 	public _Fields fieldForId(int fieldId) {
 		return _Fields.findByThriftId(fieldId);
+	}
+
+	public byte[] getData() {
+		setData(org.apache.thrift.TBaseHelper.rightSize(data));
+		return data == null ? null : data.array();
+	}
+
+	public Object getFieldValue(_Fields field) {
+		switch (field) {
+		case DATA:
+			return getData();
+
+		case TYPE:
+			return getType();
+
+		}
+		throw new IllegalStateException();
+	}
+
+	/**
+	 * 
+	 * @see Type
+	 */
+	public Type getType() {
+		return this.type;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(data, type);
+	}
+
+	/**
+	 * Returns true if field corresponding to fieldID is set (has been assigned
+	 * a value) and false otherwise
+	 */
+	public boolean isSet(_Fields field) {
+		if(field == null) {
+			throw new IllegalArgumentException();
+		}
+
+		switch (field) {
+		case DATA:
+			return isSetData();
+		case TYPE:
+			return isSetType();
+		}
+		throw new IllegalStateException();
+	}
+
+	/**
+	 * Returns true if field data is set (has been assigned a value) and false
+	 * otherwise
+	 */
+	public boolean isSetData() {
+		return this.data != null;
+	}
+
+	/**
+	 * Returns true if field type is set (has been assigned a value) and false
+	 * otherwise
+	 */
+	public boolean isSetType() {
+		return this.type != null;
 	}
 
 	public void read(org.apache.thrift.protocol.TProtocol iprot)
@@ -372,14 +237,71 @@ public class TObject implements
 		schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
 	}
 
-	public void write(org.apache.thrift.protocol.TProtocol oprot)
-			throws org.apache.thrift.TException {
-		schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+	public TObject setData(byte[] data) {
+		setData(data == null ? (ByteBuffer) null : ByteBuffer.wrap(data));
+		return this;
+	}
+
+	public TObject setData(ByteBuffer data) {
+		this.data = data;
+		return this;
+	}
+
+	public void setDataIsSet(boolean value) {
+		if(!value) {
+			this.data = null;
+		}
+	}
+
+	public void setFieldValue(_Fields field, Object value) {
+		switch (field) {
+		case DATA:
+			if(value == null) {
+				unsetData();
+			}
+			else {
+				setData((ByteBuffer) value);
+			}
+			break;
+
+		case TYPE:
+			if(value == null) {
+				unsetType();
+			}
+			else {
+				setType((Type) value);
+			}
+			break;
+
+		}
+	}
+
+	/**
+	 * 
+	 * @see Type
+	 */
+	public TObject setType(Type type) {
+		this.type = type;
+		return this;
+	}
+
+	public void setTypeIsSet(boolean value) {
+		if(!value) {
+			this.type = null;
+		}
 	}
 
 	@Override
 	public String toString() {
 		return Convert.thriftToJava(this).toString();
+	}
+
+	public void unsetData() {
+		this.data = null;
+	}
+
+	public void unsetType() {
+		this.type = null;
 	}
 
 	public void validate() throws org.apache.thrift.TException {
@@ -397,15 +319,9 @@ public class TObject implements
 		// check for sub-struct validity
 	}
 
-	private void writeObject(java.io.ObjectOutputStream out)
-			throws java.io.IOException {
-		try {
-			write(new org.apache.thrift.protocol.TCompactProtocol(
-					new org.apache.thrift.transport.TIOStreamTransport(out)));
-		}
-		catch (org.apache.thrift.TException te) {
-			throw new java.io.IOException(te);
-		}
+	public void write(org.apache.thrift.protocol.TProtocol oprot)
+			throws org.apache.thrift.TException {
+		schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
 	}
 
 	private void readObject(java.io.ObjectInputStream in)
@@ -419,9 +335,86 @@ public class TObject implements
 		}
 	}
 
-	private static class TObjectStandardSchemeFactory implements SchemeFactory {
-		public TObjectStandardScheme getScheme() {
-			return new TObjectStandardScheme();
+	private void writeObject(java.io.ObjectOutputStream out)
+			throws java.io.IOException {
+		try {
+			write(new org.apache.thrift.protocol.TCompactProtocol(
+					new org.apache.thrift.transport.TIOStreamTransport(out)));
+		}
+		catch (org.apache.thrift.TException te) {
+			throw new java.io.IOException(te);
+		}
+	}
+
+	/**
+	 * The set of fields this struct contains, along with convenience methods
+	 * for finding and manipulating them.
+	 */
+	public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+		DATA((short) 1, "data"),
+		/**
+		 * 
+		 * @see Type
+		 */
+		TYPE((short) 2, "type");
+
+		/**
+		 * Find the _Fields constant that matches name, or null if its not
+		 * found.
+		 */
+		public static _Fields findByName(String name) {
+			return byName.get(name);
+		}
+
+		/**
+		 * Find the _Fields constant that matches fieldId, or null if its not
+		 * found.
+		 */
+		public static _Fields findByThriftId(int fieldId) {
+			switch (fieldId) {
+			case 1: // DATA
+				return DATA;
+			case 2: // TYPE
+				return TYPE;
+			default:
+				return null;
+			}
+		}
+
+		/**
+		 * Find the _Fields constant that matches fieldId, throwing an exception
+		 * if it is not found.
+		 */
+		public static _Fields findByThriftIdOrThrow(int fieldId) {
+			_Fields fields = findByThriftId(fieldId);
+			if(fields == null)
+				throw new IllegalArgumentException("Field " + fieldId
+						+ " doesn't exist!");
+			return fields;
+		}
+
+		private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+		static {
+			for (_Fields field : EnumSet.allOf(_Fields.class)) {
+				byName.put(field.getFieldName(), field);
+			}
+		}
+
+		private final short _thriftId;
+		private final String _fieldName;
+
+		_Fields(short thriftId, String fieldName) {
+			_thriftId = thriftId;
+			_fieldName = fieldName;
+		}
+
+		public String getFieldName() {
+			return _fieldName;
+		}
+
+		public short getThriftFieldId() {
+			return _thriftId;
 		}
 	}
 
@@ -491,21 +484,13 @@ public class TObject implements
 
 	}
 
-	private static class TObjectTupleSchemeFactory implements SchemeFactory {
-		public TObjectTupleScheme getScheme() {
-			return new TObjectTupleScheme();
+	private static class TObjectStandardSchemeFactory implements SchemeFactory {
+		public TObjectStandardScheme getScheme() {
+			return new TObjectStandardScheme();
 		}
 	}
 
 	private static class TObjectTupleScheme extends TupleScheme<TObject> {
-
-		@Override
-		public void write(org.apache.thrift.protocol.TProtocol prot,
-				TObject struct) throws org.apache.thrift.TException {
-			TTupleProtocol oprot = (TTupleProtocol) prot;
-			oprot.writeBinary(struct.data);
-			oprot.writeI32(struct.type.getValue());
-		}
 
 		@Override
 		public void read(org.apache.thrift.protocol.TProtocol prot,
@@ -515,6 +500,20 @@ public class TObject implements
 			struct.setDataIsSet(true);
 			struct.type = Type.findByValue(iprot.readI32());
 			struct.setTypeIsSet(true);
+		}
+
+		@Override
+		public void write(org.apache.thrift.protocol.TProtocol prot,
+				TObject struct) throws org.apache.thrift.TException {
+			TTupleProtocol oprot = (TTupleProtocol) prot;
+			oprot.writeBinary(struct.data);
+			oprot.writeI32(struct.type.getValue());
+		}
+	}
+
+	private static class TObjectTupleSchemeFactory implements SchemeFactory {
+		public TObjectTupleScheme getScheme() {
+			return new TObjectTupleScheme();
 		}
 	}
 
