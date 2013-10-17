@@ -79,7 +79,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * Master byte sequence that represents this object. Read-only duplicates
 	 * are made when returning from {@link #getBytes()}.
 	 */
-	private final transient ByteBuffer bytes;
+	private transient ByteBuffer bytes = null;
 
 	/**
 	 * Construct an instance that wraps the {@code text} string.
@@ -87,7 +87,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @param text
 	 */
 	private Text(String text) {
-		this(text, ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8)));
+		this(text, null);
 	}
 
 	/**
@@ -117,6 +117,9 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public ByteBuffer getBytes() {
+		if(bytes == null){
+			bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 

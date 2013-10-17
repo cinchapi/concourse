@@ -126,13 +126,15 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * A cached copy of the binary representation that is returned from
 	 * {@link #getBytes()}.
 	 */
+	@Nullable
 	private transient ByteBuffer bytes = null;
 
 	/**
 	 * The java representation of the underlying {@link #data}. This
 	 * representation is used when interacting with other components in the JVM.
 	 */
-	private final transient Object object;
+	@Nullable
+	private transient Object object = null;
 
 	/**
 	 * Construct a new instance.
@@ -151,7 +153,6 @@ public final class Value implements Byteable, Comparable<Value> {
 	 */
 	private Value(TObject data, @Nullable ByteBuffer bytes) {
 		this.data = data;
-		this.object = Convert.thriftToJava(data);
 		this.bytes = bytes;
 	}
 
@@ -194,6 +195,9 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * @return the object representation
 	 */
 	public Object getObject() {
+		if(object == null){
+			object = Convert.thriftToJava(data);
+		}
 		return object;
 	}
 
