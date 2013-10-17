@@ -25,22 +25,16 @@ package org.cinchapi.concourse.server.storage;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.storage.Stores.*;
 
 /**
  * A {@link BufferedStore} holds data in a {@link ProxyStore} buffer before
@@ -60,8 +54,6 @@ import static org.cinchapi.concourse.server.storage.Stores.*;
 @PackagePrivate
 @ThreadSafe
 abstract class BufferedStore implements WritableStore, VersionControlStore {
-
-	private static final String threadNamePrefix = "BufferedStore";
 
 	/**
 	 * The {@code buffer} is the place where data is initially stored. The
@@ -119,206 +111,114 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Map<Long, String>> bufferResult = executor
-					.submit(invokeAuditCallable(buffer, record));
-			Future<Map<Long, String>> storeResult = executor
-					.submit(invokeAuditCallable(destination, record));
-			Map<Long, String> result = storeResult.get();
-			result.putAll(bufferResult.get());
+			Map<Long, String> result = buffer.audit(record);
+			result.putAll(destination.audit(record));
 			return result;
 
 		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
-		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Map<Long, String>> bufferResult = executor
-					.submit(invokeAuditCallable(buffer, key, record));
-			Future<Map<Long, String>> storeResult = executor
-					.submit(invokeAuditCallable(destination, key, record));
-			Map<Long, String> result = storeResult.get();
-			result.putAll(bufferResult.get());
+			Map<Long, String> result = buffer.audit(key, record);
+			result.putAll(destination.audit(key, record));
 			return result;
-
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<String>> bufferResult = executor
-					.submit(invokeDescribeCallable(buffer, record));
-			Future<Set<String>> storeResult = executor
-					.submit(invokeDescribeCallable(destination, record));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(buffer.describe(record),
+					destination.describe(record));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<String>> bufferResult = executor
-					.submit(invokeDescribeCallable(buffer, record, timestamp));
-			Future<Set<String>> storeResult = executor
-					.submit(invokeDescribeCallable(destination, record,
-							timestamp));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(buffer.describe(record, timestamp),
+					destination.describe(record, timestamp));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<TObject>> bufferResult = executor
-					.submit(invokeFetchCallable(buffer, key, record));
-			Future<Set<TObject>> storeResult = executor
-					.submit(invokeFetchCallable(destination, key, record));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(buffer.fetch(key, record),
+					destination.fetch(key, record));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<TObject>> bufferResult = executor
-					.submit(invokeFetchCallable(buffer, key, record, timestamp));
-			Future<Set<TObject>> storeResult = executor
-					.submit(invokeFetchCallable(destination, key, record,
-							timestamp));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(
+					buffer.fetch(key, record, timestamp),
+					destination.fetch(key, record, timestamp));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<Long>> bufferResult = executor
-					.submit(invokeFindCallable(buffer, timestamp, key,
-							operator, values));
-			Future<Set<Long>> storeResult = executor.submit(invokeFindCallable(
-					destination, timestamp, key, operator, values));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(
+					buffer.find(timestamp, key, operator, values),
+					destination.find(timestamp, key, operator, values));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		masterLock.readLock().lock();
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		try {
-			Future<Set<Long>> bufferResult = executor
-					.submit(invokeFindCallable(buffer, key, operator, values));
-			Future<Set<Long>> storeResult = executor.submit(invokeFindCallable(
-					destination, key, operator, values));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(buffer.find(key, operator, values),
+					destination.find(key, operator, values));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean ping(long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Boolean> bufferResult = executor.submit(invokePingCallable(
-					buffer, record));
-			Future<Boolean> storeResult = executor.submit(invokePingCallable(
-					destination, record));
-			return storeResult.get() ^ bufferResult.get();
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return buffer.ping(record) ^ destination.ping(record);
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
@@ -364,66 +264,37 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Set<Long>> bufferResult = executor
-					.submit(invokeSearchCallable(buffer, key, query));
-			Future<Set<Long>> storeResult = executor
-					.submit(invokeSearchCallable(destination, key, query));
-			return Sets.symmetricDifference(storeResult.get(),
-					bufferResult.get());
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return Sets.symmetricDifference(buffer.search(key, query),
+					destination.search(key, query));
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Boolean> bufferResult = executor
-					.submit(invokeVerifyCallable(buffer, key, value, record));
-			Future<Boolean> storeResult = executor.submit(invokeVerifyCallable(
-					destination, key, value, record));
-			return storeResult.get() ^ bufferResult.get();
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return buffer.verify(key, value, record)
+					^ destination.verify(key, value, record);
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		ExecutorService executor = ConcourseExecutors.newThreadPool(2,
-				threadNamePrefix);
 		masterLock.readLock().lock();
 		try {
-			Future<Boolean> bufferResult = executor
-					.submit(invokeVerifyCallable(buffer, key, value, record,
-							timestamp));
-			Future<Boolean> storeResult = executor.submit(invokeVerifyCallable(
-					destination, key, value, record, timestamp));
-			return storeResult.get() ^ bufferResult.get();
-		}
-		catch (InterruptedException | ExecutionException e) {
-			throw Throwables.propagate(e);
+			return buffer.verify(key, value, record, timestamp)
+					^ destination.verify(key, value, record, timestamp);
 		}
 		finally {
 			masterLock.readLock().unlock();
-			executor.shutdown();
 		}
 	}
 
