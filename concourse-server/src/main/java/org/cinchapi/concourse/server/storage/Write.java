@@ -303,7 +303,7 @@ public final class Write implements Byteable, Versioned {
 	 * 
 	 * @author jnelson
 	 */
-	private enum Type {
+	public enum Type {
 		ADD, REMOVE, NOT_STORABLE
 	}
 
