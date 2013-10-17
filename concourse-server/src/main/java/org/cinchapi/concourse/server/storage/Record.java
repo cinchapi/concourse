@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,8 +42,6 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.util.Numbers;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -128,7 +127,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 			Value value) {
 		return new SecondaryRecord(key, value);
 	}
-	
+
 	/**
 	 * Lock used to ensure the object is ThreadSafe. This lock provides access
 	 * to a masterLock.readLock()() and masterLock.writeLock()().
@@ -189,7 +188,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * static constant) that is mocked in the constructor because it has a
 	 * generic type argument.
 	 */
-	private final Set<V> emptyValues;
+	private final Set<V> emptyValues = new EmptyValueSet();
 
 	/**
 	 * Construct a new instance.
@@ -201,14 +200,6 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 		this.locator = locator;
 		this.key = key;
 		this.partial = key == null ? false : true;
-		this.emptyValues = Mockito.mock(Set.class);
-		Mockito.doReturn(false).when(emptyValues).add((V) Matchers.anyObject());
-		Mockito.doReturn(false).when(emptyValues)
-				.remove((V) Matchers.anyObject());
-		Mockito.doReturn(false).when(emptyValues)
-				.contains((V) Matchers.anyObject());
-		Mockito.doReturn(Collections.<V> emptyListIterator()).when(emptyValues)
-				.iterator();
 	}
 
 	/**
@@ -382,6 +373,81 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 			counts.put(revision, count);
 		}
 		return count;
+	}
+
+	/**
+	 * An empty Set of type V that cannot be modified, but won't throw
+	 * exceptions. This returned in instances when a key does not map to any
+	 * values so that the caller can interact with the Set normally without
+	 * performing validity checks and while preserving data consistency.
+	 * 
+	 * @author jnelson
+	 */
+	private final class EmptyValueSet implements Set<V> {
+
+		@Override
+		public boolean add(V e) {
+			return false;
+		}
+
+		@Override
+		public boolean addAll(Collection<? extends V> c) {
+			return false;
+		}
+
+		@Override
+		public void clear() {}
+
+		@Override
+		public boolean contains(Object o) {
+			return false;
+		}
+
+		@Override
+		public boolean containsAll(Collection<?> c) {
+			return false;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return true;
+		}
+
+		@Override
+		public Iterator<V> iterator() {
+			return Collections.emptyIterator();
+		}
+
+		@Override
+		public boolean remove(Object o) {
+			return false;
+		}
+
+		@Override
+		public boolean removeAll(Collection<?> c) {
+			return false;
+		}
+
+		@Override
+		public boolean retainAll(Collection<?> c) {
+			return false;
+		}
+
+		@Override
+		public int size() {
+			return 0;
+		}
+
+		@Override
+		public Object[] toArray() {
+			return null;
+		}
+
+		@Override
+		public <T> T[] toArray(T[] a) {
+			return null;
+		}
+
 	}
 
 }
