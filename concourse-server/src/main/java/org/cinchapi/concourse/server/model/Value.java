@@ -222,7 +222,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
 	@Override
 	public int hashCode() {
-		return object.hashCode();
+		return getObject().hashCode();
 	}
 
 	@Override
@@ -232,7 +232,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
 	@Override
 	public String toString() {
-		return object.toString();
+		return getObject().toString();
 	}
 
 	/**

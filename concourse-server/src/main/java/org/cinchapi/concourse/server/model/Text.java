@@ -130,7 +130,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public int size() {
-		return bytes.capacity();
+		return getBytes().capacity();
 	}
 
 	@Override
