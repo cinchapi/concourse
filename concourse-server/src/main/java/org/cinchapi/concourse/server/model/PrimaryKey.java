@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -49,7 +48,8 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
 	 * adhere to the format specified by the {@link #getBytes()} method. This
 	 * method assumes that all the bytes in the {@code bytes} belong to the
-	 * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey slice
+	 * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey
+	 * slice
 	 * from the parent ByteBuffer using
 	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
@@ -58,12 +58,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 */
 	public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
 		long data = bytes.getLong();
-		PrimaryKey primaryKey = CACHE.get(data);
-		if(primaryKey == null) {
-			primaryKey = new PrimaryKey(data, bytes);
-			CACHE.put(primaryKey, data);
-		}
-		return primaryKey;
+		return new PrimaryKey(data, bytes);
 	}
 
 	/**
@@ -73,23 +68,13 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	 * @return the PrimaryKey
 	 */
 	public static PrimaryKey wrap(long data) {
-		PrimaryKey primaryKey = CACHE.get(data);
-		if(primaryKey == null) {
-			primaryKey = new PrimaryKey(data);
-			CACHE.put(primaryKey, data);
-		}
-		return primaryKey;
+		return new PrimaryKey(data);
 	}
 
 	/**
 	 * The total number of bytes used to encode a PrimaryKey.
 	 */
 	public static final int SIZE = 8;
-
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<PrimaryKey> CACHE = new ReferenceCache<PrimaryKey>();
 
 	/**
 	 * The underlying data that represents this PrimaryKey.
@@ -110,13 +95,14 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 	private PrimaryKey(long data) {
 		this(data, null);
 	}
-	
+
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param data
 	 * @param bytes
 	 */
-	private PrimaryKey(long data, @Nullable ByteBuffer bytes){
+	private PrimaryKey(long data, @Nullable ByteBuffer bytes) {
 		this.data = data;
 		this.bytes = bytes;
 	}

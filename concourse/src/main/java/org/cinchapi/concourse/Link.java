@@ -25,8 +25,6 @@ package org.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.cache.ReferenceCache;
-
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
@@ -49,19 +47,9 @@ public final class Link extends Number implements Comparable<Link> {
 	 * @return the Link
 	 */
 	public static Link to(long record) {
-		Link link = CACHE.get(record);
-		if(link == null) {
-			link = new Link(record);
-			CACHE.put(link, record);
-		}
-		return link;
+		return new Link(record);
 	}
 
-	/**
-	 * Since Links are unique, we use a cache to ensure that we don't
-	 * create duplicate objects in memory;
-	 */
-	private static final ReferenceCache<Link> CACHE = new ReferenceCache<Link>();
 	private static final long serialVersionUID = 1L; // Serializability is
 														// inherited from {@link
 														// Number}.

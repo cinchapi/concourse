@@ -29,7 +29,6 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
@@ -75,12 +74,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	public static Value fromByteBuffer(ByteBuffer bytes) {
 		Type type = Type.values()[bytes.get()];
 		TObject data = extractTObjectAndCache(bytes, type);
-		Object[] cacheKey = getCacheKey(data);
-		Value value = VALUE_CACHE.get(cacheKey);
-		if(value == null) {
-			value = new Value(data, bytes);
-		}
-		return value;
+		return new Value(data, bytes);
 	}
 
 	/**
@@ -90,28 +84,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * @return the Value
 	 */
 	public static Value wrap(TObject data) {
-		Object[] cacheKey = getCacheKey(data);
-		Value value = VALUE_CACHE.get(cacheKey);
-		if(value == null) {
-			value = new Value(data);
-		}
-		return value;
-	}
-
-	/**
-	 * Return the Java object represented by {@code data}.
-	 * 
-	 * @param data
-	 * @return the Object
-	 */
-	private static Object extractObjectAndCache(TObject data) {
-		Object[] cacheKey = getCacheKey(data);
-		Object object = OBJECT_CACHE.get(cacheKey);
-		if(object == null) {
-			object = Convert.thriftToJava(data);
-			OBJECT_CACHE.put(object, cacheKey);
-		}
-		return object;
+		return new Value(data);
 	}
 
 	/**
@@ -124,56 +97,23 @@ public final class Value implements Byteable, Comparable<Value> {
 	 * @return the TObject
 	 */
 	private static TObject extractTObjectAndCache(ByteBuffer bytes, Type type) {
-		Object[] cacheKey = { ByteBuffers.encodeAsHexString(bytes), type };
-		TObject data = TOBJECT_CACHE.get(cacheKey);
-		if(data == null) {
-			// Must allocate a heap buffer because TObject assumes it has a
-			// backing array and because of THRIFT-2104 that buffer must wrap a
-			// byte array in order to assume that the TObject does not lose data
-			// when transferred over the wire.
-			byte[] array = new byte[bytes.remaining()];
-			bytes.get(array); // We CANNOT simply slice {@code buffer} and use
-								// the slice's backing array because the backing
-								// array of the slice is the same as the
-								// original, which contains more data than we
-								// need for the quantity
-			data = new TObject(ByteBuffer.wrap(array), type);
-			TOBJECT_CACHE.put(data, cacheKey);
-		}
-		return data;
-	}
-
-	/**
-	 * Return the cache key that corresponds to {@code data}.
-	 * 
-	 * @param data
-	 * @return the cacheKey
-	 */
-	private static Object[] getCacheKey(TObject data) {
-		return new Object[] {
-				ByteBuffers.encodeAsHexString(data.bufferForData()),
-				data.getType() };
+		// Must allocate a heap buffer because TObject assumes it has a
+		// backing array and because of THRIFT-2104 that buffer must wrap a
+		// byte array in order to assume that the TObject does not lose data
+		// when transferred over the wire.
+		byte[] array = new byte[bytes.remaining()];
+		bytes.get(array); // We CANNOT simply slice {@code buffer} and use
+							// the slice's backing array because the backing
+							// array of the slice is the same as the
+							// original, which contains more data than we
+							// need for the quantity
+		return new TObject(ByteBuffer.wrap(array), type);
 	}
 
 	/**
 	 * The minimum number of bytes needed to encode every Value.
 	 */
 	private static final int CONSTANT_SIZE = 1; // type(1)
-
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<Object> OBJECT_CACHE = new ReferenceCache<Object>();
-
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<TObject> TOBJECT_CACHE = new ReferenceCache<TObject>();
-
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<Value> VALUE_CACHE = new ReferenceCache<Value>();
 
 	/**
 	 * The underlying data represented by this Value. This representation is
@@ -202,15 +142,16 @@ public final class Value implements Byteable, Comparable<Value> {
 	private Value(TObject data) {
 		this(data, null);
 	}
-	
+
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param data
 	 * @param bytes
 	 */
-	private Value(TObject data, @Nullable ByteBuffer bytes){
+	private Value(TObject data, @Nullable ByteBuffer bytes) {
 		this.data = data;
-		this.object = extractObjectAndCache(data);
+		this.object = Convert.thriftToJava(data);
 		this.bytes = bytes;
 	}
 

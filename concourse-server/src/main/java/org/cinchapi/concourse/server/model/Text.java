@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -52,14 +51,8 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @return the Text
 	 */
 	public static Text fromByteBuffer(ByteBuffer bytes) {
-		String string = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
-		Text text = CACHE.get(string);
-		if(text == null) {
-			text = new Text(string, bytes);
-			CACHE.put(text, string);
-		}
-		return text;
-
+		return new Text(ByteBuffers.getString(bytes, StandardCharsets.UTF_8),
+				bytes);
 	}
 
 	/**
@@ -69,19 +62,9 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @return the Text
 	 */
 	public static Text wrap(String string) {
-		Text text = CACHE.get(string);
-		if(text == null) {
-			text = new Text(string);
-			CACHE.put(text, string);
-		}
-		return text;
+		return new Text(string);
 	}
-	
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<Text> CACHE = new ReferenceCache<Text>();
-	
+
 	/**
 	 * Represents an empty text string.
 	 */
@@ -106,13 +89,14 @@ public final class Text implements Byteable, Comparable<Text> {
 	private Text(String text) {
 		this(text, ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8)));
 	}
-	
+
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param text
 	 * @param bytes
 	 */
-	private Text(String text, @Nullable ByteBuffer bytes){
+	private Text(String text, @Nullable ByteBuffer bytes) {
 		this.text = text;
 		this.bytes = bytes;
 	}

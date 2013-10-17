@@ -29,7 +29,6 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -60,13 +59,7 @@ public final class Position implements Byteable, Comparable<Position> {
 		PrimaryKey primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(
 				bytes, PrimaryKey.SIZE));
 		int index = bytes.getInt();
-		Object[] cacheKey = { primaryKey, index };
-		Position position = CACHE.get(cacheKey);
-		if(position == null) {
-			position = new Position(primaryKey, index);
-			CACHE.put(position, cacheKey, bytes);
-		}
-		return position;
+		return new Position(primaryKey, index);
 	}
 
 	/**
@@ -77,24 +70,13 @@ public final class Position implements Byteable, Comparable<Position> {
 	 * @return the Position
 	 */
 	public static Position wrap(PrimaryKey primaryKey, int index) {
-		Object[] cacheKey = { primaryKey, index };
-		Position position = CACHE.get(cacheKey);
-		if(position == null) {
-			position = new Position(primaryKey, index);
-			CACHE.put(position, cacheKey);
-		}
-		return position;
+		return new Position(primaryKey, index);
 	}
 
 	/**
 	 * The total number of bytes used to store each Position
 	 */
 	public static final int SIZE = PrimaryKey.SIZE + 4; // index
-
-	/**
-	 * Cache to store references that have already been loaded in the JVM.
-	 */
-	private static final ReferenceCache<Position> CACHE = new ReferenceCache<Position>();
 
 	/**
 	 * The PrimaryKey of the record that this Position represents.
@@ -131,7 +113,8 @@ public final class Position implements Byteable, Comparable<Position> {
 	 */
 	private Position(PrimaryKey primaryKey, int index,
 			@Nullable ByteBuffer bytes) {
-		Preconditions.checkArgument(index >= 0, "Cannot have an negative index");
+		Preconditions
+				.checkArgument(index >= 0, "Cannot have an negative index");
 		this.primaryKey = primaryKey;
 		this.index = index;
 		this.bytes = bytes;
@@ -180,10 +163,11 @@ public final class Position implements Byteable, Comparable<Position> {
 			bytes.putInt(index);
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}	
+	}
 
 	/**
 	 * Return the associated {@code index}.
+	 * 
 	 * @return the index
 	 */
 	public int getIndex() {
@@ -192,6 +176,7 @@ public final class Position implements Byteable, Comparable<Position> {
 
 	/**
 	 * Return the associated {@code primaryKey}.
+	 * 
 	 * @return the primaryKey
 	 */
 	public PrimaryKey getPrimaryKey() {

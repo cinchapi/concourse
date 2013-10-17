@@ -37,7 +37,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 /**
  * The association between a location and a {@link PrimaryKey}.
  * <p>
- * A Position is used in a {@link SearchIndex} to specify the precise location
+ * A Position is used in a {@link SearchRecord} to specify the precise location
  * of a term in a Record.
  * </p>
  * 
