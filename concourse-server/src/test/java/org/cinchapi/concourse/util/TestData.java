@@ -27,10 +27,10 @@ import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.PrimaryRevision;
 import org.cinchapi.concourse.server.storage.Revision;
-import org.cinchapi.concourse.server.storage.Revision.PrimaryRevision;
-import org.cinchapi.concourse.server.storage.Revision.SearchRevision;
-import org.cinchapi.concourse.server.storage.Revision.SecondaryRevision;
+import org.cinchapi.concourse.server.storage.SearchRevision;
+import org.cinchapi.concourse.server.storage.SecondaryRevision;
 import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -41,6 +41,8 @@ import org.cinchapi.concourse.time.Time;
  * @author jnelson
  */
 public final class TestData extends Random {
+	
+	public static final String DATA_DIR = "test.out/buffer";
 	
 	public static PrimaryRevision getPrimaryRevision(){
 		return Revision.createPrimaryRevision(getPrimaryKey(), getText(), getValue(), Time.now());

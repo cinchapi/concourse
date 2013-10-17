@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -42,6 +43,8 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
@@ -52,6 +55,8 @@ import com.google.common.collect.Sets;
  */
 @RunWith(Theories.class)
 public abstract class StoreTest {
+	
+	public final Logger log = LoggerFactory.getLogger(getClass());
 
 	@DataPoints
 	public static Operator[] operators = { Operator.EQUALS,
@@ -77,6 +82,13 @@ public abstract class StoreTest {
 		protected void starting(Description desc) {
 			store = getStore();
 			store.start();
+		}
+		
+		@Override
+		public void failed(Throwable t, Description desc){
+			log.error("TEST FAILURE in {}", desc.getMethodName());
+			log.error("",t);
+			log.error(ReflectionToStringBuilder.toString(StoreTest.this));
 		}
 
 	};
