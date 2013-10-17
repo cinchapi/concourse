@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.cache.ReferenceCache;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
@@ -47,13 +46,7 @@ public final class ByteableComposite implements Byteable {
 	 * @return the ByteableComposite
 	 */
 	public static ByteableComposite create(Byteable... byteables) {
-		ByteableComposite composite = CACHE.get((Object[]) byteables);
-		if(composite == null) {
-			composite = new ByteableComposite(byteables);
-			CACHE.put(composite, (Object[]) byteables);
-		}
-		return composite;
-
+		return new ByteableComposite(byteables);
 	}
 
 	/**
@@ -71,7 +64,6 @@ public final class ByteableComposite implements Byteable {
 		return Byteables.read(bytes, ByteableComposite.class);
 	}
 
-	private static final ReferenceCache<ByteableComposite> CACHE = new ReferenceCache<ByteableComposite>();
 	private final ByteBuffer bytes;
 
 	/**
