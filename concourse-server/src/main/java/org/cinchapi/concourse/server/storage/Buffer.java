@@ -364,12 +364,13 @@ final class Buffer extends Limbo {
 		masterLock.readLock().lock();
 		transportLock.readLock().lock();
 		try {
+			int count = 0;
 			for (Page page : pages) {
 				if(page.mightContain(write)) {
-					return super.verify(write, timestamp);
+					count += page.count(write, timestamp);
 				}
 			}
-			return false;
+			return count % 2 != 0;
 		}
 		finally {
 			masterLock.readLock().unlock();
@@ -522,6 +523,35 @@ final class Buffer extends Limbo {
 			}
 			else {
 				throw new BufferCapacityException();
+			}
+		}
+
+		/**
+		 * Count the number of times that {@code write} appears on the Page
+		 * before {@code timestamp}.
+		 * 
+		 * @param write
+		 * @param timestamp
+		 * @return the count
+		 */
+		public int count(Write write, long timestamp) {
+			masterLock.readLock().lock();
+			try {
+				Iterator<Write> it = iterator();
+				int count = 0;
+				while (it.hasNext()) {
+					Write current = it.next();
+					if(timestamp >= current.getVersion()) {
+						count += write.equals(current) ? 1 : 0;
+					}
+					else {
+						break;
+					}
+				}
+				return count;
+			}
+			finally {
+				masterLock.readLock().unlock();
 			}
 		}
 

@@ -225,8 +225,10 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
-				.verify(Text.wrap(key), Value.wrap(value));
+		Text key0 = Text.wrap(key);
+		Value value0 = Value.wrap(value);
+		PrimaryKey record0 = PrimaryKey.wrap(record);
+		return getPrimaryRecord(record0, key0).verify(key0, value0);
 	}
 
 	@Override
