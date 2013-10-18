@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.cinchapi.concourse.config.ConcourseConfiguration;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Loggers;
 import org.slf4j.Logger;

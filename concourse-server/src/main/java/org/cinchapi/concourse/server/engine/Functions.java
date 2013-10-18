@@ -24,9 +24,9 @@
 package org.cinchapi.concourse.server.engine;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Value;
 import org.cinchapi.concourse.thrift.TObject;
 
 import com.google.common.base.Function;

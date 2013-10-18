@@ -34,10 +34,10 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.model.Position;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.legacy.Position;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Value;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Strings;
@@ -98,7 +98,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 		Lock lock = writeLock();
 		try{
 			if(value.getType() == Type.STRING) {
-				Text text = Text.fromString((String) Convert.thriftToJava(value
+				Text text = Text.wrap((String) Convert.thriftToJava(value
 						.getQuantity()));
 				String[] toks = text.toString().split(" ");
 				ExecutorService executor = ConcourseExecutors
@@ -138,7 +138,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 		Lock lock = writeLock();
 		try{
 			if(value.getType() == Type.STRING) {
-				Text text = Text.fromString((String) Convert.thriftToJava(value
+				Text text = Text.wrap((String) Convert.thriftToJava(value
 						.getQuantity()));
 				String[] toks = text.toString().split(" ");
 				ExecutorService executor = ConcourseExecutors
@@ -176,7 +176,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 				if(STOPWORDS.contains(tok)) {
 					continue;
 				}
-				Set<Position> positions = get(Text.fromString(tok));
+				Set<Position> positions = get(Text.wrap(tok));
 				for (Position position : positions) {
 					PrimaryKey key = position.getPrimaryKey();
 					int pos = position.getIndex();
@@ -266,7 +266,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 			for (int i = 0; i < word.length(); i++) {
 				for (int j = (i + MIN_SEARCH_INDEX_SIZE - 1); j < word
 						.length() + 1; j++) {
-					Text index = Text.fromString(word.substring(i, j));
+					Text index = Text.wrap(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
 						removeIndex(index,
 								Position.fromPrimaryKeyAndIndex(key, position));
@@ -308,7 +308,7 @@ class SearchIndex extends Record<Text, Text, Position> {
 			for (int i = 0; i < word.length(); i++) {
 				for (int j = i + (MIN_SEARCH_INDEX_SIZE - 1); j < word
 						.length() + 1; j++) {
-					Text index = Text.fromString(word.substring(i, j));
+					Text index = Text.wrap(word.substring(i, j));
 					if(!Strings.isNullOrEmpty(index.toString())) {
 						try {
 							addIndex(index, Position.fromPrimaryKeyAndIndex(

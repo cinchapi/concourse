@@ -32,10 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
-
 import com.google.common.collect.Lists;
 
 /**
@@ -52,7 +48,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public class ByteBufferOutputStream extends OutputStream implements Lockable {
+public class ByteBufferOutputStream extends OutputStream {
 
 	/**
 	 * We use an ArrayList to model a dynamically growing byte buffer output
@@ -85,24 +81,13 @@ public class ByteBufferOutputStream extends OutputStream implements Lockable {
 	@Override
 	public void close() {}
 
-	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
-
 	/**
 	 * Return the current size of the stream
 	 * 
 	 * @return the number of valid bytes in the stream
 	 */
 	public int size() {
-		Lock lock = readLock();
-		try {
-			return stream.size();
-		}
-		finally {
-			lock.release();
-		}
+		return stream.size();
 	}
 
 	/**
@@ -155,14 +140,7 @@ public class ByteBufferOutputStream extends OutputStream implements Lockable {
 	 * @param value
 	 */
 	public void write(byte value) {
-		Lock lock = writeLock();
-		try {
-			stream.add(value);
-		}
-		finally {
-			lock.release();
-		}
-
+		stream.add(value);
 	}
 
 	@Override
@@ -326,11 +304,6 @@ public class ByteBufferOutputStream extends OutputStream implements Lockable {
 		write(ByteableCollections.toByteBuffer(value, sizePerElement));
 	}
 
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
-	}
-
 	/**
 	 * Write the contents of the stream to {@code buffer}.
 	 * 
@@ -338,17 +311,11 @@ public class ByteBufferOutputStream extends OutputStream implements Lockable {
 	 * @return {@code buffer}
 	 */
 	private ByteBuffer toByteBuffer(ByteBuffer buffer) {
-		Lock lock = readLock();
-		try {
-			for (byte b : stream) {
-				buffer.put(b);
-			}
-			buffer.rewind();
-			return buffer;
+		for (byte b : stream) {
+			buffer.put(b);
 		}
-		finally {
-			lock.release();
-		}
+		buffer.rewind();
+		return buffer;
 	}
 
 }

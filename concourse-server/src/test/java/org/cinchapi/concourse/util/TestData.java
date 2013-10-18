@@ -23,12 +23,20 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.File;
+
 import org.cinchapi.concourse.server.model.Position;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.BlockIndex;
+import org.cinchapi.concourse.server.storage.PrimaryRevision;
+import org.cinchapi.concourse.server.storage.Revision;
+import org.cinchapi.concourse.server.storage.SearchRevision;
+import org.cinchapi.concourse.server.storage.SecondaryRevision;
+import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 
 /**
  * A utility class for getting test data.
@@ -37,14 +45,36 @@ import org.cinchapi.concourse.thrift.TObject;
  */
 public final class TestData extends Random {
 
+	public static final String DATA_DIR = "test.out/buffer";
+
+	public static PrimaryRevision getPrimaryRevision() {
+		return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+				getValue(), Time.now());
+	}
+
+	public static SearchRevision getSearchRevision() {
+		return Revision.createSearchRevision(getText(), getText(),
+				getPosition(), Time.now());
+	}
+
+	public static SecondaryRevision getSecondaryRevision() {
+		return Revision.createSecondaryRevision(getText(), getValue(),
+				getPrimaryKey(), Time.now());
+	}
+
 	/**
 	 * Return a random {@link Position}.
 	 * 
 	 * @return a Position
 	 */
 	public static Position getPosition() {
-		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
-				Math.abs(getInt()));
+		return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
+	}
+
+	public static org.cinchapi.concourse.server.model.legacy.Position getPositionLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Position
+				.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
+						Math.abs(getInt()));
 	}
 
 	/**
@@ -52,8 +82,10 @@ public final class TestData extends Random {
 	 * 
 	 * @return a PrimaryKey
 	 */
-	public static PrimaryKey getPrimaryKeyForStorage() {
-		return PrimaryKey.forStorage(getLong());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.PrimaryKey getPrimaryKeyForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.PrimaryKey
+				.forStorage(getLong());
 	}
 
 	/**
@@ -61,8 +93,14 @@ public final class TestData extends Random {
 	 * 
 	 * @return a PrimaryKey
 	 */
-	public static PrimaryKey getPrimaryKeyNotForStorage() {
-		return PrimaryKey.notForStorage(getLong());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.PrimaryKey getPrimaryKeyNotForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.PrimaryKey
+				.notForStorage(getLong());
+	}
+
+	public static PrimaryKey getPrimaryKey() {
+		return PrimaryKey.wrap(getLong());
 	}
 
 	/**
@@ -71,7 +109,7 @@ public final class TestData extends Random {
 	 * @return a Text
 	 */
 	public static Text getText() {
-		return Text.fromString(getString());
+		return Text.wrap(getString());
 	}
 
 	/**
@@ -83,13 +121,19 @@ public final class TestData extends Random {
 		return Convert.javaToThrift(getObject());
 	}
 
+	public static Value getValue() {
+		return Value.wrap(getTObject());
+	}
+
 	/**
 	 * Get a random forStorage {@link Value}.
 	 * 
 	 * @return a Value
 	 */
-	public static Value getValueForStorage() {
-		return Value.forStorage(getTObject());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.Value getValueForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.Value
+				.forStorage(getTObject());
 	}
 
 	/**
@@ -97,8 +141,22 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Value
 	 */
-	public static Value getValueNotForStorage() {
-		return Value.notForStorage(getTObject());
+	@Deprecated
+	public static org.cinchapi.concourse.server.model.legacy.Value getValueNotForStorage() {
+		return org.cinchapi.concourse.server.model.legacy.Value
+				.notForStorage(getTObject());
+	}
+
+	public static Write getWriteAdd() {
+		return Write.add(getString(), getTObject(), getLong());
+	}
+
+	public static Write getWriteRemove() {
+		return Write.remove(getString(), getTObject(), getLong());
+	}
+
+	public static Write getWriteNotStorable() {
+		return Write.notStorable(getString(), getTObject(), getLong());
 	}
 
 	/**
@@ -106,8 +164,9 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteAdd() {
-		return Write.add(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteAddLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.add(
+				getString(), getTObject(), getLong());
 	}
 
 	/**
@@ -115,8 +174,9 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteNotForStorage() {
-		return Write.notForStorage(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteNotForStorageLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.notForStorage(
+				getString(), getTObject(), getLong());
 	}
 
 	/**
@@ -124,8 +184,9 @@ public final class TestData extends Random {
 	 * 
 	 * @return a Write
 	 */
-	public static Write getWriteRemove() {
-		return Write.add(getString(), getTObject(), getLong());
+	public static org.cinchapi.concourse.server.model.legacy.Write getWriteRemoveLegacy() {
+		return org.cinchapi.concourse.server.model.legacy.Write.add(
+				getString(), getTObject(), getLong());
 	}
 
 	private TestData() {/* Utility class */}

@@ -30,6 +30,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 /**
@@ -56,6 +57,7 @@ public abstract class ByteBuffers {
 											// when making duplicates:
 											// http://blog.mustardgrain.com/2008/04/04/bytebufferduplicate-does-not-preserve-byte-order/
 		source.position(position);
+		duplicate.rewind();
 		return duplicate;
 	}
 
@@ -110,6 +112,24 @@ public abstract class ByteBuffers {
 	 */
 	public static boolean getBoolean(ByteBuffer buffer) {
 		return buffer.get() > 0 ? true : false;
+	}
+
+	/**
+	 * Return a ByteBuffer that has a copy of {@code length} bytes from
+	 * {@code buffer} starting from the current position. This method will
+	 * advance the position of the source buffer.
+	 * 
+	 * @param buffer
+	 * @param bytes
+	 * @return a ByteBuffer that has {@code length} bytes from {@code buffer}
+	 */
+	public static ByteBuffer get(ByteBuffer buffer, int length) {
+		Preconditions
+				.checkArgument(buffer.remaining() >= length,
+						"The number of bytes remaining in the buffer cannot be less than length");
+		byte[] backingArray = new byte[length];
+		buffer.get(backingArray);
+		return ByteBuffer.wrap(backingArray);
 	}
 
 	/**

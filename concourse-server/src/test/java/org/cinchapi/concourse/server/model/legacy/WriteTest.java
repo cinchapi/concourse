@@ -21,9 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.model;
+package org.cinchapi.concourse.server.model.legacy;
 
 import org.cinchapi.concourse.server.io.ByteableTest;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -84,7 +85,7 @@ public class WriteTest extends ByteableTest {
 
 	@Override
 	protected Write getRandomTestInstance() {
-		return TestData.getWriteAdd();
+		return TestData.getWriteAddLegacy();
 	}
 
 	@Override

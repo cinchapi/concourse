@@ -21,32 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.model;
+package org.cinchapi.concourse.server.storage;
 
-import java.util.Comparator;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.util.ByteBuffers;
 
-import org.cinchapi.concourse.util.Convert;
-import org.cinchapi.concourse.util.Numbers;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 
 /**
- * A {@link Comparator} that sorts {@link Value} objects logically using weak
- * typing.
+ * A {@link Funnel} for {@link Byteable} objects.
  * 
- * @see {@link Value#compareToLogically(Value)}
  * @author jnelson
  */
-public class ValueComparator implements Comparator<Value> {
+public enum ByteableFunnel implements Funnel<ByteableComposite> {
+	INSTANCE;
 
 	@Override
-	public int compare(Value o1, Value o2) {
-		Object q1 = Convert.thriftToJava(o1.getQuantity());
-		Object q2 = Convert.thriftToJava(o2.getQuantity());
-		if(q1 instanceof Number && q2 instanceof Number) {
-			return Numbers.compare((Number) q1, (Number) q2);
-		}
-		else {
-			return q1.toString().compareTo(q2.toString());
-		}
+	public void funnel(ByteableComposite from, PrimitiveSink into) {
+		into.putBytes(ByteBuffers.toByteArray(from.getBytes()));
 	}
-
 }

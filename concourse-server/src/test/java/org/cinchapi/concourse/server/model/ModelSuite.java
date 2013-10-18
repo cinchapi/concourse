@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
+import org.cinchapi.concourse.server.model.TextTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;

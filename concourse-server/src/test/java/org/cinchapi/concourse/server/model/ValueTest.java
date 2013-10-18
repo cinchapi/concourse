@@ -23,8 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.concourse.server.io.StorableTest;
-import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.server.io.ByteableTest;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TestData;
@@ -41,64 +40,42 @@ import org.junit.runner.RunWith;
  * @author jnelson
  */
 @RunWith(Theories.class)
-public class ValueTest extends StorableTest {
+public class ValueTest extends ByteableTest {
 
 	public static @DataPoints
-	Object[] theories = { false, TestData.getDouble(), TestData.getFloat(),
+	Object[] objects = { false, TestData.getDouble(), TestData.getFloat(),
 			TestData.getInt(), TestData.getLong(), TestData.getString() };
-	
+
+	public static @DataPoints
+	Number[] numbers = { TestData.getDouble(), TestData.getFloat(),
+			TestData.getInt(), TestData.getLong() };
+
 	@Test
-	public void testCompareToForStorageAndForStorage(){
-		Value v1 = TestData.getValueForStorage();
-		Value v2 = TestData.getValueForStorage();
-		Assert.assertTrue(v1.compareTo(v2) > 0);
-	}
-	
-	@Test
-	public void testCompareToForStorageAndNotForStorage(){
-		Value v1 = TestData.getValueForStorage();
-		Value v2 = TestData.getValueNotForStorage();
+	@Theory
+	public void testCompareTo(Object q1) {
+		Object q2 = increase(q1);
+		Value v1 = Value.wrap(Convert.javaToThrift(q1));
+		Value v2 = Value.wrap(Convert.javaToThrift(q2));
 		Assert.assertTrue(v1.compareTo(v2) < 0);
 	}
 
 	@Test
 	@Theory
-	public void testCompareToLogically(Object q1) {
-		Object q2 = increase(q1);
-		Value v1 = Value.forStorage(Convert.javaToThrift(q1));
-		Value v2 = Value.forStorage(Convert.javaToThrift(q2));
-		Assert.assertTrue(v1.compareToLogically(v2) < 0);
-	}
-
-	@Test
-	public void testCompareToLogicallyNumbersDiffType() {
-		Number o1 = TestData.getNumber();
-		Number o2 = null;
-		while (o2 == null || o2.getClass() == o1.getClass()
-				|| Numbers.isEqualTo(o1, o2)) {
-			o2 = TestData.getNumber();
+	public void testCompareToDiffTypes(Number n1, Number n2) {
+		if(Numbers.isEqualTo(n1, n2)) {
+			Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+					Value.wrap(Convert.javaToThrift(n2))) == 0);
 		}
-		Assert.assertEquals(
-				Numbers.isGreaterThan(o1, o2),
-				Value.forStorage(Convert.javaToThrift(o1)).compareToLogically(
-						Value.forStorage(Convert.javaToThrift(o2))) > 0);
+		else if(Numbers.isGreaterThan(n1, n2)) {
+			Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+					Value.wrap(Convert.javaToThrift(n2))) > 0);
+		}
+		else {
+			Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+					Value.wrap(Convert.javaToThrift(n2))) < 0);
+		}
 	}
 
-	@Override
-	protected Value[] getForStorageAndNotForStorageVersionOfObject() {
-		TObject qty = TestData.getTObject();
-		return new Value[] { Value.forStorage(qty), Value.notForStorage(qty) };
-	}
-
-	@Override
-	protected Value getForStorageInstance() {
-		return TestData.getValueForStorage();
-	}
-
-	@Override
-	protected Value getNotForStorageInstance() {
-		return TestData.getValueNotForStorage();
-	}
 
 	@Override
 	protected Class<Value> getTestClass() {

@@ -35,10 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Storable;
+import org.cinchapi.concourse.server.model.legacy.Value;
 import org.cinchapi.concourse.util.Numbers;
 
 import com.google.common.collect.Maps;

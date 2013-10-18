@@ -78,20 +78,6 @@ public final class FileSystem {
 	}
 
 	/**
-	 * Delete {@code file}.
-	 * 
-	 * @param file
-	 */
-	public static void deleteFile(String file) {
-		try {
-			java.nio.file.Files.delete(Paths.get(file));
-		}
-		catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
-	}
-
-	/**
 	 * Delete {@code directory}
 	 * 
 	 * @param path
@@ -108,6 +94,20 @@ public final class FileSystem {
 					Files.delete(path);
 				}
 			}
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+
+	/**
+	 * Delete {@code file}.
+	 * 
+	 * @param file
+	 */
+	public static void deleteFile(String file) {
+		try {
+			java.nio.file.Files.delete(Paths.get(file));
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);
@@ -148,29 +148,16 @@ public final class FileSystem {
 	}
 
 	/**
-	 * Return a {@link MappedByteBuffer} for {@code file} in {@code mode}
-	 * starting at {@code position} and continuing for {@code size} bytes. This
-	 * method will automatically create {@code file} if it does not already
-	 * exist.
+	 * Return the simple filename without path information or extension. This
+	 * method assumes that the filename only contains one extension.
 	 * 
-	 * @param file
-	 * @param mode
-	 * @param position
-	 * @param size
-	 * @return the MappedByteBuffer
+	 * @param filename
+	 * @return the simple file name
 	 */
-	public static MappedByteBuffer map(String file, MapMode mode,
-			long position, long size) {
-		FileChannel channel = getFileChannel(file);
-		try {
-			return channel.map(mode, position, size);
-		}
-		catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
-		finally {
-			closeFileChannel(channel);
-		}
+	public static String getSimpleName(String filename) {
+		String[] placeholder;
+		return (placeholder = (placeholder = filename.split("\\."))[placeholder.length - 2]
+				.split(File.separator))[placeholder.length - 1];
 	}
 
 	/**
@@ -198,6 +185,32 @@ public final class FileSystem {
 	}
 
 	/**
+	 * Return a {@link MappedByteBuffer} for {@code file} in {@code mode}
+	 * starting at {@code position} and continuing for {@code size} bytes. This
+	 * method will automatically create {@code file} if it does not already
+	 * exist.
+	 * 
+	 * @param file
+	 * @param mode
+	 * @param position
+	 * @param size
+	 * @return the MappedByteBuffer
+	 */
+	public static MappedByteBuffer map(String file, MapMode mode,
+			long position, long size) {
+		FileChannel channel = getFileChannel(file);
+		try {
+			return channel.map(mode, position, size);
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
+		}
+		finally {
+			closeFileChannel(channel);
+		}
+	}
+
+	/**
 	 * Create the directories in {@link path}.
 	 * 
 	 * @param path
@@ -220,7 +233,9 @@ public final class FileSystem {
 	public static File openFile(String file) {
 		try {
 			File f = new File(file);
-			f.getParentFile().mkdirs();
+			if(f.getParentFile() != null) {
+				f.getParentFile().mkdirs();
+			}
 			f.createNewFile();
 			return f;
 		}

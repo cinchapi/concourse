@@ -35,10 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.ValueComparator;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Value;
+import org.cinchapi.concourse.server.model.legacy.ValueComparator;
 import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.base.Preconditions;

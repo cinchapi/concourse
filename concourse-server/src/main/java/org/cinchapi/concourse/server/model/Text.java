@@ -26,11 +26,10 @@ package org.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
@@ -42,25 +41,18 @@ import org.cinchapi.concourse.util.ByteBuffers;
 public final class Text implements Byteable, Comparable<Text> {
 
 	/**
-	 * Return the Text encoded in {@code buffer} so long as those bytes adhere
+	 * Return the Text encoded in {@code bytes} so long as those bytes adhere
 	 * to the format specified by the {@link #getBytes()} method. This method
-	 * assumes that all the bytes in the {@code buffer} belong to the Text. In
+	 * assumes that all the bytes in the {@code bytes} belong to the Text. In
 	 * general, it is necessary to get the appropriate Text slice from the
 	 * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
 	 * @param buffer
 	 * @return the Text
 	 */
-	public static Text fromByteBuffer(ByteBuffer buffer) {
-		return Byteables.read(buffer, Text.class); // We are using
-													// Byteables#read(ByteBuffer,
-													// Class) instead of calling
-													// the constructor directly
-													// so as to take advantage
-													// of the automatic
-													// reference caching that is
-													// provided in the utility
-													// class
+	public static Text fromByteBuffer(ByteBuffer bytes) {
+		return new Text(ByteBuffers.getString(bytes, StandardCharsets.UTF_8),
+				bytes);
 	}
 
 	/**
@@ -69,14 +61,14 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @param string
 	 * @return the Text
 	 */
-	public static Text fromString(String string) {
+	public static Text wrap(String string) {
 		return new Text(string);
 	}
 
 	/**
 	 * Represents an empty text string.
 	 */
-	public static final Text EMPTY = Text.fromString("");
+	public static final Text EMPTY = Text.wrap("");
 
 	/**
 	 * The wrapped string.
@@ -87,22 +79,7 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * Master byte sequence that represents this object. Read-only duplicates
 	 * are made when returning from {@link #getBytes()}.
 	 */
-	private final transient ByteBuffer bytes;
-
-	/**
-	 * Construct an instance that represents existing Text from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Text(ByteBuffer bytes) {
-		this.text = ByteBuffers.getString(bytes, StandardCharsets.UTF_8);
-		this.bytes = bytes;
-	}
+	private transient ByteBuffer bytes = null;
 
 	/**
 	 * Construct an instance that wraps the {@code text} string.
@@ -110,8 +87,18 @@ public final class Text implements Byteable, Comparable<Text> {
 	 * @param text
 	 */
 	private Text(String text) {
+		this(text, null);
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param text
+	 * @param bytes
+	 */
+	private Text(String text, @Nullable ByteBuffer bytes) {
 		this.text = text;
-		this.bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+		this.bytes = bytes;
 	}
 
 	@Override
@@ -130,17 +117,20 @@ public final class Text implements Byteable, Comparable<Text> {
 
 	@Override
 	public ByteBuffer getBytes() {
+		if(bytes == null){
+			bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
 
 	@Override
 	public int hashCode() {
-		return toString().hashCode();
+		return text.hashCode();
 	}
 
 	@Override
 	public int size() {
-		return bytes.capacity();
+		return getBytes().capacity();
 	}
 
 	@Override

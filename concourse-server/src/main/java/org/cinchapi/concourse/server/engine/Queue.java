@@ -28,7 +28,7 @@ import java.util.List;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.legacy.Write;
 
 import com.google.common.collect.Lists;
 

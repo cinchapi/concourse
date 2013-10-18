@@ -36,11 +36,11 @@ import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Storable;
+import org.cinchapi.concourse.server.model.legacy.Value;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Loggers;
@@ -65,6 +65,8 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author jnelson
  */
 public class Database implements PermanentStore {
+	
+	//TODO add a triggerSync() method which will be called by the Buffer when a page is full
 
 	/**
 	 * Return a {@link Runnable} that will execute the appropriate write
@@ -186,7 +188,7 @@ public class Database implements PermanentStore {
 	@Override
 	public Map<Long, String> audit(String key, long record) {
 		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
-				.audit(Text.fromString(key));
+				.audit(Text.wrap(key));
 	}
 
 	@Override
@@ -208,7 +210,7 @@ public class Database implements PermanentStore {
 	public Set<TObject> fetch(String key, long record) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore).fetch(Text.fromString(key)),
+						backingStore).fetch(Text.wrap(key)),
 				Functions.VALUE_TO_TOBJECT);
 	}
 
@@ -216,7 +218,7 @@ public class Database implements PermanentStore {
 	public Set<TObject> fetch(String key, long record, long timestamp) {
 		return Transformers.transformSet(
 				loadPrimaryRecord(PrimaryKey.notForStorage(record),
-						backingStore).fetch(Text.fromString(key), timestamp),
+						backingStore).fetch(Text.wrap(key), timestamp),
 				Functions.VALUE_TO_TOBJECT);
 	}
 
@@ -224,7 +226,7 @@ public class Database implements PermanentStore {
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key), backingStore).find(
+				loadSecondaryIndex(Text.wrap(key), backingStore).find(
 						timestamp,
 						operator,
 						Transformers.transformArray(values,
@@ -235,7 +237,7 @@ public class Database implements PermanentStore {
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		return Transformers.transformSet(
-				loadSecondaryIndex(Text.fromString(key), backingStore).find(
+				loadSecondaryIndex(Text.wrap(key), backingStore).find(
 						operator,
 						Transformers.transformArray(values,
 								Functions.TOBJECT_TO_VALUE, Value.class)),
@@ -251,8 +253,8 @@ public class Database implements PermanentStore {
 	@Override
 	public Set<Long> search(String key, String query) {
 		return Transformers.transformSet(
-				loadSearchIndex(Text.fromString(key), backingStore).search(
-						Text.fromString(query)), Functions.PRIMARY_KEY_TO_LONG);
+				loadSearchIndex(Text.wrap(key), backingStore).search(
+						Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
@@ -269,13 +271,13 @@ public class Database implements PermanentStore {
 	@Override
 	public boolean verify(String key, TObject value, long record) {
 		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
-				.verify(Text.fromString(key), Value.notForStorage(value));
+				.verify(Text.wrap(key), Value.notForStorage(value));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		return loadPrimaryRecord(PrimaryKey.notForStorage(record), backingStore)
-				.verify(Text.fromString(key), Value.notForStorage(value),
+				.verify(Text.wrap(key), Value.notForStorage(value),
 						timestamp);
 	}
 

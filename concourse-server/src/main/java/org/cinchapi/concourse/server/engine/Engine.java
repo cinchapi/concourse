@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.slf4j.Logger;
 

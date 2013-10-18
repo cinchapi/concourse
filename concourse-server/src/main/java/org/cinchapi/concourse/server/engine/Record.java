@@ -54,10 +54,10 @@ import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.server.model.Storable;
 import org.cinchapi.concourse.server.model.Text;
-import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.model.legacy.PrimaryKey;
+import org.cinchapi.concourse.server.model.legacy.Storable;
+import org.cinchapi.concourse.server.model.legacy.Value;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Numbers;
 import org.mockito.Matchers;
@@ -549,7 +549,6 @@ abstract class Record<L extends Byteable, K extends Byteable, V extends Storable
 		finally {
 			lock.release();
 		}
-
 	}
 
 	/**

@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.model;
 
 import org.cinchapi.concourse.server.io.ByteableTest;
+import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,14 +40,9 @@ public class TextTest extends ByteableTest{
 	public void testCompareTo(){
 		String s1 = TestData.getString();
 		String s2 = TestData.getString();
-		Text t1 = Text.fromString(s1);
-		Text t2 = Text.fromString(s2);
+		Text t1 = Text.wrap(s1);
+		Text t2 = Text.wrap(s2);
 		Assert.assertEquals(s1.compareTo(s2), t1.compareTo(t2));
-	}
-
-	@Override
-	protected Text getRandomTestInstance() {
-		return TestData.getText();
 	}
 
 	@Override

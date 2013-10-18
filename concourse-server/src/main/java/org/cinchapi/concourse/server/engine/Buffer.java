@@ -45,10 +45,11 @@ import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.legacy.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.NaturalSorter;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
@@ -297,18 +298,7 @@ final class Buffer extends Limbo {
 			running = true;
 			log.info("Buffer configured to store data in {}", directory);
 			SortedMap<File, Page> pageSorter = Maps
-					.newTreeMap(new Comparator<File>() {
-
-						@Override
-						public int compare(File o1, File o2) {
-							long t1 = Long
-									.parseLong(o1.getName().split("\\.")[0]);
-							long t2 = Long
-									.parseLong(o2.getName().split("\\.")[0]);
-							return Longs.compare(t1, t2);
-						}
-
-					});
+					.newTreeMap(NaturalSorter.INSTANCE);
 			for (File file : new File(directory).listFiles()) {
 				Page page = new Page(file.getAbsolutePath());
 				pageSorter.put(file, page);

@@ -25,11 +25,11 @@ package org.cinchapi.concourse.cache;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
 /**
  * <p>
@@ -74,9 +74,10 @@ public class ReferenceCache<T> {
 	private static final int INITIAL_CAPACITY = 500000;
 	private static final int CONCURRENCY_LEVEL = 16;
 
-	private final Cache<String, T> cache = CacheBuilder
-			.newBuilder().initialCapacity(INITIAL_CAPACITY)
+	private final Cache<HashCode, T> cache = CacheBuilder.newBuilder()
+			.initialCapacity(INITIAL_CAPACITY)
 			.concurrencyLevel(CONCURRENCY_LEVEL).softValues().build();
+
 	/**
 	 * Return the cache value associated with the group of {@code args} or
 	 * {@code null} if not value is found.
@@ -86,7 +87,7 @@ public class ReferenceCache<T> {
 	 */
 	@Nullable
 	public T get(Object... args) {
-		String id = getCacheKey(args);
+		HashCode id = getCacheKey(args);
 		return cache.getIfPresent(id);
 	}
 
@@ -104,7 +105,7 @@ public class ReferenceCache<T> {
 		Preconditions.checkNotNull(args);
 		Preconditions.checkArgument(args.length > 0,
 				"You must specify at least one key");
-		String id = getCacheKey(args);
+		HashCode id = getCacheKey(args);
 		cache.put(id, value);
 	}
 
@@ -125,13 +126,13 @@ public class ReferenceCache<T> {
 	 * @param args
 	 * @return the identifier.
 	 */
-	private String getCacheKey(Object... args) {
+	private HashCode getCacheKey(Object... args) {
 		StringBuilder key = new StringBuilder();
 		for (Object o : args) {
 			key.append(o.hashCode());
 			key.append(o.getClass().getName());
 		}
-		return DigestUtils.md5Hex(key.toString());
+		return Hashing.md5().hashString(key.toString());
 	}
 
 }
