@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -43,6 +44,7 @@ import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.TreeMultiset;
 import com.google.common.primitives.Longs;
 
@@ -248,7 +250,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			L locator = null;
 			K key = null;
 			for (Revision<L, K, V> revision : revisions) {
-				bytes.putInt(revisions.size());
+				bytes.putInt(revision.size());
 				bytes.put(revision.getBytes());
 				if(locator == null || locator != revision.getLocator()) {
 					index.putStart(bytes.position() - revision.size() - 4,
@@ -273,6 +275,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				index.putEnd(bytes.position() - 1, locator);
 				index.putEnd(bytes.position() - 1, locator, key);
 			}
+			bytes.rewind();
 			return bytes;
 		}
 		finally {
@@ -402,13 +405,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 						"Cannot sync a block that is not mutable");
 				mutable = false;
 				FileChannel channel = FileSystem.getFileChannel(file);
-				Byteables.write(this, channel);
+				channel.write(getBytes());
+				channel.force(false);
 				filter.sync();
 				index.sync();
 				FileSystem.closeFileChannel(channel);
 				revisions = null; // Set to NULL so that the Set is eligible for
 									// GC while the Block stays in memory.
 			}
+		}
+		catch (IOException e) {
+			throw Throwables.propagate(e);
 		}
 		finally {
 			masterLock.writeLock().unlock();
@@ -473,8 +480,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 						Iterator<ByteBuffer> it = ByteableCollections
 								.iterator(bytes);
 						while (it.hasNext()) {
-							Revision<L, K, V> revision = Byteables.read(bytes,
-									xRevisionClass());
+							Revision<L, K, V> revision = Byteables.read(
+									it.next(), xRevisionClass());
 							record.append(revision);
 						}
 					}

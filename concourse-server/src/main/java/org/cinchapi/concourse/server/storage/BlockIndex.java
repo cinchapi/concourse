@@ -151,6 +151,7 @@ public class BlockIndex implements Byteable, Syncable {
 				bytes.putInt(entry.size());
 				bytes.put(entry.getBytes());
 			}
+			bytes.rewind();
 			return bytes;
 		}
 		finally {
@@ -241,7 +242,7 @@ public class BlockIndex implements Byteable, Syncable {
 			if(entry == null) {
 				entry = new Entry(composite);
 				entries.put(composite, entry);
-				size += entry.size();
+				size += entry.size() + 4;
 			}
 			entry.setStart(start);
 		}
@@ -305,6 +306,7 @@ public class BlockIndex implements Byteable, Syncable {
 			bytes.putInt(start);
 			bytes.putInt(end);
 			bytes.put(key.getBytes());
+			bytes.rewind();
 			return bytes;
 		}
 
