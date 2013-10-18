@@ -306,8 +306,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				locator = revision.getLocator();
 				key = revision.getKey();
 			}
-			index.putEnd(bytes.position() - 1, locator);
-			index.putEnd(bytes.position() - 1, locator, key);
+			if(revisions.size() > 0) {
+				index.putEnd(bytes.position() - 1, locator);
+				index.putEnd(bytes.position() - 1, locator, key);
+			}
 			return bytes;
 		}
 		finally {
@@ -355,7 +357,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 											// DOES NOT exist using
 											// #mightContain(L,K,V) without
 											// seeking
-			size += revision.size();
+			size += revision.size() + 4;
 			this.version = version;
 		}
 		finally {
@@ -432,16 +434,18 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	public void sync() {
 		masterLock.writeLock().lock();
 		try {
-			Preconditions.checkState(mutable,
-					"Cannot sync a block that is not mutable");
-			mutable = false;
-			FileChannel channel = FileSystem.getFileChannel(file);
-			Byteables.write(this, channel);
-			filter.sync();
-			index.sync();
-			FileSystem.closeFileChannel(channel);
-			revisions = null; // Set to NULL so that the Set is eligible for GC
-								// while the Block stays in memory.
+			if(size > 0) {
+				Preconditions.checkState(mutable,
+						"Cannot sync a block that is not mutable");
+				mutable = false;
+				FileChannel channel = FileSystem.getFileChannel(file);
+				Byteables.write(this, channel);
+				filter.sync();
+				index.sync();
+				FileSystem.closeFileChannel(channel);
+				revisions = null; // Set to NULL so that the Set is eligible for
+									// GC while the Block stays in memory.
+			}
 		}
 		finally {
 			masterLock.writeLock().unlock();

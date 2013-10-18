@@ -93,12 +93,15 @@ public class BloomFilter implements Syncable {
 	 * @param file
 	 * @return the BloomFilter
 	 */
+	@SuppressWarnings("unchecked")
 	public static BloomFilter open(String file) {
 		try {
 			ObjectInput input = new ObjectInputStream(new BufferedInputStream(
 					new FileInputStream(FileSystem.openFile(file))));
-			BloomFilter filter = (BloomFilter) input.readObject();
-			filter.setFile(file);
+			BloomFilter filter = new BloomFilter(
+					file,
+					(com.google.common.hash.BloomFilter<ByteableComposite>) input
+							.readObject());
 			input.close();
 			return filter;
 		}
@@ -109,7 +112,7 @@ public class BloomFilter implements Syncable {
 			throw Throwables.propagate(e);
 		}
 	}
-	
+
 	/**
 	 * Lock used to ensure the object is ThreadSafe. This lock provides access
 	 * to a masterLock.readLock()() and masterLock.writeLock()().
@@ -124,7 +127,7 @@ public class BloomFilter implements Syncable {
 	/**
 	 * The file where the content is stored.
 	 */
-	private String file = null;
+	private String file;
 
 	/**
 	 * Construct a new instance.
@@ -136,6 +139,18 @@ public class BloomFilter implements Syncable {
 				ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
 																// positive
 																// probability
+		this.file = file;
+	}
+
+	/**
+	 * Construct a new instance.
+	 * 
+	 * @param file
+	 * @param source
+	 */
+	private BloomFilter(String file,
+			com.google.common.hash.BloomFilter<ByteableComposite> source) {
+		this.source = source;
 		this.file = file;
 	}
 
@@ -202,16 +217,5 @@ public class BloomFilter implements Syncable {
 		finally {
 			masterLock.writeLock().unlock();
 		}
-	}
-
-	/**
-	 * Set {@link #file} if it was not set in the constructor. This should only
-	 * be called when deserializing the BloomFilter.
-	 * 
-	 * @param file
-	 */
-	private void setFile(String file) {
-		Preconditions.checkState(this.file == null);
-		this.file = file;
 	}
 }

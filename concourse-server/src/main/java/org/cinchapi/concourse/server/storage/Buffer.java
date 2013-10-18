@@ -300,7 +300,12 @@ final class Buffer extends Limbo {
 				log.info("Loadding Buffer content from {}...", page);
 			}
 			pages.addAll(pageSorter.values());
-			addPage();
+			if(pages.isEmpty()){
+				addPage();
+			}
+			else{
+				currentPage = pages.get(pages.size()  - 1);
+			}
 		}
 	}
 

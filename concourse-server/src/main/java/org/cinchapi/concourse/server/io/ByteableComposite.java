@@ -97,13 +97,29 @@ public final class ByteableComposite implements Byteable {
 	}
 
 	@Override
-	public int size() {
-		return bytes.capacity();
+	public boolean equals(Object obj) {
+		if(obj instanceof ByteableComposite){
+			ByteableComposite other = (ByteableComposite) obj;
+			return getBytes().equals(other.getBytes());
+		}
+		return false;
 	}
 
 	@Override
 	public ByteBuffer getBytes() {
 		return ByteBuffers.asReadOnlyBuffer(bytes);
 	}
+
+	@Override
+	public int hashCode() {
+		return getBytes().hashCode();
+	}
+
+	@Override
+	public int size() {
+		return bytes.capacity();
+	}
+	
+	
 
 }

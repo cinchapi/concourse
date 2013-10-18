@@ -349,18 +349,20 @@ public final class Database implements PermanentStore {
 
 		@Override
 		public void run() {
-			log.info("Loading existing {} files...", clazz.getSimpleName());
 			try {
 				Path path = Paths.get(backingStore, directory);
 				FileSystem.mkdirs(path.toString());
 				DirectoryStream<Path> paths = Files.newDirectoryStream(path);
 				for (Path p : paths) {
 					if(p.toString().endsWith(Block.BLOCK_NAME_EXTENSION)) {
-						String id = Block.getId(path.toString());
-						Constructor<T> constructor = clazz.getConstructor(
-								String.class, String.class);
+						String id = Block.getId(p.toString());
+						Constructor<T> constructor = clazz
+								.getDeclaredConstructor(String.class,
+										String.class);
 						constructor.setAccessible(true);
-						blocks.add(constructor.newInstance(p.toString(), id));
+						blocks.add(constructor.newInstance(path.toString(), id));
+						log.info("Loaded {} at {}", clazz.getSimpleName(),
+								p.toString());
 					}
 				}
 				paths.close();

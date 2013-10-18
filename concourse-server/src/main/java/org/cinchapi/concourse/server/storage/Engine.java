@@ -152,7 +152,7 @@ public final class Engine extends BufferedStore implements
 			running = true;
 			buffer.start();
 			destination.start();
-			// bufferTransportThread.start();
+			bufferTransportThread.start();
 		}
 	}
 
@@ -181,7 +181,7 @@ public final class Engine extends BufferedStore implements
 			while (running) {
 				buffer.transport(destination);
 				try {
-					Thread.sleep(0);
+					Thread.sleep(5);
 				}
 				catch (InterruptedException e) {
 					e.printStackTrace();
