@@ -41,26 +41,16 @@ import org.cinchapi.concourse.server.model.Value;
 final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
 
 	/**
-	 * DO NOT CALL. Use {@link Block#createSecondaryBlock(String) instead.
-	 * @param directory
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	SecondaryBlock(String directory) {
-		super(directory);
-	}
-
-	/**
-	 * DO NOT CALL. Use {@link Block#loadSecondaryBlock(String, String)}
-	 * instead.
+	 * DO NOT CALL!!
 	 * 
-	 * @param directory
 	 * @param id
+	 * @param directory
+	 * @param diskLoad
 	 */
 	@PackagePrivate
 	@DoNotInvoke
-	SecondaryBlock(String directory, String id) {
-		super(directory, id);
+	SecondaryBlock(String id, String directory, boolean diskLoad) {
+		super(id, directory, diskLoad);
 	}
 
 	@Override

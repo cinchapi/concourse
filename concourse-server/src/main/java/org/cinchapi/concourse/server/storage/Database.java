@@ -46,6 +46,7 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Loggers;
 import org.cinchapi.concourse.util.Transformers;
 import org.slf4j.Logger;
@@ -308,11 +309,12 @@ public final class Database implements PermanentStore {
 						new BlockSyncer(primaryBlock), new BlockSyncer(
 								secondaryBlock), new BlockSyncer(searchBlock));
 			}
-			cpb.add((primaryBlock = Block.createPrimaryBlock(backingStore
+			String id = Long.toString(Time.now());
+			cpb.add((primaryBlock = Block.createPrimaryBlock(id, backingStore
 					+ File.separator + PRIMARY_BLOCK_DIRECTORY)));
-			csb.add((secondaryBlock = Block.createSecondaryBlock(backingStore
-					+ File.separator + SECONDARY_BLOCK_DIRECTORY)));
-			ctb.add((searchBlock = Block.createSearchBlock(backingStore
+			csb.add((secondaryBlock = Block.createSecondaryBlock(id,
+					backingStore + File.separator + SECONDARY_BLOCK_DIRECTORY)));
+			ctb.add((searchBlock = Block.createSearchBlock(id, backingStore
 					+ File.separator + SEARCH_BLOCK_DIRECTORY)));
 		}
 		finally {
@@ -358,9 +360,10 @@ public final class Database implements PermanentStore {
 						String id = Block.getId(p.toString());
 						Constructor<T> constructor = clazz
 								.getDeclaredConstructor(String.class,
-										String.class);
+										String.class, Boolean.TYPE);
 						constructor.setAccessible(true);
-						blocks.add(constructor.newInstance(path.toString(), id));
+						blocks.add(constructor.newInstance(id, path.toString(),
+								true));
 						log.info("Loaded {} at {}", clazz.getSimpleName(),
 								p.toString());
 					}

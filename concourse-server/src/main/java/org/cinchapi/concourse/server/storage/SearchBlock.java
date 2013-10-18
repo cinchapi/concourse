@@ -51,26 +51,16 @@ import com.google.common.base.Strings;
 final class SearchBlock extends Block<Text, Text, Position> {
 
 	/**
-	 * DO NOT CALL. Use {@link Block#createSearchBlock(String)} instead.
+	 * DO NOT CALL!!
 	 * 
-	 * @param directory
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	SearchBlock(String directory) {
-		super(directory);
-	}
-
-	/**
-	 * DO NOT CALL. Use {@link Block#loadSearchBlock(String, String)} instead.
-	 * 
-	 * @param directory
 	 * @param id
+	 * @param directory
+	 * @param diskLoad
 	 */
 	@PackagePrivate
 	@DoNotInvoke
-	SearchBlock(String directory, String id) {
-		super(directory, id);
+	SearchBlock(String id, String directory, boolean diskLoad) {
+		super(id, directory, diskLoad);
 	}
 
 	/**
@@ -92,27 +82,21 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 * @param record
 	 * @param version
 	 */
-	public final void insert(Text key, Value value, PrimaryKey record,
-			long version) {
-		masterLock.writeLock().lock();
-		try {
-			if(value.getType() == Type.STRING) {
-				String[] toks = value.getObject().toString().split(" ");
-				ExecutorService executor = ConcourseExecutors
-						.newCachedThreadPool("SearchBlock");
-				int pos = 0;
-				for (String tok : toks) {
-					executor.submit(getRunnable(key, tok, pos, record, version));
-					pos++;
-				}
-				executor.shutdown();
-				while (!executor.isTerminated()) {
-					continue; // block until all tasks have completed
-				}
+	public final synchronized void insert(Text key, Value value,
+			PrimaryKey record, long version) {
+		if(value.getType() == Type.STRING) {
+			String[] toks = value.getObject().toString().split(" ");
+			ExecutorService executor = ConcourseExecutors
+					.newCachedThreadPool("SearchBlock");
+			int pos = 0;
+			for (String tok : toks) {
+				executor.submit(getRunnable(key, tok, pos, record, version));
+				pos++;
 			}
-		}
-		finally {
-			masterLock.writeLock().unlock();
+			executor.shutdown();
+			while (!executor.isTerminated()) {
+				continue; // block until all tasks have completed
+			}
 		}
 	}
 

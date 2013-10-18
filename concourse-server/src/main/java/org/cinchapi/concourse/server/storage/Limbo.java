@@ -148,7 +148,7 @@ abstract class Limbo implements ProxyStore, Iterable<Write> {
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		masterLock.readLock().unlock();
+		masterLock.readLock().lock();
 		try {
 			Map<String, Set<Value>> ktv = Maps.newHashMap();
 			Iterator<Write> it = iterator();

@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.Map;
@@ -77,7 +76,7 @@ public class BlockIndex implements Byteable, Syncable {
 	/**
 	 * Represents an entry that has not been recorded.
 	 */
-	private static final int NO_ENTRY = -1;
+	public static final int NO_ENTRY = -1;
 
 	/**
 	 * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -132,8 +131,7 @@ public class BlockIndex implements Byteable, Syncable {
 	public void sync() {
 		masterLock.readLock().lock();
 		try {
-			FileChannel channel = FileSystem.getFileChannel(file);
-			channel.write(getBytes());
+			FileSystem.getFileChannel(file).write(getBytes());
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);

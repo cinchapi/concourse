@@ -41,26 +41,16 @@ import org.cinchapi.concourse.server.model.Value;
 final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
 
 	/**
-	 * DO NOT CALL. Use {@link Block#createPrimaryBlock(String)} instead.
+	 * DO NOT CALL!!
 	 * 
-	 * @param directory
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	PrimaryBlock(String directory) {
-		super(directory);
-	}
-
-	/**
-	 * DO NOT CALL. Use {@link Block#loadPrimaryBlock(String, String)} instead
-	 * 
-	 * @param directory
 	 * @param id
+	 * @param directory
+	 * @param diskLoad
 	 */
 	@PackagePrivate
 	@DoNotInvoke
-	PrimaryBlock(String directory, String id) {
-		super(directory, id);
+	PrimaryBlock(String id, String directory, boolean diskLoad) {
+		super(id, directory, diskLoad);
 	}
 
 	@Override

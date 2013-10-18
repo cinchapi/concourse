@@ -23,10 +23,13 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.File;
+
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.BlockIndex;
 import org.cinchapi.concourse.server.storage.PrimaryRevision;
 import org.cinchapi.concourse.server.storage.Revision;
 import org.cinchapi.concourse.server.storage.SearchRevision;
@@ -41,19 +44,22 @@ import org.cinchapi.concourse.time.Time;
  * @author jnelson
  */
 public final class TestData extends Random {
-	
+
 	public static final String DATA_DIR = "test.out/buffer";
-	
-	public static PrimaryRevision getPrimaryRevision(){
-		return Revision.createPrimaryRevision(getPrimaryKey(), getText(), getValue(), Time.now());
+
+	public static PrimaryRevision getPrimaryRevision() {
+		return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+				getValue(), Time.now());
 	}
-	
-	public static SearchRevision getSearchRevision(){
-		return Revision.createSearchRevision(getText(), getText(), getPosition(), Time.now());
+
+	public static SearchRevision getSearchRevision() {
+		return Revision.createSearchRevision(getText(), getText(),
+				getPosition(), Time.now());
 	}
-	
-	public static SecondaryRevision getSecondaryRevision(){
-		return Revision.createSecondaryRevision(getText(), getValue(), getPrimaryKey(), Time.now());
+
+	public static SecondaryRevision getSecondaryRevision() {
+		return Revision.createSecondaryRevision(getText(), getValue(),
+				getPrimaryKey(), Time.now());
 	}
 
 	/**

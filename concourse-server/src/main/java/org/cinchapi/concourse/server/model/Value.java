@@ -165,7 +165,7 @@ public final class Value implements Byteable, Comparable<Value> {
 	public boolean equals(Object obj) {
 		if(obj instanceof Value) {
 			final Value other = (Value) obj;
-			return object.equals(other.object);
+			return getObject().equals(other.getObject());
 		}
 		return false;
 	}

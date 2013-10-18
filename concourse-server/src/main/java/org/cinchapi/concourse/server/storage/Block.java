@@ -42,7 +42,6 @@ import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
-import org.cinchapi.concourse.time.Time;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.TreeMultiset;
 import com.google.common.primitives.Longs;
@@ -79,31 +78,35 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	/**
 	 * Return a new PrimaryBlock that will be stored in {@code directory}.
 	 * 
+	 * @param id
 	 * @param directory
 	 * @return the PrimaryBlock
 	 */
-	public static PrimaryBlock createPrimaryBlock(String directory) {
-		return new PrimaryBlock(directory);
+	public static PrimaryBlock createPrimaryBlock(String id, String directory) {
+		return new PrimaryBlock(id, directory, false);
 	}
 
 	/**
 	 * Return a new SearchBlock that will be stored in {@code directory}.
 	 * 
+	 * @param id
 	 * @param directory
 	 * @return the SearchBlock
 	 */
-	public static SearchBlock createSearchBlock(String directory) {
-		return new SearchBlock(directory);
+	public static SearchBlock createSearchBlock(String id, String directory) {
+		return new SearchBlock(id, directory, false);
 	}
 
 	/**
 	 * Return a new SecondaryBlock that will be stored in {@code directory}.
 	 * 
+	 * @param id
 	 * @param directory
 	 * @return the SecondaryBlock
 	 */
-	public static SecondaryBlock createSecondaryBlock(String directory) {
-		return new SecondaryBlock(directory);
+	public static SecondaryBlock createSecondaryBlock(String id,
+			String directory) {
+		return new SecondaryBlock(id, directory, false);
 	}
 
 	/**
@@ -114,42 +117,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 */
 	public static String getId(String filename) {
 		return FileSystem.getSimpleName(filename);
-	}
-
-	/**
-	 * Return the existing PrimaryBlock with {@code id} that exists in
-	 * {@code directory}.
-	 * 
-	 * @param directory
-	 * @param id
-	 * @return the PrimaryBlock
-	 */
-	public static PrimaryBlock loadPrimaryBlock(String directory, String id) {
-		return new PrimaryBlock(directory, id);
-	}
-
-	/**
-	 * Return the existing SearchBlock with {@code id} that exists in
-	 * {@code directory}.
-	 * 
-	 * @param directory
-	 * @param id
-	 * @return the SearchBlock
-	 */
-	public static SearchBlock loadSearchBlock(String directory, String id) {
-		return new SearchBlock(directory, id);
-	}
-
-	/**
-	 * Return the existing SecondaryBlock with {@code id} that exists in
-	 * {@code directory}.
-	 * 
-	 * @param directory
-	 * @param id
-	 * @return the SecondaryBlock
-	 */
-	public static SecondaryBlock loadSecondaryBlock(String directory, String id) {
-		return new SecondaryBlock(directory, id);
 	}
 
 	/**
@@ -235,39 +202,35 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	private final BlockIndex index;
 
 	/**
-	 * Construct a new mutable instance in memory
+	 * Construct a new instance.
 	 * 
-	 * @param directory
-	 */
-	protected Block(String directory) {
-		this.id = Long.toString(Time.now());
-		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
-		this.mutable = true;
-		this.size = 0;
-		this.revisions = TreeMultiset.create(Sorter.INSTANCE);
-		this.filter = BloomFilter.create(
-				(directory + File.separator + id + FILTER_NAME_EXTENSION),
-				EXPECTED_INSERTIONS);
-		this.index = BlockIndex.create(directory + File.separator + id
-				+ INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
-	}
-
-	/**
-	 * Construct a new immutable instance from data on disk.
-	 * 
-	 * @param directory
 	 * @param id
+	 * @param directory
+	 * @param diskLoad - set to {@code true} to deserialize the block {@code id}
+	 *            from {@code directory} on disk
 	 */
-	protected Block(String directory, String id) {
+	protected Block(String id, String directory, boolean diskLoad) {
 		this.id = id;
 		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
-		this.size = (int) FileSystem.getFileSize(this.file);
-		this.mutable = false;
-		this.filter = BloomFilter.open(directory + File.separator + id
-				+ FILTER_NAME_EXTENSION);
-		this.index = BlockIndex.open(directory + File.separator + id
-				+ INDEX_NAME_EXTENSION);
-		this.revisions = null;
+		if(diskLoad) {
+			this.mutable = false;
+			this.size = (int) FileSystem.getFileSize(this.file);
+			this.filter = BloomFilter.open(directory + File.separator + id
+					+ FILTER_NAME_EXTENSION);
+			this.index = BlockIndex.open(directory + File.separator + id
+					+ INDEX_NAME_EXTENSION);
+			this.revisions = null;
+		}
+		else {
+			this.mutable = true;
+			this.size = 0;
+			this.revisions = TreeMultiset.create(Sorter.INSTANCE);
+			this.filter = BloomFilter.create(
+					(directory + File.separator + id + FILTER_NAME_EXTENSION),
+					EXPECTED_INSERTIONS);
+			this.index = BlockIndex.create(directory + File.separator + id
+					+ INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
+		}
 	}
 
 	/*
@@ -503,8 +466,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				}
 				else {
 					int start = index.getStart(byteables);
-					int length = index.getEnd(byteables) - start;
-					if(length > 0) {
+					int length = index.getEnd(byteables) - (start - 1);
+					if(start != BlockIndex.NO_ENTRY && length > 0) {
 						ByteBuffer bytes = FileSystem.map(file,
 								MapMode.READ_ONLY, start, length);
 						Iterator<ByteBuffer> it = ByteableCollections
