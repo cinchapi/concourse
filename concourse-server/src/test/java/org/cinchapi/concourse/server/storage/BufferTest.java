@@ -27,16 +27,12 @@ import java.io.File;
 import java.nio.ByteBuffer;
 
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.PrimaryKey;
-import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.thrift.Type;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link Buffer}.
@@ -81,7 +77,7 @@ public class BufferTest extends LimboTest {
 			i++;
 		}
 		watch.stop();
-		log.info("Perf: {} ms", watch.elapsedMillis());
+		log.info("Benchmark: {} ms", watch.elapsedMillis());
 	}
 
 }

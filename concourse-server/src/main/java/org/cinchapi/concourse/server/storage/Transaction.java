@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -427,7 +426,7 @@ public final class Transaction extends BufferedStore {
 	 * Release all the locks held by this Transaction.
 	 */
 	private void releaseLocks() {
-		for (Lock lock : locks.values()) {
+		for (TransactionLock lock : locks.values()) {
 			lock.release();
 		}
 	}

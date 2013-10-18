@@ -25,12 +25,12 @@ package org.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -45,7 +45,7 @@ import com.google.common.base.Preconditions;
  * @author jnelson
  */
 @Immutable
-public class TransactionLock implements Lock, Byteable {
+public class TransactionLock implements Byteable {
 
 	/**
 	 * Return the {@code TransactionLock} that is encoded in {@code bytes}.
@@ -67,7 +67,7 @@ public class TransactionLock implements Lock, Byteable {
 
 	/**
 	 * The actual lock/release functionality is delegated to this object.
-	 */
+	 */	
 	private final transient Lock lock;
 
 	/**
@@ -94,8 +94,9 @@ public class TransactionLock implements Lock, Byteable {
 				SOURCE_OFFSET, SOURCE_SIZE));
 		this.type = ByteBuffers.getEnum(
 				ByteBuffers.slice(bytes, TYPE_OFFSET, TYPE_SIZE), Type.class);
-		this.lock = type == Type.ISOLATED_FIELD ? this.source.writeLock()
-				: this.source.readLock();
+		this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock().writeLock()
+				: this.source.getMasterLock().readLock();
+		this.lock.lock();
 	}
 
 	/**
@@ -107,8 +108,8 @@ public class TransactionLock implements Lock, Byteable {
 	public TransactionLock(Representation source, Type type) {
 		this.source = source;
 		this.type = type;
-		this.lock = type == Type.ISOLATED_FIELD ? this.source.writeLock()
-				: this.source.readLock();
+		this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock().writeLock()
+				: this.source.getMasterLock().readLock();
 	}
 
 	@Override
@@ -152,9 +153,8 @@ public class TransactionLock implements Lock, Byteable {
 		return Objects.hash(source, type);
 	}
 
-	@Override
 	public void release() {
-		lock.release();
+		lock.unlock();
 	}
 
 	@Override

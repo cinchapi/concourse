@@ -25,15 +25,13 @@ package org.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.cache.ReferenceCache;
-import org.cinchapi.concourse.server.concurrent.Lock;
 import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -52,7 +50,7 @@ import com.google.common.base.Preconditions;
  * @author jnelson
  */
 @PackagePrivate
-class Representation implements Lockable, Byteable {
+class Representation implements Byteable {
 
 	/**
 	 * Return a {@code Representation} encoded in {@code buffer}.
@@ -62,12 +60,7 @@ class Representation implements Lockable, Byteable {
 	 */
 	public static Representation fromByteBuffer(ByteBuffer buffer) {
 		buffer.rewind();
-		Representation representation = cache.get(buffer);
-		if(representation == null) {
-			representation = new Representation(buffer);
-			cache.put(representation, buffer);
-		}
-		return representation;
+		return new Representation(buffer);
 	}
 
 	/**
@@ -80,15 +73,10 @@ class Representation implements Lockable, Byteable {
 		ByteBuffer buffer = ByteBuffer.wrap(DigestUtils.md5(Arrays
 				.toString(objects)));
 		buffer.rewind();
-		Representation representation = cache.get(buffer);
-		if(representation == null) {
-			representation = new Representation(buffer);
-			cache.put(representation, buffer);
-		}
-		return representation;
+		return new Representation(buffer);
 	}
 
-	private static final ReferenceCache<Representation> cache = new ReferenceCache<Representation>();
+	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * The representation is identified by an md5 hash
@@ -101,7 +89,7 @@ class Representation implements Lockable, Byteable {
 	 * @param bytes
 	 */
 	@DoNotInvoke
-	public Representation(ByteBuffer bytes) {
+	private Representation(ByteBuffer bytes) {
 		Preconditions.checkArgument(bytes.capacity() == 16);
 		this.bytes = bytes;
 	}
@@ -128,11 +116,6 @@ class Representation implements Lockable, Byteable {
 	}
 
 	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
-
-	@Override
 	public int size() {
 		return getBytes().capacity();
 	}
@@ -142,9 +125,15 @@ class Representation implements Lockable, Byteable {
 		return Hex.encodeHexString(ByteBuffers.toByteArray(getBytes()));
 	}
 
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
+	/**
+	 * Return the masterLock, which exposes a readLock and writeLock for shared
+	 * or exclusive locking.
+	 * 
+	 * @return the masterLock
+	 */
+	@PackagePrivate
+	ReentrantReadWriteLock getMasterLock() {
+		return masterLock;
 	}
 
 }
