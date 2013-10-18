@@ -24,15 +24,12 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FilenameFilter;
 import java.lang.reflect.Constructor;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -48,11 +45,14 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Loggers;
+import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.Transformers;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
@@ -134,8 +134,8 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key)).audit(
-				Text.wrap(key));
+		Text key0 = Text.wrap(key);
+		return getPrimaryRecord(PrimaryKey.wrap(record), key0).audit(key0);
 	}
 
 	@Override
@@ -154,17 +154,18 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
+		Text key0 = Text.wrap(key);
 		return Transformers.transformSet(
-				getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
-						.fetch(Text.wrap(key)), Functions.VALUE_TO_TOBJECT);
+				getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
+				Functions.VALUE_TO_TOBJECT);
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
+		Text key0 = Text.wrap(key);
 		return Transformers.transformSet(
-				getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
-						.fetch(Text.wrap(key), timestamp),
-				Functions.VALUE_TO_TOBJECT);
+				getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
+						timestamp), Functions.VALUE_TO_TOBJECT);
 	}
 
 	@Override
@@ -227,17 +228,23 @@ public final class Database implements PermanentStore {
 	@Override
 	public boolean verify(String key, TObject value, long record) {
 		Text key0 = Text.wrap(key);
-		Value value0 = Value.wrap(value);
-		PrimaryKey record0 = PrimaryKey.wrap(record);
-		return getPrimaryRecord(record0, key0).verify(key0, value0);
+		return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+				Value.wrap(value));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
-				.verify(Text.wrap(key), Value.wrap(value), timestamp);
+		Text key0 = Text.wrap(key);
+		return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
+				Value.wrap(value), timestamp);
 	}
 
+	/**
+	 * Return the PrimaryRecord identifier by {@code primaryKey}.
+	 * 
+	 * @param primaryKey
+	 * @return the PrimaryRecord
+	 */
 	private PrimaryRecord getPrimaryRecord(PrimaryKey primaryKey) {
 		masterLock.readLock().lock();
 		try {
@@ -252,6 +259,14 @@ public final class Database implements PermanentStore {
 		}
 	}
 
+	/**
+	 * Return the partial PrimaryRecord identifier by {@code key} in
+	 * {@code primaryKey}
+	 * 
+	 * @param primaryKey
+	 * @param key
+	 * @return the PrimaryRecord
+	 */
 	private PrimaryRecord getPrimaryRecord(PrimaryKey primaryKey, Text key) {
 		masterLock.readLock().lock();
 		try {
@@ -267,6 +282,12 @@ public final class Database implements PermanentStore {
 		}
 	}
 
+	/**
+	 * Return the SearchRecord identified by {@code key}.
+	 * 
+	 * @param key
+	 * @return the SearchRecord
+	 */
 	private SearchRecord getSearchRecord(Text key) {
 		masterLock.readLock().lock();
 		try {
@@ -281,6 +302,12 @@ public final class Database implements PermanentStore {
 		}
 	}
 
+	/**
+	 * Return the SecondaryRecord identified by {@code key}.
+	 * 
+	 * @param key
+	 * @return the SecondaryRecord
+	 */
 	private SecondaryRecord getSecondaryRecord(Text key) {
 		masterLock.readLock().lock();
 		try {
@@ -352,26 +379,29 @@ public final class Database implements PermanentStore {
 		@Override
 		public void run() {
 			try {
-				Path path = Paths.get(backingStore, directory);
-				FileSystem.mkdirs(path.toString());
-				DirectoryStream<Path> paths = Files.newDirectoryStream(path);
-				for (Path p : paths) {
-					if(p.toString().endsWith(Block.BLOCK_NAME_EXTENSION)) {
-						String id = Block.getId(p.toString());
-						Constructor<T> constructor = clazz
-								.getDeclaredConstructor(String.class,
-										String.class, Boolean.TYPE);
-						constructor.setAccessible(true);
-						blocks.add(constructor.newInstance(id, path.toString(),
-								true));
-						log.info("Loaded {} at {}", clazz.getSimpleName(),
-								p.toString());
+				final String path = backingStore + File.separator + directory;
+				FileSystem.mkdirs(path);
+				SortedMap<File, T> blockSorter = Maps
+						.newTreeMap(NaturalSorter.INSTANCE);
+				for (File file : new File(path).listFiles(new FilenameFilter() {
+
+					@Override
+					public boolean accept(File dir, String name) {
+						return dir.getAbsolutePath().equals(path)
+								&& name.endsWith(Block.BLOCK_NAME_EXTENSION);
 					}
+
+				})) {
+					String id = Block.getId(file.getName());
+					Constructor<T> constructor = clazz.getDeclaredConstructor(
+							String.class, String.class, Boolean.TYPE);
+					constructor.setAccessible(true);
+					blockSorter.put(file,
+							constructor.newInstance(id, path.toString(), true));
+					log.info("Loaded {} at {}", clazz.getSimpleName(),
+							file.getName());
 				}
-				paths.close();
-			}
-			catch (IOException e) {
-				throw Throwables.propagate(e);
+				blocks.addAll(blockSorter.values());
 			}
 			catch (ReflectiveOperationException e) {
 				throw Throwables.propagate(e);

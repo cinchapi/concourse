@@ -216,9 +216,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	public void append(Revision<L, K, V> revision) {
 		masterLock.writeLock().lock();
 		try {
-			Preconditions.checkArgument(revision.getVersion() > version,
-					"Cannot append %s because its version is not higher "
-							+ "than the Record's current version", revision);
+			// Permit the same version to be added because each SearchRevision
+			// that stems from a Write will have the same version of that Write.
+			Preconditions.checkArgument(revision.getVersion() >= version,
+					"Cannot append %s because its version(%s) is lower "
+							+ "than the Record's current version(%s). The",
+					revision, revision.getVersion(), version);
 			Preconditions.checkArgument(revision.getLocator().equals(locator),
 					"Cannot append %s because it does not belong "
 							+ "to this Record", revision);

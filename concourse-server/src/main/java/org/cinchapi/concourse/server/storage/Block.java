@@ -163,13 +163,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	private transient int size;
 
 	/**
-	 * The current version of the mutable Block, which is equal to the version
-	 * of the most recently inserted Revision. If the Block is immutable, then
-	 * there are no guarantees about the value of this variable.
-	 */
-	private transient long version;
-
-	/**
 	 * The location of the block file.
 	 */
 	private final String file;
@@ -308,9 +301,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 		try {
 			Preconditions.checkState(mutable,
 					"Cannot modify a block that is not mutable");
-			Preconditions.checkArgument(version > this.version,
-					"Cannot insert a revision with a version smaller than %s",
-					this.version);
 			Revision<L, K, V> revision = makeRevision(locator, key, value,
 					version);
 			revisions.add(revision);
@@ -324,7 +314,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 											// #mightContain(L,K,V) without
 											// seeking
 			size += revision.size() + 4;
-			this.version = version;
 		}
 		finally {
 			masterLock.writeLock().unlock();
