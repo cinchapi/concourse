@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.cinchapi.concourse.config.ConcourseConfiguration;
-import org.cinchapi.concourse.server.model.legacy.Write;
+import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Loggers;
 import org.slf4j.Logger;
@@ -159,8 +159,8 @@ public final class GlobalState {
 		 * @param write
 		 */
 		public void add(Write write) {
-			if(write.isForStorage()) {
-				add(write.getKey().toString(), write.getValue().getQuantity(),
+			if(write.isStorable()) {
+				add(write.getKey().toString(), write.getValue().getTObject(),
 						write.getRecord().longValue());
 			}
 			else {

@@ -37,7 +37,6 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.legacy.Storable;
 import org.cinchapi.concourse.util.Numbers;
 
 import com.google.common.collect.Maps;
@@ -135,7 +134,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the Set of non-empty field keys
 	 */
 	public Set<Text> describe() {
-		return describe(false, Storable.NO_TIMESTAMP);
+		return describe(false, Versioned.NO_VERSION);
 	}
 
 	/**
@@ -157,7 +156,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return the Set of contained values
 	 */
 	public Set<Value> fetch(Text key) {
-		return fetch(key, false, Storable.NO_TIMESTAMP);
+		return fetch(key, false, Versioned.NO_VERSION);
 	}
 
 	/**
@@ -190,7 +189,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 	 * @return {@code true} if {@code key} as {@code value} is a valid mapping
 	 */
 	public boolean verify(Text key, Value value) {
-		return verify(key, value, false, Storable.NO_TIMESTAMP);
+		return verify(key, value, false, Versioned.NO_VERSION);
 	}
 
 	/**
