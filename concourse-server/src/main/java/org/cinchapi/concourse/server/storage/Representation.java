@@ -31,7 +31,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.Lockable;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
@@ -39,7 +38,7 @@ import com.google.common.base.Preconditions;
 
 /**
  * A {@code Representation} is a lightweight delegate for the purpose of
- * providing {@link Lockable} functionality. This is useful in cases when the
+ * providing Lockable functionality. This is useful in cases when the
  * resource that needs to be locked isn't represented by a single Object, but is
  * still a distinct concept that is possibly made up of multiple Objects.
  * <p>
