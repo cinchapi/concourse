@@ -38,7 +38,6 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
@@ -66,7 +65,6 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
  * 
  * @author jnelson
  */
-@PackagePrivate
 public class ConcourseServer implements ConcourseService.Iface {
 
 	/**
