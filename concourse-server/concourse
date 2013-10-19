@@ -17,7 +17,7 @@ cd $APP_HOME
 JAVA="/usr/bin/java"
 
 # Set VM Options
-#VM_OPTS="-javaagent:$APP_HOME/lib/aspectjweaver-1.7.3.jar"
+#VM_OPTS=""
 
 
 # Set CLASSPATH
@@ -29,7 +29,7 @@ case $1 in
 		usage
 		;;
 	stop )
-		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer$ShutdownRunnersfa "$@"
+		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@"
 		exit 0
 		;;
 	* )

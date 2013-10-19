@@ -90,6 +90,13 @@ public final class GlobalState {
 	public static final int MIN_SEARCH_INDEX_SIZE = config.getInt(
 			"min_search_index_size", 3);
 
+	/**
+	 * The port that the server listens on to know when to initiate a graceful
+	 * shutdown.
+	 */
+	public static final int SHUTDOWN_PORT = config
+			.getInt("shutdown_port", 3434);
+
 	/* ************************************************************************ */
 	public static final Logger log = Loggers.getLogger();
 	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
