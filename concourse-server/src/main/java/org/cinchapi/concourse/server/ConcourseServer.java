@@ -25,8 +25,6 @@ package org.cinchapi.concourse.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,10 +123,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 													// configurable in a
 													// prefs file in a
 													// future release.
-
-	private static final int SHUTDOWN_PORT = 3434; // This may become
-													// configurable in a prefs
-													// file in a future release.
 
 	private static final int NUM_WORKER_THREADS = 100; // This may become
 														// configurable in a
@@ -476,34 +470,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 	private void validate(String username, String password)
 			throws SecurityException {
 		// TODO check if creds are correct
-	}
-
-	/**
-	 * Connects to the {@link ConcourseServer#SHUTDOWN_PORT} in order to
-	 * initiate a graceful shutdown.
-	 * 
-	 * @author jnelson
-	 */
-	public static class ShutdownRunner {
-
-		/**
-		 * Run as org.cinchapi.concourse.server.ConcourseServer$ShutdownRunner
-		 * 
-		 * @param args
-		 * @throws IOException
-		 * @throws UnknownHostException
-		 */
-		public static void main(String... args) {
-			try {
-				log.info("Binding to shutdown port {}", SHUTDOWN_PORT);
-				Socket socket = new Socket("localhost", SHUTDOWN_PORT);
-				socket.close();
-				System.exit(0);
-			}
-			catch (IOException e) {
-				// do nothing
-			}
-		}
 	}
 
 }
