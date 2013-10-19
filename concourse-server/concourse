@@ -5,13 +5,13 @@
 ###############################################
 
 usage(){
-	echo "Usage: $0 { start | stop | dump | help }"
+	echo "Usage: $0 { start | status | stop | dump | help }"
 	exit -1
 }
 
 status(){
 	if [ ! -f $PID ]; then
-		echo "Concourse Server is not currently running..."
+		echo "Concourse Server is NOT currently running..."
 	else
 		PROC=$(cat $PID)
 		echo "Concourse server is currently running (PID: $PROC)"
@@ -48,15 +48,17 @@ case $1 in
 		if [ ! -f $PID ]; then
     		status
     	else
-    		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" &
+    		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" >> /dev/null >> /dev/null &
 			rm $PID
+			echo "Stopping Concourse server. Check the log for more details..."
 		fi
 		exit 0
 		;;
 	* )
 		if [ ! -f $PID ]; then
-    		exec $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" &
+    		exec nohup $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> /dev/null >> /dev/null &
 			echo $! > $PID
+			echo "Starting Concourse server. Check the log for more details..."
     	else
     		status
 		fi
