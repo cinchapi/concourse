@@ -4,12 +4,13 @@
 ### 		Concourse Script for Unix 		###
 ###############################################
 
-usage(){
+# Functions
+usage( ){
 	echo "Usage: $0 { start | status | stop | dump | help }"
 	exit -1
 }
 
-status(){
+status( ){
 	if [ ! -f $PID ]; then
 		echo "Concourse is NOT currently running..."
 	else
@@ -19,6 +20,44 @@ status(){
 	exit 0
 }
 
+warn ( ) {
+    echo "$*"
+}
+
+die ( ) {
+    echo
+    echo "$*"
+    echo
+    exit 1
+}
+
+APP_NAME="concourse"
+APP_BASE_NAME=`basename "$0"`
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD="maximum"
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+case "`uname`" in
+  CYGWIN* )
+    cygwin=true
+    ;;
+  Darwin* )
+    darwin=true
+    ;;
+  MINGW* )
+    msys=true
+    ;;
+esac
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched.
+if $cygwin ; then
+    [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+fi
+
 # Set APP_HOME to the parent directory
 APP_HOME="`pwd -P`/.."
 cd $APP_HOME
@@ -26,12 +65,95 @@ cd $APP_HOME
 # Store PID in APP_HOME
 PID="$APP_HOME/concourse.pid"
 
-# Find JAVA command
-JAVA="/usr/bin/java"
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+        JAVACMD="$JAVA_HOME/bin/java"
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD="java"
+    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+fi
+
+# Increase the maximum file descriptors if we can.
+if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
+    MAX_FD_LIMIT=`ulimit -H -n`
+    if [ $? -eq 0 ] ; then
+        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
+            MAX_FD="$MAX_FD_LIMIT"
+        fi
+        ulimit -n $MAX_FD
+        if [ $? -ne 0 ] ; then
+            warn "Could not set maximum file descriptor limit: $MAX_FD"
+        fi
+    else
+        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
+    fi
+fi
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin ; then
+    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
+
+    # We build the pattern for arguments to be converted via cygpath
+    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
+    SEP=""
+    for dir in $ROOTDIRSRAW ; do
+        ROOTDIRS="$ROOTDIRS$SEP$dir"
+        SEP="|"
+    done
+    OURCYGPATTERN="(^($ROOTDIRS))"
+    # Add a user-defined pattern to the cygpath arguments
+    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
+    fi
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    i=0
+    for arg in "$@" ; do
+        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
+        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
+
+        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
+            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
+        else
+            eval `echo args$i`="\"$arg\""
+        fi
+        i=$((i+1))
+    done
+    case $i in
+        (0) set -- ;;
+        (1) set -- "$args0" ;;
+        (2) set -- "$args0" "$args1" ;;
+        (3) set -- "$args0" "$args1" "$args2" ;;
+        (4) set -- "$args0" "$args1" "$args2" "$args3" ;;
+        (5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
+        (6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
+        (7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
+        (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
+        (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
+    esac
+fi
 
 # Set VM Options
-VM_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
-
+VM_OPTS="-Dcom.sun.management.jmxremote"
+VM_OPTS="$VM_OPTS -Dcom.sun.management.jmxremote.port=9010"
+VM_OPTS="$VM_OPTS -Dcom.sun.management.jmxremote.local.only=false"
+VM_OPTS="$VM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
+VM_OPTS="$VM_OPTS -Dcom.sun.management.jmxremote.authenticate=false "
+VM_OPTS="$VM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
 
 # Set CLASSPATH
 CLASSPATH="$APP_HOME/lib/*"
@@ -48,7 +170,7 @@ case $1 in
 		if [ ! -f $PID ]; then
     		status
     	else
-    		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" >> /dev/null >> /dev/null &
+    		exec $JAVACMD -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" >> /dev/null >> /dev/null &
 			rm $PID
 			echo "Stopping Concourse. Check the log for more details..."
 		fi
@@ -56,7 +178,7 @@ case $1 in
 		;;
 	* )
 		if [ ! -f $PID ]; then
-    		exec nohup $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> /dev/null >> /dev/null &
+    		exec nohup $JAVACMD $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> /dev/null >> /dev/null &
 			echo $! > $PID
 			echo "Starting Concourse. Check the log for more details..."
     	else
