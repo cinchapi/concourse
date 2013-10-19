@@ -11,10 +11,10 @@ usage(){
 
 status(){
 	if [ ! -f $PID ]; then
-		echo "Concourse Server is NOT currently running..."
+		echo "Concourse is NOT currently running..."
 	else
 		PROC=$(cat $PID)
-		echo "Concourse server is currently running (PID: $PROC)"
+		echo "Concourse is currently running (PID: $PROC)"
 	fi
 	exit 0
 }
@@ -50,7 +50,7 @@ case $1 in
     	else
     		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" >> /dev/null >> /dev/null &
 			rm $PID
-			echo "Stopping Concourse server. Check the log for more details..."
+			echo "Stopping Concourse. Check the log for more details..."
 		fi
 		exit 0
 		;;
@@ -58,7 +58,7 @@ case $1 in
 		if [ ! -f $PID ]; then
     		exec nohup $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> /dev/null >> /dev/null &
 			echo $! > $PID
-			echo "Starting Concourse server. Check the log for more details..."
+			echo "Starting Concourse. Check the log for more details..."
     	else
     		status
 		fi
