@@ -13,6 +13,9 @@ usage(){
 APP_HOME="`pwd -P`/.."
 cd $APP_HOME
 
+# Store PID in APP_HOME
+PID="$APP_HOME/concourse.pid"
+
 # Find JAVA command
 JAVA="/usr/bin/java"
 
@@ -29,11 +32,21 @@ case $1 in
 		usage
 		;;
 	stop )
-		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@"
+		if [ ! -f $PID ]; then
+    		echo "Concourse Server is not currently running..."
+    	else
+    		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" &
+			rm $PID
+		fi
 		exit 0
 		;;
 	* )
-		exec $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@"
+		if [ ! -f $PID ]; then
+    		exec $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" &
+			echo $! > $PID
+    	else
+    		echo "Concourse server is already running..."
+		fi
 		exit 0
 		;;
 esac
