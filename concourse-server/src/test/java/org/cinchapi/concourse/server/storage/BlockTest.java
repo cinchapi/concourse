@@ -42,7 +42,7 @@ import org.junit.runner.Description;
  */
 public abstract class BlockTest<L extends Byteable & Comparable<L>,K extends Byteable & Comparable<K>,V extends Byteable & Comparable<V>> {
 	
-	private Block<L,K,V> block;
+	protected Block<L,K,V> block;
 	
 	@Rule
 	public TestWatcher watcher = new TestWatcher(){
@@ -65,15 +65,9 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>,K extends Byt
 	
 	@Test(expected=IllegalStateException.class)
 	public void testCannotInsertInImmutableBlock(){
+		block.insert(getLocator(), getKey(), getValue(), Time.now());
 		block.sync();
 		block.insert(getLocator(), getKey(), getValue(), Time.now());
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testCannotInsertSmallerVersion(){
-		long version = Time.now();
-		block.insert(getLocator(), getKey(), getValue(), version);
-		block.insert(getLocator(), getKey(), getValue(), version-1);
 	}
 	
 	@Test

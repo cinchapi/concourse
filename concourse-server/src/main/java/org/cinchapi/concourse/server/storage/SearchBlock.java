@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Type;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -91,6 +92,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 */
 	public final synchronized void insert(Text key, Value value,
 			PrimaryKey record, long version) {
+		Preconditions.checkState(mutable,
+				"Cannot modify a block that is not mutable");
 		if(value.getType() == Type.STRING) {
 			String[] toks = value.getObject().toString().split(" ");
 			ExecutorService executor = ConcourseExecutors

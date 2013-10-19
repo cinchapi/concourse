@@ -23,18 +23,37 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.TestData;
 
 /**
  * 
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,
-		RecordSuite.class, StoreSuite.class })
-public class StorageSuite {
+public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value>{
+
+	@Override
+	protected PrimaryKey getLocator() {
+		return TestData.getPrimaryKey();
+	}
+
+	@Override
+	protected Text getKey() {
+		return TestData.getText();
+	}
+
+	@Override
+	protected Value getValue() {
+		return TestData.getValue();
+	}
+
+	@Override
+	protected PrimaryBlock getMutableBlock(String directory) {
+		return Block.createPrimaryBlock(Long.toString(Time.now()), directory);
+	}
 
 }

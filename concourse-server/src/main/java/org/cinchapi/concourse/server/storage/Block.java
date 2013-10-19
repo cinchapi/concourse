@@ -153,7 +153,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * The flag that indicates whether the Block is mutable or not. A Block is
 	 * mutable until a call to {@link #sync()} stores it to disk.
 	 */
-	private transient boolean mutable;
+	protected transient boolean mutable;
 
 	/**
 	 * The running size of the Block. This number only refers to the size of the
@@ -205,6 +205,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 *            from {@code directory} on disk
 	 */
 	protected Block(String id, String directory, boolean diskLoad) {
+		FileSystem.mkdirs(directory);
 		this.id = id;
 		this.file = directory + File.separator + id + BLOCK_NAME_EXTENSION;
 		if(diskLoad) {
