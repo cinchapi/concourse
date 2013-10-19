@@ -9,6 +9,16 @@ usage(){
 	exit -1
 }
 
+status(){
+	if [ ! -f $PID ]; then
+		echo "Concourse Server is not currently running..."
+	else
+		PROC=$(cat $PID)
+		echo "Concourse server is currently running (PID: $PROC)"
+	fi
+	exit 0
+}
+
 # Set APP_HOME to the parent directory
 APP_HOME="`pwd -P`/.."
 cd $APP_HOME
@@ -31,9 +41,12 @@ case $1 in
 	help )
 		usage
 		;;
+	status )
+		status
+		;;
 	stop )
 		if [ ! -f $PID ]; then
-    		echo "Concourse Server is not currently running..."
+    		status
     	else
     		exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" &
 			rm $PID
@@ -45,7 +58,7 @@ case $1 in
     		exec $JAVA $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" &
 			echo $! > $PID
     	else
-    		echo "Concourse server is already running..."
+    		status
 		fi
 		exit 0
 		;;
