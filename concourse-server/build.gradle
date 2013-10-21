@@ -5,11 +5,10 @@ dependencies {
     compile 'com.google.guava:guava:15.0'
 }
 
-task copyRoot(type:Copy) {
-	def build = file('build/root')
+task copyConf(type:Copy) {
+	def build = file('build/conf')
 	copy {
-		from 'concourse.prefs'
-		from 'stopwords.txt'
+		from 'conf'
 		into build
 	}
 	outputs.dir build
@@ -24,7 +23,9 @@ task copyBin(type:Copy) {
 	outputs.dir build
 }
 
-applicationDistribution.from(copyRoot) {}
+applicationDistribution.from(copyConf) {
+	into 'conf'
+}
 applicationDistribution.from(copyBin){
 	into 'bin'
 }

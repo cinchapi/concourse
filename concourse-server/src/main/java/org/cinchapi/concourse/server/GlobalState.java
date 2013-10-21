@@ -53,7 +53,7 @@ public final class GlobalState {
 
 	/* ***************************** CONFIG ******************************** */
 	private static final ConcourseConfiguration config = ConcourseConfiguration
-			.loadConfig("concourse.prefs");
+			.loadConfig("conf" + File.separator + "concourse.prefs");
 
 	/**
 	 * The absolute path to the directory where Concourse stores permanent data
@@ -103,8 +103,8 @@ public final class GlobalState {
 	public static final Set<String> STOPWORDS = Sets.newHashSet();
 	static {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(
-					"stopwords.txt"));
+			BufferedReader reader = new BufferedReader(new FileReader("conf"
+					+ File.separator + "stopwords.txt"));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				STOPWORDS.add(line);

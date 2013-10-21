@@ -74,7 +74,7 @@ import com.google.common.collect.Lists;
  * <ul>
  * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
  * person, place, or thing (i.e. an object). Each {@code record} is a collection
- * of key/value pairs that are together identify by a unique primary key.
+ * of key/value pairs that are together identified by a unique primary key.
  * <li><strong>Key</strong> &mdash; An attribute that maps to a set of
  * <em>one or more</em> distinct {@code values}. A {@code record} can have many
  * different {@code keys}, and the {@code keys} in one {@code record} do not
