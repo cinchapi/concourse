@@ -4,33 +4,9 @@
 ### 		Concourse Script for Unix 		###
 ###############################################
 
-# Functions
-usage( ){
-	echo "Usage: $0 { start | status | stop | dump | help }"
-	exit -1
-}
-
-status( ){
-	if [ ! -f $PID ]; then
-		echo "Concourse is NOT currently running..."
-	else
-		PROC=$(cat $PID)
-		echo "Concourse is currently running (PID: $PROC)"
-	fi
-	exit 0
-}
-
-warn ( ) {
-    echo "$*"
-}
-
-die ( ) {
-    echo
-    echo "$*"
-    echo
-    exit 1
-}
-
+# Set APP_HOME to the parent directory
+APP_HOME="`pwd -P`/.."
+cd $APP_HOME
 APP_NAME="concourse"
 APP_BASE_NAME=`basename "$0"`
 
@@ -53,17 +29,63 @@ case "`uname`" in
     ;;
 esac
 
+# Store PIDFILE in APP_HOME
+PIDFILE="$APP_HOME/concourse.pid"
+
+# Functions
+usage(){
+	echo "Usage: $0 { start | status | stop | dump | help }"
+}
+
+status() {
+	getpid
+    if [ "X$pid" = "X" ] ; then
+        echo "Concourse is NOT currently running..."
+    else
+        echo "Concourse is currently running (PID: $pid)"
+    fi
+}
+
+warn () {
+    echo "$*"
+}
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+}
+
+getpid() {
+    pid=""
+    if [ -f "$PIDFILE" ] ; then
+        if [ -r "$PIDFILE" ] ; then
+            pid=`cat "$PIDFILE"`
+            if [ "X$pid" != "X" ] ; then
+                # Make sure we don't have a stale pid
+                if $darwin ; then
+                    pidtest=`ps -ww -p $pid -o command | grep ConcourseServer | tail -1`
+                else
+                    pidtest=`ps -p $pid -o args -ww | grep ConcourseServer | tail -1`
+                fi
+                if [ "X$pidtest" = "X" ] ; then
+                    # pid is stale
+                    rm -f $PIDFILE
+                    echo "Removed stale pid file $PIDFILE"
+                    pid=""
+                fi
+            fi
+        else
+            echo "Cannot read $PIDFILE"
+        fi
+    fi
+}
+
 # For Cygwin, ensure paths are in UNIX format before anything is touched.
 if $cygwin ; then
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
-
-# Set APP_HOME to the parent directory
-APP_HOME="`pwd -P`/.."
-cd $APP_HOME
-
-# Store PID in APP_HOME
-PID="$APP_HOME/concourse.pid"
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
@@ -167,23 +189,22 @@ case $1 in
 		status
 		;;
 	stop )
-		if [ ! -f $PID ]; then
+		if [ ! -f $PIDFILE ]; then
     		status
     	else
     		exec $JAVACMD -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" >> /dev/null >> /dev/null &
-			rm $PID
+			rm -f $PIDFILE
 			echo "Stopping Concourse. Check the log for more details..."
 		fi
-		exit 0
 		;;
 	* )
-		if [ ! -f $PID ]; then
+		if [ ! -f $PIDFILE ]; then
     		exec nohup $JAVACMD $VM_OPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> /dev/null >> /dev/null &
-			echo $! > $PID
+			echo $! > $PIDFILE
 			echo "Starting Concourse. Check the log for more details..."
     	else
     		status
 		fi
-		exit 0
 		;;
 esac
+exit 0
