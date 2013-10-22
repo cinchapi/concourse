@@ -78,13 +78,38 @@ public final class Database implements PermanentStore {
 	 */
 	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
-	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-	private final transient List<SearchBlock> ctb = Lists.newArrayList();
+	/**
+	 * A pointer to the current mutable PrimaryBlock.
+	 */
+	private transient PrimaryBlock cpb0;
 
-	private transient PrimaryBlock primaryBlock;
-	private transient SecondaryBlock secondaryBlock;
-	private transient SearchBlock searchBlock;
+	/**
+	 * The chronologically ordered list of PrimaryBlocks that the Database uses
+	 * for seeking PrimaryRecords.
+	 */
+	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
+
+	/**
+	 * A pointer to the current mutable SecondaryBlock.
+	 */
+	private transient SecondaryBlock csb0;
+
+	/**
+	 * The chronologically ordered list of SecondaryBlocks that the Database
+	 * uses for seeking SecondaryRecords.
+	 */
+	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+
+	/**
+	 * A pointer to the current mutable SearchBlock.
+	 */
+	private transient SearchBlock ctb0;
+
+	/**
+	 * The chronologically ordered list of SearchBlocks that the Database uses
+	 * for seeking SearchRecords.
+	 */
+	private final transient List<SearchBlock> ctb = Lists.newArrayList();
 
 	/**
 	 * The location where the Database stores data.
@@ -121,10 +146,11 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public void accept(Write write) {
+		// NOTE: Write locking happens in each individual Block, so there is no
+		// need to worry about that here.
 		ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-				new BlockWriter(primaryBlock, write), new BlockWriter(
-						secondaryBlock, write), new BlockWriter(searchBlock,
-						write));
+				new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
+				new BlockWriter(ctb0, write));
 	}
 
 	@Override
@@ -333,15 +359,15 @@ public final class Database implements PermanentStore {
 		try {
 			if(doSync) {
 				ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-						new BlockSyncer(primaryBlock), new BlockSyncer(
-								secondaryBlock), new BlockSyncer(searchBlock));
+						new BlockSyncer(cpb0), new BlockSyncer(csb0),
+						new BlockSyncer(ctb0));
 			}
 			String id = Long.toString(Time.now());
-			cpb.add((primaryBlock = Block.createPrimaryBlock(id, backingStore
+			cpb.add((cpb0 = Block.createPrimaryBlock(id, backingStore
 					+ File.separator + PRIMARY_BLOCK_DIRECTORY)));
-			csb.add((secondaryBlock = Block.createSecondaryBlock(id,
-					backingStore + File.separator + SECONDARY_BLOCK_DIRECTORY)));
-			ctb.add((searchBlock = Block.createSearchBlock(id, backingStore
+			csb.add((csb0 = Block.createSecondaryBlock(id, backingStore
+					+ File.separator + SECONDARY_BLOCK_DIRECTORY)));
+			ctb.add((ctb0 = Block.createSearchBlock(id, backingStore
 					+ File.separator + SEARCH_BLOCK_DIRECTORY)));
 		}
 		finally {
