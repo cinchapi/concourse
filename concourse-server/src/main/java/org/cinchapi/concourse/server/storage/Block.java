@@ -296,7 +296,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param version
 	 * @throws IllegalStateException if the Block is not mutable
 	 */
-	public void insert(L locator, K key, V value, long version)
+	public Revision<L, K, V> insert(L locator, K key, V value, long version)
 			throws IllegalStateException {
 		masterLock.writeLock().lock();
 		try {
@@ -315,6 +315,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 											// #mightContain(L,K,V) without
 											// seeking
 			size += revision.size() + 4;
+			return revision;
 		}
 		finally {
 			masterLock.writeLock().unlock();
