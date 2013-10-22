@@ -90,9 +90,4 @@ public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {
 		return PrimaryKey.class;
 	}
 
-	@Override
-	protected int xValueSize() {
-		return PrimaryKey.SIZE;
-	}
-
 }

@@ -89,9 +89,4 @@ public final class SearchRevision extends Revision<Text, Text, Position> {
 		return Position.class;
 	}
 
-	@Override
-	protected int xValueSize() {
-		return Position.SIZE;
-	}
-
 }

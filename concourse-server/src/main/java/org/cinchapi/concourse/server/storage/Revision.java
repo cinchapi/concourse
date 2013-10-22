@@ -172,9 +172,8 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		this.key = Byteables.readStatic(ByteBuffers.get(bytes,
 				xKeySize() == VARIABLE_SIZE ? bytes.getInt() : xKeySize()),
 				xKeyClass());
-		this.value = Byteables.readStatic(ByteBuffers.get(bytes,
-				xValueSize() == VARIABLE_SIZE ? bytes.getInt() : xValueSize()),
-				xValueClass());
+		this.value = Byteables.readStatic(
+				ByteBuffers.get(bytes, bytes.remaining()), xValueClass());
 		this.size = bytes.capacity();
 	}
 
@@ -192,8 +191,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 		this.value = value;
 		this.version = version;
 		this.size = 8 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
-				+ (xKeySize() == VARIABLE_SIZE ? 4 : 0)
-				+ (xValueSize() == VARIABLE_SIZE ? 4 : 0) + locator.size()
+				+ (xKeySize() == VARIABLE_SIZE ? 4 : 0) + locator.size()
 				+ key.size() + value.size();
 	}
 
@@ -240,9 +238,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 				bytes.putInt(key.size());
 			}
 			bytes.put(key.getBytes());
-			if(xValueSize() == VARIABLE_SIZE) {
-				bytes.putInt(value.size());
-			}
 			bytes.put(value.getBytes());
 		}
 		return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -337,12 +332,5 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 */
 	protected abstract Class<V> xValueClass();
 
-	/**
-	 * Return the size used to store each {@link #value}. If this value is not
-	 * fixed, return {@link #VARIABLE_SIZE}.
-	 * 
-	 * @return the value size
-	 */
-	protected abstract int xValueSize();
 
 }
