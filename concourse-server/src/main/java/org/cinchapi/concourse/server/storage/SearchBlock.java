@@ -69,7 +69,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 */
 	@Override
 	@DoNotInvoke
-	public final void insert(Text locator, Text key, Position value,
+	public final SearchRevision insert(Text locator, Text key, Position value,
 			long version) {
 		throw new UnsupportedOperationException();
 	}
