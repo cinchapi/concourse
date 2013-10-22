@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -37,7 +38,6 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.config.Configurations;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
@@ -442,16 +442,37 @@ public interface Concourse {
 		private static final Logger log = LoggerFactory
 				.getLogger(Concourse.class);
 
-		/**
-		 * All configuration information is contained in this prefs file.
-		 */
-		private static final String configFileName = "concourse_client.prefs";
-
-		/**
-		 * Handler for configuration preferences.
-		 */
-		private static final PropertiesConfiguration config = Configurations
-				.loadPropertiesConfiguration(configFileName);
+		// NOTE: The configuration variables are static because we want to
+		// guarantee that they are set before the client connection is
+		// constructed. Even though these variables are static, it is still the
+		// case that any changes to the configuration will be picked up
+		// immediately for new client connections.
+		private static String SERVER_HOST;
+		private static int SERVER_PORT;
+		private static String USERNAME;
+		private static String PASSWORD;
+		static {
+			PropertiesConfiguration config;
+			try {
+				config = new PropertiesConfiguration("concourse_client.prefs");
+			}
+			catch (ConfigurationException e) {
+				log.warn("Could not find a configuration file so the default "
+						+ "connection information will be used if none "
+						+ "is provided when creating the client.");
+				config = null;
+			}
+			SERVER_HOST = "localhost";
+			SERVER_PORT = 1717;
+			USERNAME = "admin";
+			PASSWORD = "admin";
+			if(config != null) { 
+				SERVER_HOST = config.getString("CONCOURSE_HOST", SERVER_HOST);
+				SERVER_PORT = config.getInt("CONCOURSE_POST", SERVER_PORT);
+				USERNAME = config.getString("USERNAME", USERNAME);
+				PASSWORD = config.getString("PASSWORD", PASSWORD);
+			}
+		}
 
 		/**
 		 * Represents a request to respond to a query using the current state as
@@ -490,9 +511,7 @@ public interface Concourse {
 		 * interaction.
 		 */
 		public Client() {
-			this(config.getString("CONCOURSE_HOST", "localhost"), config
-					.getInt("CONCOURSE_PORT", 1717), config.getString(
-					"USERNAME", "admin"), config.getString("PASSWORD", "admin"));
+			this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD);
 		}
 
 		/**
@@ -504,7 +523,7 @@ public interface Concourse {
 		 * @param username
 		 * @param password
 		 */
-		private Client(String host, int port, String username, String password) {
+		public Client(String host, int port, String username, String password) {
 			this.username = username;
 			this.password = password;
 			final TTransport transport = new TSocket(host, port);
