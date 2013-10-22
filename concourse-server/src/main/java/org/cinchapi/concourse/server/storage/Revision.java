@@ -217,8 +217,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * <li><strong>keySize</strong> -
 	 * <em>if {@link #xKeySize()} == {@link #VARIABLE_SIZE}</em></li>
 	 * <li><strong>key</strong></li>
-	 * <li><strong>valueSize</strong> -
-	 * <em>if {@link #xValueSize()} == {@link #VARIABLE_SIZE}</em></li>
 	 * <li><strong>value</strong></li>
 	 * 
 	 * </ol>

@@ -300,11 +300,11 @@ final class Buffer extends Limbo {
 				log.info("Loadding Buffer content from {}...", page);
 			}
 			pages.addAll(pageSorter.values());
-			if(pages.isEmpty()){
+			if(pages.isEmpty()) {
 				addPage();
 			}
-			else{
-				currentPage = pages.get(pages.size()  - 1);
+			else {
+				currentPage = pages.get(pages.size() - 1);
 			}
 		}
 	}
@@ -510,9 +510,8 @@ final class Buffer extends Limbo {
 		}
 
 		/**
-		 * Append {@code write} to the Page. This method <em>does not</em>
-		 * verify that {@link #content} has enough remaining capacity to store
-		 * {@code write}.
+		 * Append {@code write} to the Page. This method does verify that
+		 * {@link #content} has enough remaining capacity to store {@code write}
 		 * 
 		 * @param write
 		 * @throws BufferCapacityException - if the size of {@code write} is
