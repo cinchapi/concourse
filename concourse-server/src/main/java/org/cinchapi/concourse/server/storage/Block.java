@@ -448,12 +448,19 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			if(filter.mightContain(byteables)) {
 				if(mutable) {
 					Iterator<Revision<L, K, V>> it = revisions.iterator();
-					boolean processing = false;
+					boolean processing = false; // Since the revisions are
+												// sorted, I can toggle this
+												// flag on once I reach a
+												// revision that I care about so
+												// that I can break out of the
+												// loop once I reach a revision
+												// I don't care about again.
 					boolean checkSecond = byteables.length > 1;
 					while (it.hasNext()) {
 						Revision<L, K, V> revision = it.next();
-						if(revision.getLocator() == byteables[0]
-								&& ((checkSecond && revision.getKey() == byteables[1]) || !checkSecond)) {
+						if(revision.getLocator().equals(byteables[0])
+								&& ((checkSecond && revision.getKey().equals(
+										byteables[1])) || !checkSecond)) {
 							processing = true;
 							record.append(revision);
 						}
