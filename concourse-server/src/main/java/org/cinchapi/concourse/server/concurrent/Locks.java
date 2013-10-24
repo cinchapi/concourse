@@ -21,20 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.concurrent;
+
+import java.util.concurrent.locks.Lock;
 
 /**
- * Base unit tests for {@link ProxyStore} services.
+ * Lock related utility methods.
  * 
  * @author jnelson
  */
-public abstract class ProxyStoreTest extends WritableStoreTest{
+public class Locks {
 
+	/**
+	 * Call {@link Lock#lock()} if and only if {@code condition} is {@code true}
+	 * 
+	 * @param lock
+	 * @param condition
+	 */
+	public static void lockIfCondition(Lock lock, boolean condition) {
+		if(condition) {
+			lock.lock();
+		}
+	}
 
-	@Override
-	protected abstract ProxyStore getStore();
-	
-	//TODO write unit tests for transport
-
+	/**
+	 * Call {@link Lock#unlock()} if and only if {@code condition} is
+	 * {@code true}. This method DOES NOT check to see if the lock is actually
+	 * held.
+	 * 
+	 * @param lock
+	 * @param condition
+	 */
+	public static void unlockIfCondition(Lock lock, boolean condition) {
+		if(condition) {
+			lock.unlock();
+		}
+	}
 
 }

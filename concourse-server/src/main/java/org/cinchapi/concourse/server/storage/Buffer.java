@@ -40,6 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.Operator;
@@ -48,6 +49,7 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.slf4j.Logger;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -71,6 +73,13 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
 @PackagePrivate
 final class Buffer extends Limbo {
 
+	// NOTE: The Buffer does not ever lock itself because its delegates
+	// concurrency control to each individual pages. Furthermore, since each
+	// Page is append-only, there is no need to ever lock any Page that is not
+	// equal to #currentPage. The Buffer does grab the transport readLock for
+	// most method so that we don't end up in situations where a transport
+	// happens while we're trying to read.
+
 	/**
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
@@ -88,7 +97,7 @@ final class Buffer extends Limbo {
 	private final List<Page> pages = Lists.newArrayList();
 
 	/**
-	 * The transport lock makes it possible to append new Writes and transport
+	 * The transportLock makes it possible to append new Writes and transport
 	 * old writes concurrently while prohibiting reading the buffer and
 	 * transporting writes at the same time.
 	 */
@@ -350,7 +359,7 @@ final class Buffer extends Limbo {
 
 	@Override
 	protected boolean insert(Write write) {
-		masterLock.writeLock().lock();
+		writeLock.lock();
 		try {
 			currentPage.append(write);
 		}
@@ -359,26 +368,25 @@ final class Buffer extends Limbo {
 			insert(write);
 		}
 		finally {
-			masterLock.writeLock().unlock();
+			writeLock.unlock();
 		}
 		return true;
 	}
 
 	@Override
 	protected boolean verify(Write write, long timestamp) {
-		masterLock.readLock().lock();
 		transportLock.readLock().lock();
 		try {
-			int count = 0;
+			boolean exists = false;
 			for (Page page : pages) {
-				if(page.mightContain(write)) {
-					count += page.count(write, timestamp);
+				if(page.mightContain(write)
+						&& page.locallyContains(write, timestamp)) {
+					exists ^= true; // toggle boolean
 				}
 			}
-			return count % 2 != 0;
+			return exists;
 		}
 		finally {
-			masterLock.readLock().unlock();
 			transportLock.readLock().unlock();
 		}
 	}
@@ -387,27 +395,28 @@ final class Buffer extends Limbo {
 	 * Add a new Page to the Buffer.
 	 */
 	private void addPage() {
-		masterLock.writeLock().lock();
+		writeLock.lock();
 		try {
 			currentPage = new Page(BUFFER_PAGE_SIZE);
 			pages.add(currentPage);
 			log.debug("Added page {} to Buffer", currentPage);
 		}
 		finally {
-			masterLock.writeLock().unlock();
+			writeLock.unlock();
 		}
+
 	}
 
 	/**
 	 * Remove the first page in the Buffer.
 	 */
 	private void removePage() {
-		masterLock.writeLock().lock();
+		writeLock.lock();
 		try {
 			pages.remove(0).delete();
 		}
 		finally {
-			masterLock.writeLock().unlock();
+			writeLock.unlock();
 		}
 	}
 
@@ -420,6 +429,8 @@ final class Buffer extends Limbo {
 	 * @author jnelson
 	 */
 	private class Page implements Iterator<Write>, Iterable<Write> {
+		// NOTE: This class does not define hashCode() and equals() because the
+		// defaults are the desired behaviour.
 
 		/**
 		 * The filename extension.
@@ -451,6 +462,12 @@ final class Buffer extends Limbo {
 		 * The file that contains the content of the Page.
 		 */
 		private final String filename;
+
+		/**
+		 * The local lock for the page, which is only used if this page is equal
+		 * to the {@link #currentPage}.
+		 */
+		private final transient ReentrantReadWriteLock pageLock = new ReentrantReadWriteLock();
 
 		/**
 		 * Indicates the index in {@link #writes} that constitutes the first
@@ -510,52 +527,33 @@ final class Buffer extends Limbo {
 		}
 
 		/**
-		 * Append {@code write} to the Page. This method does verify that
-		 * {@link #content} has enough remaining capacity to store {@code write}
+		 * Append {@code write} to the Page if {@link #content} has enough
+		 * remaining capacity to store {@code write}. Since all inserts are
+		 * routed to this method, we grab a writeLock so that we don't have a
+		 * situation where the currentPage is ever changed in the middle of a
+		 * read.
 		 * 
 		 * @param write
 		 * @throws BufferCapacityException - if the size of {@code write} is
 		 *             greater than the remaining capacity of {@link #content}
 		 */
-		@GuardedBy("Buffer#insert(Write)")
 		public void append(Write write) throws BufferCapacityException {
-			if(content.remaining() >= write.size() + 4) {
-				index(write);
-				content.putInt(write.size());
-				content.put(write.getBytes());
-				content.force();
-			}
-			else {
-				throw new BufferCapacityException();
-			}
-		}
-
-		/**
-		 * Count the number of times that {@code write} appears on the Page
-		 * before {@code timestamp}.
-		 * 
-		 * @param write
-		 * @param timestamp
-		 * @return the count
-		 */
-		public int count(Write write, long timestamp) {
-			masterLock.readLock().lock();
+			Preconditions.checkState(this == currentPage, "Illegal attempt to "
+					+ "append a Write to an inactive Page");
+			pageLock.writeLock().lock();
 			try {
-				Iterator<Write> it = iterator();
-				int count = 0;
-				while (it.hasNext()) {
-					Write current = it.next();
-					if(timestamp >= current.getVersion()) {
-						count += write.equals(current) ? 1 : 0;
-					}
-					else {
-						break;
-					}
+				if(content.remaining() >= write.size() + 4) {
+					index(write);
+					content.putInt(write.size());
+					content.put(write.getBytes());
+					content.force();
 				}
-				return count;
+				else {
+					throw new BufferCapacityException();
+				}
 			}
 			finally {
-				masterLock.readLock().unlock();
+				pageLock.writeLock().unlock();
 			}
 		}
 
@@ -577,12 +575,13 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public boolean hasNext() {
-			masterLock.readLock().lock();
+			Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
 			try {
 				return head < size;
 			}
 			finally {
-				masterLock.readLock().unlock();
+				Locks.unlockIfCondition(pageLock.readLock(),
+						this == currentPage);
 			}
 		}
 
@@ -626,7 +625,8 @@ final class Buffer extends Limbo {
 
 				@Override
 				public boolean hasNext() {
-					masterLock.readLock().lock();
+					Locks.lockIfCondition(pageLock.readLock(),
+							Page.this == currentPage);
 					try {
 						if(index - head != distance) {
 							throw new ConcurrentModificationException(
@@ -635,13 +635,15 @@ final class Buffer extends Limbo {
 						return index < size;
 					}
 					finally {
-						masterLock.readLock().unlock();
+						Locks.unlockIfCondition(pageLock.readLock(),
+								Page.this == currentPage);
 					}
 				}
 
 				@Override
 				public Write next() {
-					masterLock.readLock().lock();
+					Locks.lockIfCondition(pageLock.readLock(),
+							Page.this == currentPage);
 					try {
 						if(index - head != distance) {
 							throw new ConcurrentModificationException(
@@ -653,7 +655,8 @@ final class Buffer extends Limbo {
 						return next;
 					}
 					finally {
-						masterLock.readLock().unlock();
+						Locks.unlockIfCondition(pageLock.readLock(),
+								Page.this == currentPage);
 					}
 				}
 
@@ -667,19 +670,60 @@ final class Buffer extends Limbo {
 		}
 
 		/**
-		 * Return {@code true} if the Page <em>may</em> contain {@code write}.
+		 * Return {@code true} if the data in {@code write} exists locally
+		 * <em>on this page</em> at {@code timestamp}, which means that
+		 * {@code write} appears an odd number of times <em>on this page</em> at
+		 * or before {@code timestamp}. To really know if {@code write} exists
+		 * at {@code timestamp}, the caller must call this function for each
+		 * page with writes before {@code timestamp} and toggle the running
+		 * result if the function returns {@code true}.
+		 * 
+		 * @param write
+		 * @param timestamp
+		 * @return {@code true} if {@code write} exists at {@code timestamp} on
+		 *         this Page
+		 */
+		public boolean locallyContains(Write write, long timestamp) {
+			Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
+			try {
+				boolean exists = false;
+				Iterator<Write> it = iterator();
+				while (it.hasNext()) {
+					Write current = it.next();
+					if(timestamp >= current.getVersion()) {
+						if(write.equals(current)) {
+							exists ^= true; // toggle boolean
+						}
+					}
+					else {
+						break;
+					}
+				}
+				return exists;
+			}
+			finally {
+				Locks.unlockIfCondition(pageLock.readLock(),
+						this == currentPage);
+			}
+		}
+
+		/**
+		 * Return {@code true} if the Page <em>might</em> have a Write equal to
+		 * {@code write}. If this function returns true, the caller should check
+		 * with certainty by calling {@link #doesContain(Write, long)}.
 		 * 
 		 * @param write
 		 * @return {@code true} if the write possibly exists
 		 */
 		public boolean mightContain(Write write) {
-			masterLock.readLock().lock();
+			Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
 			try {
 				return filter.mightContain(write.getRecord(), write.getKey(),
 						write.getValue());
 			}
 			finally {
-				masterLock.readLock().unlock();
+				Locks.unlockIfCondition(pageLock.readLock(),
+						this == currentPage);
 			}
 		}
 
@@ -693,12 +737,13 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public Write next() {
-			masterLock.readLock().lock();
+			Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
 			try {
 				return writes[head];
 			}
 			finally {
-				masterLock.readLock().unlock();
+				Locks.unlockIfCondition(pageLock.readLock(),
+						this == currentPage);
 			}
 		}
 
@@ -709,12 +754,12 @@ final class Buffer extends Limbo {
 		 */
 		@Override
 		public void remove() {
-			masterLock.writeLock().lock();
+			Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
 			try {
 				head++;
 			}
 			finally {
-				masterLock.writeLock().unlock();
+				Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
 			}
 		}
 
@@ -730,7 +775,7 @@ final class Buffer extends Limbo {
 		 * @param write
 		 * @throws BufferCapacityException
 		 */
-		@GuardedBy("Buffer#insert(Write)")
+		@GuardedBy("Buffer.Page#append(Write)")
 		private void index(Write write) throws BufferCapacityException {
 			if(size < writes.length) {
 				// The individual Write components are added instead of the

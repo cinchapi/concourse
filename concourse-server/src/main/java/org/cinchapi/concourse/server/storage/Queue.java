@@ -63,12 +63,12 @@ class Queue extends Limbo {
 
 	@Override
 	protected boolean insert(Write write) {
-		masterLock.writeLock().lock();
+		writeLock.lock();
 		try {
 			return writes.add(write);
 		}
 		finally {
-			masterLock.writeLock().unlock();
+			writeLock.unlock();
 		}
 	}
 

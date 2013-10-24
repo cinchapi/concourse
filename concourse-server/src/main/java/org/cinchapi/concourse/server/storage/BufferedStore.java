@@ -54,13 +54,18 @@ import static com.google.common.base.Preconditions.*;
 @PackagePrivate
 @ThreadSafe
 abstract class BufferedStore implements WritableStore, VersionControlStore {
+	
+	// NOTE: This class DOES NOT implement any locking directly, so it is
+	// ThreadSafe if the #buffer and #destination are. Nevertheless, a
+	// #masterLock is provided to subclasses in the event that they need to
+	// ensure some thread safety directly.
 
 	/**
 	 * The {@code buffer} is the place where data is initially stored. The
 	 * contained data is eventually moved to the {@link #destination} when the
 	 * {@link ProxyStore#transport(PermanentStore)} method is called.
 	 */
-	protected final ProxyStore buffer;
+	protected final Limbo buffer;
 
 	/**
 	 * The {@code destination} is the place where data is stored when it is
@@ -82,7 +87,7 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 	 * @param transportable
 	 * @param destination
 	 */
-	protected BufferedStore(ProxyStore transportable, PermanentStore destination) {
+	protected BufferedStore(Limbo transportable, PermanentStore destination) {
 		checkArgument(
 				!this.getClass().isAssignableFrom(destination.getClass()),
 				"Cannot embed a %s into %s", destination.getClass(),
@@ -97,205 +102,135 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		masterLock.writeLock().lock();
-		try {
-			if(!verify(key, value, record)) {
-				return buffer.addUnsafe(key, value, record); /* Authorized */
-			}
-			return false;
+		Write write = Write.add(key, value, record);
+		if(!verify(write)) {
+			return buffer.insert(write); /* Authorized */
 		}
-		finally {
-			masterLock.writeLock().unlock();
-		}
+		return false;
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		masterLock.readLock().lock();
-		try {
-			Map<Long, String> result = buffer.audit(record);
-			result.putAll(destination.audit(record));
-			return result;
-
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		Map<Long, String> result = buffer.audit(record);
+		result.putAll(destination.audit(record));
+		return result;
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		masterLock.readLock().lock();
-		try {
-			Map<Long, String> result = buffer.audit(key, record);
-			result.putAll(destination.audit(key, record));
-			return result;
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		Map<Long, String> result = buffer.audit(key, record);
+		result.putAll(destination.audit(key, record));
+		return result;
 	}
 
 	@Override
 	public Set<String> describe(long record) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(buffer.describe(record),
-					destination.describe(record));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.describe(record),
+				destination.describe(record));
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(buffer.describe(record, timestamp),
-					destination.describe(record, timestamp));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.describe(record, timestamp),
+				destination.describe(record, timestamp));
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(buffer.fetch(key, record),
-					destination.fetch(key, record));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.fetch(key, record),
+				destination.fetch(key, record));
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(
-					buffer.fetch(key, record, timestamp),
-					destination.fetch(key, record, timestamp));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.fetch(key, record, timestamp),
+				destination.fetch(key, record, timestamp));
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(
-					buffer.find(timestamp, key, operator, values),
-					destination.find(timestamp, key, operator, values));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(
+				buffer.find(timestamp, key, operator, values),
+				destination.find(timestamp, key, operator, values));
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(buffer.find(key, operator, values),
-					destination.find(key, operator, values));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.find(key, operator, values),
+				destination.find(key, operator, values));
 	}
 
 	@Override
 	public boolean ping(long record) {
-		masterLock.readLock().lock();
-		try {
-			return buffer.ping(record) ^ destination.ping(record);
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return buffer.ping(record) ^ destination.ping(record);
 	}
 
 	@Override
 	public boolean remove(String key, TObject value, long record) {
-		masterLock.writeLock().lock();
-		try {
-			if(verify(key, value, record)) {
-				return buffer.removeUnsafe(key, value, record); /* Authorized */
-			}
-			return false;
+		Write write = Write.remove(key, value, record);
+		if(verify(write)) {
+			return buffer.insert(write); /* Authorized */
 		}
-		catch (BufferCapacityException e) {
-			buffer.transport(destination);
-			return remove(key, value, record);
-		}
-		finally {
-			masterLock.writeLock().unlock();
-		}
+		return false;
 	}
 
 	@Override
 	public void revert(String key, long record, long timestamp) {
-		masterLock.writeLock().lock();
-		try {
-			Set<TObject> past = fetch(key, record, timestamp);
-			Set<TObject> present = fetch(key, record);
-			Set<TObject> xor = Sets.symmetricDifference(past, present);
-			for (TObject value : xor) {
-				if(present.contains(value)) {
-					remove(key, value, record);
-				}
-				else {
-					add(key, value, record);
-				}
+		Set<TObject> past = fetch(key, record, timestamp);
+		Set<TObject> present = fetch(key, record);
+		Set<TObject> xor = Sets.symmetricDifference(past, present);
+		for (TObject value : xor) {
+			if(present.contains(value)) {
+				remove(key, value, record);
+			}
+			else {
+				add(key, value, record);
 			}
 		}
-		finally {
-			masterLock.writeLock().unlock();
-		}
-
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		masterLock.readLock().lock();
-		try {
-			return Sets.symmetricDifference(buffer.search(key, query),
-					destination.search(key, query));
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return Sets.symmetricDifference(buffer.search(key, query),
+				destination.search(key, query));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		masterLock.readLock().lock();
-		try {
-			return buffer.verify(key, value, record)
-					^ destination.verify(key, value, record);
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return verify(Write.notStorable(key, value, record));
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		masterLock.readLock().lock();
-		try {
-			return buffer.verify(key, value, record, timestamp)
-					^ destination.verify(key, value, record, timestamp);
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
+		return verify(Write.notStorable(key, value, record), timestamp);
+	}
+
+	/**
+	 * Verify {@code write}.
+	 * 
+	 * @param write
+	 * @return {@code true} if {@code write} currently exists
+	 */
+	private boolean verify(Write write) {
+		return buffer.verify(write)
+				^ destination
+						.verify(write.getKey().toString(), write.getValue()
+								.getTObject(), write.getRecord().longValue());
+	}
+
+	/**
+	 * Verify {@code write} at {@code timestamp}.
+	 * 
+	 * @param write
+	 * @param timestamp
+	 * @return {@code true} if {@code write} exists at {@code timestamp}
+	 */
+	private boolean verify(Write write, long timestamp) {
+		return buffer.verify(write, timestamp)
+				^ destination.verify(write.getKey().toString(), write
+						.getValue().getTObject(),
+						write.getRecord().longValue(), timestamp);
 	}
 
 }

@@ -37,7 +37,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public abstract class LimboTest extends ProxyStoreTest {
+public abstract class LimboTest extends WritableStoreTest {
 
 	@Test
 	public void testIterator() {
