@@ -39,8 +39,16 @@ if [ -z "$1" ] ; then
 	esac
 	echo $VERSION$EXTRA
 else
-	rm $COUNTER_FILE
-	echo "set"
+	NEW_VERSION=$1
+	if [[ $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]$ ]] ; then
+		echo $NEW_VERSION > $BASE_VERSION_FILE
+		rm $COUNTER_FILE
+		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
+		echo "The version has been set to $NEW_VERSION"
+	else
+		echo "Please specify a valid version <major>.<minor>.<patch>"
+		exit 1
+	fi
 fi
 exit 0
 
