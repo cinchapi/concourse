@@ -94,6 +94,7 @@ public final class FileSystem {
 					Files.delete(path);
 				}
 			}
+			Files.delete(Paths.get(directory));
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);
