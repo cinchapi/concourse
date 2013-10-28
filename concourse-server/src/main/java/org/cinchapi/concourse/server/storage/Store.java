@@ -216,6 +216,11 @@ interface Store {
 	 * Start the service.
 	 */
 	public void start();
+	
+	/**
+	 * Stop the service.
+	 */
+	public void stop();
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record}.

@@ -106,6 +106,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 					log.info("Shutdown request received");
 					server.stop();
 					socket.close();
+					System.exit(0);
 				}
 				catch (IOException e) {
 					e.printStackTrace();
@@ -384,8 +385,8 @@ public class ConcourseServer implements ConcourseService.Iface {
 	public void stop() {
 		if(server.isServing()) {
 			server.stop();
+			engine.stop();
 			log.info("The Concourse server has stopped");
-			System.exit(0);
 		}
 	}
 

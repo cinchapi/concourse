@@ -157,6 +157,15 @@ public final class Engine extends BufferedStore implements
 	}
 
 	@Override
+	public void stop() {
+		if(running) {
+			running = false;
+			buffer.stop();
+			destination.stop();
+		}
+	}
+
+	@Override
 	public Transaction startTransaction() {
 		return Transaction.start(this);
 	}

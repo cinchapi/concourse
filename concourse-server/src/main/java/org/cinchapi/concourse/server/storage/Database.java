@@ -37,6 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
+import org.cinchapi.concourse.server.io.ByteableComposite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -50,6 +51,8 @@ import org.cinchapi.concourse.util.Transformers;
 import org.slf4j.Logger;
 
 import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -68,61 +71,69 @@ import static org.cinchapi.concourse.server.GlobalState.*;
 @ThreadSafe
 public final class Database implements PermanentStore {
 
+	/**
+	 * Return a cache for records of type {@code T}.
+	 * 
+	 * @return the cache
+	 */
+	private static <T> Cache<ByteableComposite, T> buildCache() {
+		return CacheBuilder.newBuilder().maximumSize(100000).build();
+	}
+
+	private static final String threadNamePrefix = "database-write-thread";
+	private static final Logger log = Loggers.getLogger();
 	private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
 	private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
+
+	/*
+	 * RECORD CACHES
+	 * -------------
+	 * Records are cached in memory to reduce the number of seeks required. When
+	 * writing new revisions, we check the appropriate caches for relevant
+	 * records and append the new revision so that the cached data doesn't grow
+	 * stale.
+	 */
+	private final Cache<ByteableComposite, PrimaryRecord> cpc = buildCache();
+	private final Cache<ByteableComposite, PrimaryRecord> cppc = buildCache();
+	private final Cache<ByteableComposite, SecondaryRecord> csc = buildCache();
+	// private final Cache<ByteableComposite, SearchRecord> ctc = buildCache();
+
+	/*
+	 * CURRENT BLOCK POINTERS
+	 * ----------------------
+	 * We hold direct references to the current blocks. These pointers change
+	 * whenever the database triggers a sync operation.
+	 */
+	private transient PrimaryBlock cpb0;
+	private transient SecondaryBlock csb0;
+	private transient SearchBlock ctb0;
+
+	/*
+	 * BLOCK COLLECTIONS
+	 * -----------------
+	 * We maintain a collection to all the blocks, in chronological order, so
+	 * that we can seek for the necessary revisions to populate a given record.
+	 */
+	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
+	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+	private final transient List<SearchBlock> ctb = Lists.newArrayList();
 
 	/**
 	 * Lock used to ensure the object is ThreadSafe. This lock provides access
 	 * to a masterLock.readLock()() and masterLock.writeLock()().
 	 */
-	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
-
-	/**
-	 * A pointer to the current mutable PrimaryBlock.
-	 */
-	private transient PrimaryBlock cpb0;
-
-	/**
-	 * The chronologically ordered list of PrimaryBlocks that the Database uses
-	 * for seeking PrimaryRecords.
-	 */
-	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-
-	/**
-	 * A pointer to the current mutable SecondaryBlock.
-	 */
-	private transient SecondaryBlock csb0;
-
-	/**
-	 * The chronologically ordered list of SecondaryBlocks that the Database
-	 * uses for seeking SecondaryRecords.
-	 */
-	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-
-	/**
-	 * A pointer to the current mutable SearchBlock.
-	 */
-	private transient SearchBlock ctb0;
-
-	/**
-	 * The chronologically ordered list of SearchBlocks that the Database uses
-	 * for seeking SearchRecords.
-	 */
-	private final transient List<SearchBlock> ctb = Lists.newArrayList();
+	private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
 	/**
 	 * The location where the Database stores data.
 	 */
-	private final String backingStore;
+	private final transient String backingStore;
 
 	/**
 	 * A flag to indicate if the Buffer is running or not.
 	 */
-	private boolean running = false;
-
-	private static final String threadNamePrefix = "database-write-thread";
-	private static final Logger log = Loggers.getLogger();
+	private transient boolean running = false;
 
 	/**
 	 * Construct a Database that is backed by the default location which is in
@@ -243,6 +254,13 @@ public final class Database implements PermanentStore {
 		}
 	}
 
+	@Override
+	public void stop() {
+		if(running) {
+			running = false;
+		}
+	}
+
 	/**
 	 * Create new blocks and sync the current blocks to disk.
 	 */
@@ -268,15 +286,19 @@ public final class Database implements PermanentStore {
 	/**
 	 * Return the PrimaryRecord identifier by {@code primaryKey}.
 	 * 
-	 * @param primaryKey
+	 * @param pkey
 	 * @return the PrimaryRecord
 	 */
-	private PrimaryRecord getPrimaryRecord(PrimaryKey primaryKey) {
+	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = Record.createPrimaryRecord(primaryKey);
-			for (PrimaryBlock block : cpb) {
-				block.seek(primaryKey, record);
+			PrimaryRecord record = cpc.getIfPresent(ByteableComposite
+					.create(pkey));
+			if(record == null) {
+				record = Record.createPrimaryRecord(pkey);
+				for (PrimaryBlock block : cpb) {
+					block.seek(pkey, record);
+				}
 			}
 			return record;
 		}
@@ -289,17 +311,20 @@ public final class Database implements PermanentStore {
 	 * Return the partial PrimaryRecord identifier by {@code key} in
 	 * {@code primaryKey}
 	 * 
-	 * @param primaryKey
+	 * @param pkey
 	 * @param key
 	 * @return the PrimaryRecord
 	 */
-	private PrimaryRecord getPrimaryRecord(PrimaryKey primaryKey, Text key) {
+	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = Record.createPrimaryRecordPartial(
-					primaryKey, key);
-			for (PrimaryBlock block : cpb) {
-				block.seek(primaryKey, key, record);
+			PrimaryRecord record = cppc.getIfPresent(ByteableComposite.create(
+					pkey, key));
+			if(record == null) {
+				record = Record.createPrimaryRecordPartial(pkey, key);
+				for (PrimaryBlock block : cpb) {
+					block.seek(pkey, key, record);
+				}
 			}
 			return record;
 		}
@@ -315,6 +340,7 @@ public final class Database implements PermanentStore {
 	 * @return the SearchRecord
 	 */
 	private SearchRecord getSearchRecord(Text key) {
+		// TODO load from cache
 		masterLock.readLock().lock();
 		try {
 			SearchRecord record = Record.createSearchRecord(key);
@@ -337,9 +363,13 @@ public final class Database implements PermanentStore {
 	private SecondaryRecord getSecondaryRecord(Text key) {
 		masterLock.readLock().lock();
 		try {
-			SecondaryRecord record = Record.createSecondaryRecord(key);
-			for (SecondaryBlock block : csb) {
-				block.seek(key, record);
+			SecondaryRecord record = csc.getIfPresent(ByteableComposite
+					.create(key));
+			if(record == null) {
+				record = Record.createSecondaryRecord(key);
+				for (SecondaryBlock block : csb) {
+					block.seek(key, record);
+				}
 			}
 			return record;
 		}
@@ -487,22 +517,35 @@ public final class Database implements PermanentStore {
 		public void run() {
 			log.debug("Writing {} to {}", write, block);
 			if(block instanceof PrimaryBlock) {
-				((PrimaryBlock) block).insert(write.getRecord(),
-						write.getKey(), write.getValue(), write.getVersion());
+				PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
+						.insert(write.getRecord(), write.getKey(),
+								write.getValue(), write.getVersion());
+				PrimaryRecord record = cpc.getIfPresent(ByteableComposite
+						.create(write.getRecord()));
+				PrimaryRecord partialRecord = cppc
+						.getIfPresent(ByteableComposite.create(
+								write.getRecord(), write.getKey()));
+				if(record != null) {
+					record.append(revision);
+				}
+				if(partialRecord != null) {
+					partialRecord.append(revision);
+				}
 			}
 			else if(block instanceof SecondaryBlock) {
-				((SecondaryBlock) block)
+				SecondaryRevision revision = (SecondaryRevision) ((SecondaryBlock) block)
 						.insert(write.getKey(), write.getValue(),
 								write.getRecord(), write.getVersion());
+				SecondaryRecord record = csc.getIfPresent(ByteableComposite
+						.create(write.getKey()));
+				if(record != null) {
+					record.append(revision);
+				}
 			}
-			else if(block instanceof SearchBlock) {
-				((SearchBlock) block).insert(write.getKey(), write.getValue(),
-						write.getRecord(), write.getVersion());
-			}
+			// TODO cache search revision
 			else {
 				throw new IllegalArgumentException();
 			}
 		}
-
 	}
 }

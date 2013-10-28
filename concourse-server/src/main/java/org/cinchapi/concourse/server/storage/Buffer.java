@@ -74,10 +74,10 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
 final class Buffer extends Limbo {
 
 	// NOTE: The Buffer does not ever lock itself because its delegates
-	// concurrency control to each individual pages. Furthermore, since each
+	// concurrency control to each individual page. Furthermore, since each
 	// Page is append-only, there is no need to ever lock any Page that is not
 	// equal to #currentPage. The Buffer does grab the transport readLock for
-	// most method so that we don't end up in situations where a transport
+	// most methods so that we don't end up in situations where a transport
 	// happens while we're trying to read.
 
 	/**
@@ -318,6 +318,13 @@ final class Buffer extends Limbo {
 		}
 	}
 
+	@Override
+	public void stop() {
+		if(running){
+			running = false;
+		}	
+	}
+
 	/**
 	 * {@inheritDoc} This method will transport the first write in the buffer.
 	 */
@@ -429,6 +436,7 @@ final class Buffer extends Limbo {
 	 * @author jnelson
 	 */
 	private class Page implements Iterator<Write>, Iterable<Write> {
+
 		// NOTE: This class does not define hashCode() and equals() because the
 		// defaults are the desired behaviour.
 

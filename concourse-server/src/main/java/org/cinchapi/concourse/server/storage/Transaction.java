@@ -275,6 +275,11 @@ public final class Transaction extends BufferedStore {
 	public void start() {
 		// do nothing
 	}
+	
+	@Override
+	public void stop() {
+		// do nothing
+	}
 
 	@Override
 	public String toString() {

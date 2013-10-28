@@ -77,4 +77,9 @@ class Queue extends Limbo {
 		// do nothing
 	}
 
+	@Override
+	public void stop() {
+		// do nothing
+	}
+
 }
