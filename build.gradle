@@ -46,6 +46,15 @@ subprojects {
     	archives javadocJar
     }
 
+    def getVersion = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'bash', 'version.sh'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+
     group = 'org.cinchapi'
-    version = '0.2.0.' + (System.currentTimeMillis()/1000)
+    version = getVersion()
 }

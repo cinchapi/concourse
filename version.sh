@@ -1,13 +1,48 @@
 #!/usr/bin/env bash
-# This script sets the version number
 
-usage(){
-	echo "Usage: $0 <major>.<minor>.<patch>"
-	exit -1
-}
+#################################################
+###  Script to get or set the current version ###
+#################################################
 
-# Update README.md
+BASE_VERSION_FILE=".version"
+COUNTER_FILE=".counter"
+
+if [ -z "$1" ] ; then 
+	VERSION=`cat $BASE_VERSION_FILE`
+	BRANCH=`git rev-parse --abbrev-ref HEAD`
+	COMMIT=`git rev-parse HEAD | cut -c1-10`
+
+	# Get counter value
+	if [ ! -f $COUNTER_FILE ] ; then
+		echo 0 > $COUNTER_FILE
+	fi
+	COUNTER=`cat $COUNTER_FILE`
+	((COUNTER++))
+	echo $COUNTER > $COUNTER_FILE
+	VERSION=$VERSION.$COUNTER
+	case $BRANCH in 
+		develop )
+			EXTRA="-SNAPSHOT+$COMMIT"
+			;;
+		feature* )
+			EXTRA="-SNAPSHOT+$COMMIT"
+			;;
+		release* )
+			EXTRA="-beta+$COMMIT"
+			;;
+		* )
+			# At this point we do not need to refer
+			# to any commit hash since we'll have a
+			# tag that represents the overall release
+			EXTRA=""
+			;;
+	esac
+	echo $VERSION$EXTRA
+else
+	rm $COUNTER_FILE
+	echo "set"
+fi
+exit 0
 
 
-# Update build.gradle
-sed -i '' 's/version = '\''[0-9]*\.[0-9]*\.[0-9]*'\''/version = '\''0.1.0'\''/g' build.gradle
+
