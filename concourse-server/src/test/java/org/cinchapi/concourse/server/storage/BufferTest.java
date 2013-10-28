@@ -23,7 +23,11 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -40,7 +44,7 @@ import com.google.common.base.Stopwatch;
  * @author jnelson
  */
 public class BufferTest extends LimboTest {
-	
+
 	private String current;
 
 	@Override
@@ -53,31 +57,51 @@ public class BufferTest extends LimboTest {
 	protected void cleanup(Store store) {
 		FileSystem.deleteDirectory(current);
 	}
-	
-	public class Fake{
-		
+
+	public class Fake {
+
 		ByteBuffer bytes;
 		long number;
-		
-		public Fake(ByteBuffer bytes, long number){
+
+		public Fake(ByteBuffer bytes, long number) {
 			this.bytes = bytes;
 			this.number = number;
 		}
 	}
-	
+
 	@Test
-	public void testBufferInsertBenchmark(){
+	public void testBufferInsertStringBenchmark() throws IOException {
+		Buffer buffer = (Buffer) store;
+		URL url = this.getClass().getResource("/words.txt");
+		File file = new File(url.getFile());
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		String line;
+		long record = 0;
+		Stopwatch watch = new Stopwatch();
+		watch.start();
+		while ((line = reader.readLine()) != null) {
+			String key = "strings";
+			buffer.insert(Write.add(key, Convert.javaToThrift(line), record));
+			record++;
+		}
+		watch.stop();
+		log.info("String Benchmark: {} ms", watch.elapsedMillis());
+		reader.close();
+	}
+
+	@Test
+	public void testBufferInsertLongBenchmark() {
 		Buffer buffer = (Buffer) store;
 		String key = "count";
 		long i = 0;
 		Stopwatch watch = new Stopwatch();
 		watch.start();
-		while(i < 1000){
+		while (i < 1000) {
 			buffer.insert(Write.add(key, Convert.javaToThrift(i), i));
 			i++;
 		}
 		watch.stop();
-		log.info("Benchmark: {} ms", watch.elapsedMillis());
+		log.info("Long Benchmark: {} ms", watch.elapsedMillis());
 	}
 
 }
