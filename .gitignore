@@ -6,5 +6,6 @@
 *.classpath
 *.project
 .gradle
+.counter
 concourse/build/
 concourse-server/build/
