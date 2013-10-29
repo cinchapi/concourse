@@ -83,7 +83,7 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 	 */
 	private static final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> CACHE = CacheBuilder
 			.newBuilder()
-			.maximumSize(100000)
+			.maximumSize(1000)
 			.build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
 
 				@Override
