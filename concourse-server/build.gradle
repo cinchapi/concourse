@@ -25,11 +25,23 @@ task copyScripts(type:Copy) {
 	outputs.dir build
 }
 
+task copyRoot(type:Copy) {
+	def build = file('build/root')
+	copy {
+		from '../LICENSE'
+		into build
+	}
+	outputs.dir build
+}
+
 applicationDistribution.from(copyConf) {
 	into 'conf'
 }
 applicationDistribution.from(copyScripts){
 	into 'bin'
+}
+applicationDistribution.from(copyRoot){
+	into ''
 }
 
 mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
