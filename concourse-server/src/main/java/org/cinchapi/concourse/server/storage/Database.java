@@ -82,6 +82,18 @@ public final class Database implements PermanentStore {
 
 	private static final String threadNamePrefix = "database-write-thread";
 	private static final Logger log = Loggers.getLogger();
+
+	/*
+	 * BLOCK DIRECTORIES
+	 * -----------------
+	 * Each Block type is stored in its own directory so that we can reduce the
+	 * number of files in a single directory. It is important to note that the
+	 * filename extensions for files are the same across directories (i.e. 'blk'
+	 * for block, 'fltr' for bloom filter and 'indx' for index). Furthermore,
+	 * blocks that are synced at the same time all have the same block id.
+	 * Therefore, the only way to distinguish blocks of different types from one
+	 * another is by the directory in which they are stored.
+	 */
 	private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
 	private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
