@@ -59,12 +59,11 @@ import com.google.common.collect.Maps;
 import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
- * The {@code Database} is the permanent {@link PermanentStore} for
- * {@link Write} objects that are initially stored in a {@link Buffer}.
- * <p>
- * When the Database accepts a write, it creates relevant indexes for efficient
- * retrieval, query and search reads.
- * </p>
+ * The {@code Database} is the {@link PermanentStore} for data. The
+ * Database accepts {@link Write} objects that are initially stored in a
+ * {@link Buffer} and converts them to {@link Revision} objects that are stored
+ * in various {@link Block} objects, which provide indexed views for optimized
+ * reads.
  * 
  * @author jnelson
  */
@@ -420,7 +419,7 @@ public final class Database implements PermanentStore {
 
 	/**
 	 * A runnable that traverses the appropriate directory for a block type
-	 * under {@link #backingStore} and loads the blocks into memory.
+	 * under {@link #backingStore} and loads the block metadata into memory.
 	 * 
 	 * @author jnelson
 	 * @param <T> - the Block type
@@ -467,7 +466,7 @@ public final class Database implements PermanentStore {
 					constructor.setAccessible(true);
 					blockSorter.put(file,
 							constructor.newInstance(id, path.toString(), true));
-					log.info("Loaded {} at {}", clazz.getSimpleName(),
+					log.info("Loaded {} metadata for {}", clazz.getSimpleName(),
 							file.getName());
 				}
 				blocks.addAll(blockSorter.values());
