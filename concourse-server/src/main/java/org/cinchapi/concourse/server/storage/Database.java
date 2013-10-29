@@ -407,7 +407,7 @@ public final class Database implements PermanentStore {
 
 	/**
 	 * A runnable that traverses the appropriate directory for a block type
-	 * under {@code backingStore} and loads the blocks into memory.
+	 * under {@link #backingStore} and loads the blocks into memory.
 	 * 
 	 * @author jnelson
 	 * @param <T> - the Block type
