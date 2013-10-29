@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.util;
 
+import org.cinchapi.concourse.server.concurrent.IdentifiableReentrantReadWriteLock;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -57,6 +59,14 @@ public final class TestData extends Random {
 	public static SecondaryRevision getSecondaryRevision() {
 		return Revision.createSecondaryRevision(getText(), getValue(),
 				getPrimaryKey(), Time.now());
+	}
+	
+	public static IdentifiableReentrantReadWriteLock getIdentifiableReentrantReadWriteLock(){
+		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+		for(int i = 0; i < components.length; i++){
+			components[i] = TestData.getValue();
+		}
+		return IdentifiableReentrantReadWriteLock.create(components);
 	}
 
 	/**
