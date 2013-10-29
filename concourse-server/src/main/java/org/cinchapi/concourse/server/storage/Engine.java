@@ -119,13 +119,13 @@ public final class Engine extends BufferedStore implements
 	@Override
 	@DoNotInvoke
 	public void accept(Write write) {
-		checkArgument(write.getType() != Write.Type.NOT_STORABLE);
+		checkArgument(write.getType() != Action.COMPARE);
 		masterLock.writeLock().lock();
 		try {
 			String key = write.getKey().toString();
 			TObject value = write.getValue().getTObject();
 			long record = write.getRecord().longValue();
-			boolean accepted = write.getType() == Write.Type.ADD ? add(key,
+			boolean accepted = write.getType() == Action.ADD ? add(key,
 					value, record) : remove(key, value, record);
 			if(!accepted) {
 				log.warn("Write {} was rejected by the Engine"

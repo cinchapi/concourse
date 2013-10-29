@@ -57,7 +57,7 @@ public final class Write implements Byteable, Versioned {
 	 * @return the Write
 	 */
 	public static Write add(String key, TObject value, long record) {
-		return new Write(Type.ADD, Text.wrap(key), Value.wrap(value),
+		return new Write(Action.ADD, Text.wrap(key), Value.wrap(value),
 				PrimaryKey.wrap(record), Time.now());
 	}
 
@@ -73,7 +73,7 @@ public final class Write implements Byteable, Versioned {
 	 */
 	public static Write fromByteBuffer(ByteBuffer bytes) {
 		int keySize = bytes.getInt();
-		Type type = Type.values()[bytes.get()];
+		Action type = Action.values()[bytes.get()];
 		long version = bytes.getLong();
 		PrimaryKey record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
 				PrimaryKey.SIZE));
@@ -93,7 +93,7 @@ public final class Write implements Byteable, Versioned {
 	 * @return the Write
 	 */
 	public static Write notStorable(String key, TObject value, long record) {
-		return new Write(Type.NOT_STORABLE, Text.wrap(key), Value.wrap(value),
+		return new Write(Action.COMPARE, Text.wrap(key), Value.wrap(value),
 				PrimaryKey.wrap(record), NO_VERSION);
 	}
 
@@ -107,7 +107,7 @@ public final class Write implements Byteable, Versioned {
 	 * @return the Write
 	 */
 	public static Write remove(String key, TObject value, long record) {
-		return new Write(Type.REMOVE, Text.wrap(key), Value.wrap(value),
+		return new Write(Action.REMOVE, Text.wrap(key), Value.wrap(value),
 				PrimaryKey.wrap(record), Time.now());
 	}
 
@@ -123,7 +123,7 @@ public final class Write implements Byteable, Versioned {
 	 * recorded so that the Database knows how to apply the Write when accepting
 	 * it from a transport.
 	 */
-	private final Type type;
+	private final Action type;
 	private final Text key;
 	private final Value value;
 	private final PrimaryKey record;
@@ -145,7 +145,7 @@ public final class Write implements Byteable, Versioned {
 	 * @param record
 	 * @param version
 	 */
-	private Write(Type type, Text key, Value value, PrimaryKey record,
+	private Write(Action type, Text key, Value value, PrimaryKey record,
 			long version) {
 		this(type, key, value, record, version, null);
 	}
@@ -159,7 +159,7 @@ public final class Write implements Byteable, Versioned {
 	 * @param version
 	 * @param bytes
 	 */
-	private Write(Type type, Text key, Value value, PrimaryKey record, long version, @Nullable ByteBuffer bytes){
+	private Write(Action type, Text key, Value value, PrimaryKey record, long version, @Nullable ByteBuffer bytes){
 		this.type = type;
 		this.key = key;
 		this.value = value;
@@ -236,7 +236,7 @@ public final class Write implements Byteable, Versioned {
 	 * 
 	 * @return the type
 	 */
-	public Type getType() {
+	public Action getType() {
 		return type;
 	}
 
@@ -295,17 +295,8 @@ public final class Write implements Byteable, Versioned {
 				+ key
 				+ " AS "
 				+ value
-				+ (type == Type.ADD ? " TO " : (type == Type.REMOVE ? " FROM "
+				+ (type == Action.ADD ? " TO " : (type == Action.REMOVE ? " FROM "
 						: " IN ")) + record;
-	}
-
-	/**
-	 * The {@code Type} describes the action that generated a {@link Write}.
-	 * 
-	 * @author jnelson
-	 */
-	public enum Type {
-		ADD, REMOVE, NOT_STORABLE
 	}
 
 }
