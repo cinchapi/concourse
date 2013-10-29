@@ -113,7 +113,8 @@ public final class Database implements PermanentStore {
 	 * BLOCK COLLECTIONS
 	 * -----------------
 	 * We maintain a collection to all the blocks, in chronological order, so
-	 * that we can seek for the necessary revisions to populate a requested record.
+	 * that we can seek for the necessary revisions to populate a requested
+	 * record.
 	 */
 	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
 	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
@@ -542,7 +543,11 @@ public final class Database implements PermanentStore {
 					record.append(revision);
 				}
 			}
-			// TODO cache search revision
+			else if(block instanceof SearchBlock) {
+				((SearchBlock) block).insert(write.getKey(), write.getValue(),
+						write.getRecord(), write.getVersion());
+				// TODO cache search revision
+			}
 			else {
 				throw new IllegalArgumentException();
 			}
