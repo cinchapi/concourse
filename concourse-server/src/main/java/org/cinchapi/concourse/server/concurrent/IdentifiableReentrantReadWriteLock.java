@@ -23,17 +23,21 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableComposite;
-import org.cinchapi.concourse.util.ByteBuffers;
+
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
- * A {@link Byteable} {@link ReentrantReadWriteLock} that is identified by a
+ * A {@link ReentrantReadWriteLock} that is identified by a
  * {@link ByteableComposite}. The lock defines its hashCode and equals methods
  * in terms of its id. An identifiable lock is useful for situations in which a
  * lock is placed in a collection and needs to be identified for subsequent
@@ -42,8 +46,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
  * @author jnelson
  */
 @Immutable
-public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock implements
-		Byteable {
+public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 
 	/**
 	 * Create a new IdentifiableReentrantReadWriteLock whose {@link #id} will
@@ -54,8 +57,7 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock i
 	 */
 	public static IdentifiableReentrantReadWriteLock create(
 			Byteable... components) {
-		return new IdentifiableReentrantReadWriteLock(
-				ByteableComposite.create(components));
+		return identifiedBy(ByteableComposite.create(components));
 	}
 
 	/**
@@ -67,26 +69,30 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock i
 	 */
 	public static IdentifiableReentrantReadWriteLock identifiedBy(
 			ByteableComposite id) {
-		return new IdentifiableReentrantReadWriteLock(id);
+		try {
+			return CACHE.get(id);
+		}
+		catch (ExecutionException e) {
+			throw Throwables.propagate(e);
+		}
 	}
 
 	/**
-	 * Return the IdentifiableReentrantReadWriteLock encoded in {@code bytes} so
-	 * long as those bytes adhere to the format specified by the
-	 * {@link #getBytes()} method. This method assumes that all the bytes in the
-	 * {@code bytes} belong to the IdentifiableReentrantReadWriteLock. In
-	 * general, it is necessary to get the appropriate
-	 * IdentifiableReentrantReadWriteLock slice from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the IdentifiableReentrantReadWriteLock
+	 * The cache holds locks that have been recently used. This helps to ensure
+	 * that we return the same lock for the same key.
 	 */
-	public static IdentifiableReentrantReadWriteLock fromByteBuffer(
-			ByteBuffer bytes) {
-		return new IdentifiableReentrantReadWriteLock(
-				ByteableComposite.fromByteBuffer(bytes));
-	}
+	private static final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> CACHE = CacheBuilder
+			.newBuilder()
+			.maximumSize(100000)
+			.build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
+
+				@Override
+				public IdentifiableReentrantReadWriteLock load(
+						ByteableComposite key) throws Exception {
+					return new IdentifiableReentrantReadWriteLock(key);
+				}
+
+			});
 
 	private static final long serialVersionUID = 1L; // Serializability
 														// inherited from super
@@ -117,11 +123,6 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock i
 		return false;
 	}
 
-	@Override
-	public ByteBuffer getBytes() {
-		return id.getBytes();
-	}
-
 	/**
 	 * Return the {@link #id} for this lock.
 	 * 
@@ -134,11 +135,6 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock i
 	@Override
 	public int hashCode() {
 		return id.hashCode();
-	}
-
-	@Override
-	public int size() {
-		return id.size();
 	}
 
 	@Override

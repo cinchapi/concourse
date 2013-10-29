@@ -23,52 +23,30 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.concurrent.ExecutionException;
-
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableComposite;
-
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * A service that provides identifiable locks.
+ * Unit tests for {@link IdentifiableReentrantReadWriteLock}.
  * 
  * @author jnelson
  */
-public class Locksmith {
+public class IdentifiableReentrantReadWriteLockTest {
 
-	/**
-	 * The cache holds locks that have been recently used.
-	 */
-	private final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> cache = CacheBuilder
-			.newBuilder()
-			.maximumSize(100000)
-			.build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
-
-				@Override
-				public IdentifiableReentrantReadWriteLock load(
-						ByteableComposite key) throws Exception {
-					return IdentifiableReentrantReadWriteLock.identifiedBy(key);
-				}
-
-			});
-
-	/**
-	 * Get the lock identified by {@code components}.
-	 * 
-	 * @param components
-	 * @return the lock
-	 */
-	public IdentifiableReentrantReadWriteLock getLock(Byteable... components) {
-		try {
-			return cache.get(ByteableComposite.create(components));
+	@Test
+	public void testLocksAreTheSame() {
+		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+		for (int i = 0; i < components.length; i++) {
+			components[i] = TestData.getValue();
 		}
-		catch (ExecutionException e) {
-			throw Throwables.propagate(e);
-		}
+		IdentifiableReentrantReadWriteLock a = IdentifiableReentrantReadWriteLock
+				.create(components);
+		IdentifiableReentrantReadWriteLock b = IdentifiableReentrantReadWriteLock
+				.identifiedBy(ByteableComposite.create(components));
+		Assert.assertSame(a, b);
 	}
 
 }
