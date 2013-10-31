@@ -47,7 +47,7 @@ Thumbs.db
 # Project metadata #
 ####################
 *test.out*
-*.gradle
+*.gradle/
 *.counter
 *build/
 *bin/
