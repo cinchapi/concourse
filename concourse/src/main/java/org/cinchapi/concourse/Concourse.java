@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse;
 
-import java.net.ConnectException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -47,8 +46,6 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Transformers;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -439,9 +436,6 @@ public interface Concourse {
 	 */
 	public final static class Client implements Concourse {
 
-		private static final Logger log = LoggerFactory
-				.getLogger(Concourse.class);
-
 		// NOTE: The configuration variables are static because we want to
 		// guarantee that they are set before the client connection is
 		// constructed. Even though these variables are static, it is still the
@@ -457,9 +451,6 @@ public interface Concourse {
 				config = new PropertiesConfiguration("concourse_client.prefs");
 			}
 			catch (ConfigurationException e) {
-				log.warn("Could not find a configuration file so the default "
-						+ "connection information will be used if none "
-						+ "is provided when creating the client.");
 				config = null;
 			}
 			SERVER_HOST = "localhost";
@@ -532,30 +523,18 @@ public interface Concourse {
 				TProtocol protocol = new TBinaryProtocol(transport);
 				client = new ConcourseService.Client(protocol);
 				authenticate();
-				log.info("Connected to Concourse at {}:{}", host, port);
 				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
 
 					@Override
 					public void run() {
 						if(transaction != null && transport.isOpen()) {
 							abort();
-							log.warn("Prior to shutdown, the client was in the middle "
-									+ "of an uncommitted transaction. That transaction "
-									+ "has been aborted and all of its uncommited changes "
-									+ "have been lost.");
 						}
 					}
 
 				});
 			}
 			catch (TTransportException e) {
-				if(e.getCause() instanceof ConnectException) {
-					log.error("Unable to establish a connection with "
-							+ "Concourse at {}:{}. Please check "
-							+ "that the remote service is actually running "
-							+ "and accepting connections.", host, port);
-
-				}
 				throw Throwables.propagate(e);
 			}
 		}
@@ -569,9 +548,6 @@ public interface Concourse {
 					if(transaction != null) {
 						client.abort(creds, transaction);
 						transaction = null;
-					}
-					else {
-						log.warn("There is no transaction to abort.");
 					}
 					return null;
 				}
@@ -686,7 +662,6 @@ public interface Concourse {
 		public void exit() {
 			client.getInputProtocol().getTransport().close();
 			client.getOutputProtocol().getTransport().close();
-			log.info("The Concourse connection is closed");
 		}
 
 		@Override
