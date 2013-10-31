@@ -1,0 +1,170 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.cinchapi.concourse.shell;
+
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+
+import jline.TerminalFactory;
+import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
+
+import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.thrift.Operator;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.google.common.base.Stopwatch;
+
+/**
+ * The main program runner for the ConcourseShell client. ConcourseShell wraps a
+ * connection to a ConcourseServer inside of a {@link GroovyShell}, which allows
+ * for rich interaction with Concourse in a scripting environment.
+ * 
+ * @author jnelson
+ */
+public final class ConcourseShell {
+
+	/**
+	 * Run the program...
+	 * 
+	 * @param args - see {@link Options}
+	 */
+	public static void main(String... args) {
+		Options opts = new Options();
+		JCommander parser = new JCommander(opts, args);
+		if(opts.help) {
+			parser.usage();
+			System.exit(1);
+		}
+		// TODO check if password is empty
+		try {
+			Concourse concourse = new Concourse.Client(opts.host, opts.port,
+					opts.username, opts.password);
+
+			CommandLine.displayWelcomeBanner();
+			Binding binding = new Binding();
+			GroovyShell shell = new GroovyShell(binding);
+
+			Stopwatch watch = new Stopwatch();
+
+			ConsoleReader console = new ConsoleReader();
+			console.setPrompt("concourse> ");
+			console.addCompleter(new StringsCompleter("concourse"));
+
+			String line;
+			while ((line = console.readLine().trim()) != null) {
+				binding.setVariable("concourse", concourse);
+				binding.setVariable("eq", Operator.EQUALS);
+				binding.setVariable("neq", Operator.NOT_EQUALS);
+				binding.setVariable("gt", Operator.GREATER_THAN);
+				binding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
+				binding.setVariable("lt", Operator.LESS_THAN);
+				binding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
+				binding.setVariable("bw", Operator.BETWEEN);
+				binding.setVariable("regex", Operator.REGEX);
+				binding.setVariable("nregex", Operator.NOT_REGEX);
+				if(line.equalsIgnoreCase("exit")) {
+					System.exit(0);
+				}
+				else {
+					watch.reset().start();
+					Object value = null;
+					try {
+						value = shell.evaluate(line, "ConcourseShell");
+						watch.stop();
+						if(value != null) {
+							System.out.println("Returned '" + value + "' in "
+									+ watch.elapsedMillis() + " ms");
+						}
+					}
+					catch (Exception e) {
+						if(e.getCause() instanceof TTransportException) {
+							die(e.getMessage());
+						}
+						else {
+							System.err.print("ERROR: " + e.getMessage());
+						}
+					}
+
+				}
+				System.out.print("\n");
+			}
+		}
+		catch (Exception e) {
+			if(e.getCause() instanceof TTransportException) {
+				die("Unable to connect to " + opts.username + "@" + opts.host
+						+ ":" + opts.port + " with the specified password");
+			}
+			else {
+				die(e.getMessage());
+			}
+		}
+		finally {
+			try {
+				TerminalFactory.get().restore();
+			}
+			catch (Exception e) {
+				die(e.getMessage());
+			}
+		}
+
+	}
+
+	/**
+	 * Print {@code message} to stderr and exit with a non-zero status.
+	 * 
+	 * @param message
+	 */
+	private static void die(String message) {
+		System.err.println("ERROR: " + message);
+		System.exit(127);
+	}
+
+	/**
+	 * The options that can be passed to the main method of this script.
+	 * 
+	 * @author jnelson
+	 */
+	private static class Options {
+
+		@Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse server is located")
+		public String host = "localhost";
+
+		@Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse server is listening")
+		public int port = 1717;
+
+		@Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
+		public String username = "admin";
+
+		@Parameter(names = "--password", description = "The password", password = true, hidden = true)
+		public String password;
+
+		@Parameter(names = "--help", help = true, hidden = true)
+		public boolean help;
+
+	}
+
+}
