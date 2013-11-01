@@ -39,6 +39,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
+import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.AccessTokens;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -80,8 +81,8 @@ public class ConcourseServer implements ConcourseService.Iface {
 			@Override
 			public void run() {
 				try {
-					server.prepare();
-					server.hello();
+					CommandLine.displayWelcomeBanner();
+					server.checkHealth();
 					server.start();
 				}
 				catch (TTransportException e) {
@@ -428,33 +429,11 @@ public class ConcourseServer implements ConcourseService.Iface {
 	}
 
 	/**
-	 * Print the server banner to the console.
-	 */
-	private void hello() {
-		StringBuilder banner = new StringBuilder();
-		banner.append(" _____").append(System.lineSeparator());
-		banner.append("/  __ \\").append(System.lineSeparator());
-		banner.append("| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
-				.append(System.lineSeparator());
-		banner.append("| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
-				.append(System.lineSeparator());
-		banner.append("| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
-				.append(System.lineSeparator());
-		banner.append(" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
-				.append(System.lineSeparator());
-		banner.append("").append(System.lineSeparator());
-		banner.append(
-				"Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
-				.append(System.lineSeparator());
-		System.out.print(banner);
-	}
-
-	/**
 	 * Prepare the server for startup by running health checks.
 	 * 
 	 * @throws TTransportException
 	 */
-	private void prepare() throws TTransportException {
+	private void checkHealth() throws TTransportException {
 		// log.info("concourse.home located at {}",
 		// context.properties().home());
 		// long heap = Runtime.getRuntime().maxMemory() / 1048576;

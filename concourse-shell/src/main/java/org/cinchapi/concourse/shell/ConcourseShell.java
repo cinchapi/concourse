@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.shell;
 
+import java.io.IOException;
+
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
@@ -37,6 +39,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 
 /**
  * The main program runner for the ConcourseShell client. ConcourseShell wraps a
@@ -51,15 +54,20 @@ public final class ConcourseShell {
 	 * Run the program...
 	 * 
 	 * @param args - see {@link Options}
+	 * @throws IOException
 	 */
-	public static void main(String... args) {
+	public static void main(String... args) throws IOException {
+		ConsoleReader console = new ConsoleReader();
 		Options opts = new Options();
 		JCommander parser = new JCommander(opts, args);
+		parser.setProgramName("concourse-shell");
 		if(opts.help) {
 			parser.usage();
 			System.exit(1);
 		}
-		// TODO check if password is empty
+		if(Strings.isNullOrEmpty(opts.password)) {
+			opts.password = console.readLine("Password: ", '*');
+		}
 		try {
 			Concourse concourse = new Concourse.Client(opts.host, opts.port,
 					opts.username, opts.password);
@@ -70,7 +78,6 @@ public final class ConcourseShell {
 
 			Stopwatch watch = new Stopwatch();
 
-			ConsoleReader console = new ConsoleReader();
 			console.setPrompt("concourse> ");
 			console.addCompleter(new StringsCompleter("concourse"));
 
