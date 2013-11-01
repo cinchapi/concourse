@@ -71,22 +71,22 @@ public class BufferTest extends LimboTest {
 
 	@Test
 	public void testBufferInsertStringBenchmark() throws IOException {
-		Buffer buffer = (Buffer) store;
-		URL url = this.getClass().getResource("/words.txt");
-		File file = new File(url.getFile());
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		String line;
-		long record = 0;
-		Stopwatch watch = new Stopwatch();
-		watch.start();
-		while ((line = reader.readLine()) != null) {
-			String key = "strings";
-			buffer.insert(Write.add(key, Convert.javaToThrift(line), record));
-			record++;
-		}
-		watch.stop();
-		log.info("String Benchmark: {} ms", watch.elapsedMillis());
-		reader.close();
+//		Buffer buffer = (Buffer) store;
+//		URL url = this.getClass().getResource("/words.txt");
+//		File file = new File(url.getFile());
+//		BufferedReader reader = new BufferedReader(new FileReader(file));
+//		String line;
+//		long record = 0;
+//		Stopwatch watch = new Stopwatch();
+//		watch.start();
+//		while ((line = reader.readLine()) != null) {
+//			String key = "strings";
+//			buffer.insert(Write.add(key, Convert.javaToThrift(line), record));
+//			record++;
+//		}
+//		watch.stop();
+//		log.info("String Benchmark: {} ms", watch.elapsedMillis());
+//		reader.close();
 	}
 
 	@Test
