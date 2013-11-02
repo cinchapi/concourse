@@ -1,4 +1,5 @@
 # Concourse
+[![Build Status](http://build.cinchapi.org:8080/job/concourse/badge/icon)](http://build.cinchapi.org:8080/job/concourse/)
 
 [Concourse](http://cinchapi.org/concourse) is a schemaless distributed
 version control database with serializable transactions and full-text
