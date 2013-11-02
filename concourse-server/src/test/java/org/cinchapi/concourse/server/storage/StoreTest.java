@@ -26,7 +26,9 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -46,6 +48,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 /**
@@ -54,8 +57,8 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 @RunWith(Theories.class)
-public abstract class StoreTest {
-	
+public abstract class StoreTest extends ConcourseBaseTest {
+
 	public final Logger log = LoggerFactory.getLogger(getClass());
 
 	@DataPoints
@@ -83,17 +86,9 @@ public abstract class StoreTest {
 			store = getStore();
 			store.start();
 		}
-		
-		@Override
-		public void failed(Throwable t, Description desc){
-			log.error("TEST FAILURE in {}", desc.getMethodName());
-			log.error("",t);
-			log.error(ReflectionToStringBuilder.toString(StoreTest.this));
-		}
-
 	};
-	
-	//TODO test audit
+
+	// TODO test audit
 
 	@Test
 	public void testDescribeAfterAddAndRemoveSingle() {
@@ -398,10 +393,15 @@ public abstract class StoreTest {
 	@Test
 	@Theory
 	public void testSearch(SearchType type) {
-//		String query = TestData.getString();
-//		String key = TestData.getString();
-//		Set<Long> records = setupSearchTest(key, query, type);
-//		Assert.assertEquals(records, store.search(key, query));
+		String query = null;
+		while (query == null
+				|| query.length() < GlobalState.MIN_SEARCH_INDEX_SIZE) {
+			query = TestData.getString();
+		}
+		Variables.register("query", query);
+		String key = Variables.register("key", TestData.getString());
+		Set<Long> records = setupSearchTest(key, query, type);
+		Assert.assertEquals(records, store.search(key, query));
 	}
 
 	@Test
@@ -596,6 +596,11 @@ public abstract class StoreTest {
 	 * @return the records where the query matches
 	 */
 	private Set<Long> setupSearchTest(String key, String query, SearchType type) {
+		Preconditions.checkArgument(
+				query.length() >= GlobalState.MIN_SEARCH_INDEX_SIZE,
+				"This test will not succeed because '%s' is smaller "
+						+ "than the minuimum search index size of '%s'", query,
+				GlobalState.MIN_SEARCH_INDEX_SIZE);
 		Set<Long> records = Sets.newHashSet();
 		for (long record : getRecords()) {
 			String other = null;
@@ -605,26 +610,82 @@ public abstract class StoreTest {
 			}
 			boolean match = TestData.getInt() % 3 == 0;
 			if(match && type == SearchType.PREFIX) {
-				add(key, Convert.javaToThrift(query + other), record);
-				records.add(record);
+				SearchTestItem sti = Variables.register(
+						"sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(query
+								+ other), record, query, true));
+				add(sti.key, sti.value, sti.record);
+				records.add(sti.record);
 			}
 			else if(match && type == SearchType.SUFFIX) {
-				add(key, Convert.javaToThrift(other + query), record);
-				records.add(record);
+				SearchTestItem sti = Variables.register(
+						"sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(other
+								+ query), record, query, true));
+				add(sti.key, sti.value, sti.record);
+				records.add(sti.record);
 			}
 			else if(match && type == SearchType.INFIX) {
-				add(key, Convert.javaToThrift(other + query + other), record);
-				records.add(record);
+				SearchTestItem sti = Variables.register(
+						"sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(other
+								+ query + other), record, query, true));
+				add(sti.key, sti.value, sti.record);
+				records.add(sti.record);
 			}
 			else if(match && type == SearchType.FULL) {
-				add(key, Convert.javaToThrift(query), record);
-				records.add(record);
+				SearchTestItem sti = Variables.register("sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(query),
+								record, query, true));
+				add(sti.key, sti.value, sti.record);
+				records.add(sti.record);
 			}
 			else {
-				add(key, Convert.javaToThrift(other), record);
+				SearchTestItem sti = Variables.register("sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(other),
+								record, query, false));
+				add(sti.key, sti.value, sti.record);
 			}
 		}
 		return records;
+	}
+
+	/**
+	 * An item that is used in a search test
+	 * 
+	 * @author jnelson
+	 */
+	private class SearchTestItem {
+
+		public final String query;
+		public final String key;
+		public final TObject value;
+		public final long record;
+		public final boolean match;
+
+		/**
+		 * Construct a new instance
+		 * 
+		 * @param key
+		 * @param value
+		 * @param record
+		 * @param query
+		 * @param match
+		 */
+		public SearchTestItem(String key, TObject value, long record,
+				String query, boolean match) {
+			this.key = key;
+			this.value = value;
+			this.record = record;
+			this.query = query;
+			this.match = match;
+		}
+
+		@Override
+		public String toString() {
+			return key + " AS " + value + " IN" + record
+					+ (match ? " DOES" : " DOES NOT") + " MATCH " + query;
+		}
 	}
 
 	/**
