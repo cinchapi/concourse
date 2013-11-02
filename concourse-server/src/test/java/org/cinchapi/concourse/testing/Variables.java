@@ -91,6 +91,6 @@ public final class Variables {
 	/**
 	 * The variables that are currently stored.
 	 */
-	private final static Map<String, Object> vars = Maps.newHashMap();
+	private final static Map<String, Object> vars = Maps.newLinkedHashMap();
 
 }
