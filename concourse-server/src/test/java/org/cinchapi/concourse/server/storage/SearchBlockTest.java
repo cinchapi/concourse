@@ -23,51 +23,91 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.base.Preconditions;
+
 /**
  * 
  * 
  * @author jnelson
  */
-public class SearchBlockTest extends BlockTest<Text, Text, Position>{
-	
-	
+public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 
 	@Override
 	@Test(expected = IllegalStateException.class)
 	public void testCannotInsertInImmutableBlock() {
-		((SearchBlock) block).insert(getLocator(), getStringValue(), getRecord(), Time.now());
+		((SearchBlock) block).insert(getLocator(), getStringValue(),
+				getRecord(), Time.now());
 		block.sync();
-		((SearchBlock) block).insert(getLocator(), getStringValue(), getRecord(), Time.now());
+		((SearchBlock) block).insert(getLocator(), getStringValue(),
+				getRecord(), Time.now());
 	}
-	
-	private Value getStringValue(){
+
+	private Value getStringValue() {
 		return Value.wrap(Convert.javaToThrift(TestData.getString()));
 	}
-	
-	private PrimaryKey getRecord(){
+
+	private PrimaryKey getRecord() {
 		return TestData.getPrimaryKey();
 	}
 
 	@Override
 	@Test
 	public void testMightContainLocatorKeyValue() {
-		Text locator = getLocator();
-		Value value = Value.wrap(Convert.javaToThrift(TestData.getString()));
-		Text term = Text.wrap(value.getObject().toString().split(" ")[0].trim());
-		PrimaryKey record = getRecord();
-		Assert.assertFalse(block.mightContain(locator, term, Position.wrap(record, 0)));
+		Value value = null;
+		Text term = null;
+		while (term == null) {
+			value = Value.wrap(Convert.javaToThrift(TestData.getString()));
+			for (String string : value.getObject().toString().split(" ")) {
+				string = string.trim();
+				if(string.length() > GlobalState.MIN_SEARCH_INDEX_SIZE) {
+					term = Text.wrap(string);
+					break;
+				}
+				else {
+					continue;
+				}
+			}
+		}
+		doTestMightContainLocatorKeyValue(getLocator(), value, term,
+				getRecord());
+	}
+
+	/**
+	 * The implementation of {@link #testMightContainLocatorKeyValue()}.
+	 * 
+	 * @param locator
+	 * @param value
+	 * @param term
+	 * @param record
+	 */
+	private void doTestMightContainLocatorKeyValue(Text locator, Value value,
+			Text term, PrimaryKey record) {
+		Preconditions.checkArgument(
+				term.toString().length() >= GlobalState.MIN_SEARCH_INDEX_SIZE,
+				"This test will not succeed because '%s' is smaller "
+						+ "than the minuimum search index size of '%s'", term,
+				GlobalState.MIN_SEARCH_INDEX_SIZE);
+		Variables.register("locator", locator);
+		Variables.register("value", value);
+		Variables.register("term", term);
+		Variables.register("record", record);
+		Assert.assertFalse(block.mightContain(locator, term,
+				Position.wrap(record, 0)));
 		((SearchBlock) block).insert(locator, value, record, Time.now());
-		Assert.assertTrue(block.mightContain(locator, term, Position.wrap(record, 0)));
+		Assert.assertTrue(block.mightContain(locator, term,
+				Position.wrap(record, 0)));
 	}
 
 	@Override

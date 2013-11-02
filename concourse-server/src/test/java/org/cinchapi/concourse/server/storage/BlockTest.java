@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 
+import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
@@ -40,15 +41,16 @@ import org.junit.runner.Description;
  * 
  * @author jnelson
  */
-public abstract class BlockTest<L extends Byteable & Comparable<L>,K extends Byteable & Comparable<K>,V extends Byteable & Comparable<V>> {
-	
-	protected Block<L,K,V> block;
-	
+public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
+		extends ConcourseBaseTest {
+
+	protected Block<L, K, V> block;
+
 	@Rule
-	public TestWatcher watcher = new TestWatcher(){
+	public TestWatcher watcher = new TestWatcher() {
 
 		private String directory;
-		
+
 		@Override
 		protected void starting(Description description) {
 			directory = TestData.DATA_DIR + File.separator + Time.now();
@@ -60,18 +62,18 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>,K extends Byt
 			block = null;
 			FileSystem.deleteDirectory(directory);
 		}
-		
+
 	};
-	
-	@Test(expected=IllegalStateException.class)
-	public void testCannotInsertInImmutableBlock(){
+
+	@Test(expected = IllegalStateException.class)
+	public void testCannotInsertInImmutableBlock() {
 		block.insert(getLocator(), getKey(), getValue(), Time.now());
 		block.sync();
 		block.insert(getLocator(), getKey(), getValue(), Time.now());
 	}
-	
+
 	@Test
-	public void testMightContainLocatorKeyValue(){
+	public void testMightContainLocatorKeyValue() {
 		L locator = getLocator();
 		K key = getKey();
 		V value = getValue();
@@ -79,34 +81,33 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>,K extends Byt
 		block.insert(locator, key, value, Time.now());
 		Assert.assertTrue(block.mightContain(locator, key, value));
 	}
-	
+
 	@Test
-	public void testSeekLocatorInMutableBlock(){
-		
+	public void testSeekLocatorInMutableBlock() {
+
 	}
-	
+
 	@Test
-	public void testSeekLocatorInImmutableBlock(){
-		
+	public void testSeekLocatorInImmutableBlock() {
+
 	}
-	
+
 	@Test
-	public void testSeekLocatorAndKeyInMutableBlock(){
-		
+	public void testSeekLocatorAndKeyInMutableBlock() {
+
 	}
-	
+
 	@Test
-	public void testSeekLocatorAndKeyInImmutableBlock(){
-		
+	public void testSeekLocatorAndKeyInImmutableBlock() {
+
 	}
-	
-	
+
 	protected abstract L getLocator();
-	
+
 	protected abstract K getKey();
-	
+
 	protected abstract V getValue();
-			
-	protected abstract Block<L,K,V> getMutableBlock(String directory);
+
+	protected abstract Block<L, K, V> getMutableBlock(String directory);
 
 }
