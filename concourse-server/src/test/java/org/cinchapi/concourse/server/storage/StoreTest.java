@@ -23,8 +23,12 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.GlobalState;
@@ -49,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -394,13 +399,50 @@ public abstract class StoreTest extends ConcourseBaseTest {
 	@Theory
 	public void testSearch(SearchType type) {
 		String query = null;
-		while (query == null
-				|| query.length() < GlobalState.MIN_SEARCH_INDEX_SIZE) {
+		while (query == null || !isValidQuery(query)) {
 			query = TestData.getString();
 		}
 		Variables.register("query", query);
 		String key = Variables.register("key", TestData.getString());
 		Set<Long> records = setupSearchTest(key, query, type);
+		Assert.assertEquals(records, store.search(key, query));
+	}
+
+	// NOTE: This test is invalid because the words in the query are smaller
+	// than the min index size
+	@Test(expected = IllegalArgumentException.class)
+	@Theory
+	public void testSearchRepoCON_2(SearchType type) {
+		String query = Variables.register("query", "k i");
+		String key = Variables.register("key", "oq99f7u7vizpob4o");
+		Set<Long> records = setupSearchTest(
+				key,
+				query,
+				type,
+				Lists.newArrayList(1902752458578581194L, 1959599694661426747L,
+						-9154557670941699129L, -984115036014491508L,
+						5194905945498812204L, 5521526792899195281L,
+						4893428588236612746L, -6469751959947965328L,
+						-6053272917723840881L, -3780108145350335994L,
+						3428649801035140268L, 8581751009047755290L,
+						-8274546879060748693L, 4433133031784539226L,
+						2539259213139177697L),
+				Lists.newArrayList(
+						"mbqg6 ls47i09bqt76lhtefjevbxt v9gc mqhily6agpweptt7dj jl a vbvqisuz4d xky18xs",
+						"9j6eue5m2 rn rovj4p4y bh kderm7xw40epfmbibtay6l2 x6 cw 833uhgkde43bwy8 b5u5rrlzdmqx",
+						"z22eb7likgl1xd1 bna93h2y  2nq  1kfejkmk iz22eb7likgl1xd1 bna93h2y  2nq  1kfejkm",
+						"n3a6dsk7gdhhp5re0piodkkvb085q7b7jj7bac0m27t6hhhajwyf",
+						"i4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78k ii4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78",
+						"b8yljef75 lvfwevcbb sg40mtoaovr2g8lgpgkcu88kprfdms7qncflm8wx0e9a9zt0zx8uvy4yf0mnqg",
+						"qfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww puk iqfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww pu",
+						"yte1xocdz agzid h3juda8fwpehyztqcc9ka2jb5",
+						"j1nl2lvd5ie",
+						"zqw e tfvd9y 4i7921apde59kfetaxcqcj89 s 1c5ncb t",
+						"simk a7 s7oh1 oz9wfrh7830q82hoorvfomcw8dzy9eaku cvu1pdknxwkcf1w9",
+						"eurti8wfy244clx15u",
+						"ig5 bq",
+						"y9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xhk iy9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xh",
+						"s93z3eggrxiuyb1enl59y  gwu7gn2cj 1luh j  pj"));
 		Assert.assertEquals(records, store.search(key, query));
 	}
 
@@ -411,6 +453,24 @@ public abstract class StoreTest extends ConcourseBaseTest {
 		long record = TestData.getLong();
 		add(key, value, record);
 		Assert.assertTrue(store.verify(key, value, record));
+	}
+
+	/**
+	 * Return {@code true} if {@code query} is valid, meaning that each word in
+	 * the query is greater than or equal to
+	 * {@link GlobalState#MIN_SEARCH_INDEX_SIZE}.
+	 * 
+	 * @param query
+	 * @return {@code true} if the query is valid.
+	 */
+	private static boolean isValidQuery(String query) {
+		for (String tok : query.split(" ")) {
+			tok = tok.trim();
+			if(tok.length() < GlobalState.MIN_SEARCH_INDEX_SIZE) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Test
@@ -587,6 +647,95 @@ public abstract class StoreTest extends ConcourseBaseTest {
 	}
 
 	/**
+	 * Setup a search test by adding some matches for {@code query} that
+	 * obey search {@code type} for {@code key} in some of the records from
+	 * {@code recordSource}.
+	 * 
+	 * @param key
+	 * @param query
+	 * @param type
+	 * @param recordSource
+	 * @param otherSource
+	 * @return the records where the query matches
+	 */
+	private Set<Long> setupSearchTest(String key, String query,
+			SearchType type, @Nullable Collection<Long> recordSource,
+			@Nullable List<String> otherSource) {
+		Preconditions.checkArgument(isValidQuery(query),
+				"This test will not succeed because a word in '%s' is smaller "
+						+ "than the minuimum search index size of '%s'", query,
+				GlobalState.MIN_SEARCH_INDEX_SIZE);
+		Preconditions.checkState(recordSource == null
+				|| (recordSource != null && otherSource != null && recordSource
+						.size() == otherSource.size()));
+		Set<Long> records = Sets.newHashSet();
+		recordSource = recordSource == null ? getRecords() : recordSource;
+		int i = 0;
+		for (long record : recordSource) {
+			if(otherSource != null) {
+				String other = otherSource.get(i);
+				boolean matches = other.contains(query);
+				SearchTestItem sti = Variables.register("sti_" + record,
+						new SearchTestItem(key, Convert.javaToThrift(other),
+								record, query, matches));
+				add(sti.key, sti.value, sti.record);
+				if(matches) {
+					records.add(sti.record);
+				}
+			}
+			else {
+				String other = null;
+				while (other == null || other.equals(query)
+						|| query.contains(other)) {
+					other = TestData.getString();
+				}
+				boolean match = TestData.getInt() % 3 == 0;
+				if(match && type == SearchType.PREFIX) {
+					SearchTestItem sti = Variables.register(
+							"sti_" + record,
+							new SearchTestItem(key, Convert.javaToThrift(query
+									+ other), record, query, true));
+					add(sti.key, sti.value, sti.record);
+					records.add(sti.record);
+				}
+				else if(match && type == SearchType.SUFFIX) {
+					SearchTestItem sti = Variables.register(
+							"sti_" + record,
+							new SearchTestItem(key, Convert.javaToThrift(other
+									+ query), record, query, true));
+					add(sti.key, sti.value, sti.record);
+					records.add(sti.record);
+				}
+				else if(match && type == SearchType.INFIX) {
+					SearchTestItem sti = Variables.register(
+							"sti_" + record,
+							new SearchTestItem(key, Convert.javaToThrift(other
+									+ query + other), record, query, true));
+					add(sti.key, sti.value, sti.record);
+					records.add(sti.record);
+				}
+				else if(match && type == SearchType.FULL) {
+					SearchTestItem sti = Variables.register("sti_" + record,
+							new SearchTestItem(key,
+									Convert.javaToThrift(query), record, query,
+									true));
+					add(sti.key, sti.value, sti.record);
+					records.add(sti.record);
+				}
+				else {
+					SearchTestItem sti = Variables.register("sti_" + record,
+							new SearchTestItem(key,
+									Convert.javaToThrift(other), record, query,
+									false));
+					add(sti.key, sti.value, sti.record);
+				}
+			}
+			i++;
+		}
+		return records;
+	}
+
+	/**
 	 * Setup a search test by adding some random matches for {@code query} that
 	 * obey search {@code type} for {@code key} in a random set of records.
 	 * 
@@ -596,58 +745,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 	 * @return the records where the query matches
 	 */
 	private Set<Long> setupSearchTest(String key, String query, SearchType type) {
-		Preconditions.checkArgument(
-				query.length() >= GlobalState.MIN_SEARCH_INDEX_SIZE,
-				"This test will not succeed because '%s' is smaller "
-						+ "than the minuimum search index size of '%s'", query,
-				GlobalState.MIN_SEARCH_INDEX_SIZE);
-		Set<Long> records = Sets.newHashSet();
-		for (long record : getRecords()) {
-			String other = null;
-			while (other == null || other.equals(query)
-					|| query.contains(other)) {
-				other = TestData.getString();
-			}
-			boolean match = TestData.getInt() % 3 == 0;
-			if(match && type == SearchType.PREFIX) {
-				SearchTestItem sti = Variables.register(
-						"sti_" + record,
-						new SearchTestItem(key, Convert.javaToThrift(query
-								+ other), record, query, true));
-				add(sti.key, sti.value, sti.record);
-				records.add(sti.record);
-			}
-			else if(match && type == SearchType.SUFFIX) {
-				SearchTestItem sti = Variables.register(
-						"sti_" + record,
-						new SearchTestItem(key, Convert.javaToThrift(other
-								+ query), record, query, true));
-				add(sti.key, sti.value, sti.record);
-				records.add(sti.record);
-			}
-			else if(match && type == SearchType.INFIX) {
-				SearchTestItem sti = Variables.register(
-						"sti_" + record,
-						new SearchTestItem(key, Convert.javaToThrift(other
-								+ query + other), record, query, true));
-				add(sti.key, sti.value, sti.record);
-				records.add(sti.record);
-			}
-			else if(match && type == SearchType.FULL) {
-				SearchTestItem sti = Variables.register("sti_" + record,
-						new SearchTestItem(key, Convert.javaToThrift(query),
-								record, query, true));
-				add(sti.key, sti.value, sti.record);
-				records.add(sti.record);
-			}
-			else {
-				SearchTestItem sti = Variables.register("sti_" + record,
-						new SearchTestItem(key, Convert.javaToThrift(other),
-								record, query, false));
-				add(sti.key, sti.value, sti.record);
-			}
-		}
-		return records;
+		return setupSearchTest(key, query, type, null, null);
 	}
 
 	/**
