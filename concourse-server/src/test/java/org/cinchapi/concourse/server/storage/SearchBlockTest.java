@@ -47,11 +47,12 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 	@Override
 	@Test(expected = IllegalStateException.class)
 	public void testCannotInsertInImmutableBlock() {
-		((SearchBlock) block).insert(getLocator(), getStringValue(),
-				getRecord(), Time.now());
+		Text locator = Variables.register("locator", getLocator());
+		Value value = Variables.register("value", getStringValue());
+		PrimaryKey record = Variables.register("record", getRecord());
+		((SearchBlock) block).insert(locator, value, record, Time.now());
 		block.sync();
-		((SearchBlock) block).insert(getLocator(), getStringValue(),
-				getRecord(), Time.now());
+		((SearchBlock) block).insert(locator, value, record, Time.now());
 	}
 
 	private Value getStringValue() {

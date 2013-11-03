@@ -100,15 +100,15 @@ public class ConcourseServerBenchmark extends AbstractBenchmark {
 
 	};
 
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 20)
-	public void benchmarkAddLongWrites() {
-		String key = "count";
-		int i = 0;
-		while (i < 1000) {
-			client.add(key, i, i);
-			i++;
-		}
-	}
+//	@Test
+//	@BenchmarkOptions(benchmarkRounds = 20)
+//	public void benchmarkAddLongWrites() {
+//		String key = "count";
+//		int i = 0;
+//		while (i < 1000) {
+//			client.add(key, i, i);
+//			i++;
+//		}
+//	}
 
 }

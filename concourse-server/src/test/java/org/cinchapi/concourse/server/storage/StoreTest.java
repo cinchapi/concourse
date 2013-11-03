@@ -683,7 +683,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
 		@Override
 		public String toString() {
-			return key + " AS " + value + " IN" + record
+			return key + " AS " + value + " IN " + record
 					+ (match ? " DOES" : " DOES NOT") + " MATCH " + query;
 		}
 	}
