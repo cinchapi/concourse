@@ -67,8 +67,10 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 	public void testMightContainLocatorKeyValue() {
 		Value value = null;
 		Text term = null;
+		int position = 0;
 		while (term == null) {
 			value = Value.wrap(Convert.javaToThrift(TestData.getString()));
+			position = 0;
 			for (String string : value.getObject().toString().split(" ")) {
 				string = string.trim();
 				if(string.length() > GlobalState.MIN_SEARCH_INDEX_SIZE) {
@@ -76,12 +78,23 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 					break;
 				}
 				else {
+					position++;
 					continue;
 				}
 			}
 		}
 		doTestMightContainLocatorKeyValue(getLocator(), value, term,
-				getRecord());
+				getRecord(), position);
+	}
+
+	@Test
+	public void testMightContainLocatorKeyValueRepoCON_1() {
+		doTestMightContainLocatorKeyValue(
+				Text.wrap("eqcicldw12dsowa7it4vi0pnqgewxci4c3ihyzf"),
+				Value.wrap(Convert
+						.javaToThrift("w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
+				Text.wrap("jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo"),
+				PrimaryKey.wrap(52259011321627880L), 1);
 	}
 
 	/**
@@ -91,9 +104,10 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 	 * @param value
 	 * @param term
 	 * @param record
+	 * @param position
 	 */
 	private void doTestMightContainLocatorKeyValue(Text locator, Value value,
-			Text term, PrimaryKey record) {
+			Text term, PrimaryKey record, int position) {
 		Preconditions.checkArgument(
 				term.toString().length() >= GlobalState.MIN_SEARCH_INDEX_SIZE,
 				"This test will not succeed because '%s' is smaller "
@@ -107,7 +121,7 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 				Position.wrap(record, 0)));
 		((SearchBlock) block).insert(locator, value, record, Time.now());
 		Assert.assertTrue(block.mightContain(locator, term,
-				Position.wrap(record, 0)));
+				Position.wrap(record, position)));
 	}
 
 	@Override
