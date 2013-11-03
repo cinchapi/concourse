@@ -46,7 +46,7 @@ import com.google.common.base.Throwables;
 public class ConcourseServerBenchmark extends AbstractBenchmark {
 
 	private static final String SERVER_HOST = "localhost";
-	private static final int SERVER_PORT = 1718;
+	private static final int SERVER_PORT = 1719;
 	private static final String SERVER_DATA_HOME = System
 			.getProperty("user.home")
 			+ File.separator
