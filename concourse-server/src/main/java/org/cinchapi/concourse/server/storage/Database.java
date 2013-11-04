@@ -352,7 +352,9 @@ public final class Database implements PermanentStore {
 	 * @return the SearchRecord
 	 */
 	private SearchRecord getSearchRecord(Text key) {
-		// TODO load from cache
+		// NOTE: We do not cache SearchRecords because they have the potential
+		// to be VERY large. Holding references to them in a cache would prevent
+		// them from being garbage collected resulting in more OOMs.
 		masterLock.readLock().lock();
 		try {
 			SearchRecord record = Record.createSearchRecord(key);
@@ -466,8 +468,8 @@ public final class Database implements PermanentStore {
 					constructor.setAccessible(true);
 					blockSorter.put(file,
 							constructor.newInstance(id, path.toString(), true));
-					log.info("Loaded {} metadata for {}", clazz.getSimpleName(),
-							file.getName());
+					log.info("Loaded {} metadata for {}",
+							clazz.getSimpleName(), file.getName());
 				}
 				blocks.addAll(blockSorter.values());
 			}
@@ -557,7 +559,10 @@ public final class Database implements PermanentStore {
 			else if(block instanceof SearchBlock) {
 				((SearchBlock) block).insert(write.getKey(), write.getValue(),
 						write.getRecord(), write.getVersion());
-				// TODO cache search revision
+				// NOTE: We do not cache SearchRecords because they have the
+				// potential to be VERY large. Holding references to them in a
+				// cache would prevent them from being garbage collected
+				// resulting in more OOMs.
 			}
 			else {
 				throw new IllegalArgumentException();

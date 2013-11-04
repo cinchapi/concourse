@@ -23,13 +23,17 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -118,13 +122,41 @@ public class ConcourseServerTest {
 			}
 		}
 	}
-	
+
 	@Test
-	public void testAddAndDescribe(){
+	public void testAddAndDescribe() {
 		setup(data, client);
-		for(long record: data.rowKeySet()){
-			Assert.assertEquals(client.describe(record), data.row(record).keySet());
+		for (long record : data.rowKeySet()) {
+			Assert.assertEquals(client.describe(record), data.row(record)
+					.keySet());
 		}
+	}
+
+	@Test
+	public void testReproCON_3() throws IOException, InterruptedException {
+		BufferedReader reader = new BufferedReader(new FileReader(this
+				.getClass().getResource("/words.txt").getFile()));
+		long record = 0;
+		String line;
+		String key = "strings";
+		while ((line = reader.readLine()) != null) {
+			client.add(key, line, record);
+			record++;
+		}
+		reader.close();
+		Thread.sleep(10000); //let some of the data transport
+		record = 0;
+		Set<Long> expected = Sets.newLinkedHashSet();
+		while (record < 1000) {
+			client.add("count", record, record);
+			if(record > 0) {
+				expected.add(record);
+			}
+			record++;
+		}
+		Thread.sleep(5000); //let some of the data transport
+		Set<Long> actual = client.find("count", Operator.GREATER_THAN, 0);
+		Assert.assertEquals(expected, actual);
 	}
 
 	/**

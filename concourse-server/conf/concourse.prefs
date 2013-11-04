@@ -27,12 +27,3 @@
 # DEFAULT: 
 #database_directory = 
 
-# The minimum number of characters to index for searches. This value
-# is usually equal to the number of characters a user must enter in
-# an autocomplete field before seeing suggestions or results. Smaller
-# values allow more granular searches at the expense of larger index
-# sizes. 
-# 
-# DEFAULT: 
-#min_search_index_size = 
-

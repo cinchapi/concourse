@@ -82,15 +82,6 @@ public final class GlobalState {
 			"buffer_page_size", 8192);
 
 	/**
-	 * The minimum number of characters to index for searches. This value is
-	 * usually equal to the number of characters a user must enter in an
-	 * autocomplete field before seeing search results. Smaller values allow
-	 * more granular searches at the expense of larger index sizes.
-	 */
-	public static final int MIN_SEARCH_INDEX_SIZE = config.getInt(
-			"min_search_index_size", 3);
-
-	/**
 	 * The port that the server listens on to know when to initiate a graceful
 	 * shutdown.
 	 */

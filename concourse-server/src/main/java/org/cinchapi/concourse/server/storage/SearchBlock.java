@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import static org.cinchapi.concourse.server.GlobalState.MIN_SEARCH_INDEX_SIZE;
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.util.concurrent.ExecutorService;
@@ -155,8 +154,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 					return;
 				}
 				for (int i = 0; i < term.length(); i++) {
-					for (int j = i + (MIN_SEARCH_INDEX_SIZE - 1); j < term
-							.length() + 1; j++) {
+					for (int j = i + 1; j < term.length() + 1; j++) {
 						Text index = Text.wrap(term.substring(i, j));
 						if(!Strings.isNullOrEmpty(index.toString())) {
 							try {
