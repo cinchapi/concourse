@@ -37,7 +37,6 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.BlockDumper;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
