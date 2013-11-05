@@ -89,12 +89,30 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testMightContainLocatorKeyValueRepoCON_1() {
+	public void testMightContainLocatorKeyValueReproCON_1() {
 		doTestMightContainLocatorKeyValue(
 				Text.wrap("eqcicldw12dsowa7it4vi0pnqgewxci4c3ihyzf"),
 				Value.wrap(Convert
 						.javaToThrift("w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
 				Text.wrap("w"), PrimaryKey.wrap(52259011321627880L), 0);
+	}
+
+	@Test
+	public void testReproCON_4() {
+		// TODO file this in jira
+		Text key = Variables.register("key", Text.wrap("strings"));
+		PrimaryKey record = Variables.register("record", getRecord());
+		Value value = Variables
+				.register(
+						"value",
+						Value.wrap(Convert
+								.javaToThrift("aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
+		((SearchBlock) block).insert(key, value, record, Time.now());
+		Text term = Variables.register("term", Text.wrap("aa"));
+		Variables.register("blockDump", block.getDump());
+		SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
+		((SearchBlock) block).seek(key, term, searchRecord);
+		Assert.assertTrue(searchRecord.search(term).contains(record));
 	}
 
 	/**
@@ -108,7 +126,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 	 */
 	private void doTestMightContainLocatorKeyValue(Text locator, Value value,
 			Text term, PrimaryKey record, int position) {
-		Preconditions.checkArgument(!GlobalState.STOPWORDS.contains(term.toString()));
+		Preconditions.checkArgument(!GlobalState.STOPWORDS.contains(term
+				.toString()));
 		Variables.register("locator", locator);
 		Variables.register("value", value);
 		Variables.register("term", term);

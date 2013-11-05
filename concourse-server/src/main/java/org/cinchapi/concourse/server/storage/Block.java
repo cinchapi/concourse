@@ -37,12 +37,14 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.BlockDumper;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.TreeMultiset;
@@ -415,6 +417,49 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	}
 
 	/**
+	 * Return a dump of the revisions in the block as a String. This method
+	 * primary exists for debugging using the {@link BlockDumper} tool.
+	 * <p>
+	 * NOTE: This method will map an entire immutable block into memory, so
+	 * please use with caution.
+	 * </p>
+	 * 
+	 * @return a string dump
+	 */
+	protected String getDump() {
+		masterLock.readLock().lock();
+		try {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Dump for " + getClass().getSimpleName() + " " + id);
+			sb.append("\n");
+			sb.append("------");
+			sb.append("\n");
+			if(mutable) {
+				for (Revision<L, K, V> revision : revisions) {
+					sb.append(revision);
+					sb.append("\n");
+				}
+			}
+			else {
+				ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+						FileSystem.getFileSize(file));
+				Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+				while (it.hasNext()) {
+					Revision<L, K, V> revision = Byteables.read(it.next(),
+							xRevisionClass());
+					sb.append(revision);
+					sb.append("\n");
+				}
+			}
+			sb.append("\n");
+			return sb.toString();
+		}
+		finally {
+			masterLock.readLock().unlock();
+		}
+	}
+
+	/**
 	 * Return a {@link Revision} for {@code key} as {@code value} in
 	 * {@code locator} at {@code version}.
 	 * 
@@ -510,7 +555,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			int order;
 			return (order = o1.getLocator().compareTo(o2.getLocator())) != 0 ? order
 					: ((order = o1.getKey().compareTo(o2.getKey())) != 0 ? order
-							: (Longs.compare(o1.getVersion(), o2.getVersion())));
+							: (order = Longs.compare(o1.getVersion(),
+									o2.getVersion()) != 0 ? order : o1
+									.getValue().compareTo(o2.getValue())));
 		}
 
 	}

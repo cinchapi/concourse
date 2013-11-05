@@ -290,7 +290,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 
 	@Override
 	public String toString() {
-		return key + " AS " + value + " IN " + locator;
+		return key + " AS " + value + " IN " + locator + " AT " + version;
 	}
 
 	/**
@@ -329,6 +329,5 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @return the value class
 	 */
 	protected abstract Class<V> xValueClass();
-
 
 }

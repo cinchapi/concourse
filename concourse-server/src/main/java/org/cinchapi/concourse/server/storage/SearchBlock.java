@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage;
 
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,6 +39,7 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Type;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
@@ -148,6 +150,12 @@ final class SearchBlock extends Block<Text, Text, Position> {
 			final int position, final PrimaryKey record, final long version) {
 		return new Runnable() {
 
+			// The set of substrings that have been indexed from {@code term} at
+			// {@code position} for {@code key} in {@code record} at {@code
+			// version}. This is used to ensure that we do not add duplicate
+			// indexes (i.e. 'abrakadabra')
+			private Set<String> indexed = Sets.newHashSet();
+
 			@Override
 			public void run() {
 				if(STOPWORDS.contains(term)) {
@@ -155,24 +163,17 @@ final class SearchBlock extends Block<Text, Text, Position> {
 				}
 				for (int i = 0; i < term.length(); i++) {
 					for (int j = i + 1; j < term.length() + 1; j++) {
-						Text index = Text.wrap(term.substring(i, j));
-						if(!Strings.isNullOrEmpty(index.toString())) {
-							try {
-								doInsert(key, index,
-										Position.wrap(record, position),
-										version);
-							}
-							catch (IllegalStateException
-									| IllegalArgumentException e) {
-								// This indicates that an attempt was made
-								// to add a duplicate index. In this
-								// instance it is safe to ignore these
-								// exceptions.
-								continue;
-							}
+						String substring = term.substring(i, j).trim();
+						if(!Strings.isNullOrEmpty(substring)
+								&& !STOPWORDS.contains(substring)
+								&& !indexed.contains(substring)) {
+							doInsert(key, Text.wrap(term.substring(i, j)),
+									Position.wrap(record, position), version);
+							indexed.add(substring);
 						}
 					}
 				}
+				indexed = null; // make eligible for immediate GC
 			}
 		};
 	}

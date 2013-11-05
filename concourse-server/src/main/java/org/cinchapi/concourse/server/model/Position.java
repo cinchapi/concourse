@@ -131,8 +131,7 @@ public final class Position implements Byteable, Comparable<Position> {
 	public boolean equals(Object obj) {
 		if(obj instanceof Position) {
 			Position other = (Position) obj;
-			return primaryKey.equals(other.primaryKey)
-					&& Objects.equals(index, other.index);
+			return primaryKey.equals(other.primaryKey) && index == other.index;
 		}
 		return false;
 	}
