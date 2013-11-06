@@ -13,6 +13,7 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service + '/lib') {
 		from configurations.runtime
 		from jar.outputs
+		from 'wrapper_lib'
 	}
 	into(service + '/bin') {
 		from 'scripts'
@@ -22,6 +23,9 @@ task distZip(type: Zip, dependsOn: jar) {
 	}
 	into(service) {
 		from '../LICENSE'
+	}
+	into(service) {
+		from 'wrapper'
 	}
 }
 
