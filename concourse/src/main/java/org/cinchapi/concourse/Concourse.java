@@ -457,7 +457,7 @@ public interface Concourse {
 			SERVER_PORT = 1717;
 			USERNAME = "admin";
 			PASSWORD = "admin";
-			if(config != null) { 
+			if(config != null) {
 				SERVER_HOST = config.getString("CONCOURSE_HOST", SERVER_HOST);
 				SERVER_PORT = config.getInt("CONCOURSE_POST", SERVER_PORT);
 				USERNAME = config.getString("USERNAME", USERNAME);
@@ -541,18 +541,8 @@ public interface Concourse {
 
 		@Override
 		public void abort() {
-			execute(new Callable<Void>() {
-
-				@Override
-				public Void call() throws Exception {
-					if(transaction != null) {
-						client.abort(creds, transaction);
-						transaction = null;
-					}
-					return null;
-				}
-
-			});
+			throw new UnsupportedOperationException(
+					"Transactions are not currently supported");
 		}
 
 		@Override
@@ -623,16 +613,8 @@ public interface Concourse {
 
 		@Override
 		public boolean commit() {
-			return execute(new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					boolean result = client.commit(creds, transaction);
-					transaction = null;
-					return result;
-				}
-
-			});
+			throw new UnsupportedOperationException(
+					"Transactions are not currently supported");
 		}
 
 		@Override
@@ -814,15 +796,8 @@ public interface Concourse {
 
 		@Override
 		public void stage() {
-			execute(new Callable<Void>() {
-
-				@Override
-				public Void call() throws Exception {
-					transaction = client.stage(creds);
-					return null;
-				}
-
-			});
+			throw new UnsupportedOperationException(
+					"Transactions are not currently supported");
 		}
 
 		@Override
