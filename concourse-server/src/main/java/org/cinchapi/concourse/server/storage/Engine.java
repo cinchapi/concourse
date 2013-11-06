@@ -106,6 +106,16 @@ public final class Engine extends BufferedStore implements
 		this.bufferTransportThread = new BufferTransportThread();
 	}
 
+	/**
+	 * Public interface for the {@link Database#dump(String)} method.
+	 * 
+	 * @param id
+	 * @return the block dumps
+	 */
+	public String dump(String id) {
+		return ((Database) destination).dump(id);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * The Engine is a Destination for Transaction commits. The accept method
@@ -125,8 +135,8 @@ public final class Engine extends BufferedStore implements
 			String key = write.getKey().toString();
 			TObject value = write.getValue().getTObject();
 			long record = write.getRecord().longValue();
-			boolean accepted = write.getType() == Action.ADD ? add(key,
-					value, record) : remove(key, value, record);
+			boolean accepted = write.getType() == Action.ADD ? add(key, value,
+					record) : remove(key, value, record);
 			if(!accepted) {
 				log.warn("Write {} was rejected by the Engine"
 						+ "because it was previously accepted "
@@ -157,17 +167,17 @@ public final class Engine extends BufferedStore implements
 	}
 
 	@Override
+	public Transaction startTransaction() {
+		return Transaction.start(this);
+	}
+
+	@Override
 	public void stop() {
 		if(running) {
 			running = false;
 			buffer.stop();
 			destination.stop();
 		}
-	}
-
-	@Override
-	public Transaction startTransaction() {
-		return Transaction.start(this);
 	}
 
 	/**

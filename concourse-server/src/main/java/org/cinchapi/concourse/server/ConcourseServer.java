@@ -24,11 +24,19 @@
 package org.cinchapi.concourse.server;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
@@ -37,6 +45,8 @@ import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.shell.CommandLine;
@@ -64,16 +74,30 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
  * 
  * @author jnelson
  */
-public class ConcourseServer implements ConcourseService.Iface {
+public class ConcourseServer implements
+		ConcourseService.Iface,
+		ConcourseServerMXBean {
 
 	/**
 	 * Run the server...
 	 * 
 	 * @param args
 	 * @throws TTransportException
+	 * @throws MalformedObjectNameException
+	 * @throws NotCompliantMBeanException
+	 * @throws MBeanRegistrationException
+	 * @throws InstanceAlreadyExistsException
 	 */
-	public static void main(String... args) throws TTransportException {
+	public static void main(String... args) throws TTransportException,
+			MalformedObjectNameException, InstanceAlreadyExistsException,
+			MBeanRegistrationException, NotCompliantMBeanException {
 		final ConcourseServer server = new ConcourseServer();
+
+		// Register MXBean
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		ObjectName name = new ObjectName(
+				"org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
+		mbs.registerMBean(server, name);
 
 		// Start the server...
 		Thread serverThread = new Thread(new Runnable() {
@@ -121,7 +145,7 @@ public class ConcourseServer implements ConcourseService.Iface {
 		shutdownThread.start();
 	}
 
-	private static final int SERVER_PORT = 1717; // This may become
+	protected static final int SERVER_PORT = 1717; // This may become
 													// configurable in a
 													// prefs file in a
 													// future release.
@@ -255,6 +279,11 @@ public class ConcourseServer implements ConcourseService.Iface {
 				record, timestamp);
 	}
 
+	@ManagedOperation
+	public String dump(String id) {
+		return engine.dump(id);
+	}
+
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp,
 			AccessToken creds, TransactionToken transaction) throws TException {
@@ -377,7 +406,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 		engine.start();
 		log.info("The Concourse server has started");
 		server.serve();
-
 	}
 
 	/**
@@ -419,16 +447,6 @@ public class ConcourseServer implements ConcourseService.Iface {
 	}
 
 	/**
-	 * Expire {@code token} so that it is no longer valid.
-	 * 
-	 * @param token
-	 * @throws SecurityException
-	 */
-	private void expire(AccessToken token) throws SecurityException {
-		// TODO implement
-	}
-
-	/**
 	 * Prepare the server for startup by running health checks.
 	 * 
 	 * @throws TTransportException
@@ -437,6 +455,16 @@ public class ConcourseServer implements ConcourseService.Iface {
 		// log.info("concourse.home located at {}",
 		// context.properties().home());
 		// long heap = Runtime.getRuntime().maxMemory() / 1048576;
+	}
+
+	/**
+	 * Expire {@code token} so that it is no longer valid.
+	 * 
+	 * @param token
+	 * @throws SecurityException
+	 */
+	private void expire(AccessToken token) throws SecurityException {
+		// TODO implement
 	}
 
 	/**

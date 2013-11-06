@@ -417,7 +417,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
 	/**
 	 * Return a dump of the revisions in the block as a String. This method
-	 * primary exists for debugging using the {@link BlockDumper} tool.
+	 * primarily exists for debugging using the {@link BlockDumper} tool.
 	 * <p>
 	 * NOTE: This method will map an entire immutable block into memory, so
 	 * please use with caution.
@@ -425,7 +425,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * 
 	 * @return a string dump
 	 */
-	protected String getDump() {
+	protected String dump() {
 		masterLock.readLock().lock();
 		try {
 			StringBuilder sb = new StringBuilder();

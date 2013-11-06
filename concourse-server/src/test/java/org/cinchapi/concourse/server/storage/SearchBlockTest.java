@@ -109,7 +109,7 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 								.javaToThrift("aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
 		((SearchBlock) block).insert(key, value, record, Time.now());
 		Text term = Variables.register("term", Text.wrap("aa"));
-		Variables.register("blockDump", block.getDump());
+		Variables.register("blockDump", block.dump());
 		SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
 		((SearchBlock) block).seek(key, term, searchRecord);
 		Assert.assertTrue(searchRecord.search(term).contains(record));

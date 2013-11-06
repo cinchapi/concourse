@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,6 +51,7 @@ import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.Transformers;
 import org.slf4j.Logger;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -79,9 +81,30 @@ public final class Database implements PermanentStore {
 		return CacheBuilder.newBuilder().maximumSize(100000).build();
 	}
 
-	private static final String threadNamePrefix = "database-write-thread";
-	private static final Logger log = Loggers.getLogger();
+	/**
+	 * Return the Block identified by {@code id} if it exists in {@code list},
+	 * otherwise {@code null}.
+	 * 
+	 * @param list
+	 * @param id
+	 * @return the Block identified by {@code id} or {@code null}
+	 */
+	@Nullable
+	private static <T extends Block<?, ?, ?>> T findBlock(List<T> list,
+			String id) {
+		// TODO: use binary search, since the ids of the list are sorted...this
+		// may require making Blocks comparable by id
+		for (T block : list) {
+			if(block.getId().equals(id)) {
+				return block;
+			}
+		}
+		return null;
+	}
 
+	private static final String threadNamePrefix = "database-write-thread";
+
+	private static final Logger log = Loggers.getLogger();
 	/*
 	 * BLOCK DIRECTORIES
 	 * -----------------
@@ -95,8 +118,8 @@ public final class Database implements PermanentStore {
 	 */
 	private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
 	private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
 
+	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
 	/*
 	 * RECORD CACHES
 	 * -------------
@@ -107,9 +130,9 @@ public final class Database implements PermanentStore {
 	 */
 	private final Cache<ByteableComposite, PrimaryRecord> cpc = buildCache();
 	private final Cache<ByteableComposite, PrimaryRecord> cppc = buildCache();
+
 	private final Cache<ByteableComposite, SecondaryRecord> csc = buildCache();
 	// private final Cache<ByteableComposite, SearchRecord> ctc = buildCache();
-
 	/*
 	 * CURRENT BLOCK POINTERS
 	 * ----------------------
@@ -118,8 +141,8 @@ public final class Database implements PermanentStore {
 	 */
 	private transient PrimaryBlock cpb0;
 	private transient SecondaryBlock csb0;
-	private transient SearchBlock ctb0;
 
+	private transient SearchBlock ctb0;
 	/*
 	 * BLOCK COLLECTIONS
 	 * -----------------
@@ -129,6 +152,7 @@ public final class Database implements PermanentStore {
 	 */
 	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
 	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+
 	private final transient List<SearchBlock> ctb = Lists.newArrayList();
 
 	/**
@@ -293,6 +317,29 @@ public final class Database implements PermanentStore {
 		Text key0 = Text.wrap(key);
 		return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
 				Value.wrap(value), timestamp);
+	}
+
+	/**
+	 * Return dumps for all the blocks identified by {@code id}. This method IS
+	 * NOT necessarily optimized for performance, so it should be used with
+	 * caution. Its only really necessary to use this method for debugging.
+	 * 
+	 * @param id
+	 * @return the block dumps.
+	 */
+	protected String dump(String id) {
+		PrimaryBlock _cpb = findBlock(cpb, id);
+		SecondaryBlock _csb = findBlock(csb, id);
+		SearchBlock _ctb = findBlock(ctb, id);
+		Preconditions.checkArgument(_cpb != null && _csb != null,
+				"Insufficient number of blocks identified by %s", id);
+		StringBuilder sb = new StringBuilder();
+		sb.append(_cpb.dump());
+		sb.append(_csb.dump());
+		if(_ctb != null){
+			sb.append(_ctb.dump());
+		}
+		return sb.toString();
 	}
 
 	/**
