@@ -78,7 +78,7 @@ public final class ConcourseShell {
 
 			Stopwatch watch = new Stopwatch();
 
-			console.setPrompt("concourse> ");
+			console.setPrompt("cash$ ");
 			console.addCompleter(new StringsCompleter("concourse"));
 
 			String line;
