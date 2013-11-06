@@ -1,49 +1,27 @@
-apply plugin: 'application'
-
 dependencies {
     compile project(':concourse')
     compile project(':concourse-shell')
     compile 'com.google.guava:guava:15.0'
+    compile 'com.beust:jcommander:1.32'
     
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
-task copyConf(type:Copy) {
-	def build = file('build/conf')
-	copy {
-		from 'conf'
-		into build
-	}
-	outputs.dir build
-}
+def service = "concourse-server"
 
-task copyScripts(type:Copy) {
-	def build = file('build/bin')
-	copy {
+task distZip(type: Zip, dependsOn: jar) {
+	into(service + '/lib') {
+		from configurations.runtime
+		from jar.outputs
+	}
+	into(service + '/bin') {
 		from 'scripts'
-		into build
 	}
-	outputs.dir build
-}
-
-task copyRoot(type:Copy) {
-	def build = file('build/root')
-	copy {
+	into(service + '/conf') {
+		from 'conf'
+	}
+	into(service) {
 		from '../LICENSE'
-		into build
 	}
-	outputs.dir build
 }
-
-applicationDistribution.from(copyConf) {
-	into 'conf'
-}
-applicationDistribution.from(copyScripts){
-	into 'bin'
-}
-applicationDistribution.from(copyRoot){
-	into ''
-}
-
-mainClassName = 'org.cinchapi.concourse.server.ConcourseServer'
 
