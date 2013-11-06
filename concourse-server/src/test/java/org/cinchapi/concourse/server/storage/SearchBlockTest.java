@@ -51,6 +51,10 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 		Value value = Variables.register("value", getStringValue());
 		PrimaryKey record = Variables.register("record", getRecord());
 		((SearchBlock) block).insert(locator, value, record, Time.now());
+		if(block.size() <= 0){
+			value = Variables.register("value", getStringValue());
+			((SearchBlock) block).insert(locator, value, record, Time.now());
+		}
 		block.sync();
 		((SearchBlock) block).insert(locator, value, record, Time.now());
 	}
