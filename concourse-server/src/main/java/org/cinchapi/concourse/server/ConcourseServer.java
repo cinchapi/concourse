@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,16 @@ public class ConcourseServer implements
 			MBeanRegistrationException, NotCompliantMBeanException {
 		final ConcourseServer server = new ConcourseServer();
 
+		// Ensure the application is properly configured
+		MemoryUsage heap = ManagementFactory.getMemoryMXBean()
+				.getHeapMemoryUsage();
+		if(heap.getInit() < MIN_HEAP_SIZE) {
+			System.err.println("Cannot initialize Concourse Server with "
+					+ "a heap smaller than " + MIN_HEAP_SIZE + " bytes");
+			System.exit(127);
+		}
+		System.out.println(heap.getInit());
+
 		// Register MXBean
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		ObjectName name = new ObjectName(
@@ -106,7 +117,6 @@ public class ConcourseServer implements
 			public void run() {
 				try {
 					CommandLine.displayWelcomeBanner();
-					server.checkHealth();
 					server.start();
 				}
 				catch (TTransportException e) {
@@ -154,6 +164,8 @@ public class ConcourseServer implements
 														// configurable in a
 														// prefs file in a
 														// future release.
+
+	private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
 	private static final Logger log = getLogger();
 
@@ -445,17 +457,6 @@ public class ConcourseServer implements
 	 */
 	private void authenticate(AccessToken token) throws SecurityException {
 		// TODO check token and throw an exception if its not valid
-	}
-
-	/**
-	 * Prepare the server for startup by running health checks.
-	 * 
-	 * @throws TTransportException
-	 */
-	private void checkHealth() throws TTransportException {
-		// log.info("concourse.home located at {}",
-		// context.properties().home());
-		// long heap = Runtime.getRuntime().maxMemory() / 1048576;
 	}
 
 	/**
