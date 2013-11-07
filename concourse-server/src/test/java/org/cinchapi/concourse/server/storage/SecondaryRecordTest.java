@@ -60,7 +60,7 @@ public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey> {
 	protected SecondaryRevision getRevision(Text locator, Value key,
 			PrimaryKey value) {
 		return Revision.createSecondaryRevision(locator, key, value,
-				Time.now(), Action.ADD);
+				Time.now(), getAction(locator, key, value));
 	}
 
 	@Override

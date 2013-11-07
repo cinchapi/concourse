@@ -63,7 +63,7 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 	@Override
 	protected SearchRevision getRevision(Text locator, Text key, Position value) {
 		return Revision.createSearchRevision(locator, key, value, Time.now(),
-				Action.ADD);
+				getAction(locator, key, value));
 	}
 
 }
