@@ -36,6 +36,7 @@ import javax.management.remote.JMXServiceURL;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import com.google.common.base.CaseFormat;
 
 /**
@@ -49,7 +50,7 @@ public abstract class ManagedOperationCli {
 	/**
 	 * The parser that validates the CLI options.
 	 */
-	protected final JCommander parser;
+	protected JCommander parser;
 
 	/**
 	 * Construct a new instance that is seeded with an object containing options
@@ -60,10 +61,15 @@ public abstract class ManagedOperationCli {
 	 * @param args - these usually come from the main method
 	 */
 	public ManagedOperationCli(Object opts, String... args) {
-		this.parser = new JCommander(opts, args);
-		parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
-				CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
-
+		try{
+			this.parser = new JCommander(opts, args);
+			parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
+					CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+		}
+		catch(ParameterException e){
+			System.err.println(e.getMessage());
+			System.exit(127);
+		}
 	}
 
 	/**
