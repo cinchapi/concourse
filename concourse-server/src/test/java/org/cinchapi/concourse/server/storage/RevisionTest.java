@@ -55,21 +55,22 @@ public class RevisionTest {
 		Assert.assertTrue(Byteables.read(revision.getBytes(),
 				revision.getClass()).equals(revision));
 	}
-	
+
 	@Test
 	@Theory
-	public void testEquals(Revision<?,?,?> revision){
+	public void testEquals(Revision<?, ?, ?> revision) {
 		Assert.assertEquals(revision, duplicate(revision));
 	}
-	
+
 	@Test
 	@Theory
-	public void testHashCode(Revision<?,?,?> revision){
+	public void testHashCode(Revision<?, ?, ?> revision) {
 		Assert.assertEquals(revision.hashCode(), duplicate(revision).hashCode());
 	}
 
 	/**
 	 * Duplicate {@code revision} with a different version.
+	 * 
 	 * @param revision
 	 * @return the duplicated revision
 	 */
@@ -79,11 +80,11 @@ public class RevisionTest {
 			constructor = revision.getClass().getDeclaredConstructor(
 					revision.getLocator().getClass(),
 					revision.getKey().getClass(),
-					revision.getValue().getClass(), Long.TYPE);
+					revision.getValue().getClass(), Long.TYPE, Action.class);
 			constructor.setAccessible(true);
 			return (Revision<?, ?, ?>) constructor.newInstance(
 					revision.getLocator(), revision.getKey(),
-					revision.getValue(), Time.now());
+					revision.getValue(), Time.now(), revision.getType());
 		}
 		catch (Exception e) {
 			throw Throwables.propagate(e);

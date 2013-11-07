@@ -37,6 +37,8 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.base.Preconditions;
+
 /**
  * A Revision represents a modification involving a {@code locator}, {@code key}
  * and {@code value} at a {@code version} and is used to organize indexed data
@@ -68,12 +70,13 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @param key
 	 * @param value
 	 * @param version
+	 * @param type
 	 * 
 	 * @return the PrimaryRevision
 	 */
 	public static PrimaryRevision createPrimaryRevision(PrimaryKey record,
-			Text key, Value value, long version) {
-		return new PrimaryRevision(record, key, value, version);
+			Text key, Value value, long version, Action type) {
+		return new PrimaryRevision(record, key, value, version, type);
 	}
 
 	/**
@@ -84,11 +87,12 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @param word
 	 * @param position
 	 * @param version
+	 * @param type
 	 * @return the SearchRevision
 	 */
 	public static SearchRevision createSearchRevision(Text key, Text word,
-			Position position, long version) {
-		return new SearchRevision(key, word, position, version);
+			Position position, long version, Action type) {
+		return new SearchRevision(key, word, position, version, type);
 	}
 
 	/**
@@ -99,11 +103,12 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @param value
 	 * @param record
 	 * @param version
+	 * @param type
 	 * @return the SecondaryRevision
 	 */
 	public static SecondaryRevision createSecondaryRevision(Text key,
-			Value value, PrimaryKey record, long version) {
-		return new SecondaryRevision(key, value, record, version);
+			Value value, PrimaryKey record, long version, Action type) {
+		return new SecondaryRevision(key, value, record, version, type);
 	}
 
 	/**
@@ -111,6 +116,13 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * must encode the size of that component for each instance.
 	 */
 	static final int VARIABLE_SIZE = -1;
+
+	/**
+	 * An field indicating the action performed to generate this Revision. This
+	 * information is recorded so that we can efficiently purge history while
+	 * maintaining consistent state.
+	 */
+	private final Action type;
 
 	/**
 	 * The primary component used to locate the index, to which this Revision
@@ -165,6 +177,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	@DoNotInvoke
 	public Revision(ByteBuffer bytes) {
 		this.bytes = bytes;
+		this.type = Action.values()[bytes.get()];
 		this.version = bytes.getLong();
 		this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
 				xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
@@ -184,17 +197,27 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	 * @param key
 	 * @param value
 	 * @param version
+	 * @param type
 	 */
-	protected Revision(L locator, K key, V value, long version) {
+	protected Revision(L locator, K key, V value, long version, Action type) {
+		Preconditions.checkArgument(type != Action.COMPARE);
+		this.type = type;
 		this.locator = locator;
 		this.key = key;
 		this.value = value;
 		this.version = version;
-		this.size = 8 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
+		this.size = 1 + 8 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
 				+ (xKeySize() == VARIABLE_SIZE ? 4 : 0) + locator.size()
 				+ key.size() + value.size();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * <strong>NOTE: The Revision type is NOT considered when determining
+	 * equality.</strong>
+	 * </p>
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean equals(Object obj) {
@@ -227,6 +250,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	public ByteBuffer getBytes() {
 		if(bytes == null) {
 			bytes = ByteBuffer.allocate(size());
+			bytes.put((byte) type.ordinal());
 			bytes.putLong(version);
 			if(xLocatorSize() == VARIABLE_SIZE) {
 				bytes.putInt(locator.size());
@@ -260,6 +284,15 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 	}
 
 	/**
+	 * Return the {@link #type} associated with this Revision.
+	 * 
+	 * @return the type
+	 */
+	public Action getType() {
+		return type;
+	}
+
+	/**
 	 * Return the {@link #value} associated with this Revision.
 	 * 
 	 * @return the value
@@ -290,7 +323,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
 
 	@Override
 	public String toString() {
-		return key + " AS " + value + " IN " + locator + " AT " + version;
+		return type + " " + key + " AS " + value + " IN " + locator + " AT " + version;
 	}
 
 	/**

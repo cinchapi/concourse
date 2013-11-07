@@ -34,7 +34,6 @@ import org.cinchapi.concourse.util.TestData;
  * @author jnelson
  */
 public class SearchRecordTest extends RecordTest<Text, Text, Position> {
-	
 
 	@Override
 	protected SearchRecord getRecord(Text locator) {
@@ -63,7 +62,8 @@ public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 
 	@Override
 	protected SearchRevision getRevision(Text locator, Text key, Position value) {
-		return Revision.createSearchRevision(locator, key, value, Time.now());
+		return Revision.createSearchRevision(locator, key, value, Time.now(),
+				getAction(locator, key, value));
 	}
 
 }

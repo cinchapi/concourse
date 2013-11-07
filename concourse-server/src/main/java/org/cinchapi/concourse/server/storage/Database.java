@@ -336,7 +336,7 @@ public final class Database implements PermanentStore {
 		StringBuilder sb = new StringBuilder();
 		sb.append(_cpb.dump());
 		sb.append(_csb.dump());
-		if(_ctb != null){
+		if(_ctb != null) {
 			sb.append(_ctb.dump());
 		}
 		return sb.toString();
@@ -580,7 +580,8 @@ public final class Database implements PermanentStore {
 			if(block instanceof PrimaryBlock) {
 				PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
 						.insert(write.getRecord(), write.getKey(),
-								write.getValue(), write.getVersion());
+								write.getValue(), write.getVersion(),
+								write.getType());
 				PrimaryRecord record = cpc.getIfPresent(ByteableComposite
 						.create(write.getRecord()));
 				PrimaryRecord partialRecord = cppc
@@ -596,7 +597,8 @@ public final class Database implements PermanentStore {
 			else if(block instanceof SecondaryBlock) {
 				SecondaryRevision revision = (SecondaryRevision) ((SecondaryBlock) block)
 						.insert(write.getKey(), write.getValue(),
-								write.getRecord(), write.getVersion());
+								write.getRecord(), write.getVersion(),
+								write.getType());
 				SecondaryRecord record = csc.getIfPresent(ByteableComposite
 						.create(write.getKey()));
 				if(record != null) {
@@ -605,7 +607,7 @@ public final class Database implements PermanentStore {
 			}
 			else if(block instanceof SearchBlock) {
 				((SearchBlock) block).insert(write.getKey(), write.getValue(),
-						write.getRecord(), write.getVersion());
+						write.getRecord(), write.getVersion(), write.getType());
 				// NOTE: We do not cache SearchRecords because they have the
 				// potential to be VERY large. Holding references to them in a
 				// cache would prevent them from being garbage collected

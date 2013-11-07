@@ -41,7 +41,6 @@ import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.util.Numbers;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -151,14 +150,6 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 			.newHashMap();
 
 	/**
-	 * The index is used to efficiently see the number of times that a revision
-	 * appears in the Record and therefore determine if the revision (e.g. the
-	 * key/value pair) currently exists.
-	 */
-	private final transient HashMap<Revision<L, K, V>, Integer> counts = Maps
-			.newHashMap();
-
-	/**
 	 * The version of the Record's most recently appended {@link Revision}.
 	 */
 	private transient long version = 0;
@@ -216,8 +207,9 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	public void append(Revision<L, K, V> revision) {
 		masterLock.writeLock().lock();
 		try {
-			// Permit the same version to be added because each SearchRevision
-			// that stems from a Write will have the same version of that Write.
+			// NOTE: Permit the same version to be added because each
+			// SearchRevision that stems from a Write will have the same version
+			// of that Write.
 			Preconditions.checkArgument(revision.getVersion() >= version,
 					"Cannot append %s because its version(%s) is lower "
 							+ "than the Record's current version(%s). The",
@@ -229,9 +221,16 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 					(partial && revision.getKey().equals(key)) || !partial,
 					"Cannot append %s because it does not "
 							+ "belong to This Record", revision);
-			// Update revision count
-			int count = count(revision) + 1;
-			counts.put(revision, count);
+			Preconditions
+					.checkArgument(
+							(!get(revision.getKey()).contains(
+									revision.getValue()) && revision.getType() == Action.ADD)
+									|| (get(revision.getKey()).contains(
+											revision.getValue()) && revision
+											.getType() == Action.REMOVE),
+							"Cannot append %s because it represents an action "
+									+ "involving a key, value and locator that has not "
+									+ "been offset.", revision);
 
 			// Update present index
 			Set<V> values = present.get(revision.getKey());
@@ -239,7 +238,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 				values = Sets.<V> newLinkedHashSet();
 				present.put(revision.getKey(), values);
 			}
-			if(Numbers.isOdd(count)) {
+			if(revision.getType() == Action.ADD) {
 				values.add(revision.getValue());
 			}
 			else {
@@ -332,11 +331,19 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 				while (it.hasNext()) {
 					Revision<L, K, V> revision = it.next();
 					if(revision.getVersion() <= timestamp) {
-						if(values.contains(revision.getValue())) {
-							values.remove(revision.getValue());
+						if(revision.getType() == Action.ADD) {
+							// NOTE: If some history was purged, then its
+							// possible that the first revision is a REMOVE, in
+							// which case the first call to remove() on #values
+							// would return false. On the other hand a call to
+							// add() on #values should NEVER return false
+							// because an ADD revision must always be
+							// followed by a REMOVE and vice versa.
+							boolean valid = values.add(revision.getValue());
+							assert valid;
 						}
 						else {
-							values.add(revision.getValue());
+							values.remove(revision.getValue());
 						}
 					}
 					else {
@@ -357,26 +364,6 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * @return the initialized mappings
 	 */
 	protected abstract Map<K, Set<V>> mapType();
-
-	/**
-	 * Count the number of times that {@code revision} appears in the Record.
-	 * This method uses the {@link #counts} index for efficiency. <strong>If
-	 * {@code revision} does not appear, this method will create a mapping from
-	 * the nonexistent revision to the count of 0.</strong> Therefore, this
-	 * method should only be called if it will follow an operation that appends
-	 * {@code revision} to the Record.
-	 * 
-	 * @param revision
-	 * @return the number of times {@code revision} appears
-	 */
-	private int count(Revision<L, K, V> revision) {
-		Integer count = counts.get(revision);
-		if(count == null) {
-			count = 0;
-			counts.put(revision, count);
-		}
-		return count;
-	}
 
 	/**
 	 * An empty Set of type V that cannot be modified, but won't throw

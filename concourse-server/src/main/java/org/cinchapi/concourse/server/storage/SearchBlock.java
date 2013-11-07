@@ -71,7 +71,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	@Override
 	@DoNotInvoke
 	public final SearchRevision insert(Text locator, Text key, Position value,
-			long version) {
+			long version, Action type) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -83,6 +83,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 * @param value
 	 * @param record
 	 * @param version
+	 * @param type
 	 */
 	/*
 	 * (non-Javadoc)
@@ -92,7 +93,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 * that would create a deadlock.
 	 */
 	public final synchronized void insert(Text key, Value value,
-			PrimaryKey record, long version) {
+			PrimaryKey record, long version, Action type) {
 		Preconditions.checkState(mutable,
 				"Cannot modify a block that is not mutable");
 		if(value.getType() == Type.STRING) {
@@ -101,7 +102,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
 					.newCachedThreadPool("SearchBlock");
 			int pos = 0;
 			for (String tok : toks) {
-				executor.submit(getRunnable(key, tok, pos, record, version));
+				executor.submit(getRunnable(key, tok, pos, record, version,
+						type));
 				pos++;
 			}
 			executor.shutdown();
@@ -113,8 +115,9 @@ final class SearchBlock extends Block<Text, Text, Position> {
 
 	@Override
 	protected SearchRevision makeRevision(Text locator, Text key,
-			Position value, long version) {
-		return Revision.createSearchRevision(locator, key, value, version);
+			Position value, long version, Action type) {
+		return Revision
+				.createSearchRevision(locator, key, value, version, type);
 	}
 
 	@Override
@@ -129,10 +132,11 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 * @param key
 	 * @param value
 	 * @param version
+	 * @param type
 	 */
 	private final void doInsert(Text locator, Text key, Position value,
-			long version) {
-		super.insert(locator, key, value, version);
+			long version, Action type) {
+		super.insert(locator, key, value, version, type);
 	}
 
 	/**
@@ -144,10 +148,12 @@ final class SearchBlock extends Block<Text, Text, Position> {
 	 * @param position
 	 * @param record
 	 * @param version
+	 * @param type
 	 * @return the index Runnable
 	 */
 	private Runnable getRunnable(final Text key, final String term,
-			final int position, final PrimaryKey record, final long version) {
+			final int position, final PrimaryKey record, final long version,
+			final Action type) {
 		return new Runnable() {
 
 			// The set of substrings that have been indexed from {@code term} at
@@ -168,7 +174,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
 								&& !STOPWORDS.contains(substring)
 								&& !indexed.contains(substring)) {
 							doInsert(key, Text.wrap(term.substring(i, j)),
-									Position.wrap(record, position), version);
+									Position.wrap(record, position), version,
+									type);
 							indexed.add(substring);
 						}
 					}

@@ -61,8 +61,9 @@ public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {
 	 * @param value
 	 * @param version
 	 */
-	SecondaryRevision(Text locator, Value key, PrimaryKey value, long version) {
-		super(locator, key, value, version);
+	SecondaryRevision(Text locator, Value key, PrimaryKey value, long version,
+			Action type) {
+		super(locator, key, value, version, type);
 	}
 
 	@Override

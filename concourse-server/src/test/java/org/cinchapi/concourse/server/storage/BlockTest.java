@@ -67,9 +67,9 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 
 	@Test(expected = IllegalStateException.class)
 	public void testCannotInsertInImmutableBlock() {
-		block.insert(getLocator(), getKey(), getValue(), Time.now());
+		block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
 		block.sync();
-		block.insert(getLocator(), getKey(), getValue(), Time.now());
+		block.insert(getLocator(), getKey(), getValue(), Time.now(), Action.ADD);
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
 		K key = getKey();
 		V value = getValue();
 		Assert.assertFalse(block.mightContain(locator, key, value));
-		block.insert(locator, key, value, Time.now());
+		block.insert(locator, key, value, Time.now(), Action.ADD);
 		Assert.assertTrue(block.mightContain(locator, key, value));
 	}
 

@@ -37,7 +37,6 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.util.Numbers;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -98,8 +97,6 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 		masterLock.readLock().lock();
 		try {
 			Map<Long, String> audit = Maps.newLinkedHashMap();
-			Map<Revision<PrimaryKey, Text, Value>, Integer> counts = Maps
-					.newHashMap();
 			List<Revision<PrimaryKey, Text, Value>> revisions = history
 					.get(key); /* Authorized */
 			if(revisions != null) {
@@ -107,17 +104,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
 						.iterator();
 				while (it.hasNext()) {
 					Revision<PrimaryKey, Text, Value> revision = it.next();
-
-					// Update count
-					Integer count = counts.get(revision);
-					count = 1 + (count == null ? 0 : count);
-					counts.put(revision, count);
-
-					// Determine verb
-					String verb = Numbers.isOdd(count) ? "ADD " : "REMOVE ";
-
-					// Add audit entry
-					audit.put(revision.getVersion(), verb + revision.toString());
+					audit.put(revision.getVersion(), revision.toString());
 				}
 			}
 			return audit;

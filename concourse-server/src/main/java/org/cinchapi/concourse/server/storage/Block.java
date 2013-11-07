@@ -295,16 +295,17 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param key
 	 * @param value
 	 * @param version
+	 * @param type
 	 * @throws IllegalStateException if the Block is not mutable
 	 */
-	public Revision<L, K, V> insert(L locator, K key, V value, long version)
-			throws IllegalStateException {
+	public Revision<L, K, V> insert(L locator, K key, V value, long version,
+			Action type) throws IllegalStateException {
 		masterLock.writeLock().lock();
 		try {
 			Preconditions.checkState(mutable,
 					"Cannot modify a block that is not mutable");
 			Revision<L, K, V> revision = makeRevision(locator, key, value,
-					version);
+					version, type);
 			revisions.add(revision);
 			filter.put(revision.getLocator());
 			filter.put(revision.getLocator(), revision.getKey());
@@ -466,10 +467,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * @param key
 	 * @param value
 	 * @param version
+	 * @param type
 	 * @return the Revision
 	 */
 	protected abstract Revision<L, K, V> makeRevision(L locator, K key,
-			V value, long version);
+			V value, long version, Action type);
 
 	/**
 	 * Return the class of the {@code revision} type.

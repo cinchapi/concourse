@@ -29,6 +29,7 @@ import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.PrimaryRevision;
 import org.cinchapi.concourse.server.storage.Revision;
 import org.cinchapi.concourse.server.storage.SearchRevision;
@@ -48,22 +49,22 @@ public final class TestData extends Random {
 
 	public static PrimaryRevision getPrimaryRevision() {
 		return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
-				getValue(), Time.now());
+				getValue(), Time.now(), Action.ADD);
 	}
 
 	public static SearchRevision getSearchRevision() {
 		return Revision.createSearchRevision(getText(), getText(),
-				getPosition(), Time.now());
+				getPosition(), Time.now(), Action.ADD);
 	}
 
 	public static SecondaryRevision getSecondaryRevision() {
 		return Revision.createSecondaryRevision(getText(), getValue(),
-				getPrimaryKey(), Time.now());
+				getPrimaryKey(), Time.now(), Action.ADD);
 	}
-	
-	public static IdentifiableReentrantReadWriteLock getIdentifiableReentrantReadWriteLock(){
+
+	public static IdentifiableReentrantReadWriteLock getIdentifiableReentrantReadWriteLock() {
 		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
-		for(int i = 0; i < components.length; i++){
+		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
 		return IdentifiableReentrantReadWriteLock.create(components);
@@ -115,7 +116,6 @@ public final class TestData extends Random {
 	public static Write getWriteNotStorable() {
 		return Write.notStorable(getString(), getTObject(), getLong());
 	}
-
 
 	private TestData() {/* Utility class */}
 
