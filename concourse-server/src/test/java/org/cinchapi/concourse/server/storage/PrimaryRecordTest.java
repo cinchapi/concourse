@@ -34,7 +34,7 @@ import org.cinchapi.concourse.util.TestData;
  * 
  * @author jnelson
  */
-public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value>{
+public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value> {
 
 	@Override
 	protected Text getKey() {
@@ -52,15 +52,15 @@ public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value>{
 	}
 
 	@Override
-	protected PrimaryRecord getRecord(PrimaryKey locator,
-			Text key) {
+	protected PrimaryRecord getRecord(PrimaryKey locator, Text key) {
 		return Record.createPrimaryRecordPartial(locator, key);
 	}
 
 	@Override
 	protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
 			Text key, Value value) {
-		return Revision.createPrimaryRevision(locator, key, value, Time.now());
+		return Revision.createPrimaryRevision(locator, key, value, Time.now(),
+				Action.ADD);
 	}
 
 	@Override

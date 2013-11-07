@@ -50,13 +50,16 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 		Text locator = Variables.register("locator", getLocator());
 		Value value = Variables.register("value", getStringValue());
 		PrimaryKey record = Variables.register("record", getRecord());
-		((SearchBlock) block).insert(locator, value, record, Time.now());
-		if(block.size() <= 0){
+		((SearchBlock) block).insert(locator, value, record, Time.now(),
+				Action.ADD);
+		if(block.size() <= 0) {
 			value = Variables.register("value", getStringValue());
-			((SearchBlock) block).insert(locator, value, record, Time.now());
+			((SearchBlock) block).insert(locator, value, record, Time.now(),
+					Action.ADD);
 		}
 		block.sync();
-		((SearchBlock) block).insert(locator, value, record, Time.now());
+		((SearchBlock) block).insert(locator, value, record, Time.now(),
+				Action.ADD);
 	}
 
 	private Value getStringValue() {
@@ -111,7 +114,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 						"value",
 						Value.wrap(Convert
 								.javaToThrift("aaihwopxetdxrumqlbjwgdsjgs tan rczlfjhyhlwhsr aqzpmquui mmmynpklmctgnonaaafagpjgv augolkz")));
-		((SearchBlock) block).insert(key, value, record, Time.now());
+		((SearchBlock) block)
+				.insert(key, value, record, Time.now(), Action.ADD);
 		Text term = Variables.register("term", Text.wrap("aa"));
 		Variables.register("blockDump", block.dump());
 		SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
@@ -138,7 +142,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 		Variables.register("record", record);
 		Assert.assertFalse(block.mightContain(locator, term,
 				Position.wrap(record, position)));
-		((SearchBlock) block).insert(locator, value, record, Time.now());
+		((SearchBlock) block).insert(locator, value, record, Time.now(),
+				Action.ADD);
 		Assert.assertTrue(block.mightContain(locator, term,
 				Position.wrap(record, position)));
 	}
