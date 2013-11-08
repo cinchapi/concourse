@@ -103,8 +103,8 @@ public final class Database implements PermanentStore {
 	}
 
 	private static final String threadNamePrefix = "database-write-thread";
-
 	private static final Logger log = Loggers.getLogger();
+	
 	/*
 	 * BLOCK DIRECTORIES
 	 * -----------------
@@ -118,8 +118,8 @@ public final class Database implements PermanentStore {
 	 */
 	private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
 	private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
-
 	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
+	
 	/*
 	 * RECORD CACHES
 	 * -------------
@@ -130,9 +130,8 @@ public final class Database implements PermanentStore {
 	 */
 	private final Cache<ByteableComposite, PrimaryRecord> cpc = buildCache();
 	private final Cache<ByteableComposite, PrimaryRecord> cppc = buildCache();
-
 	private final Cache<ByteableComposite, SecondaryRecord> csc = buildCache();
-	// private final Cache<ByteableComposite, SearchRecord> ctc = buildCache();
+	
 	/*
 	 * CURRENT BLOCK POINTERS
 	 * ----------------------
@@ -141,8 +140,8 @@ public final class Database implements PermanentStore {
 	 */
 	private transient PrimaryBlock cpb0;
 	private transient SecondaryBlock csb0;
-
 	private transient SearchBlock ctb0;
+
 	/*
 	 * BLOCK COLLECTIONS
 	 * -----------------
@@ -152,7 +151,6 @@ public final class Database implements PermanentStore {
 	 */
 	private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
 	private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-
 	private final transient List<SearchBlock> ctb = Lists.newArrayList();
 
 	/**
