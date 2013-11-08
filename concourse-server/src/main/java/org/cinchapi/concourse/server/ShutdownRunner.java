@@ -24,12 +24,8 @@
 package org.cinchapi.concourse.server;
 
 import static org.cinchapi.concourse.server.GlobalState.SHUTDOWN_PORT;
-import static org.cinchapi.concourse.util.Loggers.getLogger;
-
 import java.io.IOException;
 import java.net.Socket;
-
-import org.slf4j.Logger;
 
 /**
  * Connects to the {@link ConcourseServer#SHUTDOWN_PORT} in order to
@@ -39,8 +35,6 @@ import org.slf4j.Logger;
  */
 public class ShutdownRunner {
 	
-	private static final Logger log = getLogger();
-
 	/**
 	 * Prompt the server to shutdown
 	 * 
@@ -49,10 +43,8 @@ public class ShutdownRunner {
 	 */
 	public static void main(String... args) {
 		try {
-			log.info("Binding to shutdown port {}", SHUTDOWN_PORT);
 			Socket socket = new Socket("localhost", SHUTDOWN_PORT);
 			socket.close();
-			System.exit(0);
 		}
 		catch (IOException e) {
 			// do nothing

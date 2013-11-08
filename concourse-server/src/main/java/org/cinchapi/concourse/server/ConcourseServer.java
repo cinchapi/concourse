@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
@@ -102,7 +101,6 @@ public class ConcourseServer implements
 					+ "a heap smaller than " + MIN_HEAP_SIZE + " bytes");
 			System.exit(127);
 		}
-		System.out.println(heap.getInit());
 
 		// Register MXBean
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -131,7 +129,7 @@ public class ConcourseServer implements
 		// Prepare for graceful shutdown...
 		// NOTE: It may be necessary to run the Java VM with
 		// -Djava.net.preferIPv4Stack=true
-		Thread shutdownThread = new Thread(new Runnable() {
+		final Thread shutdownThread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
@@ -141,11 +139,9 @@ public class ConcourseServer implements
 					log.info("Shutdown request received");
 					server.stop();
 					socket.close();
-					System.exit(0);
 				}
-				catch (IOException e) {
+				catch (Exception e) {
 					e.printStackTrace();
-					System.exit(-1);
 				}
 
 			}
@@ -153,6 +149,24 @@ public class ConcourseServer implements
 		}, "Shutdown");
 		shutdownThread.setDaemon(true);
 		shutdownThread.start();
+
+		// Add a shutdown hook that launches the official {@link ShutdownRunner}
+		// in cases where the server process is directly killed (i.e. from the
+		// tanuki scripts)
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run() {
+				ShutdownRunner.main();
+				try {
+					shutdownThread.join();
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		});
 	}
 
 	protected static final int SERVER_PORT = 1717; // This may become
