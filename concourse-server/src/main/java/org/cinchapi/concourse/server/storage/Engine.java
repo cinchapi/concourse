@@ -28,11 +28,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.TObject;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
 
 import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.GlobalState.*;
-import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -51,8 +50,6 @@ import static org.cinchapi.concourse.util.Loggers.getLogger;
 public final class Engine extends BufferedStore implements
 		Transactional,
 		PermanentStore {
-
-	private static final Logger log = getLogger();
 
 	/**
 	 * The location that the engine uses as the base store for its components.
@@ -138,7 +135,7 @@ public final class Engine extends BufferedStore implements
 			boolean accepted = write.getType() == Action.ADD ? add(key, value,
 					record) : remove(key, value, record);
 			if(!accepted) {
-				log.warn("Write {} was rejected by the Engine"
+				Logger.warn("Write {} was rejected by the Engine"
 						+ "because it was previously accepted "
 						+ "but not offset. This implies that a "
 						+ "premature shutdown occured and the parent"
@@ -146,7 +143,7 @@ public final class Engine extends BufferedStore implements
 						+ "itself from backup and finish committing.", write);
 			}
 			else {
-				log.debug("'{}' was accepted by the Engine", write);
+				Logger.debug("'{}' was accepted by the Engine", write);
 			}
 		}
 		finally {
@@ -158,7 +155,7 @@ public final class Engine extends BufferedStore implements
 	@Override
 	public void start() {
 		if(!running) {
-			log.info("Starting the Engine...");
+			Logger.info("Starting the Engine...");
 			running = true;
 			buffer.start();
 			destination.start();

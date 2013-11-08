@@ -34,8 +34,9 @@ import java.util.Set;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.util.Loggers;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
+
+import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
@@ -50,6 +51,13 @@ import com.google.common.hash.Funnels;
  * @author jnelson
  */
 public final class GlobalState {
+
+	/**
+	 * A flag to indicate if the program is running from Eclipse.
+	 */
+	private static final boolean RUNNING_FROM_ECLIPSE = System
+			.getProperty("eclipse") != null
+			&& System.getProperty("eclipse").equals("true") ? true : false;
 
 	/* ***************************** CONFIG ******************************** */
 	private static final ConcourseConfiguration config = ConcourseConfiguration
@@ -88,8 +96,44 @@ public final class GlobalState {
 	public static final int SHUTDOWN_PORT = config
 			.getInt("shutdown_port", 3434);
 
+	/**
+	 * <p>
+	 * The amount of runtime information logged by the system. The options below
+	 * are listed from least to most verbose. In addition to the indicated types
+	 * of information, each level also logs the information for each less
+	 * verbose level (i.e. ERROR only prints error messages, but INFO prints
+	 * info, warn and error messages).
+	 * </p>
+	 * <p>
+	 * <ul>
+	 * <li><strong>ERROR</strong>: critical information when the system reaches
+	 * a potentially fatal state and may not operate normally.</li>
+	 * <li><strong>WARN</strong>: useful information when the system reaches a
+	 * less than ideal state but can continue to operate normally.</li>
+	 * <li><strong>INFO</strong>: status information about the system that can
+	 * be used for sanity checking.</li>
+	 * <li><strong>DEBUG</strong>: detailed information about the system that
+	 * can be used to diagnose bugs.</li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * Logging is important, but may cause performance degradation. Only use the
+	 * DEBUG level for staging environments or instances when detailed
+	 * information to diagnose a bug. Otherwise use the WARN or INFO levels.
+	 * </p>
+	 */
+	public static final Level LOG_LEVEL = Level.valueOf(config.getString(
+			"log_level", "INFO"));
+
+	/**
+	 * Whether log messages should also be printed to the console.
+	 */
+	// NOTE: From Eclipse run with VM arg -Declipse=true to enable console
+	// logging by default
+	public static final boolean ENABLE_CONSOLE_LOGGING = config.getBoolean(
+			"enable_console_logging", RUNNING_FROM_ECLIPSE ? true : false);
+
 	/* ************************************************************************ */
-	public static final Logger log = Loggers.getLogger();
 	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
 	public static final Set<String> STOPWORDS = Sets.newHashSet();
 	static {
@@ -144,10 +188,10 @@ public final class GlobalState {
 			if(filter == null) {
 				filter = BloomFilter.create(Funnels.integerFunnel(), 100000);
 				filters.put(key, filter);
-				log.info("Added new bloom filter for '{}'", key);
+				Logger.info("Added new bloom filter for '{}'", key);
 			}
 			filter.put(Objects.hash(value, record));
-			log.debug("Added {} as {} to {} in a bloom filter", key, value,
+			Logger.debug("Added {} as {} to {} in a bloom filter", key, value,
 					record);
 		}
 

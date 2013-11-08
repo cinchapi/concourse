@@ -29,8 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
-import org.cinchapi.concourse.util.Loggers;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -41,8 +40,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @UtilityClass
 public final class ConcourseExecutors {
-
-	private static final Logger log = Loggers.getLogger();
 
 	/**
 	 * Catches exceptions thrown from pooled threads. For the Database,
@@ -57,10 +54,10 @@ public final class ConcourseExecutors {
 
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				log.warn("Uncaught exception in thread '{}'. This possibly "
+				Logger.warn("Uncaught exception in thread '{}'. This possibly "
 						+ "indicates that the system shutdown prematurely "
 						+ "during a buffer transport operation.", t);
-				log.warn("", e);
+				Logger.warn("", e);
 
 			}
 

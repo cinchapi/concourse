@@ -20,10 +20,35 @@
 #buffer_page_size =
 
 # The absolute path to the directory where the Database record and index
-# files are stored. For optimal performance, the Database should be placed
-# on a separate disk partition (ideally a separate physical device) from
-# the buffer_directory.
+# files are stored. For optimal performance, the Database should be 
+# placed on a separate disk partition (ideally a separate physical device)
+# from the buffer_directory.
 #
 # DEFAULT: 
 #database_directory = 
+
+# The amount of runtime information logged by the system. The options below
+# are listed from least to most verbose. In addition to the indicated types
+# of information, each level also logs the information for each less verbose
+# level (i.e. ERROR only prints error messages, but INFO prints info, warn 
+# and error messages).
+#
+# ERROR: critical information when the system reaches a potentially fatal
+#		 state and may not operate normally.
+# WARN: useful information when the system reaches a less than ideal state but
+#		can continue to operate normally.
+# INFO: status information about the system that can be used for sanity checking.
+# DEBUG: detailed information about the system that can be used to diagnose bugs.
+#
+# Logging is important, but may cause performance degradation. Only use the DEBUG 
+# level for staging environments or instances when detailed information to diagnose 
+# a bug. Otherwise use the WARN or INFO levels.
+#
+# DEFAULT:
+#log_level = 
+
+# Determine whether log messages should also be printed to the console (STDOUT).
+#
+# DEFAULT:
+# enable_console_logging
 

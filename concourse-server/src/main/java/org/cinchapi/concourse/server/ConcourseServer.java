@@ -58,7 +58,7 @@ import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -66,7 +66,6 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
-import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
@@ -136,7 +135,7 @@ public class ConcourseServer implements
 				try {
 					ServerSocket socket = new ServerSocket(SHUTDOWN_PORT);
 					socket.accept(); // block until a shutdown request is made
-					log.info("Shutdown request received");
+					Logger.info("Shutdown request received");
 					server.stop();
 					socket.close();
 				}
@@ -180,8 +179,6 @@ public class ConcourseServer implements
 														// future release.
 
 	private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
-	private static final Logger log = getLogger();
 
 	/**
 	 * The Thrift server controls the RPC protocol. Use
@@ -420,7 +417,7 @@ public class ConcourseServer implements
 		TransactionToken token = new TransactionToken(creds, Time.now());
 		Transaction transaction = engine.startTransaction();
 		transactions.put(token, transaction);
-		log.info("Started Transaction {}", transaction.hashCode());
+		Logger.info("Started Transaction {}", transaction.hashCode());
 		return token;
 	}
 
@@ -431,7 +428,7 @@ public class ConcourseServer implements
 	 */
 	public void start() throws TTransportException {
 		engine.start();
-		log.info("The Concourse server has started");
+		System.out.println("The Concourse server has started");
 		server.serve();
 	}
 
@@ -442,7 +439,7 @@ public class ConcourseServer implements
 		if(server.isServing()) {
 			server.stop();
 			engine.stop();
-			log.info("The Concourse server has stopped");
+			System.out.println("The Concourse server has stopped");
 		}
 	}
 

@@ -125,4 +125,28 @@ public class ConcourseConfiguration extends PropertiesConfiguration {
 			return defaultValue;
 		}
 	}
+
+	/**
+	 * Get the enum value associated with the given key. If the key doesn't map
+	 * to an existing object or the mapped value is not a valid enum, the
+	 * defaultValue is returned
+	 * 
+	 * @param key
+	 * @param defaultValue
+	 * @return the associated enum if key is found, defaultValue
+	 *         otherwise
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends Enum<T>> T getEnum(String key, T defaultValue) {
+		String value = getString(key, null);
+		if(value != null) {
+			try {
+				defaultValue = (T) Enum.valueOf(defaultValue.getClass(), value);
+			}
+			catch (IllegalArgumentException e) {
+				// ignore
+			}
+		}
+		return defaultValue;
+	}
 }

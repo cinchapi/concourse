@@ -46,10 +46,9 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.util.Loggers;
+import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.Transformers;
-import org.slf4j.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -103,7 +102,6 @@ public final class Database implements PermanentStore {
 	}
 
 	private static final String threadNamePrefix = "database-write-thread";
-	private static final Logger log = Loggers.getLogger();
 	
 	/*
 	 * BLOCK DIRECTORIES
@@ -276,7 +274,7 @@ public final class Database implements PermanentStore {
 	public void start() {
 		if(!running) {
 			running = true;
-			log.info("Database configured to store data in {}", backingStore);
+			Logger.info("Database configured to store data in {}", backingStore);
 			ConcourseExecutors.executeAndAwaitTermination("Database",
 					new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
 							PRIMARY_BLOCK_DIRECTORY, cpb),
@@ -513,7 +511,7 @@ public final class Database implements PermanentStore {
 					constructor.setAccessible(true);
 					blockSorter.put(file,
 							constructor.newInstance(id, path.toString(), true));
-					log.info("Loaded {} metadata for {}",
+					Logger.info("Loaded {} metadata for {}",
 							clazz.getSimpleName(), file.getName());
 				}
 				blocks.addAll(blockSorter.values());
@@ -574,7 +572,7 @@ public final class Database implements PermanentStore {
 
 		@Override
 		public void run() {
-			log.debug("Writing {} to {}", write, block);
+			Logger.debug("Writing {} to {}", write, block);
 			if(block instanceof PrimaryBlock) {
 				PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
 						.insert(write.getRecord(), write.getKey(),

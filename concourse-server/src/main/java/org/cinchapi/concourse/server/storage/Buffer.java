@@ -46,15 +46,14 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
-import org.slf4j.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
-import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -84,8 +83,7 @@ final class Buffer extends Limbo {
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
 	private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
-	private static final Logger log = getLogger();
-
+	
 	/**
 	 * The directory where the Buffer pages are stored.
 	 */
@@ -300,13 +298,13 @@ final class Buffer extends Limbo {
 	public void start() {
 		if(!running) {
 			running = true;
-			log.info("Buffer configured to store data in {}", directory);
+			Logger.info("Buffer configured to store data in {}", directory);
 			SortedMap<File, Page> pageSorter = Maps
 					.newTreeMap(NaturalSorter.INSTANCE);
 			for (File file : new File(directory).listFiles()) {
 				Page page = new Page(file.getAbsolutePath());
 				pageSorter.put(file, page);
-				log.info("Loadding Buffer content from {}...", page);
+				Logger.info("Loadding Buffer content from {}...", page);
 			}
 			pages.addAll(pageSorter.values());
 			if(pages.isEmpty()) {
@@ -406,7 +404,7 @@ final class Buffer extends Limbo {
 		try {
 			currentPage = new Page(BUFFER_PAGE_SIZE);
 			pages.add(currentPage);
-			log.debug("Added page {} to Buffer", currentPage);
+			Logger.debug("Added page {} to Buffer", currentPage);
 		}
 		finally {
 			writeLock.unlock();
@@ -530,7 +528,7 @@ final class Buffer extends Limbo {
 			while (it.hasNext()) {
 				Write write = Write.fromByteBuffer(it.next());
 				index(write);
-				log.debug("Found existing write '{}' in the Buffer", write);
+				Logger.debug("Found existing write '{}' in the Buffer", write);
 			}
 		}
 
@@ -571,7 +569,7 @@ final class Buffer extends Limbo {
 		 */
 		public void delete() {
 			FileSystem.deleteFile(filename);
-			log.info("Deleting Buffer page {}", filename);
+			Logger.info("Deleting Buffer page {}", filename);
 		}
 
 		/**

@@ -40,13 +40,12 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.util.Loggers.getLogger;
 
 /**
  * A server side representation of a {@link Transaction} that contains resources
@@ -82,8 +81,6 @@ public final class Transaction extends BufferedStore {
 	public static Transaction start(Engine engine) {
 		return new Transaction(engine);
 	}
-
-	private static final Logger log = getLogger();
 
 	/**
 	 * The location where transaction backups are stored in order to enforce the
@@ -157,7 +154,7 @@ public final class Transaction extends BufferedStore {
 	public void abort() {
 		open = false;
 		releaseLocks();
-		log.info("Aborted transaction {}", hashCode());
+		Logger.info("Aborted transaction {}", hashCode());
 	}
 
 	@Override
@@ -195,7 +192,7 @@ public final class Transaction extends BufferedStore {
 		backup(backup);
 		doCommit();
 		FileSystem.deleteFile(backup);
-		log.info("Deleted backup for transaction {} at '{}'", hashCode(),
+		Logger.info("Deleted backup for transaction {} at '{}'", hashCode(),
 				backup);
 		return true;
 	}
@@ -309,7 +306,7 @@ public final class Transaction extends BufferedStore {
 		FileChannel channel = FileSystem.getFileChannel(file);
 		try {
 			channel.write(getBytes());
-			log.info("Created backup for transaction {} at '{}'", hashCode(),
+			Logger.info("Created backup for transaction {} at '{}'", hashCode(),
 					file);
 		}
 		catch (IOException e) {
@@ -324,10 +321,10 @@ public final class Transaction extends BufferedStore {
 	 * Transport the writes to {@code destination} and release the held locks.
 	 */
 	private void doCommit() {
-		log.info("Starting commit for transaction {}", hashCode());
+		Logger.info("Starting commit for transaction {}", hashCode());
 		buffer.transport(destination);
 		releaseLocks();
-		log.info("Finished commit for transaction {}", hashCode());
+		Logger.info("Finished commit for transaction {}", hashCode());
 	}
 
 	/**
@@ -373,13 +370,13 @@ public final class Transaction extends BufferedStore {
 			// a write lock, so we must first release the read lock and grab a
 			// new write lock.
 			locks.remove(representation).release();
-			log.debug("Removed {} lock for representation {} "
+			Logger.debug("Removed {} lock for representation {} "
 					+ "in transaction {}", TransactionLock.Type.SHARED_FIELD,
 					representation, this);
 		}
 		if(!locks.containsKey(representation)) {
 			locks.put(representation, new TransactionLock(representation, type));
-			log.debug("Grabbed {} lock for representation {} "
+			Logger.debug("Grabbed {} lock for representation {} "
 					+ "in transaction {}", type, representation, this);
 		}
 	}
