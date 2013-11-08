@@ -15,6 +15,9 @@ task distZip(type: Zip, dependsOn: jar) {
 		from jar.outputs
 		from 'wrapper_lib'
 	}
+	into(service + '/log'){
+		from 'log/console.log'
+	}
 	into(service + '/bin') {
 		from 'scripts'
 	}
