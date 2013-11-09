@@ -23,7 +23,10 @@
  */
 package org.cinchapi.concourse.shell;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -49,6 +52,29 @@ import com.google.common.base.Strings;
  * @author jnelson
  */
 public final class ConcourseShell {
+
+	/**
+	 * The text that is displayed when the user requests HELP.
+	 */
+	private static String HELP_TEXT = "";
+	static {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					ConcourseShell.class.getResourceAsStream("/man")));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				HELP_TEXT += line + System.getProperty("line.separator");
+			}
+			HELP_TEXT = HELP_TEXT.trim();
+			reader.close();
+		}
+		catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Run the program...
@@ -95,6 +121,13 @@ public final class ConcourseShell {
 				binding.setVariable("nregex", Operator.NOT_REGEX);
 				if(line.equalsIgnoreCase("exit")) {
 					System.exit(0);
+				}
+				else if(line.equalsIgnoreCase("help")) {
+					Process p = Runtime
+							.getRuntime()
+							.exec(new String[] { "sh", "-c",
+									"echo \"" + HELP_TEXT + "\" | less > /dev/tty" });
+					p.waitFor();
 				}
 				else {
 					watch.reset().start();
