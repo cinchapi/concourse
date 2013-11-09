@@ -63,6 +63,7 @@ public final class ConcourseShell {
 					ConcourseShell.class.getResourceAsStream("/man")));
 			String line;
 			while ((line = reader.readLine()) != null) {
+				line = line.replaceAll("\"", "\\\\\"");
 				HELP_TEXT += line + System.getProperty("line.separator");
 			}
 			HELP_TEXT = HELP_TEXT.trim();
@@ -123,10 +124,12 @@ public final class ConcourseShell {
 					System.exit(0);
 				}
 				else if(line.equalsIgnoreCase("help")) {
-					Process p = Runtime
-							.getRuntime()
-							.exec(new String[] { "sh", "-c",
-									"echo \"" + HELP_TEXT + "\" | less > /dev/tty" });
+					Process p = Runtime.getRuntime().exec(
+							new String[] {
+									"sh",
+									"-c",
+									"echo \"" + HELP_TEXT
+											+ "\" | less > /dev/tty" });
 					p.waitFor();
 				}
 				else {

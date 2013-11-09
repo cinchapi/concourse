@@ -1,4 +1,45 @@
-hey
+.TH HELLO 1 LOCAL
 
-does this
-work?
+.SH NAME
+
+hello - print "Hello world" on stdout
+
+.SH SYNOPSIS
+
+.B hello [options]
+
+.I option option
+
+.B ["
+
+.I -yy -zz
+
+.B ..."]
+
+.SH AVAILABILITY
+
+All UNIX flavors
+
+.SH DESCRIPTION
+
+hello prints the string "Hello world" on standard output.
+
+.SH OPTIONS
+
+There are no options, but we'll make some up.
+
+.TP 5
+
+-yy
+
+is one option
+
+.TP
+
+-zz
+
+is another option
+
+.SH AUTHOR
+
+U. R. Friendly
