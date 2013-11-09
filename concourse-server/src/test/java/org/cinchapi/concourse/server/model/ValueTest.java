@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.model;
 
 import org.cinchapi.concourse.server.io.ByteableTest;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TestData;
@@ -54,8 +55,8 @@ public class ValueTest extends ByteableTest {
 	@Theory
 	public void testCompareTo(Object q1) {
 		Object q2 = increase(q1);
-		Value v1 = Value.wrap(Convert.javaToThrift(q1));
-		Value v2 = Value.wrap(Convert.javaToThrift(q2));
+		Value v1 = Variables.register("v1", Value.wrap(Convert.javaToThrift(q1)));
+		Value v2 = Variables.register("v2", Value.wrap(Convert.javaToThrift(q2)));
 		Assert.assertTrue(v1.compareTo(v2) < 0);
 	}
 
