@@ -27,22 +27,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.cinchapi.concourse.config.ConcourseConfiguration;
-import org.cinchapi.concourse.server.storage.Write;
-import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.util.Logger;
-
 import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -53,7 +44,9 @@ import com.google.common.hash.Funnels;
 public final class GlobalState {
 
 	/**
-	 * A flag to indicate if the program is running from Eclipse.
+	 * A flag to indicate if the program is running from Eclipse. This flag has
+	 * a value of {@code true} if the JVM is launched with the
+	 * {@code -Declipse=true} flag.
 	 */
 	private static final boolean RUNNING_FROM_ECLIPSE = System
 			.getProperty("eclipse") != null
@@ -128,13 +121,10 @@ public final class GlobalState {
 	/**
 	 * Whether log messages should also be printed to the console.
 	 */
-	// NOTE: From Eclipse run with VM arg -Declipse=true to enable console
-	// logging by default
 	public static final boolean ENABLE_CONSOLE_LOGGING = config.getBoolean(
 			"enable_console_logging", RUNNING_FROM_ECLIPSE ? true : false);
 
 	/* ************************************************************************ */
-	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
 	public static final Set<String> STOPWORDS = Sets.newHashSet();
 	static {
 		try {
@@ -148,85 +138,6 @@ public final class GlobalState {
 		}
 		catch (IOException e) {
 			throw Throwables.propagate(e);
-		}
-	}
-
-	/**
-	 * A class that wraps a collection of {@link BloomFilter} objects. We use a
-	 * distinct BloomFilter for each key to determine if data with {@code key}
-	 * as {@code value} in {@code record} <em>probably</em> exists without
-	 * performing a disk lookup.
-	 * 
-	 * @author jnelson
-	 */
-	public static final class BloomFilterWrapper {
-
-		/**
-		 * The expected number of bloom filters. This value should correspond to
-		 * the expected number of keys.
-		 */
-		private static final int EXPECTED_NUM_BLOOM_FILTERS = 100000;
-
-		/**
-		 * Mapping from key to bloom filter.
-		 */
-		private final Map<String, BloomFilter<Integer>> filters = Maps
-				.newHashMapWithExpectedSize(EXPECTED_NUM_BLOOM_FILTERS);
-
-		private BloomFilterWrapper() {/* Non-Initializable */};
-
-		/**
-		 * Add {@code key} as {@code value} to {@code record} in the appropriate
-		 * bloom filter.
-		 * 
-		 * @param key
-		 * @param value
-		 * @param record
-		 */
-		public void add(String key, TObject value, long record) {
-			BloomFilter<Integer> filter = filters.get(key);
-			if(filter == null) {
-				filter = BloomFilter.create(Funnels.integerFunnel(), 100000);
-				filters.put(key, filter);
-				Logger.info("Added new bloom filter for '{}'", key);
-			}
-			filter.put(Objects.hash(value, record));
-			Logger.debug("Added {} as {} to {} in a bloom filter", key, value,
-					record);
-		}
-
-		/**
-		 * Add {@code write} to the appropriate bloom filter.
-		 * 
-		 * @param write
-		 */
-		public void add(Write write) {
-			if(write.isStorable()) {
-				add(write.getKey().toString(), write.getValue().getTObject(),
-						write.getRecord().longValue());
-			}
-			else {
-				throw new IllegalArgumentException(
-						"Cannot add a notForStorage Write to a bloom filter");
-			}
-		}
-
-		/**
-		 * Verify that data with {@code key} as {@code value} in {@code record}
-		 * <em>probably</em> exists. If this function returns {@code true}, it
-		 * is necessary to check the appropriate record(s) for certainty.
-		 * However, if the function returns {@code false}, the caller can be
-		 * sure that the data does not exist.
-		 * 
-		 * @param key
-		 * @param value
-		 * @param record
-		 * @return {@code true} if the revision probably exists
-		 */
-		public boolean verify(String key, TObject value, long record) {
-			BloomFilter<Integer> filter = filters.get(key);
-			return filter == null ? false : filter.mightContain(Objects.hash(
-					value, record));
 		}
 	}
 
