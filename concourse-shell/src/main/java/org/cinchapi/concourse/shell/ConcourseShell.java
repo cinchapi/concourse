@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import groovy.lang.Binding;
+import groovy.lang.Closure;
 import groovy.lang.GroovyShell;
 
 import jline.TerminalFactory;
@@ -38,9 +39,11 @@ import jline.console.completer.StringsCompleter;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.thrift.Operator;
+import org.joda.time.DateTime;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.clutch.dates.StringToTime;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 
@@ -78,6 +81,21 @@ public final class ConcourseShell {
 	}
 
 	/**
+	 * A closure that converts a string description to a time.
+	 */
+	private static Closure<DateTime> STRING_TO_TIME = new Closure<DateTime>(
+			null) {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public DateTime call(Object arg) {
+			return StringToTime.parseDateTime(arg.toString());
+		}
+
+	};
+
+	/**
 	 * Run the program...
 	 * 
 	 * @param args - see {@link Options}
@@ -105,6 +123,7 @@ public final class ConcourseShell {
 
 			Stopwatch watch = new Stopwatch();
 
+			console.println("Use HELP for help.");
 			console.setPrompt("cash$ ");
 			console.addCompleter(new StringsCompleter("concourse"));
 
@@ -120,6 +139,8 @@ public final class ConcourseShell {
 				binding.setVariable("bw", Operator.BETWEEN);
 				binding.setVariable("regex", Operator.REGEX);
 				binding.setVariable("nregex", Operator.NOT_REGEX);
+				binding.setVariable("date", STRING_TO_TIME);
+				binding.setVariable("time", STRING_TO_TIME);
 				if(line.equalsIgnoreCase("exit")) {
 					System.exit(0);
 				}
