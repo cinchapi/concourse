@@ -1,45 +1,107 @@
-.TH HELLO 1 LOCAL
+CASH(1)                                                                                 CASH(1)
 
-.SH NAME
+NNAAMMEE
+	cash - Concourse Action SHell
 
-hello - print "Hello world" on stdout
+DDEESSCCRRIIPPTTIIOONN
+	CCaasshh is an interpreter that executes commands against Concourse using the standard API.
+	Since CCaasshh is backed by the full power of the Groovy scripting language, it is possible
+	to write powerful routines that read and write data on the fly.
+	
+CCOOMMMMAANNDDSS
+	ccoonnccoouurrssee..aadddd key, value, record -> _b_o_o_l_e_a_n
+		Add _k_e_y (string) AS _v_a_l_u_e (object) TO _r_e_c_o_r_d (long) if does not exist.
+			
+	ccoonnccoouurrssee..aauuddiitt record -> _M_a_p_<_D_a_t_e_T_i_m_e_,_S_t_r_i_n_g_>
+		Return a log of every revision for _r_e_c_o_r_d (long).
+	
+	ccoonnccoouurrssee..aauuddiitt key, record -> _M_a_p_<_D_a_t_e_T_i_m_e_,_S_t_r_i_n_g_>
+		Return a log of every revision for _k_e_y (string) IN _r_e_c_o_r_d (long).
+		
+	ccoonnccoouurrssee..cclleeaarr key, record
+		Remove every mapping from _k_e_y (string) in _r_e_c_o_r_d (long).
+		
+	ccoonnccoouurrssee..ccrreeaattee -> _l_o_n_g
+		Create a new record and return its primary key.
+	
+	ccoonnccoouurrssee..ddeessccrriibbee record -> _S_e_t_<_S_t_r_i_n_g_>
+		Return the set of keys in _r_e_c_o_r_d (long) currently mapped to at least one
+		value.
+	
+	ccoonnccoouurrssee..ddeessccrriibbee record timestamp -> _S_e_t_<_S_t_r_i_n_g_>
+		Return the set of keys in _r_e_c_o_r_d (long) mapped to at least one value at
+		_t_i_m_e_s_t_a_m_p (DateTime).
+		
+	ccoonnccoouurrssee..ffeettcchh key, record -> _S_e_t_<_O_b_j_e_c_t_>
+		Return the set of values currently mapped from _k_e_y (string) in _r_e_c_o_r_d (long).
+	
+	ccoonnccoouurrssee..ffeettcchh key, record, timestamp -> _S_e_t_<_O_b_j_e_c_t_>
+		Return the set of values mapped from _k_e_y (string) in _r_e_c_o_r_d (long) at
+		_t_i_m_e_s_t_a_m_p (DateTime).
+		
+	ccoonnccoouurrssee..ffiinndd timestamp, key, operator, values -> _S_e_t_<_L_o_n_g_>
+		Return the set of records where _k_e_y (string) mapped to at least one value 
+		that satisfied _o_p_e_r_a_t_o_r (Operator) in relation to _v_a_l_u_e_s (Object[]) at 
+		_t_i_m_e_s_t_a_m_p (DateTime).
+		Read the OOppeerraattoorrss section for more information.
+	
+	ccoonnccoouurrssee..ffiinndd key, operator, values -> _S_e_t_<_L_o_n_g_>
+		Return the set of records where _k_e_y (string) currently mapts to at least one 
+		value that satisfies _o_p_e_r_a_t_o_r (Operator) in relation to _v_a_l_u_e_s (Object[]).
+		Read the OOppeerraattoorrss section for more information.
+		
+	ccoonnccoouurrssee..ggeett key, record -> _O_b_j_e_c_t_
+		Return the first value mapped from _k_e_y (string) in _r_e_c_o_r_d (long).
+		
+	ccoonnccoouurrssee..ggeett key, record, timestamp -> _O_b_j_e_c_t_
+		Return the first value mapped from _k_e_y (string) in _r_e_c_o_r_d (long) at 
+		_t_i_m_e_s_t_a_m_p (DateTime).
+		
+	ccoonnccoouurrssee..lliinnkk key, source, destination -> _b_o_o_l_e_a_n
+		Link _k_e_y (string) in _s_o_u_r_c_e (long) record to _d_e_s_t_i_n_a_t_i_o_n (long) record if not 
+		connected.
+		
+	ccoonnccoouurrssee..ppiinngg record -> _b_o_o_l_e_a_n
+		Return true if there is at least one key that maps to at least one value in 
+		_r_e_c_o_r_d (long).
+		
+	ccoonnccoouurrssee..rreemmoovvee key, value record -> _b_o_o_l_e_a_n
+		Remove _k_e_y (string) AS _v_a_l_u_e (object) FROM _r_e_c_o_r_d (long) if it exists.
+		
+	ccoonnccoouurrssee..rreevveerrtt key, record, timestamp
+		Revert _k_e_y (string) in _r_e_c_o_r_d (long) to its state at _t_i_m_e_s_t_a_m_p (DateTime). This 
+		method ddooeess nnoott rroollllbbaacckk any revisions but creates new revisions that are the 
+		inverse of all revisions since _t_i_m_e_s_t_a_m_p.
+		
+	ccoonnccoouurrssee..sseeaarrcchh key, query -> _S_e_t_<_L_o_n_g_>
+		Return the set of records where _k_e_y (string) maps to at least one value that matches
+		_q_u_e_r_y (string).
+		
+	ccoonnccoouurrssee..sseett key, value, record -> _t_r_u_e
+		Clear the values currently mapped from _k_e_y (string) in _r_e_c_o_r_d (long) and add
+		_v_a_l_u_e (object).
+		
+	ccoonnccoouurrssee..uunnlliinnkk key, source, destination -> _b_o_o_l_e_a_n
+		Unlink _k_e_y (string) in _s_o_u_r_c_e (long) record to _d_e_s_t_i_n_a_t_i_o_n (long) record if  
+		connected.
+		
+	ccoonnccoouurrssee..vveerriiffyy key, value, record -> _b_o_o_l_e_a_n
+		Return true if _k_e_y (string) in _r_e_c_o_r_d (long) currently maps to _v_a_l_u_e (object).
+		
+	ccoonnccoouurrssee..vveerriiffyy key, value, record, timestamp -> _b_o_o_l_e_a_n
+		Return true if _k_e_y (string) in _r_e_c_o_r_d (long) mapped to _v_a_l_u_e (object) at
+		_t_i_m_e_s_t_a_m_p (DateTime).
+		
+OOPPEERRAATTOORRSS
+	eeqq	EQUALS
+	nnee	NOT_EQUALS
+	ggtt	GREATER_THAN
+	ggttee	GREATER_THAN_OR_EQUALS
+	lltt	LESS_THAN
+	llttee	LESS_THAN_OR_EQUALS
+	bbww	BETWEEN
+	rreeggeexx	REGEX
+	nnrreeggeexx	NOT_REGEX
 
-.SH SYNOPSIS
 
-.B hello [options]
 
-.I option option
-
-.B ["
-
-.I -yy -zz
-
-.B ..."]
-
-.SH AVAILABILITY
-
-All UNIX flavors
-
-.SH DESCRIPTION
-
-hello prints the string "Hello world" on standard output.
-
-.SH OPTIONS
-
-There are no options, but we'll make some up.
-
-.TP 5
-
--yy
-
-is one option
-
-.TP
-
--zz
-
-is another option
-
-.SH AUTHOR
-
-U. R. Friendly

@@ -112,7 +112,7 @@ public final class ConcourseShell {
 			while ((line = console.readLine().trim()) != null) {
 				binding.setVariable("concourse", concourse);
 				binding.setVariable("eq", Operator.EQUALS);
-				binding.setVariable("neq", Operator.NOT_EQUALS);
+				binding.setVariable("ne", Operator.NOT_EQUALS);
 				binding.setVariable("gt", Operator.GREATER_THAN);
 				binding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
 				binding.setVariable("lt", Operator.LESS_THAN);
