@@ -102,6 +102,8 @@ OOPPEERRAATTOORRSS
 	bbww	BETWEEN
 	rreeggeexx	REGEX
 	nnrreeggeexx	NOT_REGEX
-
-
+	
+AAUUTTHHOORR
+	Jeff Nelson, Cinchapi Software Collective
+	http://cinchapi.org/jeff
 
