@@ -17,7 +17,7 @@ where
 
 ## Author
 
-* Jeff Nelson
+* Jeff Nelson ([http://cinchapi.org/jeff](http://cinchapi.org/jeff))
 
 ## License
 

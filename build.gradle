@@ -13,7 +13,7 @@ subprojects {
     }
 
     dependencies {
-	compile 'com.google.guava:guava:13.0.1'
+	compile 'com.google.guava:guava:15.0'
 	compile 'org.mockito:mockito-all:1.9.5'
 	compile 'commons-codec:commons-codec:1.8'
 	compile 'com.google.code.findbugs:jsr305:2.0.1'
@@ -27,8 +27,22 @@ subprojects {
 	testCompile 'junit:junit:4.11'
    }
 
+   def getVersion = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'bash', 'version.sh'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+
+    group = 'org.cinchapi'
+    version = getVersion()
+
     jar {
-        manifest.attributes provider: 'gradle'
+        manifest {
+            attributes("Specificiation-Title": "Concourse", "Specificiation-Version": version, "Implementation-Version": version)
+        }
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -46,15 +60,4 @@ subprojects {
     	archives javadocJar
     }
 
-    def getVersion = { ->
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'bash', 'version.sh'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-
-    group = 'org.cinchapi'
-    version = getVersion()
 }
