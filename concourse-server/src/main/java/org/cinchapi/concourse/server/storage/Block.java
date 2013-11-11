@@ -247,7 +247,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			for (Revision<L, K, V> revision : revisions) {
 				bytes.putInt(revision.size());
 				bytes.put(revision.getBytes());
-				if(locator == null || locator != revision.getLocator()) {
+				if(locator == null || !locator.equals(revision.getLocator())) {
 					index.putStart(bytes.position() - revision.size() - 4,
 							revision.getLocator());
 					if(locator != null) {
@@ -255,7 +255,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 								locator);
 					}
 				}
-				if(key == null || key != revision.getKey()) {
+				if(key == null || !key.equals(revision.getKey())) {
 					index.putStart(bytes.position() - revision.size() - 4,
 							revision.getLocator(), revision.getKey());
 					if(key != null) {

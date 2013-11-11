@@ -54,7 +54,10 @@ import static com.google.common.base.Preconditions.*;
 @PackagePrivate
 @ThreadSafe
 abstract class BufferedStore implements WritableStore, VersionControlStore {
-	
+	// TODO: Review each method and figure out if it makes sense to check the
+	// destination before the buffer (i.e. the way it is done in the find()
+	// methods).
+
 	// NOTE: This class DOES NOT implement any locking directly, so it is
 	// ThreadSafe if the #buffer and #destination are. Nevertheless, a
 	// #masterLock is provided to subclasses in the event that they need to
@@ -151,14 +154,15 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
 		return Sets.symmetricDifference(
-				buffer.find(timestamp, key, operator, values),
-				destination.find(timestamp, key, operator, values));
+				destination.find(timestamp, key, operator, values),
+				buffer.find(timestamp, key, operator, values));
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
-		return Sets.symmetricDifference(buffer.find(key, operator, values),
-				destination.find(key, operator, values));
+		return Sets.symmetricDifference(
+				destination.find(key, operator, values),
+				buffer.find(key, operator, values));
 	}
 
 	@Override
