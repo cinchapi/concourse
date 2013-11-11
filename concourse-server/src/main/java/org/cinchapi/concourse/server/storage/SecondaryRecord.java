@@ -119,7 +119,6 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
 			Operator operator, Value... values) { /* Authorized */
 		masterLock.readLock().lock();
 		try {
-
 			Set<PrimaryKey> keys = Sets.newTreeSet();
 			Value value = values[0];
 			if(operator == Operator.EQUALS) {
