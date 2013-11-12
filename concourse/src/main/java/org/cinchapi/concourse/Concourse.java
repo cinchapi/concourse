@@ -458,10 +458,10 @@ public interface Concourse {
 			USERNAME = "admin";
 			PASSWORD = "admin";
 			if(config != null) {
-				SERVER_HOST = config.getString("CONCOURSE_HOST", SERVER_HOST);
-				SERVER_PORT = config.getInt("CONCOURSE_POST", SERVER_PORT);
-				USERNAME = config.getString("USERNAME", USERNAME);
-				PASSWORD = config.getString("PASSWORD", PASSWORD);
+				SERVER_HOST = config.getString("host", SERVER_HOST);
+				SERVER_PORT = config.getInt("port", SERVER_PORT);
+				USERNAME = config.getString("username", USERNAME);
+				PASSWORD = config.getString("password", PASSWORD);
 			}
 		}
 
