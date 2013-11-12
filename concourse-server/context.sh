@@ -3,5 +3,5 @@
 
 FILE="context.txt";
 rm $FILE
-cat <(echo "Last Commit:" & git rev-parse HEAD) <(git status) <(git diff *) > $FILE
+cat <(echo "Last Commit:" & git rev-parse HEAD) <(git status) <(git diff ../*) > $FILE
 exit 0
