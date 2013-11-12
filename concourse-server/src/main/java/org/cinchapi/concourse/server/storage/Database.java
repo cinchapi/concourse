@@ -51,7 +51,6 @@ import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -102,7 +101,7 @@ public final class Database implements PermanentStore {
 	}
 
 	private static final String threadNamePrefix = "database-write-thread";
-	
+
 	/*
 	 * BLOCK DIRECTORIES
 	 * -----------------
@@ -117,7 +116,7 @@ public final class Database implements PermanentStore {
 	private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
 	private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
 	private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
-	
+
 	/*
 	 * RECORD CACHES
 	 * -------------
@@ -129,7 +128,7 @@ public final class Database implements PermanentStore {
 	private final Cache<ByteableComposite, PrimaryRecord> cpc = buildCache();
 	private final Cache<ByteableComposite, PrimaryRecord> cppc = buildCache();
 	private final Cache<ByteableComposite, SecondaryRecord> csc = buildCache();
-	
+
 	/*
 	 * CURRENT BLOCK POINTERS
 	 * ----------------------
@@ -491,6 +490,7 @@ public final class Database implements PermanentStore {
 
 		@Override
 		public void run() {
+			File _file = null;
 			try {
 				final String path = backingStore + File.separator + directory;
 				FileSystem.mkdirs(path);
@@ -505,6 +505,7 @@ public final class Database implements PermanentStore {
 					}
 
 				})) {
+					_file = file;
 					String id = Block.getId(file.getName());
 					Constructor<T> constructor = clazz.getDeclaredConstructor(
 							String.class, String.class, Boolean.TYPE);
@@ -517,7 +518,10 @@ public final class Database implements PermanentStore {
 				blocks.addAll(blockSorter.values());
 			}
 			catch (ReflectiveOperationException e) {
-				throw Throwables.propagate(e);
+				Logger.error(
+						"An error occured while loading {} metadata for {}",
+						clazz.getSimpleName(), _file.getName());
+				Logger.error("", e);
 			}
 
 		}
