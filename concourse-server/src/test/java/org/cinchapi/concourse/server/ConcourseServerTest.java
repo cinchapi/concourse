@@ -132,33 +132,6 @@ public class ConcourseServerTest {
 		}
 	}
 
-	@Test
-	public void testReproCON_3() throws IOException, InterruptedException {
-		BufferedReader reader = new BufferedReader(new FileReader(this
-				.getClass().getResource("/words.txt").getFile()));
-		long record = 0;
-		String line;
-		String key = "strings";
-		while ((line = reader.readLine()) != null) {
-			client.add(key, line, record);
-			record++;
-		}
-		reader.close();
-		Thread.sleep(10000); //let some of the data transport
-		record = 0;
-		Set<Long> expected = Sets.newLinkedHashSet();
-		while (record < 1000) {
-			client.add("count", record, record);
-			if(record > 0) {
-				expected.add(record);
-			}
-			record++;
-		}
-		Thread.sleep(5000); //let some of the data transport
-		Set<Long> actual = client.find("count", Operator.GREATER_THAN, 0);
-		Assert.assertEquals(expected, actual);
-	}
-
 	/**
 	 * Add random data to {@code data} and {@code concourse}.
 	 * 
