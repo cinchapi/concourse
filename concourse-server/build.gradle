@@ -7,6 +7,15 @@ dependencies {
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
+task context() {
+	if(!System.getProperty("jenkins").equals("true")) {
+		exec {
+    		commandLine 'bash', 'context.sh'
+    	}
+    	outputs.file "context.txt"
+	}
+}
+
 def service = "concourse-server"
 
 task distZip(type: Zip, dependsOn: jar) {
@@ -29,6 +38,9 @@ task distZip(type: Zip, dependsOn: jar) {
 	}
 	into(service) {
 		from 'wrapper'
+	}
+	into(service) {
+		from context.outputs
 	}
 }
 

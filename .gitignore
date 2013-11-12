@@ -51,3 +51,4 @@ Thumbs.db
 *.counter
 *build/
 *bin/
+*context.txt
