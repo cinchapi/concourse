@@ -23,12 +23,10 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
@@ -94,14 +92,14 @@ public class BufferTest extends LimboTest {
 		Buffer buffer = (Buffer) store;
 		String key = "count";
 		long i = 0;
-		Stopwatch watch = new Stopwatch();
+		Stopwatch watch = Stopwatch.createUnstarted();
 		watch.start();
 		while (i < 1000) {
 			buffer.insert(Write.add(key, Convert.javaToThrift(i), i));
 			i++;
 		}
 		watch.stop();
-		log.info("Long Benchmark: {} ms", watch.elapsedMillis());
+		log.info("Long Benchmark: {} ms", watch.elapsed(TimeUnit.MILLISECONDS));
 	}
 
 }

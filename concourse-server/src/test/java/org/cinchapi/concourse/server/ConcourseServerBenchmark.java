@@ -30,12 +30,10 @@ import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.carrotsearch.junitbenchmarks.AbstractBenchmark;
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.google.common.base.Throwables;
 
 /**
