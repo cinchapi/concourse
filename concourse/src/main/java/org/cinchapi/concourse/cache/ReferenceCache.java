@@ -132,7 +132,7 @@ public class ReferenceCache<T> {
 			key.append(o.hashCode());
 			key.append(o.getClass().getName());
 		}
-		return Hashing.md5().hashString(key.toString());
+		return Hashing.md5().hashUnencodedChars(key.toString());
 	}
 
 }

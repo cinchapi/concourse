@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
@@ -121,7 +122,7 @@ public final class ConcourseShell {
 			Binding binding = new Binding();
 			GroovyShell shell = new GroovyShell(binding);
 
-			Stopwatch watch = new Stopwatch();
+			Stopwatch watch = Stopwatch.createUnstarted();
 
 			console.println("Use HELP for help.");
 			console.setPrompt("cash$ ");
@@ -161,7 +162,7 @@ public final class ConcourseShell {
 						watch.stop();
 						if(value != null) {
 							System.out.println("Returned '" + value + "' in "
-									+ watch.elapsedMillis() + " ms");
+									+ watch.elapsed(TimeUnit.MILLISECONDS)+ " ms");
 						}
 					}
 					catch (Exception e) {
