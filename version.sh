@@ -22,13 +22,13 @@ if [ -z "$1" ] ; then
 	VERSION=$VERSION.$COUNTER
 	case $BRANCH in 
 		develop )
-			EXTRA="-alpha+$COMMIT"
+			EXTRA="-SNAPSHOT"
 			;;
 		feature* )
-			EXTRA="-alpha+$COMMIT"
+			EXTRA="-EXPERIMENTAL"
 			;;
 		release* )
-			EXTRA="-beta+$COMMIT"
+			EXTRA="-BETA"
 			;;
 		* )
 			# At this point we do not need to refer
