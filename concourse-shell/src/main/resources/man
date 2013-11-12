@@ -8,6 +8,9 @@ DDEESSCCRRIIPPTTIIOONN
 	Since CCaasshh is backed by the full power of the Groovy scripting language, it is possible
 	to write powerful routines that read and write data on the fly.
 	
+UUSSAAGGEE
+	ccoommmmaanndd [arg1][, arg2][...][, argN]
+		
 CCOOMMMMAANNDDSS
 	ccoonnccoouurrssee..aadddd key, value, record -> _b_o_o_l_e_a_n
 		Add _k_e_y (string) AS _v_a_l_u_e (object) TO _r_e_c_o_r_d (long) if does not exist.
@@ -31,6 +34,7 @@ CCOOMMMMAANNDDSS
 	ccoonnccoouurrssee..ddeessccrriibbee record timestamp -> _S_e_t_<_S_t_r_i_n_g_>
 		Return the set of keys in _r_e_c_o_r_d (long) mapped to at least one value at
 		_t_i_m_e_s_t_a_m_p (DateTime).
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
 		
 	ccoonnccoouurrssee..ffeettcchh key, record -> _S_e_t_<_O_b_j_e_c_t_>
 		Return the set of values currently mapped from _k_e_y (string) in _r_e_c_o_r_d (long).
@@ -38,17 +42,19 @@ CCOOMMMMAANNDDSS
 	ccoonnccoouurrssee..ffeettcchh key, record, timestamp -> _S_e_t_<_O_b_j_e_c_t_>
 		Return the set of values mapped from _k_e_y (string) in _r_e_c_o_r_d (long) at
 		_t_i_m_e_s_t_a_m_p (DateTime).
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
 		
 	ccoonnccoouurrssee..ffiinndd timestamp, key, operator, values -> _S_e_t_<_L_o_n_g_>
 		Return the set of records where _k_e_y (string) mapped to at least one value 
 		that satisfied _o_p_e_r_a_t_o_r (Operator) in relation to _v_a_l_u_e_s (Object[]) at 
 		_t_i_m_e_s_t_a_m_p (DateTime).
-		Read the OOppeerraattoorrss section for more information.
+		READ THE OOPPEERRAATTOORRSS SECTION FOR MORE INFORMATION.
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
 	
 	ccoonnccoouurrssee..ffiinndd key, operator, values -> _S_e_t_<_L_o_n_g_>
 		Return the set of records where _k_e_y (string) currently mapts to at least one 
 		value that satisfies _o_p_e_r_a_t_o_r (Operator) in relation to _v_a_l_u_e_s (Object[]).
-		Read the OOppeerraattoorrss section for more information.
+		READ THE OOPPEERRAATTOORRSS SECTION FOR MORE INFORMATION.
 		
 	ccoonnccoouurrssee..ggeett key, record -> _O_b_j_e_c_t_
 		Return the first value mapped from _k_e_y (string) in _r_e_c_o_r_d (long).
@@ -56,6 +62,7 @@ CCOOMMMMAANNDDSS
 	ccoonnccoouurrssee..ggeett key, record, timestamp -> _O_b_j_e_c_t_
 		Return the first value mapped from _k_e_y (string) in _r_e_c_o_r_d (long) at 
 		_t_i_m_e_s_t_a_m_p (DateTime).
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
 		
 	ccoonnccoouurrssee..lliinnkk key, source, destination -> _b_o_o_l_e_a_n
 		Link _k_e_y (string) in _s_o_u_r_c_e (long) record to _d_e_s_t_i_n_a_t_i_o_n (long) record if not 
@@ -72,6 +79,7 @@ CCOOMMMMAANNDDSS
 		Revert _k_e_y (string) in _r_e_c_o_r_d (long) to its state at _t_i_m_e_s_t_a_m_p (DateTime). This 
 		method ddooeess nnoott rroollllbbaacckk any revisions but creates new revisions that are the 
 		inverse of all revisions since _t_i_m_e_s_t_a_m_p.
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
 		
 	ccoonnccoouurrssee..sseeaarrcchh key, query -> _S_e_t_<_L_o_n_g_>
 		Return the set of records where _k_e_y (string) maps to at least one value that matches
@@ -91,6 +99,31 @@ CCOOMMMMAANNDDSS
 	ccoonnccoouurrssee..vveerriiffyy key, value, record, timestamp -> _b_o_o_l_e_a_n
 		Return true if _k_e_y (string) in _r_e_c_o_r_d (long) mapped to _v_a_l_u_e (object) at
 		_t_i_m_e_s_t_a_m_p (DateTime).
+		READ THE DDAATTEETTIIMMEE SECTION FOR MORE INFORMATION.
+		
+DDAATTEETTIIMMEE
+	Use the ddaattee function to convert a valid English expression to a DateTime object.
+		ccoonnccoouurrssee..vveerriiffyy _k_e_y, _v_a_l_u_e, _r_e_c_o_r_d, ddaattee(("expression"))
+	
+	_R_e_c_o_g_n_i_z_e_d_ _E_x_p_r_e_s_s_i_o_n_s
+	+ 4:49
+	+ 4:49:30
+	+ 4:49:30.2
+	+ yesterday
+	+ yesterday {time}
+	+ last week
+	+ last month
+	+ last year
+	+ October 26, 1981 or Oct 26, 1981
+	+ October 26 or Oct 26
+	+ 26 October 1981
+	+ 26 Oct 1981
+	+ 26 Oct 81
+	+ 10/26/1981 or 10-26-1981
+	+ 10/26/81 or 10-26-81
+	+ 1981/10/26 or 1981-10-26
+	+ 10/26 or 10-26
+	+ {any explicit date} {time}
 		
 OOPPEERRAATTOORRSS
 	eeqq	EQUALS
@@ -105,5 +138,5 @@ OOPPEERRAATTOORRSS
 	
 AAUUTTHHOORR
 	Jeff Nelson, Cinchapi Software Collective
-	http://cinchapi.org/jeff
+	jeff@cinchapi.org
 
