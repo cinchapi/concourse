@@ -801,6 +801,12 @@ public interface Concourse {
 		}
 
 		@Override
+		public String toString() {
+			return "Connected to " + SERVER_HOST + ":" + SERVER_PORT + " as "
+					+ USERNAME;
+		}
+
+		@Override
 		public boolean unlink(String key, long source, long destination) {
 			return remove(key, Link.to(destination), source);
 		}
