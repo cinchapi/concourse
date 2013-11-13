@@ -218,9 +218,9 @@ public class BlockIndex implements Byteable, Syncable {
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
 			Entry entry = entries.get(composite);
-			Preconditions
-					.checkState(entry != null,
-							"Cannot set the end position before setting the start position");
+			Preconditions.checkState(entry != null,
+					"Cannot set the end position before setting "
+							+ "the start position. Tried to put %s", end);
 			entry.setEnd(end);
 		}
 		finally {
