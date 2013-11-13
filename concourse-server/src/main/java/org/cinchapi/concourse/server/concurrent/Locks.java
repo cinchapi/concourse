@@ -35,17 +35,6 @@ import org.cinchapi.concourse.server.io.Token;
 public class Locks {
 
 	/**
-	 * Return the {@link TLock} that is found to be associated with
-	 * {@code token}.
-	 * 
-	 * @param token
-	 * @return the TokenLock
-	 */
-	public static TLock get(Token token) {
-		return TLock.forToken(token);
-	}
-
-	/**
 	 * Call {@link Lock#lock()} if and only if {@code condition} is {@code true}
 	 * 
 	 * @param lock
