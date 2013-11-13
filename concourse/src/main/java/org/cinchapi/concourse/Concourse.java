@@ -44,6 +44,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
@@ -447,7 +448,8 @@ public interface Concourse {
 		static {
 			ConcourseConfiguration config;
 			try {
-				config = ConcourseConfiguration.loadConfig("concourse_client.prefs");
+				config = ConcourseConfiguration
+						.loadConfig("concourse_client.prefs");
 			}
 			catch (Exception e) {
 				config = null;
@@ -566,15 +568,17 @@ public interface Concourse {
 				public Map<DateTime, String> call() throws Exception {
 					Map<Long, String> audit = client.audit(record, null, creds,
 							transaction);
-					return Transformers.transformMap(audit,
-							new Function<Long, DateTime>() {
+					return ((TLinkedHashMap<DateTime, String>) Transformers
+							.transformMap(audit,
+									new Function<Long, DateTime>() {
 
-								@Override
-								public DateTime apply(Long input) {
-									return Convert.unixToJoda(input);
-								}
+										@Override
+										public DateTime apply(Long input) {
+											return Convert.unixToJoda(input);
+										}
 
-							});
+									})).setKeyName("DateTime").setValueName(
+							"Revision");
 				}
 
 			});
@@ -588,15 +592,17 @@ public interface Concourse {
 				public Map<DateTime, String> call() throws Exception {
 					Map<Long, String> audit = client.audit(record, key, creds,
 							transaction);
-					return Transformers.transformMap(audit,
-							new Function<Long, DateTime>() {
+					return ((TLinkedHashMap<DateTime, String>) Transformers
+							.transformMap(audit,
+									new Function<Long, DateTime>() {
 
-								@Override
-								public DateTime apply(Long input) {
-									return Convert.unixToJoda(input);
-								}
+										@Override
+										public DateTime apply(Long input) {
+											return Convert.unixToJoda(input);
+										}
 
-							});
+									})).setKeyName("DateTime").setValueName(
+							"Revision");
 				}
 
 			});
