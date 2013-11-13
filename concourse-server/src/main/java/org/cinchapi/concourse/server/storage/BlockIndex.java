@@ -214,6 +214,8 @@ public class BlockIndex implements Byteable, Syncable {
 	 * @param byteables
 	 */
 	public void putEnd(int end, Byteable... byteables) {
+		Preconditions.checkArgument(end >= 0,
+				"Cannot have negative index. Tried to put %s", end);
 		masterLock.writeLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
@@ -235,6 +237,8 @@ public class BlockIndex implements Byteable, Syncable {
 	 * @param byteables
 	 */
 	public void putStart(int start, Byteable... byteables) {
+		Preconditions.checkArgument(start >= 0,
+				"Cannot have negative index. Tried to put %s", start);
 		masterLock.writeLock().lock();
 		try {
 			ByteableComposite composite = ByteableComposite.create(byteables);
