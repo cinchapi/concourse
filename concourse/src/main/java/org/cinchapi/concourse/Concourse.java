@@ -29,14 +29,13 @@ import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
@@ -446,11 +445,11 @@ public interface Concourse {
 		private static String USERNAME;
 		private static String PASSWORD;
 		static {
-			PropertiesConfiguration config;
+			ConcourseConfiguration config;
 			try {
-				config = new PropertiesConfiguration("concourse_client.prefs");
+				config = ConcourseConfiguration.loadConfig("concourse_client.prefs");
 			}
-			catch (ConfigurationException e) {
+			catch (Exception e) {
 				config = null;
 			}
 			SERVER_HOST = "localhost";
