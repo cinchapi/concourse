@@ -247,13 +247,18 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			ByteBuffer bytes = ByteBuffer.allocate(size);
 			L locator = null;
 			K key = null;
+			int position = 0;
 			for (Revision<L, K, V> revision : revisions) {
 				Logger.debug("Processing revision {}", revision);
 				bytes.putInt(revision.size());
 				bytes.put(revision.getBytes());
-				int position = 0;
+				position = bytes.position() - revision.size() - 4;
+				/*
+				 * States that trigger this condition to be true:
+				 * 1. This is the first locator we've seen
+				 * 2. This locator is different than the last one we've seen
+				 */
 				if(locator == null || !locator.equals(revision.getLocator())) {
-					position = bytes.position() - revision.size() - 4;
 					Logger.debug("Adding START index for {} (locator) at {}",
 							revision.getLocator(), position);
 					index.putStart(position, revision.getLocator());
@@ -265,7 +270,20 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 						index.putEnd(position - 1, locator);
 					}
 				}
-				if(key == null || !key.equals(revision.getKey())) {
+				/*
+				 * NOTE: IF key == null, then it must be the case that locator
+				 * == null since they are set at the same time. Therefore we do
+				 * not need to explicitly check for that condition below
+				 * 
+				 * States that trigger this condition to be true:
+				 * 1. This is the first key we've seen
+				 * 2. This key is different than the last one we've seen
+				 * (regardless of whether the locator is different or the same!)
+				 * 3. This key is the same as the last one we've seen, but the
+				 * locator is different.
+				 */
+				if(key == null || !key.equals(revision.getKey())
+						|| !locator.equals(revision.getLocator())) {
 					Logger.debug("Adding START index for {} (locator) and "
 							+ "{} (key) at {}", revision.getLocator(),
 							revision.getKey(), position);
@@ -284,9 +302,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				key = revision.getKey();
 			}
 			if(revisions.size() > 0) {
-				int position = bytes.position() - 1;
-				Logger.debug("Adding END index for {} (locator)", locator,
-						position);
+				position = bytes.position() - 1;
+				Logger.debug("Adding END index for {} (locator) at {}",
+						locator, position);
 				index.putEnd(position, locator);
 				Logger.debug("Adding END index for {} (locator) and "
 						+ "{} (key) at {}", locator, key, position);
