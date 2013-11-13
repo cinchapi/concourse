@@ -114,15 +114,15 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		Map<Long, String> result = buffer.audit(record);
-		result.putAll(destination.audit(record));
+		Map<Long, String> result = destination.audit(record);
+		result.putAll(buffer.audit(record));
 		return result;
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		Map<Long, String> result = buffer.audit(key, record);
-		result.putAll(destination.audit(key, record));
+		Map<Long, String> result = destination.audit(key, record);
+		result.putAll(buffer.audit(key, record));
 		return result;
 	}
 
