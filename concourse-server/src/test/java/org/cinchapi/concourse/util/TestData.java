@@ -29,8 +29,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import org.cinchapi.concourse.server.concurrent.IdentifiableReentrantReadWriteLock;
+import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.Token;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -71,12 +72,12 @@ public final class TestData extends Random {
 				getPrimaryKey(), Time.now(), Action.ADD);
 	}
 
-	public static IdentifiableReentrantReadWriteLock getIdentifiableReentrantReadWriteLock() {
+	public static TLock getIdentifiableReentrantReadWriteLock() {
 		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
 		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
-		return IdentifiableReentrantReadWriteLock.create(components);
+		return TLock.forToken(Token.create(components));
 	}
 
 	/**

@@ -35,7 +35,7 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
 
@@ -100,7 +100,7 @@ public class BloomFilter implements Syncable {
 					new FileInputStream(FileSystem.openFile(file))));
 			BloomFilter filter = new BloomFilter(
 					file,
-					(com.google.common.hash.BloomFilter<ByteableComposite>) input
+					(com.google.common.hash.BloomFilter<Token>) input
 							.readObject());
 			input.close();
 			return filter;
@@ -122,7 +122,7 @@ public class BloomFilter implements Syncable {
 	/**
 	 * The wrapped bloom filter. This is where the data is actually stored.
 	 */
-	private final com.google.common.hash.BloomFilter<ByteableComposite> source;
+	private final com.google.common.hash.BloomFilter<Token> source;
 
 	/**
 	 * The file where the content is stored.
@@ -149,7 +149,7 @@ public class BloomFilter implements Syncable {
 	 * @param source
 	 */
 	private BloomFilter(String file,
-			com.google.common.hash.BloomFilter<ByteableComposite> source) {
+			com.google.common.hash.BloomFilter<Token> source) {
 		this.source = source;
 		this.file = file;
 	}
@@ -185,7 +185,7 @@ public class BloomFilter implements Syncable {
 	public boolean mightContain(Byteable... byteables) {
 		masterLock.readLock().lock();
 		try {
-			return source.mightContain(ByteableComposite.create(byteables));
+			return source.mightContain(Token.create(byteables));
 		}
 		finally {
 			masterLock.readLock().unlock();
@@ -212,7 +212,7 @@ public class BloomFilter implements Syncable {
 	public boolean put(Byteable... byteables) {
 		masterLock.writeLock().lock();
 		try {
-			return source.put(ByteableComposite.create(byteables));
+			return source.put(Token.create(byteables));
 		}
 		finally {
 			masterLock.writeLock().unlock();

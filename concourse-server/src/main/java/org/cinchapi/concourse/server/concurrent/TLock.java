@@ -28,8 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Token;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -37,40 +36,26 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * A {@link ReentrantReadWriteLock} that is identified by a
- * {@link ByteableComposite}. The lock defines its hashCode and equals methods
- * in terms of its id. An identifiable lock is useful for situations in which a
- * lock is placed in a collection and needs to be identified for subsequent
- * retrieval.
+ * A {@link ReentrantReadWriteLock} that is identified by a {@link Token}.
+ * The lock defines its hashCode and equals methods in terms of its token, and
+ * is useful for situations where lock is placed in a collection and needs to be
+ * identified for subsequent retrieval.
  * 
  * @author jnelson
  */
 @Immutable
-public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
-
-	/**
-	 * Create a new IdentifiableReentrantReadWriteLock whose {@link #id} will
-	 * created with {@code components}.
-	 * 
-	 * @param components
-	 * @return the IdentifiableReentrantReadWriteLock
-	 */
-	public static IdentifiableReentrantReadWriteLock create(
-			Byteable... components) {
-		return identifiedBy(ByteableComposite.create(components));
-	}
+public class TLock extends ReentrantReadWriteLock {
 
 	/**
 	 * Return a IdentifiableReentrantReadWriteLock that is identified by
-	 * {@code id}.
+	 * {@code token}.
 	 * 
-	 * @param id
+	 * @param token
 	 * @return the IdentifiableReentrantReadWriteLock
 	 */
-	public static IdentifiableReentrantReadWriteLock identifiedBy(
-			ByteableComposite id) {
+	public static TLock forToken(Token token) {
 		try {
-			return CACHE.get(id);
+			return CACHE.get(token);
 		}
 		catch (ExecutionException e) {
 			throw Throwables.propagate(e);
@@ -81,15 +66,13 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 	 * The cache holds locks that have been recently used. This helps to ensure
 	 * that we return the same lock for the same key.
 	 */
-	private static final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> CACHE = CacheBuilder
-			.newBuilder()
-			.maximumSize(1000)
-			.build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
+	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
+			.newBuilder().maximumSize(1000)
+			.build(new CacheLoader<Token, TLock>() {
 
 				@Override
-				public IdentifiableReentrantReadWriteLock load(
-						ByteableComposite key) throws Exception {
-					return new IdentifiableReentrantReadWriteLock(key);
+				public TLock load(Token token) throws Exception {
+					return new TLock(token);
 				}
 
 			});
@@ -99,26 +82,26 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 														// class
 
 	/**
-	 * The id not only identifies this lock, but governs rules for the
+	 * The token not only identifies this lock, but governs rules for the
 	 * {@link #hashCode()} and {@link #equals(Object)} methods.
 	 */
-	private final ByteableComposite id;
+	private final Token token;
 
 	/**
 	 * Construct a new instance.
 	 * 
-	 * @param id
+	 * @param token
 	 */
-	public IdentifiableReentrantReadWriteLock(ByteableComposite id) {
+	public TLock(Token token) {
 		super();
-		this.id = id;
+		this.token = token;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof IdentifiableReentrantReadWriteLock) {
-			IdentifiableReentrantReadWriteLock other = (IdentifiableReentrantReadWriteLock) obj;
-			return id.equals(other.id);
+		if(obj instanceof TLock) {
+			TLock other = (TLock) obj;
+			return token.equals(other.token);
 		}
 		return false;
 	}
@@ -128,18 +111,19 @@ public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 	 * 
 	 * @return the id
 	 */
-	public ByteableComposite getId() {
-		return id;
+	public Token getToken() {
+		return token;
 	}
 
 	@Override
 	public int hashCode() {
-		return id.hashCode();
+		return token.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return id + " " + super.toString();
+		String[] toks = super.toString().split("\\[");
+		return getClass().getSimpleName() + " " + token + " [" + toks[1];
 	}
 
 }

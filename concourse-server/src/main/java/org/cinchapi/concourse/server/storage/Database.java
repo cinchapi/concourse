@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -75,7 +75,7 @@ public final class Database implements PermanentStore {
 	 * 
 	 * @return the cache
 	 */
-	private static <T> Cache<ByteableComposite, T> buildCache() {
+	private static <T> Cache<Token, T> buildCache() {
 		return CacheBuilder.newBuilder().maximumSize(100000).build();
 	}
 
@@ -125,9 +125,9 @@ public final class Database implements PermanentStore {
 	 * records and append the new revision so that the cached data doesn't grow
 	 * stale.
 	 */
-	private final Cache<ByteableComposite, PrimaryRecord> cpc = buildCache();
-	private final Cache<ByteableComposite, PrimaryRecord> cppc = buildCache();
-	private final Cache<ByteableComposite, SecondaryRecord> csc = buildCache();
+	private final Cache<Token, PrimaryRecord> cpc = buildCache();
+	private final Cache<Token, PrimaryRecord> cppc = buildCache();
+	private final Cache<Token, SecondaryRecord> csc = buildCache();
 
 	/*
 	 * CURRENT BLOCK POINTERS
@@ -346,7 +346,7 @@ public final class Database implements PermanentStore {
 	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = cpc.getIfPresent(ByteableComposite
+			PrimaryRecord record = cpc.getIfPresent(Token
 					.create(pkey));
 			if(record == null) {
 				record = Record.createPrimaryRecord(pkey);
@@ -372,7 +372,7 @@ public final class Database implements PermanentStore {
 	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = cppc.getIfPresent(ByteableComposite.create(
+			PrimaryRecord record = cppc.getIfPresent(Token.create(
 					pkey, key));
 			if(record == null) {
 				record = Record.createPrimaryRecordPartial(pkey, key);
@@ -419,7 +419,7 @@ public final class Database implements PermanentStore {
 	private SecondaryRecord getSecondaryRecord(Text key) {
 		masterLock.readLock().lock();
 		try {
-			SecondaryRecord record = csc.getIfPresent(ByteableComposite
+			SecondaryRecord record = csc.getIfPresent(Token
 					.create(key));
 			if(record == null) {
 				record = Record.createSecondaryRecord(key);
@@ -582,10 +582,10 @@ public final class Database implements PermanentStore {
 						.insert(write.getRecord(), write.getKey(),
 								write.getValue(), write.getVersion(),
 								write.getType());
-				PrimaryRecord record = cpc.getIfPresent(ByteableComposite
+				PrimaryRecord record = cpc.getIfPresent(Token
 						.create(write.getRecord()));
 				PrimaryRecord partialRecord = cppc
-						.getIfPresent(ByteableComposite.create(
+						.getIfPresent(Token.create(
 								write.getRecord(), write.getKey()));
 				if(record != null) {
 					record.append(revision);
@@ -599,7 +599,7 @@ public final class Database implements PermanentStore {
 						.insert(write.getKey(), write.getValue(),
 								write.getRecord(), write.getVersion(),
 								write.getType());
-				SecondaryRecord record = csc.getIfPresent(ByteableComposite
+				SecondaryRecord record = csc.getIfPresent(Token
 						.create(write.getKey()));
 				if(record != null) {
 					record.append(revision);

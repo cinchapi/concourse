@@ -24,17 +24,19 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Token;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link IdentifiableReentrantReadWriteLock}.
+ * Unit tests for {@link TLock}.
  * 
  * @author jnelson
  */
-public class IdentifiableReentrantReadWriteLockTest {
+public class TLockTest {
 
 	@Test
 	public void testLocksAreTheSame() {
@@ -42,11 +44,15 @@ public class IdentifiableReentrantReadWriteLockTest {
 		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
-		IdentifiableReentrantReadWriteLock a = IdentifiableReentrantReadWriteLock
-				.create(components);
-		IdentifiableReentrantReadWriteLock b = IdentifiableReentrantReadWriteLock
-				.identifiedBy(ByteableComposite.create(components));
-		Assert.assertSame(a, b);
+		TLock a = TLock.forToken(Token.create(components));
+		TLock b = TLock.forToken(Token.create(Token.create(components)));
+		Assert.assertSame(a, b); 
+	}
+
+	@Test
+	public void testTest() {
+		System.out
+				.println(TLock.forToken(Token.create(Value.wrap(Convert.javaToThrift("1")))));
 	}
 
 }

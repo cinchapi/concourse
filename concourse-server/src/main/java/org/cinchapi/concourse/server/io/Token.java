@@ -30,44 +30,46 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.hash.Hashing;
+
 /**
- * An Byteable object that wraps multiple other Byteable objects into a single
- * element.
+ * A {@link Token} is a single Byteable object that wraps multiple other
+ * Byteable objects. 
  * 
  * @author jnelson
  */
 @Immutable
-public final class ByteableComposite implements Byteable {
+public final class Token implements Byteable {
 
 	/**
-	 * Return a ByteableComposite for the list of {@code byteables}.
+	 * Return a Token for the list of {@code byteables}.
 	 * 
 	 * @param byteables
-	 * @return the ByteableComposite
+	 * @return the Token
 	 */
-	public static ByteableComposite create(Byteable... byteables) {
-		return new ByteableComposite(byteables);
+	public static Token create(Byteable... byteables) {
+		return new Token(byteables);
 	}
 
 	/**
-	 * Return the ByteableComposite encoded in {@code bytes} so long as those
+	 * Return the Token encoded in {@code bytes} so long as those
 	 * bytes adhere to the format specified by the {@link #getBytes()} method.
 	 * This method assumes that all the bytes in the {@code bytes} belong to the
-	 * ByteableComposite. In general, it is necessary to get the appropriate
+	 * Token. In general, it is necessary to get the appropriate
 	 * Value slice from the parent ByteBuffer using
 	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
 	 * 
 	 * @param bytes
-	 * @return the ByteableComposite
+	 * @return the Token
 	 */
-	public static ByteableComposite fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, ByteableComposite.class);
+	public static Token fromByteBuffer(ByteBuffer bytes) {
+		return Byteables.read(bytes, Token.class);
 	}
 
 	private final ByteBuffer bytes;
 
 	/**
-	 * Construct an instance that represents an existing ByteableComposite from
+	 * Construct an instance that represents an existing Token from
 	 * a ByteBuffer. This constructor is public so as to comply with the
 	 * {@link Byteable} interface. Calling this constructor directly is not
 	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
@@ -76,7 +78,7 @@ public final class ByteableComposite implements Byteable {
 	 * @param bytes
 	 */
 	@DoNotInvoke
-	public ByteableComposite(ByteBuffer bytes) {
+	public Token(ByteBuffer bytes) {
 		this.bytes = bytes;
 	}
 
@@ -85,7 +87,7 @@ public final class ByteableComposite implements Byteable {
 	 * 
 	 * @param byteables
 	 */
-	private ByteableComposite(Byteable... byteables) {
+	private Token(Byteable... byteables) {
 		int size = 0;
 		for (Byteable byteable : byteables) {
 			size += byteable.size();
@@ -98,8 +100,8 @@ public final class ByteableComposite implements Byteable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof ByteableComposite){
-			ByteableComposite other = (ByteableComposite) obj;
+		if(obj instanceof Token) {
+			Token other = (Token) obj;
 			return getBytes().equals(other.getBytes());
 		}
 		return false;
@@ -119,7 +121,11 @@ public final class ByteableComposite implements Byteable {
 	public int size() {
 		return bytes.capacity();
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
+				.toString();
+	}
 
 }
