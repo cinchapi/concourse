@@ -23,6 +23,9 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
@@ -36,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 /**
  * 
@@ -121,6 +125,30 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 		SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
 		((SearchBlock) block).seek(key, term, searchRecord);
 		Assert.assertTrue(searchRecord.search(term).contains(record));
+	}
+
+	@Test
+	public void testDoesNotAddDuplicates() {
+		// LINE 20:
+		// imwhrxxhtysldepivwwpbererstvplxnoknicpboajbdoayadaceldzbeasolxrnxcizcjjvymugsqyotcefeoohggsxaapnc
+		// LINE 29:
+		// rsikwrnyuvpxwufblpqxyhsmbphrepiickfmzivktvxoxfjrmwbmtbtkvczyptcgkpogdlnydqaatbsrhkyjrgjuyixyhtdngowj
+		Text key = Text.wrap("strings");
+		long i = 1;
+		Iterator<String> it = TestData.getWordsDotTxt().iterator();
+		while (i <= 29 && it.hasNext()) {
+			PrimaryKey record = PrimaryKey.wrap(i);
+			Value value = Value.wrap(Convert.javaToThrift(it.next()));
+			((SearchBlock) block).insert(key, value, record, Time.now(),
+					Action.ADD);
+			i++;
+		}
+		String[] lines = block.dump().split("\n");
+		Set<String> set = Sets.newHashSet();
+		for (String line : lines) {
+			set.add(line);
+		}
+		Assert.assertEquals(lines.length, set.size());
 	}
 
 	/**

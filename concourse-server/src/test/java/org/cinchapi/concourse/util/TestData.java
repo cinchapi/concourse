@@ -23,6 +23,12 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+
 import org.cinchapi.concourse.server.concurrent.IdentifiableReentrantReadWriteLock;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Position;
@@ -37,6 +43,9 @@ import org.cinchapi.concourse.server.storage.SecondaryRevision;
 import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+
+import com.beust.jcommander.internal.Lists;
+import com.google.common.base.Throwables;
 
 /**
  * A utility class for getting test data.
@@ -115,6 +124,28 @@ public final class TestData extends Random {
 
 	public static Write getWriteNotStorable() {
 		return Write.notStorable(getString(), getTObject(), getLong());
+	}
+	
+	/**
+	 * Get each line from the words.txt file
+	 * @return
+	 */
+	public static Iterable<String> getWordsDotTxt(){
+		try{
+			File file = new File(TestData.class.getResource("/words.txt").getFile());
+			BufferedReader reader = new BufferedReader(new FileReader(file));
+			String line;
+			List<String> lines = Lists.newArrayList();
+			while ((line = reader.readLine()) != null) {
+				lines.add(line);
+			}
+			reader.close();
+			return lines;
+		}
+		catch(IOException e){
+			throw Throwables.propagate(e);
+		}
+		
 	}
 
 	private TestData() {/* Utility class */}
