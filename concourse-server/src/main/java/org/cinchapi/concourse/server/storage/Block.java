@@ -43,7 +43,6 @@ import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
-import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -242,14 +241,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	public ByteBuffer getBytes() {
 		masterLock.readLock().lock();
 		try {
-			Logger.debug("Starting byte generation for {} {}", this.getClass()
-					.getSimpleName(), id);
 			ByteBuffer bytes = ByteBuffer.allocate(size);
 			L locator = null;
 			K key = null;
 			int position = 0;
 			for (Revision<L, K, V> revision : revisions) {
-				Logger.debug("Processing revision {}", revision);
 				bytes.putInt(revision.size());
 				bytes.put(revision.getBytes());
 				position = bytes.position() - revision.size() - 4;
@@ -259,14 +255,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				 * 2. This locator is different than the last one we've seen
 				 */
 				if(locator == null || !locator.equals(revision.getLocator())) {
-					Logger.debug("Adding START index for {} (locator) at {}",
-							revision.getLocator(), position);
 					index.putStart(position, revision.getLocator());
 					if(locator != null) {
 						// There was a locator before us (we are not the first!)
 						// and we need to record the end index.
-						Logger.debug("Adding END index for {} (locator) at {}",
-								revision.getLocator(), position - 1);
 						index.putEnd(position - 1, locator);
 					}
 				}
@@ -284,17 +276,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 				 */
 				if(key == null || !key.equals(revision.getKey())
 						|| !locator.equals(revision.getLocator())) {
-					Logger.debug("Adding START index for {} (locator) and "
-							+ "{} (key) at {}", revision.getLocator(),
-							revision.getKey(), position);
 					index.putStart(position, revision.getLocator(),
 							revision.getKey());
 					if(key != null) {
 						// There was a locator, key before us (we are not the
 						// first!) and we need to record the end index.
-						Logger.debug("Adding END index for {} (locator) and "
-								+ "{} (key) at {}", revision.getLocator(),
-								revision.getKey(), position - 1);
 						index.putEnd(position - 1, locator, key);
 					}
 				}
@@ -303,19 +289,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 			}
 			if(revisions.size() > 0) {
 				position = bytes.position() - 1;
-				Logger.debug("Adding END index for {} (locator) at {}",
-						locator, position);
 				index.putEnd(position, locator);
-				Logger.debug("Adding END index for {} (locator) and "
-						+ "{} (key) at {}", locator, key, position);
 				index.putEnd(position, locator, key);
 			}
 			bytes.rewind();
 			return bytes;
 		}
 		finally {
-			Logger.debug("Finished byte generation for {} {}", this.getClass()
-					.getSimpleName(), id);
 			masterLock.readLock().unlock();
 		}
 	}
