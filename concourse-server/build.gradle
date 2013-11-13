@@ -7,6 +7,14 @@ dependencies {
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
+sourceSets {
+  test {
+    resources {
+      srcDir "src/test/resources"
+    }
+  }
+}
+
 task context() {
 	if(!System.getProperty("jenkins").equals("true")) {
 		exec {
