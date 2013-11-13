@@ -149,9 +149,10 @@ public final class Write implements Byteable, Versioned {
 			long version) {
 		this(type, key, value, record, version, null);
 	}
-	
+
 	/**
 	 * Construct a new instance.
+	 * 
 	 * @param type
 	 * @param key
 	 * @param value
@@ -159,7 +160,8 @@ public final class Write implements Byteable, Versioned {
 	 * @param version
 	 * @param bytes
 	 */
-	private Write(Action type, Text key, Value value, PrimaryKey record, long version, @Nullable ByteBuffer bytes){
+	private Write(Action type, Text key, Value value, PrimaryKey record,
+			long version, @Nullable ByteBuffer bytes) {
 		this.type = type;
 		this.key = key;
 		this.value = value;
@@ -290,13 +292,8 @@ public final class Write implements Byteable, Versioned {
 
 	@Override
 	public String toString() {
-		return type
-				+ " "
-				+ key
-				+ " AS "
-				+ value
-				+ (type == Action.ADD ? " TO " : (type == Action.REMOVE ? " FROM "
-						: " IN ")) + record;
+		return type + " " + key + " AS " + value + " IN " + record + " AT "
+				+ version;
 	}
 
 }
