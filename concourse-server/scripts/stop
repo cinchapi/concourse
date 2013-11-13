@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# run the program
+sh `dirname $0`/concourse stop
