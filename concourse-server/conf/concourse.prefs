@@ -7,8 +7,8 @@
 # separate disk partition (ideally a separate physical device) from
 # the database_directory.
 #
-# DEFAULT:
-#buffer_directory = 
+# DEFAULT: {$user.home}/concourse/buffer
+#buffer_directory = /var/lib/concourse/buffer
 
 # The size for each page in the Buffer. During reads, Buffer pages
 # are individually locked, so it is desirable to have several smaller 
@@ -16,16 +16,16 @@
 # the desire to maximize lock granularity with the risks of having too
 # many open buffer files simultaneously.
 # 
-# DEFAULT:
-#buffer_page_size =
+# DEFAULT: 8M
+#buffer_page_size = 8M
 
 # The absolute path to the directory where the Database record and index
 # files are stored. For optimal performance, the Database should be 
 # placed on a separate disk partition (ideally a separate physical device)
 # from the buffer_directory.
 #
-# DEFAULT: 
-#database_directory = 
+# DEFAULT: {$user.home}/concourse/db
+#database_directory = /var/lib/concourse/db
 
 # The amount of runtime information logged by the system. The options below
 # are listed from least to most verbose. In addition to the indicated types
@@ -40,15 +40,18 @@
 # INFO: status information about the system that can be used for sanity checking.
 # DEBUG: detailed information about the system that can be used to diagnose bugs.
 #
+# Determine whether log messages should also be printed to the console (STDOUT).
+#
+# DEFAULT:
+#enable_console_logging = FALSE
+
 # Logging is important, but may cause performance degradation. Only use the DEBUG 
 # level for staging environments or instances when detailed information to diagnose 
 # a bug. Otherwise use the WARN or INFO levels.
 #
 # DEFAULT:
-#log_level = 
+#log_level = INFO
 
-# Determine whether log messages should also be printed to the console (STDOUT).
-#
-# DEFAULT:
-# enable_console_logging
+	 
+
 
