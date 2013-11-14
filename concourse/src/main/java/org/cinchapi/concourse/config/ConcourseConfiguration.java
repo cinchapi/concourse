@@ -27,7 +27,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.ConfigurationUtils;
+import org.apache.commons.configuration.DefaultFileSystem;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;
 
@@ -71,6 +76,14 @@ public class ConcourseConfiguration extends PropertiesConfiguration {
 		multipliers.put("mb", (int) Math.pow(1024, 2));
 		multipliers.put("g", (int) Math.pow(1024, 3));
 		multipliers.put("gb", (int) Math.pow(1024, 3));
+
+		// Prevent logging from showing up in the console
+		((ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ConcourseConfiguration.class)).setLevel(Level.OFF);
+		((ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(ConfigurationUtils.class)).setLevel(Level.OFF);
+		((ch.qos.logback.classic.Logger) LoggerFactory
+				.getLogger(DefaultFileSystem.class)).setLevel(Level.OFF);
 	}
 
 	/**

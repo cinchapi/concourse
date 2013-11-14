@@ -25,6 +25,7 @@ package org.cinchapi.concourse.util;
 
 import java.io.File;
 
+import org.apache.thrift.ProcessFunction;
 import org.cinchapi.concourse.server.GlobalState;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +91,9 @@ public final class Logger {
 			"org.cinchapi.concourse.server.InfoLogger", "info.log");
 	private static final ch.qos.logback.classic.Logger DEBUG = setup(
 			"org.cinchapi.concourse.server.DebugLogger", "debug.log");
+	static {
+		setup(ProcessFunction.class.getName(), "error.log");
+	}
 
 	/**
 	 * Setup logger {@code name} that prints to {@code file}.
