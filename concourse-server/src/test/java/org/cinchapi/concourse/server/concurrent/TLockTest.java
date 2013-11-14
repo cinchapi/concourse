@@ -57,4 +57,12 @@ public class TLockTest extends ConcourseBaseTest {
 				TLock.CACHE_TTL_UNIT) + 1);
 		Assert.assertTrue(lock.isStateInstance());
 	}
+	
+	@Test
+	public void testGetTimeSinceLastGrab() throws InterruptedException {
+		TLock lock = TLock.grab(TestData.getObject());
+		int sleep = TestData.getScaleCount();
+		Thread.sleep(sleep);
+		Assert.assertTrue(lock.getTimeSinceLastGrab(TimeUnit.MILLISECONDS) >= sleep);
+	}
 }
