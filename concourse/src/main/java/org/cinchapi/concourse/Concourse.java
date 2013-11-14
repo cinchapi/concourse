@@ -284,21 +284,6 @@ public interface Concourse {
 	public boolean link(String key, long source, long destination);
 
 	/**
-	 * Link {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. In other words, add {@code sourceKey} as
-	 * {@link Link#to(destination)} in {@code source} and add
-	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
-	 * 
-	 * @param sourceKey
-	 * @param source
-	 * @param destinationKey
-	 * @param destination
-	 * @return {@code true} the links are added
-	 */
-	public boolean link(String sourceKey, long source, String destinationKey,
-			long destination);
-
-	/**
 	 * Ping {@code record} and return {@code true} if there is currently at
 	 * least one populated key.
 	 * 
@@ -384,21 +369,6 @@ public interface Concourse {
 	 * @return {@code true} if the one way link is removed
 	 */
 	public boolean unlink(String key, long source, long destination);
-
-	/**
-	 * Unlink {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. In other words, remove {@code sourceKey} as
-	 * {@link Link#to(destination)} in {@code source} and remove
-	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
-	 * 
-	 * @param sourceKey
-	 * @param source
-	 * @param destinationKey
-	 * @param destination
-	 * @return {@code true} if the links are removed
-	 */
-	public boolean unlink(String sourceKey, long source, String destinationKey,
-			long destination);
 
 	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
@@ -730,13 +700,6 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean link(String sourceKey, long source,
-				String destinationKey, long destination) {
-			return link(sourceKey, source, destination)
-					^ link(destinationKey, destination, source);
-		}
-
-		@Override
 		public boolean ping(final long record) {
 			return execute(new Callable<Boolean>() {
 
@@ -814,13 +777,6 @@ public interface Concourse {
 		@Override
 		public boolean unlink(String key, long source, long destination) {
 			return remove(key, Link.to(destination), source);
-		}
-
-		@Override
-		public boolean unlink(String sourceKey, long source,
-				String destinationKey, long destination) {
-			return unlink(sourceKey, source, destination)
-					^ unlink(destinationKey, destination, source);
 		}
 
 		@Override
