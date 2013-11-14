@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.server.io.Token;
+import org.cinchapi.concourse.server.io.Composite;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -36,7 +36,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * A {@link ReentrantReadWriteLock} that is identified by a {@link Token}.
+ * A {@link ReentrantReadWriteLock} that is identified by a {@link Composite}.
  * The lock defines its hashCode and equals methods in terms of its token, and
  * is useful for situations where lock is placed in a collection and needs to be
  * identified for subsequent retrieval.
@@ -53,7 +53,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * @param token
 	 * @return the IdentifiableReentrantReadWriteLock
 	 */
-	public static TLock forToken(Token token) {
+	public static TLock forToken(Composite token) {
 		try {
 			return CACHE.get(token);
 		}
@@ -66,12 +66,12 @@ public class TLock extends ReentrantReadWriteLock {
 	 * The cache holds locks that have been recently used. This helps to ensure
 	 * that we return the same lock for the same key.
 	 */
-	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
+	private static final LoadingCache<Composite, TLock> CACHE = CacheBuilder
 			.newBuilder().maximumSize(1000)
-			.build(new CacheLoader<Token, TLock>() {
+			.build(new CacheLoader<Composite, TLock>() {
 
 				@Override
-				public TLock load(Token token) throws Exception {
+				public TLock load(Composite token) throws Exception {
 					return new TLock(token);
 				}
 
@@ -85,14 +85,14 @@ public class TLock extends ReentrantReadWriteLock {
 	 * The token not only identifies this lock, but governs rules for the
 	 * {@link #hashCode()} and {@link #equals(Object)} methods.
 	 */
-	private final Token token;
+	private final Composite token;
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param token
 	 */
-	public TLock(Token token) {
+	public TLock(Composite token) {
 		super();
 		this.token = token;
 	}
@@ -111,7 +111,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * 
 	 * @return the id
 	 */
-	public Token getToken() {
+	public Composite getToken() {
 		return token;
 	}
 

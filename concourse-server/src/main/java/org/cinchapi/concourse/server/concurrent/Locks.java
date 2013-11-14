@@ -25,7 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.locks.Lock;
 
-import org.cinchapi.concourse.server.io.Token;
+import org.cinchapi.concourse.server.io.Composite;
 
 /**
  * Lock related utility methods.

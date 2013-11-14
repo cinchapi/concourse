@@ -33,13 +33,13 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import com.google.common.hash.Hashing;
 
 /**
- * A {@link Token} is a single Byteable object that wraps multiple other
+ * A {@link Composite} is a single Byteable object that wraps multiple other
  * Byteable objects. 
  * 
  * @author jnelson
  */
 @Immutable
-public final class Token implements Byteable {
+public final class Composite implements Byteable {
 
 	/**
 	 * Return a Token for the list of {@code byteables}.
@@ -47,8 +47,8 @@ public final class Token implements Byteable {
 	 * @param byteables
 	 * @return the Token
 	 */
-	public static Token create(Byteable... byteables) {
-		return new Token(byteables);
+	public static Composite create(Byteable... byteables) {
+		return new Composite(byteables);
 	}
 
 	/**
@@ -62,8 +62,8 @@ public final class Token implements Byteable {
 	 * @param bytes
 	 * @return the Token
 	 */
-	public static Token fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, Token.class);
+	public static Composite fromByteBuffer(ByteBuffer bytes) {
+		return Byteables.read(bytes, Composite.class);
 	}
 
 	private final ByteBuffer bytes;
@@ -78,7 +78,7 @@ public final class Token implements Byteable {
 	 * @param bytes
 	 */
 	@DoNotInvoke
-	public Token(ByteBuffer bytes) {
+	public Composite(ByteBuffer bytes) {
 		this.bytes = bytes;
 	}
 
@@ -87,7 +87,7 @@ public final class Token implements Byteable {
 	 * 
 	 * @param byteables
 	 */
-	private Token(Byteable... byteables) {
+	private Composite(Byteable... byteables) {
 		int size = 0;
 		for (Byteable byteable : byteables) {
 			size += byteable.size();
@@ -100,8 +100,8 @@ public final class Token implements Byteable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Token) {
-			Token other = (Token) obj;
+		if(obj instanceof Composite) {
+			Composite other = (Composite) obj;
 			return getBytes().equals(other.getBytes());
 		}
 		return false;

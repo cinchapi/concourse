@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Token;
+import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -77,7 +77,7 @@ public final class TestData extends Random {
 		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
-		return TLock.forToken(Token.create(components));
+		return TLock.forToken(Composite.create(components));
 	}
 
 	/**
