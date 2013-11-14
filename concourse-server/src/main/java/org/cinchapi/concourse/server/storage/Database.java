@@ -265,8 +265,9 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		return Transformers.transformSet(getSearchRecord(Text.wrap(key))
-				.search(Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
+		return Transformers.transformSet(
+				getSearchRecord(Text.wrap(key), Text.wrap(query)).search(
+						Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
@@ -346,8 +347,7 @@ public final class Database implements PermanentStore {
 	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = cpc.getIfPresent(Composite
-					.create(pkey));
+			PrimaryRecord record = cpc.getIfPresent(Composite.create(pkey));
 			if(record == null) {
 				record = Record.createPrimaryRecord(pkey);
 				for (PrimaryBlock block : cpb) {
@@ -372,8 +372,8 @@ public final class Database implements PermanentStore {
 	private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
 		masterLock.readLock().lock();
 		try {
-			PrimaryRecord record = cppc.getIfPresent(Composite.create(
-					pkey, key));
+			PrimaryRecord record = cppc.getIfPresent(Composite
+					.create(pkey, key));
 			if(record == null) {
 				record = Record.createPrimaryRecordPartial(pkey, key);
 				for (PrimaryBlock block : cpb) {
@@ -391,17 +391,26 @@ public final class Database implements PermanentStore {
 	 * Return the SearchRecord identified by {@code key}.
 	 * 
 	 * @param key
+	 * @param query
 	 * @return the SearchRecord
 	 */
-	private SearchRecord getSearchRecord(Text key) {
+	private SearchRecord getSearchRecord(Text key, Text query) {
 		// NOTE: We do not cache SearchRecords because they have the potential
 		// to be VERY large. Holding references to them in a cache would prevent
 		// them from being garbage collected resulting in more OOMs.
 		masterLock.readLock().lock();
 		try {
-			SearchRecord record = Record.createSearchRecord(key);
+			SearchRecord record = Record.createSearchRecordPartial(key, query);
 			for (SearchBlock block : ctb) {
-				block.seek(key, record);
+				String[] toks = query.toString().split(" "); // Seek each word
+																// in the query
+																// to make sure
+																// that multi
+																// word search
+																// works
+				for (String tok : toks) {
+					block.seek(key, Text.wrap(tok), record);
+				}
 			}
 			return record;
 		}
@@ -419,8 +428,7 @@ public final class Database implements PermanentStore {
 	private SecondaryRecord getSecondaryRecord(Text key) {
 		masterLock.readLock().lock();
 		try {
-			SecondaryRecord record = csc.getIfPresent(Composite
-					.create(key));
+			SecondaryRecord record = csc.getIfPresent(Composite.create(key));
 			if(record == null) {
 				record = Record.createSecondaryRecord(key);
 				for (SecondaryBlock block : csb) {
@@ -582,11 +590,10 @@ public final class Database implements PermanentStore {
 						.insert(write.getRecord(), write.getKey(),
 								write.getValue(), write.getVersion(),
 								write.getType());
-				PrimaryRecord record = cpc.getIfPresent(Composite
-						.create(write.getRecord()));
-				PrimaryRecord partialRecord = cppc
-						.getIfPresent(Composite.create(
-								write.getRecord(), write.getKey()));
+				PrimaryRecord record = cpc.getIfPresent(Composite.create(write
+						.getRecord()));
+				PrimaryRecord partialRecord = cppc.getIfPresent(Composite
+						.create(write.getRecord(), write.getKey()));
 				if(record != null) {
 					record.append(revision);
 				}
