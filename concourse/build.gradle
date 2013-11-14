@@ -1,0 +1,4 @@
+dependencies {
+    compile 'org.slf4j:log4j-over-slf4j:1.7.5'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.5'
+}
