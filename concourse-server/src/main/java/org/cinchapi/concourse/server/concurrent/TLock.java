@@ -28,15 +28,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.server.io.Composite;
-
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * A {@link ReentrantReadWriteLock} that is identified by a {@link Composite}.
+ * A {@link ReentrantReadWriteLock} that is identified by a {@link Token}.
  * The lock defines its hashCode and equals methods in terms of its token, and
  * is useful for situations where lock is placed in a collection and needs to be
  * identified for subsequent retrieval.
@@ -47,13 +45,22 @@ import com.google.common.cache.LoadingCache;
 public class TLock extends ReentrantReadWriteLock {
 
 	/**
-	 * Return a IdentifiableReentrantReadWriteLock that is identified by
-	 * {@code token}.
+	 * Return the TLock that is identified by the {@code objects}.
+	 * 
+	 * @param objects
+	 * @return the TLock
+	 */
+	public static TLock grab(Object... objects) {
+		return grabWithToken(Token.wrap(objects));
+	}
+
+	/**
+	 * Return the TLock that is identified by {@code token}.
 	 * 
 	 * @param token
-	 * @return the IdentifiableReentrantReadWriteLock
+	 * @return the TLock
 	 */
-	public static TLock forToken(Composite token) {
+	public static TLock grabWithToken(Token token) {
 		try {
 			return CACHE.get(token);
 		}
@@ -66,12 +73,12 @@ public class TLock extends ReentrantReadWriteLock {
 	 * The cache holds locks that have been recently used. This helps to ensure
 	 * that we return the same lock for the same key.
 	 */
-	private static final LoadingCache<Composite, TLock> CACHE = CacheBuilder
+	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
 			.newBuilder().maximumSize(1000)
-			.build(new CacheLoader<Composite, TLock>() {
+			.build(new CacheLoader<Token, TLock>() {
 
 				@Override
-				public TLock load(Composite token) throws Exception {
+				public TLock load(Token token) throws Exception {
 					return new TLock(token);
 				}
 
@@ -85,14 +92,14 @@ public class TLock extends ReentrantReadWriteLock {
 	 * The token not only identifies this lock, but governs rules for the
 	 * {@link #hashCode()} and {@link #equals(Object)} methods.
 	 */
-	private final Composite token;
+	private final Token token;
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param token
 	 */
-	public TLock(Composite token) {
+	public TLock(Token token) {
 		super();
 		this.token = token;
 	}
@@ -111,7 +118,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * 
 	 * @return the id
 	 */
-	public Composite getToken() {
+	public Token getToken() {
 		return token;
 	}
 

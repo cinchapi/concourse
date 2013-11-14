@@ -73,11 +73,11 @@ public final class TestData extends Random {
 	}
 
 	public static TLock getIdentifiableReentrantReadWriteLock() {
-		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+		Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
 		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
-		return TLock.forToken(Composite.create(components));
+		return TLock.grab(components);
 	}
 
 	/**

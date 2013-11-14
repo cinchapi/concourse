@@ -24,9 +24,6 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Composite;
-import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,19 +37,18 @@ public class TLockTest {
 
 	@Test
 	public void testLocksAreTheSame() {
-		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+		Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
 		for (int i = 0; i < components.length; i++) {
 			components[i] = TestData.getValue();
 		}
-		TLock a = TLock.forToken(Composite.create(components));
-		TLock b = TLock.forToken(Composite.create(Composite.create(components)));
-		Assert.assertSame(a, b); 
+		TLock a = TLock.grab(components);
+		TLock b = TLock.grabWithToken(Token.wrap(components));
+		Assert.assertSame(a, b);
 	}
 
 	@Test
 	public void testTest() {
-		System.out
-				.println(TLock.forToken(Composite.create(Value.wrap(Convert.javaToThrift("1")))));
+		System.out.println(TLock.grab(2,1));
 	}
 
 }
