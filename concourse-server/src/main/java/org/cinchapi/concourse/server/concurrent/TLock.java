@@ -74,7 +74,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * that we return the same lock for the same key.
 	 */
 	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
-			.newBuilder().softValues().initialCapacity(1000)
+			.newBuilder().maximumSize(1000)
 			.build(new CacheLoader<Token, TLock>() {
 
 				@Override
