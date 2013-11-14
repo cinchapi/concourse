@@ -28,6 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.cinchapi.concourse.server.GlobalState;
+
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -43,6 +45,12 @@ import com.google.common.cache.LoadingCache;
  */
 @Immutable
 public class TLock extends ReentrantReadWriteLock {
+
+	/**
+	 * The cache size is determined by multiplying the number of expected locks
+	 * per transaction by the {@link GlobalState#TRANSACTION_CONCURRENCY_LEVEL}.
+	 */
+	private static final int CACHE_SIZE = 10 * GlobalState.TRANSACTION_CONCURRENCY_LEVEL;
 
 	/**
 	 * Return the TLock that is identified by the {@code objects}.
@@ -74,7 +82,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * that we return the same lock for the same key.
 	 */
 	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
-			.newBuilder().maximumSize(1000)
+			.newBuilder().maximumSize(CACHE_SIZE)
 			.build(new CacheLoader<Token, TLock>() {
 
 				@Override
