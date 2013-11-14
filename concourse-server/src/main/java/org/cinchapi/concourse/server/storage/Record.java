@@ -217,20 +217,18 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 			Preconditions.checkArgument(revision.getLocator().equals(locator),
 					"Cannot append %s because it does not belong "
 							+ "to this Record", revision);
+			// NOTE: The check below is ignored for a partial SearchRecord
+			// instance because they 'key' is the entire search query, but we
+			// append Revisions for each term in the query
 			Preconditions.checkArgument(
-					(partial && revision.getKey().equals(key)) || !partial,
+					(partial && revision.getKey().equals(key)) || !partial
+							|| this instanceof SearchRecord,
 					"Cannot append %s because it does not "
 							+ "belong to This Record", revision);
-			Preconditions
-					.checkArgument(
-							(!get(revision.getKey()).contains(
-									revision.getValue()) && revision.getType() == Action.ADD)
-									|| (get(revision.getKey()).contains(
-											revision.getValue()) && revision
-											.getType() == Action.REMOVE),
-							"Cannot append %s because it represents an action "
-									+ "involving a key, value and locator that has not "
-									+ "been offset.", revision);
+			Preconditions.checkArgument(isOffset(revision), "Cannot append "
+					+ "%s because it represents an action "
+					+ "involving a key, value and locator that has not "
+					+ "been offset.", revision);
 
 			// Update present index
 			Set<V> values = present.get(revision.getKey());
@@ -364,6 +362,20 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 	 * @return the initialized mappings
 	 */
 	protected abstract Map<K, Set<V>> mapType();
+
+	/**
+	 * Return {@code true} if the action associated with {@code revision}
+	 * offsets the last action for an equal revision.
+	 * 
+	 * @param revision
+	 * @return {@code true} if the revision if offset.
+	 */
+	private boolean isOffset(Revision<L, K, V> revision) {
+		return (revision.getType() == Action.ADD && !get(revision.getKey())
+				.contains(revision.getValue()))
+				|| (revision.getType() == Action.REMOVE && get(
+						revision.getKey()).contains(revision.getValue()));
+	}
 
 	/**
 	 * An empty Set of type V that cannot be modified, but won't throw
