@@ -265,8 +265,9 @@ public final class Database implements PermanentStore {
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		return Transformers.transformSet(getSearchRecord(Text.wrap(key))
-				.search(Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
+		return Transformers.transformSet(
+				getSearchRecord(Text.wrap(key), Text.wrap(query)).search(
+						Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
 	}
 
 	@Override
@@ -391,17 +392,26 @@ public final class Database implements PermanentStore {
 	 * Return the SearchRecord identified by {@code key}.
 	 * 
 	 * @param key
+	 * @param query
 	 * @return the SearchRecord
 	 */
-	private SearchRecord getSearchRecord(Text key) {
+	private SearchRecord getSearchRecord(Text key, Text query) {
 		// NOTE: We do not cache SearchRecords because they have the potential
 		// to be VERY large. Holding references to them in a cache would prevent
 		// them from being garbage collected resulting in more OOMs.
 		masterLock.readLock().lock();
 		try {
-			SearchRecord record = Record.createSearchRecord(key);
+			SearchRecord record = Record.createSearchRecordPartial(key, query);
 			for (SearchBlock block : ctb) {
-				block.seek(key, record);
+				String[] toks = query.toString().split(" "); // Seek each word
+																// in the query
+																// to make sure
+																// that multi
+																// word search
+																// works
+				for (String tok : toks) {
+					block.seek(key, Text.wrap(tok), record);
+				}
 			}
 			return record;
 		}
