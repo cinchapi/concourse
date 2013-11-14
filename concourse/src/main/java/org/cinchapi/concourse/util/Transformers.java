@@ -30,7 +30,6 @@ import java.util.Set;
 import org.cinchapi.concourse.annotate.UtilityClass;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -78,7 +77,7 @@ public final class Transformers {
 	 */
 	public static <K, K2, V> Map<K2, V> transformMap(Map<K, V> original,
 			Function<? super K, ? extends K2> function) {
-		Map<K2, V> transformed = Maps.newLinkedHashMap();
+		Map<K2, V> transformed = TLinkedHashMap.newTLinkedHashMap();
 		for (Map.Entry<K, V> entry : original.entrySet()) {
 			transformed.put(function.apply(entry.getKey()), entry.getValue());
 		}

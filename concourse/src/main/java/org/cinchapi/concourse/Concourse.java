@@ -44,6 +44,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
@@ -283,21 +284,6 @@ public interface Concourse {
 	public boolean link(String key, long source, long destination);
 
 	/**
-	 * Link {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. In other words, add {@code sourceKey} as
-	 * {@link Link#to(destination)} in {@code source} and add
-	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
-	 * 
-	 * @param sourceKey
-	 * @param source
-	 * @param destinationKey
-	 * @param destination
-	 * @return {@code true} the links are added
-	 */
-	public boolean link(String sourceKey, long source, String destinationKey,
-			long destination);
-
-	/**
 	 * Ping {@code record} and return {@code true} if there is currently at
 	 * least one populated key.
 	 * 
@@ -385,21 +371,6 @@ public interface Concourse {
 	public boolean unlink(String key, long source, long destination);
 
 	/**
-	 * Unlink {@code sourceKey} in {@code source} to {@code destinationKey} in
-	 * {@code destination}. In other words, remove {@code sourceKey} as
-	 * {@link Link#to(destination)} in {@code source} and remove
-	 * {@code destinationKey} as {@link Link#to(source)} in {@code destination}.
-	 * 
-	 * @param sourceKey
-	 * @param source
-	 * @param destinationKey
-	 * @param destination
-	 * @return {@code true} if the links are removed
-	 */
-	public boolean unlink(String sourceKey, long source, String destinationKey,
-			long destination);
-
-	/**
 	 * Verify {@code key} equals {@code value} in {@code record} and return
 	 * {@code true} if {@code value} is currently mapped from {@code key} in
 	 * {@code record}.
@@ -447,7 +418,8 @@ public interface Concourse {
 		static {
 			ConcourseConfiguration config;
 			try {
-				config = ConcourseConfiguration.loadConfig("concourse_client.prefs");
+				config = ConcourseConfiguration
+						.loadConfig("concourse_client.prefs");
 			}
 			catch (Exception e) {
 				config = null;
@@ -566,15 +538,17 @@ public interface Concourse {
 				public Map<DateTime, String> call() throws Exception {
 					Map<Long, String> audit = client.audit(record, null, creds,
 							transaction);
-					return Transformers.transformMap(audit,
-							new Function<Long, DateTime>() {
+					return ((TLinkedHashMap<DateTime, String>) Transformers
+							.transformMap(audit,
+									new Function<Long, DateTime>() {
 
-								@Override
-								public DateTime apply(Long input) {
-									return Convert.unixToJoda(input);
-								}
+										@Override
+										public DateTime apply(Long input) {
+											return Convert.unixToJoda(input);
+										}
 
-							});
+									})).setKeyName("DateTime").setValueName(
+							"Revision");
 				}
 
 			});
@@ -588,15 +562,17 @@ public interface Concourse {
 				public Map<DateTime, String> call() throws Exception {
 					Map<Long, String> audit = client.audit(record, key, creds,
 							transaction);
-					return Transformers.transformMap(audit,
-							new Function<Long, DateTime>() {
+					return ((TLinkedHashMap<DateTime, String>) Transformers
+							.transformMap(audit,
+									new Function<Long, DateTime>() {
 
-								@Override
-								public DateTime apply(Long input) {
-									return Convert.unixToJoda(input);
-								}
+										@Override
+										public DateTime apply(Long input) {
+											return Convert.unixToJoda(input);
+										}
 
-							});
+									})).setKeyName("DateTime").setValueName(
+							"Revision");
 				}
 
 			});
@@ -724,13 +700,6 @@ public interface Concourse {
 		}
 
 		@Override
-		public boolean link(String sourceKey, long source,
-				String destinationKey, long destination) {
-			return link(sourceKey, source, destination)
-					^ link(destinationKey, destination, source);
-		}
-
-		@Override
 		public boolean ping(final long record) {
 			return execute(new Callable<Boolean>() {
 
@@ -808,13 +777,6 @@ public interface Concourse {
 		@Override
 		public boolean unlink(String key, long source, long destination) {
 			return remove(key, Link.to(destination), source);
-		}
-
-		@Override
-		public boolean unlink(String sourceKey, long source,
-				String destinationKey, long destination) {
-			return unlink(sourceKey, source, destination)
-					^ unlink(destinationKey, destination, source);
 		}
 
 		@Override
