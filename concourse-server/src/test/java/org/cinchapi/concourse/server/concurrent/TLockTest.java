@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
+import java.util.concurrent.TimeUnit;
+
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -47,8 +49,12 @@ public class TLockTest {
 	}
 
 	@Test
-	public void testTest() {
-		System.out.println(TLock.grab(2,1));
+	public void testGetAliveTime() throws InterruptedException{
+		TLock a = TLock.grab(TestData.getObject());
+		int sleep = TestData.getScaleCount();
+		Thread.sleep(sleep);
+		Assert.assertTrue(a.getTimeSinceLastGrab(TimeUnit.MILLISECONDS) >= sleep);
 	}
+	
 
 }

@@ -124,22 +124,6 @@ public final class GlobalState {
 	public static final boolean ENABLE_CONSOLE_LOGGING = config.getBoolean(
 			"enable_console_logging", RUNNING_FROM_ECLIPSE ? true : false);
 
-	/**
-	 * <p>
-	 * The number of transactions expected to run concurrently. This value helps
-	 * determine the size of the internal transaction lock cache.
-	 * </p>
-	 * <p>
-	 * Ideally, you should choose a value that mirrors the number of
-	 * transactions you expect to run concurrently. Specifying a
-	 * <strong>significantly</strong> higher or lower value may lead to
-	 * space/performance or cause some transactions to fail with expired locks,
-	 * respectively. But estimates that are within an order of magnitude should
-	 * not have any noticeable impact.
-	 * </p>
-	 */
-	public static final int TRANSACTION_CONCURRENCY_LEVEL = config.getInt(
-			"transaction_concurrency_level", 1000);
 
 	/* ************************************************************************ */
 	public static final Set<String> STOPWORDS = Sets.newHashSet();

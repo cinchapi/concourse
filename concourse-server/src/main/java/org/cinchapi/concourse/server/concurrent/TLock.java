@@ -24,11 +24,13 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.time.Time;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -37,20 +39,30 @@ import com.google.common.cache.LoadingCache;
 
 /**
  * A {@link ReentrantReadWriteLock} that is identified by a {@link Token}.
- * The lock defines its hashCode and equals methods in terms of its token, and
- * is useful for situations where lock is placed in a collection and needs to be
- * identified for subsequent retrieval.
+ * TLocks are used to globally lock <em>notions of things</em> that aren't
+ * strictly defined in their own right (i.e. a {@code key} in a {@code record}).
+ * <p>
+ * Repeated attempts to grab a TLock for a given token will return the same
+ * instance to all callers within a fixed range of the last grab (see
+ * {@link #CACHE_TTL} and {@link #CACHE_TTL_UNIT}. This means that TLock
+ * instances will be GCed regularly (not just when we are close too an OOM), but
+ * it opens the possibility that a caller may be holding a stale lock that
+ * doesn't properly block new callers (i.e A grabs Lock at t1 [..] Lock is
+ * evicted from cache at t2 [..] B grabs Lock at t3 and gets new instance [..] A
+ * and B are both concurrently operation on content.)
+ * </p>
+ * <p>
+ * To reduce the probability of the aforementioned scenario, each caller should
+ * periodically verify that her instance is not stale (see
+ * {@link #isStateInstance()}) if her work may last longer than the cache TTL.
+ * If the instance is stale, the caller should simply grab a new lock for the
+ * token and lock the instance immediately.
+ * </p>
  * 
  * @author jnelson
  */
 @Immutable
 public class TLock extends ReentrantReadWriteLock {
-
-	/**
-	 * The cache size is determined by multiplying the number of expected locks
-	 * per transaction by the {@link GlobalState#TRANSACTION_CONCURRENCY_LEVEL}.
-	 */
-	private static final int CACHE_SIZE = 10 * GlobalState.TRANSACTION_CONCURRENCY_LEVEL;
 
 	/**
 	 * Return the TLock that is identified by the {@code objects}.
@@ -70,7 +82,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 */
 	public static TLock grabWithToken(Token token) {
 		try {
-			return CACHE.get(token);
+			return CACHE.get(token).touch();
 		}
 		catch (ExecutionException e) {
 			throw Throwables.propagate(e);
@@ -78,11 +90,24 @@ public class TLock extends ReentrantReadWriteLock {
 	}
 
 	/**
-	 * The cache holds locks that have been recently used. This helps to ensure
-	 * that we return the same lock for the same key.
+	 * The number of {@link #CACHE_TTL_UNIT} after each access that an instance
+	 * has to live before being evicted from {@link #CACHE}.
+	 */
+	private static final int CACHE_TTL = 600;
+
+	/**
+	 * The time unit used to measure {@link #CACHE_TTL}.
+	 */
+	private static final TimeUnit CACHE_TTL_UNIT = TimeUnit.SECONDS;
+
+	/**
+	 * The cache that is responsible for returning appropriate TLock instances
+	 * for a given {@link Token}. This cache uses a time-based eviction policy,
+	 * which has implications that are discussed in this class'
+	 * documentation.
 	 */
 	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
-			.newBuilder().maximumSize(CACHE_SIZE)
+			.newBuilder().expireAfterAccess(CACHE_TTL, CACHE_TTL_UNIT)
 			.build(new CacheLoader<Token, TLock>() {
 
 				@Override
@@ -103,6 +128,11 @@ public class TLock extends ReentrantReadWriteLock {
 	private final Token token;
 
 	/**
+	 * The timestamp of the last {@link #touch()}.
+	 */
+	private long timestamp;
+
+	/**
 	 * Construct a new instance.
 	 * 
 	 * @param token
@@ -110,6 +140,7 @@ public class TLock extends ReentrantReadWriteLock {
 	public TLock(Token token) {
 		super();
 		this.token = token;
+		touch();
 	}
 
 	@Override
@@ -119,6 +150,19 @@ public class TLock extends ReentrantReadWriteLock {
 			return token.equals(other.token);
 		}
 		return false;
+	}
+
+	/**
+	 * Get the amount of time that has passed since the Lock was last grabbed
+	 * (i.e. the {@link #grab(Object...)} or {@link #grabWithToken(Token)}
+	 * method was invoked and returned this.
+	 * 
+	 * @param unit
+	 * @return the time since the Lock was last grabbed
+	 */
+	public long getTimeSinceLastGrab(TimeUnit unit) {
+		return unit.convert(Time.now(), TimeUnit.MICROSECONDS)
+				- unit.convert(timestamp, TimeUnit.MICROSECONDS);
 	}
 
 	/**
@@ -135,10 +179,40 @@ public class TLock extends ReentrantReadWriteLock {
 		return token.hashCode();
 	}
 
+	/**
+	 * Return {@code true} if the amount of time since this instance was grabbed
+	 * is greater than {@link GlobalState#TRANSACTION_TTL}.
+	 * 
+	 * @return {@code true} if this instance is stale
+	 */
+	public boolean isStateInstance() {
+		return getTimeSinceLastGrab(TimeUnit.SECONDS) >= GlobalState.TRANSACTION_TTL;
+	}
+
 	@Override
 	public String toString() {
 		String[] toks = super.toString().split("\\[");
 		return getClass().getSimpleName() + " " + token + " [" + toks[1];
+	}
+
+	/**
+	 * Update the last access timestamp.
+	 * 
+	 * @return this
+	 */
+	protected TLock touch() { // exposed for testing
+		return touch(Time.now());
+	}
+
+	/**
+	 * Set the last access timestamp to {@link time}.
+	 * 
+	 * @param time
+	 * @return this
+	 */
+	protected TLock touch(long time) { // exposed for testing
+		timestamp = time;
+		return this;
 	}
 
 }
