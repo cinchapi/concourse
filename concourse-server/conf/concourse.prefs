@@ -52,6 +52,17 @@
 # DEFAULT:
 #log_level = INFO
 
+# The number of transactions expected to run concurrently. This value helps determine 
+# the size of the internal transaction lock cache.
+#
+# Ideally, you should choose a value that mirrors the number of transactions you expect 
+# to run concurrently. Specifying a SIGNIFICANTLY higher or lower value may lead to 
+# space/performance or cause some transactions to fail with expired locks, respectively. 
+# But estimates that are within an order of magnitude should not have any noticeable 
+# impact.
+#
+# DEFAULT:
+#transaction_concurrency_level = 1000
 	 
 
 
