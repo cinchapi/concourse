@@ -30,6 +30,11 @@ package org.cinchapi.concourse.server.storage;
  */
 public interface Transactional {
 
+	/**
+	 * Start a new {@link Transaction}.
+	 * 
+	 * @return the Transaction
+	 */
 	public Transaction startTransaction();
 
 }
