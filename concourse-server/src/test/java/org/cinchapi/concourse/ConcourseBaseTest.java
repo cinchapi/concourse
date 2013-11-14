@@ -35,15 +35,22 @@ import org.junit.runner.Description;
  * Each subclass should register local variables using
  * {@link Variables#register(String, Object)} to ensure that they are printed on
  * test failure to help with debugging.
+ * 
  * <pre>
- * long number = Variables.register("number", TestData.getLong());
- * Assert.assertNotEquals(number, (long) Variables.get("smaller_number"));
+ * long number = Variables.register(&quot;number&quot;, TestData.getLong());
+ * Assert.assertNotEquals(number, (long) Variables.get(&quot;smaller_number&quot;));
  * </pre>
+ * 
  * </p>
  * 
  * @author jnelson
  */
 public abstract class ConcourseBaseTest {
+
+	// Initialization for all tests
+	static {
+		System.setProperty("test", "true");
+	}
 
 	/**
 	 * This watcher clears previously registered {@link Variables} on startup
