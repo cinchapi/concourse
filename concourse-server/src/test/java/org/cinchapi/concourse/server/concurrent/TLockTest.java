@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -35,7 +36,7 @@ import org.junit.Test;
  * 
  * @author jnelson
  */
-public class TLockTest {
+public class TLockTest extends ConcourseBaseTest {
 
 	@Test
 	public void testLocksAreTheSame() {
@@ -49,12 +50,11 @@ public class TLockTest {
 	}
 
 	@Test
-	public void testGetAliveTime() throws InterruptedException{
-		TLock a = TLock.grab(TestData.getObject());
-		int sleep = TestData.getScaleCount();
-		Thread.sleep(sleep);
-		Assert.assertTrue(a.getTimeSinceLastGrab(TimeUnit.MILLISECONDS) >= sleep);
+	public void testIsStaleInstance() throws InterruptedException {
+		TLock lock = TLock.grab(TestData.getObject());
+		Assert.assertFalse(lock.isStateInstance());
+		Thread.sleep(TimeUnit.MILLISECONDS.convert(TLock.CACHE_TTL,
+				TLock.CACHE_TTL_UNIT) + 1);
+		Assert.assertTrue(lock.isStateInstance());
 	}
-	
-
 }

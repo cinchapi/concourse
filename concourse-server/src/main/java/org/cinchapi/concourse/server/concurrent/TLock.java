@@ -93,12 +93,14 @@ public class TLock extends ReentrantReadWriteLock {
 	 * The number of {@link #CACHE_TTL_UNIT} after each access that an instance
 	 * has to live before being evicted from {@link #CACHE}.
 	 */
-	private static final int CACHE_TTL = 600;
+	protected static final int CACHE_TTL = System.getProperty("test", "false")
+			.equals("true") ? 50 : 600;
 
 	/**
 	 * The time unit used to measure {@link #CACHE_TTL}.
 	 */
-	private static final TimeUnit CACHE_TTL_UNIT = TimeUnit.SECONDS;
+	protected static final TimeUnit CACHE_TTL_UNIT = System.getProperty("test",
+			"false").equals("true") ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS;
 
 	/**
 	 * The cache that is responsible for returning appropriate TLock instances
@@ -186,7 +188,7 @@ public class TLock extends ReentrantReadWriteLock {
 	 * @return {@code true} if this instance is stale
 	 */
 	public boolean isStateInstance() {
-		return getTimeSinceLastGrab(TimeUnit.SECONDS) >= GlobalState.TRANSACTION_TTL;
+		return getTimeSinceLastGrab(CACHE_TTL_UNIT) >= CACHE_TTL;
 	}
 
 	@Override
