@@ -23,8 +23,8 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import java.util.Iterator;
-import java.util.Set;
+//import java.util.Iterator;
+//import java.util.Set;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.Position;
@@ -39,7 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+//import com.google.common.collect.Sets;
 
 /**
  * 
