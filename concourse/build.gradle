@@ -1,4 +1,61 @@
+apply plugin: 'signing'
+
 dependencies {
     compile 'org.slf4j:log4j-over-slf4j:1.7.5'
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
+}
+
+signing {
+    sign configurations.archives
+}
+
+def getMaven = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'cat', '../.maven'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+
+project.ext.maven = getMaven()
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: project.maven) {
+              authentication(userName: sonatypeUsername, password: sonatypePassword)
+            }
+
+            pom.project {
+               name 'Concourse'
+               packaging 'jar'
+               description 'This is the api to interact with Concourse, a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.'
+               url 'http://cinchapi.org/concourse'
+
+               scm {
+                   url 'git@github.com:cinchapi/concourse.git'
+                   connection 'git@github.com:cinchapi/concourse.git'
+                   developerConnection 'git@github.com:cinchapi/concourse.git'
+               }
+
+               licenses {
+                   license {
+                       name 'The MIT License'
+                       url 'http://opensource.org/licenses/MIT'
+                       distribution 'repo'
+                   }
+               }
+
+               developers {
+                   developer {
+                       id 'jnelson'
+                       name 'Jeff Nelson'
+                   }
+               }
+           }
+        }
+    }
 }
