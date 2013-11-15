@@ -53,11 +53,17 @@ public class TLockTest extends ConcourseBaseTest {
 	public void testIsStaleInstance() throws InterruptedException {
 		TLock lock = TLock.grab(TestData.getObject());
 		Assert.assertFalse(lock.isStateInstance());
+		System.out
+				.println("Sleeping for "
+						+ TLock.CACHE_TTL
+						+ " "
+						+ TLock.CACHE_TTL_UNIT
+						+ ". If this not correct, make sure that the VM is running with the -Dtest=true flag");
 		Thread.sleep(TimeUnit.MILLISECONDS.convert(TLock.CACHE_TTL,
 				TLock.CACHE_TTL_UNIT) + 1);
 		Assert.assertTrue(lock.isStateInstance());
 	}
-	
+
 	@Test
 	public void testGetTimeSinceLastGrab() throws InterruptedException {
 		TLock lock = TLock.grab(TestData.getObject());
