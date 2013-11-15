@@ -68,7 +68,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author jnelson
  */
 @ThreadSafe
-public final class Database implements PermanentStore {
+public final class Database implements PermanentStore, VersionGetter {
 
 	/**
 	 * Return a cache for records of type {@code T}.
@@ -256,6 +256,17 @@ public final class Database implements PermanentStore {
 						Transformers.transformArray(values,
 								Functions.TOBJECT_TO_VALUE, Value.class)),
 				Functions.PRIMARY_KEY_TO_LONG);
+	}
+
+	@Override
+	public long getVersion(long record) {
+		return getPrimaryRecord(PrimaryKey.wrap(record)).getVersion();
+	}
+
+	@Override
+	public long getVersion(String key, long record) {
+		return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
+				.getVersion();
 	}
 
 	@Override

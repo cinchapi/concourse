@@ -55,7 +55,8 @@ import static org.cinchapi.concourse.server.GlobalState.*;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
 		Transactional,
-		PermanentStore {
+		PermanentStore,
+		VersionGetter {
 
 	/**
 	 * The location that the engine uses as the base store for its components.
@@ -257,6 +258,18 @@ public final class Engine extends BufferedStore implements
 		finally {
 			TLock.grab(key).readLock().unlock();
 		}
+	}
+
+	@Override
+	public long getVersion(long record) {
+		return Math.max(buffer.getVersion(record),
+				((Database) destination).getVersion(record));
+	}
+
+	@Override
+	public long getVersion(String key, long record) {
+		return Math.max(buffer.getVersion(key, record),
+				((Database) destination).getVersion(key, record));
 	}
 
 	@Override

@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -80,6 +81,13 @@ class Queue extends Limbo {
 	@Override
 	public void stop() {
 		// do nothing
+	}
+
+	@Override
+	public Iterator<Write> reverseIterator() {
+		List<Write> copy = Lists.newArrayList(writes);
+		Collections.reverse(copy);
+		return copy.iterator();
 	}
 
 }

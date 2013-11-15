@@ -30,6 +30,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -83,7 +84,7 @@ final class Buffer extends Limbo {
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
 	private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
-	
+
 	/**
 	 * The directory where the Buffer pages are stored.
 	 */
@@ -284,6 +285,56 @@ final class Buffer extends Limbo {
 	}
 
 	@Override
+	public Iterator<Write> reverseIterator() {
+		return new Iterator<Write>() {
+
+			private ListIterator<Page> pageIterator = pages.listIterator(pages
+					.size());
+			private Iterator<Write> writeIterator = null;
+
+			{
+				flip();
+			}
+
+			@Override
+			public boolean hasNext() {
+				if(writeIterator == null) {
+					return false;
+				}
+				else if(writeIterator.hasNext()) {
+					return true;
+				}
+				else {
+					flip();
+					return hasNext();
+				}
+			}
+
+			@Override
+			public Write next() {
+				return writeIterator.next();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+
+			/**
+			 * Flip to the next page in the Buffer.
+			 */
+			private void flip() {
+				writeIterator = null;
+				if(pageIterator.hasPrevious()) {
+					Page next = pageIterator.previous();
+					writeIterator = next.reverseIterator();
+				}
+			}
+
+		};
+	}
+
+	@Override
 	public Set<Long> search(String key, String query) {
 		transportLock.readLock().lock();
 		try {
@@ -318,9 +369,9 @@ final class Buffer extends Limbo {
 
 	@Override
 	public void stop() {
-		if(running){
+		if(running) {
 			running = false;
-		}	
+		}
 	}
 
 	/**
@@ -360,6 +411,19 @@ final class Buffer extends Limbo {
 		finally {
 			transportLock.readLock().unlock();
 		}
+	}
+
+	/**
+	 * Return {@code true} if the Buffer has more than 1 page and the
+	 * first page has at least one element that can be transported. If this
+	 * method returns {@code false} it means that the first page is the only
+	 * page or that the Buffer would need to trigger a Database sync and remove
+	 * the first page in order to transport.
+	 * 
+	 * @return {@code true} if the Buffer can transport a Write.
+	 */
+	protected boolean canTransport() { // visible for testing
+		return pages.size() > 1 && pages.get(0).hasNext();
 	}
 
 	@Override
@@ -767,6 +831,72 @@ final class Buffer extends Limbo {
 			finally {
 				Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
 			}
+		}
+
+		/**
+		 * Return an iterator that traverses the writes on the Page in reverse.
+		 * 
+		 * @return the iterator
+		 */
+		public Iterator<Write> reverseIterator() {
+			return new Iterator<Write>() {
+
+				/**
+				 * The index of the "next" element in {@link #writes}.
+				 */
+				private int index = size - 1;
+
+				/**
+				 * The distance between the {@link #head} element and the
+				 * {@code next} element. This is used to detect for concurrent
+				 * modifications.
+				 */
+				private int distance = index - head;
+
+				@Override
+				public boolean hasNext() {
+					Locks.lockIfCondition(pageLock.readLock(),
+							Page.this == currentPage);
+					try {
+						if(index - head != distance) {
+							throw new ConcurrentModificationException(
+									"A write has been removed from the Page");
+						}
+						return index >= head;
+					}
+					finally {
+						Locks.unlockIfCondition(pageLock.readLock(),
+								Page.this == currentPage);
+					}
+				}
+
+				@Override
+				public Write next() {
+					Locks.lockIfCondition(pageLock.readLock(),
+							Page.this == currentPage);
+					try {
+						if(index - head != distance) {
+							throw new ConcurrentModificationException(
+									"A write has been removed from the Page");
+						}
+						Write next = writes[index];
+						index--;
+						distance--;
+						return next;
+					}
+					finally {
+						Locks.unlockIfCondition(pageLock.readLock(),
+								Page.this == currentPage);
+					}
+				}
+
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException();
+
+				}
+
+			};
 		}
 
 		@Override
