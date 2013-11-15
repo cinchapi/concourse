@@ -1,5 +1,4 @@
 # Concourse
-[![Build Status](http://build.cinchapi.org:8080/job/concourse/badge/icon)](http://build.cinchapi.org:8080/job/concourse/)
 
 [Concourse](http://cinchapi.org/concourse) is a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
 
