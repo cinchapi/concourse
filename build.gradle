@@ -27,10 +27,6 @@ subprojects {
 	testCompile 'junit:junit:4.11'
    }
 
-   test {
-        systemProperty 'test', 'true'
-   }
-
    def getVersion = { ->
         def stdout = new ByteArrayOutputStream()
         exec {

@@ -7,6 +7,10 @@ dependencies {
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
+test {
+   	systemProperty 'test', 'true'
+}
+
 task context() {
 	if(!System.getProperty("jenkins").equals("true")) {
 		exec {
