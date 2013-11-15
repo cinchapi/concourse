@@ -25,7 +25,10 @@ if [ -z "$1" ] ; then
 			EXTRA="-SNAPSHOT"
 			;;
 		feature* )
-			EXTRA="-EXPERIMENTAL"
+			IFS='/'
+			PARTS=( $BRANCH )
+			EXTRA="-${PARTS[1]}"
+			EXTRA=`echo $EXTRA | tr '[:lower:]' '[:upper:]'`
 			;;
 		release* )
 			EXTRA="-BETA"
