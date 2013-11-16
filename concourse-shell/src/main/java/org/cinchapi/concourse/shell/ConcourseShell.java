@@ -126,7 +126,12 @@ public final class ConcourseShell {
 
 			console.println("Use HELP for help.");
 			console.setPrompt("cash$ ");
-			console.addCompleter(new StringsCompleter("concourse"));
+			console.addCompleter(new StringsCompleter("concourse.add",
+					"concourse.audit", "concourse.clear", "concourse.create",
+					"concourse.describe", "concourse.fetch", "concourse.find",
+					"concourse.get", "concourse.link", "concourse.ping",
+					"concourse.remove", "concourse.revert", "concourse.search",
+					"concourse.set", "concourse.unlink", "concourse.verify"));
 
 			String line;
 			while ((line = console.readLine().trim()) != null) {
@@ -162,7 +167,8 @@ public final class ConcourseShell {
 						watch.stop();
 						if(value != null) {
 							System.out.println("Returned '" + value + "' in "
-									+ watch.elapsed(TimeUnit.MILLISECONDS)+ " ms");
+									+ watch.elapsed(TimeUnit.MILLISECONDS)
+									+ " ms");
 						}
 					}
 					catch (Exception e) {
