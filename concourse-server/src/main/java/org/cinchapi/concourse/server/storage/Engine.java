@@ -229,6 +229,9 @@ public final class Engine extends BufferedStore implements
      */
     @ManagedOperation
     public String dump(String id) {
+        if(id.equalsIgnoreCase(BUFFER_DUMP_ID)) {
+            return ((Buffer) buffer).dump();
+        }
         return ((Database) destination).dump(id);
     }
 
