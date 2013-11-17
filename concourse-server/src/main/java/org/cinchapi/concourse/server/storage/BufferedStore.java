@@ -128,13 +128,13 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public Set<String> describe(long record) {
-		return Sets.symmetricDifference(buffer.describe(record),
+		return Sets.union(buffer.describe(record),
 				destination.describe(record));
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		return Sets.symmetricDifference(buffer.describe(record, timestamp),
+		return Sets.union(buffer.describe(record, timestamp),
 				destination.describe(record, timestamp));
 	}
 

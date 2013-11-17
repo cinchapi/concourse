@@ -156,11 +156,19 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 						values = Sets.newHashSet();
 						ktv.put(write.getKey().toString(), values);
 					}
-					if(values.contains(write.getValue())) {
-						values.remove(write.getValue());
+					if(write.getType() == Action.ADD) {
+						// NOTE: If some of the writes were transported, then
+						// its possible that the first write is a REMOVE, in
+						// which case the first call to remove() on #values
+						// would return false. On the other hand a call to
+						// add() on #values should NEVER return false
+						// because an ADD write must always be
+						// followed by a REMOVE and vice versa.
+						boolean valid = values.add(write.getValue());
+						assert valid;
 					}
 					else {
-						values.add(write.getValue());
+						values.remove(write.getValue());
 					}
 				}
 				else {
