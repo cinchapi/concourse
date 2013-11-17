@@ -362,6 +362,30 @@ final class Buffer extends Limbo {
 		}
 	}
 
+	@Override
+	protected Set<String> describeUsingContext(long record, long timestamp,
+			Map<String, Set<TObject>> ktv) {
+		transportLock.readLock().lock();
+		try {
+			return super.describeUsingContext(record, timestamp, ktv);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
+	protected Set<String> describeUsingContext(long record,
+			Map<String, Set<TObject>> ktv) {
+		transportLock.readLock().lock();
+		try {
+			return super.describeUsingContext(record, ktv);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
 	/**
 	 * Return dumps for all the pages in the Buffer.
 	 * 
@@ -803,13 +827,13 @@ final class Buffer extends Limbo {
 				sb.append("------");
 				sb.append("\n");
 				for (Write write : writes) {
-					if(write == null){
+					if(write == null) {
 						break;
 					}
-					else{
+					else {
 						sb.append(write);
 						sb.append("\n");
-					}	
+					}
 				}
 				sb.append("\n");
 				return sb.toString();

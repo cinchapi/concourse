@@ -80,10 +80,10 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	/**
 	 * A Predicate that is used to filter out empty sets.
 	 */
-	private static final Predicate<Set<Value>> emptySetFilter = new Predicate<Set<Value>>() {
+	private static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
 
 		@Override
-		public boolean apply(@Nullable Set<Value> input) {
+		public boolean apply(@Nullable Set<? extends Object> input) {
 			return !input.isEmpty();
 		}
 
@@ -139,44 +139,14 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 
 	@Override
 	public Set<String> describe(long record) {
-		return describe(record, Time.now());
+		return describeUsingContext(record,
+				Maps.<String, Set<TObject>> newHashMap());
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		Map<String, Set<Value>> ktv = Maps.newHashMap();
-		Iterator<Write> it = iterator();
-		search: while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getRecord().longValue() == record) {
-				if(write.getVersion() <= timestamp) {
-					Set<Value> values = Sets.newHashSet();
-					values = ktv.get(write.getKey().toString());
-					if(values == null) {
-						values = Sets.newHashSet();
-						ktv.put(write.getKey().toString(), values);
-					}
-					if(write.getType() == Action.ADD) {
-						// NOTE: If some of the writes were transported, then
-						// its possible that the first write is a REMOVE, in
-						// which case the first call to remove() on #values
-						// would return false. On the other hand a call to
-						// add() on #values should NEVER return false
-						// because an ADD write must always be
-						// followed by a REMOVE and vice versa.
-						boolean valid = values.add(write.getValue());
-						assert valid;
-					}
-					else {
-						values.remove(write.getValue());
-					}
-				}
-				else {
-					break search;
-				}
-			}
-		}
-		return Maps.filterValues(ktv, emptySetFilter).keySet();
+		return describeUsingContext(record, timestamp,
+				Maps.<String, Set<TObject>> newHashMap());
 	}
 
 	@Override
@@ -361,6 +331,60 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
 		return verify(Write.notStorable(key, value, record), timestamp);
+	}
+
+	/**
+	 * Calculate the description for {@code record} at {@code timestamp} using
+	 * information in {@code ktv} as if it were also a part of the Buffer. This
+	 * method is used to accurately describe records using prior context about
+	 * data that was transported from the Buffer to a destination.
+	 * 
+	 * @param record
+	 * @param timestamp
+	 * @param ktv
+	 * @return a possibly empty Set of keys
+	 */
+	protected Set<String> describeUsingContext(long record, long timestamp,
+			Map<String, Set<TObject>> ktv) {
+		Iterator<Write> it = iterator();
+		search: while (it.hasNext()) {
+			Write write = it.next();
+			if(write.getRecord().longValue() == record) {
+				if(write.getVersion() <= timestamp) {
+					Set<TObject> values;
+					values = ktv.get(write.getKey().toString());
+					if(values == null) {
+						values = Sets.newHashSet();
+						ktv.put(write.getKey().toString(), values);
+					}
+					if(write.getType() == Action.ADD) {
+						values.add(write.getValue().getTObject());
+					}
+					else {
+						values.remove(write.getValue().getTObject());
+					}
+				}
+				else {
+					break search;
+				}
+			}
+		}
+		return Maps.filterValues(ktv, emptySetFilter).keySet();
+	}
+
+	/**
+	 * Calculate the description for {@code record} using information in
+	 * {@code ktv} as if it were also a part of the Buffer. This method is used
+	 * to accurately describe records using prior context about data that was
+	 * transported from the Buffer to a destination.
+	 * 
+	 * @param record
+	 * @param ktv
+	 * @return a possibly empty Set of keys
+	 */
+	protected Set<String> describeUsingContext(long record,
+			Map<String, Set<TObject>> ktv) {
+		return describeUsingContext(record, Time.now(), ktv);
 	}
 
 	/**

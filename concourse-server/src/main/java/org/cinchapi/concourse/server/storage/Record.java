@@ -333,15 +333,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 					Revision<L, K, V> revision = it.next();
 					if(revision.getVersion() <= timestamp) {
 						if(revision.getType() == Action.ADD) {
-							// NOTE: If some history was purged, then its
-							// possible that the first revision is a REMOVE, in
-							// which case the first call to remove() on #values
-							// would return false. On the other hand a call to
-							// add() on #values should NEVER return false
-							// because an ADD revision must always be
-							// followed by a REMOVE and vice versa.
-							boolean valid = values.add(revision.getValue());
-							assert valid;
+							values.add(revision.getValue());
 						}
 						else {
 							values.remove(revision.getValue());

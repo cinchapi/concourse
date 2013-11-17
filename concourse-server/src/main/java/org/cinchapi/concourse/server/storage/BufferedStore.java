@@ -33,6 +33,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
+import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.*;
 
@@ -128,14 +129,20 @@ abstract class BufferedStore implements WritableStore, VersionControlStore {
 
 	@Override
 	public Set<String> describe(long record) {
-		return Sets.union(buffer.describe(record),
-				destination.describe(record));
+		Map<String, Set<TObject>> ktv = Maps.newHashMap();
+		for (String key : destination.describe(record)) {
+			ktv.put(key, destination.fetch(key, record));
+		}
+		return buffer.describeUsingContext(record, ktv);
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		return Sets.union(buffer.describe(record, timestamp),
-				destination.describe(record, timestamp));
+		Map<String, Set<TObject>> ktv = Maps.newHashMap();
+		for (String key : destination.describe(record, timestamp)) {
+			ktv.put(key, destination.fetch(key, record, timestamp));
+		}
+		return buffer.describeUsingContext(record, timestamp, ktv);
 	}
 
 	@Override

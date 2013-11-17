@@ -56,6 +56,7 @@ public class BugReproTest extends ConcourseIntegrationTest {
 		StandardActions.wait(10, TimeUnit.SECONDS);
 		client.add("count", 2, 1);
 		client.set("count", 10, 1);
+		client.remove("count", 10, 1);
 		Assert.assertFalse(client.describe(1).contains("count"));
 	}
 
