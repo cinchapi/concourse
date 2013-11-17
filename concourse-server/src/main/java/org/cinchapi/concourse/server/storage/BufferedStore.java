@@ -33,7 +33,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
-import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import static com.google.common.base.Preconditions.*;
 
