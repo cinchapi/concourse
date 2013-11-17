@@ -34,7 +34,7 @@ import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
