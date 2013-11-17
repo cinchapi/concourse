@@ -53,41 +53,49 @@ public final class GlobalState {
 			&& System.getProperty("eclipse").equals("true") ? true : false;
 
 	/* ***************************** CONFIG ******************************** */
-	private static final ConcourseConfiguration config = ConcourseConfiguration
-			.loadConfig("conf" + File.separator + "concourse.prefs");
+	/*
+	 * INSTRUCTIONS FOR ADDING CONFIGURATION PREFERENCES
+	 * 1. Create the appropriately named static variable and assigned it a
+	 * default value.
+	 * 2. Find the // !!** CONFIG READING BLOCK **!! and attempt to read the
+	 * value from the
+	 * prefs file, while supplying the variable you made in Step 1 as the
+	 * defaultValue.
+	 * 3. Add a placeholder for the new preference to the stock concourse.prefs
+	 * file in conf/concourse.prefs.
+	 */
 
 	/**
-	 * The absolute path to the directory where Concourse stores permanent data
-	 * on disk.
+	 * The absolute path to the directory where the Database record and index
+	 * files are stored. For optimal performance, the Database should be
+	 * placed on a separate disk partition (ideally a separate physical device)
+	 * from the buffer_directory.
 	 */
-	public static final String DATABASE_DIRECTORY = config.getString(
-			"database_directory", System.getProperty("user.home")
-					+ File.separator + "concourse" + File.separator + "db");
+	public static String DATABASE_DIRECTORY = System.getProperty("user.home")
+			+ File.separator + "concourse" + File.separator + "db";
 
 	/**
-	 * The absolute path to the directory where Concourse stores buffer data on
-	 * disk.
+	 * The absolute path to the directory where the Buffer data is stored.
+	 * For optimal write performance, the Buffer should be placed on a
+	 * separate disk partition (ideally a separate physical device) from
+	 * the database_directory.
 	 */
-	public static final String BUFFER_DIRECTORY = config.getString(
-			"buffer_directory", System.getProperty("user.home")
-					+ File.separator + "concourse" + File.separator + "buffer");
+	public static String BUFFER_DIRECTORY = System.getProperty("user.home")
+			+ File.separator + "concourse" + File.separator + "buffer";
 
 	/**
-	 * The size of a single page in the {@link Buffer}. By using multiple Pages,
-	 * the Buffer can localize its locking when performing reads and writes.
-	 * When choosing a Page size, seek to balance the potential increased
-	 * throughput that smaller pages may produce with the potential for less
-	 * fragmented data storage that larger pages may produce.
+	 * The size for each page in the Buffer. During reads, Buffer pages
+	 * are individually locked, so it is desirable to have several smaller
+	 * pages as opposed to few larger ones. Nevertheless, be sure to balance
+	 * the desire to maximize lock granularity with the risks of having too
+	 * many open buffer files simultaneously.
 	 */
-	public static final int BUFFER_PAGE_SIZE = (int) config.getSize(
-			"buffer_page_size", 8192);
+	public static int BUFFER_PAGE_SIZE = 8192;
 
 	/**
-	 * The port that the server listens on to know when to initiate a graceful
-	 * shutdown.
+	 * The port on which the ShutdownRunner listens.
 	 */
-	public static final int SHUTDOWN_PORT = config
-			.getInt("shutdown_port", 3434);
+	public static int SHUTDOWN_PORT = 3434;
 
 	/**
 	 * <p>
@@ -115,14 +123,36 @@ public final class GlobalState {
 	 * information to diagnose a bug. Otherwise use the WARN or INFO levels.
 	 * </p>
 	 */
-	public static final Level LOG_LEVEL = Level.valueOf(config.getString(
-			"log_level", "INFO"));
+	public static Level LOG_LEVEL = Level.INFO;
 
 	/**
 	 * Whether log messages should also be printed to the console.
 	 */
-	public static final boolean ENABLE_CONSOLE_LOGGING = config.getBoolean(
-			"enable_console_logging", RUNNING_FROM_ECLIPSE ? true : false);
+	public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
+			: false;
+	static {
+		ConcourseConfiguration config;
+		try {
+			config = ConcourseConfiguration.loadConfig("conf" + File.separator
+					+ "concourse.prefs");
+		}
+		catch (Exception e) {
+			config = null;
+		}
+		if(config != null) { // !!** CONFIG READING BLOCK **!!
+			DATABASE_DIRECTORY = config.getString("database_directory",
+					DATABASE_DIRECTORY);
+			BUFFER_DIRECTORY = config.getString("buffer_directory",
+					BUFFER_DIRECTORY);
+			BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
+					BUFFER_PAGE_SIZE);
+			SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+			LOG_LEVEL = Level.valueOf(config.getString("log_level",
+					LOG_LEVEL.toString()));
+			ENABLE_CONSOLE_LOGGING = config.getBoolean(
+					"enable_console_logging", ENABLE_CONSOLE_LOGGING);
+		}
+	}
 
 	/* ************************************************************************ */
 	public static final Set<String> STOPWORDS = Sets.newHashSet();
