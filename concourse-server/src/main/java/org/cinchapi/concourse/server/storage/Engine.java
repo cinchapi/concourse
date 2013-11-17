@@ -52,6 +52,11 @@ public final class Engine extends BufferedStore implements
 		PermanentStore {
 
 	/**
+	 * The id used to determine that the Buffer should be dumped.
+	 */
+	public static final String BUFFER_DUMP_ID = "BUFFER";
+
+	/**
 	 * The location that the engine uses as the base store for its components.
 	 */
 	@PackagePrivate
@@ -110,6 +115,9 @@ public final class Engine extends BufferedStore implements
 	 * @return the block dumps
 	 */
 	public String dump(String id) {
+		if(id.equalsIgnoreCase(BUFFER_DUMP_ID)) {
+			return ((Buffer) buffer).dump();
+		}
 		return ((Database) destination).dump(id);
 	}
 

@@ -93,7 +93,7 @@ public final class DumpCli extends ManagedOperationCli {
 	 */
 	private static class Options {
 
-		@Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump", required = true)
+		@Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
 		public String id;
 
 		@Parameter(names = { "-h", "--help" }, help = true, hidden = true)

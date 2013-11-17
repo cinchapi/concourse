@@ -83,7 +83,7 @@ final class Buffer extends Limbo {
 	 * The average number of bytes used to store an arbitrary Write.
 	 */
 	private static final int AVG_WRITE_SIZE = 30; /* arbitrary */
-	
+
 	/**
 	 * The directory where the Buffer pages are stored.
 	 */
@@ -318,9 +318,9 @@ final class Buffer extends Limbo {
 
 	@Override
 	public void stop() {
-		if(running){
+		if(running) {
 			running = false;
-		}	
+		}
 	}
 
 	/**
@@ -360,6 +360,20 @@ final class Buffer extends Limbo {
 		finally {
 			transportLock.readLock().unlock();
 		}
+	}
+
+	/**
+	 * Return dumps for all the pages in the Buffer.
+	 * 
+	 * @return the dump string
+	 */
+	protected String dump() {
+		StringBuilder sb = new StringBuilder();
+		for (Page page : pages) {
+			sb.append(page.dump());
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -772,6 +786,38 @@ final class Buffer extends Limbo {
 		@Override
 		public String toString() {
 			return filename;
+		}
+
+		/**
+		 * Dump the contents of this page.
+		 * 
+		 * @return the dump string
+		 */
+		protected String dump() {
+			Locks.lockIfCondition(pageLock.readLock(), Page.this == currentPage);
+			try {
+				StringBuilder sb = new StringBuilder();
+				sb.append("Dump for " + getClass().getSimpleName() + " "
+						+ filename);
+				sb.append("\n");
+				sb.append("------");
+				sb.append("\n");
+				for (Write write : writes) {
+					if(write == null){
+						break;
+					}
+					else{
+						sb.append(write);
+						sb.append("\n");
+					}	
+				}
+				sb.append("\n");
+				return sb.toString();
+			}
+			finally {
+				Locks.unlockIfCondition(pageLock.readLock(),
+						Page.this == currentPage);
+			}
 		}
 
 		/**
