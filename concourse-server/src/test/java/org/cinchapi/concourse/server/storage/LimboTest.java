@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +38,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public abstract class LimboTest extends WritableStoreTest {
+public abstract class LimboTest extends StoreTest {
 
 	@Test
 	public void testIterator() {
@@ -67,5 +68,19 @@ public abstract class LimboTest extends WritableStoreTest {
 		}
 		return writes;
 	}
+
+	@Override
+	protected void add(String key, TObject value, long record) {
+		((Limbo) store).insert(Write.add(key, value, record));
+		
+	}
+
+	@Override
+	protected void remove(String key, TObject value, long record) {
+		((Limbo) store).insert(Write.remove(key, value, record));
+		
+	}
+	
+	
 
 }

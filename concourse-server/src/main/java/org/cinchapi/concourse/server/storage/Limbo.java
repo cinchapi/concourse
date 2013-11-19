@@ -43,7 +43,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Longs;
 
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that
@@ -68,7 +67,7 @@ import com.google.common.primitives.Longs;
  */
 @NotThreadSafe
 @PackagePrivate
-abstract class Limbo implements WritableStore, Iterable<Write> {
+abstract class Limbo implements Store, Iterable<Write> {
 
 	/**
 	 * The writeLock ensures that only a single writer can modify the state of
@@ -88,25 +87,6 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 		}
 
 	};
-
-	/**
-	 * Insert {@code write} into the store without performing any validity
-	 * checks because this method is called from
-	 * {@link #add(String, TObject, long)} and
-	 * {@link #remove(String, TObject, long)}, which verify that {@code write}
-	 * is valid for insertion. This subclass should implement any necessary
-	 * write locking in this method.
-	 * 
-	 * @param write
-	 * @return {@code true}
-	 */
-	protected abstract boolean insert(Write write);
-
-	@Override
-	public final boolean add(String key, TObject value, long record) {
-		Write write = Write.add(key, value, record);
-		return !verify(write) ? insert(write) : false;
-	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
@@ -139,43 +119,23 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 
 	@Override
 	public Set<String> describe(long record) {
-		return describeUsingContext(record,
-				Maps.<String, Set<TObject>> newHashMap());
+		return describe(record, Maps.<String, Set<TObject>> newHashMap());
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		return describeUsingContext(record, timestamp,
+		return describe(record, timestamp,
 				Maps.<String, Set<TObject>> newHashMap());
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
-		return fetch(key, record, Time.now());
+		return fetch(key, record, Sets.<TObject> newHashSet());
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		Set<TObject> values = Sets.newLinkedHashSet();
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getVersion() <= timestamp) {
-				if(key.equals(write.getKey().toString())
-						&& Longs.compare(record, write.getRecord().longValue()) == 0) {
-					if(values.contains(write.getValue().getTObject())) {
-						values.remove(write.getValue().getTObject());
-					}
-					else {
-						values.add(write.getValue().getTObject());
-					}
-				}
-			}
-			else {
-				break;
-			}
-		}
-		return values;
+		return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
 	}
 
 	@Override
@@ -271,12 +231,6 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	}
 
 	@Override
-	public final boolean remove(String key, TObject value, long record) {
-		Write write = Write.remove(key, value, record);
-		return verify(write) ? insert(write) : false;
-	}
-
-	@Override
 	public Set<Long> search(String key, String query) {
 		Map<Long, Set<Value>> rtv = Maps.newHashMap();
 		Iterator<Write> it = iterator();
@@ -344,7 +298,7 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	 * @param ktv
 	 * @return a possibly empty Set of keys
 	 */
-	protected Set<String> describeUsingContext(long record, long timestamp,
+	protected Set<String> describe(long record, long timestamp,
 			Map<String, Set<TObject>> ktv) {
 		Iterator<Write> it = iterator();
 		search: while (it.hasNext()) {
@@ -382,14 +336,75 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	 * @param ktv
 	 * @return a possibly empty Set of keys
 	 */
-	protected Set<String> describeUsingContext(long record,
-			Map<String, Set<TObject>> ktv) {
-		return describeUsingContext(record, Time.now(), ktv);
+	protected Set<String> describe(long record, Map<String, Set<TObject>> ktv) {
+		return describe(record, Time.now(), ktv);
 	}
+
+	/**
+	 * Fetch the values mapped from {@code key} in {@code record} at
+	 * {@code timestamp} using {@code values} as prior context.
+	 * 
+	 * @param key
+	 * @param record
+	 * @param timestamp
+	 * @param values
+	 * @return the values
+	 */
+	protected Set<TObject> fetch(String key, long record, long timestamp,
+			Set<TObject> values) {
+		Iterator<Write> it = iterator();
+		while (it.hasNext()) {
+			Write write = it.next();
+			if(write.getVersion() <= timestamp) {
+				if(key.equals(write.getKey().toString())
+						&& record == write.getRecord().longValue()) {
+					if(write.getType() == Action.ADD) {
+						values.add(write.getValue().getTObject());
+					}
+					else {
+						values.remove(write.getValue().getTObject());
+					}
+				}
+			}
+			else {
+				break;
+			}
+		}
+		return values;
+	}
+
+	/**
+	 * Fetch the values mapped from {@code key} in {@code record} using
+	 * {@code values} as prior context.
+	 * 
+	 * @param key
+	 * @param record
+	 * @param values
+	 * @return the values
+	 */
+	protected Set<TObject> fetch(String key, long record, Set<TObject> values) {
+		return fetch(key, record, Time.now(), values);
+	}
+
+	/**
+	 * Insert {@code write} into the store <strong>without performing any
+	 * validity checks</strong>.
+	 * <p>
+	 * This method is <em>only</em> safe to call from a context that performs
+	 * its own validity checks (i.e. a {@link BufferedStore}).
+	 * 
+	 * @param write
+	 * @return {@code true}
+	 */
+	protected abstract boolean insert(Write write);
 
 	/**
 	 * Return {@code true} if {@code write} represents a data mapping that
 	 * currently exists.
+	 * <p>
+	 * <strong>This method is called from {@link #add(String, TObject, long)}
+	 * and {@link #remove(String, TObject, long)}.</strong>
+	 * </p>
 	 * 
 	 * @param write
 	 * @return {@code true} if {@code write} currently appears an odd number of
@@ -401,7 +416,27 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 
 	/**
 	 * Return {@code true} if {@code write} represents a data mapping that
+	 * currently exists using {@code exists} as prior context.
+	 * <p>
+	 * <strong>This method is called from
+	 * {@link BufferedStore#verify(String, TObject, long)}.</strong>
+	 * </p>
+	 * 
+	 * @param write
+	 * @return {@code true} if {@code write} currently appears an odd number of
+	 *         times
+	 */
+	protected boolean verify(Write write, boolean exists) {
+		return verify(write, Time.now(), exists);
+	}
+
+	/**
+	 * Return {@code true} if {@code write} represents a data mapping that
 	 * exists at {@code timestamp}.
+	 * <p>
+	 * <strong>This method is called from
+	 * {@link BufferedStore#verify(String, TObject, long, long)}.</strong>
+	 * </p>
 	 * 
 	 * @param write
 	 * @param timestamp
@@ -409,7 +444,23 @@ abstract class Limbo implements WritableStore, Iterable<Write> {
 	 *         {@code timestamp}
 	 */
 	protected boolean verify(Write write, long timestamp) {
-		boolean exists = false;
+		return verify(write, timestamp, false);
+	}
+
+	/**
+	 * Return {@code true} if {@code write} represents a data mapping that
+	 * exists at {@code timestamp}, using {@code exists} as prior context.
+	 * <p>
+	 * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
+	 * </p>
+	 * 
+	 * @param write
+	 * @param timestamp
+	 * @param exists
+	 * @return {@code true} if {@code write} appears an odd number of times at
+	 *         {@code timestamp}
+	 */
+	protected boolean verify(Write write, long timestamp, boolean exists) {
 		Iterator<Write> it = iterator();
 		while (it.hasNext()) {
 			Write stored = it.next();

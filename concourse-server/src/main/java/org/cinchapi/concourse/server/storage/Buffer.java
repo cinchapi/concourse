@@ -363,23 +363,11 @@ final class Buffer extends Limbo {
 	}
 
 	@Override
-	protected Set<String> describeUsingContext(long record, long timestamp,
+	protected Set<String> describe(long record, long timestamp,
 			Map<String, Set<TObject>> ktv) {
 		transportLock.readLock().lock();
 		try {
-			return super.describeUsingContext(record, timestamp, ktv);
-		}
-		finally {
-			transportLock.readLock().unlock();
-		}
-	}
-
-	@Override
-	protected Set<String> describeUsingContext(long record,
-			Map<String, Set<TObject>> ktv) {
-		transportLock.readLock().lock();
-		try {
-			return super.describeUsingContext(record, ktv);
+			return super.describe(record, timestamp, ktv);
 		}
 		finally {
 			transportLock.readLock().unlock();
@@ -401,6 +389,18 @@ final class Buffer extends Limbo {
 	}
 
 	@Override
+	protected Set<TObject> fetch(String key, long record,
+			long timestamp, Set<TObject> values) {
+		transportLock.readLock().lock();
+		try {
+			return super.fetch(key, record, timestamp, values);
+		}
+		finally {
+			transportLock.readLock().unlock();
+		}
+	}
+
+	@Override
 	protected boolean insert(Write write) {
 		writeLock.lock();
 		try {
@@ -416,11 +416,11 @@ final class Buffer extends Limbo {
 		return true;
 	}
 
+
 	@Override
-	protected boolean verify(Write write, long timestamp) {
+	protected boolean verify(Write write, long timestamp, boolean exists) {
 		transportLock.readLock().lock();
 		try {
-			boolean exists = false;
 			for (Page page : pages) {
 				if(page.mightContain(write)
 						&& page.locallyContains(write, timestamp)) {

@@ -29,6 +29,9 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Rule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /**
  * 
@@ -36,8 +39,16 @@ import org.cinchapi.concourse.util.TestData;
  * @author jnelson
  */
 public class EngineTest extends BufferedStoreTest {
-	
+
 	private String directory;
+	
+	@Rule
+	public TestWatcher w = new TestWatcher(){
+		@Override
+		protected void starting(Description desc) {
+			store.stop(); //Stop the engine so that data isn't transported in the middle of a test.
+		}
+	};
 
 	@Override
 	protected void add(String key, TObject value, long record) {
@@ -53,8 +64,8 @@ public class EngineTest extends BufferedStoreTest {
 	@Override
 	protected Store getStore() {
 		directory = TestData.DATA_DIR + File.separator + Time.now();
-		return new Engine(directory + File.separator + "buffer", directory
-				+ File.separator + "database");
+		return new Engine(directory + File.separator + "buffer",
+				directory + File.separator + "database");
 	}
 
 	@Override
