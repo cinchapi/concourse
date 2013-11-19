@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.cinchapi.concourse.util.StringTools;
 import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -67,7 +68,7 @@ import com.google.common.collect.Sets;
  */
 @NotThreadSafe
 @PackagePrivate
-abstract class Limbo implements Store, Iterable<Write> {
+abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
 
 	/**
 	 * The writeLock ensures that only a single writer can modify the state of
@@ -214,6 +215,26 @@ abstract class Limbo implements Store, Iterable<Write> {
 		return find(Time.now(), key, operator, values);
 	}
 
+	@Override
+	public long getVersion(long record) {
+		return getVersion(null, record);
+	}
+
+	@Override
+	public long getVersion(String key, long record) {
+		key = Strings.nullToEmpty(key);
+		Iterator<Write> it = reverseIterator();
+		while (it.hasNext()) {
+			Write write = it.next();
+			if(record == write.getRecord().longValue()
+					&& (Strings.isNullOrEmpty(key) || write.getKey().equals(
+							Text.wrap(key)))) {
+				return write.getVersion();
+			}
+		}
+		return 0;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 * <p>
@@ -224,6 +245,14 @@ abstract class Limbo implements Store, Iterable<Write> {
 	 */
 	@Override
 	public abstract Iterator<Write> iterator();
+
+	/**
+	 * Return an iterator that traverses the Writes in the store in reverse
+	 * order.
+	 * 
+	 * @return the iterator
+	 */
+	public abstract Iterator<Write> reverseIterator();
 
 	@Override
 	public boolean ping(long record) {

@@ -456,6 +456,21 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
 	@Test
 	@Theory
+	public void testSearchWithReproCON_A() {
+		// TODO file this bug: This test fails because the value has a stop word
+		// which has a substring that is equal to a term of the query. When the
+		// Store strips the stop words from both, it makes it so that the search
+		// no longer passes.
+//		add("ibp127v0de855b1izo8kabnj9xxgfmlv hv4jtsyzr pprequg",
+//				Convert.javaToThrift("uekc3 d1bfapb9l5y86 but u urek1g djwgyuekc3 d1bfapb9l5y86 b"),
+//				1);
+//		Assert.assertTrue(store.search(
+//				"ibp127v0de855b1izo8kabnj9xxgfmlv hv4jtsyzr pprequg",
+//				"ut u urek1g djwgy").contains(1));
+	}
+
+	@Test
+	@Theory
 	public void testSearchReproCON_2(SearchType type) {
 		String query = Variables.register("query", "k i");
 		String key = Variables.register("key", "oq99f7u7vizpob4o");

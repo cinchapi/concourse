@@ -40,11 +40,6 @@
 # INFO: status information about the system that can be used for sanity checking.
 # DEBUG: detailed information about the system that can be used to diagnose bugs.
 #
-# Determine whether log messages should also be printed to the console (STDOUT).
-#
-# DEFAULT:
-#enable_console_logging = FALSE
-
 # Logging is important, but may cause performance degradation. Only use the DEBUG 
 # level for staging environments or instances when detailed information to diagnose 
 # a bug. Otherwise use the WARN or INFO levels.
@@ -52,6 +47,7 @@
 # DEFAULT:
 #log_level = INFO
 
-	 
-
-
+# Determine whether log messages should also be printed to the console (STDOUT).
+#
+# DEFAULT:
+#enable_console_logging = FALSE

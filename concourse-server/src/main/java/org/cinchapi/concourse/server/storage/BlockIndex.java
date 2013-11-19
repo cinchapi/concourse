@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -97,7 +97,7 @@ public class BlockIndex implements Byteable, Syncable {
 	/**
 	 * The entries contained in the index.
 	 */
-	private final Map<ByteableComposite, Entry> entries;
+	private final Map<Composite, Entry> entries;
 
 	/**
 	 * Construct a new instance.
@@ -169,7 +169,7 @@ public class BlockIndex implements Byteable, Syncable {
 	public int getEnd(Byteable... byteables) {
 		masterLock.readLock().lock();
 		try {
-			ByteableComposite composite = ByteableComposite.create(byteables);
+			Composite composite = Composite.create(byteables);
 			Entry entry = entries.get(composite);
 			if(entry != null) {
 				return entry.getEnd();
@@ -193,7 +193,7 @@ public class BlockIndex implements Byteable, Syncable {
 	public int getStart(Byteable... byteables) {
 		masterLock.readLock().lock();
 		try {
-			ByteableComposite composite = ByteableComposite.create(byteables);
+			Composite composite = Composite.create(byteables);
 			Entry entry = entries.get(composite);
 			if(entry != null) {
 				return entry.getStart();
@@ -218,7 +218,7 @@ public class BlockIndex implements Byteable, Syncable {
 				"Cannot have negative index. Tried to put %s", end);
 		masterLock.writeLock().lock();
 		try {
-			ByteableComposite composite = ByteableComposite.create(byteables);
+			Composite composite = Composite.create(byteables);
 			Entry entry = entries.get(composite);
 			Preconditions.checkState(entry != null,
 					"Cannot set the end position before setting "
@@ -241,7 +241,7 @@ public class BlockIndex implements Byteable, Syncable {
 				"Cannot have negative index. Tried to put %s", start);
 		masterLock.writeLock().lock();
 		try {
-			ByteableComposite composite = ByteableComposite.create(byteables);
+			Composite composite = Composite.create(byteables);
 			Entry entry = entries.get(composite);
 			if(entry == null) {
 				entry = new Entry(composite);
@@ -275,7 +275,7 @@ public class BlockIndex implements Byteable, Syncable {
 
 		private static final int CONSTANT_SIZE = 8; // start(4), end(4)
 
-		private final ByteableComposite key;
+		private final Composite key;
 		private int start = NO_ENTRY;
 		private int end = NO_ENTRY;
 
@@ -284,7 +284,7 @@ public class BlockIndex implements Byteable, Syncable {
 		 * 
 		 * @param key
 		 */
-		public Entry(ByteableComposite key) {
+		public Entry(Composite key) {
 			this.key = key;
 		}
 
@@ -300,7 +300,7 @@ public class BlockIndex implements Byteable, Syncable {
 		public Entry(ByteBuffer bytes) {
 			this.start = bytes.getInt();
 			this.end = bytes.getInt();
-			this.key = ByteableComposite.fromByteBuffer(ByteBuffers.get(bytes,
+			this.key = Composite.fromByteBuffer(ByteBuffers.get(bytes,
 					bytes.remaining()));
 		}
 
@@ -328,7 +328,7 @@ public class BlockIndex implements Byteable, Syncable {
 		 * 
 		 * @return the key
 		 */
-		public ByteableComposite getKey() {
+		public Composite getKey() {
 			return key;
 		}
 

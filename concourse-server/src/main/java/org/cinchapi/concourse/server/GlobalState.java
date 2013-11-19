@@ -154,6 +154,7 @@ public final class GlobalState {
 		}
 	}
 
+
 	/* ************************************************************************ */
 	public static final Set<String> STOPWORDS = Sets.newHashSet();
 	static {

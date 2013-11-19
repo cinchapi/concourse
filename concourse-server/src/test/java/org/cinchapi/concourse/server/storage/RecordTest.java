@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableComposite;
+import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TestData;
@@ -53,7 +53,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
 	/**
 	 * The last actions
 	 */
-	private Map<ByteableComposite, Action> actions = Maps.newHashMap();
+	private Map<Composite, Action> actions = Maps.newHashMap();
 
 	/**
 	 * Get the appropriate action for {@code locator}, {@code key} and
@@ -65,7 +65,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
 	 * @return the appropriate action
 	 */
 	protected Action getAction(L locator, K key, V value) {
-		ByteableComposite comp = ByteableComposite.create(locator, key, value);
+		Composite comp = Composite.create(locator, key, value);
 		Action action = actions.get(comp);
 		if(action == null || action == Action.REMOVE) {
 			action = Action.ADD;

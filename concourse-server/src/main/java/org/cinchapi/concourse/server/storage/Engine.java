@@ -23,10 +23,16 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Map;
+import java.util.Set;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.TLock;
+import org.cinchapi.concourse.server.jmx.ManagedOperation;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Logger;
 
@@ -49,7 +55,8 @@ import static org.cinchapi.concourse.server.GlobalState.*;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
 		Transactional,
-		PermanentStore {
+		PermanentStore,
+		VersionGetter {
 
 	/**
 	 * The id used to determine that the Buffer should be dumped.
@@ -108,19 +115,6 @@ public final class Engine extends BufferedStore implements
 		this.bufferTransportThread = new BufferTransportThread();
 	}
 
-	/**
-	 * Public interface for the {@link Database#dump(String)} method.
-	 * 
-	 * @param id
-	 * @return the block dumps
-	 */
-	public String dump(String id) {
-		if(id.equalsIgnoreCase(BUFFER_DUMP_ID)) {
-			return ((Buffer) buffer).dump();
-		}
-		return ((Database) destination).dump(id);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * The Engine is a Destination for Transaction commits. The accept method
@@ -161,6 +155,174 @@ public final class Engine extends BufferedStore implements
 	}
 
 	@Override
+	public boolean add(String key, TObject value, long record) {
+		TLock.grab(key, record).writeLock().lock();
+		try {
+			return super.add(key, value, record);
+		}
+		finally {
+			TLock.grab(key, record).writeLock().unlock();
+		}
+	}
+
+	@Override
+	public Map<Long, String> audit(long record) {
+		TLock.grab(record).readLock().lock();
+		try {
+			return super.audit(record);
+		}
+		finally {
+			TLock.grab(record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Map<Long, String> audit(String key, long record) {
+		TLock.grab(key, record).readLock().lock();
+		try {
+			return super.audit(key, record);
+		}
+		finally {
+			TLock.grab(key, record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<String> describe(long record) {
+		TLock.grab(record).readLock().lock();
+		try {
+			return super.describe(record);
+		}
+		finally {
+			TLock.grab(record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<String> describe(long record, long timestamp) {
+		TLock.grab(record).readLock().lock();
+		try {
+			return super.describe(record, timestamp);
+		}
+		finally {
+			TLock.grab(record).readLock().unlock();
+		}
+	}
+
+	/**
+	 * Public interface for the {@link Database#dump(String)} method.
+	 * 
+	 * @param id
+	 * @return the block dumps
+	 */
+	@ManagedOperation
+	public String dump(String id) {
+		return ((Database) destination).dump(id);
+	}
+
+	@Override
+	public Set<TObject> fetch(String key, long record) {
+		TLock.grab(key, record).readLock().lock();
+		try {
+			return super.fetch(key, record);
+		}
+		finally {
+			TLock.grab(key, record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<TObject> fetch(String key, long record, long timestamp) {
+		TLock.grab(key, record).readLock().lock();
+		try {
+			return super.fetch(key, record, timestamp);
+		}
+		finally {
+			TLock.grab(key, record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> find(long timestamp, String key, Operator operator,
+			TObject... values) {
+		TLock.grab(key).readLock().lock();
+		try {
+			return super.find(timestamp, key, operator, values);
+		}
+		finally {
+			TLock.grab(key).readLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> find(String key, Operator operator, TObject... values) {
+		TLock.grab(key).readLock().lock();
+		try {
+			return super.find(key, operator, values);
+		}
+		finally {
+			TLock.grab(key).readLock().unlock();
+		}
+	}
+
+	@Override
+	public long getVersion(long record) {
+		return Math.max(buffer.getVersion(record),
+				((Database) destination).getVersion(record));
+	}
+
+	@Override
+	public long getVersion(String key, long record) {
+		return Math.max(buffer.getVersion(key, record),
+				((Database) destination).getVersion(key, record));
+	}
+
+	@Override
+	public boolean ping(long record) {
+		TLock.grab(record).readLock().lock();
+		try {
+			return super.ping(record);
+		}
+		finally {
+			TLock.grab(record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public boolean remove(String key, TObject value, long record) {
+		TLock.grab(key, record).writeLock().lock();
+		try {
+			return super.remove(key, value, record);
+		}
+		finally {
+			TLock.grab(key, record).writeLock().unlock();
+		}
+	}
+
+	@Override
+	public void revert(String key, long record, long timestamp) {
+		TLock.grab(key, record).writeLock().lock();
+		try {
+			super.revert(key, record, timestamp);
+		}
+		finally {
+			TLock.grab(key, record).writeLock().unlock();
+		}
+	}
+
+	@Override
+	public Set<Long> search(String key, String query) {
+		TLock.grab(key).readLock().lock();
+		try {
+			return super.search(key, query);
+		}
+		finally {
+			TLock.grab(key).readLock().unlock();
+		}
+
+	}
+
+	@Override
 	public void start() {
 		if(!running) {
 			Logger.info("Starting the Engine...");
@@ -182,6 +344,28 @@ public final class Engine extends BufferedStore implements
 			running = false;
 			buffer.stop();
 			destination.stop();
+		}
+	}
+
+	@Override
+	public boolean verify(String key, TObject value, long record) {
+		TLock.grab(key, record).readLock().lock();
+		try {
+			return super.verify(key, value, record);
+		}
+		finally {
+			TLock.grab(key, record).readLock().unlock();
+		}
+	}
+
+	@Override
+	public boolean verify(String key, TObject value, long record, long timestamp) {
+		TLock.grab(key, record).readLock().lock();
+		try {
+			return super.verify(key, value, record, timestamp);
+		}
+		finally {
+			TLock.grab(key, record).readLock().unlock();
 		}
 	}
 

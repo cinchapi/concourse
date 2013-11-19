@@ -258,7 +258,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 			revisions.add(revision);
 
 			// Update metadata
-			version = revision.getVersion();
+			version = Math.max(version, revision.getVersion());
 
 		}
 		finally {
@@ -274,6 +274,16 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 					&& (partial ? key.equals(other.key) : true);
 		}
 		return false;
+	}
+
+	/**
+	 * Return the Record's version, which is equal to the largest version of an
+	 * appended Revision.
+	 * 
+	 * @return the version
+	 */
+	public long getVersion() {
+		return version;
 	}
 
 	@Override

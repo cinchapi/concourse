@@ -21,32 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.concurrent;
-
-import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableComposite;
-import org.cinchapi.concourse.util.TestData;
-import org.junit.Assert;
-import org.junit.Test;
+package org.cinchapi.concourse.server.storage;
 
 /**
- * Unit tests for {@link IdentifiableReentrantReadWriteLock}.
+ * A class that can retrieve the version for a record or a key+record.
  * 
  * @author jnelson
  */
-public class IdentifiableReentrantReadWriteLockTest {
+public interface VersionGetter {
 
-	@Test
-	public void testLocksAreTheSame() {
-		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
-		for (int i = 0; i < components.length; i++) {
-			components[i] = TestData.getValue();
-		}
-		IdentifiableReentrantReadWriteLock a = IdentifiableReentrantReadWriteLock
-				.create(components);
-		IdentifiableReentrantReadWriteLock b = IdentifiableReentrantReadWriteLock
-				.identifiedBy(ByteableComposite.create(components));
-		Assert.assertSame(a, b);
-	}
+	/**
+	 * Return the current version of {@code record}.
+	 * 
+	 * @param record
+	 * @return the version
+	 */
+	public long getVersion(long record);
+
+	/**
+	 * Return the current version of {@code key} in {@code record}
+	 * 
+	 * @param key
+	 * @param record
+	 * @return the version
+	 */
+	public long getVersion(String key, long record);
 
 }
