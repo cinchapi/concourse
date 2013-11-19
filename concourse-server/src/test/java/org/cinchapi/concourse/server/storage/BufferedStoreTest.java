@@ -121,16 +121,16 @@ public abstract class BufferedStoreTest extends StoreTest {
 //				}
 //
 //			}
-		}
-		Set<Long> records = Sets.newHashSet();
-		Iterator<Long> it2 = rtv.keySet().iterator();
-		while (it2.hasNext()) {
-			long record = it2.next();
-			if(!rtv.get(record).isEmpty()) {
-				records.add(record);
-			}
-		}
-		Assert.assertEquals(records, store.find(d.key, operator, d.value));
+//		}
+//		Set<Long> records = Sets.newHashSet();
+//		Iterator<Long> it2 = rtv.keySet().iterator();
+//		while (it2.hasNext()) {
+//			long record = it2.next();
+//			if(!rtv.get(record).isEmpty()) {
+//				records.add(record);
+//			}
+//		}
+//		Assert.assertEquals(records, store.find(d.key, operator, d.value));
 	}
 
 	@Test
