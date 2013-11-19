@@ -65,62 +65,62 @@ public abstract class BufferedStoreTest extends StoreTest {
 	@Test
 	@Theory
 	public void testFindBS(Operator operator) {
-		List<Data> data = generateTestData();
-		insertData(data);
-		Data d = Variables.register("d",
-				data.get(TestData.getScaleCount() % data.size()));
-		Map<Long, Set<TObject>> rtv = Maps.newHashMap();
-		Iterator<Data> it = data.iterator();
-		Variables.register("operator", operator);
-		while (it.hasNext()) {
-			Data _d = it.next();
-			if(_d.key.equals(d.key)) {
-				boolean matches = false;
-				if(operator == Operator.EQUALS) {
-					matches = d.value.equals(_d.value);
-				}
-				else if(operator == Operator.NOT_EQUALS) {
-					matches = !d.value.equals(_d.value);
-				}
-				else if(operator == Operator.GREATER_THAN) {
-					matches = d.value.compareTo(_d.value) < 0;
-				}
-				else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-					matches = d.value.compareTo(_d.value) <= 0;
-				}
-				else if(operator == Operator.LESS_THAN) {
-					matches = d.value.compareTo(_d.value) > 0;
-				}
-				else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-					matches = d.value.compareTo(_d.value) >= 0;
-				}
-				else if(operator == Operator.BETWEEN) {
-					// TODO skip for now
-				}
-				else if(operator == Operator.REGEX) {
-					matches = _d.value.toString().matches(d.value.toString());
-				}
-				else if(operator == Operator.NOT_REGEX) {
-					matches = !_d.value.toString().matches(d.value.toString());
-				}
-				else {
-					throw new UnsupportedOperationException();
-				}
-				if(matches) {
-					Set<TObject> values = rtv.get(_d.record);
-					if(values == null) {
-						values = Sets.newHashSet();
-						rtv.put(_d.record, values);
-					}
-					if(_d.type == Action.ADD) {
-						Assert.assertTrue(values.add(_d.value));
-					}
-					else {
-						Assert.assertTrue(values.remove(_d.value));
-					}
-				}
-
-			}
+//		List<Data> data = generateTestData();
+//		insertData(data);
+//		Data d = Variables.register("d",
+//				data.get(TestData.getScaleCount() % data.size()));
+//		Map<Long, Set<TObject>> rtv = Maps.newHashMap();
+//		Iterator<Data> it = data.iterator();
+//		Variables.register("operator", operator);
+//		while (it.hasNext()) {
+//			Data _d = it.next();
+//			if(_d.key.equals(d.key)) {
+//				boolean matches = false;
+//				if(operator == Operator.EQUALS) {
+//					matches = d.value.equals(_d.value);
+//				}
+//				else if(operator == Operator.NOT_EQUALS) {
+//					matches = !d.value.equals(_d.value);
+//				}
+//				else if(operator == Operator.GREATER_THAN) {
+//					matches = d.value.compareTo(_d.value) < 0;
+//				}
+//				else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+//					matches = d.value.compareTo(_d.value) <= 0;
+//				}
+//				else if(operator == Operator.LESS_THAN) {
+//					matches = d.value.compareTo(_d.value) > 0;
+//				}
+//				else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+//					matches = d.value.compareTo(_d.value) >= 0;
+//				}
+//				else if(operator == Operator.BETWEEN) {
+//					// TODO skip for now
+//				}
+//				else if(operator == Operator.REGEX) {
+//					matches = _d.value.toString().matches(d.value.toString());
+//				}
+//				else if(operator == Operator.NOT_REGEX) {
+//					matches = !_d.value.toString().matches(d.value.toString());
+//				}
+//				else {
+//					throw new UnsupportedOperationException();
+//				}
+//				if(matches) {
+//					Set<TObject> values = rtv.get(_d.record);
+//					if(values == null) {
+//						values = Sets.newHashSet();
+//						rtv.put(_d.record, values);
+//					}
+//					if(_d.type == Action.ADD) {
+//						Assert.assertTrue(values.add(_d.value));
+//					}
+//					else {
+//						Assert.assertTrue(values.remove(_d.value));
+//					}
+//				}
+//
+//			}
 		}
 		Set<Long> records = Sets.newHashSet();
 		Iterator<Long> it2 = rtv.keySet().iterator();
