@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':concourse-api')
+    compile project(':concourse')
     compile 'com.google.guava:guava:15.0'
     compile 'org.codehaus.groovy:groovy-all:2.1.8'
     compile 'jline:jline:2.11' 

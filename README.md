@@ -2,9 +2,13 @@
 
 [Concourse](http://cinchapi.org/concourse) is a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
 
-## Versioning
+**This README is written for developers looking to contribute to the codebase. Detailed user documentation is available at [http://cinchapi.org/concourse](http://cinchapi.org/concourse)**
 
-This is version 0.3.0 of Concourse.
+## General Information
+
+### Versioning
+
+This is version 0.2.0 of Concourse.
 
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
 guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
@@ -14,13 +18,65 @@ where
 * new additions while maintaining backward compatibility bumps the minor, and
 * bug fixes or miscellaneous changes bumps the patch.
 
-## Author
+### Modules
+This repository contains several modules that form the concourse-core.
 
-* Jeff Nelson ([http://cinchapi.org/jeff](http://cinchapi.org/jeff))
+* The **concourse** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
+* The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse-api.
+* The **concourse-shell** project contains the code for the Concourse Action SHell (CaSH), which is shipped with concourse-server.
+* The **concourse-testing** project contains long running end-to-end tests that should be run separately from the build process.
 
-## License
+## Contributing
+### Learn how things work
+Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) to learn about the internal architecture.
+
+### Pick an issue
+1. Fix an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature.
+2. Create an account in Jira and.
+3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket yo yourself.
+
+### Write some code
+1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
+2. [Fork](https://github.com/cinchapi/concourse/fork) the repo and get to work!
+
+### Run from Eclipse
+1. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
+2. Use **Start Server** to start a local server with the default configuration.
+3. Use **Stop Server** to stop all locally running servers.
+4. Use **Launch CaSH** to launch a cash terminal that is connected to a locally running server listening on the default port.
+
+
+### Build your changes
+Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
+
+	$ ./gradlew clean build distZip
+	
+If all goes well, unzip the distribution in `concourse-server/build/distribution`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
+
+### Submit your changes
+1. Send a pull request
+2. Update the Jira ticket with the commit hashes for your change
+
+### Join the team
+Shoot us an [email](mailto:jeff@cinchapi.org) if you want to become a regular contributor and help with strategic planning!
+
+
+### Report Issues
+If you run into any issues, have questions or want to request new features, please create a ticket in [Jira](https://cinchapi.atlassian.net/browse/CON).
+
+### Ask Questions
+Ping us at [concourse-devs@cinchapi.org](mailto:concourse-devs@cinchapi.org) if you ever have any questions. We're happy to help.
+
+
+## Credits
+### Author
+
+* Jeff Nelson
+
+### License
 
 Copyright © 2013 Cinchapi Software Collective.
 
 Concourse is released under the MIT License. For more information see LICENSE,
 which is included with this package.
+
