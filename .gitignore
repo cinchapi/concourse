@@ -48,7 +48,6 @@ Thumbs.db
 ####################
 *test.out*
 *.gradle/
-*.counter
 *build/
 *bin/
 *context.txt
