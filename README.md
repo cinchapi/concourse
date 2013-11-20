@@ -40,6 +40,13 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
 2. [Fork](https://github.com/cinchapi/concourse/fork) the repo and get to work!
 
+### Run from Eclipse
+1. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
+2. Use **Start Server** to start a local server with the default configuration.
+3. Use **Stop Server** to stop all locally running servers.
+4. Use **Launch CaSH** to launch a cash terminal that is connected to a locally running server listening on the default port.
+
+
 ### Build your changes
 Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
 
@@ -55,17 +62,17 @@ If all goes well, unzip the distribution in `concourse-server/build/distribution
 Shoot us an [email](mailto:jeff@cinchapi.org) if you want to become a regular contributor and help with strategic planning!
 
 
-## Reporting Issues
+### Report Issues
 If you run into any issues, have questions or want to request new features, please create a ticket in [Jira](https://cinchapi.atlassian.net/browse/CON).
 
-## Asking Questions
+### Ask Questions
 Ping us at [concourse-devs@cinchapi.org](mailto:concourse-devs@cinchapi.org) if you ever have any questions. We're happy to help.
 
 
 ## Credits
 ### Author
 
-* Jeff Nelson (jeff@cinchapi.org)
+* Jeff Nelson
 
 ### License
 
