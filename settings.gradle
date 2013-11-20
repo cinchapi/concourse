@@ -1,2 +1,2 @@
 rootProject.name = "concourse"
-include "concourse-api", "concourse-server", "concourse-shell"
+include "concourse", "concourse-server", "concourse-shell"

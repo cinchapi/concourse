@@ -21,7 +21,7 @@ where
 ### Modules
 This repository contains several modules that form the concourse-core.
 
-* The **concourse-api** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
+* The **concourse** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
 * The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse-api.
 * The **concourse-shell** project contains the code for the Concourse Action SHell (CaSH), which is shipped with concourse-server.
 * The **concourse-testing** project contains long running end-to-end tests that should be run separately from the build process.
