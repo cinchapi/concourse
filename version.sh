@@ -5,7 +5,12 @@
 #################################################
 
 BASE_VERSION_FILE=".version"
-COUNTER_FILE=".counter"
+JENKINS_HOME="/opt/jenkins"
+if [ -w $JENKINS_HOME ]; then
+	COUNTER_FILE="$JENKINS_HOME/.counter"
+else
+	COUNTER_FILE=".counter"
+fi
 
 if [ -z "$1" ] ; then 
 	VERSION=`cat $BASE_VERSION_FILE`
