@@ -36,6 +36,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Logger;
 
+
 import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -62,18 +63,6 @@ public final class Engine extends BufferedStore implements
 	 * The id used to determine that the Buffer should be dumped.
 	 */
 	public static final String BUFFER_DUMP_ID = "BUFFER";
-
-	/**
-	 * The template for the warning message that is logged when a caller has a
-	 * stale lock with a 2 component token.
-	 */
-	private static final String LOCK_WARN_2 = "The lock for '{} IN {}' is stale since it hasn't been touched in {} {}";
-
-	/**
-	 * The template for the warning message that is logged when a caller has a
-	 * stale lock with a 1 component token.
-	 */
-	private static final String LOCK_WARN_1 = "The lock for '{}' is stale since it hasn't been touched in {} {}";
 
 	/**
 	 * The location that the engine uses as the base store for its components.
@@ -174,10 +163,6 @@ public final class Engine extends BufferedStore implements
 			return super.add(key, value, record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.writeLock().unlock();
 		}
 	}
@@ -190,10 +175,6 @@ public final class Engine extends BufferedStore implements
 			return super.audit(record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -206,10 +187,6 @@ public final class Engine extends BufferedStore implements
 			return super.audit(key, record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -222,10 +199,6 @@ public final class Engine extends BufferedStore implements
 			return super.describe(record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -238,10 +211,6 @@ public final class Engine extends BufferedStore implements
 			return super.describe(record, timestamp);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -265,10 +234,6 @@ public final class Engine extends BufferedStore implements
 			return super.fetch(key, record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -281,10 +246,6 @@ public final class Engine extends BufferedStore implements
 			return super.fetch(key, record, timestamp);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -298,10 +259,6 @@ public final class Engine extends BufferedStore implements
 			return super.find(timestamp, key, operator, values);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, key, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -314,10 +271,6 @@ public final class Engine extends BufferedStore implements
 			return super.find(key, operator, values);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, key, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -342,10 +295,6 @@ public final class Engine extends BufferedStore implements
 			return super.ping(record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
-						TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -358,10 +307,6 @@ public final class Engine extends BufferedStore implements
 			return super.remove(key, value, record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.writeLock().unlock();
 		}
 	}
@@ -374,10 +319,6 @@ public final class Engine extends BufferedStore implements
 			super.revert(key, record, timestamp);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.writeLock().unlock();
 		}
 	}
@@ -390,10 +331,6 @@ public final class Engine extends BufferedStore implements
 			return super.search(key, query);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, query, key,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -431,10 +368,6 @@ public final class Engine extends BufferedStore implements
 			return super.verify(key, value, record);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
@@ -447,13 +380,11 @@ public final class Engine extends BufferedStore implements
 			return super.verify(key, value, record, timestamp);
 		}
 		finally {
-			if(lock.isStateInstance()) {
-				Logger.warn(LOCK_WARN_2, key, record,
-						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
-			}
 			lock.readLock().unlock();
 		}
 	}
+
+	
 
 	/**
 	 * A thread that is responsible for transporting content from

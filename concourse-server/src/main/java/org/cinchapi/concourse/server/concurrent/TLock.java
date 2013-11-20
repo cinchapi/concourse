@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -31,6 +32,7 @@ import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
@@ -56,7 +58,7 @@ import com.google.common.cache.RemovalNotification;
  * <p>
  * To reduce the probability of the aforementioned scenario, each caller should
  * periodically verify that her instance is not stale (see
- * {@link #isStateInstance()}) if her work may last longer than the cache TTL.
+ * {@link #isStaleInstance()}) if her work may last longer than the cache TTL.
  * If the instance is stale, the caller should simply grab a new lock for the
  * token and lock the instance immediately.
  * </p>
@@ -73,7 +75,10 @@ public class TLock extends ReentrantReadWriteLock {
 	 * @return the TLock
 	 */
 	public static TLock grab(Object... objects) {
-		return grabWithToken(Token.wrap(objects));
+		TLock lock = grabWithToken(Token.wrap(objects));
+		Logger.debug("Grabbed lock {} for objects {}", lock,
+				Arrays.toString(objects));
+		return lock;
 	}
 
 	/**
@@ -101,8 +106,13 @@ public class TLock extends ReentrantReadWriteLock {
 	/**
 	 * The time unit used to measure {@link #CACHE_TTL}.
 	 */
-	public static final TimeUnit CACHE_TTL_UNIT = System.getProperty("test",
+	protected static final TimeUnit CACHE_TTL_UNIT = System.getProperty("test",
 			"false").equals("true") ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS;
+
+	/**
+	 * The warning message that is logged from {@link #warnIfStaleInstance()}.
+	 */
+	private static final String STALE_WARNING = "{} is stale because it hasn't been touched in {} {}";
 
 	/**
 	 * The cache that is responsible for returning appropriate TLock instances
@@ -212,8 +222,14 @@ public class TLock extends ReentrantReadWriteLock {
 	 * 
 	 * @return {@code true} if this instance is stale
 	 */
-	public boolean isStateInstance() {
+	public boolean isStaleInstance() {
 		return getTimeSinceLastGrab(CACHE_TTL_UNIT) >= CACHE_TTL;
+	}
+
+	@Override
+	public ReadLock readLock() {
+		warnIfStaleInstance();
+		return super.readLock();
 	}
 
 	@Override
@@ -222,8 +238,16 @@ public class TLock extends ReentrantReadWriteLock {
 		return getClass().getSimpleName() + " " + token + " [" + toks[1];
 	}
 
+	@Override
+	public WriteLock writeLock() {
+		warnIfStaleInstance();
+		return super.writeLock();
+	}
+
 	/**
-	 * Update the last access timestamp.
+	 * Update the last access timestamp. In actuality, this should
+	 * never be called unless the Lock was retrieved from {@link #CACHE},
+	 * otherwise this measure is invalid.
 	 * 
 	 * @return this
 	 */
@@ -232,7 +256,9 @@ public class TLock extends ReentrantReadWriteLock {
 	}
 
 	/**
-	 * Set the last access timestamp to {@link time}.
+	 * Set the last access timestamp to {@link time}. In actuality, this should
+	 * never be called unless the Lock was retrieved from {@link #CACHE},
+	 * otherwise this measure is invalid.
 	 * 
 	 * @param time
 	 * @return this
@@ -240,6 +266,28 @@ public class TLock extends ReentrantReadWriteLock {
 	protected TLock touch(long time) { // exposed for testing
 		timestamp = time;
 		return this;
+	}
+
+	/**
+	 * Log a warning message if this TLock instance is stale.
+	 */
+	private void warnIfStaleInstance() {
+		// NOTE: A stale lock means that #CACHE_TTL has passed since the lock
+		// was grabbed from the cache, and indicates that an operation
+		// took way too long to complete. Stale locks are dangerous because it
+		// means that we might be violating concurrent isolation guarantees
+		// (i.e. a thread thinks it has a valid lock on an object, but it
+		// doesen't and another thread grabs a valid lock on the same object and
+		// they both concurrently modify stuff). We must set CACHE_TTL high
+		// enough so that we are likely to never see stale locks in PRODUCTION.
+		// If we do see stale locks in Prod then we should 1) consider
+		// increasing CACHE_TTL or 2) consider using a different cache eviction
+		// strategy and 3) rethink whatever operation is taking longer than
+		// CACHE_TTL.
+		if(isStaleInstance()) {
+			Logger.warn(STALE_WARNING, this, getTimeSinceLastGrab(),
+					CACHE_TTL_UNIT);
+		}
 	}
 
 }
