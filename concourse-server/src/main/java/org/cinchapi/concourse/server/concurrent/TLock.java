@@ -36,6 +36,8 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 
 /**
  * A {@link ReentrantReadWriteLock} that is identified by a {@link Token}.
@@ -99,7 +101,7 @@ public class TLock extends ReentrantReadWriteLock {
 	/**
 	 * The time unit used to measure {@link #CACHE_TTL}.
 	 */
-	protected static final TimeUnit CACHE_TTL_UNIT = System.getProperty("test",
+	public static final TimeUnit CACHE_TTL_UNIT = System.getProperty("test",
 			"false").equals("true") ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS;
 
 	/**
@@ -110,7 +112,19 @@ public class TLock extends ReentrantReadWriteLock {
 	 */
 	private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
 			.newBuilder().expireAfterAccess(CACHE_TTL, CACHE_TTL_UNIT)
-			.build(new CacheLoader<Token, TLock>() {
+			.removalListener(new RemovalListener<Token, TLock>() {
+
+				@Override
+				public void onRemoval(
+						RemovalNotification<Token, TLock> notification) {
+					TLock lock = notification.getValue();
+					if(lock.getReadLockCount() > 0 || lock.hasQueuedThreads()
+							|| lock.isWriteLocked()) {
+						CACHE.put(notification.getKey(), lock.touch());
+					}
+
+				}
+			}).build(new CacheLoader<Token, TLock>() {
 
 				@Override
 				public TLock load(Token token) throws Exception {
@@ -152,6 +166,17 @@ public class TLock extends ReentrantReadWriteLock {
 			return token.equals(other.token);
 		}
 		return false;
+	}
+
+	/**
+	 * Get the amount of time that has passed since the Lock was last grabbed
+	 * (i.e. the {@link #grab(Object...)} or {@link #grabWithToken(Token)}
+	 * method was invoked and returned this.
+	 * 
+	 * @return the time since the Lock was last grabbed in ms
+	 */
+	public long getTimeSinceLastGrab() {
+		return getTimeSinceLastGrab(TLock.CACHE_TTL_UNIT);
 	}
 
 	/**

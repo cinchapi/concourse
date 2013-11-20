@@ -64,6 +64,18 @@ public final class Engine extends BufferedStore implements
 	public static final String BUFFER_DUMP_ID = "BUFFER";
 
 	/**
+	 * The template for the warning message that is logged when a caller has a
+	 * stale lock with a 2 component token.
+	 */
+	private static final String LOCK_WARN_2 = "The lock for '{} IN {}' is stale since it hasn't been touched in {} {}";
+
+	/**
+	 * The template for the warning message that is logged when a caller has a
+	 * stale lock with a 1 component token.
+	 */
+	private static final String LOCK_WARN_1 = "The lock for '{}' is stale since it hasn't been touched in {} {}";
+
+	/**
 	 * The location that the engine uses as the base store for its components.
 	 */
 	@PackagePrivate
@@ -156,56 +168,81 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		TLock.grab(key, record).writeLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.writeLock().lock();
 		try {
 			return super.add(key, value, record);
 		}
 		finally {
-			TLock.grab(key, record).writeLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public Map<Long, String> audit(long record) {
-		TLock.grab(record).readLock().lock();
+		TLock lock = TLock.grab(record);
+		lock.readLock().lock();
 		try {
 			return super.audit(record);
 		}
 		finally {
-			TLock.grab(record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		TLock.grab(key, record).readLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.readLock().lock();
 		try {
 			return super.audit(key, record);
 		}
 		finally {
-			TLock.grab(key, record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record) {
-		TLock.grab(record).readLock().lock();
+		TLock lock = TLock.grab(record);
+		lock.readLock().lock();
 		try {
 			return super.describe(record);
 		}
 		finally {
-			TLock.grab(record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		TLock.grab(record).readLock().lock();
+		TLock lock = TLock.grab(record);
+		lock.readLock().lock();
 		try {
 			return super.describe(record, timestamp);
 		}
 		finally {
-			TLock.grab(record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
@@ -222,46 +259,66 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public Set<TObject> fetch(String key, long record) {
-		TLock.grab(key, record).readLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.readLock().lock();
 		try {
 			return super.fetch(key, record);
 		}
 		finally {
-			TLock.grab(key, record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		TLock.grab(key, record).readLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.readLock().lock();
 		try {
 			return super.fetch(key, record, timestamp);
 		}
 		finally {
-			TLock.grab(key, record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
-		TLock.grab(key).readLock().lock();
+		TLock lock = TLock.grab(key);
+		lock.readLock().lock();
 		try {
 			return super.find(timestamp, key, operator, values);
 		}
 		finally {
-			TLock.grab(key).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, key, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
-		TLock.grab(key).readLock().lock();
+		TLock lock = TLock.grab(key);
+		lock.readLock().lock();
 		try {
 			return super.find(key, operator, values);
 		}
 		finally {
-			TLock.grab(key).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, key, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
@@ -279,47 +336,66 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean ping(long record) {
-		TLock.grab(record).readLock().lock();
+		TLock lock = TLock.grab(record);
+		lock.readLock().lock();
 		try {
 			return super.ping(record);
 		}
 		finally {
-			TLock.grab(record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_1, record, lock.getTimeSinceLastGrab(),
+						TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public boolean remove(String key, TObject value, long record) {
-		TLock.grab(key, record).writeLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.writeLock().lock();
 		try {
 			return super.remove(key, value, record);
 		}
 		finally {
-			TLock.grab(key, record).writeLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public void revert(String key, long record, long timestamp) {
-		TLock.grab(key, record).writeLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.writeLock().lock();
 		try {
 			super.revert(key, record, timestamp);
 		}
 		finally {
-			TLock.grab(key, record).writeLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.writeLock().unlock();
 		}
 	}
 
 	@Override
 	public Set<Long> search(String key, String query) {
-		TLock.grab(key).readLock().lock();
+		TLock lock = TLock.grab(query, key);
+		lock.readLock().lock();
 		try {
 			return super.search(key, query);
 		}
 		finally {
-			TLock.grab(key).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, query, key,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
-
 	}
 
 	@Override
@@ -349,23 +425,33 @@ public final class Engine extends BufferedStore implements
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
-		TLock.grab(key, record).readLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.readLock().lock();
 		try {
 			return super.verify(key, value, record);
 		}
 		finally {
-			TLock.grab(key, record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
 	@Override
 	public boolean verify(String key, TObject value, long record, long timestamp) {
-		TLock.grab(key, record).readLock().lock();
+		TLock lock = TLock.grab(key, record);
+		lock.readLock().lock();
 		try {
 			return super.verify(key, value, record, timestamp);
 		}
 		finally {
-			TLock.grab(key, record).readLock().unlock();
+			if(lock.isStateInstance()) {
+				Logger.warn(LOCK_WARN_2, key, record,
+						lock.getTimeSinceLastGrab(), TLock.CACHE_TTL_UNIT);
+			}
+			lock.readLock().unlock();
 		}
 	}
 
