@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':concourse')
+    compile project(':concourse-api')
     compile project(':concourse-shell')
     compile 'com.google.guava:guava:15.0'
     compile 'com.beust:jcommander:1.32'
