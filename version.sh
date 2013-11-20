@@ -49,6 +49,7 @@ else
 		echo $NEW_VERSION > $BASE_VERSION_FILE
 		rm $COUNTER_FILE
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
+		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse-api/build.gradle
 		echo "The version has been set to $NEW_VERSION"
 	else
 		echo "Please specify a valid version <major>.<minor>.<patch>"
