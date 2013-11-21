@@ -37,6 +37,9 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service + '/conf') {
 		from 'conf'
 	}
+	into(service + "/licenses"){
+		from '../licenses'
+	}
 	into(service) {
 		from '../LICENSE'
 	}
