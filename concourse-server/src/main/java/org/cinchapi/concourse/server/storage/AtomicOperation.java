@@ -23,16 +23,16 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * A sequence of reads and writes that all succeed or fail together.
@@ -40,22 +40,22 @@ import com.google.common.base.Preconditions;
  * @author jnelson
  */
 public class AtomicOperation extends BufferedStore {
+
 	// NOTE: This class does not need to do any locking on operations (until
 	// commit time) because it is assumed to be isolated to one thread and the
 	// destination is assumed to have its own concurrency control scheme in
 	// place.
 
-	// public static AtomicOperation start(PermanentStore destination){
-	// return null;
-	// }
-
 	private static final int INITIAL_CAPACITY = 10;
+
+	private final List<VersionExpectation> expectedVersions = Lists
+			.newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
 	/**
 	 * Construct a new instance.
 	 * 
 	 * @param transportable
-	 * @param destination
+	 * @param destination - must be a {@link VersionGetter}
 	 */
 	protected AtomicOperation(Limbo transportable, PermanentStore destination) {
 		super(new Queue(INITIAL_CAPACITY), destination);
@@ -64,142 +64,72 @@ public class AtomicOperation extends BufferedStore {
 
 	@Override
 	public boolean add(String key, TObject value, long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record));
 		return super.add(key, value, record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.concourse.server.storage.BufferedStore#audit(long)
-	 */
 	@Override
 	public Map<Long, String> audit(long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new RecordVersionExpectation(record));
 		return super.audit(record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#audit(java.lang.String
-	 * , long)
-	 */
 	@Override
 	public Map<Long, String> audit(String key, long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record));
 		return super.audit(key, record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.concourse.server.storage.BufferedStore#describe(long)
-	 */
 	@Override
 	public Set<String> describe(long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new RecordVersionExpectation(record));
 		return super.describe(record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.concourse.server.storage.BufferedStore#describe(long,
-	 * long)
-	 */
 	@Override
 	public Set<String> describe(long record, long timestamp) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new RecordVersionExpectation(record, timestamp));
 		return super.describe(record, timestamp);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#fetch(java.lang.String
-	 * , long)
-	 */
 	@Override
 	public Set<TObject> fetch(String key, long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record));
 		return super.fetch(key, record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#fetch(java.lang.String
-	 * , long, long)
-	 */
 	@Override
 	public Set<TObject> fetch(String key, long record, long timestamp) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record,
+				timestamp));
 		return super.fetch(key, record, timestamp);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.concourse.server.storage.BufferedStore#find(long,
-	 * java.lang.String, org.cinchapi.concourse.thrift.Operator,
-	 * org.cinchapi.concourse.thrift.TObject[])
-	 */
 	@Override
 	public Set<Long> find(long timestamp, String key, Operator operator,
 			TObject... values) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyVersionExpectation(key, timestamp));
 		return super.find(timestamp, key, operator, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#find(java.lang.String
-	 * , org.cinchapi.concourse.thrift.Operator,
-	 * org.cinchapi.concourse.thrift.TObject[])
-	 */
 	@Override
 	public Set<Long> find(String key, Operator operator, TObject... values) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyVersionExpectation(key));
 		return super.find(key, operator, values);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.cinchapi.concourse.server.storage.BufferedStore#ping(long)
-	 */
 	@Override
 	public boolean ping(long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new RecordVersionExpectation(record));
 		return super.ping(record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#remove(java.lang.
-	 * String, org.cinchapi.concourse.thrift.TObject, long)
-	 */
 	@Override
 	public boolean remove(String key, TObject value, long record) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record));
 		return super.remove(key, value, record);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#revert(java.lang.
-	 * String, long, long)
-	 */
 	@Override
 	public void revert(String key, long record, long timestamp) {
 		// TODO: remove this method from the engine...it should only be exposed
@@ -207,43 +137,10 @@ public class AtomicOperation extends BufferedStore {
 		// accomplish it
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#search(java.lang.
-	 * String, java.lang.String)
-	 */
 	@Override
 	public Set<Long> search(String key, String query) {
-		// TODO Auto-generated method stub
+		expectedVersions.add(new KeyVersionExpectation(key));
 		return super.search(key, query);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#verify(java.lang.
-	 * String, org.cinchapi.concourse.thrift.TObject, long)
-	 */
-	@Override
-	public boolean verify(String key, TObject value, long record) {
-		// TODO Auto-generated method stub
-		return super.verify(key, value, record);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.cinchapi.concourse.server.storage.BufferedStore#verify(java.lang.
-	 * String, org.cinchapi.concourse.thrift.TObject, long, long)
-	 */
-	@Override
-	public boolean verify(String key, TObject value, long record, long timestamp) {
-		// TODO Auto-generated method stub
-		return super.verify(key, value, record, timestamp);
 	}
 
 	/*
@@ -268,113 +165,65 @@ public class AtomicOperation extends BufferedStore {
 
 	}
 
+	@Override
+	public boolean verify(String key, TObject value, long record) {
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record));
+		return super.verify(key, value, record);
+	}
+
+	@Override
+	public boolean verify(String key, TObject value, long record, long timestamp) {
+		expectedVersions.add(new KeyInRecordVersionExpectation(key, record,
+				timestamp));
+		return super.verify(key, value, record, timestamp);
+	}
+
 	/**
-	 * This class determines and stores the expected version of a record and
-	 * possibly key and/or timestamp in {@link #destination}. A
+	 * The base class for those that determine and stores the expected version
+	 * of a record and and/or key and/or timestamp in {@link #destination}. A
 	 * VersionExpectation should be stored whenever a read/write occurs in the
 	 * AtomicOperation, so that we can check to see if any versions have changed
 	 * when we go to commit.
 	 * 
 	 * @author jnelson
 	 */
-	private final class VersionExpectation {
+	private abstract class VersionExpectation {
 		// NOTE: This class does not define hashCode() or equals() because the
 		// defaults are the desired behaviour.
 
-		@Nullable
-		private final String key;
-
-		private final long record;
-
-		@Nullable
-		private final long timestamp;
-
-		@Nullable
-		private final long expectedVersion;
-
+		/**
+		 * The Token that corresponds to the data components that were used to
+		 * generate this VersionExpectation.
+		 */
 		private final Token token;
 
 		/**
-		 * Return a VersionExpecation for {@code record}.
-		 * 
-		 * @param record
+		 * OPTIONAL parameter that exists if the VersionExpectation
+		 * was generated from a historical read.
 		 */
-		public VersionExpectation(long record) {
-			this(null, record, Versioned.NO_VERSION);
-		}
+		private final long timestamp;
 
 		/**
-		 * Return a VersionExpectation for {@code record} AT {@code timestamp}.
-		 * <p>
-		 * <strong>NOTE:</strong> Never supply a timestamp for historical write
-		 * operations (i.e. revert).
-		 * </p>
-		 * 
-		 * @param record
-		 * @param timestamp
+		 * OPTINAL parameter that exists iff {@link #timestamp} ==
+		 * {@link Versioned#NO_VERSION} since since data returned from a
+		 * historical read won't change with additional writes.
 		 */
-		public VersionExpectation(long record, long timestamp) {
-			this(null, record, timestamp);
-		}
+		private final long expectedVersion;
 
 		/**
-		 * Return a VersionExpectation for {@code key} IN {@code record}.
 		 * Construct a new instance.
 		 * 
-		 * @param key
-		 * @param record
-		 */
-		public VersionExpectation(String key, long record) {
-			this(key, record, Versioned.NO_VERSION);
-		}
-
-		/**
-		 * This is the default constructor. If none of the parameters are null
-		 * this will return a VersionExpectation for {@code key} IN
-		 * {@code record} at {@code timestamp}. Otherwise, this will collapse to
-		 * one of the cases for the other constructors.
-		 * <p>
-		 * <strong>NOTE:</strong> Never supply a timestamp for historical write
-		 * operations (i.e. revert).
-		 * </p>
-		 * 
-		 * @param key
-		 * @param record
+		 * @param token
 		 * @param timestamp
+		 * @param expectedVersion
 		 */
-		public VersionExpectation(@Nullable String key, long record,
-				@Nullable long timestamp) {
-			this.key = key;
-			this.record = record;
+		protected VersionExpectation(Token token, long timestamp,
+				long expectedVersion) {
+			Preconditions
+					.checkState((timestamp != Versioned.NO_VERSION && expectedVersion == Versioned.NO_VERSION) || true);
+			this.token = token;
 			this.timestamp = timestamp;
-			if(key != null) {
-				this.token = Token.wrap(key, record);
-				if(timestamp != Versioned.NO_VERSION) { // case: key IN record
-														// AT timestamp
-					// There is no expected version when doing a historical
-					// read, since the returned data won't change with
-					// additional rights.
-					this.expectedVersion = Versioned.NO_VERSION;
-				}
-				else { // case: key IN record
-					this.expectedVersion = ((VersionGetter) destination)
-							.getVersion(key, record);
-				}
-			}
-			else {
-				this.token = Token.wrap(record);
-				if(timestamp != Versioned.NO_VERSION) { // case: record AT
-														// timestamp
-					// There is no expected version when doing a historical
-					// read, since the returned data won't change with
-					// additional rights.
-					this.expectedVersion = Versioned.NO_VERSION;
-				}
-				else { // case: record
-					this.expectedVersion = ((VersionGetter) destination)
-							.getVersion(record);
-				}
-			}
+			this.expectedVersion = expectedVersion;
 		}
 
 		/**
@@ -387,22 +236,20 @@ public class AtomicOperation extends BufferedStore {
 		}
 
 		/**
-		 * Return the key.
+		 * Return the key, if it exists.
 		 * 
-		 * @return the key.
+		 * @return the key
+		 * @throws UnsupportedOperationException
 		 */
-		public String getKey() {
-			return key;
-		}
+		public abstract String getKey() throws UnsupportedOperationException;
 
 		/**
-		 * Return the record.
+		 * Return the record, if it exists.
 		 * 
 		 * @return the record
+		 * @throws UnsupportedOperationException
 		 */
-		public long getRecord() {
-			return record;
-		}
+		public abstract long getRecord() throws UnsupportedOperationException;
 
 		/**
 		 * Return the token that can be used to grab the appropriate lock over
@@ -417,17 +264,173 @@ public class AtomicOperation extends BufferedStore {
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
+			boolean replaceInClause = false;
 			sb.append("Expecting version " + expectedVersion + "for '");
-			if(key != null) {
-				sb.append(key + " IN ");
+			try {
+				sb.append(getKey() + " IN ");
 			}
-			sb.append(record);
+			catch (UnsupportedOperationException e) {/* ignore */}
+			try {
+				sb.append(getRecord());
+			}
+			catch (UnsupportedOperationException e) {
+				/* ignore exception */
+				replaceInClause = true;
+			}
 			if(timestamp != Versioned.NO_VERSION) {
 				sb.append(" AT " + timestamp);
 			}
 			sb.append("'");
-			return sb.toString();
+			String string = sb.toString();
+			if(replaceInClause) {
+				string.replace(" IN ", "");
+			}
+			return string;
 		}
+	}
+
+	/**
+	 * A VersionExpectation for a read that touches an entire record (i.e.
+	 * describe, audit, etc).
+	 * 
+	 * @author jnelson
+	 */
+	private final class RecordVersionExpectation extends VersionExpectation {
+
+		private final long record;
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param token
+		 * @param timestamp
+		 * @param expectedVersion
+		 */
+		public RecordVersionExpectation(long record) {
+			super(Token.wrap(record), Versioned.NO_VERSION,
+					((VersionGetter) destination).getVersion(record));
+			this.record = record;
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param record
+		 * @param timestamp
+		 */
+		public RecordVersionExpectation(long record, long timestamp) {
+			super(Token.wrap(record), timestamp, Versioned.NO_VERSION);
+			this.record = record;
+		}
+
+		@Override
+		public String getKey() throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public long getRecord() throws UnsupportedOperationException {
+			return record;
+		}
+
+	}
+
+	/**
+	 * A VersionExpectation for a read that touches an entire key (i.e.
+	 * find, search, etc).
+	 * 
+	 * @author jnelson
+	 */
+	private final class KeyVersionExpectation extends VersionExpectation {
+
+		private final String key;
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param token
+		 * @param timestamp
+		 * @param expectedVersion
+		 */
+		public KeyVersionExpectation(String key) {
+			super(Token.wrap(key), Versioned.NO_VERSION,
+					((VersionGetter) destination).getVersion(key));
+			this.key = key;
+		}
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param key
+		 * @param timestamp
+		 */
+		public KeyVersionExpectation(String key, long timestamp) {
+			super(Token.wrap(key), timestamp, Versioned.NO_VERSION);
+			this.key = key;
+		}
+
+		@Override
+		public String getKey() throws UnsupportedOperationException {
+			return key;
+		}
+
+		@Override
+		public long getRecord() throws UnsupportedOperationException {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/**
+	 * A VersionExpectation for a read or write that touches a key IN a record
+	 * (i.e. fetch, verify, etc).
+	 * 
+	 * @author jnelson
+	 */
+	private final class KeyInRecordVersionExpectation extends
+			VersionExpectation {
+
+		private final long record;
+		private final String key;
+
+		/**
+		 * Construct a new instance.
+		 * 
+		 * @param token
+		 * @param timestamp
+		 * @param expectedVersion
+		 */
+		protected KeyInRecordVersionExpectation(String key, long record) {
+			super(Token.wrap(key, record), Versioned.NO_VERSION,
+					((VersionGetter) destination).getVersion(key, record));
+			this.key = key;
+			this.record = record;
+		}
+
+		/**
+		 * Construct a new instance. NEVER use this constructor for a write
+		 * operation.
+		 * 
+		 * @param key
+		 * @param record
+		 * @param timestamp
+		 */
+		protected KeyInRecordVersionExpectation(String key, long record,
+				long timestamp) {
+			super(Token.wrap(key, record), timestamp, Versioned.NO_VERSION);
+			this.key = key;
+			this.record = record;
+		}
+
+		@Override
+		public String getKey() throws UnsupportedOperationException {
+			return key;
+		}
+
+		@Override
+		public long getRecord() throws UnsupportedOperationException {
+			return record;
+		}
+
 	}
 
 }
