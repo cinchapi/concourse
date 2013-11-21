@@ -32,20 +32,20 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 
 ### Pick an issue
 1. Fix an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature.
-2. Create an account in Jira and.
-3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket yo yourself.
+2. Create an account in Jira.
+3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket. yourself.
 
 ### Write some code
-1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards)
-2. [Fork](https://github.com/cinchapi/concourse/fork) the repo
-3. Clone your forked version of concourse.git
+1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
+2. [Fork](https://github.com/cinchapi/concourse/fork) the repo.
+3. Clone your forked version of concourse.git.
 
 		$ git clone git@github.com:<username>/concourse.git
-		
-4. Run the initialization script, which will delete itself once its done
+
+4. Run the initialization script, which will delete itself upon completion.
 
 		$ ./init.sh
-		
+
 5. Start writing code :)
 
 ### Run from Eclipse
@@ -59,12 +59,12 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
 
 	$ ./gradlew clean build distZip
-	
+
 If all goes well, unzip the distribution in `concourse-server/build/distribution`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
 
 ### Submit your changes
-1. Send a pull request
-2. Update the Jira ticket with the commit hashes for your change
+1. Send a pull request.
+2. Update the Jira ticket with the commit hashes for your change.
 
 ### Join the team
 Shoot us an [email](mailto:jeff@cinchapi.org) if you want to become a regular contributor and help with strategic planning!
@@ -86,6 +86,5 @@ Ping us at [concourse-devs@cinchapi.org](mailto:concourse-devs@cinchapi.org) if 
 
 Copyright © 2013 Cinchapi Software Collective.
 
-Concourse is released under the MIT License. For more information see LICENSE,
-which is included with this package.
+Concourse is released under the MIT License. For more information see LICENSE, which is included with this package.
 
