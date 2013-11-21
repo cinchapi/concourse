@@ -4,6 +4,17 @@
 
 **This README is written for developers looking to contribute to the codebase. Detailed user documentation is available at [http://cinchapi.org/concourse](http://cinchapi.org/concourse)**
 
+## System Requirements
+
+### Memory
+Concourse immediately writes all data to disk, but also keeps recently written and read data in memory. Since memory operations are faster, having more on hand is great, but you can operate Concourse safely with a minimum 256 MB heap.
+
+### Operating System
+Concourse is only supported on Linux and Mac OS X operating systems. Things _should_ also work on Windows, but we can't make any guarantees.
+
+### Java
+Concourse runs on Java 1.7.
+
 ## General Information
 
 ### Versioning
