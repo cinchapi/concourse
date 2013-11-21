@@ -36,8 +36,17 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket yo yourself.
 
 ### Write some code
-1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
-2. [Fork](https://github.com/cinchapi/concourse/fork) the repo and get to work!
+1. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards)
+2. [Fork](https://github.com/cinchapi/concourse/fork) the repo
+3. Clone your forked version of concourse.git
+
+		$ git clone git@github.com:<username>/concourse.git
+		
+4. Run the initialization script, which will delete itself once its done
+
+		$ ./init.sh
+		
+5. Start writing code :)
 
 ### Run from Eclipse
 1. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
@@ -79,3 +88,4 @@ Copyright © 2013 Cinchapi Software Collective.
 
 Concourse is released under the MIT License. For more information see LICENSE,
 which is included with this package.
+
