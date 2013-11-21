@@ -29,7 +29,7 @@ uploadArchives {
               authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
 
-            pom.version = '0.3.0'
+            pom.version = '0.3.0-SNAPSHOT'
 
             pom.project {
                name 'Concourse'
