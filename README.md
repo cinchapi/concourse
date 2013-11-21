@@ -60,7 +60,7 @@ Always check that Concourse builds properly after you've made changes. We use [G
 
 	$ ./gradlew clean build distZip
 
-If all goes well, unzip the distribution in `concourse-server/build/distribution`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
+If all goes well, unzip the distribution in `concourse-server/build/distributions`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
 
 ### Submit your changes
 1. Send a pull request.
