@@ -57,16 +57,28 @@ import com.google.common.primitives.Longs;
  * {@link Sorter}. Once the Block is synced to disk it becomes immutable and all
  * lookups are disk based. This means that writing to a block never incurs any
  * random disk I/O. A Block is not durable until the {@link #sync()} method is
- * called.
+ * called, so Block serialization and Buffer.Page deletion happen sequentially.
  * </p>
  * <p>
- * Each Block is stored with a {@link BloomFilter} and a {@link BlockIndex} to
- * make lookups more efficient. The BlockFilter is used to test whether a
- * Revision involving some locator and possibly key, and possibly value
- * <em>might</em> exist in the Block. The BlockIndex is used to find the exact
- * start and end positions for Revisions involving a locator and possibly some
- * key. This means that reading from a Block never incurs any unnecessary disk
- * I/O.
+ * Each Block is stored with a corresponding {@link BloomFilter} and a
+ * {@link BlockIndex} to make lookups more efficient. The BlockFilter is used to
+ * test whether a Revision involving some locator and possibly key, and possibly
+ * value <em>might</em> exist in the Block. The BlockIndex is used to find the
+ * exact start and end positions for Revisions involving a locator and possibly
+ * some key. This means that reading from a Block never incurs any unnecessary
+ * disk I/O.
+ * </p>
+ * <p>
+ * Prior to 0.2, Concourse stored each logical Record in its own file, which had
+ * the advantage of simplified deserialization (we only needed to locate one
+ * file and read all of its content). The downside to that approach was that a
+ * single record couldn't be deserialized if it was larger than the amount of
+ * available memory. Storing data in blocks, helps to solve that problem,
+ * because larger records are broken up and we can do more granular seeking to
+ * reduce the amount of data that must come into memory (i.e. we can limit data
+ * reading by timestamp). Blocks also make it much easier to nuke old data
+ * without reading anything. And since each Block has its own bloom filter in
+ * memory, we make best efforts to only look at files when necessary.
  * </p>
  * 
  * 
@@ -124,7 +136,10 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
 	/**
 	 * The expected number of Block insertions. This number is used to size the
-	 * Block's internal data structures.
+	 * Block's internal data structures. This value should be large enough to
+	 * reflect the fact that, for each revision, we make 3 inserts into the
+	 * bloom filter, but no larger than necessary since we must keep all bloom
+	 * filters in memory.
 	 */
 	private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
 
@@ -195,7 +210,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	 * The index to determine which bytes in the block pertain to a locator or
 	 * locator/key pair.
 	 */
-	private final BlockIndex index;
+	private final BlockIndex index; // Since the index is only used for
+									// immutable blocks, it is only populated
+									// during the call to #getBytes()
 
 	/**
 	 * Construct a new instance.
@@ -230,13 +247,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * This method updates the {@link #index} each time it is called because it
-	 * is likely that elements in {@link #revisions} are shifted around during
-	 * sorting. Therefore, this method should only be called when the Block is
-	 * transitioning to an immutable state.
-	 */
 	@Override
 	public ByteBuffer getBytes() {
 		masterLock.readLock().lock();
@@ -505,7 +515,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 	/**
 	 * Seek revisions that contain components from {@code byteables} and append
 	 * them to {@code record}. The seek will be perform in memory iff this block
-	 * is mutable, otherwise, the seek is performed on disk.
+	 * is mutable, otherwise, the seek happens on disk.
 	 * 
 	 * @param record
 	 * @param byteables

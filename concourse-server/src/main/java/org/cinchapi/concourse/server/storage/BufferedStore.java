@@ -57,7 +57,7 @@ import static com.google.common.base.Preconditions.*;
 abstract class BufferedStore implements Store, VersionControlStore {
 
 	// NOTE: This class DOES NOT implement any locking directly, so it is
-	// ThreadSafe if the #buffer and #destination are. Nevertheless, a
+	// ThreadSafe iff the #buffer and #destination are. Nevertheless, a
 	// #masterLock is provided to subclasses in the event that they need to
 	// ensure some thread safety directly.
 
