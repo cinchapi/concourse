@@ -281,6 +281,11 @@ public final class Engine extends BufferedStore implements
 				((Database) destination).getVersion(record));
 	}
 
+	public long getVersion(String key){
+		return Math.max(buffer.getVersion(key),
+				((Database) destination).getVersion(key));
+	}
+	
 	@Override
 	public long getVersion(String key, long record) {
 		return Math.max(buffer.getVersion(key, record),

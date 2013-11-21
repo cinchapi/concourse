@@ -214,10 +214,22 @@ abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
 	public Set<Long> find(String key, Operator operator, TObject... values) {
 		return find(Time.now(), key, operator, values);
 	}
-
+	
 	@Override
 	public long getVersion(long record) {
 		return getVersion(null, record);
+	}
+
+	@Override
+	public long getVersion(String key){
+		Iterator<Write> it = reverseIterator();
+		while(it.hasNext()){
+			Write write = it.next();
+			if(write.getKey().equals(Text.wrap(key))){
+				return write.getVersion();
+			}
+		}
+		return Versioned.NO_VERSION;
 	}
 
 	@Override
@@ -232,7 +244,7 @@ abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
 				return write.getVersion();
 			}
 		}
-		return 0;
+		return Versioned.NO_VERSION;
 	}
 
 	/**
@@ -246,6 +258,11 @@ abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
 	@Override
 	public abstract Iterator<Write> iterator();
 
+	@Override
+	public boolean ping(long record) {
+		return !describe(record).isEmpty();
+	}
+
 	/**
 	 * Return an iterator that traverses the Writes in the store in reverse
 	 * order.
@@ -253,11 +270,6 @@ abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
 	 * @return the iterator
 	 */
 	public abstract Iterator<Write> reverseIterator();
-
-	@Override
-	public boolean ping(long record) {
-		return !describe(record).isEmpty();
-	}
 
 	@Override
 	public Set<Long> search(String key, String query) {

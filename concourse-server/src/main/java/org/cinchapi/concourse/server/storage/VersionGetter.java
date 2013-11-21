@@ -39,6 +39,14 @@ public interface VersionGetter {
 	public long getVersion(long record);
 
 	/**
+	 * Return the current version of {@code key}.
+	 * 
+	 * @param key
+	 * @return the version
+	 */
+	public long getVersion(String key);
+
+	/**
 	 * Return the current version of {@code key} in {@code record}
 	 * 
 	 * @param key

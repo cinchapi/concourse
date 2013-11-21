@@ -264,6 +264,14 @@ public final class Database implements PermanentStore, VersionGetter {
 	}
 
 	@Override
+	public long getVersion(String key) {
+		// NOTE: We must consult the SecondaryRecord over the SearchRecord
+		// because ALL writes for a key are secondary indexed whereas only text
+		// writes are search indexed.
+		return getSecondaryRecord(Text.wrap(key)).getVersion();
+	}
+
+	@Override
 	public long getVersion(String key, long record) {
 		return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
 				.getVersion();
