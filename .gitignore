@@ -53,5 +53,5 @@ Thumbs.db
 *bin/
 *context.txt
 *.counter
-*init.sh
+init.sh
 gradle.properties
