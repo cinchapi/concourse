@@ -40,195 +40,195 @@ import com.google.common.base.Preconditions;
  */
 public class ByteableCollections {
 
-	/**
-	 * Return an iterator that will traverse {@code bytes} and return a series
-	 * of byte buffers, each of which can be used to reconstruct a
-	 * {@link Byteable} object that is a member of a collection.
-	 * 
-	 * @param bytes
-	 * @return the iterator
-	 */
-	public static Iterator<ByteBuffer> iterator(ByteBuffer bytes) {
-		return new ByteableCollectionIterator(bytes);
-	}
+    /**
+     * Return an iterator that will traverse {@code bytes} and return a series
+     * of byte buffers, each of which can be used to reconstruct a
+     * {@link Byteable} object that is a member of a collection.
+     * 
+     * @param bytes
+     * @return the iterator
+     */
+    public static Iterator<ByteBuffer> iterator(ByteBuffer bytes) {
+        return new ByteableCollectionIterator(bytes);
+    }
 
-	/**
-	 * Return an iterator that will traverse {@code bytes} and return a series
-	 * of fixed size byte buffers, each of which can be used to reconstruct a
-	 * {@link Byteable} object that is a member of a collection.
-	 * 
-	 * @param bytes
-	 * @return the iterator
-	 */
-	public static Iterator<ByteBuffer> iterator(ByteBuffer bytes,
-			int sizePerElement) {
-		return new FixedSizeByteableCollectionIterator(bytes);
-	}
+    /**
+     * Return an iterator that will traverse {@code bytes} and return a series
+     * of fixed size byte buffers, each of which can be used to reconstruct a
+     * {@link Byteable} object that is a member of a collection.
+     * 
+     * @param bytes
+     * @return the iterator
+     */
+    public static Iterator<ByteBuffer> iterator(ByteBuffer bytes,
+            int sizePerElement) {
+        return new FixedSizeByteableCollectionIterator(bytes);
+    }
 
-	/**
-	 * Encode the collection as a sequence of bytes.
-	 * 
-	 * @param collection
-	 * @return a byte array
-	 */
-	public static ByteBuffer toByteBuffer(
-			Collection<? extends Byteable> collection) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		for (Byteable object : collection) {
-			out.write(object.size());
-			out.write(object);
-		}
-		out.close();
-		return out.toByteBuffer();
-	}
+    /**
+     * Encode the collection as a sequence of bytes.
+     * 
+     * @param collection
+     * @return a byte array
+     */
+    public static ByteBuffer toByteBuffer(
+            Collection<? extends Byteable> collection) {
+        ByteBufferOutputStream out = new ByteBufferOutputStream();
+        for (Byteable object : collection) {
+            out.write(object.size());
+            out.write(object);
+        }
+        out.close();
+        return out.toByteBuffer();
+    }
 
-	/**
-	 * Encode the collection as a sequence of bytes where every element is
-	 * {@code sizePerElement} bytes.
-	 * 
-	 * @param collection
-	 * @param sizePerElement
-	 * @return a byte array
-	 */
-	public static ByteBuffer toByteBuffer(
-			Collection<? extends Byteable> collection, int sizePerElement) {
-		ByteBufferOutputStream out = new ByteBufferOutputStream();
-		out.write(collection.size());
-		out.write(sizePerElement);
-		for (Byteable object : collection) {
-			Preconditions.checkArgument(object.size() == sizePerElement,
-					"'%s' must be '%s' bytes but it is "
-							+ "actually '%s' bytes", object, sizePerElement,
-					object.size());
+    /**
+     * Encode the collection as a sequence of bytes where every element is
+     * {@code sizePerElement} bytes.
+     * 
+     * @param collection
+     * @param sizePerElement
+     * @return a byte array
+     */
+    public static ByteBuffer toByteBuffer(
+            Collection<? extends Byteable> collection, int sizePerElement) {
+        ByteBufferOutputStream out = new ByteBufferOutputStream();
+        out.write(collection.size());
+        out.write(sizePerElement);
+        for (Byteable object : collection) {
+            Preconditions.checkArgument(object.size() == sizePerElement,
+                    "'%s' must be '%s' bytes but it is "
+                            + "actually '%s' bytes", object, sizePerElement,
+                    object.size());
 
-			out.write(object.getBytes());
-		}
-		out.close();
-		return out.toByteBuffer();
-	}
+            out.write(object.getBytes());
+        }
+        out.close();
+        return out.toByteBuffer();
+    }
 
-	/**
-	 * An {@link Iterator} that traverses a byte buffer and returns sub
-	 * sequences. The iterator assumes that each sequence is preceded by a 4
-	 * byte integer (a peek) that specifies how many bytes should be read and
-	 * returned with the next sequence. The iterator will fail to return a next
-	 * element when its peek is less than 1 or the byte buffer has no more
-	 * elements.
-	 * 
-	 * @author jnelson
-	 */
-	private static class ByteableCollectionIterator implements
-			Iterator<ByteBuffer> {
+    /**
+     * An {@link Iterator} that traverses a byte buffer and returns sub
+     * sequences. The iterator assumes that each sequence is preceded by a 4
+     * byte integer (a peek) that specifies how many bytes should be read and
+     * returned with the next sequence. The iterator will fail to return a next
+     * element when its peek is less than 1 or the byte buffer has no more
+     * elements.
+     * 
+     * @author jnelson
+     */
+    private static class ByteableCollectionIterator implements
+            Iterator<ByteBuffer> {
 
-		protected final ByteBuffer bytes;
-		protected ByteBuffer next;
+        protected final ByteBuffer bytes;
+        protected ByteBuffer next;
 
-		/**
-		 * Construct a new instance.
-		 * 
-		 * @param bytes
-		 */
-		protected ByteableCollectionIterator(ByteBuffer bytes) {
-			this.bytes = bytes;
-			readNext();
-		}
+        /**
+         * Construct a new instance.
+         * 
+         * @param bytes
+         */
+        protected ByteableCollectionIterator(ByteBuffer bytes) {
+            this.bytes = bytes;
+            readNext();
+        }
 
-		@Override
-		public boolean hasNext() {
-			return next != null;
-		}
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
 
-		@Override
-		public ByteBuffer next() {
-			ByteBuffer next = this.next;
-			readNext();
-			return next;
-		}
+        @Override
+        public ByteBuffer next() {
+            ByteBuffer next = this.next;
+            readNext();
+            return next;
+        }
 
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException(
-					"This method is not supported.");
-		}
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException(
+                    "This method is not supported.");
+        }
 
-		/**
-		 * Read the next element from {@code bytes}.
-		 */
-		protected void readNext() {
-			next = null;
-			if(bytes.remaining() >= 4) {
-				int peek = bytes.getInt();
-				if(peek > 0 && bytes.remaining() >= peek) {
-					next = ByteBuffers.slice(bytes, bytes.position(), peek);
-					bytes.position(bytes.position() + peek);
-				}
-				else {
-					bytes.position(bytes.position() - 4);
-				}
-			}
-		}
-	}
+        /**
+         * Read the next element from {@code bytes}.
+         */
+        protected void readNext() {
+            next = null;
+            if(bytes.remaining() >= 4) {
+                int peek = bytes.getInt();
+                if(peek > 0 && bytes.remaining() >= peek) {
+                    next = ByteBuffers.slice(bytes, bytes.position(), peek);
+                    bytes.position(bytes.position() + peek);
+                }
+                else {
+                    bytes.position(bytes.position() - 4);
+                }
+            }
+        }
+    }
 
-	/**
-	 * An {@link Iterator} that traverses a byte array and returns sequences.
-	 * The iterator assumes that the first 4 bytes of the sequence specifies the
-	 * number of sequences, the next four bytes specify the size of each
-	 * sequence and the remaining bytes are the sequences over which to iterate.
-	 * The iterator will fail to return a next element when its has read up to
-	 * the specified number of sequences or the capacity of its byte buffer is
-	 * less than the specified sequence size.
-	 * 
-	 * @author jnelson
-	 */
-	private static class FixedSizeByteableCollectionIterator extends
-			ByteableCollectionIterator {
+    /**
+     * An {@link Iterator} that traverses a byte array and returns sequences.
+     * The iterator assumes that the first 4 bytes of the sequence specifies the
+     * number of sequences, the next four bytes specify the size of each
+     * sequence and the remaining bytes are the sequences over which to iterate.
+     * The iterator will fail to return a next element when its has read up to
+     * the specified number of sequences or the capacity of its byte buffer is
+     * less than the specified sequence size.
+     * 
+     * @author jnelson
+     */
+    private static class FixedSizeByteableCollectionIterator extends
+            ByteableCollectionIterator {
 
-		private final int numSequences;
-		private final int sequenceSize;
-		private int nextSequence = 0;
+        private final int numSequences;
+        private final int sequenceSize;
+        private int nextSequence = 0;
 
-		/**
-		 * Construct a new instance.
-		 * 
-		 * @param bytes
-		 */
-		protected FixedSizeByteableCollectionIterator(ByteBuffer bytes) {
-			super(bytes);
-			this.numSequences = this.bytes.getInt();
-			this.sequenceSize = this.bytes.getInt();
-			readFixedNext();
-		}
+        /**
+         * Construct a new instance.
+         * 
+         * @param bytes
+         */
+        protected FixedSizeByteableCollectionIterator(ByteBuffer bytes) {
+            super(bytes);
+            this.numSequences = this.bytes.getInt();
+            this.sequenceSize = this.bytes.getInt();
+            readFixedNext();
+        }
 
-		@Override
-		public boolean hasNext() {
-			return next != null;
-		}
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
 
-		@Override
-		public ByteBuffer next() {
-			ByteBuffer next = this.next;
-			readFixedNext();
-			return next;
-		}
+        @Override
+        public ByteBuffer next() {
+            ByteBuffer next = this.next;
+            readFixedNext();
+            return next;
+        }
 
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException(
-					"This method is not supported.");
-		}
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException(
+                    "This method is not supported.");
+        }
 
-		@Override
-		protected void readNext() {} // Do nothing. I am not overriding this
-										// method because it is called by the
-										// parent constructor and its execution
-										// would cause unexpected behaviour
+        @Override
+        protected void readNext() {} // Do nothing. I am not overriding this
+                                     // method because it is called by the
+                                     // parent constructor and its execution
+                                     // would cause unexpected behaviour
 
-		private void readFixedNext() {
-			next = null;
-			if(nextSequence < numSequences && bytes.remaining() >= sequenceSize) {
-				next = ByteBuffers.slice(bytes, bytes.position(), sequenceSize);
-			}
-		}
-	}
+        private void readFixedNext() {
+            next = null;
+            if(nextSequence < numSequences && bytes.remaining() >= sequenceSize) {
+                next = ByteBuffers.slice(bytes, bytes.position(), sequenceSize);
+            }
+        }
+    }
 
 }

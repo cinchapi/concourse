@@ -108,731 +108,731 @@ import com.google.common.collect.Lists;
  */
 public interface Concourse {
 
-	/**
-	 * Discard any changes that are currently staged for commit.
-	 * <p>
-	 * After this function returns, Concourse will return to {@code autocommit}
-	 * mode and all subsequent changes will be immediately written to the
-	 * database.
-	 * </p>
-	 */
-	public void abort();
-
-	/**
-	 * Add {@code key} as {@code value} to {@code record} and return
-	 * {@code true} if the mapping does not currently exist in {@code record}
-	 * and is successfully added.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the mapping is added
-	 */
-	public <T> boolean add(String key, T value, long record);
-
-	/**
-	 * Audit {@code record} and return a log of revisions.
-	 * 
-	 * @param record
-	 * @return a mapping of timestamps to revision descriptions
-	 */
-	public Map<DateTime, String> audit(long record);
-
-	/**
-	 * Audit {@code key} in {@code record} and return a log of revisions.
-	 * 
-	 * @param key
-	 * @param record
-	 * @return a mapping of timestamps to revision descriptions
-	 */
-	public Map<DateTime, String> audit(String key, long record);
-
-	/**
-	 * Clear {@code key} in {@code record} and remove every mapping
-	 * from {@code key} that currently exists in {@code record}.
-	 * 
-	 * @param record
-	 */
-	public void clear(String key, long record);
-
-	/**
-	 * Attempt to permanently commit all the currently staged changes. This
-	 * function returns {@code true} if and only if all the changes can be
-	 * successfully applied to the database. Otherwise, this function returns
-	 * {@code false} and all the changes are aborted.
-	 * <p>
-	 * After this function returns, Concourse will return to {@code autocommit}
-	 * mode and all subsequent changes will be immediately written to the
-	 * database.
-	 * </p>
-	 */
-	public boolean commit();
-
-	/**
-	 * Create a new Record and return its Primary Key.
-	 * 
-	 * @return the Primary Key of the new Record
-	 */
-	public long create();
-
-	/**
-	 * Describe {@code record} and return its set of keys that currently map to
-	 * at least one value.
-	 * 
-	 * @param record
-	 * @return the populated keys
-	 */
-	public Set<String> describe(long record);
-
-	/**
-	 * Describe {@code record} at {@code timestamp} and return its set of keys
-	 * that mapped to at least one value.
-	 * 
-	 * @param record
-	 * @param timestamp
-	 * @return the keys for populated keys
-	 */
-	public Set<String> describe(long record, DateTime timestamp);
-
-	/**
-	 * Disconnect from the remote Concourse server.
-	 */
-	public void exit();
-
-	/**
-	 * Fetch {@code key} from {@code record} and return the set of currently
-	 * mapped values.
-	 * 
-	 * @param key
-	 * @param record
-	 * @return the contained values
-	 */
-	public Set<Object> fetch(String key, long record);
-
-	/**
-	 * Fetch {@code key} from {@code record} at {@code timestamp} and return the
-	 * set of values that were mapped.
-	 * 
-	 * @param key
-	 * @param record
-	 * @param timestamp
-	 * @return the contained values
-	 */
-	public Set<Object> fetch(String key, long record, DateTime timestamp);
-
-	/**
-	 * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
-	 * return the set of records that satisfied the criteria. This is analogous
-	 * to the SELECT action in SQL.
-	 * 
-	 * @param timestamp
-	 * @param key
-	 * @param operator
-	 * @param values
-	 * @return the records that match the criteria
-	 */
-	public Set<Long> find(DateTime timestamp, String key, Operator operator,
-			Object... values);
-
-	/**
-	 * Find {@code key} {@code operator} {@code values} and return the set of
-	 * records that satisfy the criteria. This is analogous to the SELECT action
-	 * in SQL.
-	 * 
-	 * @param key
-	 * @param operator
-	 * @param values
-	 * @return the records that match the criteria
-	 */
-	public Set<Long> find(String key, Operator operator, Object... values);
-
-	/**
-	 * Get {@code key} from {@code record} and return the first mapped value or
-	 * {@code null} if there is none. Compared to {@link #fetch(String, long)},
-	 * this method is suited for cases when the caller is certain that
-	 * {@code key} in {@code record} maps to a single value of type {@code T}.
-	 * 
-	 * @param key
-	 * @param record
-	 * @return the first mapped value
-	 */
-	public <T> T get(String key, long record);
-
-	/**
-	 * Get {@code key} from {@code record} at {@code timestamp} and return the
-	 * first mapped value or {@code null} if there was none. Compared to
-	 * {@link #fetch(String, long, long)}, this method is suited for cases when
-	 * the caller is certain that {@code key} in {@code record} mapped to a
-	 * single value of type {@code T} at {@code timestamp}.
-	 * 
-	 * @param key
-	 * @param record
-	 * @param timestamp
-	 * @return the first mapped value
-	 */
-	public <T> T get(String key, long record, DateTime timestamp);
-
-	/**
-	 * Link {@code key} in {@code source} to {@code destination}. In other
-	 * words, add {@code key} as {@link Link#to(destination)} in {@code source}.
-	 * 
-	 * @param key
-	 * @param source
-	 * @param destination
-	 * @return {@code true} if the one way link is added
-	 */
-	public boolean link(String key, long source, long destination);
-
-	/**
-	 * Ping {@code record} and return {@code true} if there is currently at
-	 * least one populated key.
-	 * 
-	 * @param record
-	 * @return {@code true} if {@code record} currently contains data
-	 */
-	public boolean ping(long record);
-
-	/**
-	 * Remove {@code key} as {@code value} from {@code record} and return
-	 * {@code true} if the mapping currently exists in {@code record} and is
-	 * successfully removed.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the mapping is removed
-	 */
-	public <T> boolean remove(String key, T value, long record);
-
-	/**
-	 * Revert {@code key} in {@code record} to {@code timestamp}. This method
-	 * restores the key to its state at {@code timestamp} by reversing all
-	 * revisions that have occurred since.
-	 * <p>
-	 * Please note that this method <strong>does not</strong> {@code rollback}
-	 * any revisions, but creates <em>new</em> revisions that are the inverse of
-	 * all revisions since {@code timestamp} in reverse order.
-	 * </p>
-	 * 
-	 * @param key
-	 * @param record
-	 * @param timestamp
-	 */
-	public void revert(String key, long record, DateTime timestamp);
-
-	/**
-	 * Search {@code key} for {@code query} and return the set of records that
-	 * match the fulltext query.
-	 * 
-	 * @param key
-	 * @param query
-	 * @return the records that match the query
-	 */
-	public Set<Long> search(String key, String query);
-
-	/**
-	 * Set {@code key} as {@code value} in {@code record}. This is a convenience
-	 * method that clears the values currently mapped from {@code key} and adds
-	 * a new mapping to {@code value}.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the old mappings are removed and the new one is
-	 *         added
-	 */
-	public <T> boolean set(String key, T value, long record);
-
-	/**
-	 * Turn on {@code staging} mode so that all subsequent changes are
-	 * collected in a staging area before possibly being committed to the
-	 * database. Staged operations are guaranteed to be reliable, all or nothing
-	 * units of work that allow correct recovery from failures and provide
-	 * isolation between clients so the database is always in a consistent state
-	 * (i.e. a transaction).
-	 * <p>
-	 * After this method returns, all subsequent operations will be done in
-	 * {@code staging} mode until either {@link #abort()} or {@link #commit()}
-	 * is invoked.
-	 * </p>
-	 */
-	public void stage();
-
-	/**
-	 * Unlink {@code key} in {@code source} to {@code destination}. In other
-	 * words, remove{@code key} as {@link Link#to(destination)} in
-	 * {@code source}.
-	 * 
-	 * @param key
-	 * @param source
-	 * @param destination
-	 * @return {@code true} if the one way link is removed
-	 */
-	public boolean unlink(String key, long source, long destination);
-
-	/**
-	 * Verify {@code key} equals {@code value} in {@code record} and return
-	 * {@code true} if {@code value} is currently mapped from {@code key} in
-	 * {@code record}.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @return {@code true} if the mapping exists
-	 */
-	public boolean verify(String key, Object value, long record);
-
-	/**
-	 * Verify {@code key} equaled {@code value} in {@code record} at
-	 * {@code timestamp} and return {@code true} if {@code value} was mapped
-	 * from {@code key} in {@code record}.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param record
-	 * @param timestamp
-	 * @return {@code true} if the mapping existed
-	 */
-	public boolean verify(String key, Object value, long record,
-			DateTime timestamp);
-
-	/**
-	 * The implementation of the {@link Concourse} interface that establishes a
-	 * connection with the remote server and handles communication. This class
-	 * is a more user friendly wrapper around a Thrift
-	 * {@link ConcourseService.Client}.
-	 * 
-	 * @author jnelson
-	 */
-	public final static class Client implements Concourse {
-
-		// NOTE: The configuration variables are static because we want to
-		// guarantee that they are set before the client connection is
-		// constructed. Even though these variables are static, it is still the
-		// case that any changes to the configuration will be picked up
-		// immediately for new client connections.
-		private static String SERVER_HOST;
-		private static int SERVER_PORT;
-		private static String USERNAME;
-		private static String PASSWORD;
-		static {
-			ConcourseConfiguration config;
-			try {
-				config = ConcourseConfiguration
-						.loadConfig("concourse_client.prefs");
-			}
-			catch (Exception e) {
-				config = null;
-			}
-			SERVER_HOST = "localhost";
-			SERVER_PORT = 1717;
-			USERNAME = "admin";
-			PASSWORD = "admin";
-			if(config != null) {
-				SERVER_HOST = config.getString("host", SERVER_HOST);
-				SERVER_PORT = config.getInt("port", SERVER_PORT);
-				USERNAME = config.getString("username", USERNAME);
-				PASSWORD = config.getString("password", PASSWORD);
-			}
-		}
-
-		/**
-		 * Represents a request to respond to a query using the current state as
-		 * opposed to the history.
-		 */
-		private static DateTime now = new DateTime(0);
-
-		private final String username;
-		private final String password;
-
-		/**
-		 * The Thrift client that actually handles all RPC communication.
-		 */
-		private final ConcourseService.Client client;
-
-		/**
-		 * The client keeps a copy of its {@link AccessToken} and passes it to
-		 * the
-		 * server for each remote procedure call. The client will
-		 * re-authenticate
-		 * when necessary using the username/password read from the prefs file.
-		 */
-		private AccessToken creds = null;
-
-		/**
-		 * Whenever the client starts a Transaction, it keeps a
-		 * {@link TransactionToken} so that the server can stage the changes in
-		 * the
-		 * appropriate place.
-		 */
-		private TransactionToken transaction = null;
-
-		/**
-		 * Create a new Client connection to the Concourse server specified in
-		 * {@code concourse.prefs} and return a handler to facilitate database
-		 * interaction.
-		 */
-		public Client() {
-			this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD);
-		}
-
-		/**
-		 * Create a new Client connection to a Concourse server and return a
-		 * handler to facilitate database interaction.
-		 * 
-		 * @param host
-		 * @param port
-		 * @param username
-		 * @param password
-		 */
-		public Client(String host, int port, String username, String password) {
-			this.username = username;
-			this.password = password;
-			final TTransport transport = new TSocket(host, port);
-			try {
-				transport.open();
-				TProtocol protocol = new TBinaryProtocol(transport);
-				client = new ConcourseService.Client(protocol);
-				authenticate();
-				Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
-
-					@Override
-					public void run() {
-						if(transaction != null && transport.isOpen()) {
-							abort();
-						}
-					}
-
-				});
-			}
-			catch (TTransportException e) {
-				throw Throwables.propagate(e);
-			}
-		}
-
-		@Override
-		public void abort() {
-			throw new UnsupportedOperationException(
-					"Transactions are not currently supported");
-		}
-
-		@Override
-		public <T> boolean add(final String key, final T value,
-				final long record) {
-			return execute(new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					return client.add(key, Convert.javaToThrift(value), record,
-							creds, transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public Map<DateTime, String> audit(final long record) {
-			return execute(new Callable<Map<DateTime, String>>() {
-
-				@Override
-				public Map<DateTime, String> call() throws Exception {
-					Map<Long, String> audit = client.audit(record, null, creds,
-							transaction);
-					return ((TLinkedHashMap<DateTime, String>) Transformers
-							.transformMap(audit,
-									new Function<Long, DateTime>() {
-
-										@Override
-										public DateTime apply(Long input) {
-											return Convert.unixToJoda(input);
-										}
-
-									})).setKeyName("DateTime").setValueName(
-							"Revision");
-				}
-
-			});
-		}
-
-		@Override
-		public Map<DateTime, String> audit(final String key, final long record) {
-			return execute(new Callable<Map<DateTime, String>>() {
-
-				@Override
-				public Map<DateTime, String> call() throws Exception {
-					Map<Long, String> audit = client.audit(record, key, creds,
-							transaction);
-					return ((TLinkedHashMap<DateTime, String>) Transformers
-							.transformMap(audit,
-									new Function<Long, DateTime>() {
-
-										@Override
-										public DateTime apply(Long input) {
-											return Convert.unixToJoda(input);
-										}
-
-									})).setKeyName("DateTime").setValueName(
-							"Revision");
-				}
-
-			});
-		}
-
-		@Override
-		public void clear(String key, long record) {
-			Set<Object> values = fetch(key, record);
-			for (Object value : values) {
-				remove(key, value, record);
-			}
-		}
-
-		@Override
-		public boolean commit() {
-			throw new UnsupportedOperationException(
-					"Transactions are not currently supported");
-		}
-
-		@Override
-		public long create() {
-			return Time.now(); // TODO get a primary key using a plugin
-		}
-
-		@Override
-		public Set<String> describe(long record) {
-			return describe(record, now);
-		}
-
-		@Override
-		public Set<String> describe(final long record, final DateTime timestamp) {
-			return execute(new Callable<Set<String>>() {
-
-				@Override
-				public Set<String> call() throws Exception {
-					return client.describe(record,
-							Convert.jodaToUnix(timestamp), creds, transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public void exit() {
-			client.getInputProtocol().getTransport().close();
-			client.getOutputProtocol().getTransport().close();
-		}
-
-		@Override
-		public Set<Object> fetch(String key, long record) {
-			return fetch(key, record, now);
-		}
-
-		@Override
-		public Set<Object> fetch(final String key, final long record,
-				final DateTime timestamp) {
-			return execute(new Callable<Set<Object>>() {
-
-				@Override
-				public Set<Object> call() throws Exception {
-					Set<TObject> values = client.fetch(key, record,
-							Convert.jodaToUnix(timestamp), creds, transaction);
-					return Transformers.transformSet(values,
-							new Function<TObject, Object>() {
-
-								@Override
-								public Object apply(TObject input) {
-									return Convert.thriftToJava(input);
-								}
-
-							});
-				}
-
-			});
-		}
-
-		@Override
-		public Set<Long> find(final DateTime timestamp, final String key,
-				final Operator operator, final Object... values) {
-			return execute(new Callable<Set<Long>>() {
-
-				@Override
-				public Set<Long> call() throws Exception {
-					return client.find(key, operator, Lists.transform(
-							Lists.newArrayList(values),
-							new Function<Object, TObject>() {
-
-								@Override
-								public TObject apply(Object input) {
-									return Convert.javaToThrift(input);
-								}
-
-							}), Convert.jodaToUnix(timestamp), creds,
-							transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public Set<Long> find(String key, Operator operator, Object... values) {
-			return find(now, key, operator, values);
-		}
-
-		@Override
-		@Nullable
-		public <T> T get(String key, long record) {
-			return get(key, record, now);
-		}
-
-		@SuppressWarnings("unchecked")
-		@Override
-		@Nullable
-		public <T> T get(String key, long record, DateTime timestamp) {
-			Set<Object> values = fetch(key, record, timestamp);
-			if(!values.isEmpty()) {
-				return (T) values.iterator().next();
-			}
-			return null;
-		}
-
-		@Override
-		public boolean link(String key, long source, long destination) {
-			return add(key, Link.to(destination), source);
-		}
-
-		@Override
-		public boolean ping(final long record) {
-			return execute(new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					return client.ping(record, creds, transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public boolean remove(final String key, final Object value,
-				final long record) {
-			return execute(new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					return client.remove(key, Convert.javaToThrift(value),
-							record, creds, transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public void revert(final String key, final long record,
-				final DateTime timestamp) {
-			execute(new Callable<Void>() {
-
-				@Override
-				public Void call() throws Exception {
-					client.revert(key, record, Convert.jodaToUnix(timestamp),
-							creds, transaction);
-					return null;
-				}
-
-			});
-
-		}
-
-		@Override
-		public Set<Long> search(final String key, final String query) {
-			return execute(new Callable<Set<Long>>() {
-
-				@Override
-				public Set<Long> call() throws Exception {
-					return client.search(key, query, creds, transaction);
-				}
-
-			});
-		}
-
-		@Override
-		public <T> boolean set(String key, T value, long record) {
-			Set<Object> values = fetch(key, record);
-			for (Object v : values) {
-				remove(key, v, record);
-			}
-			return add(key, value, record);
-		}
-
-		@Override
-		public void stage() {
-			throw new UnsupportedOperationException(
-					"Transactions are not currently supported");
-		}
-
-		@Override
-		public String toString() {
-			return "Connected to " + SERVER_HOST + ":" + SERVER_PORT + " as "
-					+ USERNAME;
-		}
-
-		@Override
-		public boolean unlink(String key, long source, long destination) {
-			return remove(key, Link.to(destination), source);
-		}
-
-		@Override
-		public boolean verify(String key, Object value, long record) {
-			return verify(key, value, record, now);
-		}
-
-		@Override
-		public boolean verify(final String key, final Object value,
-				final long record, final DateTime timestamp) {
-			return execute(new Callable<Boolean>() {
-
-				@Override
-				public Boolean call() throws Exception {
-					return client.verify(key, Convert.javaToThrift(value),
-							record, Convert.jodaToUnix(timestamp), creds,
-							transaction);
-				}
-
-			});
-		}
-
-		/**
-		 * Authenticate the {@link #username} and {@link #password} and populate
-		 * {@link #creds} with the appropriate AccessToken.
-		 */
-		private void authenticate() {
-			try {
-				creds = client.login(username, password);
-			}
-			catch (TException e) {
-				throw Throwables.propagate(e);
-			}
-		}
-
-		/**
-		 * Execute the task defined in {@code callable}. This method contains
-		 * retry logic to handle cases when {@code creds} expires and must be
-		 * updated.
-		 * 
-		 * @param callable
-		 * @return the task result
-		 */
-		private <T> T execute(Callable<T> callable) {
-			try {
-				return callable.call();
-			}
-			catch (SecurityException e) {
-				authenticate();
-				return execute(callable);
-			}
-			catch (Exception e) {
-				throw Throwables.propagate(e);
-			}
-		}
-
-	}
+    /**
+     * Discard any changes that are currently staged for commit.
+     * <p>
+     * After this function returns, Concourse will return to {@code autocommit}
+     * mode and all subsequent changes will be immediately written to the
+     * database.
+     * </p>
+     */
+    public void abort();
+
+    /**
+     * Add {@code key} as {@code value} to {@code record} and return
+     * {@code true} if the mapping does not currently exist in {@code record}
+     * and is successfully added.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the mapping is added
+     */
+    public <T> boolean add(String key, T value, long record);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     * 
+     * @param record
+     * @return a mapping of timestamps to revision descriptions
+     */
+    public Map<DateTime, String> audit(long record);
+
+    /**
+     * Audit {@code key} in {@code record} and return a log of revisions.
+     * 
+     * @param key
+     * @param record
+     * @return a mapping of timestamps to revision descriptions
+     */
+    public Map<DateTime, String> audit(String key, long record);
+
+    /**
+     * Clear {@code key} in {@code record} and remove every mapping
+     * from {@code key} that currently exists in {@code record}.
+     * 
+     * @param record
+     */
+    public void clear(String key, long record);
+
+    /**
+     * Attempt to permanently commit all the currently staged changes. This
+     * function returns {@code true} if and only if all the changes can be
+     * successfully applied to the database. Otherwise, this function returns
+     * {@code false} and all the changes are aborted.
+     * <p>
+     * After this function returns, Concourse will return to {@code autocommit}
+     * mode and all subsequent changes will be immediately written to the
+     * database.
+     * </p>
+     */
+    public boolean commit();
+
+    /**
+     * Create a new Record and return its Primary Key.
+     * 
+     * @return the Primary Key of the new Record
+     */
+    public long create();
+
+    /**
+     * Describe {@code record} and return its set of keys that currently map to
+     * at least one value.
+     * 
+     * @param record
+     * @return the populated keys
+     */
+    public Set<String> describe(long record);
+
+    /**
+     * Describe {@code record} at {@code timestamp} and return its set of keys
+     * that mapped to at least one value.
+     * 
+     * @param record
+     * @param timestamp
+     * @return the keys for populated keys
+     */
+    public Set<String> describe(long record, DateTime timestamp);
+
+    /**
+     * Disconnect from the remote Concourse server.
+     */
+    public void exit();
+
+    /**
+     * Fetch {@code key} from {@code record} and return the set of currently
+     * mapped values.
+     * 
+     * @param key
+     * @param record
+     * @return the contained values
+     */
+    public Set<Object> fetch(String key, long record);
+
+    /**
+     * Fetch {@code key} from {@code record} at {@code timestamp} and return the
+     * set of values that were mapped.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the contained values
+     */
+    public Set<Object> fetch(String key, long record, DateTime timestamp);
+
+    /**
+     * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
+     * return the set of records that satisfied the criteria. This is analogous
+     * to the SELECT action in SQL.
+     * 
+     * @param timestamp
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that match the criteria
+     */
+    public Set<Long> find(DateTime timestamp, String key, Operator operator,
+            Object... values);
+
+    /**
+     * Find {@code key} {@code operator} {@code values} and return the set of
+     * records that satisfy the criteria. This is analogous to the SELECT action
+     * in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that match the criteria
+     */
+    public Set<Long> find(String key, Operator operator, Object... values);
+
+    /**
+     * Get {@code key} from {@code record} and return the first mapped value or
+     * {@code null} if there is none. Compared to {@link #fetch(String, long)},
+     * this method is suited for cases when the caller is certain that
+     * {@code key} in {@code record} maps to a single value of type {@code T}.
+     * 
+     * @param key
+     * @param record
+     * @return the first mapped value
+     */
+    public <T> T get(String key, long record);
+
+    /**
+     * Get {@code key} from {@code record} at {@code timestamp} and return the
+     * first mapped value or {@code null} if there was none. Compared to
+     * {@link #fetch(String, long, long)}, this method is suited for cases when
+     * the caller is certain that {@code key} in {@code record} mapped to a
+     * single value of type {@code T} at {@code timestamp}.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @return the first mapped value
+     */
+    public <T> T get(String key, long record, DateTime timestamp);
+
+    /**
+     * Link {@code key} in {@code source} to {@code destination}. In other
+     * words, add {@code key} as {@link Link#to(destination)} in {@code source}.
+     * 
+     * @param key
+     * @param source
+     * @param destination
+     * @return {@code true} if the one way link is added
+     */
+    public boolean link(String key, long source, long destination);
+
+    /**
+     * Ping {@code record} and return {@code true} if there is currently at
+     * least one populated key.
+     * 
+     * @param record
+     * @return {@code true} if {@code record} currently contains data
+     */
+    public boolean ping(long record);
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} and return
+     * {@code true} if the mapping currently exists in {@code record} and is
+     * successfully removed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the mapping is removed
+     */
+    public <T> boolean remove(String key, T value, long record);
+
+    /**
+     * Revert {@code key} in {@code record} to {@code timestamp}. This method
+     * restores the key to its state at {@code timestamp} by reversing all
+     * revisions that have occurred since.
+     * <p>
+     * Please note that this method <strong>does not</strong> {@code rollback}
+     * any revisions, but creates <em>new</em> revisions that are the inverse of
+     * all revisions since {@code timestamp} in reverse order.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     */
+    public void revert(String key, long record, DateTime timestamp);
+
+    /**
+     * Search {@code key} for {@code query} and return the set of records that
+     * match the fulltext query.
+     * 
+     * @param key
+     * @param query
+     * @return the records that match the query
+     */
+    public Set<Long> search(String key, String query);
+
+    /**
+     * Set {@code key} as {@code value} in {@code record}. This is a convenience
+     * method that clears the values currently mapped from {@code key} and adds
+     * a new mapping to {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the old mappings are removed and the new one is
+     *         added
+     */
+    public <T> boolean set(String key, T value, long record);
+
+    /**
+     * Turn on {@code staging} mode so that all subsequent changes are
+     * collected in a staging area before possibly being committed to the
+     * database. Staged operations are guaranteed to be reliable, all or nothing
+     * units of work that allow correct recovery from failures and provide
+     * isolation between clients so the database is always in a consistent state
+     * (i.e. a transaction).
+     * <p>
+     * After this method returns, all subsequent operations will be done in
+     * {@code staging} mode until either {@link #abort()} or {@link #commit()}
+     * is invoked.
+     * </p>
+     */
+    public void stage();
+
+    /**
+     * Unlink {@code key} in {@code source} to {@code destination}. In other
+     * words, remove{@code key} as {@link Link#to(destination)} in
+     * {@code source}.
+     * 
+     * @param key
+     * @param source
+     * @param destination
+     * @return {@code true} if the one way link is removed
+     */
+    public boolean unlink(String key, long source, long destination);
+
+    /**
+     * Verify {@code key} equals {@code value} in {@code record} and return
+     * {@code true} if {@code value} is currently mapped from {@code key} in
+     * {@code record}.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the mapping exists
+     */
+    public boolean verify(String key, Object value, long record);
+
+    /**
+     * Verify {@code key} equaled {@code value} in {@code record} at
+     * {@code timestamp} and return {@code true} if {@code value} was mapped
+     * from {@code key} in {@code record}.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param timestamp
+     * @return {@code true} if the mapping existed
+     */
+    public boolean verify(String key, Object value, long record,
+            DateTime timestamp);
+
+    /**
+     * The implementation of the {@link Concourse} interface that establishes a
+     * connection with the remote server and handles communication. This class
+     * is a more user friendly wrapper around a Thrift
+     * {@link ConcourseService.Client}.
+     * 
+     * @author jnelson
+     */
+    public final static class Client implements Concourse {
+
+        // NOTE: The configuration variables are static because we want to
+        // guarantee that they are set before the client connection is
+        // constructed. Even though these variables are static, it is still the
+        // case that any changes to the configuration will be picked up
+        // immediately for new client connections.
+        private static String SERVER_HOST;
+        private static int SERVER_PORT;
+        private static String USERNAME;
+        private static String PASSWORD;
+        static {
+            ConcourseConfiguration config;
+            try {
+                config = ConcourseConfiguration
+                        .loadConfig("concourse_client.prefs");
+            }
+            catch (Exception e) {
+                config = null;
+            }
+            SERVER_HOST = "localhost";
+            SERVER_PORT = 1717;
+            USERNAME = "admin";
+            PASSWORD = "admin";
+            if(config != null) {
+                SERVER_HOST = config.getString("host", SERVER_HOST);
+                SERVER_PORT = config.getInt("port", SERVER_PORT);
+                USERNAME = config.getString("username", USERNAME);
+                PASSWORD = config.getString("password", PASSWORD);
+            }
+        }
+
+        /**
+         * Represents a request to respond to a query using the current state as
+         * opposed to the history.
+         */
+        private static DateTime now = new DateTime(0);
+
+        private final String username;
+        private final String password;
+
+        /**
+         * The Thrift client that actually handles all RPC communication.
+         */
+        private final ConcourseService.Client client;
+
+        /**
+         * The client keeps a copy of its {@link AccessToken} and passes it to
+         * the
+         * server for each remote procedure call. The client will
+         * re-authenticate
+         * when necessary using the username/password read from the prefs file.
+         */
+        private AccessToken creds = null;
+
+        /**
+         * Whenever the client starts a Transaction, it keeps a
+         * {@link TransactionToken} so that the server can stage the changes in
+         * the
+         * appropriate place.
+         */
+        private TransactionToken transaction = null;
+
+        /**
+         * Create a new Client connection to the Concourse server specified in
+         * {@code concourse.prefs} and return a handler to facilitate database
+         * interaction.
+         */
+        public Client() {
+            this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD);
+        }
+
+        /**
+         * Create a new Client connection to a Concourse server and return a
+         * handler to facilitate database interaction.
+         * 
+         * @param host
+         * @param port
+         * @param username
+         * @param password
+         */
+        public Client(String host, int port, String username, String password) {
+            this.username = username;
+            this.password = password;
+            final TTransport transport = new TSocket(host, port);
+            try {
+                transport.open();
+                TProtocol protocol = new TBinaryProtocol(transport);
+                client = new ConcourseService.Client(protocol);
+                authenticate();
+                Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
+
+                    @Override
+                    public void run() {
+                        if(transaction != null && transport.isOpen()) {
+                            abort();
+                        }
+                    }
+
+                });
+            }
+            catch (TTransportException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        @Override
+        public void abort() {
+            throw new UnsupportedOperationException(
+                    "Transactions are not currently supported");
+        }
+
+        @Override
+        public <T> boolean add(final String key, final T value,
+                final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.add(key, Convert.javaToThrift(value), record,
+                            creds, transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public Map<DateTime, String> audit(final long record) {
+            return execute(new Callable<Map<DateTime, String>>() {
+
+                @Override
+                public Map<DateTime, String> call() throws Exception {
+                    Map<Long, String> audit = client.audit(record, null, creds,
+                            transaction);
+                    return ((TLinkedHashMap<DateTime, String>) Transformers
+                            .transformMap(audit,
+                                    new Function<Long, DateTime>() {
+
+                                        @Override
+                                        public DateTime apply(Long input) {
+                                            return Convert.unixToJoda(input);
+                                        }
+
+                                    })).setKeyName("DateTime").setValueName(
+                            "Revision");
+                }
+
+            });
+        }
+
+        @Override
+        public Map<DateTime, String> audit(final String key, final long record) {
+            return execute(new Callable<Map<DateTime, String>>() {
+
+                @Override
+                public Map<DateTime, String> call() throws Exception {
+                    Map<Long, String> audit = client.audit(record, key, creds,
+                            transaction);
+                    return ((TLinkedHashMap<DateTime, String>) Transformers
+                            .transformMap(audit,
+                                    new Function<Long, DateTime>() {
+
+                                        @Override
+                                        public DateTime apply(Long input) {
+                                            return Convert.unixToJoda(input);
+                                        }
+
+                                    })).setKeyName("DateTime").setValueName(
+                            "Revision");
+                }
+
+            });
+        }
+
+        @Override
+        public void clear(String key, long record) {
+            Set<Object> values = fetch(key, record);
+            for (Object value : values) {
+                remove(key, value, record);
+            }
+        }
+
+        @Override
+        public boolean commit() {
+            throw new UnsupportedOperationException(
+                    "Transactions are not currently supported");
+        }
+
+        @Override
+        public long create() {
+            return Time.now(); // TODO get a primary key using a plugin
+        }
+
+        @Override
+        public Set<String> describe(long record) {
+            return describe(record, now);
+        }
+
+        @Override
+        public Set<String> describe(final long record, final DateTime timestamp) {
+            return execute(new Callable<Set<String>>() {
+
+                @Override
+                public Set<String> call() throws Exception {
+                    return client.describe(record,
+                            Convert.jodaToUnix(timestamp), creds, transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public void exit() {
+            client.getInputProtocol().getTransport().close();
+            client.getOutputProtocol().getTransport().close();
+        }
+
+        @Override
+        public Set<Object> fetch(String key, long record) {
+            return fetch(key, record, now);
+        }
+
+        @Override
+        public Set<Object> fetch(final String key, final long record,
+                final DateTime timestamp) {
+            return execute(new Callable<Set<Object>>() {
+
+                @Override
+                public Set<Object> call() throws Exception {
+                    Set<TObject> values = client.fetch(key, record,
+                            Convert.jodaToUnix(timestamp), creds, transaction);
+                    return Transformers.transformSet(values,
+                            new Function<TObject, Object>() {
+
+                                @Override
+                                public Object apply(TObject input) {
+                                    return Convert.thriftToJava(input);
+                                }
+
+                            });
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> find(final DateTime timestamp, final String key,
+                final Operator operator, final Object... values) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.find(key, operator, Lists.transform(
+                            Lists.newArrayList(values),
+                            new Function<Object, TObject>() {
+
+                                @Override
+                                public TObject apply(Object input) {
+                                    return Convert.javaToThrift(input);
+                                }
+
+                            }), Convert.jodaToUnix(timestamp), creds,
+                            transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object... values) {
+            return find(now, key, operator, values);
+        }
+
+        @Override
+        @Nullable
+        public <T> T get(String key, long record) {
+            return get(key, record, now);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        @Nullable
+        public <T> T get(String key, long record, DateTime timestamp) {
+            Set<Object> values = fetch(key, record, timestamp);
+            if(!values.isEmpty()) {
+                return (T) values.iterator().next();
+            }
+            return null;
+        }
+
+        @Override
+        public boolean link(String key, long source, long destination) {
+            return add(key, Link.to(destination), source);
+        }
+
+        @Override
+        public boolean ping(final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.ping(record, creds, transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public boolean remove(final String key, final Object value,
+                final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.remove(key, Convert.javaToThrift(value),
+                            record, creds, transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public void revert(final String key, final long record,
+                final DateTime timestamp) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.revert(key, record, Convert.jodaToUnix(timestamp),
+                            creds, transaction);
+                    return null;
+                }
+
+            });
+
+        }
+
+        @Override
+        public Set<Long> search(final String key, final String query) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.search(key, query, creds, transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public <T> boolean set(String key, T value, long record) {
+            Set<Object> values = fetch(key, record);
+            for (Object v : values) {
+                remove(key, v, record);
+            }
+            return add(key, value, record);
+        }
+
+        @Override
+        public void stage() {
+            throw new UnsupportedOperationException(
+                    "Transactions are not currently supported");
+        }
+
+        @Override
+        public String toString() {
+            return "Connected to " + SERVER_HOST + ":" + SERVER_PORT + " as "
+                    + USERNAME;
+        }
+
+        @Override
+        public boolean unlink(String key, long source, long destination) {
+            return remove(key, Link.to(destination), source);
+        }
+
+        @Override
+        public boolean verify(String key, Object value, long record) {
+            return verify(key, value, record, now);
+        }
+
+        @Override
+        public boolean verify(final String key, final Object value,
+                final long record, final DateTime timestamp) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.verify(key, Convert.javaToThrift(value),
+                            record, Convert.jodaToUnix(timestamp), creds,
+                            transaction);
+                }
+
+            });
+        }
+
+        /**
+         * Authenticate the {@link #username} and {@link #password} and populate
+         * {@link #creds} with the appropriate AccessToken.
+         */
+        private void authenticate() {
+            try {
+                creds = client.login(username, password);
+            }
+            catch (TException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+        /**
+         * Execute the task defined in {@code callable}. This method contains
+         * retry logic to handle cases when {@code creds} expires and must be
+         * updated.
+         * 
+         * @param callable
+         * @return the task result
+         */
+        private <T> T execute(Callable<T> callable) {
+            try {
+                return callable.call();
+            }
+            catch (SecurityException e) {
+                authenticate();
+                return execute(callable);
+            }
+            catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        }
+
+    }
 
 }

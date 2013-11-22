@@ -32,25 +32,25 @@ import org.cinchapi.concourse.server.GlobalState;
  */
 public final class StringTools {
 
-	/**
-	 * Return a copy of {@code string} with all of the stopwords removed. This
-	 * method depends on the stopwords defined in {@link GlobalState#STOPWORDS}.
-	 * 
-	 * @param string
-	 * @return A copy of {@code string} without stopwords
-	 */
-	public static String stripStopWords(String string) {
-		String[] toks = string.split(" ");
-		StringBuilder sb = new StringBuilder();
-		for (String tok : toks) {
-			if(!GlobalState.STOPWORDS.contains(tok)) {
-				sb.append(tok);
-				sb.append(" ");
-			}
-		}
-		return sb.toString().trim();
-	}
+    /**
+     * Return a copy of {@code string} with all of the stopwords removed. This
+     * method depends on the stopwords defined in {@link GlobalState#STOPWORDS}.
+     * 
+     * @param string
+     * @return A copy of {@code string} without stopwords
+     */
+    public static String stripStopWords(String string) {
+        String[] toks = string.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for (String tok : toks) {
+            if(!GlobalState.STOPWORDS.contains(tok)) {
+                sb.append(tok);
+                sb.append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
 
-	private StringTools() {/* utility class */}
+    private StringTools() {/* utility class */}
 
 }

@@ -30,11 +30,11 @@ package org.cinchapi.concourse.server.io;
  */
 public interface Syncable {
 
-	/**
-	 * Flush the content of the object to disk. When this method returns, it is
-	 * guaranteed that all changes made to the object since it was created or
-	 * since this method was last invoked, will have been written to disk.
-	 */
-	public void sync();
+    /**
+     * Flush the content of the object to disk. When this method returns, it is
+     * guaranteed that all changes made to the object since it was created or
+     * since this method was last invoked, will have been written to disk.
+     */
+    public void sync();
 
 }

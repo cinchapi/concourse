@@ -30,6 +30,6 @@ package org.cinchapi.concourse.server.storage;
  */
 public interface Transactional {
 
-	public Transaction startTransaction();
+    public Transaction startTransaction();
 
 }

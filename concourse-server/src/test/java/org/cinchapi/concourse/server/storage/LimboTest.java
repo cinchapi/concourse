@@ -40,47 +40,45 @@ import com.google.common.collect.Lists;
  */
 public abstract class LimboTest extends StoreTest {
 
-	@Test
-	public void testIterator() {
-		List<Write> writes = getWrites();
-		for (Write write : writes) {
-			add(write.getKey().toString(), write.getValue().getTObject(), write
-					.getRecord().longValue());
-		}
-		Iterator<Write> it0 = ((Limbo) store).iterator();
-		Iterator<Write> it1 = writes.iterator();
-		while(it1.hasNext()){
-			Assert.assertTrue(it0.hasNext());
-			Write w0 = it0.next();
-			Write w1 = it1.next();
-			Assert.assertEquals(w0, w1);
-		}
-		Assert.assertFalse(it0.hasNext());
- 	}
+    @Test
+    public void testIterator() {
+        List<Write> writes = getWrites();
+        for (Write write : writes) {
+            add(write.getKey().toString(), write.getValue().getTObject(), write
+                    .getRecord().longValue());
+        }
+        Iterator<Write> it0 = ((Limbo) store).iterator();
+        Iterator<Write> it1 = writes.iterator();
+        while (it1.hasNext()) {
+            Assert.assertTrue(it0.hasNext());
+            Write w0 = it0.next();
+            Write w1 = it1.next();
+            Assert.assertEquals(w0, w1);
+        }
+        Assert.assertFalse(it0.hasNext());
+    }
 
-	@Override
-	protected abstract Limbo getStore();
+    @Override
+    protected abstract Limbo getStore();
 
-	private List<Write> getWrites() {
-		List<Write> writes = Lists.newArrayList();
-		for (int i = 0; i < (TestData.getScaleCount() * 50); i++) {
-			writes.add(TestData.getWriteNotStorable());
-		}
-		return writes;
-	}
+    private List<Write> getWrites() {
+        List<Write> writes = Lists.newArrayList();
+        for (int i = 0; i < (TestData.getScaleCount() * 50); i++) {
+            writes.add(TestData.getWriteNotStorable());
+        }
+        return writes;
+    }
 
-	@Override
-	protected void add(String key, TObject value, long record) {
-		((Limbo) store).insert(Write.add(key, value, record));
-		
-	}
+    @Override
+    protected void add(String key, TObject value, long record) {
+        ((Limbo) store).insert(Write.add(key, value, record));
 
-	@Override
-	protected void remove(String key, TObject value, long record) {
-		((Limbo) store).insert(Write.remove(key, value, record));
-		
-	}
-	
-	
+    }
+
+    @Override
+    protected void remove(String key, TObject value, long record) {
+        ((Limbo) store).insert(Write.remove(key, value, record));
+
+    }
 
 }

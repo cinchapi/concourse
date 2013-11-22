@@ -34,21 +34,20 @@ import org.junit.Test;
  * 
  * @author jnelson
  */
-public class TextTest extends ByteableTest{
-	
-	@Test
-	public void testCompareTo(){
-		String s1 = TestData.getString();
-		String s2 = TestData.getString();
-		Text t1 = Text.wrap(s1);
-		Text t2 = Text.wrap(s2);
-		Assert.assertEquals(s1.compareTo(s2), t1.compareTo(t2));
-	}
+public class TextTest extends ByteableTest {
 
-	@Override
-	protected Class<Text> getTestClass() {
-		return Text.class;
-	}
-	
+    @Test
+    public void testCompareTo() {
+        String s1 = TestData.getString();
+        String s2 = TestData.getString();
+        Text t1 = Text.wrap(s1);
+        Text t2 = Text.wrap(s2);
+        Assert.assertEquals(s1.compareTo(s2), t1.compareTo(t2));
+    }
+
+    @Override
+    protected Class<Text> getTestClass() {
+        return Text.class;
+    }
 
 }

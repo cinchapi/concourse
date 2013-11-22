@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({BufferTest.class, QueueTest.class, EngineTest.class})
+@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class })
 public class StoreSuite {
 
 }

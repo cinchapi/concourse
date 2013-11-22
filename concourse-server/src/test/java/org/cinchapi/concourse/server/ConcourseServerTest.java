@@ -50,103 +50,103 @@ import com.google.common.collect.Table;
  */
 public class ConcourseServerTest {
 
-	private static final String SERVER_HOST = "localhost";
-	private static final int SERVER_PORT = 1718;
-	private static final String SERVER_DATA_HOME = System
-			.getProperty("user.home")
-			+ File.separator
-			+ "concourse_"
-			+ Long.toString(Time.now());
-	private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "db";
-	private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "buffer";
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 1718;
+    private static final String SERVER_DATA_HOME = System
+            .getProperty("user.home")
+            + File.separator
+            + "concourse_"
+            + Long.toString(Time.now());
+    private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "db";
+    private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "buffer";
 
-	private ConcourseServer server;
-	private Concourse client;
-	private Table<Long, String, Set<Object>> data;
+    private ConcourseServer server;
+    private Concourse client;
+    private Table<Long, String, Set<Object>> data;
 
-	@Rule
-	public TestWatcher watcher = new TestWatcher() {
+    @Rule
+    public TestWatcher watcher = new TestWatcher() {
 
-		@Override
-		protected void starting(Description description) {
-			try {
-				server = new ConcourseServer(SERVER_PORT,
-						SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
-			}
-			catch (TTransportException e1) {
-				throw Throwables.propagate(e1);
-			}
-			Thread t = new Thread(new Runnable() {
+        @Override
+        protected void starting(Description description) {
+            try {
+                server = new ConcourseServer(SERVER_PORT,
+                        SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
+            }
+            catch (TTransportException e1) {
+                throw Throwables.propagate(e1);
+            }
+            Thread t = new Thread(new Runnable() {
 
-				@Override
-				public void run() {
-					try {
-						server.start();
-					}
-					catch (TTransportException e) {
-						throw Throwables.propagate(e);
-					}
+                @Override
+                public void run() {
+                    try {
+                        server.start();
+                    }
+                    catch (TTransportException e) {
+                        throw Throwables.propagate(e);
+                    }
 
-				}
+                }
 
-			});
-			t.start();
-			client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
-					"admin");
-			data = HashBasedTable.<Long, String, Set<Object>> create();
+            });
+            t.start();
+            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+                    "admin");
+            data = HashBasedTable.<Long, String, Set<Object>> create();
 
-		}
+        }
 
-		@Override
-		protected void finished(Description description) {
-			client.exit();
-			server.stop();
-			FileSystem.deleteDirectory(SERVER_DATA_HOME);
-		}
+        @Override
+        protected void finished(Description description) {
+            client.exit();
+            server.stop();
+            FileSystem.deleteDirectory(SERVER_DATA_HOME);
+        }
 
-	};
+    };
 
-	@Test
-	public void testAddAndFetch() {
-		setup(data, client);
-		for (long record : data.rowKeySet()) {
-			Map<String, Set<Object>> map = data.row(record);
-			for (String key : map.keySet()) {
-				Assert.assertEquals(client.fetch(key, record), map.get(key));
-			}
-		}
-	}
+    @Test
+    public void testAddAndFetch() {
+        setup(data, client);
+        for (long record : data.rowKeySet()) {
+            Map<String, Set<Object>> map = data.row(record);
+            for (String key : map.keySet()) {
+                Assert.assertEquals(client.fetch(key, record), map.get(key));
+            }
+        }
+    }
 
-	@Test
-	public void testAddAndDescribe() {
-		setup(data, client);
-		for (long record : data.rowKeySet()) {
-			Assert.assertEquals(client.describe(record), data.row(record)
-					.keySet());
-		}
-	}
+    @Test
+    public void testAddAndDescribe() {
+        setup(data, client);
+        for (long record : data.rowKeySet()) {
+            Assert.assertEquals(client.describe(record), data.row(record)
+                    .keySet());
+        }
+    }
 
-	/**
-	 * Add random data to {@code data} and {@code concourse}.
-	 * 
-	 * @param data
-	 * @param concourse
-	 */
-	private void setup(Table<Long, String, Set<Object>> data,
-			Concourse concourse) {
-		int count = TestData.getScaleCount();
-		for (int i = 0; i < count; i++) {
-			long row = TestData.getLong();
-			String key = TestData.getString();
-			Object value = TestData.getObject();
-			Set<Object> values = data.get(row, key);
-			values = values == null ? Sets.<Object> newLinkedHashSet() : values;
-			values.add(value);
-			data.put(row, key, values);
-			concourse.add(key, value, row);
-		}
-	}
+    /**
+     * Add random data to {@code data} and {@code concourse}.
+     * 
+     * @param data
+     * @param concourse
+     */
+    private void setup(Table<Long, String, Set<Object>> data,
+            Concourse concourse) {
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            long row = TestData.getLong();
+            String key = TestData.getString();
+            Object value = TestData.getObject();
+            Set<Object> values = data.get(row, key);
+            values = values == null ? Sets.<Object> newLinkedHashSet() : values;
+            values.add(value);
+            data.put(row, key, values);
+            concourse.add(key, value, row);
+        }
+    }
 
 }

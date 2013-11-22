@@ -34,14 +34,15 @@ import com.google.common.base.Throwables;
  * @author jnelson
  */
 public class Configurations {
-	
-	public static PropertiesConfiguration loadPropertiesConfiguration(String file){
-		try {
-			return new PropertiesConfiguration(file);
-		}
-		catch (ConfigurationException e) {
-			throw Throwables.propagate(e);
-		}
-	}
+
+    public static PropertiesConfiguration loadPropertiesConfiguration(
+            String file) {
+        try {
+            return new PropertiesConfiguration(file);
+        }
+        catch (ConfigurationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
 }

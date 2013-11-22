@@ -42,59 +42,59 @@ import com.google.common.base.Throwables;
  */
 public final class StandardActions {
 
-	/**
-	 * Import the data from {@code strings.txt}.
-	 * 
-	 * @param client
-	 */
-	public static void importWordsDotText(Concourse client) {
-		System.out.println("Importing words.txt...");
-		try {
-			File file = new File(TestData.class.getResource("/words.txt")
-					.getFile());
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			int record = 0;
-			while ((line = reader.readLine()) != null) {
-				client.add("strings", line, record);
-				record++;
-			}
-			reader.close();
-		}
-		catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
-	}
+    /**
+     * Import the data from {@code strings.txt}.
+     * 
+     * @param client
+     */
+    public static void importWordsDotText(Concourse client) {
+        System.out.println("Importing words.txt...");
+        try {
+            File file = new File(TestData.class.getResource("/words.txt")
+                    .getFile());
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            int record = 0;
+            while ((line = reader.readLine()) != null) {
+                client.add("strings", line, record);
+                record++;
+            }
+            reader.close();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
-	/**
-	 * Import 1000 long values in records 0-999.
-	 * 
-	 * @param client
-	 */
-	public static void import1000Longs(Concourse client) {
-		System.out.println("Importing 1000 long values...");
-		for (int i = 0; i < 1000; i++) {
-			client.add("count", i, i);
-		}
-	}
+    /**
+     * Import 1000 long values in records 0-999.
+     * 
+     * @param client
+     */
+    public static void import1000Longs(Concourse client) {
+        System.out.println("Importing 1000 long values...");
+        for (int i = 0; i < 1000; i++) {
+            client.add("count", i, i);
+        }
+    }
 
-	/**
-	 * Wait for the specified {@code duration} of the specified time
-	 * {@code unit}.
-	 * 
-	 * @param duration
-	 * @param unit
-	 */
-	public static void wait(long duration, TimeUnit unit) {
-		try {
-			System.out.println("Waiting for " + duration + " " + unit);
-			unit.sleep(duration);
-		}
-		catch (InterruptedException e) {
-			throw Throwables.propagate(e);
-		}
-	}
+    /**
+     * Wait for the specified {@code duration} of the specified time
+     * {@code unit}.
+     * 
+     * @param duration
+     * @param unit
+     */
+    public static void wait(long duration, TimeUnit unit) {
+        try {
+            System.out.println("Waiting for " + duration + " " + unit);
+            unit.sleep(duration);
+        }
+        catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
-	private StandardActions() {/* utility class */}
+    private StandardActions() {/* utility class */}
 
 }

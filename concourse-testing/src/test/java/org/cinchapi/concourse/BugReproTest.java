@@ -36,28 +36,28 @@ import org.junit.Test;
  * @author jnelson
  */
 public class BugReproTest extends ConcourseIntegrationTest {
-	
-	@Test
-	public void testCON_4(){
-		StandardActions.importWordsDotText(client);
-		StandardActions.wait(75, TimeUnit.SECONDS);
-		StandardActions.import1000Longs(client);
-		StandardActions.wait(10, TimeUnit.SECONDS);
-		Assert.assertTrue(client.describe(1).contains("count"));
-		client.add("count", 2, 1);
-		Assert.assertTrue(client.describe(1).contains("count"));
-	}
-	
-	@Test
-	public void testCON_5(){
-		StandardActions.importWordsDotText(client);
-		StandardActions.wait(75, TimeUnit.SECONDS);
-		StandardActions.import1000Longs(client);
-		StandardActions.wait(10, TimeUnit.SECONDS);
-		client.add("count", 2, 1);
-		client.set("count", 10, 1);
-		client.remove("count", 10, 1);
-		Assert.assertFalse(client.describe(1).contains("count"));
-	}
+
+    @Test
+    public void testCON_4() {
+        StandardActions.importWordsDotText(client);
+        StandardActions.wait(75, TimeUnit.SECONDS);
+        StandardActions.import1000Longs(client);
+        StandardActions.wait(10, TimeUnit.SECONDS);
+        Assert.assertTrue(client.describe(1).contains("count"));
+        client.add("count", 2, 1);
+        Assert.assertTrue(client.describe(1).contains("count"));
+    }
+
+    @Test
+    public void testCON_5() {
+        StandardActions.importWordsDotText(client);
+        StandardActions.wait(75, TimeUnit.SECONDS);
+        StandardActions.import1000Longs(client);
+        StandardActions.wait(10, TimeUnit.SECONDS);
+        client.add("count", 2, 1);
+        client.set("count", 10, 1);
+        client.remove("count", 10, 1);
+        Assert.assertFalse(client.describe(1).contains("count"));
+    }
 
 }

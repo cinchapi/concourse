@@ -39,61 +39,61 @@ import org.junit.runner.Description;
  */
 public class NaturalSorterTest {
 
-	private File f1;
-	private File f2;
+    private File f1;
+    private File f2;
 
-	@Rule
-	public TestWatcher watcher = new TestWatcher() {
+    @Rule
+    public TestWatcher watcher = new TestWatcher() {
 
-		@Override
-		protected void finished(Description description) {
-			f1.delete();
-			f2.delete();
-		}
+        @Override
+        protected void finished(Description description) {
+            f1.delete();
+            f2.delete();
+        }
 
-	};
+    };
 
-	@Test
-	public void testDiffTimestamp() {
-		f1 = getFile("a");
-		f2 = getFile("a");
-		Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) < 0);
-	}
-	
-	@Test
-	public void testSameTimestampSameExt(){
-		String ts = getTimeString();
-		f1 = new File(ts + ".a");
-		f2 = new File(ts + ".a");
-		Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) == 0);
-	}
-	
-	@Test
-	public void testSameTimestampDiffExt(){
-		String ts = getTimeString();
-		f1 = new File(ts + ".b");
-		f2 = new File(ts + ".a");
-		Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) > 0);
-	}
+    @Test
+    public void testDiffTimestamp() {
+        f1 = getFile("a");
+        f2 = getFile("a");
+        Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) < 0);
+    }
 
-	/**
-	 * Return a File that is named after the current time string with extension
-	 * {@code ext}.
-	 * 
-	 * @param ext
-	 * @return a new File
-	 */
-	private File getFile(String ext) {
-		return new File(getTimeString() + "." + ext);
-	}
+    @Test
+    public void testSameTimestampSameExt() {
+        String ts = getTimeString();
+        f1 = new File(ts + ".a");
+        f2 = new File(ts + ".a");
+        Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) == 0);
+    }
 
-	/**
-	 * Return a string version of the current timestamp.
-	 * 
-	 * @return the time string
-	 */
-	private String getTimeString() {
-		return Long.toString(Time.now());
-	}
+    @Test
+    public void testSameTimestampDiffExt() {
+        String ts = getTimeString();
+        f1 = new File(ts + ".b");
+        f2 = new File(ts + ".a");
+        Assert.assertTrue(NaturalSorter.INSTANCE.compare(f1, f2) > 0);
+    }
+
+    /**
+     * Return a File that is named after the current time string with extension
+     * {@code ext}.
+     * 
+     * @param ext
+     * @return a new File
+     */
+    private File getFile(String ext) {
+        return new File(getTimeString() + "." + ext);
+    }
+
+    /**
+     * Return a string version of the current timestamp.
+     * 
+     * @return the time string
+     */
+    private String getTimeString() {
+        return Long.toString(Time.now());
+    }
 
 }

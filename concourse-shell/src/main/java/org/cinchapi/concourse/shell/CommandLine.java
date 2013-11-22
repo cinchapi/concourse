@@ -29,29 +29,29 @@ package org.cinchapi.concourse.shell;
  * @author jnelson
  */
 public final class CommandLine {
-	
-	/**
-	 * Display a welcome banner to System.out
-	 */
-	public static void displayWelcomeBanner(){
-		StringBuilder banner = new StringBuilder();
-		banner.append(" _____").append(System.lineSeparator());
-		banner.append("/  __ \\").append(System.lineSeparator());
-		banner.append("| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
-				.append(System.lineSeparator());
-		banner.append("| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
-				.append(System.lineSeparator());
-		banner.append("| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
-				.append(System.lineSeparator());
-		banner.append(" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
-				.append(System.lineSeparator());
-		banner.append("").append(System.lineSeparator());
-		banner.append(
-				"Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
-				.append(System.lineSeparator());
-		System.out.print(banner);
-	}
 
-	private CommandLine() {} /* non-initializable */
+    /**
+     * Display a welcome banner to System.out
+     */
+    public static void displayWelcomeBanner() {
+        StringBuilder banner = new StringBuilder();
+        banner.append(" _____").append(System.lineSeparator());
+        banner.append("/  __ \\").append(System.lineSeparator());
+        banner.append("| /  \\/ ___  _ __   ___ ___  _   _ _ __ ___  ___")
+                .append(System.lineSeparator());
+        banner.append("| |    / _ \\| '_ \\ / __/ _ \\| | | | '__/ __|/ _ \\")
+                .append(System.lineSeparator());
+        banner.append("| \\__/\\ (_) | | | | (_| (_) | |_| | |  \\__ \\  __/")
+                .append(System.lineSeparator());
+        banner.append(" \\____/\\___/|_| |_|\\___\\___/ \\__,_|_|  |___/\\___|")
+                .append(System.lineSeparator());
+        banner.append("").append(System.lineSeparator());
+        banner.append(
+                "Copyright (c) 2013, Cinchapi Software Collective, LLC. All Rights Reserved.")
+                .append(System.lineSeparator());
+        System.out.print(banner);
+    }
+
+    private CommandLine() {} /* non-initializable */
 
 }

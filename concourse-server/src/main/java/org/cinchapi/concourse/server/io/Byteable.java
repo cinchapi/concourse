@@ -59,18 +59,18 @@ import java.nio.ByteBuffer;
  */
 public interface Byteable {
 
-	/**
-	 * Returns the total number of bytes used to represent this object.
-	 * 
-	 * @return the number of bytes.
-	 */
-	public int size();
+    /**
+     * Returns the total number of bytes used to represent this object.
+     * 
+     * @return the number of bytes.
+     */
+    public int size();
 
-	/**
-	 * Returns a byte sequence that represents this object.
-	 * 
-	 * @return the byte sequence.
-	 */
-	public ByteBuffer getBytes();
+    /**
+     * Returns a byte sequence that represents this object.
+     * 
+     * @return the byte sequence.
+     */
+    public ByteBuffer getBytes();
 
 }

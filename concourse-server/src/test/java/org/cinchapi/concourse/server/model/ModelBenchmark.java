@@ -34,30 +34,30 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
  * 
  * @author jnelson
  */
-public class ModelBenchmark extends AbstractBenchmark{
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
-	public void benchmarkValue(){
-		Value.wrap(TestData.getTObject());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
-	public void benchmarkPrimaryKey(){
-		PrimaryKey.wrap(TestData.getLong());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
-	public void benchmarkText(){
-		Text.wrap(TestData.getString());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
-	public void benchmarkPosition(){
-		Position.wrap(TestData.getPrimaryKey(), Math.abs(TestData.getInt()));
-	}
+public class ModelBenchmark extends AbstractBenchmark {
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
+    public void benchmarkValue() {
+        Value.wrap(TestData.getTObject());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
+    public void benchmarkPrimaryKey() {
+        PrimaryKey.wrap(TestData.getLong());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
+    public void benchmarkText() {
+        Text.wrap(TestData.getString());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 0)
+    public void benchmarkPosition() {
+        Position.wrap(TestData.getPrimaryKey(), Math.abs(TestData.getInt()));
+    }
 
 }

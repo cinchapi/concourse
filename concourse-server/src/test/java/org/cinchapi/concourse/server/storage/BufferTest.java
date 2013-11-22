@@ -35,18 +35,17 @@ import org.cinchapi.concourse.util.TestData;
  */
 public class BufferTest extends LimboTest {
 
-	private String current;
+    private String current;
 
-	@Override
-	protected Buffer getStore() {
-		current = TestData.DATA_DIR + File.separator + Time.now();
-		return new Buffer(current);
-	}
+    @Override
+    protected Buffer getStore() {
+        current = TestData.DATA_DIR + File.separator + Time.now();
+        return new Buffer(current);
+    }
 
-	@Override
-	protected void cleanup(Store store) {
-		FileSystem.deleteDirectory(current);
-	}
-
+    @Override
+    protected void cleanup(Store store) {
+        FileSystem.deleteDirectory(current);
+    }
 
 }

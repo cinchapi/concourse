@@ -47,129 +47,129 @@ import com.google.common.base.Preconditions;
 @Immutable
 public class TransactionLock implements Byteable {
 
-	/**
-	 * Return the {@code TransactionLock} that is encoded in {@code bytes}.
-	 * 
-	 * @param bytes
-	 * @return the Lock
-	 */
-	public static TransactionLock fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, TransactionLock.class);
-	}
+    /**
+     * Return the {@code TransactionLock} that is encoded in {@code bytes}.
+     * 
+     * @param bytes
+     * @return the Lock
+     */
+    public static TransactionLock fromByteBuffer(ByteBuffer bytes) {
+        return Byteables.read(bytes, TransactionLock.class);
+    }
 
-	private static final int SOURCE_OFFSET = 0;
-	private static final int SOURCE_SIZE = 16;
-	private static final int TYPE_OFFSET = SOURCE_OFFSET + SOURCE_SIZE;
-	private static final int TYPE_SIZE = 4;
+    private static final int SOURCE_OFFSET = 0;
+    private static final int SOURCE_SIZE = 16;
+    private static final int TYPE_OFFSET = SOURCE_OFFSET + SOURCE_SIZE;
+    private static final int TYPE_SIZE = 4;
 
-	@PackagePrivate
-	static final int SIZE = SOURCE_SIZE + TYPE_SIZE;
+    @PackagePrivate
+    static final int SIZE = SOURCE_SIZE + TYPE_SIZE;
 
-	/**
-	 * The actual lock/release functionality is delegated to this object.
-	 */	
-	private final transient Lock lock;
+    /**
+     * The actual lock/release functionality is delegated to this object.
+     */
+    private final transient Lock lock;
 
-	/**
-	 * A Representation is used to refer to the locked resource before and after
-	 * serialization.
-	 */
-	private final Representation source;
+    /**
+     * A Representation is used to refer to the locked resource before and after
+     * serialization.
+     */
+    private final Representation source;
 
-	/**
-	 * The Type ensures that the same level of isolation is maintained before
-	 * and after serialization.
-	 */
-	private final Type type;
+    /**
+     * The Type ensures that the same level of isolation is maintained before
+     * and after serialization.
+     */
+    private final Type type;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public TransactionLock(ByteBuffer bytes) {
-		Preconditions.checkArgument(bytes.capacity() == SIZE);
-		this.source = Representation.fromByteBuffer(ByteBuffers.slice(bytes,
-				SOURCE_OFFSET, SOURCE_SIZE));
-		this.type = ByteBuffers.getEnum(
-				ByteBuffers.slice(bytes, TYPE_OFFSET, TYPE_SIZE), Type.class);
-		this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock().writeLock()
-				: this.source.getMasterLock().readLock();
-		this.lock.lock();
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param bytes
+     */
+    @DoNotInvoke
+    public TransactionLock(ByteBuffer bytes) {
+        Preconditions.checkArgument(bytes.capacity() == SIZE);
+        this.source = Representation.fromByteBuffer(ByteBuffers.slice(bytes,
+                SOURCE_OFFSET, SOURCE_SIZE));
+        this.type = ByteBuffers.getEnum(
+                ByteBuffers.slice(bytes, TYPE_OFFSET, TYPE_SIZE), Type.class);
+        this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock()
+                .writeLock() : this.source.getMasterLock().readLock();
+        this.lock.lock();
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param source
-	 * @param type
-	 */
-	public TransactionLock(Representation source, Type type) {
-		this.source = source;
-		this.type = type;
-		this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock().writeLock()
-				: this.source.getMasterLock().readLock();
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param source
+     * @param type
+     */
+    public TransactionLock(Representation source, Type type) {
+        this.source = source;
+        this.type = type;
+        this.lock = type == Type.ISOLATED_FIELD ? this.source.getMasterLock()
+                .writeLock() : this.source.getMasterLock().readLock();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof TransactionLock) {
-			TransactionLock other = (TransactionLock) obj;
-			return source.equals(other.source) && type.equals(other.type);
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof TransactionLock) {
+            TransactionLock other = (TransactionLock) obj;
+            return source.equals(other.source) && type.equals(other.type);
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		ByteBuffer buffer = ByteBuffer.allocate(SIZE);
-		buffer.put(source.getBytes());
-		buffer.putInt(type.ordinal());
-		buffer.rewind();
-		return buffer;
-	}
+    @Override
+    public ByteBuffer getBytes() {
+        ByteBuffer buffer = ByteBuffer.allocate(SIZE);
+        buffer.put(source.getBytes());
+        buffer.putInt(type.ordinal());
+        buffer.rewind();
+        return buffer;
+    }
 
-	/**
-	 * Return the locked source.
-	 * 
-	 * @return the source
-	 */
-	public Representation getSource() {
-		return source;
-	}
+    /**
+     * Return the locked source.
+     * 
+     * @return the source
+     */
+    public Representation getSource() {
+        return source;
+    }
 
-	/**
-	 * Return the TransactionLock type
-	 * 
-	 * @return the Type
-	 */
-	public Type getType() {
-		return type;
-	}
+    /**
+     * Return the TransactionLock type
+     * 
+     * @return the Type
+     */
+    public Type getType() {
+        return type;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(source, type);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(source, type);
+    }
 
-	public void release() {
-		lock.unlock();
-	}
+    public void release() {
+        lock.unlock();
+    }
 
-	@Override
-	public int size() {
-		return SIZE;
-	}
+    @Override
+    public int size() {
+        return SIZE;
+    }
 
-	/**
-	 * The types of TransactionLocks.
-	 * 
-	 * @author jnelson
-	 */
-	@PackagePrivate
-	enum Type {
-		SHARED_RECORD, SHARED_KEY, SHARED_FIELD, ISOLATED_FIELD
-	}
+    /**
+     * The types of TransactionLocks.
+     * 
+     * @author jnelson
+     */
+    @PackagePrivate
+    enum Type {
+        SHARED_RECORD, SHARED_KEY, SHARED_FIELD, ISOLATED_FIELD
+    }
 
 }

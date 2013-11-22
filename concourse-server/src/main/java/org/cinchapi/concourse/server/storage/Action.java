@@ -29,5 +29,5 @@ package org.cinchapi.concourse.server.storage;
  * @author jnelson
  */
 public enum Action {
-	ADD, REMOVE, COMPARE
+    ADD, REMOVE, COMPARE
 }

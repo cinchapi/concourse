@@ -35,61 +35,64 @@ import org.junit.Test;
  */
 public class PositionTest extends ByteableTest {
 
-	@Test
-	public void testCompareToSamePrimaryKeyAndSameIndex() {
-		PrimaryKey key = TestData.getPrimaryKey();
-		int index = Math.abs(TestData.getInt());
-		Position p1 = Position.wrap(key, index);
-		Position p2 = Position.wrap(key, index);
-		Assert.assertTrue(p1.compareTo(p2) == 0);
-	}
+    @Test
+    public void testCompareToSamePrimaryKeyAndSameIndex() {
+        PrimaryKey key = TestData.getPrimaryKey();
+        int index = Math.abs(TestData.getInt());
+        Position p1 = Position.wrap(key, index);
+        Position p2 = Position.wrap(key, index);
+        Assert.assertTrue(p1.compareTo(p2) == 0);
+    }
 
-	@Test
-	public void testCompareToSamePrimaryKeyAndDiffIndex() {
-		PrimaryKey key = TestData.getPrimaryKey();
-		int index1 = Math.abs(TestData.getInt());
-		index1 = index1 == Integer.MAX_VALUE ? index1 - 1 : index1;
-		int index2 = index1 + 1;
-		Position p1 = Position.wrap(key, index1);
-		Position p2 = Position.wrap(key, index2);
-		Assert.assertTrue(p1.compareTo(p2) < 0);
-	}
+    @Test
+    public void testCompareToSamePrimaryKeyAndDiffIndex() {
+        PrimaryKey key = TestData.getPrimaryKey();
+        int index1 = Math.abs(TestData.getInt());
+        index1 = index1 == Integer.MAX_VALUE ? index1 - 1 : index1;
+        int index2 = index1 + 1;
+        Position p1 = Position.wrap(key, index1);
+        Position p2 = Position.wrap(key, index2);
+        Assert.assertTrue(p1.compareTo(p2) < 0);
+    }
 
-	@Test
-	public void testCompareToDiffPrimaryKey() {
-		long long1 = TestData.getLong();
-		long1 = long1 == Long.MAX_VALUE ? long1 - 1 : long1;
-		long long2 = long1 + 1;
-		PrimaryKey key1 = PrimaryKey.wrap(long1);
-		PrimaryKey key2 = PrimaryKey.wrap(long2);
-		Position p1 = Position.wrap(key1,
-				Math.abs(TestData.getInt()));
-		Position p2 = Position.wrap(key2,
-				Math.abs(TestData.getInt()));
-		Assert.assertTrue(p1.compareTo(p2) < 0);
-	}
+    @Test
+    public void testCompareToDiffPrimaryKey() {
+        long long1 = TestData.getLong();
+        long1 = long1 == Long.MAX_VALUE ? long1 - 1 : long1;
+        long long2 = long1 + 1;
+        PrimaryKey key1 = PrimaryKey.wrap(long1);
+        PrimaryKey key2 = PrimaryKey.wrap(long2);
+        Position p1 = Position.wrap(key1, Math.abs(TestData.getInt()));
+        Position p2 = Position.wrap(key2, Math.abs(TestData.getInt()));
+        Assert.assertTrue(p1.compareTo(p2) < 0);
+    }
 
-	@Test
-	public void testSizeForByteSizeIndex() {
-		Position p = Position.wrap(TestData.getPrimaryKey(), Math.abs(TestData.getInt()) % Byte.MAX_VALUE);
-		Assert.assertEquals(Position.SIZE, p.size());
-	}
-	
-	@Test
-	public void testSizeForShortSizeIndex(){
-		Position p = Position.wrap(TestData.getPrimaryKey(), (Math.abs(TestData.getInt()) % Short.MAX_VALUE) + Byte.MAX_VALUE);
-		Assert.assertEquals(Position.SIZE, p.size());
-	}
-	
-	@Test
-	public void testSizeForIntSizeIndex(){
-		Position p = Position.wrap(TestData.getPrimaryKey(), (Math.abs(TestData.getInt()) % Integer.MAX_VALUE) + Short.MAX_VALUE);
-		Assert.assertEquals(Position.SIZE, p.size());
-	}
+    @Test
+    public void testSizeForByteSizeIndex() {
+        Position p = Position.wrap(TestData.getPrimaryKey(),
+                Math.abs(TestData.getInt()) % Byte.MAX_VALUE);
+        Assert.assertEquals(Position.SIZE, p.size());
+    }
 
-	@Override
-	protected Class<Position> getTestClass() {
-		return Position.class;
-	}
+    @Test
+    public void testSizeForShortSizeIndex() {
+        Position p = Position.wrap(TestData.getPrimaryKey(),
+                (Math.abs(TestData.getInt()) % Short.MAX_VALUE)
+                        + Byte.MAX_VALUE);
+        Assert.assertEquals(Position.SIZE, p.size());
+    }
+
+    @Test
+    public void testSizeForIntSizeIndex() {
+        Position p = Position.wrap(TestData.getPrimaryKey(),
+                (Math.abs(TestData.getInt()) % Integer.MAX_VALUE)
+                        + Short.MAX_VALUE);
+        Assert.assertEquals(Position.SIZE, p.size());
+    }
+
+    @Override
+    protected Class<Position> getTestClass() {
+        return Position.class;
+    }
 
 }

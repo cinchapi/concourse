@@ -51,88 +51,88 @@ import com.google.common.base.Preconditions;
 @PackagePrivate
 class Representation implements Byteable {
 
-	/**
-	 * Return a {@code Representation} encoded in {@code buffer}.
-	 * 
-	 * @param buffer
-	 * @return the Representation
-	 */
-	public static Representation fromByteBuffer(ByteBuffer buffer) {
-		buffer.rewind();
-		return new Representation(buffer);
-	}
+    /**
+     * Return a {@code Representation} encoded in {@code buffer}.
+     * 
+     * @param buffer
+     * @return the Representation
+     */
+    public static Representation fromByteBuffer(ByteBuffer buffer) {
+        buffer.rewind();
+        return new Representation(buffer);
+    }
 
-	/**
-	 * Return a {@code Representation} for the {@code objects}.
-	 * 
-	 * @param objects
-	 * @return the Representation
-	 */
-	public static Representation forObjects(Object... objects) {
-		ByteBuffer buffer = ByteBuffer.wrap(DigestUtils.md5(Arrays
-				.toString(objects)));
-		buffer.rewind();
-		return new Representation(buffer);
-	}
+    /**
+     * Return a {@code Representation} for the {@code objects}.
+     * 
+     * @param objects
+     * @return the Representation
+     */
+    public static Representation forObjects(Object... objects) {
+        ByteBuffer buffer = ByteBuffer.wrap(DigestUtils.md5(Arrays
+                .toString(objects)));
+        buffer.rewind();
+        return new Representation(buffer);
+    }
 
-	private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
-	/**
-	 * The representation is identified by an md5 hash
-	 */
-	private final ByteBuffer bytes;
+    /**
+     * The representation is identified by an md5 hash
+     */
+    private final ByteBuffer bytes;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	private Representation(ByteBuffer bytes) {
-		Preconditions.checkArgument(bytes.capacity() == 16);
-		this.bytes = bytes;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param bytes
+     */
+    @DoNotInvoke
+    private Representation(ByteBuffer bytes) {
+        Preconditions.checkArgument(bytes.capacity() == 16);
+        this.bytes = bytes;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Representation) {
-			Representation other = (Representation) obj;
-			return getBytes().equals(other.getBytes());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Representation) {
+            Representation other = (Representation) obj;
+            return getBytes().equals(other.getBytes());
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		bytes.rewind();
-		return bytes;
+    @Override
+    public ByteBuffer getBytes() {
+        bytes.rewind();
+        return bytes;
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		return getBytes().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getBytes().hashCode();
+    }
 
-	@Override
-	public int size() {
-		return getBytes().capacity();
-	}
+    @Override
+    public int size() {
+        return getBytes().capacity();
+    }
 
-	@Override
-	public String toString() {
-		return Hex.encodeHexString(ByteBuffers.toByteArray(getBytes()));
-	}
+    @Override
+    public String toString() {
+        return Hex.encodeHexString(ByteBuffers.toByteArray(getBytes()));
+    }
 
-	/**
-	 * Return the masterLock, which exposes a readLock and writeLock for shared
-	 * or exclusive locking.
-	 * 
-	 * @return the masterLock
-	 */
-	@PackagePrivate
-	ReentrantReadWriteLock getMasterLock() {
-		return masterLock;
-	}
+    /**
+     * Return the masterLock, which exposes a readLock and writeLock for shared
+     * or exclusive locking.
+     * 
+     * @return the masterLock
+     */
+    @PackagePrivate
+    ReentrantReadWriteLock getMasterLock() {
+        return masterLock;
+    }
 
 }

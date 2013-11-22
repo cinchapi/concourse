@@ -36,25 +36,25 @@ import org.cinchapi.concourse.util.RandomStringGenerator;
  */
 public final class AccessTokens {
 
-	private static final RandomStringGenerator rsg = new RandomStringGenerator();
+    private static final RandomStringGenerator rsg = new RandomStringGenerator();
 
-	/**
-	 * Create a new {@link AccessToken} to grant access to the user identified
-	 * by {@code username} and {@code password}.
-	 * 
-	 * @param username
-	 * @param password
-	 * @return the AccessToken
-	 */
-	public static AccessToken createAccessToken(String username, String password) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(username);
-		sb.append(password);
-		sb.append(rsg.nextString());
-		sb.append(Time.now());
-		return new AccessToken(
-				ByteBuffer.wrap(DigestUtils.sha256(sb.toString())));
+    /**
+     * Create a new {@link AccessToken} to grant access to the user identified
+     * by {@code username} and {@code password}.
+     * 
+     * @param username
+     * @param password
+     * @return the AccessToken
+     */
+    public static AccessToken createAccessToken(String username, String password) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(username);
+        sb.append(password);
+        sb.append(rsg.nextString());
+        sb.append(Time.now());
+        return new AccessToken(
+                ByteBuffer.wrap(DigestUtils.sha256(sb.toString())));
 
-	}
+    }
 
 }

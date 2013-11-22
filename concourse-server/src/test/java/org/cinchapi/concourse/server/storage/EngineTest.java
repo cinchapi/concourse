@@ -40,38 +40,39 @@ import org.junit.runner.Description;
  */
 public class EngineTest extends BufferedStoreTest {
 
-	private String directory;
-	
-	@Rule
-	public TestWatcher w = new TestWatcher(){
-		@Override
-		protected void starting(Description desc) {
-			store.stop(); //Stop the engine so that data isn't transported in the middle of a test.
-		}
-	};
+    private String directory;
 
-	@Override
-	protected void add(String key, TObject value, long record) {
-		((Engine) store).add(key, value, record);
-	}
+    @Rule
+    public TestWatcher w = new TestWatcher() {
+        @Override
+        protected void starting(Description desc) {
+            store.stop(); // Stop the engine so that data isn't transported in
+                          // the middle of a test.
+        }
+    };
 
-	@Override
-	protected void cleanup(Store store) {
-		FileSystem.deleteDirectory(directory);
+    @Override
+    protected void add(String key, TObject value, long record) {
+        ((Engine) store).add(key, value, record);
+    }
 
-	}
+    @Override
+    protected void cleanup(Store store) {
+        FileSystem.deleteDirectory(directory);
 
-	@Override
-	protected Store getStore() {
-		directory = TestData.DATA_DIR + File.separator + Time.now();
-		return new Engine(directory + File.separator + "buffer",
-				directory + File.separator + "database");
-	}
+    }
 
-	@Override
-	protected void remove(String key, TObject value, long record) {
-		((Engine) store).remove(key, value, record);
+    @Override
+    protected Store getStore() {
+        directory = TestData.DATA_DIR + File.separator + Time.now();
+        return new Engine(directory + File.separator + "buffer", directory
+                + File.separator + "database");
+    }
 
-	}
+    @Override
+    protected void remove(String key, TObject value, long record) {
+        ((Engine) store).remove(key, value, record);
+
+    }
 
 }

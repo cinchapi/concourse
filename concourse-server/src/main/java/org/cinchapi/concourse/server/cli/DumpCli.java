@@ -41,64 +41,64 @@ import com.beust.jcommander.Parameter;
  */
 public final class DumpCli extends ManagedOperationCli {
 
-	/**
-	 * Run the program...
-	 * 
-	 * @param args
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 * @throws MalformedObjectNameException
-	 * @throws ReflectionException
-	 * @throws MBeanException
-	 * @throws InstanceNotFoundException
-	 * @throws TException
-	 */
-	public static void main(String... args)
-			throws MalformedObjectNameException, MalformedURLException,
-			IOException {
-		DumpCli cli = new DumpCli(new Options(), args);
-		cli.run();
-	}
+    /**
+     * Run the program...
+     * 
+     * @param args
+     * @throws MalformedURLException
+     * @throws IOException
+     * @throws MalformedObjectNameException
+     * @throws ReflectionException
+     * @throws MBeanException
+     * @throws InstanceNotFoundException
+     * @throws TException
+     */
+    public static void main(String... args)
+            throws MalformedObjectNameException, MalformedURLException,
+            IOException {
+        DumpCli cli = new DumpCli(new Options(), args);
+        cli.run();
+    }
 
-	/**
-	 * A reference to the options.
-	 */
-	private final Options opts;
+    /**
+     * A reference to the options.
+     */
+    private final Options opts;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param opts
-	 * @param args
-	 */
-	public DumpCli(Options opts, String[] args) {
-		super(opts, args);
-		this.opts = opts;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param opts
+     * @param args
+     */
+    public DumpCli(Options opts, String[] args) {
+        super(opts, args);
+        this.opts = opts;
+    }
 
-	@Override
-	protected void doTask(ConcourseServerMXBean bean) {
-		if(opts.help) {
-			parser.usage();
-			System.exit(1);
-		}
-		System.out.println(bean.dump(opts.id));
-		System.exit(0);
-	}
+    @Override
+    protected void doTask(ConcourseServerMXBean bean) {
+        if(opts.help) {
+            parser.usage();
+            System.exit(1);
+        }
+        System.out.println(bean.dump(opts.id));
+        System.exit(0);
+    }
 
-	/**
-	 * The options that can be passed to the main method of this script.
-	 * 
-	 * @author jnelson
-	 */
-	private static class Options {
+    /**
+     * The options that can be passed to the main method of this script.
+     * 
+     * @author jnelson
+     */
+    private static class Options {
 
-		@Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
-		public String id;
+        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
+        public String id;
 
-		@Parameter(names = { "-h", "--help" }, help = true, hidden = true)
-		public boolean help;
+        @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
+        public boolean help;
 
-	}
+    }
 
 }

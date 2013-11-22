@@ -34,20 +34,20 @@ import java.net.Socket;
  * @author jnelson
  */
 public class ShutdownRunner {
-	
-	/**
-	 * Prompt the server to shutdown
-	 * 
-	 * @param args
-	 * @throws IOException
-	 */
-	public static void main(String... args) {
-		try {
-			Socket socket = new Socket("localhost", SHUTDOWN_PORT);
-			socket.close();
-		}
-		catch (IOException e) {
-			// do nothing
-		}
-	}
+
+    /**
+     * Prompt the server to shutdown
+     * 
+     * @param args
+     * @throws IOException
+     */
+    public static void main(String... args) {
+        try {
+            Socket socket = new Socket("localhost", SHUTDOWN_PORT);
+            socket.close();
+        }
+        catch (IOException e) {
+            // do nothing
+        }
+    }
 }

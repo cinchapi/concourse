@@ -43,70 +43,70 @@ import com.google.common.base.Throwables;
  */
 public class ConcourseServerBenchmark extends AbstractBenchmark {
 
-	private static final String SERVER_HOST = "localhost";
-	private static final int SERVER_PORT = 1719;
-	private static final String SERVER_DATA_HOME = System
-			.getProperty("user.home")
-			+ File.separator
-			+ "concourse_"
-			+ Long.toString(Time.now());
-	private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "db";
-	private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "buffer";
+    private static final String SERVER_HOST = "localhost";
+    private static final int SERVER_PORT = 1719;
+    private static final String SERVER_DATA_HOME = System
+            .getProperty("user.home")
+            + File.separator
+            + "concourse_"
+            + Long.toString(Time.now());
+    private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "db";
+    private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "buffer";
 
-	private ConcourseServer server;
-	private Concourse client;
+    private ConcourseServer server;
+    private Concourse client;
 
-	@Rule
-	public TestWatcher watcher = new TestWatcher() {
+    @Rule
+    public TestWatcher watcher = new TestWatcher() {
 
-		@Override
-		protected void starting(Description description) {
-			try {
-				server = new ConcourseServer(SERVER_PORT,
-						SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
-			}
-			catch (TTransportException e1) {
-				throw Throwables.propagate(e1);
-			}
-			Thread t = new Thread(new Runnable() {
+        @Override
+        protected void starting(Description description) {
+            try {
+                server = new ConcourseServer(SERVER_PORT,
+                        SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
+            }
+            catch (TTransportException e1) {
+                throw Throwables.propagate(e1);
+            }
+            Thread t = new Thread(new Runnable() {
 
-				@Override
-				public void run() {
-					try {
-						server.start();
-					}
-					catch (TTransportException e) {
-						throw Throwables.propagate(e);
-					}
+                @Override
+                public void run() {
+                    try {
+                        server.start();
+                    }
+                    catch (TTransportException e) {
+                        throw Throwables.propagate(e);
+                    }
 
-				}
+                }
 
-			});
-			t.start();
-			client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
-					"admin");
-		}
+            });
+            t.start();
+            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+                    "admin");
+        }
 
-		@Override
-		protected void finished(Description description) {
-			client.exit();
-			server.stop();
-			FileSystem.deleteDirectory(SERVER_DATA_HOME);
-		}
+        @Override
+        protected void finished(Description description) {
+            client.exit();
+            server.stop();
+            FileSystem.deleteDirectory(SERVER_DATA_HOME);
+        }
 
-	};
+    };
 
-//	@Test
-//	@BenchmarkOptions(benchmarkRounds = 20)
-//	public void benchmarkAddLongWrites() {
-//		String key = "count";
-//		int i = 0;
-//		while (i < 1000) {
-//			client.add(key, i, i);
-//			i++;
-//		}
-//	}
+    // @Test
+    // @BenchmarkOptions(benchmarkRounds = 20)
+    // public void benchmarkAddLongWrites() {
+    // String key = "count";
+    // int i = 0;
+    // while (i < 1000) {
+    // client.add(key, i, i);
+    // i++;
+    // }
+    // }
 
 }

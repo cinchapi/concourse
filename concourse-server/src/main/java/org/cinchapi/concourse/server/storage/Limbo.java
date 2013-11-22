@@ -69,411 +69,411 @@ import com.google.common.collect.Sets;
 @PackagePrivate
 abstract class Limbo implements Store, Iterable<Write> {
 
-	/**
-	 * The writeLock ensures that only a single writer can modify the state of
-	 * the store, without affecting any readers. The subclass should, at a
-	 * minimum, use this lock in the {@link #insert(Write)} method.
-	 */
-	protected final ReentrantLock writeLock = new ReentrantLock();
+    /**
+     * The writeLock ensures that only a single writer can modify the state of
+     * the store, without affecting any readers. The subclass should, at a
+     * minimum, use this lock in the {@link #insert(Write)} method.
+     */
+    protected final ReentrantLock writeLock = new ReentrantLock();
 
-	/**
-	 * A Predicate that is used to filter out empty sets.
-	 */
-	private static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
+    /**
+     * A Predicate that is used to filter out empty sets.
+     */
+    private static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
 
-		@Override
-		public boolean apply(@Nullable Set<? extends Object> input) {
-			return !input.isEmpty();
-		}
+        @Override
+        public boolean apply(@Nullable Set<? extends Object> input) {
+            return !input.isEmpty();
+        }
 
-	};
+    };
 
-	@Override
-	public Map<Long, String> audit(long record) {
-		Map<Long, String> audit = Maps.newTreeMap();
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getRecord().longValue() == record) {
-				audit.put(write.getVersion(), write.toString());
-			}
-		}
-		return audit;
+    @Override
+    public Map<Long, String> audit(long record) {
+        Map<Long, String> audit = Maps.newTreeMap();
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record) {
+                audit.put(write.getVersion(), write.toString());
+            }
+        }
+        return audit;
 
-	}
+    }
 
-	@Override
-	public Map<Long, String> audit(String key, long record) {
-		Map<Long, String> audit = Maps.newTreeMap();
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getKey().toString().equals(key)
-					&& write.getRecord().longValue() == record) {
-				audit.put(write.getVersion(), write.toString());
-			}
-		}
-		return audit;
+    @Override
+    public Map<Long, String> audit(String key, long record) {
+        Map<Long, String> audit = Maps.newTreeMap();
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getKey().toString().equals(key)
+                    && write.getRecord().longValue() == record) {
+                audit.put(write.getVersion(), write.toString());
+            }
+        }
+        return audit;
 
-	}
+    }
 
-	@Override
-	public Set<String> describe(long record) {
-		return describe(record, Maps.<String, Set<TObject>> newHashMap());
-	}
+    @Override
+    public Set<String> describe(long record) {
+        return describe(record, Maps.<String, Set<TObject>> newHashMap());
+    }
 
-	@Override
-	public Set<String> describe(long record, long timestamp) {
-		return describe(record, timestamp,
-				Maps.<String, Set<TObject>> newHashMap());
-	}
+    @Override
+    public Set<String> describe(long record, long timestamp) {
+        return describe(record, timestamp,
+                Maps.<String, Set<TObject>> newHashMap());
+    }
 
-	@Override
-	public Set<TObject> fetch(String key, long record) {
-		return fetch(key, record, Sets.<TObject> newHashSet());
-	}
+    @Override
+    public Set<TObject> fetch(String key, long record) {
+        return fetch(key, record, Sets.<TObject> newHashSet());
+    }
 
-	@Override
-	public Set<TObject> fetch(String key, long record, long timestamp) {
-		return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
-	}
+    @Override
+    public Set<TObject> fetch(String key, long record, long timestamp) {
+        return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
+    }
 
-	@Override
-	public Set<Long> find(long timestamp, String key, Operator operator,
-			TObject... values) {
-		Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
-		Iterator<Write> it = iterator();
-		Value value = Value.wrap(values[0]);
-		while (it.hasNext()) {
-			Write write = it.next();
-			long record = write.getRecord().longValue();
-			Value writeValue = write.getValue();
-			if(write.getVersion() < timestamp) {
-				boolean matches = false;
-				if(write.getKey().toString().equals(key)) {
-					if(operator == Operator.EQUALS) {
-						matches = value.equals(writeValue);
-					}
-					else if(operator == Operator.NOT_EQUALS) {
-						matches = !value.equals(writeValue);
-					}
-					else if(operator == Operator.GREATER_THAN) {
-						matches = value.compareTo(writeValue) < 0;
-					}
-					else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-						matches = value.compareTo(writeValue) <= 0;
-					}
-					else if(operator == Operator.LESS_THAN) {
-						matches = value.compareTo(writeValue) > 0;
-					}
-					else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-						matches = value.compareTo(writeValue) >= 0;
-					}
-					else if(operator == Operator.BETWEEN) {
-						Preconditions.checkArgument(values.length > 1);
-						Value value2 = Value.wrap(values[1]);
-						matches = value.compareTo(writeValue) <= 0
-								&& value2.compareTo(write.getValue()) > 0;
+    @Override
+    public Set<Long> find(long timestamp, String key, Operator operator,
+            TObject... values) {
+        Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
+        Iterator<Write> it = iterator();
+        Value value = Value.wrap(values[0]);
+        while (it.hasNext()) {
+            Write write = it.next();
+            long record = write.getRecord().longValue();
+            Value writeValue = write.getValue();
+            if(write.getVersion() < timestamp) {
+                boolean matches = false;
+                if(write.getKey().toString().equals(key)) {
+                    if(operator == Operator.EQUALS) {
+                        matches = value.equals(writeValue);
+                    }
+                    else if(operator == Operator.NOT_EQUALS) {
+                        matches = !value.equals(writeValue);
+                    }
+                    else if(operator == Operator.GREATER_THAN) {
+                        matches = value.compareTo(writeValue) < 0;
+                    }
+                    else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+                        matches = value.compareTo(writeValue) <= 0;
+                    }
+                    else if(operator == Operator.LESS_THAN) {
+                        matches = value.compareTo(writeValue) > 0;
+                    }
+                    else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+                        matches = value.compareTo(writeValue) >= 0;
+                    }
+                    else if(operator == Operator.BETWEEN) {
+                        Preconditions.checkArgument(values.length > 1);
+                        Value value2 = Value.wrap(values[1]);
+                        matches = value.compareTo(writeValue) <= 0
+                                && value2.compareTo(write.getValue()) > 0;
 
-					}
-					else if(operator == Operator.REGEX) {
-						matches = writeValue.getObject().toString()
-								.matches(value.getObject().toString());
-					}
-					else if(operator == Operator.NOT_REGEX) {
-						matches = !writeValue.getObject().toString()
-								.matches(value.getObject().toString());
-					}
-					else {
-						throw new UnsupportedOperationException();
-					}
-				}
-				if(matches) {
-					Set<Value> v = rtv.get(record);
-					if(v == null) {
-						v = Sets.newHashSet();
-						rtv.put(record, v);
-					}
-					if(v.contains(writeValue)) {
-						v.remove(writeValue);
-					}
-					else {
-						v.add(writeValue);
-					}
-				}
-			}
-			else {
-				break;
-			}
-		}
-		return Maps.filterValues(rtv, emptySetFilter).keySet();
-	}
+                    }
+                    else if(operator == Operator.REGEX) {
+                        matches = writeValue.getObject().toString()
+                                .matches(value.getObject().toString());
+                    }
+                    else if(operator == Operator.NOT_REGEX) {
+                        matches = !writeValue.getObject().toString()
+                                .matches(value.getObject().toString());
+                    }
+                    else {
+                        throw new UnsupportedOperationException();
+                    }
+                }
+                if(matches) {
+                    Set<Value> v = rtv.get(record);
+                    if(v == null) {
+                        v = Sets.newHashSet();
+                        rtv.put(record, v);
+                    }
+                    if(v.contains(writeValue)) {
+                        v.remove(writeValue);
+                    }
+                    else {
+                        v.add(writeValue);
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return Maps.filterValues(rtv, emptySetFilter).keySet();
+    }
 
-	@Override
-	public Set<Long> find(String key, Operator operator, TObject... values) {
-		return find(Time.now(), key, operator, values);
-	}
+    @Override
+    public Set<Long> find(String key, Operator operator, TObject... values) {
+        return find(Time.now(), key, operator, values);
+    }
 
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * <strong>NOTE:</strong> The subclass <em>may</em> override this method to
-	 * provide an iterator with granular locking functionality for increased
-	 * throughput.
-	 * </p>
-	 */
-	@Override
-	public abstract Iterator<Write> iterator();
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> The subclass <em>may</em> override this method to
+     * provide an iterator with granular locking functionality for increased
+     * throughput.
+     * </p>
+     */
+    @Override
+    public abstract Iterator<Write> iterator();
 
-	@Override
-	public boolean ping(long record) {
-		return !describe(record).isEmpty();
-	}
+    @Override
+    public boolean ping(long record) {
+        return !describe(record).isEmpty();
+    }
 
-	@Override
-	public Set<Long> search(String key, String query) {
-		Map<Long, Set<Value>> rtv = Maps.newHashMap();
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write write = it.next();
-			Value value = write.getValue();
-			long record = write.getRecord().longValue();
-			if(value.getType() == Type.STRING) {
-				String stored = StringTools.stripStopWords((String) (value
-						.getObject()));
-				query = StringTools.stripStopWords(query);
-				if(!Strings.isNullOrEmpty(stored)
-						&& !Strings.isNullOrEmpty(query)
-						&& stored.contains(query)) {
-					Set<Value> values = rtv.get(record);
-					if(values == null) {
-						values = Sets.newHashSet();
-						rtv.put(record, values);
-					}
-					if(values.contains(value)) {
-						values.remove(value);
-					}
-					else {
-						values.add(value);
-					}
+    @Override
+    public Set<Long> search(String key, String query) {
+        Map<Long, Set<Value>> rtv = Maps.newHashMap();
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            Value value = write.getValue();
+            long record = write.getRecord().longValue();
+            if(value.getType() == Type.STRING) {
+                String stored = StringTools.stripStopWords((String) (value
+                        .getObject()));
+                query = StringTools.stripStopWords(query);
+                if(!Strings.isNullOrEmpty(stored)
+                        && !Strings.isNullOrEmpty(query)
+                        && stored.contains(query)) {
+                    Set<Value> values = rtv.get(record);
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        rtv.put(record, values);
+                    }
+                    if(values.contains(value)) {
+                        values.remove(value);
+                    }
+                    else {
+                        values.add(value);
+                    }
 
-				}
-			}
-		}
-		return Maps.filterValues(rtv, emptySetFilter).keySet();
-	}
+                }
+            }
+        }
+        return Maps.filterValues(rtv, emptySetFilter).keySet();
+    }
 
-	/**
-	 * Transport the content of this store to {@code destination}.
-	 * 
-	 * @param destination
-	 */
-	public void transport(PermanentStore destination) {
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			destination.accept(it.next());
-			it.remove();
-		}
+    /**
+     * Transport the content of this store to {@code destination}.
+     * 
+     * @param destination
+     */
+    public void transport(PermanentStore destination) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            destination.accept(it.next());
+            it.remove();
+        }
 
-	}
+    }
 
-	@Override
-	public boolean verify(String key, TObject value, long record) {
-		return verify(key, value, record, Time.now());
-	}
+    @Override
+    public boolean verify(String key, TObject value, long record) {
+        return verify(key, value, record, Time.now());
+    }
 
-	@Override
-	public boolean verify(String key, TObject value, long record, long timestamp) {
-		return verify(Write.notStorable(key, value, record), timestamp);
-	}
+    @Override
+    public boolean verify(String key, TObject value, long record, long timestamp) {
+        return verify(Write.notStorable(key, value, record), timestamp);
+    }
 
-	/**
-	 * Calculate the description for {@code record} at {@code timestamp} using
-	 * information in {@code ktv} as if it were also a part of the Buffer. This
-	 * method is used to accurately describe records using prior context about
-	 * data that was transported from the Buffer to a destination.
-	 * 
-	 * @param record
-	 * @param timestamp
-	 * @param ktv
-	 * @return a possibly empty Set of keys
-	 */
-	protected Set<String> describe(long record, long timestamp,
-			Map<String, Set<TObject>> ktv) {
-		Iterator<Write> it = iterator();
-		search: while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getRecord().longValue() == record) {
-				if(write.getVersion() <= timestamp) {
-					Set<TObject> values;
-					values = ktv.get(write.getKey().toString());
-					if(values == null) {
-						values = Sets.newHashSet();
-						ktv.put(write.getKey().toString(), values);
-					}
-					if(write.getType() == Action.ADD) {
-						values.add(write.getValue().getTObject());
-					}
-					else {
-						values.remove(write.getValue().getTObject());
-					}
-				}
-				else {
-					break search;
-				}
-			}
-		}
-		return Maps.filterValues(ktv, emptySetFilter).keySet();
-	}
+    /**
+     * Calculate the description for {@code record} at {@code timestamp} using
+     * information in {@code ktv} as if it were also a part of the Buffer. This
+     * method is used to accurately describe records using prior context about
+     * data that was transported from the Buffer to a destination.
+     * 
+     * @param record
+     * @param timestamp
+     * @param ktv
+     * @return a possibly empty Set of keys
+     */
+    protected Set<String> describe(long record, long timestamp,
+            Map<String, Set<TObject>> ktv) {
+        Iterator<Write> it = iterator();
+        search: while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record) {
+                if(write.getVersion() <= timestamp) {
+                    Set<TObject> values;
+                    values = ktv.get(write.getKey().toString());
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        ktv.put(write.getKey().toString(), values);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        values.add(write.getValue().getTObject());
+                    }
+                    else {
+                        values.remove(write.getValue().getTObject());
+                    }
+                }
+                else {
+                    break search;
+                }
+            }
+        }
+        return Maps.filterValues(ktv, emptySetFilter).keySet();
+    }
 
-	/**
-	 * Calculate the description for {@code record} using information in
-	 * {@code ktv} as if it were also a part of the Buffer. This method is used
-	 * to accurately describe records using prior context about data that was
-	 * transported from the Buffer to a destination.
-	 * 
-	 * @param record
-	 * @param ktv
-	 * @return a possibly empty Set of keys
-	 */
-	protected Set<String> describe(long record, Map<String, Set<TObject>> ktv) {
-		return describe(record, Time.now(), ktv);
-	}
+    /**
+     * Calculate the description for {@code record} using information in
+     * {@code ktv} as if it were also a part of the Buffer. This method is used
+     * to accurately describe records using prior context about data that was
+     * transported from the Buffer to a destination.
+     * 
+     * @param record
+     * @param ktv
+     * @return a possibly empty Set of keys
+     */
+    protected Set<String> describe(long record, Map<String, Set<TObject>> ktv) {
+        return describe(record, Time.now(), ktv);
+    }
 
-	/**
-	 * Fetch the values mapped from {@code key} in {@code record} at
-	 * {@code timestamp} using {@code values} as prior context.
-	 * 
-	 * @param key
-	 * @param record
-	 * @param timestamp
-	 * @param values
-	 * @return the values
-	 */
-	protected Set<TObject> fetch(String key, long record, long timestamp,
-			Set<TObject> values) {
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write write = it.next();
-			if(write.getVersion() <= timestamp) {
-				if(key.equals(write.getKey().toString())
-						&& record == write.getRecord().longValue()) {
-					if(write.getType() == Action.ADD) {
-						values.add(write.getValue().getTObject());
-					}
-					else {
-						values.remove(write.getValue().getTObject());
-					}
-				}
-			}
-			else {
-				break;
-			}
-		}
-		return values;
-	}
+    /**
+     * Fetch the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using {@code values} as prior context.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param values
+     * @return the values
+     */
+    protected Set<TObject> fetch(String key, long record, long timestamp,
+            Set<TObject> values) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getVersion() <= timestamp) {
+                if(key.equals(write.getKey().toString())
+                        && record == write.getRecord().longValue()) {
+                    if(write.getType() == Action.ADD) {
+                        values.add(write.getValue().getTObject());
+                    }
+                    else {
+                        values.remove(write.getValue().getTObject());
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return values;
+    }
 
-	/**
-	 * Fetch the values mapped from {@code key} in {@code record} using
-	 * {@code values} as prior context.
-	 * 
-	 * @param key
-	 * @param record
-	 * @param values
-	 * @return the values
-	 */
-	protected Set<TObject> fetch(String key, long record, Set<TObject> values) {
-		return fetch(key, record, Time.now(), values);
-	}
+    /**
+     * Fetch the values mapped from {@code key} in {@code record} using
+     * {@code values} as prior context.
+     * 
+     * @param key
+     * @param record
+     * @param values
+     * @return the values
+     */
+    protected Set<TObject> fetch(String key, long record, Set<TObject> values) {
+        return fetch(key, record, Time.now(), values);
+    }
 
-	/**
-	 * Insert {@code write} into the store <strong>without performing any
-	 * validity checks</strong>.
-	 * <p>
-	 * This method is <em>only</em> safe to call from a context that performs
-	 * its own validity checks (i.e. a {@link BufferedStore}).
-	 * 
-	 * @param write
-	 * @return {@code true}
-	 */
-	protected abstract boolean insert(Write write);
+    /**
+     * Insert {@code write} into the store <strong>without performing any
+     * validity checks</strong>.
+     * <p>
+     * This method is <em>only</em> safe to call from a context that performs
+     * its own validity checks (i.e. a {@link BufferedStore}).
+     * 
+     * @param write
+     * @return {@code true}
+     */
+    protected abstract boolean insert(Write write);
 
-	/**
-	 * Return {@code true} if {@code write} represents a data mapping that
-	 * currently exists.
-	 * <p>
-	 * <strong>This method is called from {@link #add(String, TObject, long)}
-	 * and {@link #remove(String, TObject, long)}.</strong>
-	 * </p>
-	 * 
-	 * @param write
-	 * @return {@code true} if {@code write} currently appears an odd number of
-	 *         times
-	 */
-	protected boolean verify(Write write) {
-		return verify(write, Time.now());
-	}
+    /**
+     * Return {@code true} if {@code write} represents a data mapping that
+     * currently exists.
+     * <p>
+     * <strong>This method is called from {@link #add(String, TObject, long)}
+     * and {@link #remove(String, TObject, long)}.</strong>
+     * </p>
+     * 
+     * @param write
+     * @return {@code true} if {@code write} currently appears an odd number of
+     *         times
+     */
+    protected boolean verify(Write write) {
+        return verify(write, Time.now());
+    }
 
-	/**
-	 * Return {@code true} if {@code write} represents a data mapping that
-	 * currently exists using {@code exists} as prior context.
-	 * <p>
-	 * <strong>This method is called from
-	 * {@link BufferedStore#verify(String, TObject, long)}.</strong>
-	 * </p>
-	 * 
-	 * @param write
-	 * @return {@code true} if {@code write} currently appears an odd number of
-	 *         times
-	 */
-	protected boolean verify(Write write, boolean exists) {
-		return verify(write, Time.now(), exists);
-	}
+    /**
+     * Return {@code true} if {@code write} represents a data mapping that
+     * currently exists using {@code exists} as prior context.
+     * <p>
+     * <strong>This method is called from
+     * {@link BufferedStore#verify(String, TObject, long)}.</strong>
+     * </p>
+     * 
+     * @param write
+     * @return {@code true} if {@code write} currently appears an odd number of
+     *         times
+     */
+    protected boolean verify(Write write, boolean exists) {
+        return verify(write, Time.now(), exists);
+    }
 
-	/**
-	 * Return {@code true} if {@code write} represents a data mapping that
-	 * exists at {@code timestamp}.
-	 * <p>
-	 * <strong>This method is called from
-	 * {@link BufferedStore#verify(String, TObject, long, long)}.</strong>
-	 * </p>
-	 * 
-	 * @param write
-	 * @param timestamp
-	 * @return {@code true} if {@code write} appears an odd number of times at
-	 *         {@code timestamp}
-	 */
-	protected boolean verify(Write write, long timestamp) {
-		return verify(write, timestamp, false);
-	}
+    /**
+     * Return {@code true} if {@code write} represents a data mapping that
+     * exists at {@code timestamp}.
+     * <p>
+     * <strong>This method is called from
+     * {@link BufferedStore#verify(String, TObject, long, long)}.</strong>
+     * </p>
+     * 
+     * @param write
+     * @param timestamp
+     * @return {@code true} if {@code write} appears an odd number of times at
+     *         {@code timestamp}
+     */
+    protected boolean verify(Write write, long timestamp) {
+        return verify(write, timestamp, false);
+    }
 
-	/**
-	 * Return {@code true} if {@code write} represents a data mapping that
-	 * exists at {@code timestamp}, using {@code exists} as prior context.
-	 * <p>
-	 * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
-	 * </p>
-	 * 
-	 * @param write
-	 * @param timestamp
-	 * @param exists
-	 * @return {@code true} if {@code write} appears an odd number of times at
-	 *         {@code timestamp}
-	 */
-	protected boolean verify(Write write, long timestamp, boolean exists) {
-		Iterator<Write> it = iterator();
-		while (it.hasNext()) {
-			Write stored = it.next();
-			if(stored.getVersion() <= timestamp) {
-				if(stored.equals(write)) {
-					exists ^= true; // toggle boolean
-				}
-			}
-			else {
-				break;
-			}
-		}
-		return exists;
-	}
+    /**
+     * Return {@code true} if {@code write} represents a data mapping that
+     * exists at {@code timestamp}, using {@code exists} as prior context.
+     * <p>
+     * <strong>NOTE: ALL OTHER VERIFY METHODS DEFER TO THIS ONE.</strong>
+     * </p>
+     * 
+     * @param write
+     * @param timestamp
+     * @param exists
+     * @return {@code true} if {@code write} appears an odd number of times at
+     *         {@code timestamp}
+     */
+    protected boolean verify(Write write, long timestamp, boolean exists) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write stored = it.next();
+            if(stored.getVersion() <= timestamp) {
+                if(stored.equals(write)) {
+                    exists ^= true; // toggle boolean
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return exists;
+    }
 
 }

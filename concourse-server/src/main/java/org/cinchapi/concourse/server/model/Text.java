@@ -40,102 +40,102 @@ import org.cinchapi.concourse.util.ByteBuffers;
 @Immutable
 public final class Text implements Byteable, Comparable<Text> {
 
-	/**
-	 * Return the Text encoded in {@code bytes} so long as those bytes adhere
-	 * to the format specified by the {@link #getBytes()} method. This method
-	 * assumes that all the bytes in the {@code bytes} belong to the Text. In
-	 * general, it is necessary to get the appropriate Text slice from the
-	 * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param buffer
-	 * @return the Text
-	 */
-	public static Text fromByteBuffer(ByteBuffer bytes) {
-		return new Text(ByteBuffers.getString(bytes, StandardCharsets.UTF_8),
-				bytes);
-	}
+    /**
+     * Return the Text encoded in {@code bytes} so long as those bytes adhere
+     * to the format specified by the {@link #getBytes()} method. This method
+     * assumes that all the bytes in the {@code bytes} belong to the Text. In
+     * general, it is necessary to get the appropriate Text slice from the
+     * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param buffer
+     * @return the Text
+     */
+    public static Text fromByteBuffer(ByteBuffer bytes) {
+        return new Text(ByteBuffers.getString(bytes, StandardCharsets.UTF_8),
+                bytes);
+    }
 
-	/**
-	 * Return Text that is backed by {@code string}.
-	 * 
-	 * @param string
-	 * @return the Text
-	 */
-	public static Text wrap(String string) {
-		return new Text(string);
-	}
+    /**
+     * Return Text that is backed by {@code string}.
+     * 
+     * @param string
+     * @return the Text
+     */
+    public static Text wrap(String string) {
+        return new Text(string);
+    }
 
-	/**
-	 * Represents an empty text string.
-	 */
-	public static final Text EMPTY = Text.wrap("");
+    /**
+     * Represents an empty text string.
+     */
+    public static final Text EMPTY = Text.wrap("");
 
-	/**
-	 * The wrapped string.
-	 */
-	private final String text;
+    /**
+     * The wrapped string.
+     */
+    private final String text;
 
-	/**
-	 * Master byte sequence that represents this object. Read-only duplicates
-	 * are made when returning from {@link #getBytes()}.
-	 */
-	private transient ByteBuffer bytes = null;
+    /**
+     * Master byte sequence that represents this object. Read-only duplicates
+     * are made when returning from {@link #getBytes()}.
+     */
+    private transient ByteBuffer bytes = null;
 
-	/**
-	 * Construct an instance that wraps the {@code text} string.
-	 * 
-	 * @param text
-	 */
-	private Text(String text) {
-		this(text, null);
-	}
+    /**
+     * Construct an instance that wraps the {@code text} string.
+     * 
+     * @param text
+     */
+    private Text(String text) {
+        this(text, null);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param text
-	 * @param bytes
-	 */
-	private Text(String text, @Nullable ByteBuffer bytes) {
-		this.text = text;
-		this.bytes = bytes;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param text
+     * @param bytes
+     */
+    private Text(String text, @Nullable ByteBuffer bytes) {
+        this.text = text;
+        this.bytes = bytes;
+    }
 
-	@Override
-	public int compareTo(Text o) {
-		return toString().compareTo(o.toString());
-	}
+    @Override
+    public int compareTo(Text o) {
+        return toString().compareTo(o.toString());
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Text) {
-			Text other = (Text) obj;
-			return toString().equals(other.toString());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Text) {
+            Text other = (Text) obj;
+            return toString().equals(other.toString());
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		if(bytes == null){
-			bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
-		}
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public int hashCode() {
-		return text.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return text.hashCode();
+    }
 
-	@Override
-	public int size() {
-		return getBytes().capacity();
-	}
+    @Override
+    public int size() {
+        return getBytes().capacity();
+    }
 
-	@Override
-	public String toString() {
-		return text;
-	}
+    @Override
+    public String toString() {
+        return text;
+    }
 
 }

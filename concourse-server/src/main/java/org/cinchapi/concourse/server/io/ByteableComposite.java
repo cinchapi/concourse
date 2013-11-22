@@ -39,87 +39,85 @@ import org.cinchapi.concourse.util.ByteBuffers;
 @Immutable
 public final class ByteableComposite implements Byteable {
 
-	/**
-	 * Return a ByteableComposite for the list of {@code byteables}.
-	 * 
-	 * @param byteables
-	 * @return the ByteableComposite
-	 */
-	public static ByteableComposite create(Byteable... byteables) {
-		return new ByteableComposite(byteables);
-	}
+    /**
+     * Return a ByteableComposite for the list of {@code byteables}.
+     * 
+     * @param byteables
+     * @return the ByteableComposite
+     */
+    public static ByteableComposite create(Byteable... byteables) {
+        return new ByteableComposite(byteables);
+    }
 
-	/**
-	 * Return the ByteableComposite encoded in {@code bytes} so long as those
-	 * bytes adhere to the format specified by the {@link #getBytes()} method.
-	 * This method assumes that all the bytes in the {@code bytes} belong to the
-	 * ByteableComposite. In general, it is necessary to get the appropriate
-	 * Value slice from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the ByteableComposite
-	 */
-	public static ByteableComposite fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, ByteableComposite.class);
-	}
+    /**
+     * Return the ByteableComposite encoded in {@code bytes} so long as those
+     * bytes adhere to the format specified by the {@link #getBytes()} method.
+     * This method assumes that all the bytes in the {@code bytes} belong to the
+     * ByteableComposite. In general, it is necessary to get the appropriate
+     * Value slice from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the ByteableComposite
+     */
+    public static ByteableComposite fromByteBuffer(ByteBuffer bytes) {
+        return Byteables.read(bytes, ByteableComposite.class);
+    }
 
-	private final ByteBuffer bytes;
+    private final ByteBuffer bytes;
 
-	/**
-	 * Construct an instance that represents an existing ByteableComposite from
-	 * a ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public ByteableComposite(ByteBuffer bytes) {
-		this.bytes = bytes;
-	}
+    /**
+     * Construct an instance that represents an existing ByteableComposite from
+     * a ByteBuffer. This constructor is public so as to comply with the
+     * {@link Byteable} interface. Calling this constructor directly is not
+     * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
+     * advantage of reference caching.
+     * 
+     * @param bytes
+     */
+    @DoNotInvoke
+    public ByteableComposite(ByteBuffer bytes) {
+        this.bytes = bytes;
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param byteables
-	 */
-	private ByteableComposite(Byteable... byteables) {
-		int size = 0;
-		for (Byteable byteable : byteables) {
-			size += byteable.size();
-		}
-		bytes = ByteBuffer.allocate(size);
-		for (Byteable byteable : byteables) {
-			bytes.put(byteable.getBytes());
-		}
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param byteables
+     */
+    private ByteableComposite(Byteable... byteables) {
+        int size = 0;
+        for (Byteable byteable : byteables) {
+            size += byteable.size();
+        }
+        bytes = ByteBuffer.allocate(size);
+        for (Byteable byteable : byteables) {
+            bytes.put(byteable.getBytes());
+        }
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof ByteableComposite){
-			ByteableComposite other = (ByteableComposite) obj;
-			return getBytes().equals(other.getBytes());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ByteableComposite) {
+            ByteableComposite other = (ByteableComposite) obj;
+            return getBytes().equals(other.getBytes());
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    @Override
+    public ByteBuffer getBytes() {
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public int hashCode() {
-		return getBytes().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getBytes().hashCode();
+    }
 
-	@Override
-	public int size() {
-		return bytes.capacity();
-	}
-	
-	
+    @Override
+    public int size() {
+        return bytes.capacity();
+    }
 
 }

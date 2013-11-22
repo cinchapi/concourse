@@ -44,126 +44,126 @@ import com.google.common.primitives.UnsignedLongs;
 @Immutable
 public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 
-	/**
-	 * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
-	 * adhere to the format specified by the {@link #getBytes()} method. This
-	 * method assumes that all the bytes in the {@code bytes} belong to the
-	 * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey
-	 * slice
-	 * from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the PrimaryKey
-	 */
-	public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
-		long data = bytes.getLong();
-		return new PrimaryKey(data, bytes);
-	}
+    /**
+     * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey
+     * slice
+     * from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the PrimaryKey
+     */
+    public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
+        long data = bytes.getLong();
+        return new PrimaryKey(data, bytes);
+    }
 
-	/**
-	 * Return a PrimaryKey that is backed by {@code data}.
-	 * 
-	 * @param data
-	 * @return the PrimaryKey
-	 */
-	public static PrimaryKey wrap(long data) {
-		return new PrimaryKey(data);
-	}
+    /**
+     * Return a PrimaryKey that is backed by {@code data}.
+     * 
+     * @param data
+     * @return the PrimaryKey
+     */
+    public static PrimaryKey wrap(long data) {
+        return new PrimaryKey(data);
+    }
 
-	/**
-	 * The total number of bytes used to encode a PrimaryKey.
-	 */
-	public static final int SIZE = 8;
+    /**
+     * The total number of bytes used to encode a PrimaryKey.
+     */
+    public static final int SIZE = 8;
 
-	/**
-	 * The underlying data that represents this PrimaryKey.
-	 */
-	private final long data;
+    /**
+     * The underlying data that represents this PrimaryKey.
+     */
+    private final long data;
 
-	/**
-	 * A cached copy of the binary representation that is returned from
-	 * {@link #getBytes()}.
-	 */
-	private transient ByteBuffer bytes = null;
+    /**
+     * A cached copy of the binary representation that is returned from
+     * {@link #getBytes()}.
+     */
+    private transient ByteBuffer bytes = null;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param data
-	 */
-	private PrimaryKey(long data) {
-		this(data, null);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     */
+    private PrimaryKey(long data) {
+        this(data, null);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param data
-	 * @param bytes
-	 */
-	private PrimaryKey(long data, @Nullable ByteBuffer bytes) {
-		this.data = data;
-		this.bytes = bytes;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     * @param bytes
+     */
+    private PrimaryKey(long data, @Nullable ByteBuffer bytes) {
+        this.data = data;
+        this.bytes = bytes;
+    }
 
-	/**
-	 * Compares keys such that they are sorted in ascending order.
-	 */
-	@Override
-	public int compareTo(PrimaryKey other) {
-		return UnsignedLongs.compare(data, other.data);
-	}
+    /**
+     * Compares keys such that they are sorted in ascending order.
+     */
+    @Override
+    public int compareTo(PrimaryKey other) {
+        return UnsignedLongs.compare(data, other.data);
+    }
 
-	@Override
-	public int size() {
-		return SIZE;
-	}
+    @Override
+    public int size() {
+        return SIZE;
+    }
 
-	/**
-	 * Return a byte buffer that represents this PrimaryKey with the following
-	 * order:
-	 * <ol>
-	 * <li><strong>data</strong> - position 0</li>
-	 * </ol>
-	 * 
-	 * @return the ByteBuffer representation
-	 */
-	@Override
-	public ByteBuffer getBytes() {
-		if(bytes == null) {
-			bytes = ByteBuffer.allocate(SIZE);
-			bytes.putLong(data);
-		}
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    /**
+     * Return a byte buffer that represents this PrimaryKey with the following
+     * order:
+     * <ol>
+     * <li><strong>data</strong> - position 0</li>
+     * </ol>
+     * 
+     * @return the ByteBuffer representation
+     */
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = ByteBuffer.allocate(SIZE);
+            bytes.putLong(data);
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public int hashCode() {
-		return Longs.hashCode(data);
-	}
+    @Override
+    public int hashCode() {
+        return Longs.hashCode(data);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof PrimaryKey) {
-			final PrimaryKey other = (PrimaryKey) obj;
-			return Longs.compare(data, other.data) == 0;
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof PrimaryKey) {
+            final PrimaryKey other = (PrimaryKey) obj;
+            return Longs.compare(data, other.data) == 0;
+        }
+        return false;
+    }
 
-	/**
-	 * Return the long representation of this PrimaryKey.
-	 * 
-	 * @return the long value
-	 */
-	public long longValue() {
-		return data;
-	}
+    /**
+     * Return the long representation of this PrimaryKey.
+     * 
+     * @return the long value
+     */
+    public long longValue() {
+        return data;
+    }
 
-	@Override
-	public String toString() {
-		return UnsignedLongs.toString(data);
-	}
+    @Override
+    public String toString() {
+        return UnsignedLongs.toString(data);
+    }
 
 }

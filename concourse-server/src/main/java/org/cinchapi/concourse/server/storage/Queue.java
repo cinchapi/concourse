@@ -40,46 +40,46 @@ import com.google.common.collect.Lists;
 @PackagePrivate
 class Queue extends Limbo {
 
-	/**
-	 * Revisions are stored as a sequential list of {@link Write} objects, which
-	 * means most reads are <em>at least</em> an O(n) scan.
-	 */
-	protected final List<Write> writes;
+    /**
+     * Revisions are stored as a sequential list of {@link Write} objects, which
+     * means most reads are <em>at least</em> an O(n) scan.
+     */
+    protected final List<Write> writes;
 
-	/**
-	 * Construct a Limbo with enough capacity for {@code initialSize}. If
-	 * necessary, the structure will grow to accommodate more data.
-	 * 
-	 * @param initialSize
-	 */
-	protected Queue(int initialSize) {
-		writes = Lists.newArrayListWithCapacity(initialSize);
-	}
+    /**
+     * Construct a Limbo with enough capacity for {@code initialSize}. If
+     * necessary, the structure will grow to accommodate more data.
+     * 
+     * @param initialSize
+     */
+    protected Queue(int initialSize) {
+        writes = Lists.newArrayListWithCapacity(initialSize);
+    }
 
-	@Override
-	public Iterator<Write> iterator() {
-		return writes.iterator();
-	}
+    @Override
+    public Iterator<Write> iterator() {
+        return writes.iterator();
+    }
 
-	@Override
-	protected boolean insert(Write write) {
-		writeLock.lock();
-		try {
-			return writes.add(write);
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    protected boolean insert(Write write) {
+        writeLock.lock();
+        try {
+            return writes.add(write);
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public void start() {
-		// do nothing
-	}
+    @Override
+    public void start() {
+        // do nothing
+    }
 
-	@Override
-	public void stop() {
-		// do nothing
-	}
+    @Override
+    public void stop() {
+        // do nothing
+    }
 
 }

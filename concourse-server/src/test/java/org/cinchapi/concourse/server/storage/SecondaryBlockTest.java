@@ -36,24 +36,24 @@ import org.cinchapi.concourse.util.TestData;
  */
 public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
 
-	@Override
-	protected Text getLocator() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getLocator() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected Value getKey() {
-		return TestData.getValue();
-	}
+    @Override
+    protected Value getKey() {
+        return TestData.getValue();
+    }
 
-	@Override
-	protected PrimaryKey getValue() {
-		return TestData.getPrimaryKey();
-	}
+    @Override
+    protected PrimaryKey getValue() {
+        return TestData.getPrimaryKey();
+    }
 
-	@Override
-	protected SecondaryBlock getMutableBlock(String directory) {
-		return Block.createSecondaryBlock(Long.toString(Time.now()), directory);
-	}
+    @Override
+    protected SecondaryBlock getMutableBlock(String directory) {
+        return Block.createSecondaryBlock(Long.toString(Time.now()), directory);
+    }
 
 }

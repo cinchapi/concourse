@@ -36,36 +36,36 @@ import org.cinchapi.concourse.util.TestData;
  */
 public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value> {
 
-	@Override
-	protected Text getKey() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getKey() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected PrimaryKey getLocator() {
-		return TestData.getPrimaryKey();
-	}
+    @Override
+    protected PrimaryKey getLocator() {
+        return TestData.getPrimaryKey();
+    }
 
-	@Override
-	protected PrimaryRecord getRecord(PrimaryKey locator) {
-		return Record.createPrimaryRecord(locator);
-	}
+    @Override
+    protected PrimaryRecord getRecord(PrimaryKey locator) {
+        return Record.createPrimaryRecord(locator);
+    }
 
-	@Override
-	protected PrimaryRecord getRecord(PrimaryKey locator, Text key) {
-		return Record.createPrimaryRecordPartial(locator, key);
-	}
+    @Override
+    protected PrimaryRecord getRecord(PrimaryKey locator, Text key) {
+        return Record.createPrimaryRecordPartial(locator, key);
+    }
 
-	@Override
-	protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
-			Text key, Value value) {
-		return Revision.createPrimaryRevision(locator, key, value, Time.now(),
-				getAction(locator, key, value));
-	}
+    @Override
+    protected Revision<PrimaryKey, Text, Value> getRevision(PrimaryKey locator,
+            Text key, Value value) {
+        return Revision.createPrimaryRevision(locator, key, value, Time.now(),
+                getAction(locator, key, value));
+    }
 
-	@Override
-	protected Value getValue() {
-		return TestData.getValue();
-	}
+    @Override
+    protected Value getValue() {
+        return TestData.getValue();
+    }
 
 }

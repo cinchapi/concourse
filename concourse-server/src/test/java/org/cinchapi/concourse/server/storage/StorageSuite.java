@@ -34,7 +34,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,
-		RecordSuite.class, StoreSuite.class })
+        RecordSuite.class, StoreSuite.class })
 public class StorageSuite {
 
 }

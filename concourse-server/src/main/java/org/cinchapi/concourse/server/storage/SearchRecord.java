@@ -49,62 +49,62 @@ import com.google.common.collect.Maps;
 @ThreadSafe
 final class SearchRecord extends Record<Text, Text, Position> {
 
-	/**
-	 * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
-	 * {@link Record#createSearchRecordPartial(Text, Text)} instead.
-	 * 
-	 * @param locator
-	 * @param key
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	SearchRecord(Text locator, @Nullable Text key) {
-		super(locator, key);
-	}
+    /**
+     * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
+     * {@link Record#createSearchRecordPartial(Text, Text)} instead.
+     * 
+     * @param locator
+     * @param key
+     */
+    @PackagePrivate
+    @DoNotInvoke
+    SearchRecord(Text locator, @Nullable Text key) {
+        super(locator, key);
+    }
 
-	/**
-	 * Return the Set of primary keys for records that match {@code query}.
-	 * 
-	 * @param query
-	 * @return the Set of PrimaryKeys
-	 */
-	public Set<PrimaryKey> search(Text query) {
-		masterLock.readLock().lock();
-		try {
-			Map<PrimaryKey, Integer> reference = Maps.newHashMap();
-			String[] toks = query.toString().split(" ");
-			boolean initial = true;
-			for (String tok : toks) {
-				Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-				if(STOPWORDS.contains(tok)) {
-					continue;
-				}
-				Set<Position> positions = get(Text.wrap(tok));
-				for (Position position : positions) {
-					PrimaryKey key = position.getPrimaryKey();
-					int pos = position.getIndex();
-					if(initial) {
-						temp.put(key, pos);
-					}
-					else {
-						Integer current = reference.get(key);
-						if(current != null && pos == current + 1) {
-							temp.put(key, pos);
-						}
-					}
-				}
-				initial = false;
-				reference = temp;
-			}
-			return reference.keySet();
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
-	}
+    /**
+     * Return the Set of primary keys for records that match {@code query}.
+     * 
+     * @param query
+     * @return the Set of PrimaryKeys
+     */
+    public Set<PrimaryKey> search(Text query) {
+        masterLock.readLock().lock();
+        try {
+            Map<PrimaryKey, Integer> reference = Maps.newHashMap();
+            String[] toks = query.toString().split(" ");
+            boolean initial = true;
+            for (String tok : toks) {
+                Map<PrimaryKey, Integer> temp = Maps.newHashMap();
+                if(STOPWORDS.contains(tok)) {
+                    continue;
+                }
+                Set<Position> positions = get(Text.wrap(tok));
+                for (Position position : positions) {
+                    PrimaryKey key = position.getPrimaryKey();
+                    int pos = position.getIndex();
+                    if(initial) {
+                        temp.put(key, pos);
+                    }
+                    else {
+                        Integer current = reference.get(key);
+                        if(current != null && pos == current + 1) {
+                            temp.put(key, pos);
+                        }
+                    }
+                }
+                initial = false;
+                reference = temp;
+            }
+            return reference.keySet();
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
 
-	@Override
-	protected Map<Text, Set<Position>> mapType() {
-		return Maps.newHashMap();
-	}
+    @Override
+    protected Map<Text, Set<Position>> mapType() {
+        return Maps.newHashMap();
+    }
 }

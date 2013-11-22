@@ -36,10 +36,10 @@ import com.google.common.hash.PrimitiveSink;
  * @author jnelson
  */
 public enum ByteableFunnel implements Funnel<ByteableComposite> {
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public void funnel(ByteableComposite from, PrimitiveSink into) {
-		into.putBytes(ByteBuffers.toByteArray(from.getBytes()));
-	}
+    @Override
+    public void funnel(ByteableComposite from, PrimitiveSink into) {
+        into.putBytes(ByteBuffers.toByteArray(from.getBytes()));
+    }
 }

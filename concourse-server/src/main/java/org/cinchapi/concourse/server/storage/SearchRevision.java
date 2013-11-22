@@ -40,55 +40,55 @@ import org.cinchapi.concourse.server.model.Text;
 @Immutable
 public final class SearchRevision extends Revision<Text, Text, Position> {
 
-	/**
-	 * Construct an instance that represents an existing SearchRevision from
-	 * a ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend.
-	 * 
-	 * @param bytes
-	 */
-	private SearchRevision(ByteBuffer bytes) {
-		super(bytes);
-	}
+    /**
+     * Construct an instance that represents an existing SearchRevision from
+     * a ByteBuffer. This constructor is public so as to comply with the
+     * {@link Byteable} interface. Calling this constructor directly is not
+     * recommend.
+     * 
+     * @param bytes
+     */
+    private SearchRevision(ByteBuffer bytes) {
+        super(bytes);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param locator
-	 * @param key
-	 * @param value
-	 * @param version
-	 * @param type
-	 */
-	SearchRevision(Text locator, Text key, Position value, long version,
-			Action type) {
-		super(locator, key, value, version, type);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @param version
+     * @param type
+     */
+    SearchRevision(Text locator, Text key, Position value, long version,
+            Action type) {
+        super(locator, key, value, version, type);
+    }
 
-	@Override
-	protected Class<Text> xKeyClass() {
-		return Text.class;
-	}
+    @Override
+    protected Class<Text> xKeyClass() {
+        return Text.class;
+    }
 
-	@Override
-	protected int xKeySize() {
-		return VARIABLE_SIZE;
-	}
+    @Override
+    protected int xKeySize() {
+        return VARIABLE_SIZE;
+    }
 
-	@Override
-	protected Class<Text> xLocatorClass() {
-		return Text.class;
-	}
+    @Override
+    protected Class<Text> xLocatorClass() {
+        return Text.class;
+    }
 
-	@Override
-	protected int xLocatorSize() {
-		return VARIABLE_SIZE;
-	}
+    @Override
+    protected int xLocatorSize() {
+        return VARIABLE_SIZE;
+    }
 
-	@Override
-	protected Class<Position> xValueClass() {
-		return Position.class;
-	}
+    @Override
+    protected Class<Position> xValueClass() {
+        return Position.class;
+    }
 
 }

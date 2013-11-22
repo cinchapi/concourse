@@ -35,35 +35,35 @@ import org.cinchapi.concourse.util.TestData;
  */
 public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 
-	@Override
-	protected SearchRecord getRecord(Text locator) {
-		return Record.createSearchRecord(locator);
-	}
+    @Override
+    protected SearchRecord getRecord(Text locator) {
+        return Record.createSearchRecord(locator);
+    }
 
-	@Override
-	protected SearchRecord getRecord(Text locator, Text key) {
-		return Record.createSearchRecordPartial(locator, key);
-	}
+    @Override
+    protected SearchRecord getRecord(Text locator, Text key) {
+        return Record.createSearchRecordPartial(locator, key);
+    }
 
-	@Override
-	protected Text getLocator() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getLocator() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected Text getKey() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getKey() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected Position getValue() {
-		return TestData.getPosition();
-	}
+    @Override
+    protected Position getValue() {
+        return TestData.getPosition();
+    }
 
-	@Override
-	protected SearchRevision getRevision(Text locator, Text key, Position value) {
-		return Revision.createSearchRevision(locator, key, value, Time.now(),
-				getAction(locator, key, value));
-	}
+    @Override
+    protected SearchRevision getRevision(Text locator, Text key, Position value) {
+        return Revision.createSearchRevision(locator, key, value, Time.now(),
+                getAction(locator, key, value));
+    }
 
 }

@@ -36,17 +36,17 @@ import org.junit.Test;
  */
 public class IdentifiableReentrantReadWriteLockTest {
 
-	@Test
-	public void testLocksAreTheSame() {
-		Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
-		for (int i = 0; i < components.length; i++) {
-			components[i] = TestData.getValue();
-		}
-		IdentifiableReentrantReadWriteLock a = IdentifiableReentrantReadWriteLock
-				.create(components);
-		IdentifiableReentrantReadWriteLock b = IdentifiableReentrantReadWriteLock
-				.identifiedBy(ByteableComposite.create(components));
-		Assert.assertSame(a, b);
-	}
+    @Test
+    public void testLocksAreTheSame() {
+        Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+        for (int i = 0; i < components.length; i++) {
+            components[i] = TestData.getValue();
+        }
+        IdentifiableReentrantReadWriteLock a = IdentifiableReentrantReadWriteLock
+                .create(components);
+        IdentifiableReentrantReadWriteLock b = IdentifiableReentrantReadWriteLock
+                .identifiedBy(ByteableComposite.create(components));
+        Assert.assertSame(a, b);
+    }
 
 }

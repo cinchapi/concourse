@@ -48,98 +48,98 @@ import com.google.common.cache.LoadingCache;
 @Immutable
 public class IdentifiableReentrantReadWriteLock extends ReentrantReadWriteLock {
 
-	/**
-	 * Create a new IdentifiableReentrantReadWriteLock whose {@link #id} will
-	 * created with {@code components}.
-	 * 
-	 * @param components
-	 * @return the IdentifiableReentrantReadWriteLock
-	 */
-	public static IdentifiableReentrantReadWriteLock create(
-			Byteable... components) {
-		return identifiedBy(ByteableComposite.create(components));
-	}
+    /**
+     * Create a new IdentifiableReentrantReadWriteLock whose {@link #id} will
+     * created with {@code components}.
+     * 
+     * @param components
+     * @return the IdentifiableReentrantReadWriteLock
+     */
+    public static IdentifiableReentrantReadWriteLock create(
+            Byteable... components) {
+        return identifiedBy(ByteableComposite.create(components));
+    }
 
-	/**
-	 * Return a IdentifiableReentrantReadWriteLock that is identified by
-	 * {@code id}.
-	 * 
-	 * @param id
-	 * @return the IdentifiableReentrantReadWriteLock
-	 */
-	public static IdentifiableReentrantReadWriteLock identifiedBy(
-			ByteableComposite id) {
-		try {
-			return CACHE.get(id);
-		}
-		catch (ExecutionException e) {
-			throw Throwables.propagate(e);
-		}
-	}
+    /**
+     * Return a IdentifiableReentrantReadWriteLock that is identified by
+     * {@code id}.
+     * 
+     * @param id
+     * @return the IdentifiableReentrantReadWriteLock
+     */
+    public static IdentifiableReentrantReadWriteLock identifiedBy(
+            ByteableComposite id) {
+        try {
+            return CACHE.get(id);
+        }
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
-	/**
-	 * The cache holds locks that have been recently used. This helps to ensure
-	 * that we return the same lock for the same key.
-	 */
-	private static final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> CACHE = CacheBuilder
-			.newBuilder()
-			.maximumSize(1000)
-			.build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
+    /**
+     * The cache holds locks that have been recently used. This helps to ensure
+     * that we return the same lock for the same key.
+     */
+    private static final LoadingCache<ByteableComposite, IdentifiableReentrantReadWriteLock> CACHE = CacheBuilder
+            .newBuilder()
+            .maximumSize(1000)
+            .build(new CacheLoader<ByteableComposite, IdentifiableReentrantReadWriteLock>() {
 
-				@Override
-				public IdentifiableReentrantReadWriteLock load(
-						ByteableComposite key) throws Exception {
-					return new IdentifiableReentrantReadWriteLock(key);
-				}
+                @Override
+                public IdentifiableReentrantReadWriteLock load(
+                        ByteableComposite key) throws Exception {
+                    return new IdentifiableReentrantReadWriteLock(key);
+                }
 
-			});
+            });
 
-	private static final long serialVersionUID = 1L; // Serializability
-														// inherited from super
-														// class
+    private static final long serialVersionUID = 1L; // Serializability
+                                                     // inherited from super
+                                                     // class
 
-	/**
-	 * The id not only identifies this lock, but governs rules for the
-	 * {@link #hashCode()} and {@link #equals(Object)} methods.
-	 */
-	private final ByteableComposite id;
+    /**
+     * The id not only identifies this lock, but governs rules for the
+     * {@link #hashCode()} and {@link #equals(Object)} methods.
+     */
+    private final ByteableComposite id;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param id
-	 */
-	public IdentifiableReentrantReadWriteLock(ByteableComposite id) {
-		super();
-		this.id = id;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param id
+     */
+    public IdentifiableReentrantReadWriteLock(ByteableComposite id) {
+        super();
+        this.id = id;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof IdentifiableReentrantReadWriteLock) {
-			IdentifiableReentrantReadWriteLock other = (IdentifiableReentrantReadWriteLock) obj;
-			return id.equals(other.id);
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof IdentifiableReentrantReadWriteLock) {
+            IdentifiableReentrantReadWriteLock other = (IdentifiableReentrantReadWriteLock) obj;
+            return id.equals(other.id);
+        }
+        return false;
+    }
 
-	/**
-	 * Return the {@link #id} for this lock.
-	 * 
-	 * @return the id
-	 */
-	public ByteableComposite getId() {
-		return id;
-	}
+    /**
+     * Return the {@link #id} for this lock.
+     * 
+     * @return the id
+     */
+    public ByteableComposite getId() {
+        return id;
+    }
 
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 
-	@Override
-	public String toString() {
-		return id + " " + super.toString();
-	}
+    @Override
+    public String toString() {
+        return id + " " + super.toString();
+    }
 
 }

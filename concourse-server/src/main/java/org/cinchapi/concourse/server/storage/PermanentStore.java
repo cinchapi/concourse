@@ -35,10 +35,10 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 interface PermanentStore extends Store {
 
-	/**
-	 * Process and store {@code write}.
-	 * 
-	 * @param write
-	 */
-	public void accept(Write write);
+    /**
+     * Process and store {@code write}.
+     * 
+     * @param write
+     */
+    public void accept(Write write);
 }

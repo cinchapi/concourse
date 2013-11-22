@@ -33,7 +33,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({PrimaryBlockTest.class, SecondaryBlockTest.class, SearchBlockTest.class})
+@SuiteClasses({ PrimaryBlockTest.class, SecondaryBlockTest.class,
+        SearchBlockTest.class })
 public class BlockSuite {
 
 }

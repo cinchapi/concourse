@@ -35,61 +35,62 @@ import javax.management.MXBean;
  */
 @MXBean
 public interface ConcourseServerMXBean {
-	
-	// Operations
-	public static String DUMP_OPRERATION = "dump";
 
-	/**
-	 * The JMX port for ConcourseServer.
-	 */
-	public static final int JMX_PORT = Tools.getJmxPort();
+    // Operations
+    public static String DUMP_OPRERATION = "dump";
 
-	/**
-	 * The url used for connecting to the server's JMX service.
-	 */
-	public static final String JMX_SERVICE_URL = "service:jmx:rmi:///jndi/rmi://localhost:"
-			+ JMX_PORT + "/jmxrmi";
+    /**
+     * The JMX port for ConcourseServer.
+     */
+    public static final int JMX_PORT = Tools.getJmxPort();
 
-	/**
-	 * Return a string that contains the dumps for all the storage units (i.e.
-	 * buffer, primary, secondary, search) identified by {@code id}.
-	 * 
-	 * @return the dump string
-	 */
-	@ManagedOperation
-	public String dump(String id);
-	
-	/**
-	 * JMX tools
-	 * 
-	 * @author jnelson
-	 */
-	public static class Tools{
-		
-		/**
-		 * Get the JMX port from {@code conf/concourse.conf}.
-		 * 
-		 * @return the JMX port
-		 */
-		public static int getJmxPort() {
-			// This method will not work in Windows or any platform that does not
-			// have 'grep or 'cut' installed.
-			int port = 0;
-			try {
-				Process process = Runtime
-						.getRuntime()
-						.exec(new String[] { "sh", "-c",
-								"grep jmxremote.port conf/concourse.conf | cut -d'=' -f3" });
-				process.waitFor();
-				BufferedReader input = new BufferedReader(new InputStreamReader(
-						process.getInputStream()));
-				port = Integer.parseInt(input.readLine());
-			}
-			catch (Exception e) {
-				// swallow and just return 0
-			}
-			return port;
-		}
-	}
+    /**
+     * The url used for connecting to the server's JMX service.
+     */
+    public static final String JMX_SERVICE_URL = "service:jmx:rmi:///jndi/rmi://localhost:"
+            + JMX_PORT + "/jmxrmi";
+
+    /**
+     * Return a string that contains the dumps for all the storage units (i.e.
+     * buffer, primary, secondary, search) identified by {@code id}.
+     * 
+     * @return the dump string
+     */
+    @ManagedOperation
+    public String dump(String id);
+
+    /**
+     * JMX tools
+     * 
+     * @author jnelson
+     */
+    public static class Tools {
+
+        /**
+         * Get the JMX port from {@code conf/concourse.conf}.
+         * 
+         * @return the JMX port
+         */
+        public static int getJmxPort() {
+            // This method will not work in Windows or any platform that does
+            // not
+            // have 'grep or 'cut' installed.
+            int port = 0;
+            try {
+                Process process = Runtime
+                        .getRuntime()
+                        .exec(new String[] { "sh", "-c",
+                                "grep jmxremote.port conf/concourse.conf | cut -d'=' -f3" });
+                process.waitFor();
+                BufferedReader input = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
+                port = Integer.parseInt(input.readLine());
+            }
+            catch (Exception e) {
+                // swallow and just return 0
+            }
+            return port;
+        }
+    }
 
 }
