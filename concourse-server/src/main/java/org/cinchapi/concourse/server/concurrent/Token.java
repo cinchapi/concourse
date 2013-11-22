@@ -68,7 +68,7 @@ public class Token implements Byteable {
 	/**
 	 * The size of each Token.
 	 */
-	private static final int SIZE = 16;
+	public static final int SIZE = 16;
 
 	/**
 	 * The sequence of bytes is a MD5 hash.
