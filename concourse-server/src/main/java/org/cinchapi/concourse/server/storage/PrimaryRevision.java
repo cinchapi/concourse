@@ -41,55 +41,55 @@ import org.cinchapi.concourse.server.model.Value;
 @Immutable
 public final class PrimaryRevision extends Revision<PrimaryKey, Text, Value> {
 
-	/**
-	 * Construct an instance that represents an existing PrimaryRevision
-	 * from a ByteBuffer. This constructor is public so as to comply with
-	 * the {@link Byteable} interface. Calling this constructor directly is
-	 * not recommend.
-	 * 
-	 * @param bytes
-	 */
-	private PrimaryRevision(ByteBuffer bytes) {
-		super(bytes);
-	}
+    /**
+     * Construct an instance that represents an existing PrimaryRevision
+     * from a ByteBuffer. This constructor is public so as to comply with
+     * the {@link Byteable} interface. Calling this constructor directly is
+     * not recommend.
+     * 
+     * @param bytes
+     */
+    private PrimaryRevision(ByteBuffer bytes) {
+        super(bytes);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param locator
-	 * @param key
-	 * @param value
-	 * @param version
-	 * @param type
-	 */
-	PrimaryRevision(PrimaryKey locator, Text key, Value value, long version,
-			Action type) {
-		super(locator, key, value, version, type);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @param version
+     * @param type
+     */
+    PrimaryRevision(PrimaryKey locator, Text key, Value value, long version,
+            Action type) {
+        super(locator, key, value, version, type);
+    }
 
-	@Override
-	protected Class<Text> xKeyClass() {
-		return Text.class;
-	}
+    @Override
+    protected Class<Text> xKeyClass() {
+        return Text.class;
+    }
 
-	@Override
-	protected int xKeySize() {
-		return VARIABLE_SIZE;
-	}
+    @Override
+    protected int xKeySize() {
+        return VARIABLE_SIZE;
+    }
 
-	@Override
-	protected Class<PrimaryKey> xLocatorClass() {
-		return PrimaryKey.class;
-	}
+    @Override
+    protected Class<PrimaryKey> xLocatorClass() {
+        return PrimaryKey.class;
+    }
 
-	@Override
-	protected int xLocatorSize() {
-		return PrimaryKey.SIZE;
-	}
+    @Override
+    protected int xLocatorSize() {
+        return PrimaryKey.SIZE;
+    }
 
-	@Override
-	protected Class<Value> xValueClass() {
-		return Value.class;
-	}
+    @Override
+    protected Class<Value> xValueClass() {
+        return Value.class;
+    }
 
 }

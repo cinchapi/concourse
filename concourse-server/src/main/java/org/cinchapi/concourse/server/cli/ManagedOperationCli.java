@@ -46,59 +46,59 @@ import com.google.common.base.CaseFormat;
  * @author jnelson
  */
 public abstract class ManagedOperationCli {
-	
-	/**
-	 * The parser that validates the CLI options.
-	 */
-	protected JCommander parser;
 
-	/**
-	 * Construct a new instance that is seeded with an object containing options
-	 * metadata. The {@code opts} will be parsed by {@link JCommander} so
-	 * configure them appropriately.
-	 * 
-	 * @param opts
-	 * @param args - these usually come from the main method
-	 */
-	public ManagedOperationCli(Object opts, String... args) {
-		try{
-			this.parser = new JCommander(opts, args);
-			parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
-					CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
-		}
-		catch(ParameterException e){
-			System.err.println(e.getMessage());
-			System.exit(127);
-		}
-	}
+    /**
+     * The parser that validates the CLI options.
+     */
+    protected JCommander parser;
 
-	/**
-	 * Run the CLI. This method should only be called from the main method.
-	 * 
-	 * @throws MalformedObjectNameException
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
-	public final void run() throws MalformedObjectNameException,
-			MalformedURLException, IOException {
-		MBeanServerConnection connection = JMXConnectorFactory.connect(
-				new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
-				.getMBeanServerConnection();
-		ObjectName objectName = new ObjectName(
-				"org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-		ConcourseServerMXBean bean = JMX.newMBeanProxy(connection, objectName,
-				ConcourseServerMXBean.class);
-		doTask(bean);
-	}
+    /**
+     * Construct a new instance that is seeded with an object containing options
+     * metadata. The {@code opts} will be parsed by {@link JCommander} so
+     * configure them appropriately.
+     * 
+     * @param opts
+     * @param args - these usually come from the main method
+     */
+    public ManagedOperationCli(Object opts, String... args) {
+        try {
+            this.parser = new JCommander(opts, args);
+            parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
+                    CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+        }
+        catch (ParameterException e) {
+            System.err.println(e.getMessage());
+            System.exit(127);
+        }
+    }
 
-	/**
-	 * Implement a managed task that involves at least one of the operations
-	 * available from {@code bean}. This method is called by the main
-	 * {@link #run()} method, so the implementer should place all task logic
-	 * here.
-	 * 
-	 * @param bean
-	 */
-	protected abstract void doTask(ConcourseServerMXBean bean);
+    /**
+     * Run the CLI. This method should only be called from the main method.
+     * 
+     * @throws MalformedObjectNameException
+     * @throws MalformedURLException
+     * @throws IOException
+     */
+    public final void run() throws MalformedObjectNameException,
+            MalformedURLException, IOException {
+        MBeanServerConnection connection = JMXConnectorFactory.connect(
+                new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
+                .getMBeanServerConnection();
+        ObjectName objectName = new ObjectName(
+                "org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
+        ConcourseServerMXBean bean = JMX.newMBeanProxy(connection, objectName,
+                ConcourseServerMXBean.class);
+        doTask(bean);
+    }
+
+    /**
+     * Implement a managed task that involves at least one of the operations
+     * available from {@code bean}. This method is called by the main
+     * {@link #run()} method, so the implementer should place all task logic
+     * here.
+     * 
+     * @param bean
+     */
+    protected abstract void doTask(ConcourseServerMXBean bean);
 
 }

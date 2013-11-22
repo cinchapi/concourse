@@ -30,29 +30,29 @@ package org.cinchapi.concourse.server.storage;
  */
 public interface VersionGetter {
 
-	/**
-	 * Return the current version of {@code record}.
-	 * 
-	 * @param record
-	 * @return the version
-	 */
-	public long getVersion(long record);
+    /**
+     * Return the current version of {@code record}.
+     * 
+     * @param record
+     * @return the version
+     */
+    public long getVersion(long record);
 
-	/**
-	 * Return the current version of {@code key}.
-	 * 
-	 * @param key
-	 * @return the version
-	 */
-	public long getVersion(String key);
+    /**
+     * Return the current version of {@code key}.
+     * 
+     * @param key
+     * @return the version
+     */
+    public long getVersion(String key);
 
-	/**
-	 * Return the current version of {@code key} in {@code record}
-	 * 
-	 * @param key
-	 * @param record
-	 * @return the version
-	 */
-	public long getVersion(String key, long record);
+    /**
+     * Return the current version of {@code key} in {@code record}
+     * 
+     * @param key
+     * @param record
+     * @return the version
+     */
+    public long getVersion(String key, long record);
 
 }

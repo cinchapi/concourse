@@ -44,81 +44,81 @@ import com.google.common.base.Throwables;
  */
 public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
 
-	/**
-	 * The tests run against a local server.
-	 */
-	private static final String SERVER_HOST = "localhost";
+    /**
+     * The tests run against a local server.
+     */
+    private static final String SERVER_HOST = "localhost";
 
-	/**
-	 * The default server port is 1717, so we use 1718 as to avoid interfering
-	 * with any real servers that might be running.
-	 */
-	private static final int SERVER_PORT = 1718;
+    /**
+     * The default server port is 1717, so we use 1718 as to avoid interfering
+     * with any real servers that might be running.
+     */
+    private static final int SERVER_PORT = 1718;
 
-	/**
-	 * The test server stores data in a distinct folder under the user's home
-	 * directory. This directory is deleted up after each test.
-	 */
-	private static final String SERVER_DATA_HOME = System
-			.getProperty("user.home")
-			+ File.separator
-			+ "concourse_"
-			+ Long.toString(Time.now());
-	private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "db";
-	private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
-			+ File.separator + "buffer";
+    /**
+     * The test server stores data in a distinct folder under the user's home
+     * directory. This directory is deleted up after each test.
+     */
+    private static final String SERVER_DATA_HOME = System
+            .getProperty("user.home")
+            + File.separator
+            + "concourse_"
+            + Long.toString(Time.now());
+    private static final String SERVER_DATABASE_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "db";
+    private static final String SERVER_BUFFER_DIRECTORY = SERVER_DATA_HOME
+            + File.separator + "buffer";
 
-	/**
-	 * The instance of the local server that is running. The subclass should not
-	 * need to access this directly because all calls should be funneled through
-	 * the {@link client}.
-	 */
-	private ConcourseServer server;
-	
-	/**
-	 * The client that is used to interact with the server.
-	 */
-	protected Concourse client;
+    /**
+     * The instance of the local server that is running. The subclass should not
+     * need to access this directly because all calls should be funneled through
+     * the {@link client}.
+     */
+    private ConcourseServer server;
 
-	@Rule
-	public TestWatcher watcher = new TestWatcher() {
+    /**
+     * The client that is used to interact with the server.
+     */
+    protected Concourse client;
 
-		@Override
-		protected void starting(Description description) {
-			try {
-				server = new ConcourseServer(SERVER_PORT,
-						SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
-			}
-			catch (TTransportException e1) {
-				throw Throwables.propagate(e1);
-			}
-			Thread t = new Thread(new Runnable() {
+    @Rule
+    public TestWatcher watcher = new TestWatcher() {
 
-				@Override
-				public void run() {
-					try {
-						server.start();
-					}
-					catch (TTransportException e) {
-						throw Throwables.propagate(e);
-					}
+        @Override
+        protected void starting(Description description) {
+            try {
+                server = new ConcourseServer(SERVER_PORT,
+                        SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
+            }
+            catch (TTransportException e1) {
+                throw Throwables.propagate(e1);
+            }
+            Thread t = new Thread(new Runnable() {
 
-				}
+                @Override
+                public void run() {
+                    try {
+                        server.start();
+                    }
+                    catch (TTransportException e) {
+                        throw Throwables.propagate(e);
+                    }
 
-			});
-			t.start();
-			client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
-					"admin");
-		}
+                }
 
-		@Override
-		protected void finished(Description description) {
-			client.exit();
-			server.stop();
-			FileSystem.deleteDirectory(SERVER_DATA_HOME);
-		}
+            });
+            t.start();
+            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+                    "admin");
+        }
 
-	};
+        @Override
+        protected void finished(Description description) {
+            client.exit();
+            server.stop();
+            FileSystem.deleteDirectory(SERVER_DATA_HOME);
+        }
+
+    };
 
 }

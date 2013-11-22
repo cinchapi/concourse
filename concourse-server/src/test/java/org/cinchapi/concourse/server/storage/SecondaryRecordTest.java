@@ -36,36 +36,36 @@ import org.cinchapi.concourse.util.TestData;
  */
 public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey> {
 
-	@Override
-	protected Value getKey() {
-		return TestData.getValue();
-	}
+    @Override
+    protected Value getKey() {
+        return TestData.getValue();
+    }
 
-	@Override
-	protected Text getLocator() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getLocator() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected SecondaryRecord getRecord(Text locator) {
-		return Record.createSecondaryRecord(locator);
-	}
+    @Override
+    protected SecondaryRecord getRecord(Text locator) {
+        return Record.createSecondaryRecord(locator);
+    }
 
-	@Override
-	protected SecondaryRecord getRecord(Text locator, Value key) {
-		return Record.createSecondaryRecordPartial(locator, key);
-	}
+    @Override
+    protected SecondaryRecord getRecord(Text locator, Value key) {
+        return Record.createSecondaryRecordPartial(locator, key);
+    }
 
-	@Override
-	protected SecondaryRevision getRevision(Text locator, Value key,
-			PrimaryKey value) {
-		return Revision.createSecondaryRevision(locator, key, value,
-				Time.now(), getAction(locator, key, value));
-	}
+    @Override
+    protected SecondaryRevision getRevision(Text locator, Value key,
+            PrimaryKey value) {
+        return Revision.createSecondaryRevision(locator, key, value,
+                Time.now(), getAction(locator, key, value));
+    }
 
-	@Override
-	protected PrimaryKey getValue() {
-		return TestData.getPrimaryKey();
-	}
+    @Override
+    protected PrimaryKey getValue() {
+        return TestData.getPrimaryKey();
+    }
 
 }

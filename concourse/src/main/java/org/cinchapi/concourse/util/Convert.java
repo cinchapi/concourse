@@ -44,114 +44,114 @@ import org.joda.time.DateTime;
 @UtilityClass
 public final class Convert {
 
-	/**
-	 * Return the Thrift Object that represents {@code object}.
-	 * 
-	 * @param object
-	 * @return the TObject
-	 */
-	public static TObject javaToThrift(Object object) {
-		ByteBuffer bytes;
-		Type type = null;
-		if(object instanceof Boolean) {
-			bytes = ByteBuffer.allocate(1);
-			bytes.put((boolean) object ? (byte) 1 : (byte) 0);
-			type = Type.BOOLEAN;
-		}
-		else if(object instanceof Double) {
-			bytes = ByteBuffer.allocate(8);
-			bytes.putDouble((double) object);
-			type = Type.DOUBLE;
-		}
-		else if(object instanceof Float) {
-			bytes = ByteBuffer.allocate(4);
-			bytes.putFloat((float) object);
-			type = Type.FLOAT;
-		}
-		else if(object instanceof Link) {
-			bytes = ByteBuffer.allocate(8);
-			bytes.putLong(((Link) object).longValue());
-			type = Type.LINK;
-		}
-		else if(object instanceof Long) {
-			bytes = ByteBuffer.allocate(8);
-			bytes.putLong((long) object);
-			type = Type.LONG;
-		}
-		else if(object instanceof Integer) {
-			bytes = ByteBuffer.allocate(4);
-			bytes.putInt((int) object);
-			type = Type.INTEGER;
-		}
-		else {
-			bytes = ByteBuffer.wrap(object.toString().getBytes(
-					StandardCharsets.UTF_8));
-			type = Type.STRING;
-		}
-		bytes.rewind();
-		return new TObject(bytes, type);
-	}
+    /**
+     * Return the Thrift Object that represents {@code object}.
+     * 
+     * @param object
+     * @return the TObject
+     */
+    public static TObject javaToThrift(Object object) {
+        ByteBuffer bytes;
+        Type type = null;
+        if(object instanceof Boolean) {
+            bytes = ByteBuffer.allocate(1);
+            bytes.put((boolean) object ? (byte) 1 : (byte) 0);
+            type = Type.BOOLEAN;
+        }
+        else if(object instanceof Double) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putDouble((double) object);
+            type = Type.DOUBLE;
+        }
+        else if(object instanceof Float) {
+            bytes = ByteBuffer.allocate(4);
+            bytes.putFloat((float) object);
+            type = Type.FLOAT;
+        }
+        else if(object instanceof Link) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putLong(((Link) object).longValue());
+            type = Type.LINK;
+        }
+        else if(object instanceof Long) {
+            bytes = ByteBuffer.allocate(8);
+            bytes.putLong((long) object);
+            type = Type.LONG;
+        }
+        else if(object instanceof Integer) {
+            bytes = ByteBuffer.allocate(4);
+            bytes.putInt((int) object);
+            type = Type.INTEGER;
+        }
+        else {
+            bytes = ByteBuffer.wrap(object.toString().getBytes(
+                    StandardCharsets.UTF_8));
+            type = Type.STRING;
+        }
+        bytes.rewind();
+        return new TObject(bytes, type);
+    }
 
-	/**
-	 * Return a long that represents the same Unix timestamp with microsecond
-	 * precision as {@link timestamp}.
-	 * 
-	 * @param timestamp
-	 * @return the Unix timestamp
-	 */
-	public static long jodaToUnix(DateTime timestamp) {
-		return TimeUnit.MICROSECONDS.convert(timestamp.getMillis(),
-				TimeUnit.MILLISECONDS);
-	}
+    /**
+     * Return a long that represents the same Unix timestamp with microsecond
+     * precision as {@link timestamp}.
+     * 
+     * @param timestamp
+     * @return the Unix timestamp
+     */
+    public static long jodaToUnix(DateTime timestamp) {
+        return TimeUnit.MICROSECONDS.convert(timestamp.getMillis(),
+                TimeUnit.MILLISECONDS);
+    }
 
-	/**
-	 * Return the Java Object that represents {@code object}.
-	 * 
-	 * @param object
-	 * @return the Object
-	 */
-	public static Object thriftToJava(TObject object) {
-		Object java = null;
-		ByteBuffer buffer = object.bufferForData();
-		switch (object.getType()) {
-		case BOOLEAN:
-			java = ByteBuffers.getBoolean(buffer);
-			break;
-		case DOUBLE:
-			java = buffer.getDouble();
-			break;
-		case FLOAT:
-			java = buffer.getFloat();
-			break;
-		case INTEGER:
-			java = buffer.getInt();
-			break;
-		case LINK:
-			java = Link.to(buffer.getLong());
-			break;
-		case LONG:
-			java = buffer.getLong();
-			break;
-		default:
-			java = ByteBuffers.getString(buffer);
-			break;
-		}
-		buffer.rewind();
-		return java;
-	}
+    /**
+     * Return the Java Object that represents {@code object}.
+     * 
+     * @param object
+     * @return the Object
+     */
+    public static Object thriftToJava(TObject object) {
+        Object java = null;
+        ByteBuffer buffer = object.bufferForData();
+        switch (object.getType()) {
+        case BOOLEAN:
+            java = ByteBuffers.getBoolean(buffer);
+            break;
+        case DOUBLE:
+            java = buffer.getDouble();
+            break;
+        case FLOAT:
+            java = buffer.getFloat();
+            break;
+        case INTEGER:
+            java = buffer.getInt();
+            break;
+        case LINK:
+            java = Link.to(buffer.getLong());
+            break;
+        case LONG:
+            java = buffer.getLong();
+            break;
+        default:
+            java = ByteBuffers.getString(buffer);
+            break;
+        }
+        buffer.rewind();
+        return java;
+    }
 
-	/**
-	 * Return a {@link DateTime} object that represents the same Unix timestamp
-	 * with microsecond precision as {@code timestamp}.
-	 * 
-	 * @param timestamp
-	 * @return the DateTime object
-	 */
-	public static DateTime unixToJoda(long timestamp) {
-		return new DateTime(TimeUnit.MILLISECONDS.convert(timestamp,
-				TimeUnit.MICROSECONDS));
-	}
+    /**
+     * Return a {@link DateTime} object that represents the same Unix timestamp
+     * with microsecond precision as {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the DateTime object
+     */
+    public static DateTime unixToJoda(long timestamp) {
+        return new DateTime(TimeUnit.MILLISECONDS.convert(timestamp,
+                TimeUnit.MICROSECONDS));
+    }
 
-	private Convert() {/* Utility Class */}
+    private Convert() {/* Utility Class */}
 
 }

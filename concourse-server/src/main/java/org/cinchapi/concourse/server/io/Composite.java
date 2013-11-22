@@ -34,98 +34,98 @@ import com.google.common.hash.Hashing;
 
 /**
  * A {@link Composite} is a single Byteable object that wraps multiple other
- * Byteable objects. 
+ * Byteable objects.
  * 
  * @author jnelson
  */
 @Immutable
 public final class Composite implements Byteable {
 
-	/**
-	 * Return a Token for the list of {@code byteables}.
-	 * 
-	 * @param byteables
-	 * @return the Token
-	 */
-	public static Composite create(Byteable... byteables) {
-		return new Composite(byteables);
-	}
+    /**
+     * Return a Token for the list of {@code byteables}.
+     * 
+     * @param byteables
+     * @return the Token
+     */
+    public static Composite create(Byteable... byteables) {
+        return new Composite(byteables);
+    }
 
-	/**
-	 * Return the Token encoded in {@code bytes} so long as those
-	 * bytes adhere to the format specified by the {@link #getBytes()} method.
-	 * This method assumes that all the bytes in the {@code bytes} belong to the
-	 * Token. In general, it is necessary to get the appropriate
-	 * Value slice from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the Token
-	 */
-	public static Composite fromByteBuffer(ByteBuffer bytes) {
-		return Byteables.read(bytes, Composite.class);
-	}
+    /**
+     * Return the Token encoded in {@code bytes} so long as those
+     * bytes adhere to the format specified by the {@link #getBytes()} method.
+     * This method assumes that all the bytes in the {@code bytes} belong to the
+     * Token. In general, it is necessary to get the appropriate
+     * Value slice from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the Token
+     */
+    public static Composite fromByteBuffer(ByteBuffer bytes) {
+        return Byteables.read(bytes, Composite.class);
+    }
 
-	private final ByteBuffer bytes;
+    private final ByteBuffer bytes;
 
-	/**
-	 * Construct an instance that represents an existing Token from
-	 * a ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Composite(ByteBuffer bytes) {
-		this.bytes = bytes;
-	}
+    /**
+     * Construct an instance that represents an existing Token from
+     * a ByteBuffer. This constructor is public so as to comply with the
+     * {@link Byteable} interface. Calling this constructor directly is not
+     * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
+     * advantage of reference caching.
+     * 
+     * @param bytes
+     */
+    @DoNotInvoke
+    public Composite(ByteBuffer bytes) {
+        this.bytes = bytes;
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param byteables
-	 */
-	private Composite(Byteable... byteables) {
-		int size = 0;
-		for (Byteable byteable : byteables) {
-			size += byteable.size();
-		}
-		bytes = ByteBuffer.allocate(size);
-		for (Byteable byteable : byteables) {
-			bytes.put(byteable.getBytes());
-		}
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param byteables
+     */
+    private Composite(Byteable... byteables) {
+        int size = 0;
+        for (Byteable byteable : byteables) {
+            size += byteable.size();
+        }
+        bytes = ByteBuffer.allocate(size);
+        for (Byteable byteable : byteables) {
+            bytes.put(byteable.getBytes());
+        }
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Composite) {
-			Composite other = (Composite) obj;
-			return getBytes().equals(other.getBytes());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Composite) {
+            Composite other = (Composite) obj;
+            return getBytes().equals(other.getBytes());
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    @Override
+    public ByteBuffer getBytes() {
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public int hashCode() {
-		return getBytes().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getBytes().hashCode();
+    }
 
-	@Override
-	public int size() {
-		return bytes.capacity();
-	}
+    @Override
+    public int size() {
+        return bytes.capacity();
+    }
 
-	@Override
-	public String toString() {
-		return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
-				.toString();
-	}
+    @Override
+    public String toString() {
+        return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
+                .toString();
+    }
 
 }

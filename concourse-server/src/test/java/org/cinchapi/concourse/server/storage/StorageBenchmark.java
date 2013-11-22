@@ -34,30 +34,33 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
  * 
  * @author jnelson
  */
-public class StorageBenchmark extends AbstractBenchmark{
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-	public void benchmarkWriteAdd(){
-		Write.add(TestData.getString(), TestData.getTObject(), TestData.getLong());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-	public void benchmarkWriteRemove(){
-		Write.remove(TestData.getString(), TestData.getTObject(), TestData.getLong());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-	public void benchmarkWriteNotStorable(){
-		Write.notStorable(TestData.getString(), TestData.getTObject(), TestData.getLong());
-	}
-	
-	@Test
-	@BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-	public void benchmarkBufferInsert(){
-		//TODO
-	}
+public class StorageBenchmark extends AbstractBenchmark {
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
+    public void benchmarkWriteAdd() {
+        Write.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
+    public void benchmarkWriteRemove() {
+        Write.remove(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
+    public void benchmarkWriteNotStorable() {
+        Write.notStorable(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+    }
+
+    @Test
+    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
+    public void benchmarkBufferInsert() {
+        // TODO
+    }
 
 }

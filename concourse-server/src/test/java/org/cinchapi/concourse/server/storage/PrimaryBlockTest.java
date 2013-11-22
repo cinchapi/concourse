@@ -34,26 +34,26 @@ import org.cinchapi.concourse.util.TestData;
  * 
  * @author jnelson
  */
-public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value>{
+public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value> {
 
-	@Override
-	protected PrimaryKey getLocator() {
-		return TestData.getPrimaryKey();
-	}
+    @Override
+    protected PrimaryKey getLocator() {
+        return TestData.getPrimaryKey();
+    }
 
-	@Override
-	protected Text getKey() {
-		return TestData.getText();
-	}
+    @Override
+    protected Text getKey() {
+        return TestData.getText();
+    }
 
-	@Override
-	protected Value getValue() {
-		return TestData.getValue();
-	}
+    @Override
+    protected Value getValue() {
+        return TestData.getValue();
+    }
 
-	@Override
-	protected PrimaryBlock getMutableBlock(String directory) {
-		return Block.createPrimaryBlock(Long.toString(Time.now()), directory);
-	}
+    @Override
+    protected PrimaryBlock getMutableBlock(String directory) {
+        return Block.createPrimaryBlock(Long.toString(Time.now()), directory);
+    }
 
 }

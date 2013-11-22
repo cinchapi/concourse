@@ -38,87 +38,97 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public abstract class AtomicOperationTest extends BufferedStoreTest {
-	
-	private Compoundable destination;
-	
-	@Test
-	public void testAbort(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		add(key, value, record);
-		Assert.assertTrue(store.verify(key, value, record));
-		((AtomicOperation) store).abort();
-		Assert.assertFalse(destination.verify(key, value, record));
-	}
-	
-	@Test
-	public void testIsolation(){
-		AtomicOperation a = AtomicOperation.start(destination);
-		AtomicOperation b = AtomicOperation.start(destination);
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		Assert.assertTrue(((AtomicOperation) a).add(key, value, record));
-		Assert.assertTrue(((AtomicOperation) b).add(key, value, record));
-		Assert.assertFalse(destination.verify(key, value, record));
-	}
-	
-	@Test
-	public void testCommit(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		add(key, value, record);
-		((AtomicOperation) store).commit();
-		Assert.assertTrue(destination.verify(key, value, record));
-	}
-	
-	@Test
-	public void testCommitFailsIfVersionChanges(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		add(key, value, record);
-		AtomicOperation other = AtomicOperation.start(destination);
-		other.add(key, value, record);
-		Assert.assertTrue(other.commit());
-		Assert.assertFalse(((AtomicOperation) store).commit());
-	}
-	
-	@Test
-	public void testImmediateVisibility(){
-		String key = TestData.getString();
-		long record = TestData.getLong();
-		Set<TObject> values = Sets.newHashSet();
-		for(int i = 0; i < TestData.getScaleCount(); i++){
-			TObject value = TestData.getTObject();
-			values.add(value);
-			add(key, value, record);
-		}
-		Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
-		((AtomicOperation) store).commit();
-		Assert.assertEquals(values, destination.fetch(key, record));
-		System.out.println(destination.audit(key, record));
-	}
-	
-	@Override
-	protected void add(String key, TObject value, long record) {
-		((AtomicOperation) store).add(key, value, record);		
-	}
-	
-	protected abstract Compoundable getDestination();
-	
-	@Override
-	protected AtomicOperation getStore() {
-		destination = getDestination();
-		return AtomicOperation.start(destination);
-	}
 
-	@Override
-	protected void remove(String key, TObject value, long record) {
-		((AtomicOperation) store).remove(key, value, record);
-		
-	}
+    private Compoundable destination;
+
+    @Test
+    public void testAbort() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        Assert.assertTrue(store.verify(key, value, record));
+        ((AtomicOperation) store).abort();
+        Assert.assertFalse(destination.verify(key, value, record));
+    }
+
+    @Test
+    public void testIsolation() {
+        AtomicOperation a = AtomicOperation.start(destination);
+        AtomicOperation b = AtomicOperation.start(destination);
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertTrue(((AtomicOperation) a).add(key, value, record));
+        Assert.assertTrue(((AtomicOperation) b).add(key, value, record));
+        Assert.assertFalse(destination.verify(key, value, record));
+    }
+
+    @Test
+    public void testCommit() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        ((AtomicOperation) store).commit();
+        Assert.assertTrue(destination.verify(key, value, record));
+    }
+
+    @Test
+    public void testCommitFailsIfVersionChanges() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        AtomicOperation other = AtomicOperation.start(destination);
+        other.add(key, value, record);
+        Assert.assertTrue(other.commit());
+        Assert.assertFalse(((AtomicOperation) store).commit());
+    }
+
+    @Test
+    public void testImmediateVisibility() {
+        String key = TestData.getString();
+        long record = TestData.getLong();
+        Set<TObject> values = Sets.newHashSet();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            TObject value = TestData.getTObject();
+            values.add(value);
+            add(key, value, record);
+        }
+        Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
+        ((AtomicOperation) store).commit();
+        Assert.assertEquals(values, destination.fetch(key, record));
+        System.out.println(destination.audit(key, record));
+    }
+
+    @Test
+    public void testLockUpgrade() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        store.verify(key, value, record);
+        add(key, value, record);
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
+
+    @Override
+    protected void add(String key, TObject value, long record) {
+        ((AtomicOperation) store).add(key, value, record);
+    }
+
+    protected abstract Compoundable getDestination();
+
+    @Override
+    protected AtomicOperation getStore() {
+        destination = getDestination();
+        return AtomicOperation.start(destination);
+    }
+
+    @Override
+    protected void remove(String key, TObject value, long record) {
+        ((AtomicOperation) store).remove(key, value, record);
+
+    }
 
 }

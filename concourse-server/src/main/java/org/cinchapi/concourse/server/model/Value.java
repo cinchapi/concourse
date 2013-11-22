@@ -61,199 +61,199 @@ import org.cinchapi.concourse.util.Numbers;
 @Immutable
 public final class Value implements Byteable, Comparable<Value> {
 
-	/**
-	 * Return the Value encoded in {@code bytes} so long as those bytes adhere
-	 * to the format specified by the {@link #getBytes()} method. This method
-	 * assumes that all the bytes in the {@code bytes} belong to the Value. In
-	 * general, it is necessary to get the appropriate Value slice from the
-	 * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the Value
-	 */
-	public static Value fromByteBuffer(ByteBuffer bytes) {
-		Type type = Type.values()[bytes.get()];
-		TObject data = extractTObjectAndCache(bytes, type);
-		return new Value(data, bytes);
-	}
+    /**
+     * Return the Value encoded in {@code bytes} so long as those bytes adhere
+     * to the format specified by the {@link #getBytes()} method. This method
+     * assumes that all the bytes in the {@code bytes} belong to the Value. In
+     * general, it is necessary to get the appropriate Value slice from the
+     * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the Value
+     */
+    public static Value fromByteBuffer(ByteBuffer bytes) {
+        Type type = Type.values()[bytes.get()];
+        TObject data = extractTObjectAndCache(bytes, type);
+        return new Value(data, bytes);
+    }
 
-	/**
-	 * Return a Value that is backed by {@code data}.
-	 * 
-	 * @param data
-	 * @return the Value
-	 */
-	public static Value wrap(TObject data) {
-		return new Value(data);
-	}
+    /**
+     * Return a Value that is backed by {@code data}.
+     * 
+     * @param data
+     * @return the Value
+     */
+    public static Value wrap(TObject data) {
+        return new Value(data);
+    }
 
-	/**
-	 * Return the {@link TObject} of {@code type} represented by {@code bytes}.
-	 * This method reads the remaining bytes from the current position into the
-	 * returned TObject.
-	 * 
-	 * @param bytes
-	 * @param type
-	 * @return the TObject
-	 */
-	private static TObject extractTObjectAndCache(ByteBuffer bytes, Type type) {
-		// Must allocate a heap buffer because TObject assumes it has a
-		// backing array and because of THRIFT-2104 that buffer must wrap a
-		// byte array in order to assume that the TObject does not lose data
-		// when transferred over the wire.
-		byte[] array = new byte[bytes.remaining()];
-		bytes.get(array); // We CANNOT simply slice {@code buffer} and use
-							// the slice's backing array because the backing
-							// array of the slice is the same as the
-							// original, which contains more data than we
-							// need for the quantity
-		return new TObject(ByteBuffer.wrap(array), type);
-	}
+    /**
+     * Return the {@link TObject} of {@code type} represented by {@code bytes}.
+     * This method reads the remaining bytes from the current position into the
+     * returned TObject.
+     * 
+     * @param bytes
+     * @param type
+     * @return the TObject
+     */
+    private static TObject extractTObjectAndCache(ByteBuffer bytes, Type type) {
+        // Must allocate a heap buffer because TObject assumes it has a
+        // backing array and because of THRIFT-2104 that buffer must wrap a
+        // byte array in order to assume that the TObject does not lose data
+        // when transferred over the wire.
+        byte[] array = new byte[bytes.remaining()];
+        bytes.get(array); // We CANNOT simply slice {@code buffer} and use
+                          // the slice's backing array because the backing
+                          // array of the slice is the same as the
+                          // original, which contains more data than we
+                          // need for the quantity
+        return new TObject(ByteBuffer.wrap(array), type);
+    }
 
-	/**
-	 * The minimum number of bytes needed to encode every Value.
-	 */
-	private static final int CONSTANT_SIZE = 1; // type(1)
+    /**
+     * The minimum number of bytes needed to encode every Value.
+     */
+    private static final int CONSTANT_SIZE = 1; // type(1)
 
-	/**
-	 * The underlying data represented by this Value. This representation is
-	 * used when serializing/deserializing the data for RPC or disk and network
-	 * I/O.
-	 */
-	private final TObject data;
+    /**
+     * The underlying data represented by this Value. This representation is
+     * used when serializing/deserializing the data for RPC or disk and network
+     * I/O.
+     */
+    private final TObject data;
 
-	/**
-	 * A cached copy of the binary representation that is returned from
-	 * {@link #getBytes()}.
-	 */
-	@Nullable
-	private transient ByteBuffer bytes = null;
+    /**
+     * A cached copy of the binary representation that is returned from
+     * {@link #getBytes()}.
+     */
+    @Nullable
+    private transient ByteBuffer bytes = null;
 
-	/**
-	 * The java representation of the underlying {@link #data}. This
-	 * representation is used when interacting with other components in the JVM.
-	 */
-	@Nullable
-	private transient Object object = null;
+    /**
+     * The java representation of the underlying {@link #data}. This
+     * representation is used when interacting with other components in the JVM.
+     */
+    @Nullable
+    private transient Object object = null;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param data
-	 */
-	private Value(TObject data) {
-		this(data, null);
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     */
+    private Value(TObject data) {
+        this(data, null);
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param data
-	 * @param bytes
-	 */
-	private Value(TObject data, @Nullable ByteBuffer bytes) {
-		this.data = data;
-		this.bytes = bytes;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     * @param bytes
+     */
+    private Value(TObject data, @Nullable ByteBuffer bytes) {
+        this.data = data;
+        this.bytes = bytes;
+    }
 
-	@Override
-	public int compareTo(Value other) {
-		return Sorter.INSTANCE.compare(this, other);
-	}
+    @Override
+    public int compareTo(Value other) {
+        return Sorter.INSTANCE.compare(this, other);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Value) {
-			final Value other = (Value) obj;
-			return getObject().equals(other.getObject());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Value) {
+            final Value other = (Value) obj;
+            return getObject().equals(other.getObject());
+        }
+        return false;
+    }
 
-	/**
-	 * Return a byte buffer that represents this Value with the following order:
-	 * <ol>
-	 * <li><strong>type</strong> - position 0</li>
-	 * <li><strong>data</strong> - position 1</li>
-	 * </ol>
-	 * 
-	 * @return the ByteBuffer representation
-	 */
-	@Override
-	public ByteBuffer getBytes() {
-		if(bytes == null) {
-			bytes = ByteBuffer.allocate(size());
-			bytes.put((byte) data.getType().ordinal());
-			bytes.put(data.bufferForData());
-		}
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    /**
+     * Return a byte buffer that represents this Value with the following order:
+     * <ol>
+     * <li><strong>type</strong> - position 0</li>
+     * <li><strong>data</strong> - position 1</li>
+     * </ol>
+     * 
+     * @return the ByteBuffer representation
+     */
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = ByteBuffer.allocate(size());
+            bytes.put((byte) data.getType().ordinal());
+            bytes.put(data.bufferForData());
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	/**
-	 * Return the java object that is represented by this Value.
-	 * 
-	 * @return the object representation
-	 */
-	public Object getObject() {
-		if(object == null){
-			object = Convert.thriftToJava(data);
-		}
-		return object;
-	}
+    /**
+     * Return the java object that is represented by this Value.
+     * 
+     * @return the object representation
+     */
+    public Object getObject() {
+        if(object == null) {
+            object = Convert.thriftToJava(data);
+        }
+        return object;
+    }
 
-	/**
-	 * Return the TObject that is represented by this Value.
-	 * 
-	 * @return the TObject representation
-	 */
-	public TObject getTObject() {
-		return data;
-	}
+    /**
+     * Return the TObject that is represented by this Value.
+     * 
+     * @return the TObject representation
+     */
+    public TObject getTObject() {
+        return data;
+    }
 
-	/**
-	 * Return the {@link Type} that describes the underlying data represented by
-	 * this Value.
-	 * 
-	 * @return the type
-	 */
-	public Type getType() {
-		return data.getType();
-	}
+    /**
+     * Return the {@link Type} that describes the underlying data represented by
+     * this Value.
+     * 
+     * @return the type
+     */
+    public Type getType() {
+        return data.getType();
+    }
 
-	@Override
-	public int hashCode() {
-		return getObject().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getObject().hashCode();
+    }
 
-	@Override
-	public int size() {
-		return CONSTANT_SIZE + data.bufferForData().capacity();
-	}
+    @Override
+    public int size() {
+        return CONSTANT_SIZE + data.bufferForData().capacity();
+    }
 
-	@Override
-	public String toString() {
-		return getObject().toString();
-	}
+    @Override
+    public String toString() {
+        return getObject().toString();
+    }
 
-	/**
-	 * A {@link Comparator} that is used to sort Values using weak typing.
-	 * 
-	 * @author jnelson
-	 */
-	public static enum Sorter implements Comparator<Value> {
-		INSTANCE;
+    /**
+     * A {@link Comparator} that is used to sort Values using weak typing.
+     * 
+     * @author jnelson
+     */
+    public static enum Sorter implements Comparator<Value> {
+        INSTANCE;
 
-		@Override
-		public int compare(Value v1, Value v2) {
-			Object o1 = v1.getObject();
-			Object o2 = v2.getObject();
-			if(o1 instanceof Number && o2 instanceof Number) {
-				return Numbers.compare((Number) o1, (Number) o2);
-			}
-			else {
-				return o1.toString().compareTo(o2.toString());
-			}
-		}
-	}
+        @Override
+        public int compare(Value v1, Value v2) {
+            Object o1 = v1.getObject();
+            Object o2 = v2.getObject();
+            if(o1 instanceof Number && o2 instanceof Number) {
+                return Numbers.compare((Number) o1, (Number) o2);
+            }
+            else {
+                return o1.toString().compareTo(o2.toString());
+            }
+        }
+    }
 
 }

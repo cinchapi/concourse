@@ -40,29 +40,29 @@ import org.cinchapi.concourse.server.model.Value;
 @PackagePrivate
 final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
 
-	/**
-	 * DO NOT CALL!!
-	 * 
-	 * @param id
-	 * @param directory
-	 * @param diskLoad
-	 */
-	@PackagePrivate
-	@DoNotInvoke
-	PrimaryBlock(String id, String directory, boolean diskLoad) {
-		super(id, directory, diskLoad);
-	}
+    /**
+     * DO NOT CALL!!
+     * 
+     * @param id
+     * @param directory
+     * @param diskLoad
+     */
+    @PackagePrivate
+    @DoNotInvoke
+    PrimaryBlock(String id, String directory, boolean diskLoad) {
+        super(id, directory, diskLoad);
+    }
 
-	@Override
-	protected PrimaryRevision makeRevision(PrimaryKey locator, Text key,
-			Value value, long version, Action type) {
-		return Revision.createPrimaryRevision(locator, key, value, version,
-				type);
-	}
+    @Override
+    protected PrimaryRevision makeRevision(PrimaryKey locator, Text key,
+            Value value, long version, Action type) {
+        return Revision.createPrimaryRevision(locator, key, value, version,
+                type);
+    }
 
-	@Override
-	protected Class<PrimaryRevision> xRevisionClass() {
-		return PrimaryRevision.class;
-	}
+    @Override
+    protected Class<PrimaryRevision> xRevisionClass() {
+        return PrimaryRevision.class;
+    }
 
 }

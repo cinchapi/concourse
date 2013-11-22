@@ -39,30 +39,30 @@ import org.junit.runner.Description;
  */
 public class EngineAtomicOperationTest extends AtomicOperationTest {
 
-	private String directory;
+    private String directory;
 
-	@Rule
-	public TestWatcher w = new TestWatcher() {
-		@Override
-		protected void starting(Description desc) {
-			store.stop(); // Stop the engine so that data isn't transported in
-							// the middle of a test.
-		}
-	};
+    @Rule
+    public TestWatcher w = new TestWatcher() {
+        @Override
+        protected void starting(Description desc) {
+            store.stop(); // Stop the engine so that data isn't transported in
+                          // the middle of a test.
+        }
+    };
 
-	@Override
-	protected void cleanup(Store store) {
-		FileSystem.deleteDirectory(directory);
-	}
+    @Override
+    protected void cleanup(Store store) {
+        FileSystem.deleteDirectory(directory);
+    }
 
-	@Override
-	protected Compoundable getDestination() {
-		directory = TestData.DATA_DIR + File.separator + Time.now();
-		Engine engine = new Engine(directory + File.separator + "buffer",
-				directory + File.separator + "database");
-		engine.start(); // Start the engine manually because
-						// AtomicOperation#start does not do it
-		return engine;
-	}
+    @Override
+    protected Compoundable getDestination() {
+        directory = TestData.DATA_DIR + File.separator + Time.now();
+        Engine engine = new Engine(directory + File.separator + "buffer",
+                directory + File.separator + "database");
+        engine.start(); // Start the engine manually because
+                        // AtomicOperation#start does not do it
+        return engine;
+    }
 
 }

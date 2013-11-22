@@ -38,37 +38,37 @@ import org.junit.Test;
  */
 public class TLockTest extends ConcourseBaseTest {
 
-	@Test
-	public void testLocksAreTheSame() {
-		Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
-		for (int i = 0; i < components.length; i++) {
-			components[i] = TestData.getValue();
-		}
-		TLock a = TLock.grab(components);
-		TLock b = TLock.grabWithToken(Token.wrap(components));
-		Assert.assertSame(a, b);
-	}
+    @Test
+    public void testLocksAreTheSame() {
+        Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+        for (int i = 0; i < components.length; i++) {
+            components[i] = TestData.getValue();
+        }
+        TLock a = TLock.grab(components);
+        TLock b = TLock.grabWithToken(Token.wrap(components));
+        Assert.assertSame(a, b);
+    }
 
-	@Test
-	public void testIsStaleInstance() throws InterruptedException {
-		TLock lock = TLock.grab(TestData.getObject());
-		Assert.assertFalse(lock.isStaleInstance());
-		System.out
-				.println("Sleeping for "
-						+ TLock.CACHE_TTL
-						+ " "
-						+ TLock.CACHE_TTL_UNIT
-						+ ". If this not correct, make sure that the VM is running with the -Dtest=true flag");
-		Thread.sleep(TimeUnit.MILLISECONDS.convert(TLock.CACHE_TTL,
-				TLock.CACHE_TTL_UNIT) + 1);
-		Assert.assertTrue(lock.isStaleInstance());
-	}
+    @Test
+    public void testIsStaleInstance() throws InterruptedException {
+        TLock lock = TLock.grab(TestData.getObject());
+        Assert.assertFalse(lock.isStaleInstance());
+        System.out
+                .println("Sleeping for "
+                        + TLock.CACHE_TTL
+                        + " "
+                        + TLock.CACHE_TTL_UNIT
+                        + ". If this not correct, make sure that the VM is running with the -Dtest=true flag");
+        Thread.sleep(TimeUnit.MILLISECONDS.convert(TLock.CACHE_TTL,
+                TLock.CACHE_TTL_UNIT) + 1);
+        Assert.assertTrue(lock.isStaleInstance());
+    }
 
-	@Test
-	public void testGetTimeSinceLastGrab() throws InterruptedException {
-		TLock lock = TLock.grab(TestData.getObject());
-		int sleep = TestData.getScaleCount();
-		Thread.sleep(sleep);
-		Assert.assertTrue(lock.getTimeSinceLastGrab(TimeUnit.MILLISECONDS) >= sleep);
-	}
+    @Test
+    public void testGetTimeSinceLastGrab() throws InterruptedException {
+        TLock lock = TLock.grab(TestData.getObject());
+        int sleep = TestData.getScaleCount();
+        Thread.sleep(sleep);
+        Assert.assertTrue(lock.getTimeSinceLastGrab(TimeUnit.MILLISECONDS) >= sleep);
+    }
 }

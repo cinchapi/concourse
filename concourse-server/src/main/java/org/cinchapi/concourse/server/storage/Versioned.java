@@ -36,44 +36,44 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 interface Versioned {
 
-	/**
-	 * Represents a {@code null} version, which indicates that the object is
-	 * notStorable.
-	 */
-	public static final long NO_VERSION = 0;
+    /**
+     * Represents a {@code null} version, which indicates that the object is
+     * notStorable.
+     */
+    public static final long NO_VERSION = 0;
 
-	/**
-	 * Return {@code true} if {@code obj} is <em>logically</em> equal to this
-	 * one, meaning all of its attributes other than its {@code version} are
-	 * equal to those in this object.
-	 */
-	@Override
-	public boolean equals(Object obj);
+    /**
+     * Return {@code true} if {@code obj} is <em>logically</em> equal to this
+     * one, meaning all of its attributes other than its {@code version} are
+     * equal to those in this object.
+     */
+    @Override
+    public boolean equals(Object obj);
 
-	/**
-	 * Return this object's version, which is unique amongst storable objects.
-	 * For notStorable objects, the version is always equal to
-	 * {@link #NO_VERSION}.
-	 * 
-	 * @return the {@code version}
-	 */
-	public long getVersion();
+    /**
+     * Return this object's version, which is unique amongst storable objects.
+     * For notStorable objects, the version is always equal to
+     * {@link #NO_VERSION}.
+     * 
+     * @return the {@code version}
+     */
+    public long getVersion();
 
-	/**
-	 * Return the <em>logical</em> hash code value for this object, which does
-	 * not take the {@code version} into account.
-	 * 
-	 * @return the hash code
-	 */
-	@Override
-	public int hashCode();
+    /**
+     * Return the <em>logical</em> hash code value for this object, which does
+     * not take the {@code version} into account.
+     * 
+     * @return the hash code
+     */
+    @Override
+    public int hashCode();
 
-	/**
-	 * Return {@code true} if the object's version is not equal to
-	 * {@link #NO_VERSION}.
-	 * 
-	 * @return {@code true} if the object is storable
-	 */
-	public boolean isStorable();
+    /**
+     * Return {@code true} if the object's version is not equal to
+     * {@link #NO_VERSION}.
+     * 
+     * @return {@code true} if the object is storable
+     */
+    public boolean isStorable();
 
 }

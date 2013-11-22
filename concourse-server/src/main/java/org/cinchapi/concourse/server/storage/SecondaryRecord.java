@@ -57,169 +57,169 @@ import com.google.common.collect.Sets;
 @PackagePrivate
 final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
 
-	/**
-	 * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
-	 * {@link Record#createSecondaryRecordPartial(Text, Value)} instead.
-	 * 
-	 * @param locator
-	 * @param key
-	 */
-	@DoNotInvoke
-	@PackagePrivate
-	SecondaryRecord(Text locator, @Nullable Value key) {
-		super(locator, key);
-	}
+    /**
+     * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or
+     * {@link Record#createSecondaryRecordPartial(Text, Value)} instead.
+     * 
+     * @param locator
+     * @param key
+     */
+    @DoNotInvoke
+    @PackagePrivate
+    SecondaryRecord(Text locator, @Nullable Value key) {
+        super(locator, key);
+    }
 
-	/**
-	 * Return the PrimaryKeys that satisfied {@code operator} in relation to the
-	 * specified {@code values} at {@code timestamp}.
-	 * 
-	 * @param timestamp
-	 * @param operator
-	 * @param values
-	 * @return the Set of PrimaryKeys that match the query
-	 */
-	public Set<PrimaryKey> find(long timestamp, Operator operator,
-			Value... values) {
-		return find(true, timestamp, operator, values);
-	}
+    /**
+     * Return the PrimaryKeys that satisfied {@code operator} in relation to the
+     * specified {@code values} at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @param operator
+     * @param values
+     * @return the Set of PrimaryKeys that match the query
+     */
+    public Set<PrimaryKey> find(long timestamp, Operator operator,
+            Value... values) {
+        return find(true, timestamp, operator, values);
+    }
 
-	/**
-	 * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
-	 * in relation to the specified {@code values}.
-	 * 
-	 * @param operator
-	 * @param values
-	 * @return they Set of PrimaryKeys that match the query
-	 */
-	public Set<PrimaryKey> find(Operator operator, Value... values) {
-		return find(false, 0, operator, values);
-	}
+    /**
+     * Return the PrimaryKeys that <em>currently</em> satisfy {@code operator}
+     * in relation to the specified {@code values}.
+     * 
+     * @param operator
+     * @param values
+     * @return they Set of PrimaryKeys that match the query
+     */
+    public Set<PrimaryKey> find(Operator operator, Value... values) {
+        return find(false, 0, operator, values);
+    }
 
-	@Override
-	protected Map<Value, Set<PrimaryKey>> mapType() {
-		return Maps.newTreeMap(Value.Sorter.INSTANCE);
-	}
+    @Override
+    protected Map<Value, Set<PrimaryKey>> mapType() {
+        return Maps.newTreeMap(Value.Sorter.INSTANCE);
+    }
 
-	/**
-	 * Return the Set of PrimaryKeys that currently satisfy {@code operator} in
-	 * relation to the specified {@code values} or at the specified
-	 * {@code timestamp} if {@code historical} is {@code true}
-	 * 
-	 * @param historical - if {@code true} query the history for each field,
-	 *            otherwise query the current state
-	 * @param timestamp - this value is ignored if {@code historical} is
-	 *            {@code false}, otherwise this value is the historical
-	 *            timestamp at which to query the field
-	 * @param operator
-	 * @param values
-	 * @return the Set of PrimaryKeys that match the query
-	 */
-	private Set<PrimaryKey> find(boolean historical, long timestamp,
-			Operator operator, Value... values) { /* Authorized */
-		masterLock.readLock().lock();
-		try {
-			Set<PrimaryKey> keys = Sets.newTreeSet();
-			Value value = values[0];
-			if(operator == Operator.EQUALS) {
-				keys.addAll(historical ? get(value, timestamp) : get(value));
-			}
-			else if(operator == Operator.NOT_EQUALS) {
-				Iterator<Value> it = history.keySet().iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					if(!value.equals(v)) {
-						keys.addAll(historical ? get(v, timestamp) : get(v));
-					}
-				}
-			}
-			else if(operator == Operator.GREATER_THAN) {
-				TreeSet<Value> sortedValues = Sets
-						.newTreeSet(Value.Sorter.INSTANCE);
-				sortedValues.addAll(history.keySet());
-				Iterator<Value> it = sortedValues.tailSet(value, false)
-						.iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					keys.addAll(historical ? get(v, timestamp) : get(v));
-				}
-			}
-			else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-				TreeSet<Value> sortedValues = Sets
-						.newTreeSet(Value.Sorter.INSTANCE);
-				sortedValues.addAll(history.keySet());
-				Iterator<Value> it = sortedValues.tailSet(value, true)
-						.iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					keys.addAll(historical ? get(v, timestamp) : get(v));
-				}
-			}
-			else if(operator == Operator.LESS_THAN) {
-				TreeSet<Value> sortedValues = Sets
-						.newTreeSet(Value.Sorter.INSTANCE);
-				sortedValues.addAll(history.keySet());
-				Iterator<Value> it = sortedValues.headSet(value, false)
-						.iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					keys.addAll(historical ? get(v, timestamp) : get(v));
-				}
-			}
-			else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-				TreeSet<Value> sortedValues = Sets
-						.newTreeSet(Value.Sorter.INSTANCE);
-				sortedValues.addAll(history.keySet());
-				Iterator<Value> it = sortedValues.headSet(value, true)
-						.iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					keys.addAll(historical ? get(v, timestamp) : get(v));
-				}
-			}
-			else if(operator == Operator.BETWEEN) {
-				Preconditions.checkArgument(values.length > 1);
-				Value value2 = values[1];
-				TreeSet<Value> sortedValues = Sets
-						.newTreeSet(Value.Sorter.INSTANCE);
-				sortedValues.addAll(history.keySet());
-				Iterator<Value> it = sortedValues.subSet(value, true, value2,
-						false).iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					keys.addAll(historical ? get(v, timestamp) : get(v));
-				}
-			}
-			else if(operator == Operator.REGEX) {
-				Iterator<Value> it = history.keySet().iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					Pattern p = Pattern.compile(value.getObject().toString());
-					Matcher m = p.matcher(v.getObject().toString());
-					if(m.matches()) {
-						keys.addAll(historical ? get(v, timestamp) : get(v));
-					}
-				}
-			}
-			else if(operator == Operator.NOT_REGEX) {
-				Iterator<Value> it = history.keySet().iterator();
-				while (it.hasNext()) {
-					Value v = it.next();
-					Pattern p = Pattern.compile(value.getObject().toString());
-					Matcher m = p.matcher(v.getObject().toString());
-					if(m.matches()) {
-						keys.addAll(historical ? get(v, timestamp) : get(v));
-					}
-				}
-			}
-			else {
-				throw new UnsupportedOperationException();
-			}
-			return keys;
-		}
-		finally {
-			masterLock.readLock().unlock();
-		}
-	}
+    /**
+     * Return the Set of PrimaryKeys that currently satisfy {@code operator} in
+     * relation to the specified {@code values} or at the specified
+     * {@code timestamp} if {@code historical} is {@code true}
+     * 
+     * @param historical - if {@code true} query the history for each field,
+     *            otherwise query the current state
+     * @param timestamp - this value is ignored if {@code historical} is
+     *            {@code false}, otherwise this value is the historical
+     *            timestamp at which to query the field
+     * @param operator
+     * @param values
+     * @return the Set of PrimaryKeys that match the query
+     */
+    private Set<PrimaryKey> find(boolean historical, long timestamp,
+            Operator operator, Value... values) { /* Authorized */
+        masterLock.readLock().lock();
+        try {
+            Set<PrimaryKey> keys = Sets.newTreeSet();
+            Value value = values[0];
+            if(operator == Operator.EQUALS) {
+                keys.addAll(historical ? get(value, timestamp) : get(value));
+            }
+            else if(operator == Operator.NOT_EQUALS) {
+                Iterator<Value> it = history.keySet().iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    if(!value.equals(v)) {
+                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                    }
+                }
+            }
+            else if(operator == Operator.GREATER_THAN) {
+                TreeSet<Value> sortedValues = Sets
+                        .newTreeSet(Value.Sorter.INSTANCE);
+                sortedValues.addAll(history.keySet());
+                Iterator<Value> it = sortedValues.tailSet(value, false)
+                        .iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                }
+            }
+            else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+                TreeSet<Value> sortedValues = Sets
+                        .newTreeSet(Value.Sorter.INSTANCE);
+                sortedValues.addAll(history.keySet());
+                Iterator<Value> it = sortedValues.tailSet(value, true)
+                        .iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                }
+            }
+            else if(operator == Operator.LESS_THAN) {
+                TreeSet<Value> sortedValues = Sets
+                        .newTreeSet(Value.Sorter.INSTANCE);
+                sortedValues.addAll(history.keySet());
+                Iterator<Value> it = sortedValues.headSet(value, false)
+                        .iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                }
+            }
+            else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+                TreeSet<Value> sortedValues = Sets
+                        .newTreeSet(Value.Sorter.INSTANCE);
+                sortedValues.addAll(history.keySet());
+                Iterator<Value> it = sortedValues.headSet(value, true)
+                        .iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                }
+            }
+            else if(operator == Operator.BETWEEN) {
+                Preconditions.checkArgument(values.length > 1);
+                Value value2 = values[1];
+                TreeSet<Value> sortedValues = Sets
+                        .newTreeSet(Value.Sorter.INSTANCE);
+                sortedValues.addAll(history.keySet());
+                Iterator<Value> it = sortedValues.subSet(value, true, value2,
+                        false).iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                }
+            }
+            else if(operator == Operator.REGEX) {
+                Iterator<Value> it = history.keySet().iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    Pattern p = Pattern.compile(value.getObject().toString());
+                    Matcher m = p.matcher(v.getObject().toString());
+                    if(m.matches()) {
+                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                    }
+                }
+            }
+            else if(operator == Operator.NOT_REGEX) {
+                Iterator<Value> it = history.keySet().iterator();
+                while (it.hasNext()) {
+                    Value v = it.next();
+                    Pattern p = Pattern.compile(value.getObject().toString());
+                    Matcher m = p.matcher(v.getObject().toString());
+                    if(m.matches()) {
+                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                    }
+                }
+            }
+            else {
+                throw new UnsupportedOperationException();
+            }
+            return keys;
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
 
 }

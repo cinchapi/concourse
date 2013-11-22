@@ -36,56 +36,61 @@ import org.junit.Test;
  */
 public class WriteTest extends ByteableTest {
 
-	@Test
-	public void testMatchesSameType() {
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		Assert.assertTrue(Write.add(key, value, record).matches(
-				Write.add(key, value, record)));
-		Assert.assertTrue(Write.remove(key, value, record).matches(
-				Write.remove(key, value, record)));
-		Assert.assertTrue(Write.notStorable(key, value, record).matches(
-				Write.notStorable(key, value, record)));
-	}
-	
-	@Test
-	public void testMatchesDiffType(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		Assert.assertFalse(Write.add(key, value, record).matches(
-				Write.remove(key, value, record)));
-		Assert.assertFalse(Write.add(key, value, record).matches(
-				Write.notStorable(key, value, record)));
-		Assert.assertFalse(Write.remove(key, value, record).matches(
-				Write.notStorable(key, value, record)));
-	}
-	
-	@Test
-	public void testEqualsDiffType(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		Assert.assertEquals(Write.add(key, value, record), Write.remove(key, value, record));
-		Assert.assertEquals(Write.add(key, value, record), Write.notStorable(key, value, record));
-		Assert.assertEquals(Write.remove(key, value, record), Write.notStorable(key, value, record));
-	}
-	
-	@Test
-	public void testEqualsSameType(){
-		String key = TestData.getString();
-		TObject value = TestData.getTObject();
-		long record = TestData.getLong();
-		Assert.assertEquals(Write.add(key, value, record), Write.add(key, value, record));
-		Assert.assertEquals(Write.remove(key, value, record), Write.remove(key, value, record));
-		Assert.assertEquals(Write.notStorable(key, value, record), Write.notStorable(key, value, record));
-	}
+    @Test
+    public void testMatchesSameType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertTrue(Write.add(key, value, record).matches(
+                Write.add(key, value, record)));
+        Assert.assertTrue(Write.remove(key, value, record).matches(
+                Write.remove(key, value, record)));
+        Assert.assertTrue(Write.notStorable(key, value, record).matches(
+                Write.notStorable(key, value, record)));
+    }
 
+    @Test
+    public void testMatchesDiffType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertFalse(Write.add(key, value, record).matches(
+                Write.remove(key, value, record)));
+        Assert.assertFalse(Write.add(key, value, record).matches(
+                Write.notStorable(key, value, record)));
+        Assert.assertFalse(Write.remove(key, value, record).matches(
+                Write.notStorable(key, value, record)));
+    }
 
-	@Override
-	protected Class<Write> getTestClass() {
-		return Write.class;
-	}
+    @Test
+    public void testEqualsDiffType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertEquals(Write.add(key, value, record),
+                Write.remove(key, value, record));
+        Assert.assertEquals(Write.add(key, value, record),
+                Write.notStorable(key, value, record));
+        Assert.assertEquals(Write.remove(key, value, record),
+                Write.notStorable(key, value, record));
+    }
+
+    @Test
+    public void testEqualsSameType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertEquals(Write.add(key, value, record),
+                Write.add(key, value, record));
+        Assert.assertEquals(Write.remove(key, value, record),
+                Write.remove(key, value, record));
+        Assert.assertEquals(Write.notStorable(key, value, record),
+                Write.notStorable(key, value, record));
+    }
+
+    @Override
+    protected Class<Write> getTestClass() {
+        return Write.class;
+    }
 
 }

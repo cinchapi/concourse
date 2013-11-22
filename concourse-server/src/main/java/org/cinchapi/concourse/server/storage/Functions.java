@@ -38,55 +38,55 @@ import com.google.common.base.Function;
  */
 final class Functions {
 
-	/**
-	 * A function that transforms an {@link TObject} to a {@link Value}.
-	 */
-	@PackagePrivate
-	static final Function<TObject, Value> TOBJECT_TO_VALUE = new Function<TObject, Value>() {
+    /**
+     * A function that transforms an {@link TObject} to a {@link Value}.
+     */
+    @PackagePrivate
+    static final Function<TObject, Value> TOBJECT_TO_VALUE = new Function<TObject, Value>() {
 
-		@Override
-		public Value apply(TObject input) {
-			return Value.wrap(input);
-		}
+        @Override
+        public Value apply(TObject input) {
+            return Value.wrap(input);
+        }
 
-	};
-	/**
-	 * A function that transforms a {@link Value} to an {@link Object}.
-	 */
-	@PackagePrivate
-	static final Function<Value, TObject> VALUE_TO_TOBJECT = new Function<Value, TObject>() {
+    };
+    /**
+     * A function that transforms a {@link Value} to an {@link Object}.
+     */
+    @PackagePrivate
+    static final Function<Value, TObject> VALUE_TO_TOBJECT = new Function<Value, TObject>() {
 
-		@Override
-		public TObject apply(Value input) {
-			return input.getTObject();
-		}
+        @Override
+        public TObject apply(Value input) {
+            return input.getTObject();
+        }
 
-	};
-	/**
-	 * A function that transforms a {@link Text} object to a {@link String}.
-	 */
-	@PackagePrivate
-	static final Function<Text, String> TEXT_TO_STRING = new Function<Text, String>() {
+    };
+    /**
+     * A function that transforms a {@link Text} object to a {@link String}.
+     */
+    @PackagePrivate
+    static final Function<Text, String> TEXT_TO_STRING = new Function<Text, String>() {
 
-		@Override
-		public String apply(Text input) {
-			return input.toString();
-		}
+        @Override
+        public String apply(Text input) {
+            return input.toString();
+        }
 
-	};
-	/**
-	 * A function that transforms a {@link PrimaryKey} to a {@link Long}.
-	 */
-	@PackagePrivate
-	static final Function<PrimaryKey, Long> PRIMARY_KEY_TO_LONG = new Function<PrimaryKey, Long>() {
+    };
+    /**
+     * A function that transforms a {@link PrimaryKey} to a {@link Long}.
+     */
+    @PackagePrivate
+    static final Function<PrimaryKey, Long> PRIMARY_KEY_TO_LONG = new Function<PrimaryKey, Long>() {
 
-		@Override
-		public Long apply(PrimaryKey input) {
-			return input.longValue();
-		}
+        @Override
+        public Long apply(PrimaryKey input) {
+            return input.longValue();
+        }
 
-	};
+    };
 
-	private Functions() {/* Utility Class */}
+    private Functions() {/* Utility Class */}
 
 }

@@ -40,78 +40,78 @@ import com.google.common.io.BaseEncoding;
  */
 public class Token implements Byteable {
 
-	/**
-	 * Return the Token encoded in {@code bytes} so long as those bytes adhere
-	 * to the format specified by the {@link #getBytes()} method. This method
-	 * assumes that all the bytes in the {@code bytes} belong to the Token. In
-	 * general, it is necessary to get the appropriate Token slice from the
-	 * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param bytes
-	 * @return the Token
-	 */
-	public static Token fromByteBuffer(ByteBuffer bytes) {
-		return new Token(bytes);
-	}
+    /**
+     * Return the Token encoded in {@code bytes} so long as those bytes adhere
+     * to the format specified by the {@link #getBytes()} method. This method
+     * assumes that all the bytes in the {@code bytes} belong to the Token. In
+     * general, it is necessary to get the appropriate Token slice from the
+     * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the Token
+     */
+    public static Token fromByteBuffer(ByteBuffer bytes) {
+        return new Token(bytes);
+    }
 
-	/**
-	 * Return a {@link Token} that wraps the specified {@code objects}.
-	 * 
-	 * @param objects
-	 * @return the Token
-	 */
-	public static Token wrap(Object... objects) {
-		return new Token(ByteBuffer.wrap(Hashing.md5()
-				.hashUnencodedChars(Arrays.toString(objects)).asBytes()));
-	}
+    /**
+     * Return a {@link Token} that wraps the specified {@code objects}.
+     * 
+     * @param objects
+     * @return the Token
+     */
+    public static Token wrap(Object... objects) {
+        return new Token(ByteBuffer.wrap(Hashing.md5()
+                .hashUnencodedChars(Arrays.toString(objects)).asBytes()));
+    }
 
-	/**
-	 * The size of each Token.
-	 */
-	public static final int SIZE = 16;
+    /**
+     * The size of each Token.
+     */
+    public static final int SIZE = 16;
 
-	/**
-	 * The sequence of bytes is a MD5 hash.
-	 */
-	private final ByteBuffer bytes;
+    /**
+     * The sequence of bytes is a MD5 hash.
+     */
+    private final ByteBuffer bytes;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param bytes
-	 */
-	private Token(ByteBuffer bytes) {
-		Preconditions.checkArgument(bytes.capacity() == SIZE);
-		this.bytes = bytes;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param bytes
+     */
+    private Token(ByteBuffer bytes) {
+        Preconditions.checkArgument(bytes.capacity() == SIZE);
+        this.bytes = bytes;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Token) {
-			return getBytes().equals(((Token) obj).getBytes());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Token) {
+            return getBytes().equals(((Token) obj).getBytes());
+        }
+        return false;
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    @Override
+    public ByteBuffer getBytes() {
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public int hashCode() {
-		return getBytes().hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return getBytes().hashCode();
+    }
 
-	@Override
-	public int size() {
-		return bytes.capacity();
-	}
+    @Override
+    public int size() {
+        return bytes.capacity();
+    }
 
-	@Override
-	public String toString() {
-		return BaseEncoding.base16().encode(
-				ByteBuffers.toByteArray(getBytes())).toLowerCase();
-	}
+    @Override
+    public String toString() {
+        return BaseEncoding.base16()
+                .encode(ByteBuffers.toByteArray(getBytes())).toLowerCase();
+    }
 
 }

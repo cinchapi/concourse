@@ -40,80 +40,80 @@ import com.google.common.primitives.UnsignedLongs;
 @Immutable
 public final class Link extends Number implements Comparable<Link> {
 
-	/**
-	 * Return a Link that points to {@code record}.
-	 * 
-	 * @param record
-	 * @return the Link
-	 */
-	public static Link to(long record) {
-		return new Link(record);
-	}
+    /**
+     * Return a Link that points to {@code record}.
+     * 
+     * @param record
+     * @return the Link
+     */
+    public static Link to(long record) {
+        return new Link(record);
+    }
 
-	private static final long serialVersionUID = 1L; // Serializability is
-														// inherited from {@link
-														// Number}.
-	/**
-	 * The signed representation for the primary key of the record to which this
-	 * Link points.
-	 */
-	private final long record;
+    private static final long serialVersionUID = 1L; // Serializability is
+                                                     // inherited from {@link
+                                                     // Number}.
+    /**
+     * The signed representation for the primary key of the record to which this
+     * Link points.
+     */
+    private final long record;
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param record
-	 */
-	private Link(long record) {
-		this.record = record;
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param record
+     */
+    private Link(long record) {
+        this.record = record;
+    }
 
-	@Override
-	public int compareTo(Link other) {
-		return UnsignedLongs.compare(longValue(), other.longValue());
-	}
+    @Override
+    public int compareTo(Link other) {
+        return UnsignedLongs.compare(longValue(), other.longValue());
+    }
 
-	@Override
-	public double doubleValue() {
-		return (double) record;
-	}
+    @Override
+    public double doubleValue() {
+        return (double) record;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Link) {
-			Link other = (Link) obj;
-			return UnsignedLongs.compare(record, other.record) == 0;
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Link) {
+            Link other = (Link) obj;
+            return UnsignedLongs.compare(record, other.record) == 0;
+        }
+        return false;
+    }
 
-	@Override
-	public float floatValue() {
-		return (float) record;
-	}
+    @Override
+    public float floatValue() {
+        return (float) record;
+    }
 
-	@Override
-	public int hashCode() {
-		return Longs.hashCode(record);
-	}
+    @Override
+    public int hashCode() {
+        return Longs.hashCode(record);
+    }
 
-	@Override
-	public int intValue() {
-		return (int) record;
-	}
+    @Override
+    public int intValue() {
+        return (int) record;
+    }
 
-	@Override
-	public long longValue() {
-		return record;
-	}
+    @Override
+    public long longValue() {
+        return record;
+    }
 
-	@Override
-	public String toString() {
-		return UnsignedLongs.toString(longValue()); // for
-													// compatibility
-													// with
-													// {@link
-													// com.cinchapi.common.Numbers.compare(Number,
-													// Number)}
-	}
+    @Override
+    public String toString() {
+        return UnsignedLongs.toString(longValue()); // for
+                                                    // compatibility
+                                                    // with
+                                                    // {@link
+                                                    // com.cinchapi.common.Numbers.compare(Number,
+                                                    // Number)}
+    }
 }

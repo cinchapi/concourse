@@ -30,14 +30,14 @@ package org.cinchapi.concourse.server.storage;
  */
 public class QueueTest extends LimboTest {
 
-	@Override
-	protected Queue getStore() {
-		return new Queue(100);
-	}
+    @Override
+    protected Queue getStore() {
+        return new Queue(100);
+    }
 
-	@Override
-	protected void cleanup(Store store) {
-		// do nothing
-	}
+    @Override
+    protected void cleanup(Store store) {
+        // do nothing
+    }
 
 }

@@ -45,51 +45,51 @@ import com.google.common.base.Throwables;
 @RunWith(Theories.class)
 public class RevisionTest {
 
-	public static @DataPoints
-	Revision<?, ?, ?>[] revisions = { TestData.getPrimaryRevision(),
-			TestData.getSearchRevision(), TestData.getSecondaryRevision() };
+    public static @DataPoints
+    Revision<?, ?, ?>[] revisions = { TestData.getPrimaryRevision(),
+            TestData.getSearchRevision(), TestData.getSecondaryRevision() };
 
-	@Test
-	@Theory
-	public void testSerialization(Revision<?, ?, ?> revision) {
-		Assert.assertTrue(Byteables.read(revision.getBytes(),
-				revision.getClass()).equals(revision));
-	}
+    @Test
+    @Theory
+    public void testSerialization(Revision<?, ?, ?> revision) {
+        Assert.assertTrue(Byteables.read(revision.getBytes(),
+                revision.getClass()).equals(revision));
+    }
 
-	@Test
-	@Theory
-	public void testEquals(Revision<?, ?, ?> revision) {
-		Assert.assertEquals(revision, duplicate(revision));
-	}
+    @Test
+    @Theory
+    public void testEquals(Revision<?, ?, ?> revision) {
+        Assert.assertEquals(revision, duplicate(revision));
+    }
 
-	@Test
-	@Theory
-	public void testHashCode(Revision<?, ?, ?> revision) {
-		Assert.assertEquals(revision.hashCode(), duplicate(revision).hashCode());
-	}
+    @Test
+    @Theory
+    public void testHashCode(Revision<?, ?, ?> revision) {
+        Assert.assertEquals(revision.hashCode(), duplicate(revision).hashCode());
+    }
 
-	/**
-	 * Duplicate {@code revision} with a different version.
-	 * 
-	 * @param revision
-	 * @return the duplicated revision
-	 */
-	private Revision<?, ?, ?> duplicate(Revision<?, ?, ?> revision) {
-		Constructor<?> constructor;
-		try {
-			constructor = revision.getClass().getDeclaredConstructor(
-					revision.getLocator().getClass(),
-					revision.getKey().getClass(),
-					revision.getValue().getClass(), Long.TYPE, Action.class);
-			constructor.setAccessible(true);
-			return (Revision<?, ?, ?>) constructor.newInstance(
-					revision.getLocator(), revision.getKey(),
-					revision.getValue(), Time.now(), revision.getType());
-		}
-		catch (Exception e) {
-			throw Throwables.propagate(e);
-		}
+    /**
+     * Duplicate {@code revision} with a different version.
+     * 
+     * @param revision
+     * @return the duplicated revision
+     */
+    private Revision<?, ?, ?> duplicate(Revision<?, ?, ?> revision) {
+        Constructor<?> constructor;
+        try {
+            constructor = revision.getClass().getDeclaredConstructor(
+                    revision.getLocator().getClass(),
+                    revision.getKey().getClass(),
+                    revision.getValue().getClass(), Long.TYPE, Action.class);
+            constructor.setAccessible(true);
+            return (Revision<?, ?, ?>) constructor.newInstance(
+                    revision.getLocator(), revision.getKey(),
+                    revision.getValue(), Time.now(), revision.getType());
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
 
-	}
+    }
 
 }

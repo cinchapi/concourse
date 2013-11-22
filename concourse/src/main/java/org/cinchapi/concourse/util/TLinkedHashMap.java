@@ -38,104 +38,104 @@ import com.google.common.base.Strings;
  */
 public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
-	/**
-	 * Return an empty {@link TLinkedHashMap} with the default key and value
-	 * names.
-	 * 
-	 * @return the TLinkedHashMap
-	 */
-	public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap() {
-		return new TLinkedHashMap<K, V>(null, null);
-	}
+    /**
+     * Return an empty {@link TLinkedHashMap} with the default key and value
+     * names.
+     * 
+     * @return the TLinkedHashMap
+     */
+    public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap() {
+        return new TLinkedHashMap<K, V>(null, null);
+    }
 
-	/**
-	 * Return an empty TLinkedHashMap with the specified {@code keyName} and
-	 * {@code valueName}.
-	 * 
-	 * @param keyName
-	 * @param valueName
-	 * @return the TLinkedHashMap.
-	 */
-	public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap(String keyName,
-			String valueName) {
-		return new TLinkedHashMap<K, V>(keyName, valueName);
-	}
+    /**
+     * Return an empty TLinkedHashMap with the specified {@code keyName} and
+     * {@code valueName}.
+     * 
+     * @param keyName
+     * @param valueName
+     * @return the TLinkedHashMap.
+     */
+    public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap(String keyName,
+            String valueName) {
+        return new TLinkedHashMap<K, V>(keyName, valueName);
+    }
 
-	private static final long serialVersionUID = 1L; // serializability
-														// inherited from parent
-														// class
+    private static final long serialVersionUID = 1L; // serializability
+                                                     // inherited from parent
+                                                     // class
 
-	private String keyName = "Key";
-	private String valueName = "Value";
-	private int keyLength = keyName.length();
-	private int valueLength = valueName.length();
+    private String keyName = "Key";
+    private String valueName = "Value";
+    private int keyLength = keyName.length();
+    private int valueLength = valueName.length();
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param keyName
-	 * @param valueName
-	 */
-	private TLinkedHashMap(@Nullable String keyName, @Nullable String valueName) {
-		if(!Strings.isNullOrEmpty(keyName)) {
-			setKeyName(keyName);
-		}
-		if(!Strings.isNullOrEmpty(valueName)) {
-			setValueName(valueName);
-		}
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param keyName
+     * @param valueName
+     */
+    private TLinkedHashMap(@Nullable String keyName, @Nullable String valueName) {
+        if(!Strings.isNullOrEmpty(keyName)) {
+            setKeyName(keyName);
+        }
+        if(!Strings.isNullOrEmpty(valueName)) {
+            setValueName(valueName);
+        }
+    }
 
-	@Override
-	public V put(K key, V value) {
-		keyLength = Math.max(key.toString().length(), keyLength);
-		valueLength = Math.max(value.toString().length(), valueLength);
-		return super.put(key, value);
-	}
+    @Override
+    public V put(K key, V value) {
+        keyLength = Math.max(key.toString().length(), keyLength);
+        valueLength = Math.max(value.toString().length(), valueLength);
+        return super.put(key, value);
+    }
 
-	/**
-	 * Set the keyName to {@code name}.
-	 * 
-	 * @param name
-	 * @return this
-	 */
-	public TLinkedHashMap<K, V> setKeyName(String name) {
-		keyName = name;
-		keyLength = Math.max(name.length(), keyLength);
-		return this;
-	}
+    /**
+     * Set the keyName to {@code name}.
+     * 
+     * @param name
+     * @return this
+     */
+    public TLinkedHashMap<K, V> setKeyName(String name) {
+        keyName = name;
+        keyLength = Math.max(name.length(), keyLength);
+        return this;
+    }
 
-	/**
-	 * Set the valueName to {@code name}
-	 * 
-	 * @param name
-	 * @return this
-	 */
-	public TLinkedHashMap<K, V> setValueName(String name) {
-		valueName = name;
-		valueLength = Math.max(name.length(), valueLength);
-		return this;
-	}
+    /**
+     * Set the valueName to {@code name}
+     * 
+     * @param name
+     * @return this
+     */
+    public TLinkedHashMap<K, V> setValueName(String name) {
+        valueName = name;
+        valueLength = Math.max(name.length(), valueLength);
+        return this;
+    }
 
-	@Override
-	public String toString() {
-		String format = "| %-" + keyLength + "s | %-" + valueLength + "s |%n";
-		String hr = Strings.padEnd("+", keyLength + valueLength + 6, '-'); // there
-																			// are
-																			// 6
-																			// spaces
-																			// in
-																			// the
-																			// #format
-		hr += "+" + System.getProperty("line.separator");
-		StringBuilder sb = new StringBuilder();
-		sb.append(System.getProperty("line.separator"));
-		sb.append(hr);
-		sb.append(String.format(format, keyName, valueName));
-		sb.append(hr);
-		for (Map.Entry<K, V> entry : entrySet()) {
-			sb.append(String.format(format, entry.getKey(), entry.getValue()));
-		}
-		sb.append(hr);
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        String format = "| %-" + keyLength + "s | %-" + valueLength + "s |%n";
+        String hr = Strings.padEnd("+", keyLength + valueLength + 6, '-'); // there
+                                                                           // are
+                                                                           // 6
+                                                                           // spaces
+                                                                           // in
+                                                                           // the
+                                                                           // #format
+        hr += "+" + System.getProperty("line.separator");
+        StringBuilder sb = new StringBuilder();
+        sb.append(System.getProperty("line.separator"));
+        sb.append(hr);
+        sb.append(String.format(format, keyName, valueName));
+        sb.append(hr);
+        for (Map.Entry<K, V> entry : entrySet()) {
+            sb.append(String.format(format, entry.getKey(), entry.getValue()));
+        }
+        sb.append(hr);
+        return sb.toString();
+    }
 }

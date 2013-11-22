@@ -47,32 +47,32 @@ import org.junit.runner.Description;
  */
 public abstract class ConcourseBaseTest {
 
-	// Initialization for all tests
-	static {
-		System.setProperty("test", "true");
-	}
+    // Initialization for all tests
+    static {
+        System.setProperty("test", "true");
+    }
 
-	/**
-	 * This watcher clears previously registered {@link Variables} on startup
-	 * and dumps them in the event of failure.
-	 */
-	@Rule
-	public final TestWatcher __watcher = new TestWatcher() {
+    /**
+     * This watcher clears previously registered {@link Variables} on startup
+     * and dumps them in the event of failure.
+     */
+    @Rule
+    public final TestWatcher __watcher = new TestWatcher() {
 
-		@Override
-		protected void failed(Throwable t, Description description) {
-			System.out.println("TEST FAILURE in " + description.getMethodName()
-					+ ": " + t.getMessage());
-			System.out.println("---");
-			System.out.println(Variables.dump());
-			System.out.println("");
-		}
+        @Override
+        protected void failed(Throwable t, Description description) {
+            System.out.println("TEST FAILURE in " + description.getMethodName()
+                    + ": " + t.getMessage());
+            System.out.println("---");
+            System.out.println(Variables.dump());
+            System.out.println("");
+        }
 
-		@Override
-		protected void starting(Description description) {
-			Variables.clear();
-		}
+        @Override
+        protected void starting(Description description) {
+            Variables.clear();
+        }
 
-	};
+    };
 
 }

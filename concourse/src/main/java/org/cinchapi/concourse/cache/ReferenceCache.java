@@ -71,68 +71,68 @@ import com.google.common.hash.Hashing;
  */
 public class ReferenceCache<T> {
 
-	private static final int INITIAL_CAPACITY = 500000;
-	private static final int CONCURRENCY_LEVEL = 16;
+    private static final int INITIAL_CAPACITY = 500000;
+    private static final int CONCURRENCY_LEVEL = 16;
 
-	private final Cache<HashCode, T> cache = CacheBuilder.newBuilder()
-			.initialCapacity(INITIAL_CAPACITY)
-			.concurrencyLevel(CONCURRENCY_LEVEL).softValues().build();
+    private final Cache<HashCode, T> cache = CacheBuilder.newBuilder()
+            .initialCapacity(INITIAL_CAPACITY)
+            .concurrencyLevel(CONCURRENCY_LEVEL).softValues().build();
 
-	/**
-	 * Return the cache value associated with the group of {@code args} or
-	 * {@code null} if not value is found.
-	 * 
-	 * @param args
-	 * @return the cached value.
-	 */
-	@Nullable
-	public T get(Object... args) {
-		HashCode id = getCacheKey(args);
-		return cache.getIfPresent(id);
-	}
+    /**
+     * Return the cache value associated with the group of {@code args} or
+     * {@code null} if not value is found.
+     * 
+     * @param args
+     * @return the cached value.
+     */
+    @Nullable
+    public T get(Object... args) {
+        HashCode id = getCacheKey(args);
+        return cache.getIfPresent(id);
+    }
 
-	/**
-	 * Cache {@code value} and associated it with the group of {@code args}.
-	 * Each arg should be a value that is used to construct
-	 * the object.
-	 * 
-	 * @param value
-	 * @param args
-	 * @return {@code true} if {@code value} is successfully cached.
-	 */
-	public void put(T value, Object... args) {
-		Preconditions.checkNotNull(value);
-		Preconditions.checkNotNull(args);
-		Preconditions.checkArgument(args.length > 0,
-				"You must specify at least one key");
-		HashCode id = getCacheKey(args);
-		cache.put(id, value);
-	}
+    /**
+     * Cache {@code value} and associated it with the group of {@code args}.
+     * Each arg should be a value that is used to construct
+     * the object.
+     * 
+     * @param value
+     * @param args
+     * @return {@code true} if {@code value} is successfully cached.
+     */
+    public void put(T value, Object... args) {
+        Preconditions.checkNotNull(value);
+        Preconditions.checkNotNull(args);
+        Preconditions.checkArgument(args.length > 0,
+                "You must specify at least one key");
+        HashCode id = getCacheKey(args);
+        cache.put(id, value);
+    }
 
-	/**
-	 * Remove the value associated with the group of {@code args} from the
-	 * cache.
-	 * 
-	 * @param args
-	 * @return {@code true} if the associated value is successfully removed.
-	 */
-	public void remove(Object... args) {
-		cache.invalidate(getCacheKey(args));
-	}
+    /**
+     * Remove the value associated with the group of {@code args} from the
+     * cache.
+     * 
+     * @param args
+     * @return {@code true} if the associated value is successfully removed.
+     */
+    public void remove(Object... args) {
+        cache.invalidate(getCacheKey(args));
+    }
 
-	/**
-	 * Return a unique identifier for a group of {@code args}.
-	 * 
-	 * @param args
-	 * @return the identifier.
-	 */
-	private HashCode getCacheKey(Object... args) {
-		StringBuilder key = new StringBuilder();
-		for (Object o : args) {
-			key.append(o.hashCode());
-			key.append(o.getClass().getName());
-		}
-		return Hashing.md5().hashUnencodedChars(key.toString());
-	}
+    /**
+     * Return a unique identifier for a group of {@code args}.
+     * 
+     * @param args
+     * @return the identifier.
+     */
+    private HashCode getCacheKey(Object... args) {
+        StringBuilder key = new StringBuilder();
+        for (Object o : args) {
+            key.append(o.hashCode());
+            key.append(o.getClass().getName());
+        }
+        return Hashing.md5().hashUnencodedChars(key.toString());
+    }
 
 }

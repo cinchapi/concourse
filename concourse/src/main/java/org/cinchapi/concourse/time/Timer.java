@@ -34,42 +34,42 @@ import com.google.common.base.Preconditions;
  */
 public class Timer {
 
-	private final static int defaultStartTime = 0;
-	private final static TimeUnit defaultTimeUnit = TimeUnit.MICROSECONDS;
-	private long start = defaultStartTime;
+    private final static int defaultStartTime = 0;
+    private final static TimeUnit defaultTimeUnit = TimeUnit.MICROSECONDS;
+    private long start = defaultStartTime;
 
-	/**
-	 * Start the timer now.
-	 */
-	public void start() {
-		Preconditions.checkState(start == defaultStartTime,
-				"The timer has already been started.");
-		start = Time.now();
-	}
+    /**
+     * Start the timer now.
+     */
+    public void start() {
+        Preconditions.checkState(start == defaultStartTime,
+                "The timer has already been started.");
+        start = Time.now();
+    }
 
-	/**
-	 * Stop the timer now and return the amount of time measured in
-	 * {@code milliseconds} that has elapsed.
-	 * 
-	 * @return the elapsed time.
-	 */
-	public long stop() {
-		return stop(defaultTimeUnit);
-	}
+    /**
+     * Stop the timer now and return the amount of time measured in
+     * {@code milliseconds} that has elapsed.
+     * 
+     * @return the elapsed time.
+     */
+    public long stop() {
+        return stop(defaultTimeUnit);
+    }
 
-	/**
-	 * Stop the timer now and return the amount of time measured in
-	 * {@code unit} that has elapsed.
-	 * 
-	 * @param unit
-	 * @return the elapsed time.
-	 */
-	public long stop(TimeUnit unit) {
-		Preconditions.checkArgument(start != defaultStartTime,
-				"The timer has not been started.");
-		long duration = Time.now() - start;
-		start = defaultStartTime;
-		return unit.convert(duration, defaultTimeUnit);
-	}
+    /**
+     * Stop the timer now and return the amount of time measured in {@code unit}
+     * that has elapsed.
+     * 
+     * @param unit
+     * @return the elapsed time.
+     */
+    public long stop(TimeUnit unit) {
+        Preconditions.checkArgument(start != defaultStartTime,
+                "The timer has not been started.");
+        long duration = Time.now() - start;
+        start = defaultStartTime;
+        return unit.convert(duration, defaultTimeUnit);
+    }
 
 }

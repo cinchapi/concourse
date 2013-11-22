@@ -54,100 +54,102 @@ import com.google.common.base.Throwables;
  */
 public final class TestData extends Random {
 
-	public static final String DATA_DIR = "test.out/buffer";
+    public static final String DATA_DIR = "test.out/buffer";
 
-	public static PrimaryRevision getPrimaryRevision() {
-		return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
-				getValue(), Time.now(), Action.ADD);
-	}
+    public static PrimaryRevision getPrimaryRevision() {
+        return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+                getValue(), Time.now(), Action.ADD);
+    }
 
-	public static SearchRevision getSearchRevision() {
-		return Revision.createSearchRevision(getText(), getText(),
-				getPosition(), Time.now(), Action.ADD);
-	}
+    public static SearchRevision getSearchRevision() {
+        return Revision.createSearchRevision(getText(), getText(),
+                getPosition(), Time.now(), Action.ADD);
+    }
 
-	public static SecondaryRevision getSecondaryRevision() {
-		return Revision.createSecondaryRevision(getText(), getValue(),
-				getPrimaryKey(), Time.now(), Action.ADD);
-	}
+    public static SecondaryRevision getSecondaryRevision() {
+        return Revision.createSecondaryRevision(getText(), getValue(),
+                getPrimaryKey(), Time.now(), Action.ADD);
+    }
 
-	public static TLock getIdentifiableReentrantReadWriteLock() {
-		Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
-		for (int i = 0; i < components.length; i++) {
-			components[i] = TestData.getValue();
-		}
-		return TLock.grab(components);
-	}
+    public static TLock getIdentifiableReentrantReadWriteLock() {
+        Object[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+        for (int i = 0; i < components.length; i++) {
+            components[i] = TestData.getValue();
+        }
+        return TLock.grab(components);
+    }
 
-	/**
-	 * Return a random {@link Position}.
-	 * 
-	 * @return a Position
-	 */
-	public static Position getPosition() {
-		return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
-	}
+    /**
+     * Return a random {@link Position}.
+     * 
+     * @return a Position
+     */
+    public static Position getPosition() {
+        return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
+    }
 
-	public static PrimaryKey getPrimaryKey() {
-		return PrimaryKey.wrap(getLong());
-	}
+    public static PrimaryKey getPrimaryKey() {
+        return PrimaryKey.wrap(getLong());
+    }
 
-	/**
-	 * Return a random {@link Text}.
-	 * 
-	 * @return a Text
-	 */
-	public static Text getText() {
-		return Text.wrap(getString());
-	}
+    /**
+     * Return a random {@link Text}.
+     * 
+     * @return a Text
+     */
+    public static Text getText() {
+        return Text.wrap(getString());
+    }
 
-	/**
-	 * Return a random {@link TObject}
-	 * 
-	 * @return a TObject
-	 */
-	public static TObject getTObject() {
-		return Convert.javaToThrift(getObject());
-	}
+    /**
+     * Return a random {@link TObject}
+     * 
+     * @return a TObject
+     */
+    public static TObject getTObject() {
+        return Convert.javaToThrift(getObject());
+    }
 
-	public static Value getValue() {
-		return Value.wrap(getTObject());
-	}
+    public static Value getValue() {
+        return Value.wrap(getTObject());
+    }
 
-	public static Write getWriteAdd() {
-		return Write.add(getString(), getTObject(), getLong());
-	}
+    public static Write getWriteAdd() {
+        return Write.add(getString(), getTObject(), getLong());
+    }
 
-	public static Write getWriteRemove() {
-		return Write.remove(getString(), getTObject(), getLong());
-	}
+    public static Write getWriteRemove() {
+        return Write.remove(getString(), getTObject(), getLong());
+    }
 
-	public static Write getWriteNotStorable() {
-		return Write.notStorable(getString(), getTObject(), getLong());
-	}
-	
-	/**
-	 * Get each line from the words.txt file
-	 * @return
-	 */
-	public static Iterable<String> getWordsDotTxt(){
-		try{
-			File file = new File(TestData.class.getResource("/words.txt").getFile());
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line;
-			List<String> lines = Lists.newArrayList();
-			while ((line = reader.readLine()) != null) {
-				lines.add(line);
-			}
-			reader.close();
-			return lines;
-		}
-		catch(IOException e){
-			throw Throwables.propagate(e);
-		}
-		
-	}
+    public static Write getWriteNotStorable() {
+        return Write.notStorable(getString(), getTObject(), getLong());
+    }
 
-	private TestData() {/* Utility class */}
+    /**
+     * Get each line from the words.txt file
+     * 
+     * @return
+     */
+    public static Iterable<String> getWordsDotTxt() {
+        try {
+            File file = new File(TestData.class.getResource("/words.txt")
+                    .getFile());
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            List<String> lines = Lists.newArrayList();
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+            reader.close();
+            return lines;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+
+    }
+
+    private TestData() {/* Utility class */}
 
 }

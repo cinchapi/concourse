@@ -35,15 +35,15 @@ import com.google.common.primitives.Longs;
  * @author jnelson
  */
 public enum NaturalSorter implements Comparator<File> {
-	INSTANCE;
+    INSTANCE;
 
-	@Override
-	public int compare(File f1, File f2) {
-		String[] s1 = f1.getName().split("\\.");
-		String[] s2 = f2.getName().split("\\.");
-		int result;
-		return (result = Longs.compare(Long.parseLong(s1[0]),
-				Long.parseLong(s2[0]))) == 0 ? s1[1].compareTo(s2[1]) : result;
-	}
+    @Override
+    public int compare(File f1, File f2) {
+        String[] s1 = f1.getName().split("\\.");
+        String[] s2 = f2.getName().split("\\.");
+        int result;
+        return (result = Longs.compare(Long.parseLong(s1[0]),
+                Long.parseLong(s2[0]))) == 0 ? s1[1].compareTo(s2[1]) : result;
+    }
 
 }

@@ -35,6 +35,6 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 class BufferCapacityException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
 }

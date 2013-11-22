@@ -35,144 +35,144 @@ import static com.google.common.base.Preconditions.*;
  */
 public abstract class Numbers {
 
-	/**
-	 * Return numerator/denominator as a percent.
-	 * 
-	 * @param numerator
-	 * @param denominator
-	 * @return the percent
-	 */
-	public static double percent(Number numerator, Number denominator) {
-		return numerator.doubleValue() * 100.0 / denominator.doubleValue();
-	}
+    /**
+     * Return numerator/denominator as a percent.
+     * 
+     * @param numerator
+     * @param denominator
+     * @return the percent
+     */
+    public static double percent(Number numerator, Number denominator) {
+        return numerator.doubleValue() * 100.0 / denominator.doubleValue();
+    }
 
-	/**
-	 * Compare {@code a} to {@code b}.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return -1, 0, or 1 as {@code a} is numerically less than, equal to, or
-	 *         greater than {@code b}.
-	 */
-	public static int compare(Number a, Number b) {
-		//TODO review
-		BigDecimal first = new BigDecimal(a.toString());
-		BigDecimal second = new BigDecimal(b.toString());
-		return first.compareTo(second);
-	}
+    /**
+     * Compare {@code a} to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return -1, 0, or 1 as {@code a} is numerically less than, equal to, or
+     *         greater than {@code b}.
+     */
+    public static int compare(Number a, Number b) {
+        // TODO review
+        BigDecimal first = new BigDecimal(a.toString());
+        BigDecimal second = new BigDecimal(b.toString());
+        return first.compareTo(second);
+    }
 
-	/**
-	 * Return {@code true} if {@code a} is mathematically greater than {@code b}
-	 * 
-	 * @param a
-	 * @param b
-	 * @return {@code true} if {@code a} > {@code b}
-	 */
-	public static boolean isGreaterThan(Number a, Number b) {
-		return compare(a, b) > 0;
-	}
+    /**
+     * Return {@code true} if {@code a} is mathematically greater than {@code b}
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} > {@code b}
+     */
+    public static boolean isGreaterThan(Number a, Number b) {
+        return compare(a, b) > 0;
+    }
 
-	/**
-	 * Return {@code true} if {@code a} is mathematically greater than or equal
-	 * to {@code b}.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return {@code true} if {@code a} >= {@code b}
-	 */
-	public static boolean isGreaterThanOrEqualTo(Number a, Number b) {
-		return isGreaterThan(a, b) || isEqualTo(a, b);
-	}
+    /**
+     * Return {@code true} if {@code a} is mathematically greater than or equal
+     * to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} >= {@code b}
+     */
+    public static boolean isGreaterThanOrEqualTo(Number a, Number b) {
+        return isGreaterThan(a, b) || isEqualTo(a, b);
+    }
 
-	/**
-	 * Return {@code true} if {@code a} is mathematically less than or equal to
-	 * {@code b}.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return {@code true} if {@code a} <= {@code b}
-	 */
-	public static boolean isLessThanOrEqualTo(Number a, Number b) {
-		return isLessThan(a, b) || isEqualTo(a, b);
-	}
+    /**
+     * Return {@code true} if {@code a} is mathematically less than or equal to
+     * {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} <= {@code b}
+     */
+    public static boolean isLessThanOrEqualTo(Number a, Number b) {
+        return isLessThan(a, b) || isEqualTo(a, b);
+    }
 
-	/**
-	 * Return {@code true} if {@code a} is mathematically less than {@code b}.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return {@code true} if {@code a} < {@code b}
-	 */
-	public static boolean isLessThan(Number a, Number b) {
-		return compare(a, b) < 0;
-	}
+    /**
+     * Return {@code true} if {@code a} is mathematically less than {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} < {@code b}
+     */
+    public static boolean isLessThan(Number a, Number b) {
+        return compare(a, b) < 0;
+    }
 
-	/**
-	 * Return {@code true} if {@code a} is mathematically equal to {@code b}.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return {@code true} if {@code a} == {@code b}
-	 */
-	public static boolean isEqualTo(Number a, Number b) {
-		return compare(a, b) == 0;
-	}
+    /**
+     * Return {@code true} if {@code a} is mathematically equal to {@code b}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} == {@code b}
+     */
+    public static boolean isEqualTo(Number a, Number b) {
+        return compare(a, b) == 0;
+    }
 
-	/**
-	 * Return {@code true} if {@code number} is evenly divisible by two.
-	 * 
-	 * @param number
-	 * @return {@code true} if {@code number} is even.
-	 */
-	public static boolean isEven(Number number) {
-		return number.intValue() % 2 == 0;
-	}
+    /**
+     * Return {@code true} if {@code number} is evenly divisible by two.
+     * 
+     * @param number
+     * @return {@code true} if {@code number} is even.
+     */
+    public static boolean isEven(Number number) {
+        return number.intValue() % 2 == 0;
+    }
 
-	/**
-	 * Return {@code true} if {@code number} is not evenly divisible by two.
-	 * 
-	 * @param number
-	 * @return {@code true} if {@code number} is odd.
-	 */
-	public static boolean isOdd(Number number) {
-		return !isEven(number);
-	}
+    /**
+     * Return {@code true} if {@code number} is not evenly divisible by two.
+     * 
+     * @param number
+     * @return {@code true} if {@code number} is odd.
+     */
+    public static boolean isOdd(Number number) {
+        return !isEven(number);
+    }
 
-	/**
-	 * Return the max from a list of {@code numbers}.
-	 * 
-	 * @param numbers
-	 * @return the largest number
-	 */
-	public static Number max(Number... numbers) {
-		Number max = numbers[0];
-		for (Number number : numbers) {
-			max = isGreaterThan(max, number) ? number : max;
-		}
-		return max;
-	}
+    /**
+     * Return the max from a list of {@code numbers}.
+     * 
+     * @param numbers
+     * @return the largest number
+     */
+    public static Number max(Number... numbers) {
+        Number max = numbers[0];
+        for (Number number : numbers) {
+            max = isGreaterThan(max, number) ? number : max;
+        }
+        return max;
+    }
 
-	/**
-	 * Scale {@code number}, which is between {@code rawMin} and {@code rawMax}
-	 * to a value between {@code scaledMin} and {@code scaleMax}.
-	 * 
-	 * @param number
-	 * @param rawMin
-	 * @param rawMax
-	 * @param scaledMin
-	 * @param scaledMax
-	 * @return the scaled value
-	 */
-	public static Number scale(Number number, Number rawMin, Number rawMax,
-			Number scaledMin, Number scaledMax) {
-		checkArgument(isGreaterThanOrEqualTo(number, rawMin)
-				&& isLessThanOrEqualTo(number, rawMax));
+    /**
+     * Scale {@code number}, which is between {@code rawMin} and {@code rawMax}
+     * to a value between {@code scaledMin} and {@code scaleMax}.
+     * 
+     * @param number
+     * @param rawMin
+     * @param rawMax
+     * @param scaledMin
+     * @param scaledMax
+     * @return the scaled value
+     */
+    public static Number scale(Number number, Number rawMin, Number rawMax,
+            Number scaledMin, Number scaledMax) {
+        checkArgument(isGreaterThanOrEqualTo(number, rawMin)
+                && isLessThanOrEqualTo(number, rawMax));
 
-		double x = number.doubleValue();
-		double min = rawMin.doubleValue();
-		double max = rawMax.doubleValue();
-		double a = scaledMin.doubleValue();
-		double b = scaledMax.doubleValue();
-		return (((b - a) * (x - min)) / (max - min)) + a;
-	}
+        double x = number.doubleValue();
+        double min = rawMin.doubleValue();
+        double max = rawMax.doubleValue();
+        double a = scaledMin.doubleValue();
+        double b = scaledMax.doubleValue();
+        return (((b - a) * (x - min)) / (max - min)) + a;
+    }
 }

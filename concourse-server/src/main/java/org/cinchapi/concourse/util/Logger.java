@@ -42,117 +42,117 @@ import ch.qos.logback.core.FileAppender;
  */
 public final class Logger {
 
-	/**
-	 * Print {@code message} with {@code params} to the INFO log.
-	 * 
-	 * @param message
-	 * @param params
-	 */
-	public static void info(String message, Object... params) {
-		INFO.info(message, params);
-	}
+    /**
+     * Print {@code message} with {@code params} to the INFO log.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void info(String message, Object... params) {
+        INFO.info(message, params);
+    }
 
-	/**
-	 * Print {@code message} with {@code params} to the ERROR log.
-	 * 
-	 * @param message
-	 * @param params
-	 */
-	public static void error(String message, Object... params) {
-		ERROR.error(message, params);
-	}
+    /**
+     * Print {@code message} with {@code params} to the ERROR log.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void error(String message, Object... params) {
+        ERROR.error(message, params);
+    }
 
-	/**
-	 * Print {@code message} with {@code params} to the WARN log.
-	 * 
-	 * @param message
-	 * @param params
-	 */
-	public static void warn(String message, Object... params) {
-		WARN.warn(message, params);
-	}
+    /**
+     * Print {@code message} with {@code params} to the WARN log.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void warn(String message, Object... params) {
+        WARN.warn(message, params);
+    }
 
-	/**
-	 * Print {@code message} with {@code params} to the DEBUG log.
-	 * 
-	 * @param message
-	 * @param params
-	 */
-	public static void debug(String message, Object... params) {
-		DEBUG.debug(message, params);
-	}
+    /**
+     * Print {@code message} with {@code params} to the DEBUG log.
+     * 
+     * @param message
+     * @param params
+     */
+    public static void debug(String message, Object... params) {
+        DEBUG.debug(message, params);
+    }
 
-	private static final String LOG_DIRECTORY = "log";
-	private static final ch.qos.logback.classic.Logger ERROR = setup(
-			"org.cinchapi.concourse.server.ErrorLogger", "error.log");
-	private static final ch.qos.logback.classic.Logger WARN = setup(
-			"org.cinchapi.concourse.server.WarnLogger", "warn.log");
-	private static final ch.qos.logback.classic.Logger INFO = setup(
-			"org.cinchapi.concourse.server.InfoLogger", "info.log");
-	private static final ch.qos.logback.classic.Logger DEBUG = setup(
-			"org.cinchapi.concourse.server.DebugLogger", "debug.log");
-	static {
-		setup(ProcessFunction.class.getName(), "error.log");
-	}
+    private static final String LOG_DIRECTORY = "log";
+    private static final ch.qos.logback.classic.Logger ERROR = setup(
+            "org.cinchapi.concourse.server.ErrorLogger", "error.log");
+    private static final ch.qos.logback.classic.Logger WARN = setup(
+            "org.cinchapi.concourse.server.WarnLogger", "warn.log");
+    private static final ch.qos.logback.classic.Logger INFO = setup(
+            "org.cinchapi.concourse.server.InfoLogger", "info.log");
+    private static final ch.qos.logback.classic.Logger DEBUG = setup(
+            "org.cinchapi.concourse.server.DebugLogger", "debug.log");
+    static {
+        setup(ProcessFunction.class.getName(), "error.log");
+    }
 
-	/**
-	 * Setup logger {@code name} that prints to {@code file}.
-	 * 
-	 * @param name
-	 * @param file
-	 * @return the logger
-	 */
-	private static ch.qos.logback.classic.Logger setup(String name, String file) {
-		if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
-			ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
-					.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-			root.detachAndStopAllAppenders();
-		}
-		LoggerContext context = (LoggerContext) LoggerFactory
-				.getILoggerFactory();
-		// Configure Pattern
-		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-		encoder.setPattern("%date [%thread] %level %class{36} - %msg%n");
-		encoder.setContext(context);
-		encoder.start();
+    /**
+     * Setup logger {@code name} that prints to {@code file}.
+     * 
+     * @param name
+     * @param file
+     * @return the logger
+     */
+    private static ch.qos.logback.classic.Logger setup(String name, String file) {
+        if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
+            ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
+                    .getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+            root.detachAndStopAllAppenders();
+        }
+        LoggerContext context = (LoggerContext) LoggerFactory
+                .getILoggerFactory();
+        // Configure Pattern
+        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+        encoder.setPattern("%date [%thread] %level %class{36} - %msg%n");
+        encoder.setContext(context);
+        encoder.start();
 
-		// Configure File Appender
-		FileAppender<ILoggingEvent> appender = new FileAppender<ILoggingEvent>();
-		appender.setFile(LOG_DIRECTORY + File.separator + file);
-		appender.setEncoder(encoder);
-		appender.setContext(context);
-		appender.start();
+        // Configure File Appender
+        FileAppender<ILoggingEvent> appender = new FileAppender<ILoggingEvent>();
+        appender.setFile(LOG_DIRECTORY + File.separator + file);
+        appender.setEncoder(encoder);
+        appender.setContext(context);
+        appender.start();
 
-		// Get Logger
-		ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
-				.getLogger(name);
-		logger.addAppender(appender);
-		logger.setLevel(GlobalState.LOG_LEVEL);
-		logger.setAdditive(true);
-		return logger;
-	}
+        // Get Logger
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory
+                .getLogger(name);
+        logger.addAppender(appender);
+        logger.setLevel(GlobalState.LOG_LEVEL);
+        logger.setAdditive(true);
+        return logger;
+    }
 
-	/**
-	 * Update the configuration of {@code logger} based on changes in the
-	 * underlying prefs file.
-	 * 
-	 * @param logger
-	 */
-	@SuppressWarnings("unused")
-	private static void update(ch.qos.logback.classic.Logger logger) {
-		// TODO I need to actually reload the file from disk and check for
-		// changes
-		ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
-				.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-		if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
-			root.detachAndStopAllAppenders();
-		}
-		else {
-			root.addAppender(new ConsoleAppender<ILoggingEvent>());
-		}
-		logger.setLevel(GlobalState.LOG_LEVEL);
-	}
+    /**
+     * Update the configuration of {@code logger} based on changes in the
+     * underlying prefs file.
+     * 
+     * @param logger
+     */
+    @SuppressWarnings("unused")
+    private static void update(ch.qos.logback.classic.Logger logger) {
+        // TODO I need to actually reload the file from disk and check for
+        // changes
+        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory
+                .getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+        if(!GlobalState.ENABLE_CONSOLE_LOGGING) {
+            root.detachAndStopAllAppenders();
+        }
+        else {
+            root.addAppender(new ConsoleAppender<ILoggingEvent>());
+        }
+        logger.setLevel(GlobalState.LOG_LEVEL);
+    }
 
-	private Logger() {} /* utility class */
+    private Logger() {} /* utility class */
 
 }

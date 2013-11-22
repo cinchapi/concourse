@@ -37,60 +37,60 @@ import com.google.common.collect.Maps;
  */
 public final class Variables {
 
-	/**
-	 * Remove all the registered variables.
-	 */
-	public static void clear() {
-		vars.clear();
-	}
+    /**
+     * Remove all the registered variables.
+     */
+    public static void clear() {
+        vars.clear();
+    }
 
-	/**
-	 * Dump the variables to a formatted string.
-	 * 
-	 * @return a string with a dump of the variables.
-	 */
-	public static String dump() {
-		StringBuilder sb = new StringBuilder();
-		for (Map.Entry<String, Object> entry : vars.entrySet()) {
-			sb.append(entry.getKey() + " = " + entry.getValue() + " ("
-					+ entry.getValue().getClass().getName() + ")");
-			sb.append("\n");
-		}
-		return sb.toString();
-	}
+    /**
+     * Dump the variables to a formatted string.
+     * 
+     * @return a string with a dump of the variables.
+     */
+    public static String dump() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> entry : vars.entrySet()) {
+            sb.append(entry.getKey() + " = " + entry.getValue() + " ("
+                    + entry.getValue().getClass().getName() + ")");
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 
-	/**
-	 * Return the value of {@code variable} if it is registered, {@code null}
-	 * otherwise. This method will throw a ClassCastException if it is not
-	 * possible to cast the value to T.
-	 * 
-	 * @param key
-	 * @return the value of {@code variable}
-	 */
-	@SuppressWarnings("unchecked")
-	@Nullable
-	public static <T> T get(String variable) {
-		if(vars.containsKey(variable)) {
-			return (T) vars.get(variable);
-		}
-		return null;
-	}
+    /**
+     * Return the value of {@code variable} if it is registered, {@code null}
+     * otherwise. This method will throw a ClassCastException if it is not
+     * possible to cast the value to T.
+     * 
+     * @param key
+     * @return the value of {@code variable}
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T> T get(String variable) {
+        if(vars.containsKey(variable)) {
+            return (T) vars.get(variable);
+        }
+        return null;
+    }
 
-	/**
-	 * Register {@code variable} as {@code value}.
-	 * 
-	 * @param variable
-	 * @param value
-	 * @return {@code value}
-	 */
-	public static <T> T register(String variable, T value) {
-		vars.put(variable, value);
-		return value;
-	}
+    /**
+     * Register {@code variable} as {@code value}.
+     * 
+     * @param variable
+     * @param value
+     * @return {@code value}
+     */
+    public static <T> T register(String variable, T value) {
+        vars.put(variable, value);
+        return value;
+    }
 
-	/**
-	 * The variables that are currently stored.
-	 */
-	private final static Map<String, Object> vars = Maps.newLinkedHashMap();
+    /**
+     * The variables that are currently stored.
+     */
+    private final static Map<String, Object> vars = Maps.newLinkedHashMap();
 
 }

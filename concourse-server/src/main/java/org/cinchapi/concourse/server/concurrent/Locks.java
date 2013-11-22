@@ -32,30 +32,30 @@ import java.util.concurrent.locks.Lock;
  */
 public class Locks {
 
-	/**
-	 * Call {@link Lock#lock()} if and only if {@code condition} is {@code true}
-	 * 
-	 * @param lock
-	 * @param condition
-	 */
-	public static void lockIfCondition(Lock lock, boolean condition) {
-		if(condition) {
-			lock.lock();
-		}
-	}
+    /**
+     * Call {@link Lock#lock()} if and only if {@code condition} is {@code true}
+     * 
+     * @param lock
+     * @param condition
+     */
+    public static void lockIfCondition(Lock lock, boolean condition) {
+        if(condition) {
+            lock.lock();
+        }
+    }
 
-	/**
-	 * Call {@link Lock#unlock()} if and only if {@code condition} is
-	 * {@code true}. This method DOES NOT check to see if the lock is actually
-	 * held.
-	 * 
-	 * @param lock
-	 * @param condition
-	 */
-	public static void unlockIfCondition(Lock lock, boolean condition) {
-		if(condition) {
-			lock.unlock();
-		}
-	}
+    /**
+     * Call {@link Lock#unlock()} if and only if {@code condition} is
+     * {@code true}. This method DOES NOT check to see if the lock is actually
+     * held.
+     * 
+     * @param lock
+     * @param condition
+     */
+    public static void unlockIfCondition(Lock lock, boolean condition) {
+        if(condition) {
+            lock.unlock();
+        }
+    }
 
 }
