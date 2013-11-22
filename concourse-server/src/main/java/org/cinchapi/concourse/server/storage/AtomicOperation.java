@@ -47,8 +47,8 @@ import com.google.common.collect.Maps;
  * A sequence of reads and writes that all succeed or fail together. Each
  * operation is staged in an isolated buffer before being committed to a
  * destination store. For optimal concurrency, we use just in time locking
- * (destination resources are only locked when its time to commit the
- * operation).
+ * where destination resources are only locked when its time to commit the
+ * operation.
  * 
  * @author jnelson
  */
@@ -72,6 +72,15 @@ public class AtomicOperation extends BufferedStore {
 	 * The initial capacity
 	 */
 	private static final int INITIAL_CAPACITY = 10;
+
+	/**
+	 * A flag to distinguish the case where we should ignore the version when
+	 * checking that expectations are met. We must use a value other than
+	 * {@link Versioned#NO_VERSION} so that we can distinguish the cases where
+	 * we legitimately need to check that there is no version for atomic
+	 * safety.
+	 */
+	private static final long IGNORE_VERSION = Versioned.NO_VERSION - 1;
 
 	/**
 	 * The sequence of VersionExpectations that were generated from the sequence
@@ -221,9 +230,7 @@ public class AtomicOperation extends BufferedStore {
 	public void start() {}
 
 	@Override
-	public void stop() {
-		commit();
-	}
+	public void stop() {}
 
 	@Override
 	public boolean verify(String key, TObject value, long record) {
@@ -263,7 +270,7 @@ public class AtomicOperation extends BufferedStore {
 	private boolean checkExpectationsAndGrabLocks() {
 		locks = Maps.newHashMap();
 		for (VersionExpectation expectation : expectations) {
-			if(expectation.getVersion() != Versioned.NO_VERSION) {
+			if(expectation.getVersion() != IGNORE_VERSION) {
 				String key = null;
 				Long record = null;
 				try {
@@ -376,7 +383,7 @@ public class AtomicOperation extends BufferedStore {
 		 */
 		protected KeyInRecordVersionExpectation(String key, long record,
 				long timestamp) {
-			super(Token.wrap(key, record), timestamp, Versioned.NO_VERSION);
+			super(Token.wrap(key, record), timestamp, IGNORE_VERSION);
 			this.key = key;
 			this.record = record;
 			this.lockType = LockType.READ;
@@ -427,7 +434,7 @@ public class AtomicOperation extends BufferedStore {
 		 * @param timestamp
 		 */
 		public KeyVersionExpectation(String key, long timestamp) {
-			super(Token.wrap(key), timestamp, Versioned.NO_VERSION);
+			super(Token.wrap(key), timestamp, IGNORE_VERSION);
 			this.key = key;
 		}
 
@@ -596,7 +603,7 @@ public class AtomicOperation extends BufferedStore {
 		 * @param timestamp
 		 */
 		public RecordVersionExpectation(long record, long timestamp) {
-			super(Token.wrap(record), timestamp, Versioned.NO_VERSION);
+			super(Token.wrap(record), timestamp, IGNORE_VERSION);
 			this.record = record;
 		}
 
@@ -659,7 +666,7 @@ public class AtomicOperation extends BufferedStore {
 		protected VersionExpectation(Token token, long timestamp,
 				long expectedVersion) {
 			Preconditions
-					.checkState((timestamp != Versioned.NO_VERSION && expectedVersion == Versioned.NO_VERSION) || true);
+					.checkState((timestamp != Versioned.NO_VERSION && expectedVersion == IGNORE_VERSION) || true);
 			this.token = token;
 			this.timestamp = timestamp;
 			this.expectedVersion = expectedVersion;
@@ -712,7 +719,7 @@ public class AtomicOperation extends BufferedStore {
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
 			boolean replaceInClause = false;
-			sb.append("Expecting version " + expectedVersion + "for '");
+			sb.append("Expecting version " + expectedVersion + " for '");
 			try {
 				sb.append(getKey() + " IN ");
 			}

@@ -36,7 +36,6 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Logger;
 
-
 import static com.google.common.base.Preconditions.*;
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -56,8 +55,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
 		Transactional,
-		PermanentStore,
-		VersionGetter {
+		Compoundable {
 
 	/**
 	 * The id used to determine that the Buffer should be dumped.
@@ -281,11 +279,11 @@ public final class Engine extends BufferedStore implements
 				((Database) destination).getVersion(record));
 	}
 
-	public long getVersion(String key){
+	public long getVersion(String key) {
 		return Math.max(buffer.getVersion(key),
 				((Database) destination).getVersion(key));
 	}
-	
+
 	@Override
 	public long getVersion(String key, long record) {
 		return Math.max(buffer.getVersion(key, record),
@@ -352,6 +350,11 @@ public final class Engine extends BufferedStore implements
 	}
 
 	@Override
+	public AtomicOperation startAtomicOperation() {
+		return AtomicOperation.start(this);
+	}
+
+	@Override
 	public Transaction startTransaction() {
 		return Transaction.start(this);
 	}
@@ -388,8 +391,6 @@ public final class Engine extends BufferedStore implements
 			lock.readLock().unlock();
 		}
 	}
-
-	
 
 	/**
 	 * A thread that is responsible for transporting content from

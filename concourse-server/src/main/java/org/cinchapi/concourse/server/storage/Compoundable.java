@@ -24,10 +24,20 @@
 package org.cinchapi.concourse.server.storage;
 
 /**
- * 
+ * A Compoundable store can perform AtomicOperations.
  * 
  * @author jnelson
  */
 public interface Compoundable extends PermanentStore, VersionGetter {
+
+	/**
+	 * Return an {@link AtomicOperation} that can be used to group actions that
+	 * should all succeed or fail together. Use {@link AtomicOperation#commit()}
+	 * to apply the action to this store or use {@link AtomicOperation#abort()}
+	 * to cancel.
+	 * 
+	 * @return the AtomicOperation handler
+	 */
+	public AtomicOperation startAtomicOperation();
 
 }

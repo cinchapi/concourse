@@ -26,7 +26,6 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Rule;
@@ -34,11 +33,11 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /**
- * 
+ * Unit tests for an {@link AtomicOperation} that commits to the {@link Engine}
  * 
  * @author jnelson
  */
-public class EngineTest extends BufferedStoreTest {
+public class EngineAtomicOperationTest extends AtomicOperationTest {
 
 	private String directory;
 
@@ -52,27 +51,18 @@ public class EngineTest extends BufferedStoreTest {
 	};
 
 	@Override
-	protected void add(String key, TObject value, long record) {
-		((Engine) store).add(key, value, record);
-	}
-
-	@Override
 	protected void cleanup(Store store) {
 		FileSystem.deleteDirectory(directory);
-
 	}
 
 	@Override
-	protected Store getStore() {
+	protected Compoundable getDestination() {
 		directory = TestData.DATA_DIR + File.separator + Time.now();
-		return new Engine(directory + File.separator + "buffer",
+		Engine engine = new Engine(directory + File.separator + "buffer",
 				directory + File.separator + "database");
-	}
-
-	@Override
-	protected void remove(String key, TObject value, long record) {
-		((Engine) store).remove(key, value, record);
-
+		engine.start(); // Start the engine manually because
+						// AtomicOperation#start does not do it
+		return engine;
 	}
 
 }
