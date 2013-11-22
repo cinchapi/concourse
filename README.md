@@ -7,7 +7,7 @@
 ## System Requirements
 
 ### Memory
-Concourse immediately writes all data to disk, but also keeps recently written and read data in memory. Since memory operations are faster, having more on hand is great, but you can operate Concourse safely with a minimum 256 MB heap.
+Concourse immediately writes all data to disk, but also keeps recently written and read content in memory. Since memory operations are faster, having more on hand is great, but you can operate Concourse safely with a minimum 256 MB heap.
 
 ### Operating System
 Concourse is only supported on Linux and Mac OS X operating systems. Things _should_ also work on Windows, but we can't make any guarantees.
@@ -33,7 +33,7 @@ where
 This repository contains several modules that form the concourse-core.
 
 * The **concourse** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
-* The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse-api.
+* The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse api.
 * The **concourse-shell** project contains the code for the Concourse Action SHell (CaSH), which is shipped with concourse-server.
 * The **concourse-testing** project contains long running end-to-end tests that should be run separately from the build process.
 
@@ -42,7 +42,7 @@ This repository contains several modules that form the concourse-core.
 Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) to learn about the internal architecture.
 
 ### Pick an issue
-1. Fix an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature.
+1. Choose an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature.
 2. Create an account in Jira.
 3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket. yourself.
 
