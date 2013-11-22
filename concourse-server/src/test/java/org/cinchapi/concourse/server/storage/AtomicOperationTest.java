@@ -23,10 +23,14 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.util.Set;
+
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * 
@@ -80,6 +84,22 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 		other.add(key, value, record);
 		Assert.assertTrue(other.commit());
 		Assert.assertFalse(((AtomicOperation) store).commit());
+	}
+	
+	@Test
+	public void testImmediateVisibility(){
+		String key = TestData.getString();
+		long record = TestData.getLong();
+		Set<TObject> values = Sets.newHashSet();
+		for(int i = 0; i < TestData.getScaleCount(); i++){
+			TObject value = TestData.getTObject();
+			values.add(value);
+			add(key, value, record);
+		}
+		Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
+		((AtomicOperation) store).commit();
+		Assert.assertEquals(values, destination.fetch(key, record));
+		System.out.println(destination.audit(key, record));
 	}
 	
 	@Override
