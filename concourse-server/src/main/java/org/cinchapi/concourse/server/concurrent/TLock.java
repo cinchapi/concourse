@@ -172,8 +172,7 @@ public class TLock extends ReentrantReadWriteLock {
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof TLock) {
-			TLock other = (TLock) obj;
-			return token.equals(other.token);
+			return token.equals(((TLock) obj).token);
 		}
 		return false;
 	}

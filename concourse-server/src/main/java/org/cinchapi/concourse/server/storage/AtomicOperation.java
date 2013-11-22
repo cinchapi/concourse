@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
@@ -40,9 +41,14 @@ import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
- * A sequence of reads and writes that all succeed or fail together.
+ * A sequence of reads and writes that all succeed or fail together. Each
+ * operation is staged in an isolated buffer before being committed to a
+ * destination store. For optimal concurrency, we use just in time locking
+ * (destination resources are only locked when its time to commit the
+ * operation).
  * 
  * @author jnelson
  */
@@ -63,7 +69,7 @@ public class AtomicOperation extends BufferedStore {
 	}
 
 	/**
-	 * The initial capacity 
+	 * The initial capacity
 	 */
 	private static final int INITIAL_CAPACITY = 10;
 
@@ -75,7 +81,7 @@ public class AtomicOperation extends BufferedStore {
 			.newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
 	@Nullable
-	private List<LockDescription> locks = null;
+	private Map<Token, LockDescription> locks = null;
 
 	/**
 	 * The AtomicOperation is open until it is committed or aborted.
@@ -255,7 +261,7 @@ public class AtomicOperation extends BufferedStore {
 	 *         are grabbed.
 	 */
 	private boolean checkExpectationsAndGrabLocks() {
-		locks = Lists.newArrayList();
+		locks = Maps.newHashMap();
 		for (VersionExpectation expectation : expectations) {
 			if(expectation.getVersion() != Versioned.NO_VERSION) {
 				String key = null;
@@ -288,10 +294,21 @@ public class AtomicOperation extends BufferedStore {
 					return false;
 				}
 			}
-			LockDescription description = LockDescription
-					.forVersionExpectation(expectation);
-			description.getLock().lock();
-			locks.add(description);
+			if(locks.containsKey(expectation.getToken())
+					&& locks.get(expectation.getToken()).getType() == LockType.READ
+					&& expectation.getLockType() == LockType.WRITE) {
+				// This means we need to "upgrade" from a READ lock to a WRITE
+				// lock. It is technically not possible to do lock upgrades, so
+				// we must remove and unlock the existing READ lock and later
+				// grab a WRITE lock.
+				locks.remove(expectation.getToken()).getLock().unlock();
+			}
+			if(!locks.containsKey(expectation.getToken())) {
+				LockDescription description = LockDescription
+						.forVersionExpectation(expectation);
+				locks.put(expectation.getToken(), description);
+				description.getLock().lock();
+			}
 		}
 		return true;
 	}
@@ -310,7 +327,7 @@ public class AtomicOperation extends BufferedStore {
 	 */
 	private void releaseLocks() {
 		if(locks != null) {
-			for (LockDescription lock : locks) {
+			for (LockDescription lock : locks.values()) {
 				lock.getLock().unlock(); // We should never encounter an
 											// IllegalMonitorStateException here
 											// because a lock should only go in
@@ -512,10 +529,34 @@ public class AtomicOperation extends BufferedStore {
 			return type == LockType.WRITE ? lock.writeLock() : lock.readLock();
 		}
 
+		/**
+		 * Return the LockType
+		 * 
+		 * @return the LockType
+		 */
+		public LockType getType() {
+			return type;
+		}
+
 		@Override
 		public int size() {
 			return SIZE;
 		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(lock, type);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof LockDescription) {
+				return lock.equals(((LockDescription) obj).getLock())
+						&& type == ((LockDescription) obj).type;
+			}
+			return false;
+		}
+
 	}
 
 	/**
