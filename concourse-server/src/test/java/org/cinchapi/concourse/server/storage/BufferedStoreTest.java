@@ -126,22 +126,43 @@ public abstract class BufferedStoreTest extends StoreTest {
         }
         Assert.assertEquals(values, store.fetch(d.key, d.record));
     }
+   
 
     @Test
-    public void testFindBufferdReproA() {
-        List<Data> data = recoverTestData("[ADD C AS five IN 7, ADD B AS four IN 6, ADD A AS five IN 3, ADD A AS one IN 1, ADD B AS two IN 1, ADD A AS nine IN 1, ADD C AS one IN 3, ADD A AS nine IN 2, ADD D AS four IN 3, ADD C AS five IN 1, REMOVE B AS two IN 1, ADD A AS nine IN 7, ADD D AS two IN 3, REMOVE A AS one IN 1, ADD B AS two IN 7, ADD B AS ten IN 2, ADD C AS three IN 1, ADD C AS nine IN 3, ADD B AS two IN 6, REMOVE A AS five IN 3, ADD A AS five IN 5, ADD A AS three IN 4, ADD D AS eight IN 6, ADD C AS nine IN 5, ADD B AS ten IN 1, ADD A AS one IN 7, ADD D AS two IN 5, ADD D AS eight IN 7, REMOVE C AS five IN 1, ADD C AS one IN 2, ADD A AS three IN 5, ADD D AS six IN 1, ADD B AS ten IN 3, ADD C AS seven IN 7, ADD C AS nine IN 4, REMOVE D AS four IN 3, ADD A AS seven IN 2, REMOVE D AS six IN 1, ADD C AS three IN 3, ADD B AS two IN 2, REMOVE A AS three IN 4, ADD D AS ten IN 5, ADD D AS six IN 7, ADD B AS six IN 4, ADD B AS eight IN 2, ADD C AS seven IN 5, ADD D AS ten IN 4, ADD A AS one IN 5, ADD D AS four IN 2, REMOVE B AS two IN 2, ADD D AS two IN 4, REMOVE A AS seven IN 2, ADD B AS six IN 5, REMOVE B AS ten IN 2, ADD B AS eight IN 4, REMOVE A AS nine IN 1, ADD B AS eight IN 3, REMOVE B AS two IN 7, ADD B AS four IN 5, REMOVE B AS four IN 5, ADD A AS seven IN 3, REMOVE C AS seven IN 5, ADD D AS six IN 2, REMOVE D AS ten IN 4, ADD D AS eight IN 1, REMOVE C AS nine IN 5, ADD C AS seven IN 6, REMOVE D AS eight IN 1, ADD D AS four IN 4, REMOVE D AS four IN 2, ADD B AS four IN 7, REMOVE D AS six IN 2, ADD A AS three IN 6, REMOVE B AS ten IN 3, ADD C AS five IN 6, REMOVE D AS eight IN 6, ADD B AS six IN 6, REMOVE C AS five IN 7, ADD C AS three IN 2, REMOVE B AS eight IN 3, ADD D AS ten IN 6, REMOVE D AS ten IN 6, ADD A AS one IN 6, REMOVE C AS three IN 2, ADD C AS three IN 7, REMOVE A AS nine IN 7, ADD A AS seven IN 1, ADD A AS five IN 4, REMOVE D AS ten IN 5, ADD C AS one IN 4, REMOVE C AS three IN 1, REMOVE C AS five IN 6, REMOVE A AS nine IN 2, REMOVE B AS six IN 5, REMOVE C AS three IN 3, REMOVE D AS two IN 4, REMOVE B AS six IN 6, REMOVE B AS four IN 6, REMOVE B AS eight IN 4, REMOVE C AS nine IN 3, REMOVE C AS one IN 2, REMOVE C AS one IN 4, REMOVE C AS seven IN 7, REMOVE D AS six IN 7, REMOVE D AS four IN 4, REMOVE C AS nine IN 4, REMOVE B AS six IN 4, REMOVE A AS three IN 5, REMOVE D AS two IN 3, REMOVE B AS four IN 7, REMOVE A AS five IN 4, REMOVE D AS two IN 5, REMOVE D AS eight IN 7, REMOVE A AS five IN 5, REMOVE A AS seven IN 1, REMOVE B AS ten IN 1, REMOVE A AS one IN 6, REMOVE C AS seven IN 6, REMOVE B AS eight IN 2, REMOVE A AS three IN 6, REMOVE C AS one IN 3, REMOVE A AS seven IN 3, REMOVE A AS one IN 7]");
-        insertData(data, 56);
-        Data d = Variables.register("d", Data.fromString("ADD C AS nine IN 5"));
-        doTestFindBuffered(data, d, Operator.LESS_THAN);
+    @Theory
+    public void testFindBuffered(Operator operator) {
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = data.get(TestData.getScaleCount() % data.size());
+        Variables.register("operator", operator);
+        doTestFindBuffered(data, d, operator);
     }
-    
+
     @Test
-    public void testFindBufferdReproB() {
-        String order = "[ADD A AS one IN 1, ADD B AS ten IN 3, ADD C AS one IN 4, ADD A AS nine IN 2, ADD A AS five IN 5, REMOVE C AS one IN 4, ADD C AS three IN 3, ADD B AS two IN 2, REMOVE A AS one IN 1, ADD D AS two IN 5, ADD D AS eight IN 1, ADD D AS four IN 4, REMOVE D AS four IN 4, ADD C AS seven IN 7, REMOVE D AS eight IN 1, ADD B AS four IN 7, REMOVE C AS seven IN 7, ADD A AS three IN 6, REMOVE A AS nine IN 2, ADD B AS six IN 6, REMOVE A AS five IN 5, REMOVE B AS ten IN 3, REMOVE B AS six IN 6, REMOVE B AS two IN 2, REMOVE D AS two IN 5, REMOVE C AS three IN 3]";
-        List<Data> data = recoverTestData(order);
-        insertData(data, 7);
-        Data d = Variables.register("d", Data.fromString("ADD B AS ten IN 3"));
-        doTestFindBuffered(data, d, Operator.GREATER_THAN_OR_EQUALS);
+    public void testVerifyBuffered() {
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = Variables.register("d",
+                data.get(TestData.getScaleCount() % data.size()));
+        boolean verify = Numbers.isOdd(count(data, d));
+        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
+    }
+
+    /**
+     * Count the number of times that {@code element} appears in the list of
+     * {@code data}. If the result is even, then {@code element} is net neutral,
+     * otherwise is is net positive.
+     * 
+     * @param data
+     * @param element
+     * @return the count for {@code element}
+     */
+    private int count(List<Data> data, Data element) {
+        int i = 0;
+        for (Data d : data) {
+            i += d.equals(element) ? 1 : 0;
+        }
+        return i;
     }
 
     /**
@@ -151,7 +172,7 @@ public abstract class BufferedStoreTest extends StoreTest {
      * @param d
      * @param operator
      */
-    public void doTestFindBuffered(List<Data> data, Data d, Operator operator) {
+    private void doTestFindBuffered(List<Data> data, Data d, Operator operator) {
         Variables.register("d", d);
         Variables.register("operator", operator);
         Map<Long, Set<TObject>> rtv = Maps.newHashMap();
@@ -220,109 +241,6 @@ public abstract class BufferedStoreTest extends StoreTest {
             }
         }
         Assert.assertEquals(records, store.find(d.key, operator, d.value));
-    }
-
-    @Test
-    @Theory
-    public void testFindBuffered(Operator operator) {
-        List<Data> data = generateTestData();
-        insertData(data);
-        Data d = data.get(TestData.getScaleCount() % data.size());
-        Variables.register("operator", operator);
-        doTestFindBuffered(data, d, operator);
-    }
-
-    @Test
-    public void testVerifyBuffered() {
-        List<Data> data = generateTestData();
-        insertData(data);
-        Data d = Variables.register("d",
-                data.get(TestData.getScaleCount() % data.size()));
-        boolean verify = Numbers.isOdd(count(data, d));
-        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
-    }
-
-    @Test
-    public void testVerifyBufferedReproA() {
-        String orderString = "ADD C AS nine IN 5, ADD C AS five IN 4, ADD B AS ten IN 6, "
-                + "ADD B AS two IN 1, ADD C AS five IN 7, REMOVE C AS five IN 7, ADD C AS "
-                + "seven IN 5, ADD B AS ten IN 2, ADD C AS nine IN 3, ADD C AS nine IN 2, "
-                + "ADD A AS seven IN 3, ADD B AS ten IN 1, ADD B AS eight IN 3, ADD C AS one "
-                + "IN 3, ADD D AS eight IN 7, ADD C AS three IN 2, ADD D AS ten IN 6, REMOVE "
-                + "D AS eight IN 7, ADD A AS three IN 6, ADD A AS nine IN 2, ADD D AS two IN "
-                + "4, ADD B AS two IN 6, ADD D AS four IN 4, REMOVE C AS one IN 3, ADD A AS "
-                + "three IN 5, ADD B AS ten IN 3, ADD A AS five IN 4, ADD C AS five IN 5, "
-                + "ADD D AS eight IN 6, ADD C AS three IN 1, ADD B AS four IN 5, ADD B AS "
-                + "four IN 4, REMOVE B AS eight IN 3, ADD D AS four IN 7, ADD A AS nine IN "
-                + "5, ADD C AS three IN 7, ADD C AS five IN 1, ADD A AS nine IN 1, REMOVE C "
-                + "AS nine IN 2, ADD B AS eight IN 1, REMOVE B AS ten IN 1, ADD A AS nine "
-                + "IN 7, REMOVE C AS seven IN 5, ADD D AS two IN 2, ADD B AS eight IN 4, ADD "
-                + "C AS nine IN 4, REMOVE C AS five IN 1, ADD D AS six IN 6, ADD D AS ten IN "
-                + "5, REMOVE C AS five IN 4, ADD B AS six IN 6, ADD C AS three IN 3, ADD B AS "
-                + "two IN 7, ADD D AS two IN 1, REMOVE C AS five IN 5, ADD D AS six IN 1, "
-                + "REMOVE C AS three IN 1, ADD C AS five IN 6, REMOVE A AS nine IN 5, "
-                + "ADD A AS one IN 1, ADD D AS two IN 3, REMOVE C AS nine IN 5, ADD B "
-                + "AS six IN 2, REMOVE B AS four IN 4, ADD A AS three IN 4, ADD C AS "
-                + "seven IN 4, ADD C AS one IN 4, REMOVE C AS three IN 3, ADD C AS "
-                + "seven IN 3, REMOVE C AS three IN 2, ADD D AS four IN 2, ADD D AS ten "
-                + "IN 3, REMOVE B AS eight IN 4, ADD D AS eight IN 4, REMOVE D AS eight "
-                + "IN 4, ADD A AS three IN 2, REMOVE A AS three IN 5, ADD B AS six IN 5,"
-                + " REMOVE D AS six IN 1, ADD B AS four IN 7, REMOVE B AS four IN 5, ADD"
-                + " A AS five IN 3, ADD B AS eight IN 2, REMOVE D AS ten IN 6, ADD A AS "
-                + "seven IN 2, REMOVE D AS six IN 6, ADD A AS seven IN 1, ADD C AS three "
-                + "IN 6, ADD D AS four IN 1, REMOVE A AS three IN 2, ADD D AS ten IN 4, "
-                + "REMOVE D AS ten IN 5, ADD A AS one IN 4, REMOVE D AS four IN 2, ADD A "
-                + "AS five IN 2, ADD C AS one IN 7, ADD C AS one IN 1, REMOVE B AS six IN"
-                + " 5, ADD A AS five IN 5, ADD A AS one IN 6, REMOVE C AS three IN 7, ADD"
-                + " D AS six IN 5, REMOVE B AS two IN 7, ADD D AS four IN 3, REMOVE B AS eight "
-                + "IN 1, ADD B AS four IN 3, REMOVE A AS five IN 2, ADD B AS four IN 6, REMOVE "
-                + "B AS two IN 1, ADD A AS five IN 1, REMOVE A AS three IN 4, ADD D AS eight "
-                + "IN 1, ADD A AS one IN 7, REMOVE D AS four IN 3, ADD A AS seven IN 7, REMOVE"
-                + " C AS nine IN 4, ADD A AS one IN 5, ADD A AS three IN 3, REMOVE C AS seven "
-                + "IN 3, ADD B AS ten IN 7, REMOVE A AS five IN 4, ADD B AS six IN 3, REMOVE C"
-                + " AS nine IN 3, ADD D AS six IN 7, REMOVE D AS two IN 4, ADD C AS one IN 2,"
-                + " REMOVE D AS eight IN 6, ADD B AS six IN 4, REMOVE A AS seven IN 3, ADD D "
-                + "AS six IN 2, REMOVE B AS six IN 3, ADD D AS two IN 5, REMOVE D AS four IN "
-                + "7, ADD B AS two IN 5, REMOVE A AS seven IN 2, ADD D AS eight IN 5, REMOVE"
-                + " C AS five IN 6, ADD A AS nine IN 6, REMOVE D AS two IN 2, ADD B AS two IN "
-                + "2, REMOVE D AS two IN 1, ADD C AS seven IN 7, REMOVE B AS four IN 7, ADD C "
-                + "AS seven IN 6, REMOVE C AS seven IN 6, REMOVE C AS one IN 2, REMOVE D AS"
-                + " eight IN 5, REMOVE A AS one IN 7, REMOVE A AS one IN 6, REMOVE A AS seven "
-                + "IN 7, REMOVE B AS six IN 4, REMOVE B AS ten IN 2, REMOVE A AS nine IN 1, "
-                + "REMOVE A AS nine IN 6, REMOVE D AS six IN 7, REMOVE B AS two IN 6, REMOVE "
-                + "A AS one IN 4, REMOVE A AS one IN 1, REMOVE B AS ten IN 3, REMOVE A AS seven"
-                + " IN 1, REMOVE C AS one IN 7, REMOVE A AS five IN 1, REMOVE D AS eight IN 1, "
-                + "REMOVE B AS ten IN 7, REMOVE C AS seven IN 7, REMOVE A AS nine IN 7, REMOVE "
-                + "C AS three IN 6, REMOVE B AS eight IN 2, REMOVE D AS two IN 3, REMOVE D AS "
-                + "ten IN 4, REMOVE D AS two IN 5, REMOVE A AS five IN 5, REMOVE D AS four IN 1,"
-                + " REMOVE A AS three IN 6, REMOVE A AS three IN 3, REMOVE B AS four IN 3, "
-                + "REMOVE C AS one IN 1, REMOVE B AS six IN 6, REMOVE D AS six IN 2, REMOVE "
-                + "B AS six IN 2, REMOVE A AS nine IN 2, REMOVE A AS five IN 3, REMOVE B AS "
-                + "ten IN 6, REMOVE B AS two IN 2, REMOVE B AS four IN 6, REMOVE C AS one IN "
-                + "4, REMOVE D AS ten IN 3, REMOVE B AS two IN 5, REMOVE D AS four IN 4,"
-                + " REMOVE C AS seven IN 4, REMOVE A AS one IN 5";
-        List<Data> data = recoverTestData(orderString);
-        insertData(data, 83);
-        Data d = Variables.register("d", Data.fromString("ADD A AS nine IN 1"));
-        boolean verify = Numbers.isOdd(count(data, d));
-        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
-    }
-
-    /**
-     * Count the number of times that {@code element} appears in the list of
-     * {@code data}. If the result is even, then {@code element} is net neutral,
-     * otherwise is is net positive.
-     * 
-     * @param data
-     * @param element
-     * @return the count for {@code element}
-     */
-    private int count(List<Data> data, Data element) {
-        int i = 0;
-        for (Data d : data) {
-            i += d.equals(element) ? 1 : 0;
-        }
-        return i;
     }
 
     /**
