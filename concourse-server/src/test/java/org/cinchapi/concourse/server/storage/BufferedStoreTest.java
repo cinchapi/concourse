@@ -370,6 +370,7 @@ public abstract class BufferedStoreTest extends StoreTest {
      * @param orderString
      * @return
      */
+    @SuppressWarnings("unused")
     private List<Data> recoverTestData(String orderString) {
         orderString = orderString.replaceAll("\\]", "").replaceAll("\\[", "");
         String[] toks = orderString.split(",");
