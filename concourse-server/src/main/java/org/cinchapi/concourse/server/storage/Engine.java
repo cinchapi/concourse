@@ -57,6 +57,10 @@ public final class Engine extends BufferedStore implements
         Transactional,
         Compoundable {
 
+    // NOTE: BufferedStore heavily relies on compounded operations (i.e.
+    // performing a find will query the database and then perform a fetch for
+    // each record. Since we override each of those methods and grab a TLock on
+
     /**
      * The id used to determine that the Buffer should be dumped.
      */
@@ -156,12 +160,16 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean add(String key, TObject value, long record) {
         TLock lock = TLock.grab(key, record);
+        TLock keyLock = TLock.grab(key); // TODO: more granular key range
+                                         // locking
         lock.writeLock().lock();
+        keyLock.writeLock().lock();
         try {
             return super.add(key, value, record);
         }
         finally {
             lock.writeLock().unlock();
+            keyLock.writeLock().unlock();
         }
     }
 
@@ -251,7 +259,7 @@ public final class Engine extends BufferedStore implements
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        TLock lock = TLock.grab(key);
+        TLock lock = TLock.grab(key); // TODO: more granular key range locking
         lock.readLock().lock();
         try {
             return super.find(timestamp, key, operator, values);
@@ -263,7 +271,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
-        TLock lock = TLock.grab(key);
+        TLock lock = TLock.grab(key); // TODO: more granular key range locking
         lock.readLock().lock();
         try {
             return super.find(key, operator, values);
@@ -305,12 +313,16 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean remove(String key, TObject value, long record) {
         TLock lock = TLock.grab(key, record);
+        TLock keyLock = TLock.grab(key); // TODO: more granular key range
+                                         // locking
         lock.writeLock().lock();
+        keyLock.writeLock().lock();
         try {
             return super.remove(key, value, record);
         }
         finally {
             lock.writeLock().unlock();
+            keyLock.writeLock().unlock();
         }
     }
 
@@ -328,7 +340,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<Long> search(String key, String query) {
-        TLock lock = TLock.grab(query, key);
+        TLock lock = TLock.grab(key); // TODO: more granular key range locking
         lock.readLock().lock();
         try {
             return super.search(key, query);
