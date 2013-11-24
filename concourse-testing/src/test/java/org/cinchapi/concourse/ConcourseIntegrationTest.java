@@ -85,40 +85,63 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
     public TestWatcher watcher = new TestWatcher() {
 
         @Override
-        protected void starting(Description description) {
-            try {
-                server = new ConcourseServer(SERVER_PORT,
-                        SERVER_BUFFER_DIRECTORY, SERVER_DATABASE_DIRECTORY);
-            }
-            catch (TTransportException e1) {
-                throw Throwables.propagate(e1);
-            }
-            Thread t = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        server.start();
-                    }
-                    catch (TTransportException e) {
-                        throw Throwables.propagate(e);
-                    }
-
-                }
-
-            });
-            t.start();
-            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
-                    "admin");
+        protected void finished(Description description) {
+            stop();
         }
 
         @Override
-        protected void finished(Description description) {
-            client.exit();
-            server.stop();
-            FileSystem.deleteDirectory(SERVER_DATA_HOME);
+        protected void starting(Description description) {
+            start();
         }
 
     };
+
+    /**
+     * Reset the test by stopping the server, deleting any stored data, and
+     * starting a new server.
+     */
+    protected void reset() {
+        stop();
+        start();
+    }
+
+    /**
+     * Startup a new {@link ConcourseServer} and grab a new client connection.
+     */
+    private void start() {
+        try {
+            server = new ConcourseServer(SERVER_PORT, SERVER_BUFFER_DIRECTORY,
+                    SERVER_DATABASE_DIRECTORY);
+        }
+        catch (TTransportException e1) {
+            throw Throwables.propagate(e1);
+        }
+        Thread t = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    server.start();
+                }
+                catch (TTransportException e) {
+                    throw Throwables.propagate(e);
+                }
+
+            }
+
+        });
+        t.start();
+        client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+                "admin");
+    }
+
+    /**
+     * Exit the client. Stop the server. Delete any stored data.
+     */
+    private void stop() {
+        client.exit();
+        server.stop();
+        FileSystem.deleteDirectory(SERVER_DATA_HOME);
+    }
 
 }
