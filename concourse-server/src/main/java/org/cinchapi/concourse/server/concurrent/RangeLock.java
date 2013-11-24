@@ -1,0 +1,533 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.cinchapi.concourse.server.concurrent;
+
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.annotation.Nullable;
+
+import org.cinchapi.concourse.annotate.Experimental;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.AutoMap;
+import org.cinchapi.concourse.util.AutoTreeMap;
+
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+
+/**
+ * A factory that provides range locking functionality over secondary indexes.
+ * <p>
+ * When writing to or reading from a SecondaryRecord TODO finish documentation...
+ * </p>
+ * 
+ * @author jnelson
+ */
+@Experimental
+public final class RangeLock {
+
+    /**
+     * Grab a READ lock for key {@code operator} {@code values}.
+     * 
+     * @param operator
+     * @param key
+     * @param values
+     */
+    public static void readLock(Operator operator, Text key, Value... values) {
+        while (isRangeBlocked(LockType.READ, operator, key, values)) {
+            continue;
+        }
+        MASTERLOCK.readLock().lock();
+        try {
+            Value value = values[0];
+            switch (operator) {
+            case EQUALS:
+                EQ.get(key).get(value).readLock().lock();
+                break;
+            case NOT_EQUALS:
+                GT.get(key).get(value).readLock().lock();
+                LT.get(key).get(value).readLock().lock();
+                break;
+            case GREATER_THAN:
+                GT.get(key).get(value).readLock().lock();
+                break;
+            case GREATER_THAN_OR_EQUALS:
+                GT.get(key).get(value).readLock().lock();
+                EQ.get(key).get(value).readLock().lock();
+                break;
+            case LESS_THAN:
+                LT.get(key).get(value).readLock().lock();
+                break;
+            case LESS_THAN_OR_EQUALS:
+                LT.get(key).get(value).readLock().lock();
+                EQ.get(key).get(value).readLock().lock();
+                break;
+            case BETWEEN:
+                GT.get(key).get(value).readLock().lock();
+                EQ.get(key).get(value).readLock().lock();
+                LT.get(key).get(values[1]).readLock().lock();
+                break;
+            case REGEX:
+                REGEX.get(key).get(value).readLock().lock();
+                break;
+            case NOT_REGEX:
+                NREGEX.get(key).get(value).readLock().lock();
+                break;
+            }
+        }
+        finally {
+            MASTERLOCK.readLock().unlock();
+        }
+    }
+
+    /**
+     * Release the READ lock held for {@code key} {@code operator}
+     * {@code values}.
+     * 
+     * @param operator
+     * @param key
+     * @param values
+     */
+    public static void readUnlock(Operator operator, Text key, Value... values) {
+        MASTERLOCK.readLock().lock();
+        try {
+            Value value = values[0];
+            switch (operator) {
+            case EQUALS:
+                EQ.get(key).get(value).readLock().unlock();
+                break;
+            case NOT_EQUALS:
+                GT.get(key).get(value).readLock().unlock();
+                LT.get(key).get(value).readLock().unlock();
+                break;
+            case GREATER_THAN:
+                GT.get(key).get(value).readLock().unlock();
+                break;
+            case GREATER_THAN_OR_EQUALS:
+                GT.get(key).get(value).readLock().unlock();
+                EQ.get(key).get(value).readLock().unlock();
+                break;
+            case LESS_THAN:
+                LT.get(key).get(value).readLock().unlock();
+                break;
+            case LESS_THAN_OR_EQUALS:
+                LT.get(key).get(value).readLock().unlock();
+                EQ.get(key).get(value).readLock().unlock();
+                break;
+            case BETWEEN:
+                GT.get(key).get(value).readLock().unlock();
+                EQ.get(key).get(value).readLock().unlock();
+                LT.get(key).get(values[1]).readLock().unlock();
+                break;
+            case REGEX:
+                REGEX.get(key).get(value).readLock().unlock();
+                break;
+            case NOT_REGEX:
+                NREGEX.get(key).get(value).readLock().unlock();
+                break;
+            }
+        }
+        finally {
+            MASTERLOCK.readLock().unlock();
+        }
+    }
+
+    /**
+     * Grab a WRITE lock for {@code key} as {@code value}
+     * 
+     * @param key
+     * @param value
+     */
+    public static void writeLock(Text key, Value value) {
+        while (isRangeBlocked(LockType.WRITE, null, key, value)) {
+            continue;
+        }
+        MASTERLOCK.writeLock().lock();
+        try {
+            EQ.get(key).get(value).writeLock().lock();
+            GT.get(key).get(value).writeLock().lock();
+            LT.get(key).get(value).writeLock().lock();
+            REGEX.get(key).get(value).writeLock().lock();
+            NREGEX.get(key).get(value).writeLock().lock();
+        }
+        finally {
+            MASTERLOCK.writeLock().unlock();
+        }
+
+    }
+
+    /**
+     * Release the WRITE lock held for {@code key} as {@code value}
+     * 
+     * @param key
+     * @param value
+     */
+    public static void writeUnlock(Text key, Value value) {
+        MASTERLOCK.writeLock().lock();
+        try {
+            EQ.get(key).get(value).writeLock().unlock();
+            GT.get(key).get(value).writeLock().unlock();
+            LT.get(key).get(value).writeLock().unlock();
+            REGEX.get(key).get(value).writeLock().unlock();
+        }
+        finally {
+            MASTERLOCK.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if an attempt to grab a {@code type} lock (to perform
+     * {@code operator} if applicable) on {@code key} as {@code values} is range
+     * blocked. Range blocking occurs when there is another READ or WRITE
+     * happening such that allowing the proposed operation to proceed could lead
+     * to inconsistent results (i.e. I want to write X but there is a READ
+     * trying to find all values less than Y).
+     * 
+     * @param type
+     * @param operator
+     * @param key
+     * @param values
+     * @return {@code true} if range blocked
+     */
+    protected static boolean isRangeBlocked(LockType type,
+            @Nullable Operator operator, Text key, Value... values) {
+        MASTERLOCK.readLock().lock();
+        try {
+            Value value = values[0];
+            if(type == LockType.READ) {
+                Preconditions.checkArgument(operator != null);
+                // If I want to read X, I am blocked if:
+                switch (operator) {
+                case EQUALS:
+                    // There is a EQ WRITE lock for anything equal to X
+                    return existsEqWriteLock(key, value);
+                case NOT_EQUALS:
+                    // There is an EQ WRITE lock for anything not equal to X
+                    for (Entry<Value, ReentrantReadWriteLock> entry : EQ.get(
+                            key).entrySet()) {
+                        if(!entry.getKey().equals(value)
+                                && entry.getValue().isWriteLocked()
+                                && !entry.getValue()
+                                        .isWriteLockedByCurrentThread()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                case GREATER_THAN:
+                    // There is GT WRITE lock for anything greater than X
+                    return existsGtWriteLock(key, value);
+                case GREATER_THAN_OR_EQUALS:
+                    // A. There is a GT WRITE lock for anything greater than X
+                    // B. There is an EQ WRITE lock for anything equal to X
+                    return existsGtWriteLock(key, value)
+                            || existsEqWriteLock(key, value);
+                case LESS_THAN:
+                    // There is a LT WRITE lock for anything less than X
+                    return existsLtWriteLock(key, value);
+                case LESS_THAN_OR_EQUALS:
+                    // A. There is a LT WRITE lock for anything greater than X
+                    // B. There an EQ WRITE lock for anything equal to X
+                    return existsLtWriteLock(key, value)
+                            || existsEqWriteLock(key, value);
+                case BETWEEN:
+                    // A. There is a GT WRITE lock for anything greater than X1
+                    // but less than X2
+                    // B. There is a EQ WRITE lock for any equal to X1
+                    // C there is a LT WRITE lock for anything greater than X1
+                    // but less than X2
+                    return existsGtWriteLock(key, value, values[0])
+                            || existsEqWriteLock(key, value)
+                            || existsLtWriteLock(key, value, values[0]);
+                case REGEX:
+                    // There a REGEX WRITE lock for anything matching X
+                    for (Entry<Value, ReentrantReadWriteLock> entry : REGEX
+                            .get(key).entrySet()) {
+                        if(entry.getKey().getTObject().toString()
+                                .matches(value.getTObject().toString())) {
+                            if(entry.getValue().isWriteLocked()
+                                    && !entry.getValue()
+                                            .isWriteLockedByCurrentThread()) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                case NOT_REGEX:
+                    // There a REGEX WRITE lock for anything not matching X
+                    for (Entry<Value, ReentrantReadWriteLock> entry : REGEX
+                            .get(key).entrySet()) {
+                        if(!entry.getKey().getTObject().toString()
+                                .matches(value.getTObject().toString())) {
+                            if(entry.getValue().isWriteLocked()
+                                    && !entry.getValue()
+                                            .isWriteLockedByCurrentThread()) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                default:
+                    return false;
+                }
+            }
+            else {
+                // IF I WANT TO WRITE [X] I AM BLOCKED IF:
+                // A: There is a GT READ lock for anything less than me
+                Map<Value, ReentrantReadWriteLock> less = GT.get(key).headMap(
+                        value);
+                for (ReentrantReadWriteLock lock : less.values()) {
+                    if(lock.getReadLockCount() > 0) {
+                        return true;
+                    }
+                }
+                // B: There is a LT READ lock for anything greater than me
+                Map<Value, ReentrantReadWriteLock> greater = LT.get(key)
+                        .tailMap(value);
+                for (ReentrantReadWriteLock lock : greater.values()) {
+                    if(lock.getReadLockCount() > 0) {
+                        return true;
+                    }
+                }
+                // C: There is an EQ READ/WRITE lock for anything equal to me
+                if(EQ.get(key).get(value).isWriteLocked()
+                        || EQ.get(key).get(value).getReadLockCount() > 0) {
+                    return true;
+                }
+                // D: There is a REGEX READ lock for anything that matches me
+                for (Entry<Value, ReentrantReadWriteLock> entry : REGEX
+                        .get(key).entrySet()) {
+                    if(entry.getKey().getTObject().toString()
+                            .matches(value.getTObject().toString())) {
+                        if(entry.getValue().getReadLockCount() > 0) {
+                            return true;
+                        }
+                    }
+                }
+                // E: There is a NREGEX READ lock for anything that does not
+                // match me
+                for (Entry<Value, ReentrantReadWriteLock> entry : NREGEX.get(
+                        key).entrySet()) {
+                    if(!entry.getKey().getTObject().toString()
+                            .matches(value.getTObject().toString())) {
+                        if(entry.getValue().getReadLockCount() > 0) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        finally {
+            MASTERLOCK.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if there is a EQ WRITE lock on any key as value equal
+     * to {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return {@code true} if applicable lock is held
+     */
+    private static boolean existsEqWriteLock(Text key, Value value) {
+        if(EQ.get(key).get(value).isWriteLocked()
+                && !EQ.get(key).get(value).isWriteLockedByCurrentThread()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return {@code true} if there is a GT WRITE lock on a key as a value
+     * greater
+     * than {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return {@code true} if applicable lock is held
+     */
+    private static boolean existsGtWriteLock(Text key, Value value) {
+        for (ReentrantReadWriteLock lock : GT.get(key).tailMap(value, false)
+                .values()) {
+            if(lock.isWriteLocked() && !lock.isWriteLockedByCurrentThread()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return {@code true} if there is a LT WRITE lock for {@code key} as any
+     * value
+     * less than {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return {@code true} if applicable lock is held
+     */
+    private static boolean existsLtWriteLock(Text key, Value value) {
+        for (ReentrantReadWriteLock lock : LT.get(key).headMap(value, false)
+                .values()) {
+            if(lock.isWriteLocked() && !lock.isWriteLockedByCurrentThread()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return {@code true} if there is a GT WRITE lock for {@code key} as any
+     * value greater than {@code value} but less than {@code value1}.
+     * 
+     * @param key
+     * @param value
+     * @param value1
+     * @return {@code true} if applicable lock is held
+     */
+    private static boolean existsGtWriteLock(Text key, Value value, Value value1) {
+        for (ReentrantReadWriteLock lock : GT.get(key)
+                .subMap(value, false, value1, false).values()) {
+            if(lock.isWriteLocked() && !lock.isWriteLockedByCurrentThread()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return {@code true} if there is a LT WRITE lock for {@code key} as any
+     * value greater than {@code value} but less than {@code value1}.
+     * 
+     * @param key
+     * @param value
+     * @param value1
+     * @return {@code true} if applicable lock is held
+     */ 
+    private static boolean existsLtWriteLock(Text key, Value value, Value value1) {
+        for (ReentrantReadWriteLock lock : LT.get(key)
+                .subMap(value, false, value1, false).values()) {
+            if(lock.isWriteLocked() && !lock.isWriteLockedByCurrentThread()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The lock that is used to make sure the components of the RangeLock are
+     * not being concurrently updated.
+     */
+    private static final ReentrantReadWriteLock MASTERLOCK = new ReentrantReadWriteLock(
+            true);
+
+    /**
+     * The function that creates a new lock for a value.
+     */
+    private static final Function<Value, ReentrantReadWriteLock> VALUE_LOADER;
+
+    /**
+     * The function that removes a value lock if it is not held.
+     */
+    private static final Function<ReentrantReadWriteLock, Boolean> VALUE_CLEANER;
+
+    /**
+     * The function that creates a new value to lock mapping for a key.
+     */
+    private static final Function<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> KEY_LOADER;
+
+    /**
+     * The function that removes a key if it does not contain any values.
+     */
+    private static final Function<AutoTreeMap<Value, ReentrantReadWriteLock>, Boolean> KEY_CLEANER;
+
+    /*
+     * RANGE GUARDERS:
+     * The maps below contain various locks that are used to guard ranges. Check
+     * the individual locking methods for details on the logic for using these
+     * collections in concert.
+     * 
+     * NOTE: Each collection: map: key -> map: value -> lock
+     */
+    private static final Map<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> EQ;
+    private static final Map<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> GT;
+    private static final Map<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> LT;
+    private static final Map<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> REGEX;
+    private static final Map<Text, AutoTreeMap<Value, ReentrantReadWriteLock>> NREGEX;
+    static {
+
+        // Create a new ReentrantReadWriteLock whenever a new Value is locked
+        VALUE_LOADER = new Function<Value, ReentrantReadWriteLock>() {
+
+            @Override
+            public ReentrantReadWriteLock apply(Value input) {
+                return new ReentrantReadWriteLock();
+            }
+        };
+
+        // Delete a Value when it is not locked by any readers or writers and
+        // does not have any threads waiting to lock it
+        VALUE_CLEANER = new Function<ReentrantReadWriteLock, Boolean>() {
+
+            @Override
+            public Boolean apply(ReentrantReadWriteLock input) {
+                return !input.isWriteLocked() && !input.hasQueuedThreads()
+                        && input.getReadLockCount() == 0;
+            }
+
+        };
+
+        // Create a new map whenever a new Key is locked
+        KEY_LOADER = new Function<Text, AutoTreeMap<Value, ReentrantReadWriteLock>>() {
+
+            @Override
+            public AutoTreeMap<Value, ReentrantReadWriteLock> apply(Text input) {
+                return AutoMap.newAutoTreeMap(VALUE_LOADER, VALUE_CLEANER);
+            }
+
+        };
+
+        // Delete a Key when it has no locked values.
+        KEY_CLEANER = new Function<AutoTreeMap<Value, ReentrantReadWriteLock>, Boolean>() {
+
+            @Override
+            public Boolean apply(
+                    AutoTreeMap<Value, ReentrantReadWriteLock> input) {
+                return input.isEmpty();
+            }
+
+        };
+        EQ = AutoMap.newAutoHashMap(KEY_LOADER, KEY_CLEANER);
+        GT = AutoMap.newAutoHashMap(KEY_LOADER, KEY_CLEANER);
+        LT = AutoMap.newAutoHashMap(KEY_LOADER, KEY_CLEANER);
+        REGEX = AutoMap.newAutoHashMap(KEY_LOADER, KEY_CLEANER);
+        NREGEX = AutoMap.newAutoHashMap(KEY_LOADER, KEY_CLEANER);
+    }
+
+    private RangeLock() {}
+
+}
