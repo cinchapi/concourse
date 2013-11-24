@@ -39,7 +39,7 @@ import com.beust.jcommander.Parameter;
  * 
  * @author jnelson
  */
-public final class DumpCli extends ManagedOperationCli {
+public final class DumpToolCli extends ManagedOperationCli {
 
     /**
      * Run the program...
@@ -56,7 +56,7 @@ public final class DumpCli extends ManagedOperationCli {
     public static void main(String... args)
             throws MalformedObjectNameException, MalformedURLException,
             IOException {
-        DumpCli cli = new DumpCli(new Options(), args);
+        DumpToolCli cli = new DumpToolCli(new Options(), args);
         cli.run();
     }
 
@@ -71,7 +71,7 @@ public final class DumpCli extends ManagedOperationCli {
      * @param opts
      * @param args
      */
-    public DumpCli(Options opts, String[] args) {
+    public DumpToolCli(Options opts, String[] args) {
         super(opts, args);
         this.opts = opts;
     }
