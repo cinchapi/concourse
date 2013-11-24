@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
@@ -316,6 +317,9 @@ public class AtomicOperation extends BufferedStore {
                 locks.put(expectation.getToken(), description);
                 description.getLock().lock();
             }
+            if(expectation instanceof KeyVersionExpectation) {
+                
+            }
         }
         return true;
     }
@@ -564,15 +568,6 @@ public class AtomicOperation extends BufferedStore {
             return false;
         }
 
-    }
-
-    /**
-     * The LockType describes the kind of lock (shared of exclusive) to use.
-     * 
-     * @author jnelson
-     */
-    private enum LockType {
-        READ, WRITE
     }
 
     /**
