@@ -27,11 +27,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -53,13 +52,16 @@ import static com.google.common.base.Preconditions.*;
  * @author jnelson
  */
 @PackagePrivate
-@ThreadSafe
 abstract class BufferedStore implements Store, VersionControlStore {
 
     // NOTE: This class DOES NOT implement any locking directly, so it is
     // ThreadSafe iff the #buffer and #destination are. Nevertheless, a
     // #masterLock is provided to subclasses in the event that they need to
     // ensure some thread safety directly.
+
+    // NOTE: Methods in this class do not simply defer to their timestamp
+    // accepting counterparts because we expect the #destination to use
+    // different code paths for present vs historical operations unlike Limbo.
 
     /**
      * The {@code buffer} is the place where data is initially stored. The
@@ -141,47 +143,53 @@ abstract class BufferedStore implements Store, VersionControlStore {
 
     @Override
     public Set<String> describe(long record) {
-        Map<String, Set<TObject>> ktv = Maps.newHashMap();
+        Map<String, Set<TObject>> context = Maps.newHashMap();
         for (String key : destination.describe(record)) {
-            ktv.put(key, destination.fetch(key, record));
+            context.put(key, destination.fetch(key, record));
         }
-        return buffer.describe(record, ktv);
+        return buffer.describe(record, Time.now(), context);
     }
 
     @Override
     public Set<String> describe(long record, long timestamp) {
-        Map<String, Set<TObject>> ktv = Maps.newHashMap();
+        Map<String, Set<TObject>> context = Maps.newHashMap();
         for (String key : destination.describe(record, timestamp)) {
-            ktv.put(key, destination.fetch(key, record, timestamp));
+            context.put(key, destination.fetch(key, record, timestamp));
         }
-        return buffer.describe(record, timestamp, ktv);
+        return buffer.describe(record, timestamp, context);
     }
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        Set<TObject> values = destination.fetch(key, record);
-        return buffer.fetch(key, record, values);
+        Set<TObject> context = destination.fetch(key, record);
+        return buffer.fetch(key, record, Time.now(), context);
     }
 
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
-        Set<TObject> values = destination.fetch(key, record, timestamp);
-        return buffer.fetch(key, record, timestamp, values);
+        Set<TObject> context = destination.fetch(key, record, timestamp);
+        return buffer.fetch(key, record, timestamp, context);
     }
 
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        return Sets.symmetricDifference(
-                destination.find(timestamp, key, operator, values),
-                buffer.find(timestamp, key, operator, values));
+        Map<Long, Set<TObject>> context = Maps.newHashMap();
+        Set<Long> records = destination.find(timestamp, key, operator, values);
+        for(long record: records){
+            context.put(record, destination.fetch(key, record));
+        }
+        return buffer.find(context, timestamp, key, operator, values);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
-        return Sets.symmetricDifference(
-                destination.find(key, operator, values),
-                buffer.find(key, operator, values));
+        Map<Long, Set<TObject>> context = Maps.newHashMap();
+        Set<Long> records = destination.find(key, operator, values);
+        for(long record: records){
+            context.put(record, destination.fetch(key, record));
+        }
+        return buffer.find(context, Time.now(), key, operator, values);
     }
 
     @Override
