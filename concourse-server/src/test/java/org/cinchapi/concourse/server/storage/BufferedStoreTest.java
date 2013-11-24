@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -63,78 +64,168 @@ public abstract class BufferedStoreTest extends StoreTest {
             2L, 3L, 4L, 5L, 6L, 7L);
 
     @Test
-    @Theory
-    public void testFindBS(Operator operator) {
-        // List<Data> data = generateTestData();
-        // insertData(data);
-        // Data d = Variables.register("d",
-        // data.get(TestData.getScaleCount() % data.size()));
-        // Map<Long, Set<TObject>> rtv = Maps.newHashMap();
-        // Iterator<Data> it = data.iterator();
-        // Variables.register("operator", operator);
-        // while (it.hasNext()) {
-        // Data _d = it.next();
-        // if(_d.key.equals(d.key)) {
-        // boolean matches = false;
-        // if(operator == Operator.EQUALS) {
-        // matches = d.value.equals(_d.value);
-        // }
-        // else if(operator == Operator.NOT_EQUALS) {
-        // matches = !d.value.equals(_d.value);
-        // }
-        // else if(operator == Operator.GREATER_THAN) {
-        // matches = d.value.compareTo(_d.value) < 0;
-        // }
-        // else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-        // matches = d.value.compareTo(_d.value) <= 0;
-        // }
-        // else if(operator == Operator.LESS_THAN) {
-        // matches = d.value.compareTo(_d.value) > 0;
-        // }
-        // else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-        // matches = d.value.compareTo(_d.value) >= 0;
-        // }
-        // else if(operator == Operator.BETWEEN) {
-        // // TODO skip for now
-        // }
-        // else if(operator == Operator.REGEX) {
-        // matches = _d.value.toString().matches(d.value.toString());
-        // }
-        // else if(operator == Operator.NOT_REGEX) {
-        // matches = !_d.value.toString().matches(d.value.toString());
-        // }
-        // else {
-        // throw new UnsupportedOperationException();
-        // }
-        // if(matches) {
-        // Set<TObject> values = rtv.get(_d.record);
-        // if(values == null) {
-        // values = Sets.newHashSet();
-        // rtv.put(_d.record, values);
-        // }
-        // if(_d.type == Action.ADD) {
-        // Assert.assertTrue(values.add(_d.value));
-        // }
-        // else {
-        // Assert.assertTrue(values.remove(_d.value));
-        // }
-        // }
-        //
-        // }
-        // }
-        // Set<Long> records = Sets.newHashSet();
-        // Iterator<Long> it2 = rtv.keySet().iterator();
-        // while (it2.hasNext()) {
-        // long record = it2.next();
-        // if(!rtv.get(record).isEmpty()) {
-        // records.add(record);
-        // }
-        // }
-        // Assert.assertEquals(records, store.find(d.key, operator, d.value));
+    public void testDescribeBuffered() {
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = data.get(TestData.getScaleCount() % data.size());
+        Map<String, Set<TObject>> ktv = Maps.newHashMap();
+        Iterator<Data> it = data.iterator();
+        while (it.hasNext()) {
+            Data _d = it.next();
+            if(_d.record == d.record) {
+                Set<TObject> values = ktv.get(_d.key);
+                if(values == null) {
+                    values = Sets.newHashSet();
+                    ktv.put(_d.key, values);
+                }
+                if(_d.type == Action.ADD) {
+                    Assert.assertTrue(values.add(_d.value));
+                }
+                else {
+                    Assert.assertTrue(values.remove(_d.value));
+                }
+            }
+        }
+        Set<String> keys = Sets.newHashSet();
+        Iterator<String> it2 = ktv.keySet().iterator();
+        while (it2.hasNext()) {
+            String key = it2.next();
+            if(!ktv.get(key).isEmpty()) {
+                keys.add(key);
+            }
+        }
+        Assert.assertEquals(keys, store.describe(d.record));
     }
 
     @Test
-    public void testVerifyBS() {
+    public void testFetchBuffered() {
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = Variables.register("d",
+                data.get(TestData.getScaleCount() % data.size()));
+        Set<TObject> values = Sets.newHashSet();
+        Iterator<Data> it = data.iterator();
+        while (it.hasNext()) {
+            Data _d = it.next();
+            if(_d.record == d.record && _d.key.equals(d.key)) {
+                if(_d.type == Action.ADD) {
+                    Assert.assertTrue(values.add(_d.value));
+                }
+                else {
+                    Assert.assertTrue(values.remove(_d.value));
+                }
+            }
+        }
+        Assert.assertEquals(values, store.fetch(d.key, d.record));
+    }
+
+    @Test
+    public void testFindBufferdReproA() {
+        List<Data> data = recoverTestData("[ADD C AS five IN 7, ADD B AS four IN 6, ADD A AS five IN 3, ADD A AS one IN 1, ADD B AS two IN 1, ADD A AS nine IN 1, ADD C AS one IN 3, ADD A AS nine IN 2, ADD D AS four IN 3, ADD C AS five IN 1, REMOVE B AS two IN 1, ADD A AS nine IN 7, ADD D AS two IN 3, REMOVE A AS one IN 1, ADD B AS two IN 7, ADD B AS ten IN 2, ADD C AS three IN 1, ADD C AS nine IN 3, ADD B AS two IN 6, REMOVE A AS five IN 3, ADD A AS five IN 5, ADD A AS three IN 4, ADD D AS eight IN 6, ADD C AS nine IN 5, ADD B AS ten IN 1, ADD A AS one IN 7, ADD D AS two IN 5, ADD D AS eight IN 7, REMOVE C AS five IN 1, ADD C AS one IN 2, ADD A AS three IN 5, ADD D AS six IN 1, ADD B AS ten IN 3, ADD C AS seven IN 7, ADD C AS nine IN 4, REMOVE D AS four IN 3, ADD A AS seven IN 2, REMOVE D AS six IN 1, ADD C AS three IN 3, ADD B AS two IN 2, REMOVE A AS three IN 4, ADD D AS ten IN 5, ADD D AS six IN 7, ADD B AS six IN 4, ADD B AS eight IN 2, ADD C AS seven IN 5, ADD D AS ten IN 4, ADD A AS one IN 5, ADD D AS four IN 2, REMOVE B AS two IN 2, ADD D AS two IN 4, REMOVE A AS seven IN 2, ADD B AS six IN 5, REMOVE B AS ten IN 2, ADD B AS eight IN 4, REMOVE A AS nine IN 1, ADD B AS eight IN 3, REMOVE B AS two IN 7, ADD B AS four IN 5, REMOVE B AS four IN 5, ADD A AS seven IN 3, REMOVE C AS seven IN 5, ADD D AS six IN 2, REMOVE D AS ten IN 4, ADD D AS eight IN 1, REMOVE C AS nine IN 5, ADD C AS seven IN 6, REMOVE D AS eight IN 1, ADD D AS four IN 4, REMOVE D AS four IN 2, ADD B AS four IN 7, REMOVE D AS six IN 2, ADD A AS three IN 6, REMOVE B AS ten IN 3, ADD C AS five IN 6, REMOVE D AS eight IN 6, ADD B AS six IN 6, REMOVE C AS five IN 7, ADD C AS three IN 2, REMOVE B AS eight IN 3, ADD D AS ten IN 6, REMOVE D AS ten IN 6, ADD A AS one IN 6, REMOVE C AS three IN 2, ADD C AS three IN 7, REMOVE A AS nine IN 7, ADD A AS seven IN 1, ADD A AS five IN 4, REMOVE D AS ten IN 5, ADD C AS one IN 4, REMOVE C AS three IN 1, REMOVE C AS five IN 6, REMOVE A AS nine IN 2, REMOVE B AS six IN 5, REMOVE C AS three IN 3, REMOVE D AS two IN 4, REMOVE B AS six IN 6, REMOVE B AS four IN 6, REMOVE B AS eight IN 4, REMOVE C AS nine IN 3, REMOVE C AS one IN 2, REMOVE C AS one IN 4, REMOVE C AS seven IN 7, REMOVE D AS six IN 7, REMOVE D AS four IN 4, REMOVE C AS nine IN 4, REMOVE B AS six IN 4, REMOVE A AS three IN 5, REMOVE D AS two IN 3, REMOVE B AS four IN 7, REMOVE A AS five IN 4, REMOVE D AS two IN 5, REMOVE D AS eight IN 7, REMOVE A AS five IN 5, REMOVE A AS seven IN 1, REMOVE B AS ten IN 1, REMOVE A AS one IN 6, REMOVE C AS seven IN 6, REMOVE B AS eight IN 2, REMOVE A AS three IN 6, REMOVE C AS one IN 3, REMOVE A AS seven IN 3, REMOVE A AS one IN 7]");
+        insertData(data, 56);
+        Data d = Variables.register("d", Data.fromString("ADD C AS nine IN 5"));
+        doTestFindBuffered(data, d, Operator.LESS_THAN);
+    }
+
+    @Test
+    public void testFindBufferdReproB() {
+        String order = "[ADD A AS one IN 1, ADD B AS ten IN 3, ADD C AS one IN 4, ADD A AS nine IN 2, ADD A AS five IN 5, REMOVE C AS one IN 4, ADD C AS three IN 3, ADD B AS two IN 2, REMOVE A AS one IN 1, ADD D AS two IN 5, ADD D AS eight IN 1, ADD D AS four IN 4, REMOVE D AS four IN 4, ADD C AS seven IN 7, REMOVE D AS eight IN 1, ADD B AS four IN 7, REMOVE C AS seven IN 7, ADD A AS three IN 6, REMOVE A AS nine IN 2, ADD B AS six IN 6, REMOVE A AS five IN 5, REMOVE B AS ten IN 3, REMOVE B AS six IN 6, REMOVE B AS two IN 2, REMOVE D AS two IN 5, REMOVE C AS three IN 3]";
+        List<Data> data = recoverTestData(order);
+        insertData(data, 7);
+        Data d = Variables.register("d", Data.fromString("ADD B AS ten IN 3"));
+        doTestFindBuffered(data, d, Operator.GREATER_THAN_OR_EQUALS);
+    }
+
+    /**
+     * Execute the findBuffered test.
+     * 
+     * @param data
+     * @param d
+     * @param operator
+     */
+    public void doTestFindBuffered(List<Data> data, Data d, Operator operator) {
+        Variables.register("d", d);
+        Variables.register("operator", operator);
+        Map<Long, Set<TObject>> rtv = Maps.newHashMap();
+        Iterator<Data> it = data.iterator();
+        while (it.hasNext()) {
+            Data _d = it.next();
+            if(_d.key.equals(d.key)) {
+                // NOTE: It is necessaty to wrap the TObjects as Values because
+                // TObject compareTo is not correctly defined.
+                Value v1 = Value.wrap(d.value);
+                Value v2 = Value.wrap(_d.value);
+                boolean matches = false;
+                if(operator == Operator.EQUALS) {
+                    matches = v1.equals(v2);
+                }
+                else if(operator == Operator.NOT_EQUALS) {
+                    matches = !v1.equals(v2);
+                }
+                else if(operator == Operator.GREATER_THAN) {
+                    matches = v1.compareTo(v2) < 0;
+                }
+                else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+                    matches = v1.compareTo(v2) <= 0;
+                }
+                else if(operator == Operator.LESS_THAN) {
+                    matches = v1.compareTo(v2) > 0;
+                }
+                else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+                    matches = v1.compareTo(v2) >= 0;
+                }
+                else if(operator == Operator.BETWEEN) {
+                    // TODO Implement this later. We will need to get a a second
+                    // value from the list of data
+                }
+                else if(operator == Operator.REGEX) {
+                    matches = v2.toString().matches(v1.toString());
+                }
+                else if(operator == Operator.NOT_REGEX) {
+                    matches = !v2.toString().matches(v1.toString());
+                }
+                else {
+                    throw new UnsupportedOperationException();
+                }
+                if(matches) {
+                    Set<TObject> values = rtv.get(_d.record);
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        rtv.put(_d.record, values);
+                    }
+                    if(_d.type == Action.ADD) {
+                        Assert.assertTrue(values.add(_d.value));
+                    }
+                    else {
+                        Assert.assertTrue(values.remove(_d.value));
+                    }
+                }
+
+            }
+        }
+        Set<Long> records = Sets.newHashSet();
+        Iterator<Long> it2 = rtv.keySet().iterator();
+        while (it2.hasNext()) {
+            long record = it2.next();
+            if(!rtv.get(record).isEmpty()) {
+                records.add(record);
+            }
+        }
+        Assert.assertEquals(records, store.find(d.key, operator, d.value));
+    }
+
+    @Test
+    @Theory
+    public void testFindBuffered(Operator operator) {
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = data.get(TestData.getScaleCount() % data.size());
+        Variables.register("operator", operator);
+        doTestFindBuffered(data, d, operator);
+    }
+
+    @Test
+    public void testVerifyBuffered() {
         List<Data> data = generateTestData();
         insertData(data);
         Data d = Variables.register("d",
@@ -370,8 +461,7 @@ public abstract class BufferedStoreTest extends StoreTest {
     }
 
     private List<Data> recoverTestData(String orderString) {
-        orderString.replace("]", "");
-        orderString.replace("[", "");
+        orderString = orderString.replaceAll("\\]", "").replaceAll("\\[", "");
         String[] toks = orderString.split(",");
         List<Data> data = Lists.newArrayList();
         for (String tok : toks) {

@@ -70,6 +70,64 @@ import com.google.common.collect.Sets;
 abstract class Limbo implements Store, Iterable<Write> {
 
     /**
+     * Return {@code true} if {@code input} matches {@code operator} in relation
+     * to {@code values}.
+     * 
+     * @param input
+     * @param operator
+     * @param values
+     * @return {@code true} if {@code input} matches
+     */
+    private static boolean matches(Value input, Operator operator,
+            TObject... values) {
+        Value v1 = Value.wrap(values[0]);
+        switch (operator) {
+        case EQUALS:
+            return v1.equals(input);
+        case NOT_EQUALS:
+            return !v1.equals(input);
+        case GREATER_THAN:
+            return v1.compareTo(input) < 0;
+        case GREATER_THAN_OR_EQUALS:
+            return v1.compareTo(input) <= 0;
+        case LESS_THAN:
+            return v1.compareTo(input) > 0;
+        case LESS_THAN_OR_EQUALS:
+            return v1.compareTo(input) >= 0;
+        case BETWEEN:
+            Preconditions.checkArgument(values.length > 1);
+            Value v2 = Value.wrap(values[1]);
+            return v1.compareTo(input) <= 0 && v2.compareTo(input) > 0;
+        case REGEX:
+            return input.getObject().toString()
+                    .matches(v1.getObject().toString());
+        case NOT_REGEX:
+            return !input.getObject().toString()
+                    .matches(v1.getObject().toString());
+        default:
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Iterate through {@code set} and remove any elements that violate
+     * {@code operator} in relation to {@code values}.
+     * 
+     * @param set
+     * @param operator
+     * @param values
+     */
+    private static void removeOperatorViolatingValues(Set<TObject> set,
+            Operator operator, TObject... values) {
+        Iterator<TObject> it = set.iterator();
+        while (it.hasNext()) {
+            if(!matches(Value.wrap(it.next()), operator, values)) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
      * The writeLock ensures that only a single writer can modify the state of
      * the store, without affecting any readers. The subclass should, at a
      * minimum, use this lock in the {@link #insert(Write)} method.
@@ -119,7 +177,7 @@ abstract class Limbo implements Store, Iterable<Write> {
 
     @Override
     public Set<String> describe(long record) {
-        return describe(record, Maps.<String, Set<TObject>> newHashMap());
+        return describe(record, Time.now());
     }
 
     @Override
@@ -130,7 +188,7 @@ abstract class Limbo implements Store, Iterable<Write> {
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        return fetch(key, record, Sets.<TObject> newHashSet());
+        return fetch(key, record, Time.now());
     }
 
     @Override
@@ -141,72 +199,8 @@ abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        Map<Long, Set<Value>> rtv = Maps.newLinkedHashMap();
-        Iterator<Write> it = iterator();
-        Value value = Value.wrap(values[0]);
-        while (it.hasNext()) {
-            Write write = it.next();
-            long record = write.getRecord().longValue();
-            Value writeValue = write.getValue();
-            if(write.getVersion() < timestamp) {
-                boolean matches = false;
-                if(write.getKey().toString().equals(key)) {
-                    if(operator == Operator.EQUALS) {
-                        matches = value.equals(writeValue);
-                    }
-                    else if(operator == Operator.NOT_EQUALS) {
-                        matches = !value.equals(writeValue);
-                    }
-                    else if(operator == Operator.GREATER_THAN) {
-                        matches = value.compareTo(writeValue) < 0;
-                    }
-                    else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-                        matches = value.compareTo(writeValue) <= 0;
-                    }
-                    else if(operator == Operator.LESS_THAN) {
-                        matches = value.compareTo(writeValue) > 0;
-                    }
-                    else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-                        matches = value.compareTo(writeValue) >= 0;
-                    }
-                    else if(operator == Operator.BETWEEN) {
-                        Preconditions.checkArgument(values.length > 1);
-                        Value value2 = Value.wrap(values[1]);
-                        matches = value.compareTo(writeValue) <= 0
-                                && value2.compareTo(write.getValue()) > 0;
-
-                    }
-                    else if(operator == Operator.REGEX) {
-                        matches = writeValue.getObject().toString()
-                                .matches(value.getObject().toString());
-                    }
-                    else if(operator == Operator.NOT_REGEX) {
-                        matches = !writeValue.getObject().toString()
-                                .matches(value.getObject().toString());
-                    }
-                    else {
-                        throw new UnsupportedOperationException();
-                    }
-                }
-                if(matches) {
-                    Set<Value> v = rtv.get(record);
-                    if(v == null) {
-                        v = Sets.newHashSet();
-                        rtv.put(record, v);
-                    }
-                    if(v.contains(writeValue)) {
-                        v.remove(writeValue);
-                    }
-                    else {
-                        v.add(writeValue);
-                    }
-                }
-            }
-            else {
-                break;
-            }
-        }
-        return Maps.filterValues(rtv, emptySetFilter).keySet();
+        return find(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
+                key, operator, values);
     }
 
     @Override
@@ -288,28 +282,26 @@ abstract class Limbo implements Store, Iterable<Write> {
     }
 
     /**
-     * Calculate the description for {@code record} at {@code timestamp} using
-     * information in {@code ktv} as if it were also a part of the Buffer. This
-     * method is used to accurately describe records using prior context about
-     * data that was transported from the Buffer to a destination.
+     * Calculate the description for {@code record} using prior {@code context}
+     * as if it were also a part of the Buffer.
      * 
      * @param record
      * @param timestamp
-     * @param ktv
+     * @param context
      * @return a possibly empty Set of keys
      */
     protected Set<String> describe(long record, long timestamp,
-            Map<String, Set<TObject>> ktv) {
+            Map<String, Set<TObject>> context) {
         Iterator<Write> it = iterator();
         search: while (it.hasNext()) {
             Write write = it.next();
             if(write.getRecord().longValue() == record) {
                 if(write.getVersion() <= timestamp) {
                     Set<TObject> values;
-                    values = ktv.get(write.getKey().toString());
+                    values = context.get(write.getKey().toString());
                     if(values == null) {
                         values = Sets.newHashSet();
-                        ktv.put(write.getKey().toString(), values);
+                        context.put(write.getKey().toString(), values);
                     }
                     if(write.getType() == Action.ADD) {
                         values.add(write.getValue().getTObject());
@@ -323,35 +315,22 @@ abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        return Maps.filterValues(ktv, emptySetFilter).keySet();
-    }
-
-    /**
-     * Calculate the description for {@code record} using information in
-     * {@code ktv} as if it were also a part of the Buffer. This method is used
-     * to accurately describe records using prior context about data that was
-     * transported from the Buffer to a destination.
-     * 
-     * @param record
-     * @param ktv
-     * @return a possibly empty Set of keys
-     */
-    protected Set<String> describe(long record, Map<String, Set<TObject>> ktv) {
-        return describe(record, Time.now(), ktv);
+        return Maps.filterValues(context, emptySetFilter).keySet();
     }
 
     /**
      * Fetch the values mapped from {@code key} in {@code record} at
-     * {@code timestamp} using {@code values} as prior context.
+     * {@code timestamp} using prior {@code context} as if it were also a part
+     * of the Buffer.
      * 
      * @param key
      * @param record
      * @param timestamp
-     * @param values
+     * @param context
      * @return the values
      */
     protected Set<TObject> fetch(String key, long record, long timestamp,
-            Set<TObject> values) {
+            Set<TObject> context) {
         Iterator<Write> it = iterator();
         while (it.hasNext()) {
             Write write = it.next();
@@ -359,10 +338,10 @@ abstract class Limbo implements Store, Iterable<Write> {
                 if(key.equals(write.getKey().toString())
                         && record == write.getRecord().longValue()) {
                     if(write.getType() == Action.ADD) {
-                        values.add(write.getValue().getTObject());
+                        context.add(write.getValue().getTObject());
                     }
                     else {
-                        values.remove(write.getValue().getTObject());
+                        context.remove(write.getValue().getTObject());
                     }
                 }
             }
@@ -370,20 +349,54 @@ abstract class Limbo implements Store, Iterable<Write> {
                 break;
             }
         }
-        return values;
+        return context;
     }
 
     /**
-     * Fetch the values mapped from {@code key} in {@code record} using
-     * {@code values} as prior context.
+     * Find {@code key} {@code operator} {@code values} at {@code timestamp}
+     * using {@code context} as if it were also a part of the Buffer.
      * 
+     * @param context
+     * @param timestamp
      * @param key
-     * @param record
+     * @param operator
      * @param values
-     * @return the values
+     * @return a possibly empty Set of primary key
      */
-    protected Set<TObject> fetch(String key, long record, Set<TObject> values) {
-        return fetch(key, record, Time.now(), values);
+    protected Set<Long> find(Map<Long, Set<TObject>> context, long timestamp,
+            String key, Operator operator, TObject... values) {
+        // NOTE: We have to pre-process the context by removing any values that
+        // don't actually satisfy #operator in relation to #values because the
+        // BufferedStore fetches all the data from the #destination without
+        // doing this processing.
+        for (Set<TObject> set : context.values()) {
+            removeOperatorViolatingValues(set, operator, values);
+        }
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            long record = write.getRecord().longValue();
+            if(write.getVersion() < timestamp) {
+                if(write.getKey().toString().equals(key)
+                        && matches(write.getValue(), operator, values)) {
+                    Set<TObject> v = context.get(record);
+                    if(v == null) {
+                        v = Sets.newHashSet();
+                        context.put(record, v);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        v.add(write.getValue().getTObject());
+                    }
+                    else {
+                        v.remove(write.getValue().getTObject());
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return Maps.filterValues(context, emptySetFilter).keySet();
     }
 
     /**
@@ -397,22 +410,6 @@ abstract class Limbo implements Store, Iterable<Write> {
      * @return {@code true}
      */
     protected abstract boolean insert(Write write);
-
-    /**
-     * Return {@code true} if {@code write} represents a data mapping that
-     * currently exists.
-     * <p>
-     * <strong>This method is called from {@link #add(String, TObject, long)}
-     * and {@link #remove(String, TObject, long)}.</strong>
-     * </p>
-     * 
-     * @param write
-     * @return {@code true} if {@code write} currently appears an odd number of
-     *         times
-     */
-    protected boolean verify(Write write) {
-        return verify(write, Time.now());
-    }
 
     /**
      * Return {@code true} if {@code write} represents a data mapping that
