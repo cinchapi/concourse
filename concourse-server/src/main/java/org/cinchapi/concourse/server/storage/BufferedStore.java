@@ -143,7 +143,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
 
     @Override
     public Set<String> describe(long record) {
-        Map<String, Set<TObject>> context = Maps.newHashMap();
+        Map<String, Set<TObject>> context = Maps.newLinkedHashMap();
         for (String key : destination.describe(record)) {
             context.put(key, destination.fetch(key, record));
         }
@@ -152,7 +152,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
 
     @Override
     public Set<String> describe(long record, long timestamp) {
-        Map<String, Set<TObject>> context = Maps.newHashMap();
+        Map<String, Set<TObject>> context = Maps.newLinkedHashMap();
         for (String key : destination.describe(record, timestamp)) {
             context.put(key, destination.fetch(key, record, timestamp));
         }
@@ -174,7 +174,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        Map<Long, Set<TObject>> context = Maps.newHashMap();
+        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(timestamp, key, operator, values);
         for(long record: records){
             context.put(record, destination.fetch(key, record));
@@ -184,7 +184,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = Maps.newHashMap();
+        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(key, operator, values);
         for(long record: records){
             context.put(record, destination.fetch(key, record));
