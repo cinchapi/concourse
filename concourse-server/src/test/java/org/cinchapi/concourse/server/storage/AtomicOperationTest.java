@@ -99,7 +99,6 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
         ((AtomicOperation) store).commit();
         Assert.assertEquals(values, destination.fetch(key, record));
-        System.out.println(destination.audit(key, record));
     }
 
     @Test
