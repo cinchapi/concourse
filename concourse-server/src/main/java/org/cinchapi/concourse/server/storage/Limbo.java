@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import org.cinchapi.concourse.util.StringTools;
+import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
@@ -233,12 +233,23 @@ abstract class Limbo implements Store, Iterable<Write> {
             Value value = write.getValue();
             long record = write.getRecord().longValue();
             if(value.getType() == Type.STRING) {
-                String stored = StringTools.stripStopWords((String) (value
+                /*
+                 * NOTE: It is not enough to merely check if the stored text
+                 * contains the query because the Database does infix
+                 * indexing/searching, which has some subtleties:
+                 * 1. Stop words are removed from the both stored indices and
+                 * the search query
+                 * 2. A query and document are considered to match if the
+                 * document contains a sequence of terms where each term or a
+                 * substring of the term matches the term in the same relative
+                 * position of the query.
+                 */
+                String stored = TStrings.stripStopWords((String) (value
                         .getObject()));
-                query = StringTools.stripStopWords(query);
+                query = TStrings.stripStopWords(query);
                 if(!Strings.isNullOrEmpty(stored)
                         && !Strings.isNullOrEmpty(query)
-                        && stored.contains(query)) {
+                        && TStrings.isInfixSearchMatch(query, stored)) {
                     Set<Value> values = rtv.get(record);
                     if(values == null) {
                         values = Sets.newHashSet();

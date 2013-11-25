@@ -44,7 +44,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
- * A Block that store SearchRevision data to be used in a SearchRecord.
+ * A Block that stores SearchRevision data to be used in a SearchRecord.
+ * <p>
+ * Text is indexed in a block such that that a value matches a query if it
+ * contains a sequence of terms where each term or a substring of that term
+ * matches the term in the same relative position of the query (i.e. if the
+ * query is for 'fo ar' then value 'foo bar' will match, etc).
+ * </p>
+ * <p>
+ * </p>
  * 
  * @author jnelson
  */
