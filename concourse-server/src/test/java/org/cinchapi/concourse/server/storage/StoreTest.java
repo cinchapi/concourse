@@ -37,7 +37,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
-import org.cinchapi.concourse.util.StringTools;
+import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -471,6 +471,20 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
+    public void testSearchReproA(SearchType type) {
+        String query = Variables.register("query", "tc e");
+        String key = Variables.register("key", "2 6f0wzcw2ixa   dcf sa");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(6631928579149921621L),
+                Lists.newArrayList("qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
     public void testSearchReproCON_2(SearchType type) {
         String query = Variables.register("query", "k i");
         String key = Variables.register("key", "oq99f7u7vizpob4o");
@@ -707,12 +721,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         .size() == otherSource.size()));
         Set<Long> records = Sets.newHashSet();
         recordSource = recordSource == null ? getRecords() : recordSource;
-        if(!Strings.isNullOrEmpty(StringTools.stripStopWords(query))) {
+        if(!Strings.isNullOrEmpty(TStrings.stripStopWords(query))) {
             int i = 0;
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = other.contains(query);
+                    boolean matches = TStrings.isInfixSearchMatch(
+                            TStrings.stripStopWords(query),
+                            TStrings.stripStopWords(other));
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key,
                                     Convert.javaToThrift(other), record, query,
@@ -726,9 +742,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
                     String other = null;
                     while (other == null
                             || other.equals(query)
-                            || query.contains(other)
-                            || other.contains(query)
-                            || Strings.isNullOrEmpty(StringTools
+                            || TStrings.isInfixSearchMatch(query, other)
+                            || TStrings.isInfixSearchMatch(other, query)
+                            || Strings.isNullOrEmpty(TStrings
                                     .stripStopWords(other))) {
                         other = TestData.getString();
                     }
