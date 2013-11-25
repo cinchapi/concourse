@@ -40,6 +40,7 @@ import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
@@ -456,17 +457,13 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
-    public void testSearchWithReproCON_A() {
-        // TODO file this bug: This test fails because the value has a stop word
-        // which has a substring that is equal to a term of the query. When the
-        // Store strips the stop words from both, it makes it so that the search
-        // no longer passes.
-        // add("ibp127v0de855b1izo8kabnj9xxgfmlv hv4jtsyzr pprequg",
-        // Convert.javaToThrift("uekc3 d1bfapb9l5y86 but u urek1g djwgyuekc3 d1bfapb9l5y86 b"),
-        // 1);
-        // Assert.assertTrue(store.search(
-        // "ibp127v0de855b1izo8kabnj9xxgfmlv hv4jtsyzr pprequg",
-        // "ut u urek1g djwgy").contains(1));
+    @Ignore
+    public void testSearchWithStopWordSubStringInQuery() {
+        // TODO: Filed as CON-6 and CON-7. This should be fixed in an 0.2 update
+        // release and 0.3
+        add("string", Convert.javaToThrift("but foobar barfoo"), 1);
+        Assert.assertTrue(store.search("string", "ut foobar barfoo")
+                .contains(1));
     }
 
     @Test
