@@ -23,36 +23,52 @@
  */
 package org.cinchapi.concourse;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
+import org.junit.experimental.theories.DataPoints;
+import org.junit.experimental.theories.Theories;
+import org.junit.experimental.theories.Theory;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
 
 /**
- * A test that measures the performance of various activities.
+ * A test that measures the performance of various write activities.
  * 
  * @author jnelson
  */
-public class PerformanceTest extends ConcourseIntegrationTest {
+@RunWith(Theories.class)
+public class WritePerformanceTest extends ConcoursePerformanceTest {
 
     @Rule
-    public TestRule benchmark = new BenchmarkRule();
+    public TestName name = new TestName();
+
+    @DataPoints
+    public static Integer[] TEST_RUNS = { 1, 2, 3, 4, 5 };
 
     @Test
-    @BenchmarkOptions(benchmarkRounds = 20, warmupRounds = 0)
-    public void testInsertWordsDotText() {
+    @Theory
+    public void testInsertWordsDotText(Integer testRun) {
+        watch.start();
         StandardActions.importWordsDotText(client);
-        reset();
+        watch.stop();
+        StandardActions.killServerInSeparateJVM();
+        System.out.println("*** " + name.getMethodName() + ": Test Run "
+                + testRun + " took " + watch.elapsed(TimeUnit.MILLISECONDS)
+                + " ms");
     }
-    
-    
+
     @Test
-    @BenchmarkOptions(benchmarkRounds = 20, warmupRounds = 0)
-    public void testInsert1000Longs(){
+    @Theory
+    public void testInsert1000Longs(Integer testRun) {
+        watch.start();
         StandardActions.import1000Longs(client);
-        reset();
+        watch.stop();
+        StandardActions.killServerInSeparateJVM();
+        System.out.println("*** " + name.getMethodName() + ": Test Run "
+                + testRun + " took " + watch.elapsed(TimeUnit.MILLISECONDS)
+                + " ms");
     }
 
 }
