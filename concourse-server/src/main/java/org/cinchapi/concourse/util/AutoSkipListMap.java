@@ -28,20 +28,20 @@ import java.util.TreeMap;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.SortedMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.cinchapi.concourse.annotate.Experimental;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 
 /**
- * AutoMap with Tree based sorting. Create using
- * {@link AutoMap#newAutoTreeMap(Function, Function)}.
+ * AutoMap with sorting and navigation. Create using
+ * {@link AutoMap#newAutoSkipListMap(Function, Function)}.
  * 
  * @author jnelson
  */
 @Experimental
-public class AutoTreeMap<K extends Comparable<K>, V> extends AutoMap<K, V> implements
+public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> implements
         NavigableMap<K, V> {
 
     /**
@@ -50,8 +50,9 @@ public class AutoTreeMap<K extends Comparable<K>, V> extends AutoMap<K, V> imple
      * @param loader
      * @param cleaner
      */
-    protected AutoTreeMap(Function<K, V> loader, Function<V, Boolean> cleaner) {
-        super(Maps.<K, V> newTreeMap(), loader, cleaner);
+    protected AutoSkipListMap(Function<K, V> loader,
+            Function<V, Boolean> cleaner) {
+        super(new ConcurrentSkipListMap<K, V>(), loader, cleaner);
     }
 
     @Override

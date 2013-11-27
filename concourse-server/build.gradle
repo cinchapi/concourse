@@ -3,6 +3,7 @@ dependencies {
     compile project(':concourse-shell')
     compile 'com.google.guava:guava:15.0'
     compile 'com.beust:jcommander:1.32'
+    compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }

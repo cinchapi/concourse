@@ -32,13 +32,13 @@ import com.google.common.base.Function;
  * 
  * @author jnelson
  */
-public class AutoTreeMapTest extends AutoMapTest{
+public class AutoSkipListMapTest extends AutoMapTest{
 
     @Override
     protected AutoMap<String, Set<String>> getInstance(
             Function<String, Set<String>> loader,
             Function<Set<String>, Boolean> cleaner) {
-        return AutoMap.newAutoTreeMap(loader, cleaner);
+        return AutoMap.newAutoSkipListMap(loader, cleaner);
     }
 
 }

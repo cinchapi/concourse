@@ -65,9 +65,9 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
      * @param cleaner
      * @return the AutoMap
      */
-    public static <K extends Comparable<K>, V> AutoTreeMap<K, V> newAutoTreeMap(
+    public static <K extends Comparable<K>, V> AutoSkipListMap<K, V> newAutoSkipListMap(
             Function<K, V> loader, Function<V, Boolean> cleaner) {
-        return new AutoTreeMap<K, V>(loader, cleaner);
+        return new AutoSkipListMap<K, V>(loader, cleaner);
     }
 
     /**

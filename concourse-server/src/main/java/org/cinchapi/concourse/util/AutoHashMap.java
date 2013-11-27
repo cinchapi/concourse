@@ -24,9 +24,9 @@
 package org.cinchapi.concourse.util;
 
 import org.cinchapi.concourse.annotate.Experimental;
+import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 
 /**
  * AutoMap with hash based sorting. Create using
@@ -36,6 +36,8 @@ import com.google.common.collect.Maps;
  */
 @Experimental
 public class AutoHashMap<K, V> extends AutoMap<K, V> {
+    
+    private static final int INITIAL_SIZE = (int) Math.pow(2, 8);
 
     /**
      * Construct a new instance.
@@ -45,7 +47,7 @@ public class AutoHashMap<K, V> extends AutoMap<K, V> {
      * @param cleaner
      */
     protected AutoHashMap(Function<K, V> loader, Function<V, Boolean> cleaner) {
-        super(Maps.<K, V> newHashMap(), loader, cleaner);
+        super(new NonBlockingHashMap<K,V>(INITIAL_SIZE), loader, cleaner);
     }
 
 }
