@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.util;
 
 import java.util.Comparator;
-import java.util.TreeMap;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.SortedMap;
@@ -57,124 +56,124 @@ public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> i
 
     @Override
     public Entry<K, V> ceilingEntry(K key) {
-        return ((TreeMap<K, V>) backingStore).ceilingEntry(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).ceilingEntry(key);
     }
 
     @Override
     public K ceilingKey(K key) {
-        return ((TreeMap<K, V>) backingStore).ceilingKey(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).ceilingKey(key);
     }
 
     @Override
     public Comparator<? super K> comparator() {
-        return ((TreeMap<K, V>) backingStore).comparator();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).comparator();
     }
 
     @Override
     public NavigableSet<K> descendingKeySet() {
-        return ((TreeMap<K, V>) backingStore).descendingKeySet();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).descendingKeySet();
     }
 
     @Override
     public NavigableMap<K, V> descendingMap() {
-        return ((TreeMap<K, V>) backingStore).descendingMap();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).descendingMap();
     }
 
     @Override
     public Entry<K, V> firstEntry() {
-        return ((TreeMap<K, V>) backingStore).firstEntry();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).firstEntry();
     }
 
     @Override
     public K firstKey() {
-        return ((TreeMap<K, V>) backingStore).firstKey();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).firstKey();
     }
 
     @Override
     public Entry<K, V> floorEntry(K key) {
-        return ((TreeMap<K, V>) backingStore).floorEntry(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).floorEntry(key);
     }
 
     @Override
     public K floorKey(K key) {
-        return ((TreeMap<K, V>) backingStore).floorKey(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).floorKey(key);
     }
 
     @Override
     public SortedMap<K, V> headMap(K toKey) {
-        return ((TreeMap<K, V>) backingStore).headMap(toKey);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).headMap(toKey);
     }
 
     @Override
     public NavigableMap<K, V> headMap(K toKey, boolean inclusive) {
-        return ((TreeMap<K, V>) backingStore).headMap(toKey, inclusive);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).headMap(toKey, inclusive);
     }
 
     @Override
     public Entry<K, V> higherEntry(K key) {
-        return ((TreeMap<K, V>) backingStore).higherEntry(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).higherEntry(key);
     }
 
     @Override
     public K higherKey(K key) {
-        return ((TreeMap<K, V>) backingStore).higherKey(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).higherKey(key);
     }
 
     @Override
     public Entry<K, V> lastEntry() {
-        return ((TreeMap<K, V>) backingStore).lastEntry();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).lastEntry();
     }
 
     @Override
     public K lastKey() {
-        return ((TreeMap<K, V>) backingStore).lastKey();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).lastKey();
     }
 
     @Override
     public Entry<K, V> lowerEntry(K key) {
-        return ((TreeMap<K, V>) backingStore).lowerEntry(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).lowerEntry(key);
     }
 
     @Override
     public K lowerKey(K key) {
-        return ((TreeMap<K, V>) backingStore).lowerKey(key);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).lowerKey(key);
     }
 
     @Override
     public NavigableSet<K> navigableKeySet() {
-        return ((TreeMap<K, V>) backingStore).navigableKeySet();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).navigableKeySet();
     }
 
     @Override
     public Entry<K, V> pollFirstEntry() {
-        return ((TreeMap<K, V>) backingStore).pollFirstEntry();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).pollFirstEntry();
     }
 
     @Override
     public Entry<K, V> pollLastEntry() {
-        return ((TreeMap<K, V>) backingStore).pollLastEntry();
+        return ((ConcurrentSkipListMap<K, V>) backingStore).pollLastEntry();
     }
 
     @Override
     public NavigableMap<K, V> subMap(K fromKey, boolean fromInclusive, K toKey,
             boolean toInclusive) {
-        return ((TreeMap<K, V>) backingStore).subMap(fromKey, fromInclusive,
+        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey, fromInclusive,
                 toKey, toInclusive);
     }
 
     @Override
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
-        return ((TreeMap<K, V>) backingStore).subMap(fromKey, toKey);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).subMap(fromKey, toKey);
     }
 
     @Override
     public SortedMap<K, V> tailMap(K fromKey) {
-        return ((TreeMap<K, V>) backingStore).tailMap(fromKey);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).tailMap(fromKey);
     }
 
     @Override
     public NavigableMap<K, V> tailMap(K fromKey, boolean inclusive) {
-        return ((TreeMap<K, V>) backingStore).tailMap(fromKey, inclusive);
+        return ((ConcurrentSkipListMap<K, V>) backingStore).tailMap(fromKey, inclusive);
     }
 
 }
