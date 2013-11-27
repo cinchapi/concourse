@@ -33,7 +33,6 @@ import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -42,7 +41,6 @@ import org.junit.Test;
  * @author jnelson
  */
 @Experimental
-@Ignore
 public class RangeLockTest extends ConcourseBaseTest {
 
     @Test
@@ -54,11 +52,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -79,11 +77,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLock.writeLock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().unlock();
             }
 
         });
@@ -103,11 +101,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -128,11 +126,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLock.writeLock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().unlock();
             }
 
         });
@@ -152,11 +150,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -177,11 +175,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLock.writeLock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().unlock();
             }
 
         });
@@ -202,11 +200,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLock.writeLock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().unlock();
             }
 
         });
@@ -218,7 +216,7 @@ public class RangeLockTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testReadLteIsNotRangeBlockedIfWritingGtValue(){
+    public void testReadLteIsNotRangeBlockedIfWritingGtValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final AtomicBoolean flag = new AtomicBoolean(true);
@@ -227,11 +225,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLock.writeLock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().unlock();
             }
 
         });
@@ -251,11 +249,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -265,7 +263,7 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.LESS_THAN_OR_EQUALS, key, value));
         flag.set(false);
     }
-    
+
     @Test
     public void testReadLteisRangeBlockedIfWritingLtValue() {
         final Text key = Variables.register("key", TestData.getText());
@@ -276,11 +274,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLock.writeLock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().unlock();
             }
 
         });
@@ -301,11 +299,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLock.writeLock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, gtValue);
+                RangeLock.grabForWriting(key, gtValue).writeLock().unlock();
             }
 
         });
@@ -325,11 +323,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -350,11 +348,11 @@ public class RangeLockTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLock.writeLock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltValue);
+                RangeLock.grabForWriting(key, ltValue).writeLock().unlock();
             }
 
         });
@@ -364,9 +362,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.LESS_THAN, key, value));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwisRangeBlockedIfWritingGtLowerValue(){
+    public void testReadBwisRangeBlockedIfWritingGtLowerValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -375,12 +373,14 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                Value gtLowerValue = Variables.register("gtLowerValue", increase(value));
-                RangeLock.writeLock(key, gtLowerValue);
+                Value gtLowerValue = Variables.register("gtLowerValue",
+                        increase(value, value1));
+                RangeLock.grabForWriting(key, gtLowerValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, gtLowerValue);
+                RangeLock.grabForWriting(key, gtLowerValue).writeLock()
+                        .unlock();
             }
 
         });
@@ -390,9 +390,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.BETWEEN, key, value, value1));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwIsNotRangeBlockedIfWritingLtLowerValue(){
+    public void testReadBwIsNotRangeBlockedIfWritingLtLowerValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -401,12 +401,14 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                Value ltLowerValue = Variables.register("ltLowerValue", decrease(value));
-                RangeLock.writeLock(key, ltLowerValue);
+                Value ltLowerValue = Variables.register("ltLowerValue",
+                        decrease(value));
+                RangeLock.grabForWriting(key, ltLowerValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltLowerValue);
+                RangeLock.grabForWriting(key, ltLowerValue).writeLock()
+                        .unlock();
             }
 
         });
@@ -416,9 +418,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.BETWEEN, key, value, value1));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwIsRangedBlockedIfWritingEqLowerValue(){
+    public void testReadBwIsRangedBlockedIfWritingEqLowerValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -427,11 +429,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value);
+                RangeLock.grabForWriting(key, value).writeLock().unlock();
             }
 
         });
@@ -441,9 +443,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.BETWEEN, key, value, value1));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwIsRangedBlockedIfWritingLtHigherValue(){
+    public void testReadBwIsRangedBlockedIfWritingLtHigherValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -452,12 +454,14 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                Value ltHigherValue = Variables.register("ltHigherValue", decrease(value1));
-                RangeLock.writeLock(key, ltHigherValue);
+                Value ltHigherValue = Variables.register("ltHigherValue",
+                        decrease(value1, value));
+                RangeLock.grabForWriting(key, ltHigherValue).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, ltHigherValue);
+                RangeLock.grabForWriting(key, ltHigherValue).writeLock()
+                        .unlock();
             }
 
         });
@@ -467,9 +471,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.BETWEEN, key, value, value1));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwIsNotRangeBlockedIfWritingEqHigherValue(){
+    public void testReadBwIsNotRangeBlockedIfWritingEqHigherValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -478,11 +482,11 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLock.writeLock(key, value1);
+                RangeLock.grabForWriting(key, value1).writeLock().lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, value1);
+                RangeLock.grabForWriting(key, value1).writeLock().unlock();
             }
 
         });
@@ -492,9 +496,9 @@ public class RangeLockTest extends ConcourseBaseTest {
                 Operator.BETWEEN, key, value, value1));
         flag.set(false);
     }
-    
+
     @Test
-    public void testReadBwIsNotRangeBlockedIfWritingGtHigherValue(){
+    public void testReadBwIsNotRangeBlockedIfWritingGtHigherValue() {
         final Text key = Variables.register("key", TestData.getText());
         final Value value = Variables.register("value", TestData.getValue());
         final Value value1 = Variables.register("value1", increase(value));
@@ -503,12 +507,15 @@ public class RangeLockTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                Value getHigherValue = Variables.register("gtHigherValue", increase(value1));
-                RangeLock.writeLock(key, getHigherValue);
+                Value getHigherValue = Variables.register("gtHigherValue",
+                        increase(value1));
+                RangeLock.grabForWriting(key, getHigherValue).writeLock()
+                        .lock();
                 while (flag.get() == true) {
                     continue;
                 }
-                RangeLock.writeUnlock(key, getHigherValue);
+                RangeLock.grabForWriting(key, getHigherValue).writeLock()
+                        .unlock();
             }
 
         });
@@ -523,10 +530,11 @@ public class RangeLockTest extends ConcourseBaseTest {
     public void testWriteIsRangeBlockedIfReadingEqualValue() {
         Text key = Variables.register("key", TestData.getText());
         Value value = Variables.register("value", TestData.getValue());
-        RangeLock.readLock(Operator.EQUALS, key, value);
+        RangeLock.grabForReading(key, Operator.EQUALS, value).readLock().lock();
         Assert.assertTrue(RangeLock.isRangeBlocked(LockType.WRITE, null, key,
                 value));
-        RangeLock.readUnlock(Operator.EQUALS, key, value);
+        RangeLock.grabForReading(key, Operator.EQUALS, value).readLock()
+                .unlock();
     }
 
     @Test
@@ -539,10 +547,26 @@ public class RangeLockTest extends ConcourseBaseTest {
 
     private Value decrease(Value value) {
         Value lt = null;
-        while (lt == null || lt.compareTo(value) != -1) {
+        while (lt == null || lt.compareTo(value) >= 0) {
             lt = TestData.getValue();
         }
         return lt;
+    }
+    
+    private Value decrease(Value value, Value butKeepHigherThan){
+        Value lt = null;
+        while(lt == null || lt.compareTo(butKeepHigherThan) <= 0){
+            lt = decrease(value);
+        }
+        return lt;
+    }
+    
+    private Value increase(Value value, Value butKeepLowerThan){
+        Value gt = null;
+        while (gt == null || gt.compareTo(butKeepLowerThan) >= 0) {
+            gt = increase(value);
+        }
+        return gt;
     }
 
     /**
@@ -553,7 +577,7 @@ public class RangeLockTest extends ConcourseBaseTest {
      */
     private Value increase(Value value) {
         Value gt = null;
-        while (gt == null || gt.compareTo(value) != 1) {
+        while (gt == null || gt.compareTo(value) <= 0) {
             gt = TestData.getValue();
         }
         return gt;

@@ -76,10 +76,13 @@ public class AtomicOperation extends BufferedStore {
 
     /**
      * A flag to distinguish the case where we should ignore the version when
-     * checking that expectations are met. We must use a value other than
-     * {@link Versioned#NO_VERSION} so that we can distinguish the cases where
-     * we legitimately need to check that there is no version for atomic
-     * safety.
+     * checking that expectations are met (i.e when performing a historical
+     * read).
+     * <p>
+     * --- We must use a value other than {@link Versioned#NO_VERSION} so that
+     * we can distinguish the cases where we legitimately need to check that
+     * there is no version for atomic safety.
+     * </p>
      */
     private static final long IGNORE_VERSION = Versioned.NO_VERSION - 1;
 
@@ -142,7 +145,7 @@ public class AtomicOperation extends BufferedStore {
         checkState();
         open = false;
         if(checkExpectationsAndGrabLocks()) {
-            doCommit(); // magic happens here
+            doCommit(); // --- the magic happens here
             releaseLocks();
             return true;
         }
@@ -318,7 +321,7 @@ public class AtomicOperation extends BufferedStore {
                 description.getLock().lock();
             }
             if(expectation instanceof KeyVersionExpectation) {
-                
+                //TODO grab a range lock
             }
         }
         return true;

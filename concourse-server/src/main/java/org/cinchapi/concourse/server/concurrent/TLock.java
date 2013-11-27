@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -39,6 +40,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
 
 /**
@@ -53,7 +55,7 @@ import com.google.common.cache.RemovalNotification;
  * it opens the possibility that a caller may be holding a stale lock that
  * doesn't properly block new callers (i.e A grabs Lock at t1 [..] Lock is
  * evicted from cache at t2 [..] B grabs Lock at t3 and gets new instance [..] A
- * and B are both concurrently operation on content.)
+ * and B are both concurrently operate on content.)
  * </p>
  * <p>
  * To reduce the probability of the aforementioned scenario, each caller should
@@ -121,20 +123,30 @@ public class TLock extends ReentrantReadWriteLock {
      * documentation.
      */
     private static final LoadingCache<Token, TLock> CACHE = CacheBuilder
-            .newBuilder().expireAfterAccess(CACHE_TTL, CACHE_TTL_UNIT)
-            .removalListener(new RemovalListener<Token, TLock>() {
+            .newBuilder()
+            .expireAfterAccess(CACHE_TTL, CACHE_TTL_UNIT)
+            .removalListener(
+                    RemovalListeners.asynchronous(
+                            new RemovalListener<Token, TLock>() {
 
-                @Override
-                public void onRemoval(
-                        RemovalNotification<Token, TLock> notification) {
-                    TLock lock = notification.getValue();
-                    if(lock.getReadLockCount() > 0 || lock.hasQueuedThreads()
-                            || lock.isWriteLocked()) {
-                        CACHE.put(notification.getKey(), lock.touch());
-                    }
+                                @Override
+                                public void onRemoval(
+                                        RemovalNotification<Token, TLock> notification) {
+                                    TLock lock = notification.getValue();
+                                    if(lock.getReadLockCount() > 0
+                                            || lock.hasQueuedThreads()
+                                            || lock.isWriteLocked()) {
+                                        Logger.warn(
+                                                "An attempt was made to expire a held lock "
+                                                        + "({}). This means that the LOCK_TTL should "
+                                                        + "be increased.", lock);
+                                        CACHE.put(notification.getKey(),
+                                                lock.touch());
+                                    }
 
-                }
-            }).build(new CacheLoader<Token, TLock>() {
+                                }
+                            }, Executors.newSingleThreadScheduledExecutor()))
+            .build(new CacheLoader<Token, TLock>() {
 
                 @Override
                 public TLock load(Token token) throws Exception {

@@ -115,7 +115,7 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
         this.backingStore = backingStore;
         this.loader = loader;
         this.cleaner = cleaner;
-        scheduler.scheduleWithFixedDelay(clean(), 0, CLEANUP_DELAY,
+        scheduler.scheduleWithFixedDelay(clean(), CLEANUP_DELAY, CLEANUP_DELAY,
                 CLEANUP_DELAY_UNIT);
     }
 
