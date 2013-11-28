@@ -510,10 +510,20 @@ public final class RangeLock extends TLock {
      * @param values
      */
     private RangeLock(Text key, @Nullable Operator operator, Value... values) {
-        super(Token.wrap(key, operator, values));
+        super(RangeToken.wrap(key, operator, values));
         this.key = key;
         this.values = values;
         this.operator = operator;
+    }
+
+    @Override
+    public RangeToken getToken() {
+        return (RangeToken) super.getToken();
+    }
+
+    @Override
+    public boolean isStaleInstance() {
+        return false;
     }
 
     @Override
@@ -628,5 +638,4 @@ public final class RangeLock extends TLock {
             }
         };
     }
-
 }

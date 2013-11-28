@@ -29,7 +29,6 @@ import java.util.Arrays;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
-import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
@@ -80,8 +79,7 @@ public class Token implements Byteable {
      * 
      * @param bytes
      */
-    private Token(ByteBuffer bytes) {
-        Preconditions.checkArgument(bytes.capacity() == SIZE);
+    protected Token(ByteBuffer bytes) {
         this.bytes = bytes;
     }
 
