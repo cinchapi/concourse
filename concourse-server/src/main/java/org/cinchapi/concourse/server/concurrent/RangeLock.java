@@ -85,6 +85,16 @@ public final class RangeLock extends TLock {
     }
 
     /**
+     * Return the {@link RangeLock} that is identified by {@code token}.
+     * 
+     * @param token
+     * @return the RangeLock
+     */
+    public static RangeLock grabWithToken(RangeToken token) {
+        return new RangeLock(token);
+    }
+
+    /**
      * Return {@code true} if an attempt to grab a {@code type} lock (to perform
      * {@code operator} if applicable) on {@code key} as {@code values} is range
      * blocked. Range blocking occurs when there is another READ or WRITE
@@ -501,6 +511,18 @@ public final class RangeLock extends TLock {
 
     @Nullable
     private final Operator operator;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param token
+     */
+    private RangeLock(RangeToken token) {
+        super(token);
+        this.key = token.getKey();
+        this.values = token.getValues();
+        this.operator = token.getOperator();
+    }
 
     /**
      * Construct a new instance.
