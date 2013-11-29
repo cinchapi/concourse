@@ -111,6 +111,22 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     /**
+     * A constant representing the largest possible Value. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static Value POSITIVE_INFINITY = Value.wrap(Convert
+            .javaToThrift(Long.MAX_VALUE));
+
+    /**
+     * A constant representing the smallest possible Value. This should be used
+     * in normal operations, but should only be used to indicate an infinite
+     * range.
+     */
+    public static Value NEGATIVE_INFINITY = Value.wrap(Convert
+            .javaToThrift(Long.MIN_VALUE));
+
+    /**
      * The minimum number of bytes needed to encode every Value.
      */
     private static final int CONSTANT_SIZE = 1; // type(1)
@@ -245,14 +261,33 @@ public final class Value implements Byteable, Comparable<Value> {
 
         @Override
         public int compare(Value v1, Value v2) {
-            Object o1 = v1.getObject();
-            Object o2 = v2.getObject();
-            if(o1 instanceof Number && o2 instanceof Number) {
-                return Numbers.compare((Number) o1, (Number) o2);
+            if((v1 == POSITIVE_INFINITY && v2 == POSITIVE_INFINITY)
+                    || (v1 == NEGATIVE_INFINITY && v2 == NEGATIVE_INFINITY)) {
+                return 0;
+            }
+            else if(v1 == POSITIVE_INFINITY) {
+                return 1;
+            }
+            else if(v2 == POSITIVE_INFINITY){
+                return -1;
+            }
+            else if(v1 == NEGATIVE_INFINITY) {
+                return -1;
+            }
+            else if(v2 == NEGATIVE_INFINITY){
+                return 1;
             }
             else {
-                return o1.toString().compareTo(o2.toString());
+                Object o1 = v1.getObject();
+                Object o2 = v2.getObject();
+                if(o1 instanceof Number && o2 instanceof Number) {
+                    return Numbers.compare((Number) o1, (Number) o2);
+                }
+                else {
+                    return o1.toString().compareTo(o2.toString());
+                }
             }
+
         }
     }
 

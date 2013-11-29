@@ -61,6 +61,30 @@ public class ValueTest extends ByteableTest {
                 Value.wrap(Convert.javaToThrift(q2)));
         Assert.assertTrue(v1.compareTo(v2) < 0);
     }
+    
+    @Test
+    @Theory
+    public void testCompareToNegativeInfinity(Object q1){
+        Value v1 = Variables.register("v1",
+                Value.wrap(Convert.javaToThrift(q1)));
+        Assert.assertTrue(v1.compareTo(Value.NEGATIVE_INFINITY) > 0);
+        Assert.assertTrue(Value.NEGATIVE_INFINITY.compareTo(v1) < 0 );
+        Assert.assertTrue(Value.NEGATIVE_INFINITY.compareTo(Value.NEGATIVE_INFINITY) == 0);
+        Assert.assertTrue(Value.NEGATIVE_INFINITY.compareTo(Value.POSITIVE_INFINITY) < 0);
+        Assert.assertTrue(Value.POSITIVE_INFINITY.compareTo(Value.NEGATIVE_INFINITY) > 0);
+    }
+    
+    @Test
+    @Theory
+    public void testCompareToPositiveInfinity(Object q1){
+        Value v1 = Variables.register("v1",
+                Value.wrap(Convert.javaToThrift(q1)));
+        Assert.assertTrue(v1.compareTo(Value.POSITIVE_INFINITY) < 0);
+        Assert.assertTrue(Value.POSITIVE_INFINITY.compareTo(v1) > 0 );
+        Assert.assertTrue(Value.POSITIVE_INFINITY.compareTo(Value.POSITIVE_INFINITY) == 0);
+        Assert.assertTrue(Value.POSITIVE_INFINITY.compareTo(Value.NEGATIVE_INFINITY) > 0);
+        Assert.assertTrue(Value.NEGATIVE_INFINITY.compareTo(Value.POSITIVE_INFINITY) < 0);
+    }
 
     @Test
     @Theory
