@@ -42,6 +42,34 @@ import org.junit.Test;
  */
 @Experimental
 public class RangeLockTest extends ConcourseBaseTest {
+    
+    @Test
+    public void testWriteLtLowerValueIsNotRangeBlockedIfReadingBw(){
+        final Text key = Variables.register("key", TestData.getText());
+        final Value value1 = Variables.register("value1", TestData.getValue());
+        final Value value2 = Variables.register("value2", increase(value1));
+        final AtomicBoolean flag = new AtomicBoolean(true);
+        Thread t = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                RangeLock.grabForReading(key, Operator.BETWEEN, value1, value2)
+                        .readLock().lock();
+                while (flag.get() == true) {
+                    continue;
+                }
+                RangeLock.grabForReading(key, Operator.BETWEEN, value1, value2)
+                        .readLock().unlock();
+            }
+
+        });
+        t.start();
+        TestData.sleep(); // need to sleep because of thread start overhead
+        Value value3 = Variables.register("value3", decrease(value1));
+        Assert.assertFalse(RangeLock.isRangeBlocked(LockType.WRITE, null, key,
+                value3));
+        flag.set(false);
+    }
 
     @Test
     public void testWriteGtHigherValueIsNotRangeBlockedIfReadingBw() {
