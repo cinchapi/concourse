@@ -187,18 +187,6 @@ interface Store {
     public Set<Long> find(String key, Operator operator, TObject... values);
 
     /**
-     * Ping {@code record}.
-     * <p>
-     * This method returns {@code true} if and only if {@code record} currently
-     * contains data (i.e. {@link #describe(long)} returns a nonempty Set).
-     * </p>
-     * 
-     * @param record
-     * @return {@code true} if {@code record} is currently not empty
-     */
-    public boolean ping(long record);
-
-    /**
      * Search {@code key} for {@code query}.
      * <p>
      * This method performs a fulltext search for {@code query} in all data

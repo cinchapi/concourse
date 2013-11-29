@@ -365,9 +365,9 @@ public class ConcourseServer implements
                     creds)
                     && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
-            return t.ping(record);
+            return !t.describe(record).isEmpty();
         }
-        return engine.ping(record);
+        return !engine.describe(record).isEmpty();
     }
 
     @Override

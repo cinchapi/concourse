@@ -201,13 +201,6 @@ public class AtomicOperation extends BufferedStore {
     }
 
     @Override
-    public boolean ping(long record) {
-        checkState();
-        expectations.add(new RecordVersionExpectation(record));
-        return super.ping(record);
-    }
-
-    @Override
     public boolean remove(String key, TObject value, long record) {
         checkState();
         expectations.add(new KeyInRecordVersionExpectation(key, record,

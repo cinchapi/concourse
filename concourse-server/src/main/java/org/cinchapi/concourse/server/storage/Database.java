@@ -278,11 +278,6 @@ public final class Database implements PermanentStore, VersionGetter {
     }
 
     @Override
-    public boolean ping(long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record)).ping();
-    }
-
-    @Override
     public Set<Long> search(String key, String query) {
         return Transformers.transformSet(
                 getSearchRecord(Text.wrap(key), Text.wrap(query)).search(

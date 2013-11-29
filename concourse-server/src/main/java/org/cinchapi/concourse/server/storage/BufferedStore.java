@@ -192,11 +192,6 @@ abstract class BufferedStore implements Store, VersionControlStore {
         return buffer.find(context, Time.now(), key, operator, values);
     }
 
-    @Override
-    public boolean ping(long record) {
-        return buffer.ping(record) ^ destination.ping(record);
-    }
-
     /**
      * Remove {@code key} as {@code value} from {@code record}.
      * <p>

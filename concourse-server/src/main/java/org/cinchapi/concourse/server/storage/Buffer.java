@@ -274,17 +274,6 @@ final class Buffer extends Limbo {
     }
 
     @Override
-    public boolean ping(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.ping(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Iterator<Write> reverseIterator() {
         return new Iterator<Write>() {
 

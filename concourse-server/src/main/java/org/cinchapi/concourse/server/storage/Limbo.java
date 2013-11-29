@@ -252,11 +252,6 @@ abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
     @Override
     public abstract Iterator<Write> iterator();
 
-    @Override
-    public boolean ping(long record) {
-        return !describe(record).isEmpty();
-    }
-
     /**
      * Return an iterator that traverses the Writes in the store in reverse
      * order.

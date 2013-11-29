@@ -241,13 +241,6 @@ public final class Transaction extends BufferedStore {
     }
 
     @Override
-    public boolean ping(long record) {
-        checkState(open, "Cannot modify a closed transaction");
-        lockAndShare(record);
-        return super.ping(record);
-    }
-
-    @Override
     public boolean remove(String key, TObject value, long record) {
         checkState(open, "Cannot modify a closed transaction");
         lockAndIsolate(key, record);

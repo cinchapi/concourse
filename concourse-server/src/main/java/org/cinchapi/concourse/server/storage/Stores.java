@@ -212,25 +212,6 @@ final class Stores {
     }
 
     /**
-     * Invokes the {@link Store#ping(long)} method on {@code store}.
-     * 
-     * @param store
-     * @param record
-     * @return the method result
-     */
-    public static Callable<Boolean> invokePingCallable(final Store store,
-            final long record) {
-        return new Callable<Boolean>() {
-
-            @Override
-            public Boolean call() throws Exception {
-                return store.ping(record);
-            }
-
-        };
-    }
-
-    /**
      * Invokes the {@link Store#search(String, String)} method on {@code store}.
      * 
      * @param store

@@ -302,18 +302,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean ping(long record) {
-        TLock lock = TLock.grab(record);
-        lock.readLock().lock();
-        try {
-            return super.ping(record);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @Override
     public boolean remove(String key, TObject value, long record) {
         TLock lock = TLock.grab(key, record);
         TLock keyLock = TLock.grab(key); // TODO: more granular key range

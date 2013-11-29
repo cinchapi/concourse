@@ -376,28 +376,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testPingAfterAdd() {
-        long record = TestData.getLong();
-        add(TestData.getString(), TestData.getTObject(), record);
-        Assert.assertTrue(store.ping(record));
-    }
-
-    @Test
-    public void testPingAfterAddAndRemove() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        add(key, value, record);
-        remove(key, value, record);
-        Assert.assertFalse(store.ping(record));
-    }
-
-    @Test
-    public void testPingEmpty() {
-        Assert.assertFalse(store.ping(TestData.getLong()));
-    }
-
-    @Test
     @Theory
     public void testSearch(SearchType type) {
         String query = null;

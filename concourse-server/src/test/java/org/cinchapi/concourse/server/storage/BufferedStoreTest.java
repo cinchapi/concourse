@@ -41,10 +41,12 @@ import org.junit.Test;
 import org.junit.experimental.theories.Theory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 
 /**
  * Unit tests for {@link BufferedStore} that try to stress scenarios that occur
@@ -70,6 +72,45 @@ public abstract class BufferedStoreTest extends StoreTest {
             Convert.javaToThrift("nine"), Convert.javaToThrift("ten"));
     private static final List<Long> POSSIBLE_RECORDS = Lists.newArrayList(1L,
             2L, 3L, 4L, 5L, 6L, 7L);
+    
+//    @Test
+//    public void testAuditRecordBuffered(){
+////        List<Data> data = generateTestData();
+////        insertData(data);
+////        Data d = data.get(TestData.getScaleCount() % data.size());
+//        //TODO finish
+//    }
+//    
+//    @Test
+//    public void testAuditKeyInRecordBuffered(){
+//        //TODO
+//    }
+    
+    /**
+     * Convert the data elements to a {@link Table}.
+     * @param data
+     * @return a Table with the data
+     */
+    @SuppressWarnings("unused")
+    private Table<Long, String, Set<TObject>> convertDataToTable(List<Data> data){
+        Table<Long, String, Set<TObject>> table = HashBasedTable.create();
+        Iterator<Data> it = data.iterator();
+        while(it.hasNext()){
+            Data x = it.next();
+            Set<TObject> values = table.get(x.record, x.key);
+            if(values == null){
+                values = Sets.newHashSet();
+                table.put(x.record, x.key, values);
+            }
+            if(x.type == Action.ADD){
+                values.add(x.value);
+            }
+            else{
+                values.remove(x.value);
+            }        
+        }
+        return table;
+    }
 
     @Test
     public void testDescribeBuffered() {
