@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.testing.Variables;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -86,7 +87,7 @@ public abstract class AutoMapTest extends ConcourseBaseTest {
 
         @Override
         protected void starting(Description desc) {
-            instance = getInstance(LOADER, CLEANER);
+            instance = Variables.register("instance", getInstance(LOADER, CLEANER));
         }
     };
 

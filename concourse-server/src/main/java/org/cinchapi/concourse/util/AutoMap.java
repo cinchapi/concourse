@@ -26,14 +26,12 @@ package org.cinchapi.concourse.util;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.annotate.Experimental;
 
 import com.google.common.base.Function;
+import com.google.common.base.Throwables;
 
 /**
  * An AutoMap automatically manages entry creation and removal using provided
@@ -78,30 +76,90 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
      * @param delay
      * @param unit
      */
-    protected static void setCleanupDelay(long delay, TimeUnit unit) { // visible
-                                                                       // for
-                                                                       // testing
+    // --- visible for testing
+    protected static void setCleanupDelay(long delay, TimeUnit unit) {
         CLEANUP_DELAY = delay;
         CLEANUP_DELAY_UNIT = unit;
     }
 
+    /**
+     * This method is provided to access {@link #CLEANUP_DELAY} because the
+     * value may change during testing if
+     * {@link #setCleanupDelay(long, TimeUnit)}. is called.
+     * 
+     * @return {@link #CLEANUP_DELAY}.
+     */
+    private static long getCleanupDelay() {
+        return CLEANUP_DELAY;
+    }
+
+    /**
+     * This method is provided to access {@link #CLEANUP_DELAY_UNIT} because the
+     * value may change during testing if
+     * {@link #setCleanupDelay(long, TimeUnit)}. is called.
+     * 
+     * @return {@link #CLEANUP_DELAY_UNIT}.
+     */
+    private static TimeUnit getCleanupDelayUnit() {
+        return CLEANUP_DELAY_UNIT;
+    }
+
+    /**
+     * The duration of time measured in {@link #CLEANUP_DELAY_UNIT} that the
+     * {@link #cleanupThread} will sleep between cleans.
+     */
     private static long CLEANUP_DELAY = 60;
+
+    /**
+     * The time unit for {@link #CLEANUP_DELAY}.
+     */
     private static TimeUnit CLEANUP_DELAY_UNIT = TimeUnit.SECONDS;
 
+    /**
+     * The map that serves as the backingStore for the data managed by this
+     * class.
+     */
     protected final Map<K, V> backingStore;
+
+    /**
+     * The caller defined loader function.
+     */
     private final Function<K, V> loader;
+
+    /**
+     * The caller defined cleaner function.
+     */
     private final Function<V, Boolean> cleaner;
-    private final ScheduledExecutorService scheduler = Executors
-            .newScheduledThreadPool(1, new ThreadFactory() {
 
-                @Override
-                public Thread newThread(Runnable r) {
-                    Thread t = new Thread(r);
-                    t.setDaemon(true);
-                    return t;
+    /**
+     * A background thread that iterates through the map and cleans up eligible
+     * entries from time to time.
+     */
+    private final Thread cleanupThread = new Thread() {
+        {
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                for (Entry<K, V> entry : backingStore.entrySet()) {
+                    synchronized (entry) {
+                        if(cleaner.apply(entry.getValue())) {
+                            backingStore.remove(entry.getKey());
+                        }
+                    }
                 }
+                try {
+                    getCleanupDelayUnit().sleep(getCleanupDelay());
+                }
+                catch (InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
+        }
 
-            });
+    };
 
     /**
      * Construct a new instance.
@@ -115,8 +173,7 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
         this.backingStore = backingStore;
         this.loader = loader;
         this.cleaner = cleaner;
-        scheduler.scheduleWithFixedDelay(clean(), CLEANUP_DELAY, CLEANUP_DELAY,
-                CLEANUP_DELAY_UNIT);
+        cleanupThread.start();
     }
 
     @Override
@@ -131,35 +188,13 @@ public abstract class AutoMap<K, V> extends AbstractMap<K, V> {
     @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
-        V value = backingStore.get(key);
-        if(value == null) {
-            value = loader.apply((K) key);
-            backingStore.put((K) key, value);
-        }
-        return value;
-    }
-
-    /**
-     * Return a Runnable command that will go through {@link #backingStore} and
-     * apply {@link #cleaner} to all the container values.
-     * 
-     * @return the Runnable command
-     */
-    private Runnable clean() {
-        return new Runnable() {
-
-            @Override
-            public void run() {
-                synchronized (backingStore) {
-                    for (Entry<K, V> entry : backingStore.entrySet()) {
-                        if(cleaner.apply(entry.getValue())) {
-                            backingStore.remove(entry.getKey());
-                        }
-                    }
-                }
+        synchronized (key) {
+            V value = backingStore.get(key);
+            if(value == null) {
+                value = loader.apply((K) key);
+                backingStore.put((K) key, value);
             }
-
-        };
+            return value;
+        }
     }
-
 }
