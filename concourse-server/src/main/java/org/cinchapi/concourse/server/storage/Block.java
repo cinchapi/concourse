@@ -31,6 +31,8 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -71,7 +73,7 @@ import com.google.common.primitives.Longs;
  * <p>
  * Prior to 0.2, Concourse stored each logical Record in its own file, which had
  * the advantage of simplified deserialization (we only needed to locate one
- * file and read all of its content). The downside to that approach was that a
+ * file and read all of its content). The down side to that approach was that a
  * single record couldn't be deserialized if it was larger than the amount of
  * available memory. Storing data in blocks, helps to solve that problem,
  * because larger records are broken up and we can do more granular seeking to
@@ -160,10 +162,24 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private static final String INDEX_NAME_EXTENSION = ".indx";
 
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
+     * The master lock for {@link #write} and {@link #read}. DO NOT use this
+     * lock directly.
      */
-    protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+
+    /**
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no seek occurs while data is being inserted into the
+     * Block.
+     */
+    protected final WriteLock write = master.writeLock();
+
+    /**
+     * A shared lock that permits many readers and no writer. Use this lock to
+     * ensure that no data insert occurs while a seek is happening within the
+     * Block.
+     */
+    protected final ReadLock read = master.readLock();
 
     /**
      * The flag that indicates whether the Block is mutable or not. A Block is
@@ -249,7 +265,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     @Override
     public ByteBuffer getBytes() {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
             L locator = null;
@@ -306,7 +322,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return bytes;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -332,7 +348,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     public Revision<L, K, V> insert(L locator, K key, V value, long version,
             Action type) throws IllegalStateException {
-        masterLock.writeLock().lock();
+        write.lock();
         try {
             Preconditions.checkState(mutable,
                     "Cannot modify a block that is not mutable");
@@ -352,7 +368,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return revision;
         }
         finally {
-            masterLock.writeLock().unlock();
+            write.unlock();
         }
     }
 
@@ -370,12 +386,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return {@code true} if it is possible that relevant revisions exists
      */
     public boolean mightContain(L locator, K key, V value) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             return filter.mightContain(locator, key, value);
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -408,12 +424,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     @Override
     public int size() {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             return size;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -423,7 +439,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     @Override
     public void sync() {
-        masterLock.writeLock().lock();
+        write.lock();
         try {
             if(size > 0) {
                 Preconditions.checkState(mutable,
@@ -443,7 +459,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             throw Throwables.propagate(e);
         }
         finally {
-            masterLock.writeLock().unlock();
+            write.unlock();
         }
 
     }
@@ -459,7 +475,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return a string dump
      */
     protected String dump() {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Dump for " + getClass().getSimpleName() + " " + id);
@@ -487,7 +503,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return sb.toString();
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -521,7 +537,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param byteables
      */
     private void seek(Record<L, K, V> record, Byteable... byteables) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             if(filter.mightContain(byteables)) {
                 if(mutable) {
@@ -565,7 +581,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 

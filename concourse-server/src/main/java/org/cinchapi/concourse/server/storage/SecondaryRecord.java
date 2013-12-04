@@ -117,7 +117,7 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
      */
     private Set<PrimaryKey> find(boolean historical, long timestamp,
             Operator operator, Value... values) { /* Authorized */
-        masterLock.readLock().lock();
+        read.lock();
         try {
             Set<PrimaryKey> keys = Sets.newTreeSet();
             Value value = values[0];
@@ -218,7 +218,7 @@ final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
             return keys;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 

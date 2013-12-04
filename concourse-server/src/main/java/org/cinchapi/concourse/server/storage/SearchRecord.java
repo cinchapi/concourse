@@ -69,7 +69,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
      * @return the Set of PrimaryKeys
      */
     public Set<PrimaryKey> search(Text query) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             Map<PrimaryKey, Integer> reference = Maps.newHashMap();
             String[] toks = query.toString().split(" ");
@@ -99,7 +99,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
             return reference.keySet();
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 

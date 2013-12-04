@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -128,10 +130,24 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
+     * The master lock for {@link #write} and {@link #read}. DO NOT use this
+     * lock directly.
      */
-    protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+
+    /**
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no read occurs while data is being appended to the
+     * Record.
+     */
+    private final WriteLock write = master.writeLock();
+
+    /**
+     * A shared lock that permits many readers and no writer. Use this lock to
+     * ensure that no data append occurs while a read is happening within the
+     * Record.
+     */
+    protected final ReadLock read = master.readLock();
 
     /**
      * The index is used to efficiently determine the set of values currently
@@ -205,7 +221,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @param revision
      */
     public void append(Revision<L, K, V> revision) {
-        masterLock.writeLock().lock();
+        write.lock();
         try {
             // NOTE: We only need to enforce the monotonic increasing constraint
             // for PrimaryRecords because Secondary and Search records will be
@@ -262,7 +278,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
 
         }
         finally {
-            masterLock.writeLock().unlock();
+            write.unlock();
         }
     }
 
@@ -314,13 +330,13 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return the set of mapped values for {@code key}
      */
     protected Set<V> get(K key) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             return present.containsKey(key) ? Collections
                     .unmodifiableSet(present.get(key)) : emptyValues;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -333,7 +349,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return the set of mapped values for {@code key} at {@code timestamp}.
      */
     protected Set<V> get(K key, long timestamp) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             Set<V> values = emptyValues;
             if(history.containsKey(key)) {
@@ -357,7 +373,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             return values;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 

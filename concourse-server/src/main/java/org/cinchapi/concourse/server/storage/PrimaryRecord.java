@@ -74,7 +74,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
      * @return the revision log
      */
     public Map<Long, String> audit() {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             Map<Long, String> audit = Maps.newTreeMap();
             for (Text key : present.keySet()) { /* Authorized */
@@ -83,7 +83,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
             return audit;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -94,7 +94,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
      * @return the revision log
      */
     public Map<Long, String> audit(Text key) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             Map<Long, String> audit = Maps.newLinkedHashMap();
             List<Revision<PrimaryKey, Text, Value>> revisions = history
@@ -110,7 +110,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
             return audit;
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -210,7 +210,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
      * @return the Set of non-empty field keys
      */
     private Set<Text> describe(boolean historical, long timestamp) {
-        masterLock.readLock().lock();
+        read.lock();
         try {
             if(historical) {
                 Set<Text> description = Sets.newLinkedHashSet();
@@ -228,7 +228,7 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
             }
         }
         finally {
-            masterLock.readLock().unlock();
+            read.unlock();
         }
     }
 
@@ -246,13 +246,8 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
      * @return the Set of contained values
      */
     private Set<Value> fetch(Text key, boolean historical, long timestamp) {
-        masterLock.readLock().lock();
-        try {
-            return historical ? get(key, timestamp) : get(key);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        // NOTE: locking happens in super.get() methods
+        return historical ? get(key, timestamp) : get(key);
     }
 
     /**
@@ -271,14 +266,9 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
      */
     private boolean verify(Text key, Value value, boolean historical,
             long timestamp) {
-        masterLock.readLock().lock();
-        try {
-            return historical ? get(key, timestamp).contains(value) : get(key)
-                    .contains(value);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        // NOTE: locking happens in super.get() methods
+        return historical ? get(key, timestamp).contains(value) : get(key)
+                .contains(value);
     }
 
 }
