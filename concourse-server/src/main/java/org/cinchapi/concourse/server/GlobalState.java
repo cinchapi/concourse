@@ -42,7 +42,8 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public final class GlobalState {
-
+    // ========================================================================
+    // =========================== SYSTEM METADATA ============================
     /**
      * A flag to indicate if the program is running from Eclipse. This flag has
      * a value of {@code true} if the JVM is launched with the
@@ -52,13 +53,13 @@ public final class GlobalState {
             .getProperty("eclipse") != null
             && System.getProperty("eclipse").equals("true") ? true : false;
 
-    /* ***************************** CONFIG ******************************** */
+    // ========================================================================
+    // ============================== CONFIG ==================================
     /*
      * INSTRUCTIONS FOR ADDING CONFIGURATION PREFERENCES
      * 1. Create the appropriately named static variable and assigned it a
      * default value.
-     * 2. Find the // !!** CONFIG READING BLOCK **!! and attempt to read the
-     * value from the
+     * 2. Find the CONFIG READING BLOCK and attempt to read the value from the
      * prefs file, while supplying the variable you made in Step 1 as the
      * defaultValue.
      * 3. Add a placeholder for the new preference to the stock concourse.prefs
@@ -139,22 +140,33 @@ public final class GlobalState {
         catch (Exception e) {
             config = null;
         }
-        if(config != null) { // !!** CONFIG READING BLOCK **!!
+        if(config != null) {
+            // =================== CONFIG READING BLOCK ====================
             DATABASE_DIRECTORY = config.getString("database_directory",
                     DATABASE_DIRECTORY);
+
             BUFFER_DIRECTORY = config.getString("buffer_directory",
                     BUFFER_DIRECTORY);
+
             BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                     BUFFER_PAGE_SIZE);
+
             SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));
+
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+            // =================== CONFIG READING BLOCK ====================
         }
     }
-
-    /* ************************************************************************ */
+    // ========================================================================
+    // ============================= STOPWORDS ================================
+    /**
+     * The list of words that are omitted from search indexes to increase speed
+     * and improve space efficiency.
+     */
     public static final Set<String> STOPWORDS = Sets.newHashSet();
     static {
         try {
@@ -170,5 +182,6 @@ public final class GlobalState {
             throw Throwables.propagate(e);
         }
     }
+    // ========================================================================
 
 }
