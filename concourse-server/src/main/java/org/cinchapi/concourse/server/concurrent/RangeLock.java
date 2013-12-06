@@ -57,6 +57,7 @@ import com.google.common.base.Preconditions;
  */
 @SuppressWarnings("serial")
 @Experimental
+@Deprecated
 public final class RangeLock extends TLock {
     // NOTE: This class does not define hashCode() or equals() because the
     // protocol defined in the parent class is the desired behaviour.
