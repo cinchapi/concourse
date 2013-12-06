@@ -50,13 +50,6 @@ import com.google.common.base.Preconditions;
  * @param <K> - the key type
  * @param <V> - the value type
  */
-/*
- * (non-Javadoc)
- * Unlike a Write, a Revision does not contain type information since it is
- * never transported to a different Store. Therefore, we can always infer the
- * revision type y checking in it appears an even or odd number of times
- * relative to equal Revisions at a given timestamp.
- */
 @Immutable
 public abstract class Revision<L extends Comparable<L> & Byteable, K extends Comparable<K> & Byteable, V extends Comparable<V> & Byteable> implements
         Byteable,

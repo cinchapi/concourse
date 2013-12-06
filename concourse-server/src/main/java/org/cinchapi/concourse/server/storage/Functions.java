@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -36,13 +35,12 @@ import com.google.common.base.Function;
  * 
  * @author jnelson
  */
-final class Functions {
+public final class Functions {
 
     /**
      * A function that transforms an {@link TObject} to a {@link Value}.
      */
-    @PackagePrivate
-    static final Function<TObject, Value> TOBJECT_TO_VALUE = new Function<TObject, Value>() {
+    public static final Function<TObject, Value> TOBJECT_TO_VALUE = new Function<TObject, Value>() {
 
         @Override
         public Value apply(TObject input) {
@@ -53,8 +51,7 @@ final class Functions {
     /**
      * A function that transforms a {@link Value} to an {@link Object}.
      */
-    @PackagePrivate
-    static final Function<Value, TObject> VALUE_TO_TOBJECT = new Function<Value, TObject>() {
+    public static final Function<Value, TObject> VALUE_TO_TOBJECT = new Function<Value, TObject>() {
 
         @Override
         public TObject apply(Value input) {
@@ -65,8 +62,7 @@ final class Functions {
     /**
      * A function that transforms a {@link Text} object to a {@link String}.
      */
-    @PackagePrivate
-    static final Function<Text, String> TEXT_TO_STRING = new Function<Text, String>() {
+    public static final Function<Text, String> TEXT_TO_STRING = new Function<Text, String>() {
 
         @Override
         public String apply(Text input) {
@@ -77,8 +73,7 @@ final class Functions {
     /**
      * A function that transforms a {@link PrimaryKey} to a {@link Long}.
      */
-    @PackagePrivate
-    static final Function<PrimaryKey, Long> PRIMARY_KEY_TO_LONG = new Function<PrimaryKey, Long>() {
+    public static final Function<PrimaryKey, Long> PRIMARY_KEY_TO_LONG = new Function<PrimaryKey, Long>() {
 
         @Override
         public Long apply(PrimaryKey input) {

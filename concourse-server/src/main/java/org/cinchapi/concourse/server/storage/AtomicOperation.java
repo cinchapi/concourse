@@ -145,7 +145,7 @@ public class AtomicOperation extends BufferedStore {
         checkState();
         open = false;
         if(checkExpectationsAndGrabLocks()) {
-            doCommit(); // --- the magic happens here
+            doCommit();
             releaseLocks();
             return true;
         }

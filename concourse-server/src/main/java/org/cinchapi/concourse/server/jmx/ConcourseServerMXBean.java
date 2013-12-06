@@ -73,8 +73,7 @@ public interface ConcourseServerMXBean {
          */
         public static int getJmxPort() {
             // This method will not work in Windows or any platform that does
-            // not
-            // have 'grep or 'cut' installed.
+            // not have 'grep or 'cut' installed.
             int port = 0;
             try {
                 Process process = Runtime

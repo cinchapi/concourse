@@ -82,6 +82,13 @@ public final class ConcourseExecutors {
                 .newCachedThreadPool(getThreadFactory(threadNamePrefix));
     }
 
+    /**
+     * Return a thread factory that will name all threads using
+     * {@code threadNamePrefix}.
+     * 
+     * @param threadNamePrefix
+     * @return the thread factory
+     */
     private static ThreadFactory getThreadFactory(String threadNamePrefix) {
         return new ThreadFactoryBuilder()
                 .setNameFormat(threadNamePrefix + "-%d")
