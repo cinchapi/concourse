@@ -34,8 +34,50 @@ import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 
 /**
- * An AutoMap automatically manages entry creation and removal using provided
- * {@code loader} and {@code cleaner} functions.
+ * An AutoMap automatically and atomically manages entry creation and removal
+ * using provided {@code loader} and {@code cleaner} functions. This is
+ * especially useful if you have a map that associates a key to another
+ * collection and you want to be able to access the mapped collection without
+ * first checking if it exist and you want empty collections to be removed
+ * nearly on the fly without explicitly checking.
+ * <p>
+ * 
+ * Using an AutoMap you can replace
+ * 
+ * <pre>
+ * V value = map.get(key);
+ * if(value == null) {
+ *     value = load(value);
+ *     map.put(key, value);
+ * }
+ * </pre>
+ * 
+ * with
+ * 
+ * <pre>
+ * V value = map.get(key);
+ * </pre>
+ * 
+ * and be sure that {@code value} is not {@code null} because it has been
+ * previously set or atomically loaded and set with the provided {@code loader}
+ * function.
+ * </p>
+ * <p>
+ * Additionally, you never have to worry about removing entries from the map or
+ * doing any kind of cleanup based on value conditions similar to
+ * 
+ * <pre>
+ * V value = map.get(key);
+ * modify(value);
+ * if(satisifiesCondition(value)) {
+ *     map.remove(key);
+ * }
+ * </pre>
+ * 
+ * because a background thread periodically goes through the map and atomically
+ * cleans up eligible entries. The background thread uses local synchronization
+ * on entries so it never interferes with overall map operations.
+ * </p>
  * 
  * @author jnelson
  */
