@@ -10,7 +10,8 @@
 # 1. Replace HashMap with LinkedHashMap
 # 2. Replace HashSet with LinkedHashSet
 # 3. Replace shared.AccessToken with AccessToken
-# 4. shift + command + F to format
+# 4. Add @SuppressWarnings({ "rawtypes", "serial", "unchecked", "unused" }) to class
+# 5. shift + command + F to format
 
 include "data.thrift"
 include "shared.thrift"
