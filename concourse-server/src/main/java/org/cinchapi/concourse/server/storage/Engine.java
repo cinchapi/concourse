@@ -29,7 +29,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.thrift.Operator;
@@ -57,9 +57,30 @@ public final class Engine extends BufferedStore implements
         Transactional,
         Compoundable {
 
-    // NOTE: BufferedStore heavily relies on compounded operations (i.e.
-    // performing a find will query the database and then perform a fetch for
-    // each record. Since we override each of those methods and grab a TLock on
+    //
+    // NOTES ON LOCKING:
+    // =================
+    // Even though the individual storage components (Block, Record, etc)
+    // handle their own locking, we must also grab "global" coordinating locks
+    // in the Engine
+    //
+    // 1) to account for the fact that an atomic operation may lock notions of
+    // things to create a virtual fence that ensures the atomicity of its
+    // reads and writes, and
+    //
+    // 2) BufferedStore operations query the buffer and destination separately
+    // and the individual locking protocols of those stores are not sufficient
+    // to prevent dropped data (i.e. while reading from the destination it is
+    // okay to continue writing to the buffer since we'll lock there when its
+    // time BUT, between the time that we unlock in the #destination and the
+    // time when we lock in the #buffer, it is possible for a transport from the
+    // #buffer to the #destination to occur in which case the data would be
+    // dropped since it wasn't read during the #destination query and won't be
+    // read during the #buffer scan).
+    //
+    // It is important to note that we DO NOT need to do any locking for
+    // historical reads because concurrent data writes cannot affect what is
+    // returned.
 
     /**
      * The id used to determine that the Buffer should be dumped.
@@ -67,16 +88,13 @@ public final class Engine extends BufferedStore implements
     public static final String BUFFER_DUMP_ID = "BUFFER";
 
     /**
-     * The location that the engine uses as the base store for its components.
-     */
-    @PackagePrivate
-    final String bufferStore; // visible for Transaction backups
-
-    /**
      * The thread that is responsible for transporting buffer content in the
      * background.
      */
-    private final Thread bufferTransportThread;
+    private final Thread bufferTransportThread; // NOTE: Having a dedicated
+                                                // thread that sleeps is faster
+                                                // than using an
+                                                // ExecutorService.
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -114,25 +132,35 @@ public final class Engine extends BufferedStore implements
      */
     private Engine(Buffer buffer, Database database, String bufferStore) {
         super(buffer, database);
-        this.bufferStore = bufferStore;
         this.bufferTransportThread = new BufferTransportThread();
     }
 
-    /*
-     * (non-Javadoc)
-     * The Engine is a Destination for Transaction commits. The accept method
-     * here will accept a write from a Transaction and create a new Write
-     * within the underlying BufferingService (i.e. it will create a Write in
-     * the buffer that will eventually be flushed to the database). Creating a
-     * new Write does associate a new timestamp with the data, but this is the
-     * desired behaviour because the timestamp associated with transactional
-     * data should be the timestamp of the data post commit.
+    /**
+     * <p>
+     * The Engine is the destination for Transaction commits, which means that
+     * this method will accept Writes from Transactions and create new Writes
+     * within the Engine BufferedStore (e.g. a new Write will be created in the
+     * Buffer and eventually transported to the Database). Creating a new Write
+     * does associate a new timestamp with the transactional data, but this is
+     * the desired behaviour because data from a Transaction should always have
+     * a post commit timestamp.
+     * </p>
+     * <p>
+     * It is also worth calling out the fact that this method does not have any
+     * locks to prevent multiple transactions from concurrently invoking meaning
+     * that two transactions that don't have any overlapping reads/writes
+     * (meaning they don't touch any of the same data) can commit at the same
+     * time and its possible that their writes will be interleaved since calls
+     * to this method don't globally lock. This is <em>okay</em> and does not
+     * violate ACID because the <strong>observed</strong> state of the system
+     * will be the same as if the transactions transported all their Writes
+     * serially.
+     * </p>
      */
     @Override
     @DoNotInvoke
     public void accept(Write write) {
         checkArgument(write.getType() != Action.COMPARE);
-        masterLock.writeLock().lock();
         try {
             String key = write.getKey().toString();
             TObject value = write.getValue().getTObject();
@@ -151,74 +179,59 @@ public final class Engine extends BufferedStore implements
                 Logger.debug("'{}' was accepted by the Engine", write);
             }
         }
-        finally {
-            masterLock.writeLock().unlock();
-        }
+        finally {}
 
     }
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        TLock lock = TLock.grab(key, record);
-        TLock keyLock = TLock.grab(key); // TODO: more granular key range
-                                         // locking
-        lock.writeLock().lock();
-        keyLock.writeLock().lock();
+        LockService.getWriteLock(key, record).lock();
+        LockService.getWriteLock(key).lock(); // FIXME use range lock
         try {
             return super.add(key, value, record);
         }
         finally {
-            lock.writeLock().unlock();
-            keyLock.writeLock().unlock();
+            LockService.getWriteLock(key, record).unlock();
+            LockService.getWriteLock(key).unlock(); // FIXME use range lock
         }
     }
 
     @Override
     public Map<Long, String> audit(long record) {
-        TLock lock = TLock.grab(record);
-        lock.readLock().lock();
+        LockService.getReadLock(record).lock();
         try {
             return super.audit(record);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(record).unlock();
         }
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        TLock lock = TLock.grab(key, record);
-        lock.readLock().lock();
+        LockService.getReadLock(key, record).lock();
         try {
             return super.audit(key, record);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(key, record).unlock();
         }
     }
 
     @Override
     public Set<String> describe(long record) {
-        TLock lock = TLock.grab(record);
-        lock.readLock().lock();
+        LockService.getReadLock(record).lock();
         try {
             return super.describe(record);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(record).unlock();
         }
     }
 
     @Override
     public Set<String> describe(long record, long timestamp) {
-        TLock lock = TLock.grab(record);
-        lock.readLock().lock();
-        try {
-            return super.describe(record, timestamp);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return super.describe(record, timestamp);
     }
 
     /**
@@ -237,50 +250,34 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        TLock lock = TLock.grab(key, record);
-        lock.readLock().lock();
+        LockService.getReadLock(key, record).lock();
         try {
             return super.fetch(key, record);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(key, record).unlock();
         }
     }
 
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
-        TLock lock = TLock.grab(key, record);
-        lock.readLock().lock();
-        try {
-            return super.fetch(key, record, timestamp);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return super.fetch(key, record, timestamp);
     }
 
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        TLock lock = TLock.grab(key); // TODO: more granular key range locking
-        lock.readLock().lock();
-        try {
-            return super.find(timestamp, key, operator, values);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return super.find(timestamp, key, operator, values);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
-        TLock lock = TLock.grab(key); // TODO: more granular key range locking
-        lock.readLock().lock();
+        LockService.getReadLock(key).lock(); // FIXME range lock
         try {
             return super.find(key, operator, values);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(key).unlock();
         }
     }
 
@@ -303,21 +300,19 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        TLock lock = TLock.grab(key, record);
-        TLock keyLock = TLock.grab(key); // TODO: more granular key range
-                                         // locking
-        lock.writeLock().lock();
-        keyLock.writeLock().lock();
+        LockService.getWriteLock(key, record).lock();
+        LockService.getWriteLock(key).lock(); // FIXME use range lock
         try {
             return super.remove(key, value, record);
         }
         finally {
-            lock.writeLock().unlock();
-            keyLock.writeLock().unlock();
+            LockService.getWriteLock(key, record).unlock();
+            LockService.getWriteLock(key).unlock(); // FIXME use range lock
         }
     }
 
     @Override
+    // TODO: this should not be defined in the Engine
     public void revert(String key, long record, long timestamp) {
         TLock lock = TLock.grab(key, record);
         lock.writeLock().lock();
@@ -331,13 +326,12 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<Long> search(String key, String query) {
-        TLock lock = TLock.grab(key); // TODO: more granular key range locking
-        lock.readLock().lock();
+        LockService.getReadLock(key).lock(); // FIXME range lock
         try {
             return super.search(key, query);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(key).unlock(); // FIXME range lock
         }
     }
 
@@ -373,26 +367,18 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        TLock lock = TLock.grab(key, record);
-        lock.readLock().lock();
+        LockService.getReadLock(key, record).lock();
         try {
             return super.verify(key, value, record);
         }
         finally {
-            lock.readLock().unlock();
+            LockService.getReadLock(key, record).unlock();
         }
     }
 
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
-        TLock lock = TLock.grab(key, record);
-        lock.readLock().lock();
-        try {
-            return super.verify(key, value, record, timestamp);
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        return super.verify(key, value, record, timestamp);
     }
 
     /**
@@ -408,6 +394,7 @@ public final class Engine extends BufferedStore implements
          */
         public BufferTransportThread() {
             super("BufferTransport");
+            setDaemon(true);
         }
 
         @Override

@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.storage;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
@@ -54,14 +53,19 @@ import static com.google.common.base.Preconditions.*;
 @PackagePrivate
 abstract class BufferedStore implements Store, VersionControlStore {
 
-    // NOTE: This class DOES NOT implement any locking directly, so it is
-    // ThreadSafe iff the #buffer and #destination are. Nevertheless, a
-    // #masterLock is provided to subclasses in the event that they need to
-    // ensure some thread safety directly.
+    // NOTE ON LOCKING:
+    // ================
+    // We can't do any global locking to coordinate the #buffer and #destination
+    // in this class because we cannot make assumptions about how the
+    // implementing class actually wants to handle concurrency (i.e. an
+    // AtomicOperation does not grab any coordinating locks until it goes to
+    // commit so that it doesn't do any unnecessary blocking).
 
-    // NOTE: Methods in this class do not simply defer to their timestamp
+    // NOTE ON HISTORICAL READS
+    // ========================
+    // Buffered historical reads do not merely delegate to their timestamp
     // accepting counterparts because we expect the #destination to use
-    // different code paths for present vs historical operations unlike Limbo.
+    // different code paths for present vs historical reads unlike Limbo.
 
     /**
      * The {@code buffer} is the place where data is initially stored. The
@@ -77,12 +81,6 @@ abstract class BufferedStore implements Store, VersionControlStore {
      * method.
      */
     protected final PermanentStore destination;
-
-    /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
-     */
-    protected final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
      * Construct a new instance.
@@ -176,7 +174,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
             TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(timestamp, key, operator, values);
-        for(long record: records){
+        for (long record : records) {
             context.put(record, destination.fetch(key, record));
         }
         return buffer.find(context, timestamp, key, operator, values);
@@ -186,7 +184,7 @@ abstract class BufferedStore implements Store, VersionControlStore {
     public Set<Long> find(String key, Operator operator, TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(key, operator, values);
-        for(long record: records){
+        for (long record : records) {
             context.put(record, destination.fetch(key, record));
         }
         return buffer.find(context, Time.now(), key, operator, values);

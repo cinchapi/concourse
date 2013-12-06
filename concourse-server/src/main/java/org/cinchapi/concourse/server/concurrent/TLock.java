@@ -67,7 +67,9 @@ import com.google.common.cache.RemovalNotification;
  * 
  * @author jnelson
  */
+@SuppressWarnings("serial")
 @Immutable
+@Deprecated
 public class TLock extends ReentrantReadWriteLock {
 
     /**
@@ -96,6 +98,14 @@ public class TLock extends ReentrantReadWriteLock {
         catch (ExecutionException e) {
             throw Throwables.propagate(e);
         }
+    }
+    
+    public static void writeLock(Object...objects){
+        grab(objects).writeLock().lock();
+    }
+    
+    public static void writeUnlock(Object...objects){
+        grab(objects).writeLock().unlock();
     }
 
     /**
@@ -154,10 +164,6 @@ public class TLock extends ReentrantReadWriteLock {
                 }
 
             });
-
-    private static final long serialVersionUID = 1L; // Serializability
-                                                     // inherited from super
-                                                     // class
 
     /**
      * The token not only identifies this lock, but governs rules for the

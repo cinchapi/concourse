@@ -113,8 +113,7 @@ public final class Transaction extends BufferedStore {
      */
     private Transaction(Engine destination) {
         super(new Queue(initialCapacity), destination);
-        this.transactionStore = destination.bufferStore + File.separator
-                + "transactions";
+        this.transactionStore = null;
     }
 
     /**
