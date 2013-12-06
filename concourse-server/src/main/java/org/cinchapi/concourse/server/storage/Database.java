@@ -188,8 +188,9 @@ public final class Database implements PermanentStore, VersionGetter {
 
     @Override
     public void accept(Write write) {
-        // NOTE: Write locking happens in each individual Block, so there is no
-        // need to worry about that here.
+        // NOTE: Write locking happens in each individual Block, and furthermore
+        // this method is only called from the Buffer, which transports data
+        // serially.
         ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
                 new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
                 new BlockWriter(ctb0, write));
