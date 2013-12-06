@@ -32,10 +32,13 @@ import javax.annotation.Nullable;
 import org.cinchapi.concourse.annotate.Experimental;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.AutoHashMap;
 import org.cinchapi.concourse.util.AutoMap;
 import org.cinchapi.concourse.util.AutoSkipListMap;
+import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -67,9 +70,37 @@ public final class RangeLock extends TLock {
      * @param values
      * @return the RangeLock
      */
+    public static RangeLock grabForReading(String key, Operator operator,
+            TObject... values) {
+        return grabForReading(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class));
+    }
+
+    /**
+     * Return a {@link RangeLock} that can be used for reading {@code key}
+     * {@code operator} {@code values}.
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return the RangeLock
+     */
     public static RangeLock grabForReading(Text key, Operator operator,
             Value... values) {
         return new RangeLock(key, operator, values);
+    }
+
+    /**
+     * Return a {@link RangeLock} that can be used for writing {@code key} as
+     * {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return the RangeLock
+     */
+    public static RangeLock grabForWriting(String key, TObject value) {
+        return grabForWriting(Text.wrap(key), Value.wrap(value));
     }
 
     /**
