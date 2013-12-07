@@ -210,14 +210,6 @@ public class AtomicOperation extends BufferedStore {
     }
 
     @Override
-    public void revert(String key, long record, long timestamp) {
-        checkState();
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.WRITE));
-        super.revert(key, record, timestamp);
-    }
-
-    @Override
     public Set<Long> search(String key, String query) {
         checkState();
         expectations.add(new KeyVersionExpectation(key));

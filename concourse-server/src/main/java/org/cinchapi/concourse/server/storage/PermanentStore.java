@@ -27,7 +27,7 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 
 /**
  * A {@link Store} that accepts {@link Write} objects that are transported from
- * a {@link ProxyStore}. This service relies on rich indexing to offer optimal
+ * a {@link Limbo}. This service relies on rich indexing to offer optimal
  * read performance.
  * 
  * @author jnelson

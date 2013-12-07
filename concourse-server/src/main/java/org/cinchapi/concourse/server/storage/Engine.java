@@ -30,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.server.concurrent.LockService;
-import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
@@ -311,19 +310,6 @@ public final class Engine extends BufferedStore implements
         finally {
             LockService.getWriteLock(key, record).unlock();
             LockService.getWriteLock(key).unlock(); // FIXME use range lock
-        }
-    }
-
-    @Override
-    // TODO: this should not be defined in the Engine
-    public void revert(String key, long record, long timestamp) {
-        TLock lock = TLock.grab(key, record);
-        lock.writeLock().lock();
-        try {
-            super.revert(key, record, timestamp);
-        }
-        finally {
-            lock.writeLock().unlock();
         }
     }
 

@@ -249,13 +249,6 @@ public final class Transaction extends BufferedStore {
     }
 
     @Override
-    public void revert(String key, long record, long timestamp) {
-        checkState(open, "Cannot modify a closed transaction");
-        lockAndIsolate(key, record);
-        super.revert(key, record, timestamp);
-    }
-
-    @Override
     public Set<Long> search(String key, String query) {
         checkState(open, "Cannot modify a closed transaction");
         lockAndShare(key);

@@ -51,7 +51,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * @author jnelson
  */
-public abstract class BufferedStore implements Store, VersionControlStore {
+public abstract class BufferedStore implements Store {
 
     // NOTE ON LOCKING:
     // ================
@@ -210,21 +210,6 @@ public abstract class BufferedStore implements Store, VersionControlStore {
             return buffer.insert(write); /* Authorized */
         }
         return false;
-    }
-
-    @Override
-    public void revert(String key, long record, long timestamp) {
-        Set<TObject> past = fetch(key, record, timestamp);
-        Set<TObject> present = fetch(key, record);
-        Set<TObject> xor = Sets.symmetricDifference(past, present);
-        for (TObject value : xor) {
-            if(present.contains(value)) {
-                remove(key, value, record);
-            }
-            else {
-                add(key, value, record);
-            }
-        }
     }
 
     @Override

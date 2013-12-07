@@ -387,14 +387,8 @@ public class ConcourseServer implements
     public void revert(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction) throws TException {
         authenticate(creds);
-        if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
-            Transaction t = transactions.get(transaction);
-            t.revert(key, record, timestamp);
-        }
-        engine.revert(key, record, timestamp);
+        throw new UnsupportedOperationException();
+        // TODO implement this using AtomicOperation
     }
 
     @Override

@@ -31,20 +31,17 @@ import org.cinchapi.concourse.thrift.TObject;
 
 /**
  * <p>
- * A {@link Store} is a revisioning service that provides mechanisms to read
- * data from both current and previous states.
+ * A {@link Store} is a revisioning service that defines primitive operations to
+ * read data from both current and previous states.
  * </p>
  * <p>
  * A {@code Store} can acquire data in one of two ways: directly if it is a
- * {@link WritableStore} or eventually if it is a {@link PermanentStore}.
- * Additionally, the {@code store} can revert data to previous versions if it is
- * a {@link VersionControlStore}.
+ * {@link Limbo} or <em>eventually</em> if it is a {@link PermanentStore}.
  * </p>
  * <p>
- * In general, a {@code ProxyStore} and {@code PermanentStore} work together in
- * a {@link BufferedStore} to improve write performance by immediately
- * committing writes into a durable buffer before batch indexing them in the
- * background.
+ * In general, a {@code Limbo} and {@code PermanentStore} work together in a
+ * {@link BufferedStore} to improve write performance by immediately committing
+ * writes into a durable buffer before batch indexing them in the background.
  * </p>
  * 
  * @author jnelson
