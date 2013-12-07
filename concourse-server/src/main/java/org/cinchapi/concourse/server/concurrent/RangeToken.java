@@ -27,26 +27,34 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
- * 
+ * A specialized {@link Token} that is used to define the scope of a lock
+ * acquired by a {@link RangeLockService}.
+ * <p>
+ * In general, callers interested in range locking should not use a RangeToken
+ * directly but should feed the relevant data to
+ * {@link RangeLockService#getReadLock(Text, Operator, Value...)} or
+ * {@link RangeLockService#getWriteLock(Text, Value)}.
+ * </p>
  * 
  * @author jnelson
  */
-public class RangeToken extends Token {
+@PackagePrivate
+class RangeToken extends Token {
 
     /**
      * Return the RangeToken encoded in {@code bytes} so long as those bytes
-     * adhere
-     * to the format specified by the {@link #getBytes()} method. This method
-     * assumes that all the bytes in the {@code bytes} belong to the RangeToken.
-     * In
-     * general, it is necessary to get the appropriate RangeToken slice from the
-     * parent ByteBuffer using {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * RangeToken. In general, it is necessary to get the appropriate RangeToken
+     * slice from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
      * 
      * @param bytes
      * @return the RangeToken
@@ -57,15 +65,28 @@ public class RangeToken extends Token {
 
     /**
      * Return a {@link RangeToken} that wraps {@code key} {@code operator}
-     * {@code values}.
+     * {@code values} for the purpose of reading.
      * 
      * @param key
      * @param operator
      * @param values
      * @return the RangeToken
      */
-    public static RangeToken wrap(Text key, Operator operator, Value... values) {
+    public static RangeToken forReading(Text key, Operator operator,
+            Value... values) {
         return new RangeToken(key, operator, values);
+    }
+
+    /**
+     * Return a {@link RangeToken} that wraps {@code key} as {@code value} for
+     * the purpose of writing.
+     * 
+     * @param key
+     * @param value
+     * @return the RangeToken
+     */
+    public static RangeToken forWriting(Text key, Value value) {
+        return new RangeToken(key, null, value);
     }
 
     /**

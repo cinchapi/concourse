@@ -33,8 +33,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.cinchapi.concourse.annotate.Experimental;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.AutoMap;
+import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -57,13 +60,30 @@ import com.google.common.base.Preconditions;
  * subsequent requests for locks identified by the same token will return
  * different instances. This is unlikely to happen in practice, but it is
  * recommended that lock grabs happen immediately after lock requests just to be
- * safe.
+ * safe (e.g
+ * <code>RangeLockService.getReadLock(key, operator, value).lock()</code>).
  * </p>
  * 
  * @author jnelson
  */
 @Experimental
 public final class RangeLockService {
+
+    /**
+     * Return the ReadLock that is identified by {@code objects}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param objects
+     * @return the ReadLock
+     */
+    public static ReadLock getReadLock(String key, Operator operator,
+            TObject... values) {
+        return getReadLock(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class));
+    }
+    
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
@@ -88,12 +108,27 @@ public final class RangeLockService {
             values[length] = Value.NEGATIVE_INFINITY;
         }
         else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
+            // NOTE: This will block any writers on the #key whenever there is a
+            // REGEX or NOT_REGEX read, which isn't the most efficient approach,
+            // but is the least burdensome, which is okay for now...
             values = Arrays.copyOf(values, length + 2);
             values[length] = Value.POSITIVE_INFINITY;
             values[length + 1] = Value.NEGATIVE_INFINITY;
 
         }
-        return getReadLock(RangeToken.wrap(key, operator, values));
+        return getReadLock(RangeToken.forReading(key, operator, values));
+    }
+
+    /**
+     * Return the WriteLock that is identified by {@code objects}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param objects
+     * @return the WriteLock
+     */
+    public static WriteLock getWriteLock(String key, TObject value){
+        return getWriteLock(Text.wrap(key), Value.wrap(value));
     }
 
     /**
@@ -105,32 +140,7 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     public static WriteLock getWriteLock(Text key, Value value) {
-        return getWriteLock(RangeToken.wrap(key, null, value));
-    }
-
-    /**
-     * Return the ReadLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the ReadLock
-     */
-    protected static ReadLock getReadLock(RangeToken token) {
-        return CACHE.get(token).readLock();
-    }
-
-    /**
-     * Return the WriteLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the WriteLock
-     */
-    protected static WriteLock getWriteLock(RangeToken token) {
-        return CACHE.get(token).writeLock();
-
+        return getWriteLock(RangeToken.forWriting(key, value));
     }
 
     /**
@@ -144,7 +154,8 @@ public final class RangeLockService {
      * @param token
      * @return {@code true} if range blocked
      */
-    protected static final boolean isRangedBlock(LockType type, RangeToken token) {
+    protected static final boolean isRangeBlocked(LockType type,
+            RangeToken token) {
         Value value = token.getValues()[0];
         Iterator<Entry<RangeToken, RangeReadWriteLock>> it = CACHE.entrySet()
                 .iterator();
@@ -161,10 +172,10 @@ public final class RangeLockService {
                         switch (token.getOperator()) {
                         // If I want to READ X, I am blocked if:
                         case BETWEEN:
-                            if((myValue.compareTo(value) <= 0 && myValue
-                                    .compareTo(token.getValues()[1]) > 0)
-                                    || (myValue.compareTo(token.getValues()[1])) <= 0
-                                    && myValue.compareTo(value) > 0) {
+                            if((myValue.compareTo(value) >= 0 && myValue
+                                    .compareTo(token.getValues()[1]) < 0)
+                                    || (myValue.compareTo(token.getValues()[1])) >= 0
+                                    && myValue.compareTo(value) < 0) {
                                 return true;
                             }
                             break;
@@ -221,7 +232,7 @@ public final class RangeLockService {
         }
         else {
             // If I want to WRITE X, I am blocked if there is a READ smaller
-            // than X and another READ larger than X
+            // than X and another READ larger than X OR there is a READ for X
             boolean foundSmaller = false;
             boolean foundLarger = false;
             while (it.hasNext() && (!foundSmaller || !foundLarger)) {
@@ -231,15 +242,45 @@ public final class RangeLockService {
                 if(myToken.getKey().equals(token.getKey())
                         && myLock.getReadLockCount() > 0) {
                     for (Value myValue : myToken.getValues()) {
-                        foundSmaller = value.compareTo(myValue) >= 0 ? true
-                                : foundSmaller;
-                        foundLarger = value.compareTo(myValue) < 0 ? true
-                                : foundLarger;
+                        if(value.equals(myValue)) {
+                            return true;
+                        }
+                        else {
+                            foundSmaller = value.compareTo(myValue) >= 0 ? true
+                                    : foundSmaller;
+                            foundLarger = value.compareTo(myValue) < 0 ? true
+                                    : foundLarger;
+                        }
                     }
                 }
             }
             return foundSmaller && foundLarger;
         }
+    }
+
+    /**
+     * Return the ReadLock that is identified by {@code token}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param token
+     * @return the ReadLock
+     */
+    private static ReadLock getReadLock(RangeToken token) {
+        return CACHE.get(token).readLock();
+    }
+
+    /**
+     * Return the WriteLock that is identified by {@code token}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param token
+     * @return the WriteLock
+     */
+    private static WriteLock getWriteLock(RangeToken token) {
+        return CACHE.get(token).writeLock();
+
     }
 
     /**
@@ -292,7 +333,7 @@ public final class RangeLockService {
 
                 @Override
                 public void lock() {
-                    while (isRangedBlock(LockType.READ, token)) {
+                    while (isRangeBlocked(LockType.READ, token)) {
                         continue;
                     }
                     super.lock();
@@ -307,7 +348,7 @@ public final class RangeLockService {
 
                 @Override
                 public void lock() {
-                    while (isRangedBlock(LockType.WRITE, token)) {
+                    while (isRangeBlocked(LockType.WRITE, token)) {
                         continue;
                     }
                     super.lock();

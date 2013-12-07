@@ -519,7 +519,7 @@ public final class RangeLock extends TLock {
      * @param values
      */
     private RangeLock(Text key, @Nullable Operator operator, Value... values) {
-        super(RangeToken.wrap(key, operator, values));
+        super(RangeToken.forReading(key, operator, values));
         this.key = key;
         this.values = values;
         this.operator = operator;

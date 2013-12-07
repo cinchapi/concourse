@@ -42,7 +42,7 @@ import com.google.common.base.Function;
  * subsequent requests for locks identified by the same token will return
  * different instances. This is unlikely to happen in practice, but it is
  * recommended that lock grabs happen immediately after lock requests just to be
- * safe.
+ * safe (e.g <code>LockService.getReadLock(key, record).lock()</code>).
  * </p>
  * 
  * @author jnelson
