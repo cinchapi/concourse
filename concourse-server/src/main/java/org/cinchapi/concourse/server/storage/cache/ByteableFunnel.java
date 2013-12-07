@@ -21,22 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.cache;
 
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.Composite;
+import org.cinchapi.concourse.util.ByteBuffers;
+
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 
 /**
- * 
+ * A {@link Funnel} for {@link Byteable} objects.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class })
-public class StoreSuite {
+public enum ByteableFunnel implements Funnel<Composite> {
+    INSTANCE;
 
+    @Override
+    public void funnel(Composite from, PrimitiveSink into) {
+        into.putBytes(ByteBuffers.toByteArray(from.getBytes()));
+    }
 }

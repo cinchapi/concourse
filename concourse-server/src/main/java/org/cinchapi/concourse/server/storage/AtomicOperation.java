@@ -36,6 +36,7 @@ import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.TLock;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;

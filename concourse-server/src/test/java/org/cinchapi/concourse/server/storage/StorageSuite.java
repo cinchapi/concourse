@@ -23,6 +23,10 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import org.cinchapi.concourse.server.storage.db.BlockSuite;
+import org.cinchapi.concourse.server.storage.db.RecordSuite;
+import org.cinchapi.concourse.server.storage.db.RevisionTest;
+import org.cinchapi.concourse.server.storage.temp.WriteTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;

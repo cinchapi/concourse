@@ -36,11 +36,11 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.storage.Action;
-import org.cinchapi.concourse.server.storage.PrimaryRevision;
-import org.cinchapi.concourse.server.storage.Revision;
-import org.cinchapi.concourse.server.storage.SearchRevision;
-import org.cinchapi.concourse.server.storage.SecondaryRevision;
-import org.cinchapi.concourse.server.storage.Write;
+import org.cinchapi.concourse.server.storage.db.PrimaryRevision;
+import org.cinchapi.concourse.server.storage.db.Revision;
+import org.cinchapi.concourse.server.storage.db.SearchRevision;
+import org.cinchapi.concourse.server.storage.db.SecondaryRevision;
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 

@@ -21,22 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.db;
 
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import javax.annotation.concurrent.ThreadSafe;
+
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Action;
 
 /**
- * 
+ * A Block that stores PrimaryRevisions data to be used in a PrimaryRecord.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class })
-public class StoreSuite {
+@ThreadSafe
+@PackagePrivate
+final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
+
+    /**
+     * DO NOT CALL!!
+     * 
+     * @param id
+     * @param directory
+     * @param diskLoad
+     */
+    @PackagePrivate
+    @DoNotInvoke
+    PrimaryBlock(String id, String directory, boolean diskLoad) {
+        super(id, directory, diskLoad);
+    }
+
+    @Override
+    protected PrimaryRevision makeRevision(PrimaryKey locator, Text key,
+            Value value, long version, Action type) {
+        return Revision.createPrimaryRevision(locator, key, value, version,
+                type);
+    }
+
+    @Override
+    protected Class<PrimaryRevision> xRevisionClass() {
+        return PrimaryRevision.class;
+    }
 
 }

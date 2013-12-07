@@ -36,6 +36,8 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.temp.Queue;
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -339,7 +341,7 @@ public final class Transaction extends BufferedStore {
         int lockSize = 4 + (locks.size() * TransactionLock.SIZE);
         out.write(lockSize);
         out.write(locks.values(), TransactionLock.SIZE);
-        out.write(((Queue) buffer).writes); /* Authorized */
+        out.write(((Queue) buffer).getWrites()); /* Authorized */
         out.close();
         return out.toByteBuffer();
     }

@@ -21,47 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.db;
 
-import org.cinchapi.concourse.server.storage.temp.Write;
-import org.cinchapi.concourse.util.TestData;
-import org.junit.Test;
+import javax.annotation.concurrent.ThreadSafe;
 
-import com.carrotsearch.junitbenchmarks.AbstractBenchmark;
-import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
+import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Action;
 
 /**
- * 
+ * A Block that stores SecondaryRevision data to be used in a SecondaryRecord.
  * 
  * @author jnelson
  */
-public class StorageBenchmark extends AbstractBenchmark {
+@ThreadSafe
+@PackagePrivate
+final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
 
-    @Test
-    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-    public void benchmarkWriteAdd() {
-        Write.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
+    /**
+     * DO NOT CALL!!
+     * 
+     * @param id
+     * @param directory
+     * @param diskLoad
+     */
+    @PackagePrivate
+    @DoNotInvoke
+    SecondaryBlock(String id, String directory, boolean diskLoad) {
+        super(id, directory, diskLoad);
     }
 
-    @Test
-    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-    public void benchmarkWriteRemove() {
-        Write.remove(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
+    @Override
+    protected SecondaryRevision makeRevision(Text locator, Value key,
+            PrimaryKey value, long version, Action type) {
+        return Revision.createSecondaryRevision(locator, key, value, version,
+                type);
     }
 
-    @Test
-    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-    public void benchmarkWriteNotStorable() {
-        Write.notStorable(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
+    @Override
+    protected Class<SecondaryRevision> xRevisionClass() {
+        return SecondaryRevision.class;
     }
-
-    @Test
-    @BenchmarkOptions(benchmarkRounds = 1000, warmupRounds = 10)
-    public void benchmarkBufferInsert() {
-        // TODO
-    }
-
 }

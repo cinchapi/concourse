@@ -26,7 +26,6 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 
@@ -50,8 +49,7 @@ import org.cinchapi.concourse.thrift.TObject;
  * 
  * @author jnelson
  */
-@PackagePrivate
-interface Store {
+public interface Store {
 
     /**
      * Audit {@code record}.

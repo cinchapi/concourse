@@ -21,22 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.temp;
 
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.storage.Store;
+import org.cinchapi.concourse.server.storage.temp.Queue;
 
 /**
- * 
+ * Unit tests for {@link Queue}.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class })
-public class StoreSuite {
+public class QueueTest extends LimboTest {
+
+    @Override
+    protected Queue getStore() {
+        return new Queue(100);
+    }
+
+    @Override
+    protected void cleanup(Store store) {
+        // do nothing
+    }
 
 }

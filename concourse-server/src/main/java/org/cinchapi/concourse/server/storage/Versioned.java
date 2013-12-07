@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
-
 /**
  * An object that is versioned by a unique 8 byte long (i.e. a timestamp). The
  * version is stored directly with the object so that it does not change when
@@ -33,8 +31,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
  * 
  * @author jnelson
  */
-@PackagePrivate
-interface Versioned {
+public interface Versioned {
 
     /**
      * Represents a {@code null} version, which indicates that the object is

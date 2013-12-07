@@ -21,22 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.db;
 
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.db.Block;
+import org.cinchapi.concourse.server.storage.db.SecondaryBlock;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.TestData;
 
 /**
  * 
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class })
-public class StoreSuite {
+public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
+
+    @Override
+    protected Text getLocator() {
+        return TestData.getText();
+    }
+
+    @Override
+    protected Value getKey() {
+        return TestData.getValue();
+    }
+
+    @Override
+    protected PrimaryKey getValue() {
+        return TestData.getPrimaryKey();
+    }
+
+    @Override
+    protected SecondaryBlock getMutableBlock(String directory) {
+        return Block.createSecondaryBlock(Long.toString(Time.now()), directory);
+    }
 
 }

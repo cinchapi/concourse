@@ -26,7 +26,8 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
+import org.cinchapi.concourse.server.storage.temp.Limbo;
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -50,8 +51,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * @author jnelson
  */
-@PackagePrivate
-abstract class BufferedStore implements Store, VersionControlStore {
+public abstract class BufferedStore implements Store, VersionControlStore {
 
     // NOTE ON LOCKING:
     // ================

@@ -21,22 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.temp;
 
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 
 /**
- * 
+ * An unchecked exception that is thrown when an attempt is made to insert a
+ * {@link Write} into a {@link Limbo} that does not have enough
+ * capacity.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class })
-public class StoreSuite {
+@PackagePrivate
+class CapacityException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
 }
