@@ -168,12 +168,24 @@ public abstract class Random {
     }
 
     /**
-     * Pause execution for a random number of milliseconds between 0 and 1
-     * second.
+     * Pause execution for a random number of milliseconds between 0 and 1000 (1
+     * second).
      */
     public static void sleep() {
         try {
             Thread.sleep(rand.nextInt(1000) + 1); // between 0 and 1 second
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Pause execution for a random number of milliseconds between 100 and 200.
+     */
+    public static void tinySleep() {
+        try {
+            Thread.sleep(rand.nextInt(200) + 100); // between a and 100 ms
         }
         catch (InterruptedException e) {
             e.printStackTrace();
