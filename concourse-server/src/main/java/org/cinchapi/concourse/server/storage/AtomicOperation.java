@@ -32,8 +32,11 @@ import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.annotate.Authorized;
+import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.LockType;
-import org.cinchapi.concourse.server.concurrent.TLock;
+import org.cinchapi.concourse.server.concurrent.RangeLockService;
+import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.storage.temp.Queue;
@@ -307,7 +310,7 @@ public class AtomicOperation extends BufferedStore {
                 description.getLock().lock();
             }
             if(expectation instanceof KeyVersionExpectation) {
-                //TODO grab a range lock
+                // TODO grab a range lock
             }
         }
         return true;
@@ -448,7 +451,7 @@ public class AtomicOperation extends BufferedStore {
     }
 
     /**
-     * A LockDescription is a wrapper around a {@link TLock} that contains
+     * A LockDescription is a wrapper around a {@link Lock} that contains
      * metadata that can be serialized to disk. The AtomicOperation grabs a
      * collection of LockDescriptions when it goes to commit.
      * 
@@ -464,8 +467,29 @@ public class AtomicOperation extends BufferedStore {
          */
         public static LockDescription forVersionExpectation(
                 VersionExpectation expectation) {
-            return new LockDescription(TLock.grabWithToken(expectation
-                    .getToken()), expectation.getLockType());
+            switch (expectation.getLockType()) {
+            case RANGE_READ:
+                return new LockDescription(expectation.getToken(),
+                        RangeLockService.getReadLock((RangeToken) expectation
+                                .getToken()), expectation.getLockType());
+            case RANGE_WRITE:
+                return new LockDescription(expectation.getToken(),
+                        RangeLockService.getWriteLock((RangeToken) expectation
+                                .getToken()), expectation.getLockType());
+
+            case READ:
+                return new LockDescription(expectation.getToken(),
+                        LockService.getReadLock(expectation.getToken()),
+                        expectation.getLockType());
+
+            case WRITE:
+                return new LockDescription(expectation.getToken(),
+                        LockService.getWriteLock(expectation.getToken()),
+                        expectation.getLockType());
+            default:
+                return null;
+
+            }
         }
 
         /**
@@ -479,10 +503,31 @@ public class AtomicOperation extends BufferedStore {
          * @param bytes
          * @return the LockDescription
          */
+        @Authorized
         public static LockDescription fromByteBuffer(ByteBuffer bytes) {
             LockType type = LockType.values()[bytes.get()];
-            TLock lock = TLock.grabWithToken(Token.fromByteBuffer(bytes));
-            return new LockDescription(lock, type);
+            Token token = null;
+            Lock lock = null;
+            switch (type) {
+            case RANGE_READ:
+                token = RangeToken.fromByteBuffer(bytes);
+                lock = RangeLockService.getReadLock((RangeToken) token); // authorized
+                break;
+            case RANGE_WRITE:
+                token = RangeToken.fromByteBuffer(bytes);
+                lock = RangeLockService.getWriteLock((RangeToken) token); // authorized
+                break;
+            case READ:
+                token = Token.fromByteBuffer(bytes);
+                lock = LockService.getReadLock(token);
+                break;
+            case WRITE:
+                token = Token.fromByteBuffer(bytes);
+                lock = LockService.getWriteLock(token);
+                break;
+
+            }
+            return new LockDescription(token, lock, type);
         }
 
         /**
@@ -490,18 +535,21 @@ public class AtomicOperation extends BufferedStore {
          */
         private static final int SIZE = Token.SIZE + 1; // token, type (1)
 
-        private final TLock lock;
+        private final Token token;
+        private final Lock lock;
         private final LockType type;
 
         /**
          * Construct a new instance.
          * 
+         * @param token
          * @param lock
          * @param type
          */
-        private LockDescription(TLock lock, LockType type) {
+        private LockDescription(Token token, Lock lock, LockType type) {
             this.lock = lock;
             this.type = type;
+            this.token = token;
         }
 
         @Override
@@ -512,7 +560,7 @@ public class AtomicOperation extends BufferedStore {
             // to commit, so its best to not create a copy if we don't have to
             ByteBuffer bytes = ByteBuffer.allocate(SIZE);
             bytes.put((byte) type.ordinal());
-            bytes.put(lock.getToken().getBytes());
+            bytes.put(token.getBytes());
             bytes.rewind();
             return bytes;
         }
@@ -526,7 +574,7 @@ public class AtomicOperation extends BufferedStore {
          * @return the Read or Write lock.
          */
         public Lock getLock() {
-            return type == LockType.WRITE ? lock.writeLock() : lock.readLock();
+            return lock;
         }
 
         /**

@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.annotate.Experimental;
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -70,6 +71,18 @@ import com.google.common.base.Preconditions;
 public final class RangeLockService {
 
     /**
+     * Return the ReadLock that is identified by {@code token}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param token
+     * @return the ReadLock
+     */
+    public static ReadLock getReadLock(RangeToken token) {
+        return CACHE.get(token).readLock();
+    }
+    
+    /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
@@ -83,7 +96,7 @@ public final class RangeLockService {
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
     }
-    
+
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
@@ -120,6 +133,19 @@ public final class RangeLockService {
     }
 
     /**
+     * Return the WriteLock that is identified by {@code token}. Every caller
+     * requesting a lock for {@code token} is guaranteed to get the same
+     * instance if the lock is currently held by a reader of a writer.
+     * 
+     * @param token
+     * @return the WriteLock
+     */
+    public static WriteLock getWriteLock(RangeToken token) {
+        return CACHE.get(token).writeLock();
+
+    }
+
+    /**
      * Return the WriteLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
@@ -127,6 +153,7 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
+    @Restricted
     public static WriteLock getWriteLock(String key, TObject value){
         return getWriteLock(Text.wrap(key), Value.wrap(value));
     }
@@ -139,6 +166,7 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
+    @Restricted
     public static WriteLock getWriteLock(Text key, Value value) {
         return getWriteLock(RangeToken.forWriting(key, value));
     }
@@ -256,31 +284,6 @@ public final class RangeLockService {
             }
             return foundSmaller && foundLarger;
         }
-    }
-
-    /**
-     * Return the ReadLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the ReadLock
-     */
-    private static ReadLock getReadLock(RangeToken token) {
-        return CACHE.get(token).readLock();
-    }
-
-    /**
-     * Return the WriteLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the WriteLock
-     */
-    private static WriteLock getWriteLock(RangeToken token) {
-        return CACHE.get(token).writeLock();
-
     }
 
     /**

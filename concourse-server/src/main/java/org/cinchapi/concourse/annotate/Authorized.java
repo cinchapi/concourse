@@ -21,13 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.concurrent;
+package org.cinchapi.concourse.annotate;
 
 /**
- * The LockType describes the kind of lock (shared of exclusive) to use.
+ * Used to indicate that a resource is validly using a {@link Restricted}
+ * resource.
  * 
  * @author jnelson
  */
-public enum LockType {
-    READ, WRITE, RANGE_READ, RANGE_WRITE
+public @interface Authorized {
+
 }

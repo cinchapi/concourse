@@ -27,7 +27,6 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
@@ -45,8 +44,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
  * 
  * @author jnelson
  */
-@PackagePrivate
-class RangeToken extends Token {
+public class RangeToken extends Token {
 
     /**
      * Return the RangeToken encoded in {@code bytes} so long as those bytes
