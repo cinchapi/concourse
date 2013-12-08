@@ -304,13 +304,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean remove(String key, TObject value, long record) {
         LockService.getWriteLock(key, record).lock();
-        LockService.getWriteLock(key).lock(); // FIXME use range lock
+        RangeLockService.getWriteLock(key, value).lock();
         try {
             return super.remove(key, value, record);
         }
         finally {
             LockService.getWriteLock(key, record).unlock();
-            LockService.getWriteLock(key).unlock(); // FIXME use range lock
+            RangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
