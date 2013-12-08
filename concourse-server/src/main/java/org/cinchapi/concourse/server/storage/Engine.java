@@ -316,13 +316,11 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<Long> search(String key, String query) {
-        LockService.getReadLock(key).lock(); // FIXME range lock
-        try {
-            return super.search(key, query);
-        }
-        finally {
-            LockService.getReadLock(key).unlock(); // FIXME range lock
-        }
+        // NOTE: Range locking for a search query requires too much overhead, so
+        // we must be willing to live with the fact that a search query may
+        // provide inconsistent results if a match is added while the read is
+        // processing.
+        return super.search(key, query);
     }
 
     @Override

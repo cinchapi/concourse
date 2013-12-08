@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,7 +32,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.annotate.Experimental;
-import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -107,28 +105,6 @@ public final class RangeLockService {
      */
     public static ReadLock getReadLock(Text key, Operator operator,
             Value... values) {
-        // Check to see what, if any, additional range values must be added to
-        // properly block writers that may interfere with our read.
-        int length = values.length;
-        if(operator == Operator.GREATER_THAN
-                || operator == Operator.GREATER_THAN_OR_EQUALS) {
-            values = Arrays.copyOf(values, length + 1);
-            values[length] = Value.POSITIVE_INFINITY;
-        }
-        else if(operator == Operator.LESS_THAN
-                || operator == Operator.LESS_THAN_OR_EQUALS) {
-            values = Arrays.copyOf(values, length + 1);
-            values[length] = Value.NEGATIVE_INFINITY;
-        }
-        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
-            // NOTE: This will block any writers on the #key whenever there is a
-            // REGEX or NOT_REGEX read, which isn't the most efficient approach,
-            // but is the least burdensome, which is okay for now...
-            values = Arrays.copyOf(values, length + 2);
-            values[length] = Value.POSITIVE_INFINITY;
-            values[length + 1] = Value.NEGATIVE_INFINITY;
-
-        }
         return getReadLock(RangeToken.forReading(key, operator, values));
     }
 
@@ -153,7 +129,6 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
-    @Restricted
     public static WriteLock getWriteLock(String key, TObject value) {
         return getWriteLock(Text.wrap(key), Value.wrap(value));
     }
@@ -166,7 +141,6 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
-    @Restricted
     public static WriteLock getWriteLock(Text key, Value value) {
         return getWriteLock(RangeToken.forWriting(key, value));
     }

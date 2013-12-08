@@ -32,17 +32,19 @@ import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
-import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -127,6 +129,8 @@ public class AtomicOperation extends BufferedStore {
     public boolean add(String key, TObject value, long record) {
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
+                .wrap(value)));
         return super.add(key, value, record);
     }
 
@@ -169,7 +173,6 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Set<String> describe(long record, long timestamp) {
         checkState();
-        expectations.add(new RecordVersionExpectation(record, timestamp));
         return super.describe(record, timestamp);
     }
 
@@ -184,8 +187,6 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
         checkState();
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                timestamp));
         return super.fetch(key, record, timestamp);
     }
 
@@ -193,14 +194,15 @@ public class AtomicOperation extends BufferedStore {
     public Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
         checkState();
-        expectations.add(new KeyVersionExpectation(key, timestamp));
         return super.find(timestamp, key, operator, values);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
         checkState();
-        expectations.add(new KeyVersionExpectation(key));
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class)));
         return super.find(key, operator, values);
     }
 
@@ -209,13 +211,14 @@ public class AtomicOperation extends BufferedStore {
         checkState();
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
+                .wrap(value)));
         return super.remove(key, value, record);
     }
 
     @Override
     public Set<Long> search(String key, String query) {
         checkState();
-        expectations.add(new KeyVersionExpectation(key));
         return super.search(key, query);
     }
 
@@ -236,8 +239,6 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
         checkState();
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                timestamp));
         return super.verify(key, value, record, timestamp);
     }
 
@@ -295,8 +296,10 @@ public class AtomicOperation extends BufferedStore {
                 }
             }
             if(locks.containsKey(expectation.getToken())
-                    && locks.get(expectation.getToken()).getType() == LockType.READ
-                    && expectation.getLockType() == LockType.WRITE) {
+                    && (locks.get(expectation.getToken()).getType() == LockType.READ || locks
+                            .get(expectation.getToken()).getType() == LockType.RANGE_READ)
+                    && (expectation.getLockType() == LockType.WRITE || expectation
+                            .getLockType() == LockType.RANGE_WRITE)) {
                 // This means we need to "upgrade" from a READ lock to a WRITE
                 // lock. It is technically not possible to do lock upgrades, so
                 // we must remove and unlock the existing READ lock and later
@@ -308,9 +311,6 @@ public class AtomicOperation extends BufferedStore {
                         .forVersionExpectation(expectation);
                 locks.put(expectation.getToken(), description);
                 description.getLock().lock();
-            }
-            if(expectation instanceof KeyVersionExpectation) {
-                // TODO grab a range lock
             }
         }
         return true;
@@ -341,6 +341,61 @@ public class AtomicOperation extends BufferedStore {
     }
 
     /**
+     * A VersionExpectation for a range read/write. No version is actually
+     * expected, but this is a placeholder so that we know to grab to
+     * appropriate range lock.
+     * 
+     * @author jnelson
+     */
+    private final class RangeVersionExpectation extends VersionExpectation {
+
+        private final Text key;
+        private final Operator operator;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param value
+         */
+        protected RangeVersionExpectation(Text key, Value value) {
+            this(key, null, value);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param operator
+         * @param values
+         */
+        protected RangeVersionExpectation(Text key, Operator operator,
+                Value... values) {
+            super(operator == null ? RangeToken.forWriting(key, values[0])
+                    : RangeToken.forReading(key, operator, values),
+                    IGNORE_VERSION);
+            this.key = key;
+            this.operator = operator;
+        }
+
+        @Override
+        public String getKey() throws UnsupportedOperationException {
+            return key.toString();
+        }
+
+        @Override
+        public LockType getLockType() {
+            return operator == null ? LockType.RANGE_WRITE
+                    : LockType.RANGE_READ;
+        }
+
+        @Override
+        public long getRecord() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
      * A VersionExpectation for a read or write that touches a key IN a record
      * (i.e. fetch, verify, etc).
      * 
@@ -362,27 +417,11 @@ public class AtomicOperation extends BufferedStore {
          */
         protected KeyInRecordVersionExpectation(String key, long record,
                 LockType lockType) {
-            super(Token.wrap(key, record), Versioned.NO_VERSION,
-                    ((Compoundable) destination).getVersion(key, record));
+            super(Token.wrap(key, record), ((Compoundable) destination)
+                    .getVersion(key, record));
             this.key = key;
             this.record = record;
             this.lockType = lockType;
-        }
-
-        /**
-         * Construct a new instance. NEVER use this constructor for a write
-         * operation.
-         * 
-         * @param key
-         * @param record
-         * @param timestamp
-         */
-        protected KeyInRecordVersionExpectation(String key, long record,
-                long timestamp) {
-            super(Token.wrap(key, record), timestamp, IGNORE_VERSION);
-            this.key = key;
-            this.record = record;
-            this.lockType = LockType.READ;
         }
 
         @Override
@@ -400,54 +439,6 @@ public class AtomicOperation extends BufferedStore {
             return record;
         }
 
-    }
-
-    /**
-     * A VersionExpectation for a read that touches an entire key (i.e.
-     * find, search, etc).
-     * 
-     * @author jnelson
-     */
-    private final class KeyVersionExpectation extends VersionExpectation {
-
-        private final String key;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         */
-        public KeyVersionExpectation(String key) {
-            super(Token.wrap(key), Versioned.NO_VERSION,
-                    ((Compoundable) destination).getVersion(key));
-            this.key = key;
-        }
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param timestamp
-         */
-        public KeyVersionExpectation(String key, long timestamp) {
-            super(Token.wrap(key), timestamp, IGNORE_VERSION);
-            this.key = key;
-        }
-
-        @Override
-        public String getKey() throws UnsupportedOperationException {
-            return key;
-        }
-
-        @Override
-        public LockType getLockType() {
-            return LockType.READ;
-        }
-
-        @Override
-        public long getRecord() throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
     }
 
     /**
@@ -503,7 +494,6 @@ public class AtomicOperation extends BufferedStore {
          * @param bytes
          * @return the LockDescription
          */
-        @Authorized
         public static LockDescription fromByteBuffer(ByteBuffer bytes) {
             LockType type = LockType.values()[bytes.get()];
             Token token = null;
@@ -623,19 +613,8 @@ public class AtomicOperation extends BufferedStore {
          * @param record
          */
         public RecordVersionExpectation(long record) {
-            super(Token.wrap(record), Versioned.NO_VERSION,
-                    ((Compoundable) destination).getVersion(record));
-            this.record = record;
-        }
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param record
-         * @param timestamp
-         */
-        public RecordVersionExpectation(long record, long timestamp) {
-            super(Token.wrap(record), timestamp, IGNORE_VERSION);
+            super(Token.wrap(record), ((Compoundable) destination)
+                    .getVersion(record));
             this.record = record;
         }
 
@@ -676,12 +655,6 @@ public class AtomicOperation extends BufferedStore {
         private final Token token;
 
         /**
-         * OPTIONAL parameter that exists if the VersionExpectation
-         * was generated from a historical read.
-         */
-        private final long timestamp;
-
-        /**
          * OPTINAL parameter that exists iff {@link #timestamp} ==
          * {@link Versioned#NO_VERSION} since since data returned from a
          * historical read won't change with additional writes.
@@ -692,15 +665,10 @@ public class AtomicOperation extends BufferedStore {
          * Construct a new instance.
          * 
          * @param token
-         * @param timestamp
          * @param expectedVersion
          */
-        protected VersionExpectation(Token token, long timestamp,
-                long expectedVersion) {
-            Preconditions
-                    .checkState((timestamp != Versioned.NO_VERSION && expectedVersion == IGNORE_VERSION) || true);
+        protected VersionExpectation(Token token, long expectedVersion) {
             this.token = token;
-            this.timestamp = timestamp;
             this.expectedVersion = expectedVersion;
         }
 
@@ -762,9 +730,6 @@ public class AtomicOperation extends BufferedStore {
             catch (UnsupportedOperationException e) {
                 /* ignore exception */
                 replaceInClause = true;
-            }
-            if(timestamp != Versioned.NO_VERSION) {
-                sb.append(" AT " + timestamp);
             }
             sb.append("'");
             String string = sb.toString();
