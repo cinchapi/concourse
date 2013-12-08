@@ -24,7 +24,9 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -37,10 +39,8 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.util.AutoMap;
 import org.cinchapi.concourse.util.Transformers;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 
 /**
@@ -81,7 +81,7 @@ public final class RangeLockService {
     public static ReadLock getReadLock(RangeToken token) {
         return CACHE.get(token).readLock();
     }
-    
+
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
@@ -154,7 +154,7 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     @Restricted
-    public static WriteLock getWriteLock(String key, TObject value){
+    public static WriteLock getWriteLock(String key, TObject value) {
         return getWriteLock(Text.wrap(key), Value.wrap(value));
     }
 
@@ -288,25 +288,22 @@ public final class RangeLockService {
 
     /**
      * This is a global cache that is responsible for returning the same lock
-     * instance for a given token. This cache will periodically evict lock
-     * instances that are not currently held by any readers or writers.
+     * instance for a given token. This cache will evict lock instances that are
+     * not currently held by any readers or writers.
      */
-    private final static AutoMap<RangeToken, RangeReadWriteLock> CACHE = AutoMap
-            .newAutoHashMap(new Function<RangeToken, RangeReadWriteLock>() {
+    @SuppressWarnings("serial")
+    private final static Map<RangeToken, RangeReadWriteLock> CACHE = new HashMap<RangeToken, RangeReadWriteLock>() {
 
-                @Override
-                public RangeReadWriteLock apply(RangeToken input) {
-                    return new RangeReadWriteLock(input);
-                }
-            }, new Function<RangeReadWriteLock, Boolean>() {
+        @Override
+        public RangeReadWriteLock get(Object key) {
+            if(!containsKey(key)) {
+                RangeToken token = (RangeToken) key;
+                put(token, new RangeReadWriteLock(token));
+            }
+            return super.get(key);
+        }
 
-                @Override
-                public Boolean apply(RangeReadWriteLock input) {
-                    return !input.isWriteLocked()
-                            && input.getReadLockCount() == 0;
-                }
-
-            });
+    };
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
@@ -342,6 +339,15 @@ public final class RangeLockService {
                     super.lock();
                 }
 
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    if(!RangeReadWriteLock.this.isWriteLocked()
+                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
+                        CACHE.remove(token);
+                    }
+                }
+
             };
         }
 
@@ -355,6 +361,15 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
+                }
+
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    if(!RangeReadWriteLock.this.isWriteLocked()
+                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
+                        CACHE.remove(token);
+                    }
                 }
 
             };

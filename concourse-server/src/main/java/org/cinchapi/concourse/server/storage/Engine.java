@@ -30,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.server.concurrent.LockService;
+import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
@@ -188,13 +189,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean add(String key, TObject value, long record) {
         LockService.getWriteLock(key, record).lock();
-        LockService.getWriteLock(key).lock(); // FIXME use range lock
+        RangeLockService.getWriteLock(key, value).lock();
         try {
             return super.add(key, value, record);
         }
         finally {
             LockService.getWriteLock(key, record).unlock();
-            LockService.getWriteLock(key).unlock(); // FIXME use range lock
+            RangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
@@ -274,12 +275,12 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
-        LockService.getReadLock(key).lock(); // FIXME range lock
+        RangeLockService.getReadLock(key, operator, values).lock();
         try {
             return super.find(key, operator, values);
         }
         finally {
-            LockService.getReadLock(key).unlock();
+            RangeLockService.getReadLock(key, operator, values).unlock();
         }
     }
 
