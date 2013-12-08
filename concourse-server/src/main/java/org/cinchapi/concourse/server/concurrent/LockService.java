@@ -23,13 +23,11 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import org.cinchapi.concourse.util.AutoMap;
-
-import com.google.common.base.Function;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -103,22 +101,72 @@ public final class LockService {
      * instance for a given token. This cache will periodically evict lock
      * instances that are not currently held by any readers or writers.
      */
-    private final static AutoMap<Token, ReentrantReadWriteLock> CACHE = AutoMap
-            .newAutoHashMap(new Function<Token, ReentrantReadWriteLock>() {
+    @SuppressWarnings("serial")
+    private final static Map<Token, ReentrantReadWriteLock> CACHE = new HashMap<Token, ReentrantReadWriteLock>() {
+        @Override
+        public ReentrantReadWriteLock get(Object key) {
+            if(!containsKey(key)) {
+                final Token token = (Token) key;
+                put(token, new TReentrantReadWriteLock(token));
+            }
+            return super.get(key);
+        }
+    };
+
+    /**
+     * A custom {@link ReentrantReadWriteLock} that is defined by a
+     * {@link Token}.
+     * 
+     * @author jnelson
+     */
+    @SuppressWarnings("serial")
+    private static final class TReentrantReadWriteLock extends
+            ReentrantReadWriteLock {
+
+        private final Token token;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param token
+         */
+        public TReentrantReadWriteLock(Token token) {
+            this.token = token;
+        }
+
+        @Override
+        public ReadLock readLock() {
+            return new ReadLock(this) {
 
                 @Override
-                public ReentrantReadWriteLock apply(Token input) {
-                    return new ReentrantReadWriteLock();
+                public void unlock() {
+                    super.unlock();
+                    if(!TReentrantReadWriteLock.this.isWriteLocked()
+                            && TReentrantReadWriteLock.this.getReadLockCount() == 0) {
+                        CACHE.remove(token);
+                    }
                 }
-            }, new Function<ReentrantReadWriteLock, Boolean>() {
+
+            };
+        }
+
+        @Override
+        public WriteLock writeLock() {
+            return new WriteLock(this) {
 
                 @Override
-                public Boolean apply(ReentrantReadWriteLock input) {
-                    return !input.isWriteLocked()
-                            && input.getReadLockCount() == 0;
+                public void unlock() {
+                    super.unlock();
+                    if(!TReentrantReadWriteLock.this.isWriteLocked()
+                            && TReentrantReadWriteLock.this.getReadLockCount() == 0) {
+                        CACHE.remove(token);
+                    }
                 }
 
-            });
+            };
+        }
+
+    }
 
     private LockService() {}
 

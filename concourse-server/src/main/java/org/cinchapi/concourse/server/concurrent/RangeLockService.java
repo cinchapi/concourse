@@ -307,7 +307,7 @@ public final class RangeLockService {
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
-     * {@link RangeToken}. and checks to see if it is "range" blocked before
+     * {@link RangeToken} and checks to see if it is "range" blocked before
      * grabbing a read of write lock.
      * 
      * @author jnelson
