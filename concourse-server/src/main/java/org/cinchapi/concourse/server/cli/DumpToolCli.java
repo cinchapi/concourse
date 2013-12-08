@@ -56,14 +56,9 @@ public final class DumpToolCli extends ManagedOperationCli {
     public static void main(String... args)
             throws MalformedObjectNameException, MalformedURLException,
             IOException {
-        DumpToolCli cli = new DumpToolCli(new Options(), args);
+        DumpToolCli cli = new DumpToolCli(args);
         cli.run();
     }
-
-    /**
-     * A reference to the options.
-     */
-    private final Options opts;
 
     /**
      * Construct a new instance.
@@ -71,18 +66,13 @@ public final class DumpToolCli extends ManagedOperationCli {
      * @param opts
      * @param args
      */
-    public DumpToolCli(Options opts, String[] args) {
-        super(opts, args);
-        this.opts = opts;
+    public DumpToolCli(String[] args) {
+        super(new DumpToolOptions(), args);
     }
 
     @Override
     protected void doTask(ConcourseServerMXBean bean) {
-        if(opts.help) {
-            parser.usage();
-            System.exit(1);
-        }
-        System.out.println(bean.dump(opts.id));
+        System.out.println(bean.dump(((DumpToolOptions) options).id));
         System.exit(0);
     }
 
@@ -91,14 +81,10 @@ public final class DumpToolCli extends ManagedOperationCli {
      * 
      * @author jnelson
      */
-    private static class Options {
+    private static class DumpToolOptions extends Options {
 
-		@Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
-		public String id;
-
-
-        @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
-        public boolean help;
+        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
+        public String id;
 
     }
 

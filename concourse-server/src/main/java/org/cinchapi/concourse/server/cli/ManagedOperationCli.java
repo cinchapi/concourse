@@ -46,6 +46,11 @@ import com.google.common.base.CaseFormat;
  * @author jnelson
  */
 public abstract class ManagedOperationCli {
+    
+    /**
+     * The CLI options.
+     */
+    protected Options options;
 
     /**
      * The parser that validates the CLI options.
@@ -57,12 +62,13 @@ public abstract class ManagedOperationCli {
      * metadata. The {@code opts} will be parsed by {@link JCommander} so
      * configure them appropriately.
      * 
-     * @param opts
+     * @param options
      * @param args - these usually come from the main method
      */
-    public ManagedOperationCli(Object opts, String... args) {
+    public ManagedOperationCli(Options options, String... args) {
         try {
-            this.parser = new JCommander(opts, args);
+            this.parser = new JCommander(options, args);
+            this.options = options;
             parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
                     CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
         }
@@ -88,7 +94,13 @@ public abstract class ManagedOperationCli {
                 "org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
         ConcourseServerMXBean bean = JMX.newMBeanProxy(connection, objectName,
                 ConcourseServerMXBean.class);
-        doTask(bean);
+        if(options.help) {
+            parser.usage();
+            System.exit(1);
+        }
+        else{
+            doTask(bean);
+        } 
     }
 
     /**
