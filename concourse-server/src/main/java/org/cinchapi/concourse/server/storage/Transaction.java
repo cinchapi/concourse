@@ -28,9 +28,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -41,6 +47,7 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
@@ -82,6 +89,33 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * The unique Transaction id.
      */
     private final String id;
+    
+    /**
+     * A collection of listeners that should be notified of a version change for
+     * a given token.
+     */
+    @SuppressWarnings("serial")
+    private final Map<Token, Set<VersionChangeListener>> versionChangeListeners = new HashMap<Token, Set<VersionChangeListener>>() {
+
+        /**
+         * An empty set that is returned on calls to {@link #get(Object)} when
+         * there key does not exist.
+         */
+        private final Set<VersionChangeListener> emptySet = Collections
+                .unmodifiableSet(Sets.<VersionChangeListener> newHashSet());
+
+        @Override
+        public Set<VersionChangeListener> get(Object key) {
+            if(containsKey(key)) {
+                return super.get(key);
+            }
+            else {
+                return emptySet;
+            }
+
+        }
+
+    };
 
     /**
      * Construct a new instance.
@@ -112,6 +146,21 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
+    @Restricted
+    public void addVersionChangeListener(Token token,
+            VersionChangeListener listener) {
+        Set<VersionChangeListener> listeners = null;
+        if(!versionChangeListeners.containsKey(token)) {
+            listeners = Sets.newHashSet();
+            versionChangeListeners.put(token, listeners);
+        }
+        else {
+            listeners = versionChangeListeners.get(token);
+        }
+        listeners.add(listener);
+    }
+
+    @Override
     public long getVersion(long record) {
         return Math.max(buffer.getVersion(record),
                 ((Database) destination).getVersion(record));
@@ -126,6 +175,22 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     public long getVersion(String key, long record) {
         return Math.max(buffer.getVersion(key, record),
                 ((Database) destination).getVersion(key, record));
+    }
+
+    @Override
+    @Restricted
+    public void notifyVersionChange(Token token) {
+        for(VersionChangeListener listener : versionChangeListeners.get(token)){
+            listener.onVersionChange(token);
+        }
+    }
+
+    @Override
+    @Restricted
+    public void removeVersionChangeListener(Token token,
+            VersionChangeListener listener) {
+        versionChangeListeners.get(token).remove(listener);
+        ((Engine) destination).removeVersionChangeListener(token, listener);
     }
 
     @Override
@@ -157,6 +222,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
             FileSystem.closeFileChannel(channel);
         }
     }
+
 
     /**
      * Deserialize the content of this Transaction from {@code bytes}.

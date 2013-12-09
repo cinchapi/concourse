@@ -23,21 +23,18 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import org.cinchapi.concourse.server.concurrent.Token;
+
 /**
- * A Compoundable store can perform AtomicOperations.
+ * An object that listens for version changes and responds accordingly.
  * 
  * @author jnelson
  */
-public interface Compoundable extends PermanentStore, VersionGetter, VersionChangeNotifier {
+public interface VersionChangeListener {
 
     /**
-     * Return an {@link AtomicOperation} that can be used to group actions that
-     * should all succeed or fail together. Use {@link AtomicOperation#commit()}
-     * to apply the action to this store or use {@link AtomicOperation#abort()}
-     * to cancel.
-     * 
-     * @return the AtomicOperation handler
+     * Handle a version change that occurs for {@code token}.
      */
-    public AtomicOperation startAtomicOperation();
+    public void onVersionChange(Token token);
 
 }

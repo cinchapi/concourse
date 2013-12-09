@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
@@ -59,7 +60,8 @@ import com.google.common.collect.Maps;
  * 
  * @author jnelson
  */
-public class AtomicOperation extends BufferedStore {
+public class AtomicOperation extends BufferedStore implements
+        VersionChangeListener {
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
     // destination is assumed to have its own concurrency control scheme in
@@ -110,7 +112,7 @@ public class AtomicOperation extends BufferedStore {
     /**
      * Construct a new instance.
      * 
-     * @param destination - must be a {@link VersionGetter}
+     * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
         super(new Queue(INITIAL_CAPACITY), destination);
@@ -127,10 +129,14 @@ public class AtomicOperation extends BufferedStore {
 
     @Override
     public boolean add(String key, TObject value, long record) {
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.WRITE));
+                LockType.WRITE)); // TODO replace with LockIntention
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
-                .wrap(value)));
+                .wrap(value))); // TODO replace with LockIntention
         if(super.add(key, value, record)) {
             return true;
         }
@@ -143,6 +149,8 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Map<Long, String> audit(long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
         expectations.add(new RecordVersionExpectation(record));
         return super.audit(record);
     }
@@ -150,6 +158,8 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Map<Long, String> audit(String key, long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.READ));
         return super.audit(key, record);
@@ -166,7 +176,7 @@ public class AtomicOperation extends BufferedStore {
     public final boolean commit() {
         checkState();
         open = false;
-        if(checkExpectationsAndGrabLocks()) {
+        if(grabLocks()) {
             doCommit();
             releaseLocks();
             return true;
@@ -180,6 +190,8 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Set<String> describe(long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
         expectations.add(new RecordVersionExpectation(record));
         return super.describe(record);
     }
@@ -193,6 +205,8 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public Set<TObject> fetch(String key, long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.READ));
         return super.fetch(key, record);
@@ -221,8 +235,18 @@ public class AtomicOperation extends BufferedStore {
     }
 
     @Override
+    @Restricted
+    public void onVersionChange(Token token) {
+        abort();
+    }
+
+    @Override
     public boolean remove(String key, TObject value, long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
@@ -251,6 +275,8 @@ public class AtomicOperation extends BufferedStore {
     @Override
     public boolean verify(String key, TObject value, long record) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.READ));
         return super.verify(key, value, record);
@@ -272,78 +298,6 @@ public class AtomicOperation extends BufferedStore {
     }
 
     /**
-     * Check each one of the {@code expectations} against the
-     * {@link #destination} and grab the appropriate locks along the way. This
-     * method will return {@code true} if all expectations are met and all
-     * necessary locks are grabbed. Otherwise it will return {@code false}, in
-     * which case this operation should be aborted immediately.
-     * 
-     * @return {@code true} if all expectations are met and all necessary locks
-     *         are grabbed.
-     */
-    private boolean checkExpectationsAndGrabLocks() {
-        locks = Maps.newHashMap();
-        for (VersionExpectation expectation : expectations) {
-            if(expectation.getVersion() != IGNORE_VERSION) {
-                String key = null;
-                Long record = null;
-                try {
-                    key = expectation.getKey();
-                }
-                catch (UnsupportedOperationException e) {/* ignore */}
-                try {
-                    record = expectation.getRecord();
-                }
-                catch (UnsupportedOperationException e) {/* ignore */}
-                long actualVersion;
-                if(key != null && record != null) {
-                    actualVersion = ((VersionGetter) destination).getVersion(
-                            key, record);
-                }
-                else if(key != null) {
-                    actualVersion = ((VersionGetter) destination)
-                            .getVersion(key);
-                }
-                else if(record != null) {
-                    actualVersion = ((VersionGetter) destination)
-                            .getVersion(record);
-                }
-                else {
-                    throw new IllegalStateException("this should never happen");
-                }
-                if(expectation.getVersion() != actualVersion) {
-                    return false;
-                }
-            }
-            if(locks.containsKey(expectation.getToken())
-                    && (locks.get(expectation.getToken()).getType() == LockType.READ || locks
-                            .get(expectation.getToken()).getType() == LockType.RANGE_READ)
-                    && (expectation.getLockType() == LockType.WRITE || expectation
-                            .getLockType() == LockType.RANGE_WRITE)) {
-                // This means we need to "upgrade" from a READ lock to a WRITE
-                // lock. It is technically not possible to do lock upgrades, so
-                // we must remove and unlock the existing READ lock and later
-                // grab a WRITE lock.
-                locks.remove(expectation.getToken()).getLock().unlock();
-            }
-            if(!locks.containsKey(expectation.getToken())) {
-                LockDescription description = LockDescription
-                        .forVersionExpectation(expectation);
-                if(description.getLock().tryLock()) {
-                    locks.put(expectation.getToken(), description);
-                }
-                else {
-                    // If we can't grab the lock immediately because it is held
-                    // by someone else, then we must fail immediately because
-                    // the AtomicOperation can't properly commit.
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * Check that this AtomicOperation is open and throw an
      * AtomicStateException if it is not.
      * 
@@ -353,6 +307,55 @@ public class AtomicOperation extends BufferedStore {
         if(!open) {
             throw new AtomicStateException();
         }
+    }
+
+    /**
+     * Check each one of the {@link #expectations} against the
+     * {@link #destination} and grab the appropriate locks along the way. This
+     * method will return {@code true} if all expectations are met and all
+     * necessary locks are grabbed. Otherwise it will return {@code false}, in
+     * which case this operation should be aborted immediately.
+     * 
+     * @return {@code true} if all expectations are met and all necessary locks
+     *         are grabbed.
+     */
+    private boolean grabLocks() {
+        locks = Maps.newHashMap();
+        try {
+            for (VersionExpectation expectation : expectations) {
+                if(locks.containsKey(expectation.getToken())
+                        && (locks.get(expectation.getToken()).getType() == LockType.READ || locks
+                                .get(expectation.getToken()).getType() == LockType.RANGE_READ)
+                        && (expectation.getLockType() == LockType.WRITE || expectation
+                                .getLockType() == LockType.RANGE_WRITE)) {
+                    // This means we need to "upgrade" from a READ lock to a
+                    // WRITE lock. It is technically not possible to do lock
+                    // upgrades, so we must remove and unlock the existing READ
+                    // lock and later grab a WRITE lock.
+                    locks.remove(expectation.getToken()).getLock().unlock();
+                }
+                if(!locks.containsKey(expectation.getToken())) {
+                    LockDescription description = LockDescription
+                            .forVersionExpectation(expectation);
+                    if(description.getLock().tryLock()) {
+                        locks.put(expectation.getToken(), description);
+                    }
+                    else {
+                        // If we can't grab the lock immediately because it is
+                        // held by someone else, then we must fail immediately
+                        // because the AtomicOperation can't properly commit.
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        catch (NullPointerException e) {
+            // If we are notified a version change while grabbing locks, we
+            // abort immediately which means that #locks will become null.
+            return false;
+        }
+
     }
 
     /**
@@ -743,15 +746,6 @@ public class AtomicOperation extends BufferedStore {
          */
         public Token getToken() {
             return token;
-        }
-
-        /**
-         * Return the expected version.
-         * 
-         * @return the expected version
-         */
-        public long getVersion() {
-            return expectedVersion;
         }
 
         @Override

@@ -130,7 +130,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         store.verify(key, value, record);
     }
 
-    @Test
+    @Test(expected = AtomicStateException.class)
     public void testCommitFailsIfVersionChanges() {
         String key = TestData.getString();
         TObject value = TestData.getTObject();

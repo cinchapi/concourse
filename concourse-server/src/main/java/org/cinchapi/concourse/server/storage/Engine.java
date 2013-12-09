@@ -24,15 +24,19 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
+import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.storage.db.Database;
@@ -41,6 +45,8 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Logger;
+
+import com.beust.jcommander.internal.Sets;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -105,6 +111,33 @@ public final class Engine extends BufferedStore implements
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
+
+    /**
+     * A collection of listeners that should be notified of a version change for
+     * a given token.
+     */
+    @SuppressWarnings("serial")
+    private final Map<Token, Set<VersionChangeListener>> versionChangeListeners = new ConcurrentHashMap<Token, Set<VersionChangeListener>>() {
+
+        /**
+         * An empty set that is returned on calls to {@link #get(Object)} when
+         * there key does not exist.
+         */
+        private final Set<VersionChangeListener> emptySet = Collections
+                .unmodifiableSet(Sets.<VersionChangeListener> newHashSet());
+
+        @Override
+        public Set<VersionChangeListener> get(Object key) {
+            if(containsKey(key)) {
+                return super.get(key);
+            }
+            else {
+                return emptySet;
+            }
+
+        }
+
+    };
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -192,12 +225,32 @@ public final class Engine extends BufferedStore implements
         LockService.getWriteLock(key, record).lock();
         RangeLockService.getWriteLock(key, value).lock();
         try {
-            return super.add(key, value, record);
+            if(super.add(key, value, record)) {
+                notifyVersionChange(Token.wrap(key, record));
+                notifyVersionChange(Token.wrap(record));
+                return true;
+            }
+            return false;
         }
         finally {
             LockService.getWriteLock(key, record).unlock();
             RangeLockService.getWriteLock(key, value).unlock();
         }
+    }
+
+    @Override
+    @Restricted
+    public void addVersionChangeListener(Token token,
+            VersionChangeListener listener) {
+        Set<VersionChangeListener> listeners = null;
+        if(!versionChangeListeners.containsKey(token)) {
+            listeners = Sets.newHashSet();
+            versionChangeListeners.put(token, listeners);
+        }
+        else {
+            listeners = versionChangeListeners.get(token);
+        }
+        listeners.add(listener);
     }
 
     @Override
@@ -303,16 +356,36 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    @Restricted
+    public void notifyVersionChange(Token token) {
+        for (VersionChangeListener listener : versionChangeListeners.get(token)) {
+            listener.onVersionChange(token);
+        }
+    }
+
+    @Override
     public boolean remove(String key, TObject value, long record) {
         LockService.getWriteLock(key, record).lock();
         RangeLockService.getWriteLock(key, value).lock();
         try {
-            return super.remove(key, value, record);
+            if(super.remove(key, value, record)) {
+                notifyVersionChange(Token.wrap(key, record));
+                notifyVersionChange(Token.wrap(record));
+                return true;
+            }
+            return false;
         }
         finally {
             LockService.getWriteLock(key, record).unlock();
             RangeLockService.getWriteLock(key, value).unlock();
         }
+    }
+
+    @Override
+    @Restricted
+    public void removeVersionChangeListener(Token token,
+            VersionChangeListener listener) {
+        versionChangeListeners.get(token).remove(listener);
     }
 
     @Override
