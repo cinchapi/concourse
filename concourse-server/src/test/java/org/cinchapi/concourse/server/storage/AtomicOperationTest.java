@@ -24,8 +24,11 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +43,49 @@ import com.google.common.collect.Sets;
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     private Compoundable destination;
+
+    @Test
+    public void testOnlyOneSuccessDuringRaceConditionWithConflict()
+            throws InterruptedException {
+        final AtomicOperation a = doTestOnlyOneSuccessDuringRaceCondition();
+        final AtomicOperation b = doTestOnlyOneSuccessDuringRaceCondition();
+        a.add("foo", Convert.javaToThrift("bar"), 1000);
+        b.add("foo", Convert.javaToThrift("bar"), 1000);
+        final AtomicBoolean aSuccess = new AtomicBoolean(false);
+        final AtomicBoolean bSuccess = new AtomicBoolean(false);
+        Thread aThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                aSuccess.set(a.commit());
+
+            }
+
+        });
+        Thread bThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                bSuccess.set(b.commit());
+
+            }
+
+        });
+        aThread.start();
+        bThread.start();
+        aThread.join();
+        bThread.join();
+        Assert.assertTrue((aSuccess.get() && !bSuccess.get())
+                || (!aSuccess.get() && bSuccess.get()));
+    }
+
+    private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
+        AtomicOperation operation = AtomicOperation.start(destination);
+        for (int i = 0; i < 1; i++) {
+            operation.add(TestData.getString(), TestData.getTObject(), i);
+        }
+        return operation;
+    }
 
     @Test
     public void testAbort() {
@@ -74,6 +120,16 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertTrue(destination.verify(key, value, record));
     }
 
+    @Test(expected = AtomicStateException.class)
+    public void testForcedAbortIfWriteFails() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        destination.accept(Write.add(key, value, record));
+        Assert.assertFalse(((AtomicOperation) store).add(key, value, record));
+        store.verify(key, value, record);
+    }
+
     @Test
     public void testCommitFailsIfVersionChanges() {
         String key = TestData.getString();
@@ -93,7 +149,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Set<TObject> values = Sets.newHashSet();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             TObject value = TestData.getTObject();
-            while(values.contains(value)){
+            while (values.contains(value)) {
                 value = TestData.getTObject();
             }
             values.add(value);

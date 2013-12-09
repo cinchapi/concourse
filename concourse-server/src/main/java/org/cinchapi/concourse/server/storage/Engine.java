@@ -172,11 +172,11 @@ public final class Engine extends BufferedStore implements
             boolean accepted = write.getType() == Action.ADD ? add(key, value,
                     record) : remove(key, value, record);
             if(!accepted) {
-                Logger.warn("Write {} was rejected by the Engine"
+                Logger.warn("Write {} was rejected by the Engine "
                         + "because it was previously accepted "
                         + "but not offset. This implies that a "
-                        + "premature shutdown occured and the parent"
-                        + "Transaction is attempting to restore"
+                        + "premature shutdown occurred and the parent"
+                        + "Transaction is attempting to restore "
                         + "itself from backup and finish committing.", write);
             }
             else {

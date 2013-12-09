@@ -329,8 +329,15 @@ public class AtomicOperation extends BufferedStore {
             if(!locks.containsKey(expectation.getToken())) {
                 LockDescription description = LockDescription
                         .forVersionExpectation(expectation);
-                locks.put(expectation.getToken(), description);
-                description.getLock().lock();
+                if(description.getLock().tryLock()) {
+                    locks.put(expectation.getToken(), description);
+                }
+                else {
+                    // If we can't grab the lock immediately because it is held
+                    // by someone else, then we must fail immediately because
+                    // the AtomicOperation can't properly commit.
+                    return false;
+                }
             }
         }
         return true;
