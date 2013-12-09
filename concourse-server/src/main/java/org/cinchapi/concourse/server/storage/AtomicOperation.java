@@ -41,20 +41,21 @@ import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Transformers;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
  * A sequence of reads and writes that all succeed or fail together. Each
  * operation is staged in an isolated buffer before being committed to a
- * destination store. For optimal concurrency, we use just in time locking
- * where destination resources are only locked when its time to commit the
+ * destination store. For optimal concurrency, we use
+ * <em>just in time locking</em> where destination resources are only locked
+ * when its time to commit the
  * operation.
  * 
  * @author jnelson
@@ -131,7 +132,13 @@ public class AtomicOperation extends BufferedStore {
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        return super.add(key, value, record);
+        if(super.add(key, value, record)) {
+            return true;
+        }
+        else {
+            abort();
+            return false;
+        }
     }
 
     @Override
@@ -149,6 +156,14 @@ public class AtomicOperation extends BufferedStore {
         return super.audit(key, record);
     }
 
+    /**
+     * Commit the atomic operation to the destination store. The commit is only
+     * successful if all the grouped operations can be successfully applied to
+     * the destination. If the commit fails, the caller should retry the atomic
+     * operation.
+     * 
+     * @return {@code true} if the atomic operation is completely applied
+     */
     public final boolean commit() {
         checkState();
         open = false;
@@ -213,7 +228,13 @@ public class AtomicOperation extends BufferedStore {
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        return super.remove(key, value, record);
+        if(super.remove(key, value, record)) {
+            return true;
+        }
+        else {
+            abort();
+            return false;
+        }
     }
 
     @Override
@@ -318,11 +339,14 @@ public class AtomicOperation extends BufferedStore {
 
     /**
      * Check that this AtomicOperation is open and throw an
-     * IllegalStateException if it is not.
+     * AtomicStateException if it is not.
+     * 
+     * @throws AtomicStateException
      */
-    private void checkState() {
-        Preconditions.checkState(open,
-                "Cannot modify an AtomicOperation that is closed");
+    private void checkState() throws AtomicStateException {
+        if(!open) {
+            throw new AtomicStateException();
+        }
     }
 
     /**
@@ -338,107 +362,6 @@ public class AtomicOperation extends BufferedStore {
             }
         }
         locks = null;
-    }
-
-    /**
-     * A VersionExpectation for a range read/write. No version is actually
-     * expected, but this is a placeholder so that we know to grab to
-     * appropriate range lock.
-     * 
-     * @author jnelson
-     */
-    private final class RangeVersionExpectation extends VersionExpectation {
-
-        private final Text key;
-        private final Operator operator;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param value
-         */
-        protected RangeVersionExpectation(Text key, Value value) {
-            this(key, null, value);
-        }
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param operator
-         * @param values
-         */
-        protected RangeVersionExpectation(Text key, Operator operator,
-                Value... values) {
-            super(operator == null ? RangeToken.forWriting(key, values[0])
-                    : RangeToken.forReading(key, operator, values),
-                    IGNORE_VERSION);
-            this.key = key;
-            this.operator = operator;
-        }
-
-        @Override
-        public String getKey() throws UnsupportedOperationException {
-            return key.toString();
-        }
-
-        @Override
-        public LockType getLockType() {
-            return operator == null ? LockType.RANGE_WRITE
-                    : LockType.RANGE_READ;
-        }
-
-        @Override
-        public long getRecord() throws UnsupportedOperationException {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    /**
-     * A VersionExpectation for a read or write that touches a key IN a record
-     * (i.e. fetch, verify, etc).
-     * 
-     * @author jnelson
-     */
-    private final class KeyInRecordVersionExpectation extends
-            VersionExpectation {
-
-        private final long record;
-        private final String key;
-        private final LockType lockType;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param record
-         * @param lockType
-         */
-        protected KeyInRecordVersionExpectation(String key, long record,
-                LockType lockType) {
-            super(Token.wrap(key, record), ((Compoundable) destination)
-                    .getVersion(key, record));
-            this.key = key;
-            this.record = record;
-            this.lockType = lockType;
-        }
-
-        @Override
-        public String getKey() throws UnsupportedOperationException {
-            return key;
-        }
-
-        @Override
-        public LockType getLockType() {
-            return lockType;
-        }
-
-        @Override
-        public long getRecord() throws UnsupportedOperationException {
-            return record;
-        }
-
     }
 
     /**
@@ -543,6 +466,15 @@ public class AtomicOperation extends BufferedStore {
         }
 
         @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof LockDescription) {
+                return lock.equals(((LockDescription) obj).getLock())
+                        && type == ((LockDescription) obj).type;
+            }
+            return false;
+        }
+
+        @Override
         public ByteBuffer getBytes() {
             // We do not create a cached copy for the entire class because we'll
             // only ever getBytes() for a lock description once and that only
@@ -577,24 +509,116 @@ public class AtomicOperation extends BufferedStore {
         }
 
         @Override
-        public int size() {
-            return SIZE;
-        }
-
-        @Override
         public int hashCode() {
             return Objects.hash(lock, type);
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof LockDescription) {
-                return lock.equals(((LockDescription) obj).getLock())
-                        && type == ((LockDescription) obj).type;
-            }
-            return false;
+        public int size() {
+            return SIZE;
         }
 
+    }
+
+    /**
+     * A VersionExpectation for a read or write that touches a key IN a record
+     * (i.e. fetch, verify, etc).
+     * 
+     * @author jnelson
+     */
+    private final class KeyInRecordVersionExpectation extends
+            VersionExpectation {
+
+        private final long record;
+        private final String key;
+        private final LockType lockType;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param record
+         * @param lockType
+         */
+        protected KeyInRecordVersionExpectation(String key, long record,
+                LockType lockType) {
+            super(Token.wrap(key, record), ((Compoundable) destination)
+                    .getVersion(key, record));
+            this.key = key;
+            this.record = record;
+            this.lockType = lockType;
+        }
+
+        @Override
+        public String getKey() throws UnsupportedOperationException {
+            return key;
+        }
+
+        @Override
+        public LockType getLockType() {
+            return lockType;
+        }
+
+        @Override
+        public long getRecord() throws UnsupportedOperationException {
+            return record;
+        }
+
+    }
+
+    /**
+     * A VersionExpectation for a range read/write. No version is actually
+     * expected, but this is a placeholder so that we know to grab to
+     * appropriate range lock.
+     * 
+     * @author jnelson
+     */
+    private final class RangeVersionExpectation extends VersionExpectation {
+
+        private final Text key;
+        private final Operator operator;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param operator
+         * @param values
+         */
+        protected RangeVersionExpectation(Text key, Operator operator,
+                Value... values) {
+            super(operator == null ? RangeToken.forWriting(key, values[0])
+                    : RangeToken.forReading(key, operator, values),
+                    IGNORE_VERSION);
+            this.key = key;
+            this.operator = operator;
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         * @param value
+         */
+        protected RangeVersionExpectation(Text key, Value value) {
+            this(key, null, value);
+        }
+
+        @Override
+        public String getKey() throws UnsupportedOperationException {
+            return key.toString();
+        }
+
+        @Override
+        public LockType getLockType() {
+            return operator == null ? LockType.RANGE_WRITE
+                    : LockType.RANGE_READ;
+        }
+
+        @Override
+        public long getRecord() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
