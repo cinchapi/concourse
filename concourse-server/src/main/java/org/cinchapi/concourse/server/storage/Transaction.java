@@ -55,7 +55,7 @@ import static com.google.common.base.Preconditions.*;
  * 
  * @author jnelson
  */
-public final class Transaction extends BufferedStore {
+public final class Transaction extends BufferedStore implements Compoundable {
 
     /**
      * Return the Transaction for {@code destination} that is backed up to
@@ -418,6 +418,51 @@ public final class Transaction extends BufferedStore {
         for (TransactionLock lock : locks.values()) {
             lock.release();
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.cinchapi.concourse.server.storage.PermanentStore#accept(org.cinchapi.concourse.server.storage.temp.Write)
+     */
+    @Override
+    public void accept(Write write) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /* (non-Javadoc)
+     * @see org.cinchapi.concourse.server.storage.VersionGetter#getVersion(long)
+     */
+    @Override
+    public long getVersion(long record) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cinchapi.concourse.server.storage.VersionGetter#getVersion(java.lang.String)
+     */
+    @Override
+    public long getVersion(String key) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cinchapi.concourse.server.storage.VersionGetter#getVersion(java.lang.String, long)
+     */
+    @Override
+    public long getVersion(String key, long record) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /* (non-Javadoc)
+     * @see org.cinchapi.concourse.server.storage.Compoundable#startAtomicOperation()
+     */
+    @Override
+    public AtomicOperation startAtomicOperation() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

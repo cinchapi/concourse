@@ -47,6 +47,9 @@ import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
+import org.cinchapi.concourse.server.storage.AtomicOperation;
+import org.cinchapi.concourse.server.storage.AtomicStateException;
+import org.cinchapi.concourse.server.storage.Compoundable;
 import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.shell.CommandLine;
@@ -63,6 +66,7 @@ import org.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
@@ -251,14 +255,11 @@ public class ConcourseServer implements
     public boolean add(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction) throws TException {
         authenticate(creds);
-        if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
-            return transactions.get(transaction).add(key, value, record);
-
-        }
-        return engine.add(key, value, record);
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds) && transactions
+                    .containsKey(transaction)) || transaction == null);
+        return transaction != null ? transactions.get(transaction).add(key,
+                value, record) : engine.add(key, value, record);
     }
 
     @Override
@@ -360,35 +361,38 @@ public class ConcourseServer implements
     public boolean ping(long record, AccessToken creds,
             TransactionToken transaction) throws TException {
         authenticate(creds);
-        if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
-            Transaction t = transactions.get(transaction);
-            return !t.describe(record).isEmpty();
-        }
-        return !engine.describe(record).isEmpty();
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds) && transactions
+                    .containsKey(transaction)) || transaction == null);
+        return transaction != null ? !transactions.get(transaction)
+                .describe(record).isEmpty() : !engine.describe(record)
+                .isEmpty();
     }
 
     @Override
     public boolean remove(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction) throws TException {
         authenticate(creds);
-        if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
-            return transactions.get(transaction).remove(key, value, record);
-        }
-        return engine.remove(key, value, record);
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds) && transactions
+                    .containsKey(transaction)) || transaction == null);
+        return transaction != null ? transactions.get(transaction).remove(key,
+                value, record) : engine.remove(key, value, record);
     }
 
     @Override
     public void revert(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction) throws TException {
         authenticate(creds);
-        throw new UnsupportedOperationException();
-        // TODO implement this using AtomicOperation
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds) && transactions
+                    .containsKey(transaction)) || transaction == null);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doRevert(key, record, timestamp,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
     }
 
     @Override
@@ -462,6 +466,39 @@ public class ConcourseServer implements
      */
     private void authenticate(AccessToken token) throws SecurityException {
         // TODO check token and throw an exception if its not valid
+    }
+
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to revert {@code key} in {@code record} to
+     * {@code timestamp}.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param store
+     * @return the AtomicOperation that must be committed
+     */
+    private AtomicOperation doRevert(String key, long record, long timestamp,
+            Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        Set<TObject> past = operation.fetch(key, record, timestamp);
+        Set<TObject> present = operation.fetch(key, record);
+        Set<TObject> xor = Sets.symmetricDifference(past, present);
+        try {
+            for (TObject value : xor) {
+                if(present.contains(value)) {
+                    operation.remove(key, value, record);
+                }
+                else {
+                    operation.add(key, value, record);
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
     }
 
     /**
