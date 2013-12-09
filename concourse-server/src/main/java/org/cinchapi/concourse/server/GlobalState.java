@@ -85,6 +85,16 @@ public final class GlobalState {
             + File.separator + "concourse" + File.separator + "buffer";
 
     /**
+     * The absolute path to the directory where the Transaction backup files are
+     * stored.
+     */
+    public static String TRANSACTION_DIRECTORY = System
+            .getProperty("user.home")
+            + File.separator
+            + "concourse"
+            + File.separator + "txn";
+
+    /**
      * The size for each page in the Buffer. During reads, Buffer pages
      * are individually locked, so it is desirable to have several smaller
      * pages as opposed to few larger ones. Nevertheless, be sure to balance
@@ -158,6 +168,9 @@ public final class GlobalState {
 
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+
+            TRANSACTION_DIRECTORY = config.getString("transaction_directory",
+                    TRANSACTION_DIRECTORY);
             // =================== CONFIG READING BLOCK ====================
         }
     }

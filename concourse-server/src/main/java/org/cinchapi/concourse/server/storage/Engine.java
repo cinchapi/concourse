@@ -23,14 +23,17 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
@@ -40,7 +43,6 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Logger;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cinchapi.concourse.server.GlobalState.*;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -102,7 +104,7 @@ public final class Engine extends BufferedStore implements
     /**
      * A flag to indicate if the Engine is running or not.
      */
-    private boolean running = false;
+    private volatile boolean running = false;
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -110,7 +112,7 @@ public final class Engine extends BufferedStore implements
      * 
      */
     public Engine() {
-        this(new Buffer(), new Database(), BUFFER_DIRECTORY);
+        this(new Buffer(), new Database());
     }
 
     /**
@@ -122,7 +124,7 @@ public final class Engine extends BufferedStore implements
      * @param dbStore
      */
     public Engine(String bufferStore, String dbStore) {
-        this(new Buffer(bufferStore), new Database(dbStore), bufferStore);
+        this(new Buffer(bufferStore), new Database(dbStore));
     }
 
     /**
@@ -131,9 +133,8 @@ public final class Engine extends BufferedStore implements
      * 
      * @param buffer
      * @param database
-     * @param bufferStore
      */
-    private Engine(Buffer buffer, Database database, String bufferStore) {
+    private Engine(Buffer buffer, Database database) {
         super(buffer, database);
         this.bufferTransportThread = new BufferTransportThread();
     }
@@ -330,6 +331,7 @@ public final class Engine extends BufferedStore implements
             running = true;
             buffer.start();
             destination.start();
+            doTransactionRecovery();
             bufferTransportThread.start();
         }
     }
@@ -367,6 +369,19 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
         return super.verify(key, value, record, timestamp);
+    }
+
+    /**
+     * Restore any transactions that did not finish committing prior to the
+     * previous shutdown.
+     */
+    private void doTransactionRecovery() {
+        FileSystem.mkdirs(GlobalState.TRANSACTION_DIRECTORY);
+        for (File file : new File(GlobalState.TRANSACTION_DIRECTORY)
+                .listFiles()) {
+            Transaction.recover(this, file.getAbsolutePath());
+            Logger.info("Restored Transaction from {}", file.getName());
+        }
     }
 
     /**

@@ -100,12 +100,12 @@ public class AtomicOperation extends BufferedStore {
             .newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
     @Nullable
-    private Map<Token, LockDescription> locks = null;
+    protected Map<Token, LockDescription> locks = null;
 
     /**
      * The AtomicOperation is open until it is committed or aborted.
      */
-    private boolean open = true;
+    protected boolean open = true;
 
     /**
      * Construct a new instance.
@@ -243,10 +243,10 @@ public class AtomicOperation extends BufferedStore {
     }
 
     @Override
-    public void start() {}
+    public final void start() {}
 
     @Override
-    public void stop() {}
+    public final void stop() {}
 
     @Override
     public boolean verify(String key, TObject value, long record) {
@@ -423,11 +423,11 @@ public class AtomicOperation extends BufferedStore {
             switch (type) {
             case RANGE_READ:
                 token = RangeToken.fromByteBuffer(bytes);
-                lock = RangeLockService.getReadLock((RangeToken) token); // authorized
+                lock = RangeLockService.getReadLock((RangeToken) token);
                 break;
             case RANGE_WRITE:
                 token = RangeToken.fromByteBuffer(bytes);
-                lock = RangeLockService.getWriteLock((RangeToken) token); // authorized
+                lock = RangeLockService.getWriteLock((RangeToken) token);
                 break;
             case READ:
                 token = Token.fromByteBuffer(bytes);
@@ -445,7 +445,7 @@ public class AtomicOperation extends BufferedStore {
         /**
          * The size of each LockDescription
          */
-        private static final int SIZE = Token.SIZE + 1; // token, type (1)
+        protected static final int SIZE = Token.SIZE + 1; // token, type (1)
 
         private final Token token;
         private final Lock lock;
@@ -496,6 +496,15 @@ public class AtomicOperation extends BufferedStore {
          */
         public Lock getLock() {
             return lock;
+        }
+
+        /**
+         * Return the Token.
+         * 
+         * @return the token
+         */
+        public Token getToken() {
+            return token;
         }
 
         /**
