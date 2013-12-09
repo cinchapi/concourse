@@ -93,6 +93,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Set<TObject> values = Sets.newHashSet();
         for (int i = 0; i < TestData.getScaleCount(); i++) {
             TObject value = TestData.getTObject();
+            while(values.contains(value)){
+                value = TestData.getTObject();
+            }
             values.add(value);
             add(key, value, record);
         }

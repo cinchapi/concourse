@@ -282,11 +282,18 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         long timestamp = Time.now();
+        List<TObject> otherValues = Lists.newArrayList();
         for (TObject value : getValues()) {
+            while(values.contains(value)){
+                value = TestData.getTObject();
+            }
             add(key, value, record);
+            otherValues.add(value);
         }
         for (TObject value : getValues()) {
-            remove(key, value, record);
+            if(values.contains(value) || otherValues.contains(value)) {
+                remove(key, value, record);
+            }
         }
         Assert.assertEquals(values, store.fetch(key, record, timestamp));
     }
@@ -301,6 +308,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
         }
         long timestamp = Time.now();
         for (TObject value : getValues()) {
+            while (values.contains(value)) {
+                value = TestData.getTObject();
+            }
             add(key, value, record);
         }
         Assert.assertEquals(values, store.fetch(key, record, timestamp));
