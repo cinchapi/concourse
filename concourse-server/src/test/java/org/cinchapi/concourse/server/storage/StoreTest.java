@@ -290,9 +290,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
             add(key, value, record);
             otherValues.add(value);
         }
+        Set<TObject> valuesCopy = Sets.newHashSet(values);
         for (TObject value : getValues()) {
-            if(values.contains(value) || otherValues.contains(value)) {
+            if(valuesCopy.contains(value) || otherValues.contains(value)) {
                 remove(key, value, record);
+                otherValues.remove(value);
+                valuesCopy.remove(value);
             }
         }
         Assert.assertEquals(values, store.fetch(key, record, timestamp));
