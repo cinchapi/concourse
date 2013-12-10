@@ -112,7 +112,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
             else {
                 return emptySet;
             }
-
         }
 
     };
@@ -166,6 +165,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
                 ((Database) destination).getVersion(record));
     }
 
+    @Override
     public long getVersion(String key) {
         return Math.max(buffer.getVersion(key),
                 ((Database) destination).getVersion(key));

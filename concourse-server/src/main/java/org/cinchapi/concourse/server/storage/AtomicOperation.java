@@ -134,9 +134,9 @@ public class AtomicOperation extends BufferedStore implements
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.WRITE)); // TODO replace with LockIntention
+                LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
-                .wrap(value))); // TODO replace with LockIntention
+                .wrap(value))); 
         if(super.add(key, value, record)) {
             return true;
         }
