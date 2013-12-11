@@ -92,6 +92,8 @@ public final class Logger {
     private static final ch.qos.logback.classic.Logger DEBUG = setup(
             "org.cinchapi.concourse.server.DebugLogger", "debug.log");
     static {
+        // Capture logging from Thrift ProcessFunction and route it to our error
+        // log so we have details on processing failures.
         setup(ProcessFunction.class.getName(), "error.log");
     }
 
