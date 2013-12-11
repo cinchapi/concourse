@@ -47,6 +47,7 @@ import com.beust.jcommander.Parameter;
 import com.clutch.dates.StringToTime;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 
 /**
  * The main program runner for the ConcourseShell client. ConcourseShell wraps a
@@ -91,7 +92,15 @@ public final class ConcourseShell {
 
         @Override
         public DateTime call(Object arg) {
-            return StringToTime.parseDateTime(arg.toString());
+            if(Longs.tryParse(arg.toString()) != null) {
+                // We should assume that the timestamp is in microseconds since
+                // that is the output format used in ConcourseShell
+                return new DateTime(TimeUnit.MILLISECONDS.convert(
+                        Long.parseLong(arg.toString()), TimeUnit.MICROSECONDS));
+            }
+            else {
+                return StringToTime.parseDateTime(arg.toString());
+            }
         }
 
     };
