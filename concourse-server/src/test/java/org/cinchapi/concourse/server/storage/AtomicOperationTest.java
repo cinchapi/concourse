@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
@@ -97,6 +98,99 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         ((AtomicOperation) store).abort();
         Assert.assertFalse(destination.verify(key, value, record));
     }
+
+    @Test(expected = AtomicStateException.class)
+    public void testFailureIfWriteToRecordThatIsRead()
+            throws InterruptedException {
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.describe(record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(TestData.getString(),
+                        TestData.getTObject(), record));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertFalse(operation.commit());
+    }
+    
+    public void testSuccessIfNoWriteToRecordThatIsRead()
+            throws InterruptedException {
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.describe(record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(TestData.getString(),
+                        TestData.getTObject(), record+1));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertTrue(operation.commit());
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testFailureIfWriteToKeyInRecordThatIsRead()
+            throws InterruptedException {
+        final String key = TestData.getString();
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.fetch(key, record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(key, TestData.getTObject(), record));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertFalse(operation.commit());
+    }
+
+    @Test
+    public void testSucceessIfNoWriteToKeyInRecordThatIsRead()
+            throws InterruptedException {
+        final String key = TestData.getString();
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.fetch(key, record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(key + TestData.getString(),
+                        TestData.getTObject(), record));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertTrue(operation.commit());
+    }
+
+    // @Test
+    // public void testNoChangesPersistOnFailure(){
+    // for(int i = 0; i < TestData.getScaleCount(); i++){
+    // String key = TestData.getString();
+    // TObject value = TestData.getTObject();
+    // ((AtomicOperation) store).add(key, value, i);
+    // }
+    // }
 
     @Test
     public void testIsolation() {

@@ -132,7 +132,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record) {
+    public boolean add(String key, TObject value, long record)
+            throws AtomicStateException {
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
         ((Compoundable) destination).addVersionChangeListener(
@@ -151,7 +152,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
+    public Map<Long, String> audit(long record) throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
@@ -160,7 +161,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<Long, String> audit(String key, long record) {
+    public Map<Long, String> audit(String key, long record)
+            throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
@@ -177,7 +179,7 @@ public class AtomicOperation extends BufferedStore implements
      * 
      * @return {@code true} if the atomic operation is completely applied
      */
-    public final boolean commit() {
+    public final boolean commit() throws AtomicStateException {
         checkState();
         open = false;
         if(grabLocks()) {
@@ -192,7 +194,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<String> describe(long record) {
+    public Set<String> describe(long record) throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
@@ -201,13 +203,15 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
+    public Set<String> describe(long record, long timestamp)
+            throws AtomicStateException {
         checkState();
         return super.describe(record, timestamp);
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
+    public Set<TObject> fetch(String key, long record)
+            throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
@@ -217,20 +221,22 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
+    public Set<TObject> fetch(String key, long record, long timestamp)
+            throws AtomicStateException {
         checkState();
         return super.fetch(key, record, timestamp);
     }
 
     @Override
     public Set<Long> find(long timestamp, String key, Operator operator,
-            TObject... values) {
+            TObject... values) throws AtomicStateException {
         checkState();
         return super.find(timestamp, key, operator, values);
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> find(String key, Operator operator, TObject... values)
+            throws AtomicStateException {
         checkState();
         expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
@@ -245,7 +251,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record) {
+    public boolean remove(String key, TObject value, long record)
+            throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
@@ -265,7 +272,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<Long> search(String key, String query) {
+    public Set<Long> search(String key, String query)
+            throws AtomicStateException {
         checkState();
         return super.search(key, query);
     }
@@ -277,7 +285,8 @@ public class AtomicOperation extends BufferedStore implements
     public final void stop() {}
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
+    public boolean verify(String key, TObject value, long record)
+            throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
@@ -287,7 +296,8 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(String key, TObject value, long record, long timestamp)
+            throws AtomicStateException {
         checkState();
         return super.verify(key, value, record, timestamp);
     }
