@@ -101,6 +101,10 @@ public class AtomicOperation extends BufferedStore implements
     private final List<VersionExpectation> expectations = Lists
             .newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
+    /**
+     * The collection of {@link LockDescription} objects that are grabbed in the
+     * {@link #grabLocks()} method at commit time.
+     */
     @Nullable
     protected Map<Token, LockDescription> locks = null;
 
@@ -136,7 +140,7 @@ public class AtomicOperation extends BufferedStore implements
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
-                .wrap(value))); 
+                .wrap(value)));
         if(super.add(key, value, record)) {
             return true;
         }
