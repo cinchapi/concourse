@@ -2,6 +2,17 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.8'
 }
 
+def getVersion = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'bash', 'version.sh'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+ext.globalVersion  = getVersion()
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -27,17 +38,8 @@ subprojects {
 	testCompile 'junit:junit:4.11'
    }
 
-   def getVersion = { ->
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'bash', 'version.sh'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-
     group = 'org.cinchapi'
-    version = getVersion()
+    version = globalVersion
 
     jar {
         manifest {
