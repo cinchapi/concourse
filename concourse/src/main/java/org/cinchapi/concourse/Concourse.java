@@ -578,8 +578,18 @@ public interface Concourse {
 
         @Override
         public void abort() {
-            throw new UnsupportedOperationException(
-                    "Transactions are not currently supported");
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    if(transaction != null) {
+                        client.abort(creds, transaction);
+                        transaction = null;
+                    }
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -654,8 +664,16 @@ public interface Concourse {
 
         @Override
         public boolean commit() {
-            throw new UnsupportedOperationException(
-                    "Transactions are not currently supported");
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    boolean result = client.commit(creds, transaction);
+                    transaction = null;
+                    return result;
+                }
+
+            });
         }
 
         @Override
@@ -830,8 +848,15 @@ public interface Concourse {
 
         @Override
         public void stage() {
-            throw new UnsupportedOperationException(
-                    "Transactions are not currently supported");
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    transaction = client.stage(creds);
+                    return null;
+                }
+
+            });
         }
 
         @Override
