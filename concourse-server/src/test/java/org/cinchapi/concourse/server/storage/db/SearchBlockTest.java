@@ -44,6 +44,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 // import com.google.common.collect.Sets;
 
@@ -91,7 +92,8 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
             position = 0;
             for (String string : value.getObject().toString().split(" ")) {
                 string = string.trim();
-                if(!GlobalState.STOPWORDS.contains(string)) {
+                if(!GlobalState.STOPWORDS.contains(string)
+                        && !Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
                     break;
                 }
@@ -174,6 +176,7 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         Variables.register("value", value);
         Variables.register("term", term);
         Variables.register("record", record);
+        Variables.register("position", position);
         Assert.assertFalse(block.mightContain(locator, term,
                 Position.wrap(record, position)));
         ((SearchBlock) block).insert(locator, value, record, Time.now(),
