@@ -131,7 +131,7 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
 
         });
         t.start();
-        client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+        client = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
                 "admin");
     }
 

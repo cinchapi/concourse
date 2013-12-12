@@ -66,7 +66,7 @@ public abstract class ConcoursePerformanceTest {
                                                        // to be ready to
                                                        // accept client
                                                        // connection
-            client = new Concourse.Client();
+            client = Concourse.connect();
             watch = Stopwatch.createUnstarted();
         }
 
