@@ -308,6 +308,16 @@ public class AtomicOperation extends BufferedStore implements
      * the data, etc) if necessary.
      */
     protected void doCommit() {
+        // Since we don't take a backup, it is possible that we can end up
+        // in a situation where the server crashes in the middle of the data
+        // transport, which means that the atomic operation would be partially
+        // committed on server restart, which would appear to violate the
+        // "all or nothing" guarantee. We are willing to live with that risk
+        // because the occurrence of that happening seems low and atomic
+        // operations don't guarantee consistency or durability, so it is
+        // technically not a violate of "all or nothing" if the entire operation
+        // succeeds but isn't durable on crash and leaves the database in an
+        // inconsistent state.
         buffer.transport(destination);
     }
 
