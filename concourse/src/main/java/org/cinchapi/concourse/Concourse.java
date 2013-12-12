@@ -106,7 +106,30 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public interface Concourse {
+public abstract class Concourse {
+
+    /**
+     * Create a new Client connection to the Concourse server specified in
+     * {@code concourse.prefs} and return a handler to facilitate database
+     * interaction.
+     */
+    public static Concourse connect() {
+        return new Client();
+    }
+
+    /**
+     * Create a new Client connection to a Concourse server and return a
+     * handler to facilitate database interaction.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     */
+    public static Concourse connect(String host, int port, String username,
+            String password) {
+        return new Client(host, port, username, password);
+    }
 
     /**
      * Discard any changes that are currently staged for commit.
@@ -116,7 +139,7 @@ public interface Concourse {
      * database.
      * </p>
      */
-    public void abort();
+    public abstract void abort();
 
     /**
      * Add {@code key} as {@code value} to {@code record} and return
@@ -128,7 +151,7 @@ public interface Concourse {
      * @param record
      * @return {@code true} if the mapping is added
      */
-    public <T> boolean add(String key, T value, long record);
+    public abstract <T> boolean add(String key, T value, long record);
 
     /**
      * Audit {@code record} and return a log of revisions.
@@ -136,7 +159,7 @@ public interface Concourse {
      * @param record
      * @return a mapping of timestamps to revision descriptions
      */
-    public Map<DateTime, String> audit(long record);
+    public abstract Map<DateTime, String> audit(long record);
 
     /**
      * Audit {@code key} in {@code record} and return a log of revisions.
@@ -145,7 +168,7 @@ public interface Concourse {
      * @param record
      * @return a mapping of timestamps to revision descriptions
      */
-    public Map<DateTime, String> audit(String key, long record);
+    public abstract Map<DateTime, String> audit(String key, long record);
 
     /**
      * Clear {@code key} in {@code record} and remove every mapping
@@ -153,7 +176,7 @@ public interface Concourse {
      * 
      * @param record
      */
-    public void clear(String key, long record);
+    public abstract void clear(String key, long record);
 
     /**
      * Attempt to permanently commit all the currently staged changes. This
@@ -166,14 +189,14 @@ public interface Concourse {
      * database.
      * </p>
      */
-    public boolean commit();
+    public abstract boolean commit();
 
     /**
      * Create a new Record and return its Primary Key.
      * 
      * @return the Primary Key of the new Record
      */
-    public long create();
+    public abstract long create();
 
     /**
      * Describe {@code record} and return its set of keys that currently map to
@@ -182,7 +205,7 @@ public interface Concourse {
      * @param record
      * @return the populated keys
      */
-    public Set<String> describe(long record);
+    public abstract Set<String> describe(long record);
 
     /**
      * Describe {@code record} at {@code timestamp} and return its set of keys
@@ -192,12 +215,12 @@ public interface Concourse {
      * @param timestamp
      * @return the keys for populated keys
      */
-    public Set<String> describe(long record, DateTime timestamp);
+    public abstract Set<String> describe(long record, DateTime timestamp);
 
     /**
      * Disconnect from the remote Concourse server.
      */
-    public void exit();
+    public abstract void exit();
 
     /**
      * Fetch {@code key} from {@code record} and return the set of currently
@@ -207,7 +230,7 @@ public interface Concourse {
      * @param record
      * @return the contained values
      */
-    public Set<Object> fetch(String key, long record);
+    public abstract Set<Object> fetch(String key, long record);
 
     /**
      * Fetch {@code key} from {@code record} at {@code timestamp} and return the
@@ -218,7 +241,8 @@ public interface Concourse {
      * @param timestamp
      * @return the contained values
      */
-    public Set<Object> fetch(String key, long record, DateTime timestamp);
+    public abstract Set<Object> fetch(String key, long record,
+            DateTime timestamp);
 
     /**
      * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
@@ -231,8 +255,8 @@ public interface Concourse {
      * @param values
      * @return the records that match the criteria
      */
-    public Set<Long> find(DateTime timestamp, String key, Operator operator,
-            Object... values);
+    public abstract Set<Long> find(DateTime timestamp, String key,
+            Operator operator, Object... values);
 
     /**
      * Find {@code key} {@code operator} {@code values} and return the set of
@@ -244,7 +268,8 @@ public interface Concourse {
      * @param values
      * @return the records that match the criteria
      */
-    public Set<Long> find(String key, Operator operator, Object... values);
+    public abstract Set<Long> find(String key, Operator operator,
+            Object... values);
 
     /**
      * Get {@code key} from {@code record} and return the first mapped value or
@@ -256,7 +281,7 @@ public interface Concourse {
      * @param record
      * @return the first mapped value
      */
-    public <T> T get(String key, long record);
+    public abstract <T> T get(String key, long record);
 
     /**
      * Get {@code key} from {@code record} at {@code timestamp} and return the
@@ -270,7 +295,7 @@ public interface Concourse {
      * @param timestamp
      * @return the first mapped value
      */
-    public <T> T get(String key, long record, DateTime timestamp);
+    public abstract <T> T get(String key, long record, DateTime timestamp);
 
     /**
      * Link {@code key} in {@code source} to {@code destination}. In other
@@ -281,7 +306,7 @@ public interface Concourse {
      * @param destination
      * @return {@code true} if the one way link is added
      */
-    public boolean link(String key, long source, long destination);
+    public abstract boolean link(String key, long source, long destination);
 
     /**
      * Ping {@code record} and return {@code true} if there is currently at
@@ -290,7 +315,7 @@ public interface Concourse {
      * @param record
      * @return {@code true} if {@code record} currently contains data
      */
-    public boolean ping(long record);
+    public abstract boolean ping(long record);
 
     /**
      * Remove {@code key} as {@code value} from {@code record} and return
@@ -302,7 +327,7 @@ public interface Concourse {
      * @param record
      * @return {@code true} if the mapping is removed
      */
-    public <T> boolean remove(String key, T value, long record);
+    public abstract <T> boolean remove(String key, T value, long record);
 
     /**
      * Revert {@code key} in {@code record} to {@code timestamp}. This method
@@ -318,7 +343,7 @@ public interface Concourse {
      * @param record
      * @param timestamp
      */
-    public void revert(String key, long record, DateTime timestamp);
+    public abstract void revert(String key, long record, DateTime timestamp);
 
     /**
      * Search {@code key} for {@code query} and return the set of records that
@@ -328,7 +353,7 @@ public interface Concourse {
      * @param query
      * @return the records that match the query
      */
-    public Set<Long> search(String key, String query);
+    public abstract Set<Long> search(String key, String query);
 
     /**
      * Set {@code key} as {@code value} in {@code record}. This is a convenience
@@ -341,7 +366,7 @@ public interface Concourse {
      * @return {@code true} if the old mappings are removed and the new one is
      *         added
      */
-    public <T> boolean set(String key, T value, long record);
+    public abstract <T> boolean set(String key, T value, long record);
 
     /**
      * Turn on {@code staging} mode so that all subsequent changes are
@@ -356,7 +381,7 @@ public interface Concourse {
      * is invoked.
      * </p>
      */
-    public void stage();
+    public abstract void stage();
 
     /**
      * Unlink {@code key} in {@code source} to {@code destination}. In other
@@ -368,7 +393,7 @@ public interface Concourse {
      * @param destination
      * @return {@code true} if the one way link is removed
      */
-    public boolean unlink(String key, long source, long destination);
+    public abstract boolean unlink(String key, long source, long destination);
 
     /**
      * Verify {@code key} equals {@code value} in {@code record} and return
@@ -380,7 +405,7 @@ public interface Concourse {
      * @param record
      * @return {@code true} if the mapping exists
      */
-    public boolean verify(String key, Object value, long record);
+    public abstract boolean verify(String key, Object value, long record);
 
     /**
      * Verify {@code key} equaled {@code value} in {@code record} at
@@ -393,7 +418,7 @@ public interface Concourse {
      * @param timestamp
      * @return {@code true} if the mapping existed
      */
-    public boolean verify(String key, Object value, long record,
+    public abstract boolean verify(String key, Object value, long record,
             DateTime timestamp);
 
     /**
@@ -404,7 +429,7 @@ public interface Concourse {
      * 
      * @author jnelson
      */
-    public final static class Client implements Concourse {
+    private final static class Client extends Concourse {
 
         // NOTE: The configuration variables are static because we want to
         // guarantee that they are set before the client connection is

@@ -124,7 +124,7 @@ public final class ConcourseShell {
             opts.password = console.readLine("Password: ", '*');
         }
         try {
-            Concourse concourse = new Concourse.Client(opts.host, opts.port,
+            Concourse concourse = Concourse.connect(opts.host, opts.port,
                     opts.username, opts.password);
 
             CommandLine.displayWelcomeBanner();
