@@ -93,7 +93,7 @@ public class ConcourseServerTest {
 
             });
             t.start();
-            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+            client = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
                     "admin");
             data = HashBasedTable.<Long, String, Set<Object>> create();
 
