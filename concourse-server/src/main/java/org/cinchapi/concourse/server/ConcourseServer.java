@@ -279,6 +279,18 @@ public class ConcourseServer implements
     }
 
     @Override
+    public void clear(String key, long record, AccessToken creds,
+            TransactionToken transaction) throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doClear(key, record,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
+    }
+
+    @Override
     public boolean commit(AccessToken creds, TransactionToken transaction)
             throws TException {
         authenticate(creds);
@@ -383,10 +395,7 @@ public class ConcourseServer implements
     @Override
     public void revert(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction) throws TException {
-        authenticate(creds);
-        Preconditions.checkArgument((transaction != null
-                && transaction.getAccessToken().equals(creds) && transactions
-                    .containsKey(transaction)) || transaction == null);
+        checkAccess(creds, transaction);
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
             operation = doRevert(key, record, timestamp,
@@ -407,6 +416,18 @@ public class ConcourseServer implements
             return t.search(key, query);
         }
         return engine.search(key, query);
+    }
+
+    @Override
+    public void set0(String key, TObject value, long record, AccessToken creds,
+            TransactionToken transaction) throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doSet(key, value, record,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
     }
 
     @Override
@@ -458,6 +479,27 @@ public class ConcourseServer implements
                 .verify(key, value, record, timestamp);
     }
 
+    @Override
+    public boolean verifyAndSwap(String key, TObject expected, long record,
+            TObject replacement, AccessToken creds, TransactionToken transaction)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = AtomicOperation
+                .start(transaction != null ? transactions.get(transaction)
+                        : engine);
+        try {
+            if(operation.verify(key, expected, record)) {
+                operation.remove(key, expected, record);
+                operation.add(key, replacement, record);
+                return operation.commit();
+            }
+            return false;
+        }
+        catch (AtomicStateException e) {
+            return false;
+        }
+    }
+
     /**
      * Verify that {@code token} is valid.
      * 
@@ -466,6 +508,46 @@ public class ConcourseServer implements
      */
     private void authenticate(AccessToken token) throws SecurityException {
         // TODO check token and throw an exception if its not valid
+    }
+
+    /**
+     * Check to make sure that {@code creds} and {@code transaction} are valid
+     * and are associated with one another.
+     * 
+     * @param creds
+     * @param transaction
+     * @throws SecurityException
+     * @throws IllegalArgumentException
+     */
+    private void checkAccess(AccessToken creds, TransactionToken transaction)
+            throws SecurityException, IllegalArgumentException {
+        authenticate(creds);
+        Preconditions.checkArgument((transaction != null
+                && transaction.getAccessToken().equals(creds) && transactions
+                    .containsKey(transaction)) || transaction == null);
+    }
+
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to clear {@code key} in {@code record}.
+     * 
+     * @param key
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doClear(String key, long record, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        try {
+            Set<TObject> values = operation.fetch(key, record);
+            for (TObject value : values) {
+                operation.remove(key, value, record);
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
     }
 
     /**
@@ -482,10 +564,10 @@ public class ConcourseServer implements
     private AtomicOperation doRevert(String key, long record, long timestamp,
             Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
-        Set<TObject> past = operation.fetch(key, record, timestamp);
-        Set<TObject> present = operation.fetch(key, record);
-        Set<TObject> xor = Sets.symmetricDifference(past, present);
         try {
+            Set<TObject> past = operation.fetch(key, record, timestamp);
+            Set<TObject> present = operation.fetch(key, record);
+            Set<TObject> xor = Sets.symmetricDifference(past, present);
             for (TObject value : xor) {
                 if(present.contains(value)) {
                     operation.remove(key, value, record);
@@ -499,6 +581,35 @@ public class ConcourseServer implements
         catch (AtomicStateException e) {
             return null;
         }
+    }
+
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to set {@code key} as {@code value} in {@code record}.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param store
+     * @return
+     */
+    private AtomicOperation doSet(String key, TObject value, long record,
+            Compoundable store) {
+        // NOTE: We cannot use the #clear() method because our removes must be
+        // defined in terms of the AtomicOperation for true atomic safety.
+        AtomicOperation operation = AtomicOperation.start(store);
+        try {
+            Set<TObject> values = operation.fetch(key, record);
+            for (TObject oldValue : values) {
+                operation.remove(key, oldValue, record);
+            }
+            operation.add(key, value, record);
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+
     }
 
     /**
@@ -523,5 +634,4 @@ public class ConcourseServer implements
             throws SecurityException {
         // TODO check if creds are correct
     }
-
 }

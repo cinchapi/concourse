@@ -13,10 +13,7 @@ import org.apache.thrift.scheme.StandardScheme;
 
 import org.apache.thrift.scheme.TupleScheme;
 import org.apache.thrift.protocol.TTupleProtocol;
-import org.apache.thrift.protocol.TProtocolException;
 import org.apache.thrift.EncodingUtils;
-import org.apache.thrift.TException;
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -27,8 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.util.BitSet;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,15 +46,15 @@ public class ConcourseService {
          * @param username
          * @param password
          */
-        public AccessToken login(String username, String password)
-                throws org.apache.thrift.TException;
+        public org.cinchapi.concourse.thrift.AccessToken login(String username,
+                String password) throws org.apache.thrift.TException;
 
         /**
          * Logout of the service and deauthorize {@code token}.
          * 
          * @param token
          */
-        public void logout(AccessToken token)
+        public void logout(org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException;
 
         /**
@@ -80,7 +75,8 @@ public class ConcourseService {
          * 
          * @param token
          */
-        public TransactionToken stage(AccessToken token)
+        public org.cinchapi.concourse.thrift.TransactionToken stage(
+                org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException;
 
         /**
@@ -95,7 +91,8 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public void abort(AccessToken creds, TransactionToken transaction)
+        public void abort(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -114,7 +111,8 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public boolean commit(AccessToken creds, TransactionToken transaction)
+        public boolean commit(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -128,8 +126,10 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public boolean add(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public boolean add(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -143,8 +143,10 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public boolean remove(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public boolean remove(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -158,7 +160,8 @@ public class ConcourseService {
          * @param transaction
          */
         public Map<Long, String> audit(long record, String key,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -173,7 +176,8 @@ public class ConcourseService {
          * @param transaction
          */
         public Set<String> describe(long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -188,8 +192,10 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public Set<TObject> fetch(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+        public Set<org.cinchapi.concourse.thrift.TObject> fetch(String key,
+                long record, long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -205,9 +211,12 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public Set<Long> find(String key, Operator operator,
-                List<TObject> values, long timestamp, AccessToken creds,
-                TransactionToken transaction)
+        public Set<Long> find(String key,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -219,8 +228,9 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public boolean ping(long record, AccessToken creds,
-                TransactionToken transaction)
+        public boolean ping(long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -233,8 +243,9 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public Set<Long> search(String key, String query, AccessToken creds,
-                TransactionToken transaction)
+        public Set<Long> search(String key, String query,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
@@ -250,12 +261,15 @@ public class ConcourseService {
          * @param creds
          * @param transaction
          */
-        public boolean verify(String key, TObject value, long record,
-                long timestamp, AccessToken creds, TransactionToken transaction)
+        public boolean verify(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException;
 
         /**
-         * Revert {@code key} in {@code record} to {@code timestamp}.
+         * Atomically revert {@code key} in {@code record} to {@code timestamp}.
          * 
          * @param key
          * @param record
@@ -264,7 +278,59 @@ public class ConcourseService {
          * @param token
          */
         public void revert(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken token)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException;
+
+        /**
+         * Atomically clear {@code key} in {@code record} by removing every
+         * value that
+         * currently exists.
+         * 
+         * @param key
+         * @param record
+         * @param creds
+         * @param token
+         */
+        public void clear(String key, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException;
+
+        /**
+         * Atomically set {@code key} as {@code value} in {@code record} by
+         * removing any
+         * values that currently exist and adding {@code value}.
+         * 
+         * @param key
+         * @param value
+         * @param record
+         * @param creds
+         * @param token
+         */
+        public void set0(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException;
+
+        /**
+         * Atomically verify {@code key} as {@code expected} in {@code record}
+         * and swap
+         * with {@code replacement} if it exists.
+         * 
+         * @param key
+         * @param expected
+         * @param record
+         * @param replacement
+         * @param creds
+         * @param token
+         */
+        public boolean verifyAndSwap(String key,
+                org.cinchapi.concourse.thrift.TObject expected, long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
                 throws org.apache.thrift.TException;
 
     }
@@ -278,58 +344,58 @@ public class ConcourseService {
                 throws org.apache.thrift.TException;
 
         public void logout(
-                AccessToken token,
+                org.cinchapi.concourse.thrift.AccessToken token,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.logout_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void stage(
-                AccessToken token,
+                org.cinchapi.concourse.thrift.AccessToken token,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.stage_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void abort(
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.abort_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void commit(
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.commit_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void add(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.add_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void remove(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.remove_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void audit(
                 long record,
                 String key,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.audit_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void describe(
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.describe_call> resultHandler)
                 throws org.apache.thrift.TException;
 
@@ -337,43 +403,43 @@ public class ConcourseService {
                 String key,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.fetch_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void find(
                 String key,
-                Operator operator,
-                List<TObject> values,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.find_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void ping(
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.ping_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void search(
                 String key,
                 String query,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.search_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void verify(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.verify_call> resultHandler)
                 throws org.apache.thrift.TException;
 
@@ -381,9 +447,36 @@ public class ConcourseService {
                 String key,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken token,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.revert_call> resultHandler)
+                throws org.apache.thrift.TException;
+
+        public void clear(
+                String key,
+                long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<AsyncClient.clear_call> resultHandler)
+                throws org.apache.thrift.TException;
+
+        public void set0(
+                String key,
+                org.cinchapi.concourse.thrift.TObject value,
+                long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<AsyncClient.set0_call> resultHandler)
+                throws org.apache.thrift.TException;
+
+        public void verifyAndSwap(
+                String key,
+                org.cinchapi.concourse.thrift.TObject expected,
+                long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<AsyncClient.verifyAndSwap_call> resultHandler)
                 throws org.apache.thrift.TException;
 
     }
@@ -413,8 +506,8 @@ public class ConcourseService {
             super(iprot, oprot);
         }
 
-        public AccessToken login(String username, String password)
-                throws org.apache.thrift.TException {
+        public org.cinchapi.concourse.thrift.AccessToken login(String username,
+                String password) throws org.apache.thrift.TException {
             send_login(username, password);
             return recv_login();
         }
@@ -427,7 +520,8 @@ public class ConcourseService {
             sendBase("login", args);
         }
 
-        public AccessToken recv_login() throws org.apache.thrift.TException {
+        public org.cinchapi.concourse.thrift.AccessToken recv_login()
+                throws org.apache.thrift.TException {
             login_result result = new login_result();
             receiveBase(result, "login");
             if(result.isSetSuccess()) {
@@ -438,13 +532,13 @@ public class ConcourseService {
                     "login failed: unknown result");
         }
 
-        public void logout(AccessToken token)
+        public void logout(org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException {
             send_logout(token);
             recv_logout();
         }
 
-        public void send_logout(AccessToken token)
+        public void send_logout(org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException {
             logout_args args = new logout_args();
             args.setToken(token);
@@ -457,20 +551,21 @@ public class ConcourseService {
             return;
         }
 
-        public TransactionToken stage(AccessToken token)
+        public org.cinchapi.concourse.thrift.TransactionToken stage(
+                org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException {
             send_stage(token);
             return recv_stage();
         }
 
-        public void send_stage(AccessToken token)
+        public void send_stage(org.cinchapi.concourse.thrift.AccessToken token)
                 throws org.apache.thrift.TException {
             stage_args args = new stage_args();
             args.setToken(token);
             sendBase("stage", args);
         }
 
-        public TransactionToken recv_stage()
+        public org.cinchapi.concourse.thrift.TransactionToken recv_stage()
                 throws org.apache.thrift.TException {
             stage_result result = new stage_result();
             receiveBase(result, "stage");
@@ -482,13 +577,15 @@ public class ConcourseService {
                     "stage failed: unknown result");
         }
 
-        public void abort(AccessToken creds, TransactionToken transaction)
+        public void abort(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_abort(creds, transaction);
             recv_abort();
         }
 
-        public void send_abort(AccessToken creds, TransactionToken transaction)
+        public void send_abort(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             abort_args args = new abort_args();
             args.setCreds(creds);
@@ -502,13 +599,16 @@ public class ConcourseService {
             return;
         }
 
-        public boolean commit(AccessToken creds, TransactionToken transaction)
+        public boolean commit(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_commit(creds, transaction);
             return recv_commit();
         }
 
-        public void send_commit(AccessToken creds, TransactionToken transaction)
+        public void send_commit(
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             commit_args args = new commit_args();
             args.setCreds(creds);
@@ -527,15 +627,19 @@ public class ConcourseService {
                     "commit failed: unknown result");
         }
 
-        public boolean add(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public boolean add(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_add(key, value, record, creds, transaction);
             return recv_add();
         }
 
-        public void send_add(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public void send_add(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             add_args args = new add_args();
             args.setKey(key);
@@ -557,15 +661,19 @@ public class ConcourseService {
                     "add failed: unknown result");
         }
 
-        public boolean remove(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public boolean remove(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_remove(key, value, record, creds, transaction);
             return recv_remove();
         }
 
-        public void send_remove(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction)
+        public void send_remove(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             remove_args args = new remove_args();
             args.setKey(key);
@@ -588,14 +696,16 @@ public class ConcourseService {
         }
 
         public Map<Long, String> audit(long record, String key,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_audit(record, key, creds, transaction);
             return recv_audit();
         }
 
-        public void send_audit(long record, String key, AccessToken creds,
-                TransactionToken transaction)
+        public void send_audit(long record, String key,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             audit_args args = new audit_args();
             args.setRecord(record);
@@ -618,14 +728,16 @@ public class ConcourseService {
         }
 
         public Set<String> describe(long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_describe(record, timestamp, creds, transaction);
             return recv_describe();
         }
 
         public void send_describe(long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             describe_args args = new describe_args();
             args.setRecord(record);
@@ -646,15 +758,18 @@ public class ConcourseService {
                     "describe failed: unknown result");
         }
 
-        public Set<TObject> fetch(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+        public Set<org.cinchapi.concourse.thrift.TObject> fetch(String key,
+                long record, long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_fetch(key, record, timestamp, creds, transaction);
             return recv_fetch();
         }
 
         public void send_fetch(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken transaction)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             fetch_args args = new fetch_args();
             args.setKey(key);
@@ -665,7 +780,8 @@ public class ConcourseService {
             sendBase("fetch", args);
         }
 
-        public Set<TObject> recv_fetch() throws org.apache.thrift.TException {
+        public Set<org.cinchapi.concourse.thrift.TObject> recv_fetch()
+                throws org.apache.thrift.TException {
             fetch_result result = new fetch_result();
             receiveBase(result, "fetch");
             if(result.isSetSuccess()) {
@@ -676,17 +792,23 @@ public class ConcourseService {
                     "fetch failed: unknown result");
         }
 
-        public Set<Long> find(String key, Operator operator,
-                List<TObject> values, long timestamp, AccessToken creds,
-                TransactionToken transaction)
+        public Set<Long> find(String key,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_find(key, operator, values, timestamp, creds, transaction);
             return recv_find();
         }
 
-        public void send_find(String key, Operator operator,
-                List<TObject> values, long timestamp, AccessToken creds,
-                TransactionToken transaction)
+        public void send_find(String key,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             find_args args = new find_args();
             args.setKey(key);
@@ -709,15 +831,17 @@ public class ConcourseService {
                     "find failed: unknown result");
         }
 
-        public boolean ping(long record, AccessToken creds,
-                TransactionToken transaction)
+        public boolean ping(long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_ping(record, creds, transaction);
             return recv_ping();
         }
 
-        public void send_ping(long record, AccessToken creds,
-                TransactionToken transaction)
+        public void send_ping(long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             ping_args args = new ping_args();
             args.setRecord(record);
@@ -737,15 +861,17 @@ public class ConcourseService {
                     "ping failed: unknown result");
         }
 
-        public Set<Long> search(String key, String query, AccessToken creds,
-                TransactionToken transaction)
+        public Set<Long> search(String key, String query,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_search(key, query, creds, transaction);
             return recv_search();
         }
 
-        public void send_search(String key, String query, AccessToken creds,
-                TransactionToken transaction)
+        public void send_search(String key, String query,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             search_args args = new search_args();
             args.setKey(key);
@@ -766,15 +892,21 @@ public class ConcourseService {
                     "search failed: unknown result");
         }
 
-        public boolean verify(String key, TObject value, long record,
-                long timestamp, AccessToken creds, TransactionToken transaction)
+        public boolean verify(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             send_verify(key, value, record, timestamp, creds, transaction);
             return recv_verify();
         }
 
-        public void send_verify(String key, TObject value, long record,
-                long timestamp, AccessToken creds, TransactionToken transaction)
+        public void send_verify(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             verify_args args = new verify_args();
             args.setKey(key);
@@ -798,14 +930,16 @@ public class ConcourseService {
         }
 
         public void revert(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken token)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
                 throws org.apache.thrift.TException {
             send_revert(key, record, timestamp, creds, token);
             recv_revert();
         }
 
         public void send_revert(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken token)
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
                 throws org.apache.thrift.TException {
             revert_args args = new revert_args();
             args.setKey(key);
@@ -820,6 +954,98 @@ public class ConcourseService {
             revert_result result = new revert_result();
             receiveBase(result, "revert");
             return;
+        }
+
+        public void clear(String key, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            send_clear(key, record, creds, token);
+            recv_clear();
+        }
+
+        public void send_clear(String key, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            clear_args args = new clear_args();
+            args.setKey(key);
+            args.setRecord(record);
+            args.setCreds(creds);
+            args.setToken(token);
+            sendBase("clear", args);
+        }
+
+        public void recv_clear() throws org.apache.thrift.TException {
+            clear_result result = new clear_result();
+            receiveBase(result, "clear");
+            return;
+        }
+
+        public void set0(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            send_set0(key, value, record, creds, token);
+            recv_set0();
+        }
+
+        public void send_set0(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            set0_args args = new set0_args();
+            args.setKey(key);
+            args.setValue(value);
+            args.setRecord(record);
+            args.setCreds(creds);
+            args.setToken(token);
+            sendBase("set0", args);
+        }
+
+        public void recv_set0() throws org.apache.thrift.TException {
+            set0_result result = new set0_result();
+            receiveBase(result, "set0");
+            return;
+        }
+
+        public boolean verifyAndSwap(String key,
+                org.cinchapi.concourse.thrift.TObject expected, long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            send_verifyAndSwap(key, expected, record, replacement, creds, token);
+            return recv_verifyAndSwap();
+        }
+
+        public void send_verifyAndSwap(String key,
+                org.cinchapi.concourse.thrift.TObject expected, long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token)
+                throws org.apache.thrift.TException {
+            verifyAndSwap_args args = new verifyAndSwap_args();
+            args.setKey(key);
+            args.setExpected(expected);
+            args.setRecord(record);
+            args.setReplacement(replacement);
+            args.setCreds(creds);
+            args.setToken(token);
+            sendBase("verifyAndSwap", args);
+        }
+
+        public boolean recv_verifyAndSwap() throws org.apache.thrift.TException {
+            verifyAndSwap_result result = new verifyAndSwap_result();
+            receiveBase(result, "verifyAndSwap");
+            if(result.isSetSuccess()) {
+                return result.success;
+            }
+            throw new org.apache.thrift.TApplicationException(
+                    org.apache.thrift.TApplicationException.MISSING_RESULT,
+                    "verifyAndSwap failed: unknown result");
         }
 
     }
@@ -894,7 +1120,8 @@ public class ConcourseService {
                 prot.writeMessageEnd();
             }
 
-            public AccessToken getResult() throws org.apache.thrift.TException {
+            public org.cinchapi.concourse.thrift.AccessToken getResult()
+                    throws org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
                 }
@@ -907,7 +1134,7 @@ public class ConcourseService {
         }
 
         public void logout(
-                AccessToken token,
+                org.cinchapi.concourse.thrift.AccessToken token,
                 org.apache.thrift.async.AsyncMethodCallback<logout_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -919,10 +1146,10 @@ public class ConcourseService {
 
         public static class logout_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
-            private AccessToken token;
+            private org.cinchapi.concourse.thrift.AccessToken token;
 
             public logout_call(
-                    AccessToken token,
+                    org.cinchapi.concourse.thrift.AccessToken token,
                     org.apache.thrift.async.AsyncMethodCallback<logout_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -956,7 +1183,7 @@ public class ConcourseService {
         }
 
         public void stage(
-                AccessToken token,
+                org.cinchapi.concourse.thrift.AccessToken token,
                 org.apache.thrift.async.AsyncMethodCallback<stage_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -968,10 +1195,10 @@ public class ConcourseService {
 
         public static class stage_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
-            private AccessToken token;
+            private org.cinchapi.concourse.thrift.AccessToken token;
 
             public stage_call(
-                    AccessToken token,
+                    org.cinchapi.concourse.thrift.AccessToken token,
                     org.apache.thrift.async.AsyncMethodCallback<stage_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -992,7 +1219,7 @@ public class ConcourseService {
                 prot.writeMessageEnd();
             }
 
-            public TransactionToken getResult()
+            public org.cinchapi.concourse.thrift.TransactionToken getResult()
                     throws org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -1006,8 +1233,8 @@ public class ConcourseService {
         }
 
         public void abort(
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<abort_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1019,12 +1246,12 @@ public class ConcourseService {
 
         public static class abort_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public abort_call(
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<abort_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1060,8 +1287,8 @@ public class ConcourseService {
         }
 
         public void commit(
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<commit_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1073,12 +1300,12 @@ public class ConcourseService {
 
         public static class commit_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public commit_call(
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<commit_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1115,10 +1342,10 @@ public class ConcourseService {
 
         public void add(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<add_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1132,17 +1359,17 @@ public class ConcourseService {
         public static class add_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private String key;
-            private TObject value;
+            private org.cinchapi.concourse.thrift.TObject value;
             private long record;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public add_call(
                     String key,
-                    TObject value,
+                    org.cinchapi.concourse.thrift.TObject value,
                     long record,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<add_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1184,10 +1411,10 @@ public class ConcourseService {
 
         public void remove(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<remove_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1201,17 +1428,17 @@ public class ConcourseService {
         public static class remove_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private String key;
-            private TObject value;
+            private org.cinchapi.concourse.thrift.TObject value;
             private long record;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public remove_call(
                     String key,
-                    TObject value,
+                    org.cinchapi.concourse.thrift.TObject value,
                     long record,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<remove_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1255,8 +1482,8 @@ public class ConcourseService {
         public void audit(
                 long record,
                 String key,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<audit_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1271,14 +1498,14 @@ public class ConcourseService {
                 org.apache.thrift.async.TAsyncMethodCall {
             private long record;
             private String key;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public audit_call(
                     long record,
                     String key,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<audit_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1321,8 +1548,8 @@ public class ConcourseService {
         public void describe(
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<describe_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1337,14 +1564,14 @@ public class ConcourseService {
                 org.apache.thrift.async.TAsyncMethodCall {
             private long record;
             private long timestamp;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public describe_call(
                     long record,
                     long timestamp,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<describe_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1387,8 +1614,8 @@ public class ConcourseService {
                 String key,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<fetch_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1404,15 +1631,15 @@ public class ConcourseService {
             private String key;
             private long record;
             private long timestamp;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public fetch_call(
                     String key,
                     long record,
                     long timestamp,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<fetch_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1441,7 +1668,8 @@ public class ConcourseService {
                 prot.writeMessageEnd();
             }
 
-            public Set<TObject> getResult() throws org.apache.thrift.TException {
+            public Set<org.cinchapi.concourse.thrift.TObject> getResult()
+                    throws org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
                 }
@@ -1455,11 +1683,11 @@ public class ConcourseService {
 
         public void find(
                 String key,
-                Operator operator,
-                List<TObject> values,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<find_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1473,19 +1701,19 @@ public class ConcourseService {
         public static class find_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private String key;
-            private Operator operator;
-            private List<TObject> values;
+            private org.cinchapi.concourse.thrift.Operator operator;
+            private List<org.cinchapi.concourse.thrift.TObject> values;
             private long timestamp;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public find_call(
                     String key,
-                    Operator operator,
-                    List<TObject> values,
+                    org.cinchapi.concourse.thrift.Operator operator,
+                    List<org.cinchapi.concourse.thrift.TObject> values,
                     long timestamp,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<find_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1529,8 +1757,8 @@ public class ConcourseService {
 
         public void ping(
                 long record,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<ping_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1543,13 +1771,13 @@ public class ConcourseService {
         public static class ping_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private long record;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public ping_call(
                     long record,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<ping_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1588,8 +1816,8 @@ public class ConcourseService {
         public void search(
                 String key,
                 String query,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<search_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1604,14 +1832,14 @@ public class ConcourseService {
                 org.apache.thrift.async.TAsyncMethodCall {
             private String key;
             private String query;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public search_call(
                     String key,
                     String query,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<search_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1652,11 +1880,11 @@ public class ConcourseService {
 
         public void verify(
                 String key,
-                TObject value,
+                org.cinchapi.concourse.thrift.TObject value,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken transaction,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<verify_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1670,19 +1898,19 @@ public class ConcourseService {
         public static class verify_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private String key;
-            private TObject value;
+            private org.cinchapi.concourse.thrift.TObject value;
             private long record;
             private long timestamp;
-            private AccessToken creds;
-            private TransactionToken transaction;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public verify_call(
                     String key,
-                    TObject value,
+                    org.cinchapi.concourse.thrift.TObject value,
                     long record,
                     long timestamp,
-                    AccessToken creds,
-                    TransactionToken transaction,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<verify_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1729,8 +1957,8 @@ public class ConcourseService {
                 String key,
                 long record,
                 long timestamp,
-                AccessToken creds,
-                TransactionToken token,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
                 org.apache.thrift.async.AsyncMethodCallback<revert_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1746,15 +1974,15 @@ public class ConcourseService {
             private String key;
             private long record;
             private long timestamp;
-            private AccessToken creds;
-            private TransactionToken token;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken token;
 
             public revert_call(
                     String key,
                     long record,
                     long timestamp,
-                    AccessToken creds,
-                    TransactionToken token,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken token,
                     org.apache.thrift.async.AsyncMethodCallback<revert_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -1795,6 +2023,214 @@ public class ConcourseService {
             }
         }
 
+        public void clear(
+                String key,
+                long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<clear_call> resultHandler)
+                throws org.apache.thrift.TException {
+            checkReady();
+            clear_call method_call = new clear_call(key, record, creds, token,
+                    resultHandler, this, ___protocolFactory, ___transport);
+            this.___currentMethod = method_call;
+            ___manager.call(method_call);
+        }
+
+        public static class clear_call extends
+                org.apache.thrift.async.TAsyncMethodCall {
+            private String key;
+            private long record;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken token;
+
+            public clear_call(
+                    String key,
+                    long record,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken token,
+                    org.apache.thrift.async.AsyncMethodCallback<clear_call> resultHandler,
+                    org.apache.thrift.async.TAsyncClient client,
+                    org.apache.thrift.protocol.TProtocolFactory protocolFactory,
+                    org.apache.thrift.transport.TNonblockingTransport transport)
+                    throws org.apache.thrift.TException {
+                super(client, protocolFactory, transport, resultHandler, false);
+                this.key = key;
+                this.record = record;
+                this.creds = creds;
+                this.token = token;
+            }
+
+            public void write_args(org.apache.thrift.protocol.TProtocol prot)
+                    throws org.apache.thrift.TException {
+                prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage(
+                        "clear", org.apache.thrift.protocol.TMessageType.CALL,
+                        0));
+                clear_args args = new clear_args();
+                args.setKey(key);
+                args.setRecord(record);
+                args.setCreds(creds);
+                args.setToken(token);
+                args.write(prot);
+                prot.writeMessageEnd();
+            }
+
+            public void getResult() throws org.apache.thrift.TException {
+                if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+                    throw new IllegalStateException("Method call not finished!");
+                }
+                org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(
+                        getFrameBuffer().array());
+                org.apache.thrift.protocol.TProtocol prot = client
+                        .getProtocolFactory().getProtocol(memoryTransport);
+                (new Client(prot)).recv_clear();
+            }
+        }
+
+        public void set0(
+                String key,
+                org.cinchapi.concourse.thrift.TObject value,
+                long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<set0_call> resultHandler)
+                throws org.apache.thrift.TException {
+            checkReady();
+            set0_call method_call = new set0_call(key, value, record, creds,
+                    token, resultHandler, this, ___protocolFactory,
+                    ___transport);
+            this.___currentMethod = method_call;
+            ___manager.call(method_call);
+        }
+
+        public static class set0_call extends
+                org.apache.thrift.async.TAsyncMethodCall {
+            private String key;
+            private org.cinchapi.concourse.thrift.TObject value;
+            private long record;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken token;
+
+            public set0_call(
+                    String key,
+                    org.cinchapi.concourse.thrift.TObject value,
+                    long record,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken token,
+                    org.apache.thrift.async.AsyncMethodCallback<set0_call> resultHandler,
+                    org.apache.thrift.async.TAsyncClient client,
+                    org.apache.thrift.protocol.TProtocolFactory protocolFactory,
+                    org.apache.thrift.transport.TNonblockingTransport transport)
+                    throws org.apache.thrift.TException {
+                super(client, protocolFactory, transport, resultHandler, false);
+                this.key = key;
+                this.value = value;
+                this.record = record;
+                this.creds = creds;
+                this.token = token;
+            }
+
+            public void write_args(org.apache.thrift.protocol.TProtocol prot)
+                    throws org.apache.thrift.TException {
+                prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage(
+                        "set0", org.apache.thrift.protocol.TMessageType.CALL, 0));
+                set0_args args = new set0_args();
+                args.setKey(key);
+                args.setValue(value);
+                args.setRecord(record);
+                args.setCreds(creds);
+                args.setToken(token);
+                args.write(prot);
+                prot.writeMessageEnd();
+            }
+
+            public void getResult() throws org.apache.thrift.TException {
+                if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+                    throw new IllegalStateException("Method call not finished!");
+                }
+                org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(
+                        getFrameBuffer().array());
+                org.apache.thrift.protocol.TProtocol prot = client
+                        .getProtocolFactory().getProtocol(memoryTransport);
+                (new Client(prot)).recv_set0();
+            }
+        }
+
+        public void verifyAndSwap(
+                String key,
+                org.cinchapi.concourse.thrift.TObject expected,
+                long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token,
+                org.apache.thrift.async.AsyncMethodCallback<verifyAndSwap_call> resultHandler)
+                throws org.apache.thrift.TException {
+            checkReady();
+            verifyAndSwap_call method_call = new verifyAndSwap_call(key,
+                    expected, record, replacement, creds, token, resultHandler,
+                    this, ___protocolFactory, ___transport);
+            this.___currentMethod = method_call;
+            ___manager.call(method_call);
+        }
+
+        public static class verifyAndSwap_call extends
+                org.apache.thrift.async.TAsyncMethodCall {
+            private String key;
+            private org.cinchapi.concourse.thrift.TObject expected;
+            private long record;
+            private org.cinchapi.concourse.thrift.TObject replacement;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken token;
+
+            public verifyAndSwap_call(
+                    String key,
+                    org.cinchapi.concourse.thrift.TObject expected,
+                    long record,
+                    org.cinchapi.concourse.thrift.TObject replacement,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken token,
+                    org.apache.thrift.async.AsyncMethodCallback<verifyAndSwap_call> resultHandler,
+                    org.apache.thrift.async.TAsyncClient client,
+                    org.apache.thrift.protocol.TProtocolFactory protocolFactory,
+                    org.apache.thrift.transport.TNonblockingTransport transport)
+                    throws org.apache.thrift.TException {
+                super(client, protocolFactory, transport, resultHandler, false);
+                this.key = key;
+                this.expected = expected;
+                this.record = record;
+                this.replacement = replacement;
+                this.creds = creds;
+                this.token = token;
+            }
+
+            public void write_args(org.apache.thrift.protocol.TProtocol prot)
+                    throws org.apache.thrift.TException {
+                prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage(
+                        "verifyAndSwap",
+                        org.apache.thrift.protocol.TMessageType.CALL, 0));
+                verifyAndSwap_args args = new verifyAndSwap_args();
+                args.setKey(key);
+                args.setExpected(expected);
+                args.setRecord(record);
+                args.setReplacement(replacement);
+                args.setCreds(creds);
+                args.setToken(token);
+                args.write(prot);
+                prot.writeMessageEnd();
+            }
+
+            public boolean getResult() throws org.apache.thrift.TException {
+                if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+                    throw new IllegalStateException("Method call not finished!");
+                }
+                org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(
+                        getFrameBuffer().array());
+                org.apache.thrift.protocol.TProtocol prot = client
+                        .getProtocolFactory().getProtocol(memoryTransport);
+                return (new Client(prot)).recv_verifyAndSwap();
+            }
+        }
+
     }
 
     public static class Processor<I extends Iface> extends
@@ -1832,6 +2268,9 @@ public class ConcourseService {
             processMap.put("search", new search());
             processMap.put("verify", new verify());
             processMap.put("revert", new revert());
+            processMap.put("clear", new clear());
+            processMap.put("set0", new set0());
+            processMap.put("verifyAndSwap", new verifyAndSwap());
             return processMap;
         }
 
@@ -2178,6 +2617,76 @@ public class ConcourseService {
                 revert_result result = new revert_result();
                 iface.revert(args.key, args.record, args.timestamp, args.creds,
                         args.token);
+                return result;
+            }
+        }
+
+        public static class clear<I extends Iface> extends
+                org.apache.thrift.ProcessFunction<I, clear_args> {
+            public clear() {
+                super("clear");
+            }
+
+            public clear_args getEmptyArgsInstance() {
+                return new clear_args();
+            }
+
+            protected boolean isOneway() {
+                return false;
+            }
+
+            public clear_result getResult(I iface, clear_args args)
+                    throws org.apache.thrift.TException {
+                clear_result result = new clear_result();
+                iface.clear(args.key, args.record, args.creds, args.token);
+                return result;
+            }
+        }
+
+        public static class set0<I extends Iface> extends
+                org.apache.thrift.ProcessFunction<I, set0_args> {
+            public set0() {
+                super("set0");
+            }
+
+            public set0_args getEmptyArgsInstance() {
+                return new set0_args();
+            }
+
+            protected boolean isOneway() {
+                return false;
+            }
+
+            public set0_result getResult(I iface, set0_args args)
+                    throws org.apache.thrift.TException {
+                set0_result result = new set0_result();
+                iface.set0(args.key, args.value, args.record, args.creds,
+                        args.token);
+                return result;
+            }
+        }
+
+        public static class verifyAndSwap<I extends Iface> extends
+                org.apache.thrift.ProcessFunction<I, verifyAndSwap_args> {
+            public verifyAndSwap() {
+                super("verifyAndSwap");
+            }
+
+            public verifyAndSwap_args getEmptyArgsInstance() {
+                return new verifyAndSwap_args();
+            }
+
+            protected boolean isOneway() {
+                return false;
+            }
+
+            public verifyAndSwap_result getResult(I iface,
+                    verifyAndSwap_args args)
+                    throws org.apache.thrift.TException {
+                verifyAndSwap_result result = new verifyAndSwap_result();
+                result.success = iface.verifyAndSwap(args.key, args.expected,
+                        args.record, args.replacement, args.creds, args.token);
+                result.setSuccessIsSet(true);
                 return result;
             }
         }
@@ -2713,7 +3222,7 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new login_resultTupleSchemeFactory());
         }
 
-        public AccessToken success; // required
+        public org.cinchapi.concourse.thrift.AccessToken success; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -2786,12 +3295,14 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.SUCCESS,
-                    new org.apache.thrift.meta_data.FieldMetaData("success",
+            tmpMap.put(
+                    _Fields.SUCCESS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "success",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     login_result.class, metaDataMap);
@@ -2799,7 +3310,7 @@ public class ConcourseService {
 
         public login_result() {}
 
-        public login_result(AccessToken success) {
+        public login_result(org.cinchapi.concourse.thrift.AccessToken success) {
             this();
             this.success = success;
         }
@@ -2809,7 +3320,8 @@ public class ConcourseService {
          */
         public login_result(login_result other) {
             if(other.isSetSuccess()) {
-                this.success = new AccessToken(other.success);
+                this.success = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.success);
             }
         }
 
@@ -2822,11 +3334,12 @@ public class ConcourseService {
             this.success = null;
         }
 
-        public AccessToken getSuccess() {
+        public org.cinchapi.concourse.thrift.AccessToken getSuccess() {
             return this.success;
         }
 
-        public login_result setSuccess(AccessToken success) {
+        public login_result setSuccess(
+                org.cinchapi.concourse.thrift.AccessToken success) {
             this.success = success;
             return this;
         }
@@ -2856,7 +3369,7 @@ public class ConcourseService {
                     unsetSuccess();
                 }
                 else {
-                    setSuccess((AccessToken) value);
+                    setSuccess((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -3025,7 +3538,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 0: // SUCCESS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.success = new AccessToken();
+                            struct.success = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.success.read(iprot);
                             struct.setSuccessIsSet(true);
                         }
@@ -3093,7 +3606,7 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.success = new AccessToken();
+                    struct.success = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.success.read(iprot);
                     struct.setSuccessIsSet(true);
                 }
@@ -3119,7 +3632,7 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new logout_argsTupleSchemeFactory());
         }
 
-        public AccessToken token; // required
+        public org.cinchapi.concourse.thrift.AccessToken token; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -3192,12 +3705,14 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.TOKEN,
-                    new org.apache.thrift.meta_data.FieldMetaData("token",
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     logout_args.class, metaDataMap);
@@ -3205,7 +3720,7 @@ public class ConcourseService {
 
         public logout_args() {}
 
-        public logout_args(AccessToken token) {
+        public logout_args(org.cinchapi.concourse.thrift.AccessToken token) {
             this();
             this.token = token;
         }
@@ -3215,7 +3730,8 @@ public class ConcourseService {
          */
         public logout_args(logout_args other) {
             if(other.isSetToken()) {
-                this.token = new AccessToken(other.token);
+                this.token = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.token);
             }
         }
 
@@ -3228,11 +3744,12 @@ public class ConcourseService {
             this.token = null;
         }
 
-        public AccessToken getToken() {
+        public org.cinchapi.concourse.thrift.AccessToken getToken() {
             return this.token;
         }
 
-        public logout_args setToken(AccessToken token) {
+        public logout_args setToken(
+                org.cinchapi.concourse.thrift.AccessToken token) {
             this.token = token;
             return this;
         }
@@ -3262,7 +3779,7 @@ public class ConcourseService {
                     unsetToken();
                 }
                 else {
-                    setToken((AccessToken) value);
+                    setToken((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -3431,7 +3948,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 1: // TOKEN
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.token = new AccessToken();
+                            struct.token = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.token.read(iprot);
                             struct.setTokenIsSet(true);
                         }
@@ -3499,7 +4016,7 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.token = new AccessToken();
+                    struct.token = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.token.read(iprot);
                     struct.setTokenIsSet(true);
                 }
@@ -3804,7 +4321,7 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new stage_argsTupleSchemeFactory());
         }
 
-        public AccessToken token; // required
+        public org.cinchapi.concourse.thrift.AccessToken token; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -3877,12 +4394,14 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.TOKEN,
-                    new org.apache.thrift.meta_data.FieldMetaData("token",
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     stage_args.class, metaDataMap);
@@ -3890,7 +4409,7 @@ public class ConcourseService {
 
         public stage_args() {}
 
-        public stage_args(AccessToken token) {
+        public stage_args(org.cinchapi.concourse.thrift.AccessToken token) {
             this();
             this.token = token;
         }
@@ -3900,7 +4419,8 @@ public class ConcourseService {
          */
         public stage_args(stage_args other) {
             if(other.isSetToken()) {
-                this.token = new AccessToken(other.token);
+                this.token = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.token);
             }
         }
 
@@ -3913,11 +4433,12 @@ public class ConcourseService {
             this.token = null;
         }
 
-        public AccessToken getToken() {
+        public org.cinchapi.concourse.thrift.AccessToken getToken() {
             return this.token;
         }
 
-        public stage_args setToken(AccessToken token) {
+        public stage_args setToken(
+                org.cinchapi.concourse.thrift.AccessToken token) {
             this.token = token;
             return this;
         }
@@ -3947,7 +4468,7 @@ public class ConcourseService {
                     unsetToken();
                 }
                 else {
-                    setToken((AccessToken) value);
+                    setToken((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -4116,7 +4637,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 1: // TOKEN
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.token = new AccessToken();
+                            struct.token = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.token.read(iprot);
                             struct.setTokenIsSet(true);
                         }
@@ -4184,7 +4705,7 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.token = new AccessToken();
+                    struct.token = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.token.read(iprot);
                     struct.setTokenIsSet(true);
                 }
@@ -4210,7 +4731,7 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new stage_resultTupleSchemeFactory());
         }
 
-        public TransactionToken success; // required
+        public org.cinchapi.concourse.thrift.TransactionToken success; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -4283,12 +4804,14 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.SUCCESS,
-                    new org.apache.thrift.meta_data.FieldMetaData("success",
+            tmpMap.put(
+                    _Fields.SUCCESS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "success",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     stage_result.class, metaDataMap);
@@ -4296,7 +4819,8 @@ public class ConcourseService {
 
         public stage_result() {}
 
-        public stage_result(TransactionToken success) {
+        public stage_result(
+                org.cinchapi.concourse.thrift.TransactionToken success) {
             this();
             this.success = success;
         }
@@ -4306,7 +4830,8 @@ public class ConcourseService {
          */
         public stage_result(stage_result other) {
             if(other.isSetSuccess()) {
-                this.success = new TransactionToken(other.success);
+                this.success = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.success);
             }
         }
 
@@ -4319,11 +4844,12 @@ public class ConcourseService {
             this.success = null;
         }
 
-        public TransactionToken getSuccess() {
+        public org.cinchapi.concourse.thrift.TransactionToken getSuccess() {
             return this.success;
         }
 
-        public stage_result setSuccess(TransactionToken success) {
+        public stage_result setSuccess(
+                org.cinchapi.concourse.thrift.TransactionToken success) {
             this.success = success;
             return this;
         }
@@ -4353,7 +4879,7 @@ public class ConcourseService {
                     unsetSuccess();
                 }
                 else {
-                    setSuccess((TransactionToken) value);
+                    setSuccess((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -4522,7 +5048,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 0: // SUCCESS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.success = new TransactionToken();
+                            struct.success = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.success.read(iprot);
                             struct.setSuccessIsSet(true);
                         }
@@ -4590,7 +5116,7 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.success = new TransactionToken();
+                    struct.success = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.success.read(iprot);
                     struct.setSuccessIsSet(true);
                 }
@@ -4619,8 +5145,8 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new abort_argsTupleSchemeFactory());
         }
 
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -4695,19 +5221,22 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     abort_args.class, metaDataMap);
@@ -4715,7 +5244,8 @@ public class ConcourseService {
 
         public abort_args() {}
 
-        public abort_args(AccessToken creds, TransactionToken transaction) {
+        public abort_args(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.creds = creds;
             this.transaction = transaction;
@@ -4726,10 +5256,12 @@ public class ConcourseService {
          */
         public abort_args(abort_args other) {
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -4743,11 +5275,12 @@ public class ConcourseService {
             this.transaction = null;
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public abort_args setCreds(AccessToken creds) {
+        public abort_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -4770,11 +5303,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public abort_args setTransaction(TransactionToken transaction) {
+        public abort_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -4804,7 +5338,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -4813,7 +5347,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -5021,7 +5555,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 1: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -5032,7 +5566,7 @@ public class ConcourseService {
                         break;
                     case 2: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -5111,12 +5645,12 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -5423,8 +5957,8 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new commit_argsTupleSchemeFactory());
         }
 
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -5499,19 +6033,22 @@ public class ConcourseService {
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     commit_args.class, metaDataMap);
@@ -5519,7 +6056,8 @@ public class ConcourseService {
 
         public commit_args() {}
 
-        public commit_args(AccessToken creds, TransactionToken transaction) {
+        public commit_args(org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.creds = creds;
             this.transaction = transaction;
@@ -5530,10 +6068,12 @@ public class ConcourseService {
          */
         public commit_args(commit_args other) {
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -5547,11 +6087,12 @@ public class ConcourseService {
             this.transaction = null;
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public commit_args setCreds(AccessToken creds) {
+        public commit_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -5574,11 +6115,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public commit_args setTransaction(TransactionToken transaction) {
+        public commit_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -5608,7 +6150,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -5617,7 +6159,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -5825,7 +6367,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 1: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -5836,7 +6378,7 @@ public class ConcourseService {
                         break;
                     case 2: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -5915,12 +6457,12 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -6360,10 +6902,10 @@ public class ConcourseService {
         }
 
         public String key; // required
-        public TObject value; // required
+        public org.cinchapi.concourse.thrift.TObject value; // required
         public long record; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -6455,30 +6997,35 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.VALUE,
-                    new org.apache.thrift.meta_data.FieldMetaData("value",
+            tmpMap.put(
+                    _Fields.VALUE,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "value",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TObject.class)));
+                                    org.cinchapi.concourse.thrift.TObject.class)));
             tmpMap.put(_Fields.RECORD,
                     new org.apache.thrift.meta_data.FieldMetaData("record",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     add_args.class, metaDataMap);
@@ -6486,8 +7033,10 @@ public class ConcourseService {
 
         public add_args() {}
 
-        public add_args(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction) {
+        public add_args(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.value = value;
@@ -6506,14 +7055,17 @@ public class ConcourseService {
                 this.key = other.key;
             }
             if(other.isSetValue()) {
-                this.value = new TObject(other.value);
+                this.value = new org.cinchapi.concourse.thrift.TObject(
+                        other.value);
             }
             this.record = other.record;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -6558,11 +7110,11 @@ public class ConcourseService {
             }
         }
 
-        public TObject getValue() {
+        public org.cinchapi.concourse.thrift.TObject getValue() {
             return this.value;
         }
 
-        public add_args setValue(TObject value) {
+        public add_args setValue(org.cinchapi.concourse.thrift.TObject value) {
             this.value = value;
             return this;
         }
@@ -6613,11 +7165,11 @@ public class ConcourseService {
                     __RECORD_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public add_args setCreds(AccessToken creds) {
+        public add_args setCreds(org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -6640,11 +7192,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public add_args setTransaction(TransactionToken transaction) {
+        public add_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -6683,7 +7236,7 @@ public class ConcourseService {
                     unsetValue();
                 }
                 else {
-                    setValue((TObject) value);
+                    setValue((org.cinchapi.concourse.thrift.TObject) value);
                 }
                 break;
 
@@ -6701,7 +7254,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -6710,7 +7263,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -7038,7 +7591,7 @@ public class ConcourseService {
                         break;
                     case 2: // VALUE
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.value = new TObject();
+                            struct.value = new org.cinchapi.concourse.thrift.TObject();
                             struct.value.read(iprot);
                             struct.setValueIsSet(true);
                         }
@@ -7059,7 +7612,7 @@ public class ConcourseService {
                         break;
                     case 4: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -7070,7 +7623,7 @@ public class ConcourseService {
                         break;
                     case 5: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -7183,7 +7736,7 @@ public class ConcourseService {
                     struct.setKeyIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.value = new TObject();
+                    struct.value = new org.cinchapi.concourse.thrift.TObject();
                     struct.value.read(iprot);
                     struct.setValueIsSet(true);
                 }
@@ -7192,12 +7745,12 @@ public class ConcourseService {
                     struct.setRecordIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -7636,10 +8189,10 @@ public class ConcourseService {
         }
 
         public String key; // required
-        public TObject value; // required
+        public org.cinchapi.concourse.thrift.TObject value; // required
         public long record; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -7731,30 +8284,35 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.VALUE,
-                    new org.apache.thrift.meta_data.FieldMetaData("value",
+            tmpMap.put(
+                    _Fields.VALUE,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "value",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TObject.class)));
+                                    org.cinchapi.concourse.thrift.TObject.class)));
             tmpMap.put(_Fields.RECORD,
                     new org.apache.thrift.meta_data.FieldMetaData("record",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     remove_args.class, metaDataMap);
@@ -7762,8 +8320,10 @@ public class ConcourseService {
 
         public remove_args() {}
 
-        public remove_args(String key, TObject value, long record,
-                AccessToken creds, TransactionToken transaction) {
+        public remove_args(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.value = value;
@@ -7782,14 +8342,17 @@ public class ConcourseService {
                 this.key = other.key;
             }
             if(other.isSetValue()) {
-                this.value = new TObject(other.value);
+                this.value = new org.cinchapi.concourse.thrift.TObject(
+                        other.value);
             }
             this.record = other.record;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -7834,11 +8397,11 @@ public class ConcourseService {
             }
         }
 
-        public TObject getValue() {
+        public org.cinchapi.concourse.thrift.TObject getValue() {
             return this.value;
         }
 
-        public remove_args setValue(TObject value) {
+        public remove_args setValue(org.cinchapi.concourse.thrift.TObject value) {
             this.value = value;
             return this;
         }
@@ -7889,11 +8452,12 @@ public class ConcourseService {
                     __RECORD_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public remove_args setCreds(AccessToken creds) {
+        public remove_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -7916,11 +8480,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public remove_args setTransaction(TransactionToken transaction) {
+        public remove_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -7959,7 +8524,7 @@ public class ConcourseService {
                     unsetValue();
                 }
                 else {
-                    setValue((TObject) value);
+                    setValue((org.cinchapi.concourse.thrift.TObject) value);
                 }
                 break;
 
@@ -7977,7 +8542,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -7986,7 +8551,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -8314,7 +8879,7 @@ public class ConcourseService {
                         break;
                     case 2: // VALUE
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.value = new TObject();
+                            struct.value = new org.cinchapi.concourse.thrift.TObject();
                             struct.value.read(iprot);
                             struct.setValueIsSet(true);
                         }
@@ -8335,7 +8900,7 @@ public class ConcourseService {
                         break;
                     case 4: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -8346,7 +8911,7 @@ public class ConcourseService {
                         break;
                     case 5: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -8460,7 +9025,7 @@ public class ConcourseService {
                     struct.setKeyIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.value = new TObject();
+                    struct.value = new org.cinchapi.concourse.thrift.TObject();
                     struct.value.read(iprot);
                     struct.setValueIsSet(true);
                 }
@@ -8469,12 +9034,12 @@ public class ConcourseService {
                     struct.setRecordIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -8913,8 +9478,8 @@ public class ConcourseService {
 
         public long record; // required
         public String key; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -9008,19 +9573,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     audit_args.class, metaDataMap);
@@ -9028,8 +9596,9 @@ public class ConcourseService {
 
         public audit_args() {}
 
-        public audit_args(long record, String key, AccessToken creds,
-                TransactionToken transaction) {
+        public audit_args(long record, String key,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.record = record;
             setRecordIsSet(true);
@@ -9048,10 +9617,12 @@ public class ConcourseService {
                 this.key = other.key;
             }
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -9123,11 +9694,12 @@ public class ConcourseService {
             }
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public audit_args setCreds(AccessToken creds) {
+        public audit_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -9150,11 +9722,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public audit_args setTransaction(TransactionToken transaction) {
+        public audit_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -9202,7 +9775,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -9211,7 +9784,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -9510,7 +10083,7 @@ public class ConcourseService {
                         break;
                     case 3: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -9521,7 +10094,7 @@ public class ConcourseService {
                         break;
                     case 5: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -9628,12 +10201,12 @@ public class ConcourseService {
                     struct.setKeyIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -10145,8 +10718,8 @@ public class ConcourseService {
 
         public long record; // required
         public long timestamp; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -10241,19 +10814,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     describe_args.class, metaDataMap);
@@ -10261,8 +10837,9 @@ public class ConcourseService {
 
         public describe_args() {}
 
-        public describe_args(long record, long timestamp, AccessToken creds,
-                TransactionToken transaction) {
+        public describe_args(long record, long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.record = record;
             setRecordIsSet(true);
@@ -10280,10 +10857,12 @@ public class ConcourseService {
             this.record = other.record;
             this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -10358,11 +10937,12 @@ public class ConcourseService {
                     __TIMESTAMP_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public describe_args setCreds(AccessToken creds) {
+        public describe_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -10385,11 +10965,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public describe_args setTransaction(TransactionToken transaction) {
+        public describe_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -10437,7 +11018,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -10446,7 +11027,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -10740,7 +11321,7 @@ public class ConcourseService {
                         break;
                     case 3: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -10751,7 +11332,7 @@ public class ConcourseService {
                         break;
                     case 4: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -10856,12 +11437,12 @@ public class ConcourseService {
                     struct.setTimestampIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -11358,8 +11939,8 @@ public class ConcourseService {
         public String key; // required
         public long record; // required
         public long timestamp; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -11462,19 +12043,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     fetch_args.class, metaDataMap);
@@ -11483,7 +12067,8 @@ public class ConcourseService {
         public fetch_args() {}
 
         public fetch_args(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken transaction) {
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.record = record;
@@ -11505,10 +12090,12 @@ public class ConcourseService {
             this.record = other.record;
             this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -11611,11 +12198,12 @@ public class ConcourseService {
                     __TIMESTAMP_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public fetch_args setCreds(AccessToken creds) {
+        public fetch_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -11638,11 +12226,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public fetch_args setTransaction(TransactionToken transaction) {
+        public fetch_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -11699,7 +12288,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -11708,7 +12297,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -12048,7 +12637,7 @@ public class ConcourseService {
                         break;
                     case 4: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -12059,7 +12648,7 @@ public class ConcourseService {
                         break;
                     case 5: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -12179,12 +12768,12 @@ public class ConcourseService {
                     struct.setTimestampIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -12210,7 +12799,7 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new fetch_resultTupleSchemeFactory());
         }
 
-        public Set<TObject> success; // required
+        public Set<org.cinchapi.concourse.thrift.TObject> success; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -12292,7 +12881,7 @@ public class ConcourseService {
                                     org.apache.thrift.protocol.TType.SET,
                                     new org.apache.thrift.meta_data.StructMetaData(
                                             org.apache.thrift.protocol.TType.STRUCT,
-                                            TObject.class))));
+                                            org.cinchapi.concourse.thrift.TObject.class))));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     fetch_result.class, metaDataMap);
@@ -12300,7 +12889,7 @@ public class ConcourseService {
 
         public fetch_result() {}
 
-        public fetch_result(Set<TObject> success) {
+        public fetch_result(Set<org.cinchapi.concourse.thrift.TObject> success) {
             this();
             this.success = success;
         }
@@ -12310,9 +12899,11 @@ public class ConcourseService {
          */
         public fetch_result(fetch_result other) {
             if(other.isSetSuccess()) {
-                Set<TObject> __this__success = new LinkedHashSet<TObject>();
-                for (TObject other_element : other.success) {
-                    __this__success.add(new TObject(other_element));
+                Set<org.cinchapi.concourse.thrift.TObject> __this__success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
+                for (org.cinchapi.concourse.thrift.TObject other_element : other.success) {
+                    __this__success
+                            .add(new org.cinchapi.concourse.thrift.TObject(
+                                    other_element));
                 }
                 this.success = __this__success;
             }
@@ -12331,22 +12922,23 @@ public class ConcourseService {
             return (this.success == null) ? 0 : this.success.size();
         }
 
-        public java.util.Iterator<TObject> getSuccessIterator() {
+        public java.util.Iterator<org.cinchapi.concourse.thrift.TObject> getSuccessIterator() {
             return (this.success == null) ? null : this.success.iterator();
         }
 
-        public void addToSuccess(TObject elem) {
+        public void addToSuccess(org.cinchapi.concourse.thrift.TObject elem) {
             if(this.success == null) {
-                this.success = new LinkedHashSet<TObject>();
+                this.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
             }
             this.success.add(elem);
         }
 
-        public Set<TObject> getSuccess() {
+        public Set<org.cinchapi.concourse.thrift.TObject> getSuccess() {
             return this.success;
         }
 
-        public fetch_result setSuccess(Set<TObject> success) {
+        public fetch_result setSuccess(
+                Set<org.cinchapi.concourse.thrift.TObject> success) {
             this.success = success;
             return this;
         }
@@ -12376,7 +12968,7 @@ public class ConcourseService {
                     unsetSuccess();
                 }
                 else {
-                    setSuccess((Set<TObject>) value);
+                    setSuccess((Set<org.cinchapi.concourse.thrift.TObject>) value);
                 }
                 break;
 
@@ -12545,11 +13137,11 @@ public class ConcourseService {
                             {
                                 org.apache.thrift.protocol.TSet _set18 = iprot
                                         .readSetBegin();
-                                struct.success = new LinkedHashSet<TObject>(
+                                struct.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
                                         2 * _set18.size);
                                 for (int _i19 = 0; _i19 < _set18.size; ++_i19) {
-                                    TObject _elem20; // required
-                                    _elem20 = new TObject();
+                                    org.cinchapi.concourse.thrift.TObject _elem20; // required
+                                    _elem20 = new org.cinchapi.concourse.thrift.TObject();
                                     _elem20.read(iprot);
                                     struct.success.add(_elem20);
                                 }
@@ -12586,7 +13178,7 @@ public class ConcourseService {
                         oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 struct.success.size()));
-                        for (TObject _iter21 : struct.success) {
+                        for (org.cinchapi.concourse.thrift.TObject _iter21 : struct.success) {
                             _iter21.write(oprot);
                         }
                         oprot.writeSetEnd();
@@ -12621,7 +13213,7 @@ public class ConcourseService {
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
-                        for (TObject _iter22 : struct.success) {
+                        for (org.cinchapi.concourse.thrift.TObject _iter22 : struct.success) {
                             _iter22.write(oprot);
                         }
                     }
@@ -12638,11 +13230,11 @@ public class ConcourseService {
                         org.apache.thrift.protocol.TSet _set23 = new org.apache.thrift.protocol.TSet(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 iprot.readI32());
-                        struct.success = new LinkedHashSet<TObject>(
+                        struct.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
                                 2 * _set23.size);
                         for (int _i24 = 0; _i24 < _set23.size; ++_i24) {
-                            TObject _elem25; // required
-                            _elem25 = new TObject();
+                            org.cinchapi.concourse.thrift.TObject _elem25; // required
+                            _elem25 = new org.cinchapi.concourse.thrift.TObject();
                             _elem25.read(iprot);
                             struct.success.add(_elem25);
                         }
@@ -12685,13 +13277,13 @@ public class ConcourseService {
         public String key; // required
         /**
          * 
-         * @see Operator
+         * @see org.cinchapi.concourse.thrift.Operator
          */
-        public Operator operator; // required
-        public List<TObject> values; // required
+        public org.cinchapi.concourse.thrift.Operator operator; // required
+        public List<org.cinchapi.concourse.thrift.TObject> values; // required
         public long timestamp; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -12701,7 +13293,7 @@ public class ConcourseService {
             KEY((short) 1, "key"),
             /**
              * 
-             * @see Operator
+             * @see org.cinchapi.concourse.thrift.Operator
              */
             OPERATOR((short) 2, "operator"),
             VALUES((short) 3, "values"),
@@ -12790,12 +13382,14 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.OPERATOR,
-                    new org.apache.thrift.meta_data.FieldMetaData("operator",
+            tmpMap.put(
+                    _Fields.OPERATOR,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "operator",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.EnumMetaData(
                                     org.apache.thrift.protocol.TType.ENUM,
-                                    Operator.class)));
+                                    org.cinchapi.concourse.thrift.Operator.class)));
             tmpMap.put(
                     _Fields.VALUES,
                     new org.apache.thrift.meta_data.FieldMetaData(
@@ -12805,25 +13399,28 @@ public class ConcourseService {
                                     org.apache.thrift.protocol.TType.LIST,
                                     new org.apache.thrift.meta_data.StructMetaData(
                                             org.apache.thrift.protocol.TType.STRUCT,
-                                            TObject.class))));
+                                            org.cinchapi.concourse.thrift.TObject.class))));
             tmpMap.put(_Fields.TIMESTAMP,
                     new org.apache.thrift.meta_data.FieldMetaData("timestamp",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     find_args.class, metaDataMap);
@@ -12831,8 +13428,12 @@ public class ConcourseService {
 
         public find_args() {}
 
-        public find_args(String key, Operator operator, List<TObject> values,
-                long timestamp, AccessToken creds, TransactionToken transaction) {
+        public find_args(String key,
+                org.cinchapi.concourse.thrift.Operator operator,
+                List<org.cinchapi.concourse.thrift.TObject> values,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.operator = operator;
@@ -12855,18 +13456,22 @@ public class ConcourseService {
                 this.operator = other.operator;
             }
             if(other.isSetValues()) {
-                List<TObject> __this__values = new ArrayList<TObject>();
-                for (TObject other_element : other.values) {
-                    __this__values.add(new TObject(other_element));
+                List<org.cinchapi.concourse.thrift.TObject> __this__values = new ArrayList<org.cinchapi.concourse.thrift.TObject>();
+                for (org.cinchapi.concourse.thrift.TObject other_element : other.values) {
+                    __this__values
+                            .add(new org.cinchapi.concourse.thrift.TObject(
+                                    other_element));
                 }
                 this.values = __this__values;
             }
             this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -12914,17 +13519,18 @@ public class ConcourseService {
 
         /**
          * 
-         * @see Operator
+         * @see org.cinchapi.concourse.thrift.Operator
          */
-        public Operator getOperator() {
+        public org.cinchapi.concourse.thrift.Operator getOperator() {
             return this.operator;
         }
 
         /**
          * 
-         * @see Operator
+         * @see org.cinchapi.concourse.thrift.Operator
          */
-        public find_args setOperator(Operator operator) {
+        public find_args setOperator(
+                org.cinchapi.concourse.thrift.Operator operator) {
             this.operator = operator;
             return this;
         }
@@ -12951,22 +13557,23 @@ public class ConcourseService {
             return (this.values == null) ? 0 : this.values.size();
         }
 
-        public java.util.Iterator<TObject> getValuesIterator() {
+        public java.util.Iterator<org.cinchapi.concourse.thrift.TObject> getValuesIterator() {
             return (this.values == null) ? null : this.values.iterator();
         }
 
-        public void addToValues(TObject elem) {
+        public void addToValues(org.cinchapi.concourse.thrift.TObject elem) {
             if(this.values == null) {
-                this.values = new ArrayList<TObject>();
+                this.values = new ArrayList<org.cinchapi.concourse.thrift.TObject>();
             }
             this.values.add(elem);
         }
 
-        public List<TObject> getValues() {
+        public List<org.cinchapi.concourse.thrift.TObject> getValues() {
             return this.values;
         }
 
-        public find_args setValues(List<TObject> values) {
+        public find_args setValues(
+                List<org.cinchapi.concourse.thrift.TObject> values) {
             this.values = values;
             return this;
         }
@@ -13018,11 +13625,12 @@ public class ConcourseService {
                     __TIMESTAMP_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public find_args setCreds(AccessToken creds) {
+        public find_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -13045,11 +13653,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public find_args setTransaction(TransactionToken transaction) {
+        public find_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -13088,7 +13697,7 @@ public class ConcourseService {
                     unsetOperator();
                 }
                 else {
-                    setOperator((Operator) value);
+                    setOperator((org.cinchapi.concourse.thrift.Operator) value);
                 }
                 break;
 
@@ -13097,7 +13706,7 @@ public class ConcourseService {
                     unsetValues();
                 }
                 else {
-                    setValues((List<TObject>) value);
+                    setValues((List<org.cinchapi.concourse.thrift.TObject>) value);
                 }
                 break;
 
@@ -13115,7 +13724,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -13124,7 +13733,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -13485,8 +14094,8 @@ public class ConcourseService {
                         break;
                     case 2: // OPERATOR
                         if(schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                            struct.operator = Operator.findByValue(iprot
-                                    .readI32());
+                            struct.operator = org.cinchapi.concourse.thrift.Operator
+                                    .findByValue(iprot.readI32());
                             struct.setOperatorIsSet(true);
                         }
                         else {
@@ -13499,11 +14108,11 @@ public class ConcourseService {
                             {
                                 org.apache.thrift.protocol.TList _list26 = iprot
                                         .readListBegin();
-                                struct.values = new ArrayList<TObject>(
+                                struct.values = new ArrayList<org.cinchapi.concourse.thrift.TObject>(
                                         _list26.size);
                                 for (int _i27 = 0; _i27 < _list26.size; ++_i27) {
-                                    TObject _elem28; // required
-                                    _elem28 = new TObject();
+                                    org.cinchapi.concourse.thrift.TObject _elem28; // required
+                                    _elem28 = new org.cinchapi.concourse.thrift.TObject();
                                     _elem28.read(iprot);
                                     struct.values.add(_elem28);
                                 }
@@ -13528,7 +14137,7 @@ public class ConcourseService {
                         break;
                     case 5: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -13539,7 +14148,7 @@ public class ConcourseService {
                         break;
                     case 6: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -13582,7 +14191,7 @@ public class ConcourseService {
                         oprot.writeListBegin(new org.apache.thrift.protocol.TList(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 struct.values.size()));
-                        for (TObject _iter29 : struct.values) {
+                        for (org.cinchapi.concourse.thrift.TObject _iter29 : struct.values) {
                             _iter29.write(oprot);
                         }
                         oprot.writeListEnd();
@@ -13651,7 +14260,7 @@ public class ConcourseService {
                 if(struct.isSetValues()) {
                     {
                         oprot.writeI32(struct.values.size());
-                        for (TObject _iter30 : struct.values) {
+                        for (org.cinchapi.concourse.thrift.TObject _iter30 : struct.values) {
                             _iter30.write(oprot);
                         }
                     }
@@ -13677,7 +14286,8 @@ public class ConcourseService {
                     struct.setKeyIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.operator = Operator.findByValue(iprot.readI32());
+                    struct.operator = org.cinchapi.concourse.thrift.Operator
+                            .findByValue(iprot.readI32());
                     struct.setOperatorIsSet(true);
                 }
                 if(incoming.get(2)) {
@@ -13685,10 +14295,11 @@ public class ConcourseService {
                         org.apache.thrift.protocol.TList _list31 = new org.apache.thrift.protocol.TList(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 iprot.readI32());
-                        struct.values = new ArrayList<TObject>(_list31.size);
+                        struct.values = new ArrayList<org.cinchapi.concourse.thrift.TObject>(
+                                _list31.size);
                         for (int _i32 = 0; _i32 < _list31.size; ++_i32) {
-                            TObject _elem33; // required
-                            _elem33 = new TObject();
+                            org.cinchapi.concourse.thrift.TObject _elem33; // required
+                            _elem33 = new org.cinchapi.concourse.thrift.TObject();
                             _elem33.read(iprot);
                             struct.values.add(_elem33);
                         }
@@ -13700,12 +14311,12 @@ public class ConcourseService {
                     struct.setTimestampIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(5)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -14195,8 +14806,8 @@ public class ConcourseService {
         }
 
         public long record; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -14282,19 +14893,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     ping_args.class, metaDataMap);
@@ -14302,8 +14916,9 @@ public class ConcourseService {
 
         public ping_args() {}
 
-        public ping_args(long record, AccessToken creds,
-                TransactionToken transaction) {
+        public ping_args(long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.record = record;
             setRecordIsSet(true);
@@ -14318,10 +14933,12 @@ public class ConcourseService {
             __isset_bitfield = other.__isset_bitfield;
             this.record = other.record;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -14365,11 +14982,12 @@ public class ConcourseService {
                     __RECORD_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public ping_args setCreds(AccessToken creds) {
+        public ping_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -14392,11 +15010,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public ping_args setTransaction(TransactionToken transaction) {
+        public ping_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -14435,7 +15054,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -14444,7 +15063,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -14697,7 +15316,7 @@ public class ConcourseService {
                         break;
                     case 2: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -14708,7 +15327,7 @@ public class ConcourseService {
                         break;
                     case 3: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -14800,12 +15419,12 @@ public class ConcourseService {
                     struct.setRecordIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -15243,8 +15862,8 @@ public class ConcourseService {
 
         public String key; // required
         public String query; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -15336,19 +15955,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     search_args.class, metaDataMap);
@@ -15356,8 +15978,9 @@ public class ConcourseService {
 
         public search_args() {}
 
-        public search_args(String key, String query, AccessToken creds,
-                TransactionToken transaction) {
+        public search_args(String key, String query,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.query = query;
@@ -15376,10 +15999,12 @@ public class ConcourseService {
                 this.query = other.query;
             }
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -15449,11 +16074,12 @@ public class ConcourseService {
             }
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public search_args setCreds(AccessToken creds) {
+        public search_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -15476,11 +16102,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public search_args setTransaction(TransactionToken transaction) {
+        public search_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -15528,7 +16155,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -15537,7 +16164,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -15837,7 +16464,7 @@ public class ConcourseService {
                         break;
                     case 3: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -15848,7 +16475,7 @@ public class ConcourseService {
                         break;
                     case 4: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -15957,12 +16584,12 @@ public class ConcourseService {
                     struct.setQueryIsSet(true);
                 }
                 if(incoming.get(2)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -16459,11 +17086,11 @@ public class ConcourseService {
         }
 
         public String key; // required
-        public TObject value; // required
+        public org.cinchapi.concourse.thrift.TObject value; // required
         public long record; // required
         public long timestamp; // required
-        public AccessToken creds; // required
-        public TransactionToken transaction; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -16559,12 +17186,14 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRING)));
-            tmpMap.put(_Fields.VALUE,
-                    new org.apache.thrift.meta_data.FieldMetaData("value",
+            tmpMap.put(
+                    _Fields.VALUE,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "value",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TObject.class)));
+                                    org.cinchapi.concourse.thrift.TObject.class)));
             tmpMap.put(_Fields.RECORD,
                     new org.apache.thrift.meta_data.FieldMetaData("record",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
@@ -16575,19 +17204,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TRANSACTION,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
                     new org.apache.thrift.meta_data.FieldMetaData(
                             "transaction",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     verify_args.class, metaDataMap);
@@ -16595,8 +17227,11 @@ public class ConcourseService {
 
         public verify_args() {}
 
-        public verify_args(String key, TObject value, long record,
-                long timestamp, AccessToken creds, TransactionToken transaction) {
+        public verify_args(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.key = key;
             this.value = value;
@@ -16617,15 +17252,18 @@ public class ConcourseService {
                 this.key = other.key;
             }
             if(other.isSetValue()) {
-                this.value = new TObject(other.value);
+                this.value = new org.cinchapi.concourse.thrift.TObject(
+                        other.value);
             }
             this.record = other.record;
             this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetTransaction()) {
-                this.transaction = new TransactionToken(other.transaction);
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
             }
         }
 
@@ -16672,11 +17310,11 @@ public class ConcourseService {
             }
         }
 
-        public TObject getValue() {
+        public org.cinchapi.concourse.thrift.TObject getValue() {
             return this.value;
         }
 
-        public verify_args setValue(TObject value) {
+        public verify_args setValue(org.cinchapi.concourse.thrift.TObject value) {
             this.value = value;
             return this;
         }
@@ -16756,11 +17394,12 @@ public class ConcourseService {
                     __TIMESTAMP_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public verify_args setCreds(AccessToken creds) {
+        public verify_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -16783,11 +17422,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getTransaction() {
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
             return this.transaction;
         }
 
-        public verify_args setTransaction(TransactionToken transaction) {
+        public verify_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this.transaction = transaction;
             return this;
         }
@@ -16826,7 +17466,7 @@ public class ConcourseService {
                     unsetValue();
                 }
                 else {
-                    setValue((TObject) value);
+                    setValue((org.cinchapi.concourse.thrift.TObject) value);
                 }
                 break;
 
@@ -16853,7 +17493,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -16862,7 +17502,7 @@ public class ConcourseService {
                     unsetTransaction();
                 }
                 else {
-                    setTransaction((TransactionToken) value);
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -17221,7 +17861,7 @@ public class ConcourseService {
                         break;
                     case 2: // VALUE
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.value = new TObject();
+                            struct.value = new org.cinchapi.concourse.thrift.TObject();
                             struct.value.read(iprot);
                             struct.setValueIsSet(true);
                         }
@@ -17252,7 +17892,7 @@ public class ConcourseService {
                         break;
                     case 5: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -17263,7 +17903,7 @@ public class ConcourseService {
                         break;
                     case 6: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.transaction = new TransactionToken();
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
                             struct.setTransactionIsSet(true);
                         }
@@ -17386,7 +18026,7 @@ public class ConcourseService {
                     struct.setKeyIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.value = new TObject();
+                    struct.value = new org.cinchapi.concourse.thrift.TObject();
                     struct.value.read(iprot);
                     struct.setValueIsSet(true);
                 }
@@ -17399,12 +18039,12 @@ public class ConcourseService {
                     struct.setTimestampIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(5)) {
-                    struct.transaction = new TransactionToken();
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);
                 }
@@ -17845,8 +18485,8 @@ public class ConcourseService {
         public String key; // required
         public long record; // required
         public long timestamp; // required
-        public AccessToken creds; // required
-        public TransactionToken token; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken token; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -17949,18 +18589,22 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.I64)));
-            tmpMap.put(_Fields.CREDS,
-                    new org.apache.thrift.meta_data.FieldMetaData("creds",
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    AccessToken.class)));
-            tmpMap.put(_Fields.TOKEN,
-                    new org.apache.thrift.meta_data.FieldMetaData("token",
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
-                                    TransactionToken.class)));
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     revert_args.class, metaDataMap);
@@ -17969,7 +18613,8 @@ public class ConcourseService {
         public revert_args() {}
 
         public revert_args(String key, long record, long timestamp,
-                AccessToken creds, TransactionToken token) {
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token) {
             this();
             this.key = key;
             this.record = record;
@@ -17991,10 +18636,12 @@ public class ConcourseService {
             this.record = other.record;
             this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
-                this.creds = new AccessToken(other.creds);
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
             }
             if(other.isSetToken()) {
-                this.token = new TransactionToken(other.token);
+                this.token = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.token);
             }
         }
 
@@ -18097,11 +18744,12 @@ public class ConcourseService {
                     __TIMESTAMP_ISSET_ID, value);
         }
 
-        public AccessToken getCreds() {
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
             return this.creds;
         }
 
-        public revert_args setCreds(AccessToken creds) {
+        public revert_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
             this.creds = creds;
             return this;
         }
@@ -18124,11 +18772,12 @@ public class ConcourseService {
             }
         }
 
-        public TransactionToken getToken() {
+        public org.cinchapi.concourse.thrift.TransactionToken getToken() {
             return this.token;
         }
 
-        public revert_args setToken(TransactionToken token) {
+        public revert_args setToken(
+                org.cinchapi.concourse.thrift.TransactionToken token) {
             this.token = token;
             return this;
         }
@@ -18185,7 +18834,7 @@ public class ConcourseService {
                     unsetCreds();
                 }
                 else {
-                    setCreds((AccessToken) value);
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
                 }
                 break;
 
@@ -18194,7 +18843,7 @@ public class ConcourseService {
                     unsetToken();
                 }
                 else {
-                    setToken((TransactionToken) value);
+                    setToken((org.cinchapi.concourse.thrift.TransactionToken) value);
                 }
                 break;
 
@@ -18534,7 +19183,7 @@ public class ConcourseService {
                         break;
                     case 4: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.creds = new AccessToken();
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
                             struct.setCredsIsSet(true);
                         }
@@ -18545,7 +19194,7 @@ public class ConcourseService {
                         break;
                     case 5: // TOKEN
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                            struct.token = new TransactionToken();
+                            struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.token.read(iprot);
                             struct.setTokenIsSet(true);
                         }
@@ -18665,12 +19314,12 @@ public class ConcourseService {
                     struct.setTimestampIsSet(true);
                 }
                 if(incoming.get(3)) {
-                    struct.creds = new AccessToken();
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
                 if(incoming.get(4)) {
-                    struct.token = new TransactionToken();
+                    struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.token.read(iprot);
                     struct.setTokenIsSet(true);
                 }
@@ -18953,6 +19602,3633 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     revert_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
+            }
+        }
+
+    }
+
+    public static class clear_args implements
+            org.apache.thrift.TBase<clear_args, clear_args._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "clear_args");
+
+        private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "key", org.apache.thrift.protocol.TType.STRING, (short) 1);
+        private static final org.apache.thrift.protocol.TField RECORD_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "record", org.apache.thrift.protocol.TType.I64, (short) 2);
+        private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 3);
+        private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "token", org.apache.thrift.protocol.TType.STRUCT, (short) 5);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new clear_argsStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new clear_argsTupleSchemeFactory());
+        }
+
+        public String key; // required
+        public long record; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken token; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            KEY((short) 1, "key"),
+            RECORD((short) 2, "record"),
+            CREDS((short) 3, "creds"),
+            TOKEN((short) 5, "token");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 1: // KEY
+                    return KEY;
+                case 2: // RECORD
+                    return RECORD;
+                case 3: // CREDS
+                    return CREDS;
+                case 5: // TOKEN
+                    return TOKEN;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        private static final int __RECORD_ISSET_ID = 0;
+        private byte __isset_bitfield = 0;
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(_Fields.KEY,
+                    new org.apache.thrift.meta_data.FieldMetaData("key",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRING)));
+            tmpMap.put(_Fields.RECORD,
+                    new org.apache.thrift.meta_data.FieldMetaData("record",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.I64)));
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    clear_args.class, metaDataMap);
+        }
+
+        public clear_args() {}
+
+        public clear_args(String key, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this();
+            this.key = key;
+            this.record = record;
+            setRecordIsSet(true);
+            this.creds = creds;
+            this.token = token;
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public clear_args(clear_args other) {
+            __isset_bitfield = other.__isset_bitfield;
+            if(other.isSetKey()) {
+                this.key = other.key;
+            }
+            this.record = other.record;
+            if(other.isSetCreds()) {
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
+            }
+            if(other.isSetToken()) {
+                this.token = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.token);
+            }
+        }
+
+        public clear_args deepCopy() {
+            return new clear_args(this);
+        }
+
+        @Override
+        public void clear() {
+            this.key = null;
+            setRecordIsSet(false);
+            this.record = 0;
+            this.creds = null;
+            this.token = null;
+        }
+
+        public String getKey() {
+            return this.key;
+        }
+
+        public clear_args setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public void unsetKey() {
+            this.key = null;
+        }
+
+        /**
+         * Returns true if field key is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetKey() {
+            return this.key != null;
+        }
+
+        public void setKeyIsSet(boolean value) {
+            if(!value) {
+                this.key = null;
+            }
+        }
+
+        public long getRecord() {
+            return this.record;
+        }
+
+        public clear_args setRecord(long record) {
+            this.record = record;
+            setRecordIsSet(true);
+            return this;
+        }
+
+        public void unsetRecord() {
+            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
+                    __RECORD_ISSET_ID);
+        }
+
+        /**
+         * Returns true if field record is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetRecord() {
+            return EncodingUtils.testBit(__isset_bitfield, __RECORD_ISSET_ID);
+        }
+
+        public void setRecordIsSet(boolean value) {
+            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
+                    __RECORD_ISSET_ID, value);
+        }
+
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
+            return this.creds;
+        }
+
+        public clear_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
+            this.creds = creds;
+            return this;
+        }
+
+        public void unsetCreds() {
+            this.creds = null;
+        }
+
+        /**
+         * Returns true if field creds is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetCreds() {
+            return this.creds != null;
+        }
+
+        public void setCredsIsSet(boolean value) {
+            if(!value) {
+                this.creds = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TransactionToken getToken() {
+            return this.token;
+        }
+
+        public clear_args setToken(
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this.token = token;
+            return this;
+        }
+
+        public void unsetToken() {
+            this.token = null;
+        }
+
+        /**
+         * Returns true if field token is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetToken() {
+            return this.token != null;
+        }
+
+        public void setTokenIsSet(boolean value) {
+            if(!value) {
+                this.token = null;
+            }
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case KEY:
+                if(value == null) {
+                    unsetKey();
+                }
+                else {
+                    setKey((String) value);
+                }
+                break;
+
+            case RECORD:
+                if(value == null) {
+                    unsetRecord();
+                }
+                else {
+                    setRecord((Long) value);
+                }
+                break;
+
+            case CREDS:
+                if(value == null) {
+                    unsetCreds();
+                }
+                else {
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
+                }
+                break;
+
+            case TOKEN:
+                if(value == null) {
+                    unsetToken();
+                }
+                else {
+                    setToken((org.cinchapi.concourse.thrift.TransactionToken) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case KEY:
+                return getKey();
+
+            case RECORD:
+                return Long.valueOf(getRecord());
+
+            case CREDS:
+                return getCreds();
+
+            case TOKEN:
+                return getToken();
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case KEY:
+                return isSetKey();
+            case RECORD:
+                return isSetRecord();
+            case CREDS:
+                return isSetCreds();
+            case TOKEN:
+                return isSetToken();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof clear_args)
+                return this.equals((clear_args) that);
+            return false;
+        }
+
+        public boolean equals(clear_args that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_key = true && this.isSetKey();
+            boolean that_present_key = true && that.isSetKey();
+            if(this_present_key || that_present_key) {
+                if(!(this_present_key && that_present_key))
+                    return false;
+                if(!this.key.equals(that.key))
+                    return false;
+            }
+
+            boolean this_present_record = true;
+            boolean that_present_record = true;
+            if(this_present_record || that_present_record) {
+                if(!(this_present_record && that_present_record))
+                    return false;
+                if(this.record != that.record)
+                    return false;
+            }
+
+            boolean this_present_creds = true && this.isSetCreds();
+            boolean that_present_creds = true && that.isSetCreds();
+            if(this_present_creds || that_present_creds) {
+                if(!(this_present_creds && that_present_creds))
+                    return false;
+                if(!this.creds.equals(that.creds))
+                    return false;
+            }
+
+            boolean this_present_token = true && this.isSetToken();
+            boolean that_present_token = true && that.isSetToken();
+            if(this_present_token || that_present_token) {
+                if(!(this_present_token && that_present_token))
+                    return false;
+                if(!this.token.equals(that.token))
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(clear_args other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            clear_args typedOther = (clear_args) other;
+
+            lastComparison = Boolean.valueOf(isSetKey()).compareTo(
+                    typedOther.isSetKey());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetKey()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.key, typedOther.key);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetRecord()).compareTo(
+                    typedOther.isSetRecord());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetRecord()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.record, typedOther.record);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetCreds()).compareTo(
+                    typedOther.isSetCreds());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetCreds()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.creds, typedOther.creds);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetToken()).compareTo(
+                    typedOther.isSetToken());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetToken()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.token, typedOther.token);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("clear_args(");
+            boolean first = true;
+
+            sb.append("key:");
+            if(this.key == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.key);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("record:");
+            sb.append(this.record);
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("creds:");
+            if(this.creds == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.creds);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("token:");
+            if(this.token == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.token);
+            }
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+            if(creds != null) {
+                creds.validate();
+            }
+            if(token != null) {
+                token.validate();
+            }
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                // it doesn't seem like you should have to do this, but java
+                // serialization is wacky, and doesn't call the default
+                // constructor.
+                __isset_bitfield = 0;
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class clear_argsStandardSchemeFactory implements
+                SchemeFactory {
+            public clear_argsStandardScheme getScheme() {
+                return new clear_argsStandardScheme();
+            }
+        }
+
+        private static class clear_argsStandardScheme extends
+                StandardScheme<clear_args> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    clear_args struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 1: // KEY
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                            struct.key = iprot.readString();
+                            struct.setKeyIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 2: // RECORD
+                        if(schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                            struct.record = iprot.readI64();
+                            struct.setRecordIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 3: // CREDS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                            struct.creds.read(iprot);
+                            struct.setCredsIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 5: // TOKEN
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                            struct.token.read(iprot);
+                            struct.setTokenIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    clear_args struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.key != null) {
+                    oprot.writeFieldBegin(KEY_FIELD_DESC);
+                    oprot.writeString(struct.key);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldBegin(RECORD_FIELD_DESC);
+                oprot.writeI64(struct.record);
+                oprot.writeFieldEnd();
+                if(struct.creds != null) {
+                    oprot.writeFieldBegin(CREDS_FIELD_DESC);
+                    struct.creds.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.token != null) {
+                    oprot.writeFieldBegin(TOKEN_FIELD_DESC);
+                    struct.token.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class clear_argsTupleSchemeFactory implements
+                SchemeFactory {
+            public clear_argsTupleScheme getScheme() {
+                return new clear_argsTupleScheme();
+            }
+        }
+
+        private static class clear_argsTupleScheme extends
+                TupleScheme<clear_args> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    clear_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetKey()) {
+                    optionals.set(0);
+                }
+                if(struct.isSetRecord()) {
+                    optionals.set(1);
+                }
+                if(struct.isSetCreds()) {
+                    optionals.set(2);
+                }
+                if(struct.isSetToken()) {
+                    optionals.set(3);
+                }
+                oprot.writeBitSet(optionals, 4);
+                if(struct.isSetKey()) {
+                    oprot.writeString(struct.key);
+                }
+                if(struct.isSetRecord()) {
+                    oprot.writeI64(struct.record);
+                }
+                if(struct.isSetCreds()) {
+                    struct.creds.write(oprot);
+                }
+                if(struct.isSetToken()) {
+                    struct.token.write(oprot);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    clear_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(4);
+                if(incoming.get(0)) {
+                    struct.key = iprot.readString();
+                    struct.setKeyIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.record = iprot.readI64();
+                    struct.setRecordIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                    struct.creds.read(iprot);
+                    struct.setCredsIsSet(true);
+                }
+                if(incoming.get(3)) {
+                    struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                    struct.token.read(iprot);
+                    struct.setTokenIsSet(true);
+                }
+            }
+        }
+
+    }
+
+    public static class clear_result implements
+            org.apache.thrift.TBase<clear_result, clear_result._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "clear_result");
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new clear_resultStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new clear_resultTupleSchemeFactory());
+        }
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            ;
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    clear_result.class, metaDataMap);
+        }
+
+        public clear_result() {}
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public clear_result(clear_result other) {}
+
+        public clear_result deepCopy() {
+            return new clear_result(this);
+        }
+
+        @Override
+        public void clear() {}
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof clear_result)
+                return this.equals((clear_result) that);
+            return false;
+        }
+
+        public boolean equals(clear_result that) {
+            if(that == null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(clear_result other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            clear_result typedOther = (clear_result) other;
+
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("clear_result(");
+            boolean first = true;
+
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class clear_resultStandardSchemeFactory implements
+                SchemeFactory {
+            public clear_resultStandardScheme getScheme() {
+                return new clear_resultStandardScheme();
+            }
+        }
+
+        private static class clear_resultStandardScheme extends
+                StandardScheme<clear_result> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    clear_result struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    clear_result struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class clear_resultTupleSchemeFactory implements
+                SchemeFactory {
+            public clear_resultTupleScheme getScheme() {
+                return new clear_resultTupleScheme();
+            }
+        }
+
+        private static class clear_resultTupleScheme extends
+                TupleScheme<clear_result> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    clear_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    clear_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+            }
+        }
+
+    }
+
+    public static class set0_args implements
+            org.apache.thrift.TBase<set0_args, set0_args._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "set0_args");
+
+        private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "key", org.apache.thrift.protocol.TType.STRING, (short) 1);
+        private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "value", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
+        private static final org.apache.thrift.protocol.TField RECORD_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "record", org.apache.thrift.protocol.TType.I64, (short) 3);
+        private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 4);
+        private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "token", org.apache.thrift.protocol.TType.STRUCT, (short) 5);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new set0_argsStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new set0_argsTupleSchemeFactory());
+        }
+
+        public String key; // required
+        public org.cinchapi.concourse.thrift.TObject value; // required
+        public long record; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken token; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            KEY((short) 1, "key"),
+            VALUE((short) 2, "value"),
+            RECORD((short) 3, "record"),
+            CREDS((short) 4, "creds"),
+            TOKEN((short) 5, "token");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 1: // KEY
+                    return KEY;
+                case 2: // VALUE
+                    return VALUE;
+                case 3: // RECORD
+                    return RECORD;
+                case 4: // CREDS
+                    return CREDS;
+                case 5: // TOKEN
+                    return TOKEN;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        private static final int __RECORD_ISSET_ID = 0;
+        private byte __isset_bitfield = 0;
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(_Fields.KEY,
+                    new org.apache.thrift.meta_data.FieldMetaData("key",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRING)));
+            tmpMap.put(
+                    _Fields.VALUE,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "value",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TObject.class)));
+            tmpMap.put(_Fields.RECORD,
+                    new org.apache.thrift.meta_data.FieldMetaData("record",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.I64)));
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    set0_args.class, metaDataMap);
+        }
+
+        public set0_args() {}
+
+        public set0_args(String key,
+                org.cinchapi.concourse.thrift.TObject value, long record,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this();
+            this.key = key;
+            this.value = value;
+            this.record = record;
+            setRecordIsSet(true);
+            this.creds = creds;
+            this.token = token;
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public set0_args(set0_args other) {
+            __isset_bitfield = other.__isset_bitfield;
+            if(other.isSetKey()) {
+                this.key = other.key;
+            }
+            if(other.isSetValue()) {
+                this.value = new org.cinchapi.concourse.thrift.TObject(
+                        other.value);
+            }
+            this.record = other.record;
+            if(other.isSetCreds()) {
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
+            }
+            if(other.isSetToken()) {
+                this.token = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.token);
+            }
+        }
+
+        public set0_args deepCopy() {
+            return new set0_args(this);
+        }
+
+        @Override
+        public void clear() {
+            this.key = null;
+            this.value = null;
+            setRecordIsSet(false);
+            this.record = 0;
+            this.creds = null;
+            this.token = null;
+        }
+
+        public String getKey() {
+            return this.key;
+        }
+
+        public set0_args setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public void unsetKey() {
+            this.key = null;
+        }
+
+        /**
+         * Returns true if field key is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetKey() {
+            return this.key != null;
+        }
+
+        public void setKeyIsSet(boolean value) {
+            if(!value) {
+                this.key = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TObject getValue() {
+            return this.value;
+        }
+
+        public set0_args setValue(org.cinchapi.concourse.thrift.TObject value) {
+            this.value = value;
+            return this;
+        }
+
+        public void unsetValue() {
+            this.value = null;
+        }
+
+        /**
+         * Returns true if field value is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetValue() {
+            return this.value != null;
+        }
+
+        public void setValueIsSet(boolean value) {
+            if(!value) {
+                this.value = null;
+            }
+        }
+
+        public long getRecord() {
+            return this.record;
+        }
+
+        public set0_args setRecord(long record) {
+            this.record = record;
+            setRecordIsSet(true);
+            return this;
+        }
+
+        public void unsetRecord() {
+            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
+                    __RECORD_ISSET_ID);
+        }
+
+        /**
+         * Returns true if field record is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetRecord() {
+            return EncodingUtils.testBit(__isset_bitfield, __RECORD_ISSET_ID);
+        }
+
+        public void setRecordIsSet(boolean value) {
+            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
+                    __RECORD_ISSET_ID, value);
+        }
+
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
+            return this.creds;
+        }
+
+        public set0_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
+            this.creds = creds;
+            return this;
+        }
+
+        public void unsetCreds() {
+            this.creds = null;
+        }
+
+        /**
+         * Returns true if field creds is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetCreds() {
+            return this.creds != null;
+        }
+
+        public void setCredsIsSet(boolean value) {
+            if(!value) {
+                this.creds = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TransactionToken getToken() {
+            return this.token;
+        }
+
+        public set0_args setToken(
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this.token = token;
+            return this;
+        }
+
+        public void unsetToken() {
+            this.token = null;
+        }
+
+        /**
+         * Returns true if field token is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetToken() {
+            return this.token != null;
+        }
+
+        public void setTokenIsSet(boolean value) {
+            if(!value) {
+                this.token = null;
+            }
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case KEY:
+                if(value == null) {
+                    unsetKey();
+                }
+                else {
+                    setKey((String) value);
+                }
+                break;
+
+            case VALUE:
+                if(value == null) {
+                    unsetValue();
+                }
+                else {
+                    setValue((org.cinchapi.concourse.thrift.TObject) value);
+                }
+                break;
+
+            case RECORD:
+                if(value == null) {
+                    unsetRecord();
+                }
+                else {
+                    setRecord((Long) value);
+                }
+                break;
+
+            case CREDS:
+                if(value == null) {
+                    unsetCreds();
+                }
+                else {
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
+                }
+                break;
+
+            case TOKEN:
+                if(value == null) {
+                    unsetToken();
+                }
+                else {
+                    setToken((org.cinchapi.concourse.thrift.TransactionToken) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case KEY:
+                return getKey();
+
+            case VALUE:
+                return getValue();
+
+            case RECORD:
+                return Long.valueOf(getRecord());
+
+            case CREDS:
+                return getCreds();
+
+            case TOKEN:
+                return getToken();
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case KEY:
+                return isSetKey();
+            case VALUE:
+                return isSetValue();
+            case RECORD:
+                return isSetRecord();
+            case CREDS:
+                return isSetCreds();
+            case TOKEN:
+                return isSetToken();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof set0_args)
+                return this.equals((set0_args) that);
+            return false;
+        }
+
+        public boolean equals(set0_args that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_key = true && this.isSetKey();
+            boolean that_present_key = true && that.isSetKey();
+            if(this_present_key || that_present_key) {
+                if(!(this_present_key && that_present_key))
+                    return false;
+                if(!this.key.equals(that.key))
+                    return false;
+            }
+
+            boolean this_present_value = true && this.isSetValue();
+            boolean that_present_value = true && that.isSetValue();
+            if(this_present_value || that_present_value) {
+                if(!(this_present_value && that_present_value))
+                    return false;
+                if(!this.value.equals(that.value))
+                    return false;
+            }
+
+            boolean this_present_record = true;
+            boolean that_present_record = true;
+            if(this_present_record || that_present_record) {
+                if(!(this_present_record && that_present_record))
+                    return false;
+                if(this.record != that.record)
+                    return false;
+            }
+
+            boolean this_present_creds = true && this.isSetCreds();
+            boolean that_present_creds = true && that.isSetCreds();
+            if(this_present_creds || that_present_creds) {
+                if(!(this_present_creds && that_present_creds))
+                    return false;
+                if(!this.creds.equals(that.creds))
+                    return false;
+            }
+
+            boolean this_present_token = true && this.isSetToken();
+            boolean that_present_token = true && that.isSetToken();
+            if(this_present_token || that_present_token) {
+                if(!(this_present_token && that_present_token))
+                    return false;
+                if(!this.token.equals(that.token))
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(set0_args other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            set0_args typedOther = (set0_args) other;
+
+            lastComparison = Boolean.valueOf(isSetKey()).compareTo(
+                    typedOther.isSetKey());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetKey()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.key, typedOther.key);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetValue()).compareTo(
+                    typedOther.isSetValue());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetValue()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.value, typedOther.value);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetRecord()).compareTo(
+                    typedOther.isSetRecord());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetRecord()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.record, typedOther.record);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetCreds()).compareTo(
+                    typedOther.isSetCreds());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetCreds()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.creds, typedOther.creds);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetToken()).compareTo(
+                    typedOther.isSetToken());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetToken()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.token, typedOther.token);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("set0_args(");
+            boolean first = true;
+
+            sb.append("key:");
+            if(this.key == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.key);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("value:");
+            if(this.value == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.value);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("record:");
+            sb.append(this.record);
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("creds:");
+            if(this.creds == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.creds);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("token:");
+            if(this.token == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.token);
+            }
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+            if(value != null) {
+                value.validate();
+            }
+            if(creds != null) {
+                creds.validate();
+            }
+            if(token != null) {
+                token.validate();
+            }
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                // it doesn't seem like you should have to do this, but java
+                // serialization is wacky, and doesn't call the default
+                // constructor.
+                __isset_bitfield = 0;
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class set0_argsStandardSchemeFactory implements
+                SchemeFactory {
+            public set0_argsStandardScheme getScheme() {
+                return new set0_argsStandardScheme();
+            }
+        }
+
+        private static class set0_argsStandardScheme extends
+                StandardScheme<set0_args> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    set0_args struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 1: // KEY
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                            struct.key = iprot.readString();
+                            struct.setKeyIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 2: // VALUE
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.value = new org.cinchapi.concourse.thrift.TObject();
+                            struct.value.read(iprot);
+                            struct.setValueIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 3: // RECORD
+                        if(schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                            struct.record = iprot.readI64();
+                            struct.setRecordIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 4: // CREDS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                            struct.creds.read(iprot);
+                            struct.setCredsIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 5: // TOKEN
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                            struct.token.read(iprot);
+                            struct.setTokenIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    set0_args struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.key != null) {
+                    oprot.writeFieldBegin(KEY_FIELD_DESC);
+                    oprot.writeString(struct.key);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.value != null) {
+                    oprot.writeFieldBegin(VALUE_FIELD_DESC);
+                    struct.value.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldBegin(RECORD_FIELD_DESC);
+                oprot.writeI64(struct.record);
+                oprot.writeFieldEnd();
+                if(struct.creds != null) {
+                    oprot.writeFieldBegin(CREDS_FIELD_DESC);
+                    struct.creds.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.token != null) {
+                    oprot.writeFieldBegin(TOKEN_FIELD_DESC);
+                    struct.token.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class set0_argsTupleSchemeFactory implements
+                SchemeFactory {
+            public set0_argsTupleScheme getScheme() {
+                return new set0_argsTupleScheme();
+            }
+        }
+
+        private static class set0_argsTupleScheme extends
+                TupleScheme<set0_args> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    set0_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetKey()) {
+                    optionals.set(0);
+                }
+                if(struct.isSetValue()) {
+                    optionals.set(1);
+                }
+                if(struct.isSetRecord()) {
+                    optionals.set(2);
+                }
+                if(struct.isSetCreds()) {
+                    optionals.set(3);
+                }
+                if(struct.isSetToken()) {
+                    optionals.set(4);
+                }
+                oprot.writeBitSet(optionals, 5);
+                if(struct.isSetKey()) {
+                    oprot.writeString(struct.key);
+                }
+                if(struct.isSetValue()) {
+                    struct.value.write(oprot);
+                }
+                if(struct.isSetRecord()) {
+                    oprot.writeI64(struct.record);
+                }
+                if(struct.isSetCreds()) {
+                    struct.creds.write(oprot);
+                }
+                if(struct.isSetToken()) {
+                    struct.token.write(oprot);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    set0_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(5);
+                if(incoming.get(0)) {
+                    struct.key = iprot.readString();
+                    struct.setKeyIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.value = new org.cinchapi.concourse.thrift.TObject();
+                    struct.value.read(iprot);
+                    struct.setValueIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.record = iprot.readI64();
+                    struct.setRecordIsSet(true);
+                }
+                if(incoming.get(3)) {
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                    struct.creds.read(iprot);
+                    struct.setCredsIsSet(true);
+                }
+                if(incoming.get(4)) {
+                    struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                    struct.token.read(iprot);
+                    struct.setTokenIsSet(true);
+                }
+            }
+        }
+
+    }
+
+    public static class set0_result implements
+            org.apache.thrift.TBase<set0_result, set0_result._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "set0_result");
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new set0_resultStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new set0_resultTupleSchemeFactory());
+        }
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            ;
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    set0_result.class, metaDataMap);
+        }
+
+        public set0_result() {}
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public set0_result(set0_result other) {}
+
+        public set0_result deepCopy() {
+            return new set0_result(this);
+        }
+
+        @Override
+        public void clear() {}
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof set0_result)
+                return this.equals((set0_result) that);
+            return false;
+        }
+
+        public boolean equals(set0_result that) {
+            if(that == null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(set0_result other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            set0_result typedOther = (set0_result) other;
+
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("set0_result(");
+            boolean first = true;
+
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class set0_resultStandardSchemeFactory implements
+                SchemeFactory {
+            public set0_resultStandardScheme getScheme() {
+                return new set0_resultStandardScheme();
+            }
+        }
+
+        private static class set0_resultStandardScheme extends
+                StandardScheme<set0_result> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    set0_result struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    set0_result struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class set0_resultTupleSchemeFactory implements
+                SchemeFactory {
+            public set0_resultTupleScheme getScheme() {
+                return new set0_resultTupleScheme();
+            }
+        }
+
+        private static class set0_resultTupleScheme extends
+                TupleScheme<set0_result> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    set0_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    set0_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+            }
+        }
+
+    }
+
+    public static class verifyAndSwap_args implements
+            org.apache.thrift.TBase<verifyAndSwap_args, verifyAndSwap_args._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "verifyAndSwap_args");
+
+        private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "key", org.apache.thrift.protocol.TType.STRING, (short) 1);
+        private static final org.apache.thrift.protocol.TField EXPECTED_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "expected", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
+        private static final org.apache.thrift.protocol.TField RECORD_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "record", org.apache.thrift.protocol.TType.I64, (short) 3);
+        private static final org.apache.thrift.protocol.TField REPLACEMENT_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "replacement", org.apache.thrift.protocol.TType.STRUCT,
+                (short) 4);
+        private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 5);
+        private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "token", org.apache.thrift.protocol.TType.STRUCT, (short) 6);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new verifyAndSwap_argsStandardSchemeFactory());
+            schemes.put(TupleScheme.class,
+                    new verifyAndSwap_argsTupleSchemeFactory());
+        }
+
+        public String key; // required
+        public org.cinchapi.concourse.thrift.TObject expected; // required
+        public long record; // required
+        public org.cinchapi.concourse.thrift.TObject replacement; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken token; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            KEY((short) 1, "key"),
+            EXPECTED((short) 2, "expected"),
+            RECORD((short) 3, "record"),
+            REPLACEMENT((short) 4, "replacement"),
+            CREDS((short) 5, "creds"),
+            TOKEN((short) 6, "token");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 1: // KEY
+                    return KEY;
+                case 2: // EXPECTED
+                    return EXPECTED;
+                case 3: // RECORD
+                    return RECORD;
+                case 4: // REPLACEMENT
+                    return REPLACEMENT;
+                case 5: // CREDS
+                    return CREDS;
+                case 6: // TOKEN
+                    return TOKEN;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        private static final int __RECORD_ISSET_ID = 0;
+        private byte __isset_bitfield = 0;
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(_Fields.KEY,
+                    new org.apache.thrift.meta_data.FieldMetaData("key",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRING)));
+            tmpMap.put(
+                    _Fields.EXPECTED,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "expected",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TObject.class)));
+            tmpMap.put(_Fields.RECORD,
+                    new org.apache.thrift.meta_data.FieldMetaData("record",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.I64)));
+            tmpMap.put(
+                    _Fields.REPLACEMENT,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "replacement",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TObject.class)));
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TOKEN,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "token",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    verifyAndSwap_args.class, metaDataMap);
+        }
+
+        public verifyAndSwap_args() {}
+
+        public verifyAndSwap_args(String key,
+                org.cinchapi.concourse.thrift.TObject expected, long record,
+                org.cinchapi.concourse.thrift.TObject replacement,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this();
+            this.key = key;
+            this.expected = expected;
+            this.record = record;
+            setRecordIsSet(true);
+            this.replacement = replacement;
+            this.creds = creds;
+            this.token = token;
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public verifyAndSwap_args(verifyAndSwap_args other) {
+            __isset_bitfield = other.__isset_bitfield;
+            if(other.isSetKey()) {
+                this.key = other.key;
+            }
+            if(other.isSetExpected()) {
+                this.expected = new org.cinchapi.concourse.thrift.TObject(
+                        other.expected);
+            }
+            this.record = other.record;
+            if(other.isSetReplacement()) {
+                this.replacement = new org.cinchapi.concourse.thrift.TObject(
+                        other.replacement);
+            }
+            if(other.isSetCreds()) {
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
+            }
+            if(other.isSetToken()) {
+                this.token = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.token);
+            }
+        }
+
+        public verifyAndSwap_args deepCopy() {
+            return new verifyAndSwap_args(this);
+        }
+
+        @Override
+        public void clear() {
+            this.key = null;
+            this.expected = null;
+            setRecordIsSet(false);
+            this.record = 0;
+            this.replacement = null;
+            this.creds = null;
+            this.token = null;
+        }
+
+        public String getKey() {
+            return this.key;
+        }
+
+        public verifyAndSwap_args setKey(String key) {
+            this.key = key;
+            return this;
+        }
+
+        public void unsetKey() {
+            this.key = null;
+        }
+
+        /**
+         * Returns true if field key is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetKey() {
+            return this.key != null;
+        }
+
+        public void setKeyIsSet(boolean value) {
+            if(!value) {
+                this.key = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TObject getExpected() {
+            return this.expected;
+        }
+
+        public verifyAndSwap_args setExpected(
+                org.cinchapi.concourse.thrift.TObject expected) {
+            this.expected = expected;
+            return this;
+        }
+
+        public void unsetExpected() {
+            this.expected = null;
+        }
+
+        /**
+         * Returns true if field expected is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetExpected() {
+            return this.expected != null;
+        }
+
+        public void setExpectedIsSet(boolean value) {
+            if(!value) {
+                this.expected = null;
+            }
+        }
+
+        public long getRecord() {
+            return this.record;
+        }
+
+        public verifyAndSwap_args setRecord(long record) {
+            this.record = record;
+            setRecordIsSet(true);
+            return this;
+        }
+
+        public void unsetRecord() {
+            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
+                    __RECORD_ISSET_ID);
+        }
+
+        /**
+         * Returns true if field record is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetRecord() {
+            return EncodingUtils.testBit(__isset_bitfield, __RECORD_ISSET_ID);
+        }
+
+        public void setRecordIsSet(boolean value) {
+            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
+                    __RECORD_ISSET_ID, value);
+        }
+
+        public org.cinchapi.concourse.thrift.TObject getReplacement() {
+            return this.replacement;
+        }
+
+        public verifyAndSwap_args setReplacement(
+                org.cinchapi.concourse.thrift.TObject replacement) {
+            this.replacement = replacement;
+            return this;
+        }
+
+        public void unsetReplacement() {
+            this.replacement = null;
+        }
+
+        /**
+         * Returns true if field replacement is set (has been assigned a value)
+         * and false otherwise
+         */
+        public boolean isSetReplacement() {
+            return this.replacement != null;
+        }
+
+        public void setReplacementIsSet(boolean value) {
+            if(!value) {
+                this.replacement = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
+            return this.creds;
+        }
+
+        public verifyAndSwap_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
+            this.creds = creds;
+            return this;
+        }
+
+        public void unsetCreds() {
+            this.creds = null;
+        }
+
+        /**
+         * Returns true if field creds is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetCreds() {
+            return this.creds != null;
+        }
+
+        public void setCredsIsSet(boolean value) {
+            if(!value) {
+                this.creds = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TransactionToken getToken() {
+            return this.token;
+        }
+
+        public verifyAndSwap_args setToken(
+                org.cinchapi.concourse.thrift.TransactionToken token) {
+            this.token = token;
+            return this;
+        }
+
+        public void unsetToken() {
+            this.token = null;
+        }
+
+        /**
+         * Returns true if field token is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetToken() {
+            return this.token != null;
+        }
+
+        public void setTokenIsSet(boolean value) {
+            if(!value) {
+                this.token = null;
+            }
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case KEY:
+                if(value == null) {
+                    unsetKey();
+                }
+                else {
+                    setKey((String) value);
+                }
+                break;
+
+            case EXPECTED:
+                if(value == null) {
+                    unsetExpected();
+                }
+                else {
+                    setExpected((org.cinchapi.concourse.thrift.TObject) value);
+                }
+                break;
+
+            case RECORD:
+                if(value == null) {
+                    unsetRecord();
+                }
+                else {
+                    setRecord((Long) value);
+                }
+                break;
+
+            case REPLACEMENT:
+                if(value == null) {
+                    unsetReplacement();
+                }
+                else {
+                    setReplacement((org.cinchapi.concourse.thrift.TObject) value);
+                }
+                break;
+
+            case CREDS:
+                if(value == null) {
+                    unsetCreds();
+                }
+                else {
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
+                }
+                break;
+
+            case TOKEN:
+                if(value == null) {
+                    unsetToken();
+                }
+                else {
+                    setToken((org.cinchapi.concourse.thrift.TransactionToken) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case KEY:
+                return getKey();
+
+            case EXPECTED:
+                return getExpected();
+
+            case RECORD:
+                return Long.valueOf(getRecord());
+
+            case REPLACEMENT:
+                return getReplacement();
+
+            case CREDS:
+                return getCreds();
+
+            case TOKEN:
+                return getToken();
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case KEY:
+                return isSetKey();
+            case EXPECTED:
+                return isSetExpected();
+            case RECORD:
+                return isSetRecord();
+            case REPLACEMENT:
+                return isSetReplacement();
+            case CREDS:
+                return isSetCreds();
+            case TOKEN:
+                return isSetToken();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof verifyAndSwap_args)
+                return this.equals((verifyAndSwap_args) that);
+            return false;
+        }
+
+        public boolean equals(verifyAndSwap_args that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_key = true && this.isSetKey();
+            boolean that_present_key = true && that.isSetKey();
+            if(this_present_key || that_present_key) {
+                if(!(this_present_key && that_present_key))
+                    return false;
+                if(!this.key.equals(that.key))
+                    return false;
+            }
+
+            boolean this_present_expected = true && this.isSetExpected();
+            boolean that_present_expected = true && that.isSetExpected();
+            if(this_present_expected || that_present_expected) {
+                if(!(this_present_expected && that_present_expected))
+                    return false;
+                if(!this.expected.equals(that.expected))
+                    return false;
+            }
+
+            boolean this_present_record = true;
+            boolean that_present_record = true;
+            if(this_present_record || that_present_record) {
+                if(!(this_present_record && that_present_record))
+                    return false;
+                if(this.record != that.record)
+                    return false;
+            }
+
+            boolean this_present_replacement = true && this.isSetReplacement();
+            boolean that_present_replacement = true && that.isSetReplacement();
+            if(this_present_replacement || that_present_replacement) {
+                if(!(this_present_replacement && that_present_replacement))
+                    return false;
+                if(!this.replacement.equals(that.replacement))
+                    return false;
+            }
+
+            boolean this_present_creds = true && this.isSetCreds();
+            boolean that_present_creds = true && that.isSetCreds();
+            if(this_present_creds || that_present_creds) {
+                if(!(this_present_creds && that_present_creds))
+                    return false;
+                if(!this.creds.equals(that.creds))
+                    return false;
+            }
+
+            boolean this_present_token = true && this.isSetToken();
+            boolean that_present_token = true && that.isSetToken();
+            if(this_present_token || that_present_token) {
+                if(!(this_present_token && that_present_token))
+                    return false;
+                if(!this.token.equals(that.token))
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(verifyAndSwap_args other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            verifyAndSwap_args typedOther = (verifyAndSwap_args) other;
+
+            lastComparison = Boolean.valueOf(isSetKey()).compareTo(
+                    typedOther.isSetKey());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetKey()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.key, typedOther.key);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetExpected()).compareTo(
+                    typedOther.isSetExpected());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetExpected()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.expected, typedOther.expected);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetRecord()).compareTo(
+                    typedOther.isSetRecord());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetRecord()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.record, typedOther.record);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetReplacement()).compareTo(
+                    typedOther.isSetReplacement());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetReplacement()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.replacement, typedOther.replacement);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetCreds()).compareTo(
+                    typedOther.isSetCreds());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetCreds()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.creds, typedOther.creds);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetToken()).compareTo(
+                    typedOther.isSetToken());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetToken()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.token, typedOther.token);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("verifyAndSwap_args(");
+            boolean first = true;
+
+            sb.append("key:");
+            if(this.key == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.key);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("expected:");
+            if(this.expected == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.expected);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("record:");
+            sb.append(this.record);
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("replacement:");
+            if(this.replacement == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.replacement);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("creds:");
+            if(this.creds == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.creds);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("token:");
+            if(this.token == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.token);
+            }
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+            if(expected != null) {
+                expected.validate();
+            }
+            if(replacement != null) {
+                replacement.validate();
+            }
+            if(creds != null) {
+                creds.validate();
+            }
+            if(token != null) {
+                token.validate();
+            }
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                // it doesn't seem like you should have to do this, but java
+                // serialization is wacky, and doesn't call the default
+                // constructor.
+                __isset_bitfield = 0;
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class verifyAndSwap_argsStandardSchemeFactory implements
+                SchemeFactory {
+            public verifyAndSwap_argsStandardScheme getScheme() {
+                return new verifyAndSwap_argsStandardScheme();
+            }
+        }
+
+        private static class verifyAndSwap_argsStandardScheme extends
+                StandardScheme<verifyAndSwap_args> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    verifyAndSwap_args struct)
+                    throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 1: // KEY
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                            struct.key = iprot.readString();
+                            struct.setKeyIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 2: // EXPECTED
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.expected = new org.cinchapi.concourse.thrift.TObject();
+                            struct.expected.read(iprot);
+                            struct.setExpectedIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 3: // RECORD
+                        if(schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                            struct.record = iprot.readI64();
+                            struct.setRecordIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 4: // REPLACEMENT
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.replacement = new org.cinchapi.concourse.thrift.TObject();
+                            struct.replacement.read(iprot);
+                            struct.setReplacementIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 5: // CREDS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                            struct.creds.read(iprot);
+                            struct.setCredsIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 6: // TOKEN
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                            struct.token.read(iprot);
+                            struct.setTokenIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    verifyAndSwap_args struct)
+                    throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.key != null) {
+                    oprot.writeFieldBegin(KEY_FIELD_DESC);
+                    oprot.writeString(struct.key);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.expected != null) {
+                    oprot.writeFieldBegin(EXPECTED_FIELD_DESC);
+                    struct.expected.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldBegin(RECORD_FIELD_DESC);
+                oprot.writeI64(struct.record);
+                oprot.writeFieldEnd();
+                if(struct.replacement != null) {
+                    oprot.writeFieldBegin(REPLACEMENT_FIELD_DESC);
+                    struct.replacement.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.creds != null) {
+                    oprot.writeFieldBegin(CREDS_FIELD_DESC);
+                    struct.creds.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.token != null) {
+                    oprot.writeFieldBegin(TOKEN_FIELD_DESC);
+                    struct.token.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class verifyAndSwap_argsTupleSchemeFactory implements
+                SchemeFactory {
+            public verifyAndSwap_argsTupleScheme getScheme() {
+                return new verifyAndSwap_argsTupleScheme();
+            }
+        }
+
+        private static class verifyAndSwap_argsTupleScheme extends
+                TupleScheme<verifyAndSwap_args> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    verifyAndSwap_args struct)
+                    throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetKey()) {
+                    optionals.set(0);
+                }
+                if(struct.isSetExpected()) {
+                    optionals.set(1);
+                }
+                if(struct.isSetRecord()) {
+                    optionals.set(2);
+                }
+                if(struct.isSetReplacement()) {
+                    optionals.set(3);
+                }
+                if(struct.isSetCreds()) {
+                    optionals.set(4);
+                }
+                if(struct.isSetToken()) {
+                    optionals.set(5);
+                }
+                oprot.writeBitSet(optionals, 6);
+                if(struct.isSetKey()) {
+                    oprot.writeString(struct.key);
+                }
+                if(struct.isSetExpected()) {
+                    struct.expected.write(oprot);
+                }
+                if(struct.isSetRecord()) {
+                    oprot.writeI64(struct.record);
+                }
+                if(struct.isSetReplacement()) {
+                    struct.replacement.write(oprot);
+                }
+                if(struct.isSetCreds()) {
+                    struct.creds.write(oprot);
+                }
+                if(struct.isSetToken()) {
+                    struct.token.write(oprot);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    verifyAndSwap_args struct)
+                    throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(6);
+                if(incoming.get(0)) {
+                    struct.key = iprot.readString();
+                    struct.setKeyIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.expected = new org.cinchapi.concourse.thrift.TObject();
+                    struct.expected.read(iprot);
+                    struct.setExpectedIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.record = iprot.readI64();
+                    struct.setRecordIsSet(true);
+                }
+                if(incoming.get(3)) {
+                    struct.replacement = new org.cinchapi.concourse.thrift.TObject();
+                    struct.replacement.read(iprot);
+                    struct.setReplacementIsSet(true);
+                }
+                if(incoming.get(4)) {
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                    struct.creds.read(iprot);
+                    struct.setCredsIsSet(true);
+                }
+                if(incoming.get(5)) {
+                    struct.token = new org.cinchapi.concourse.thrift.TransactionToken();
+                    struct.token.read(iprot);
+                    struct.setTokenIsSet(true);
+                }
+            }
+        }
+
+    }
+
+    public static class verifyAndSwap_result implements
+            org.apache.thrift.TBase<verifyAndSwap_result, verifyAndSwap_result._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "verifyAndSwap_result");
+
+        private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new verifyAndSwap_resultStandardSchemeFactory());
+            schemes.put(TupleScheme.class,
+                    new verifyAndSwap_resultTupleSchemeFactory());
+        }
+
+        public boolean success; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            SUCCESS((short) 0, "success");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 0: // SUCCESS
+                    return SUCCESS;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        private static final int __SUCCESS_ISSET_ID = 0;
+        private byte __isset_bitfield = 0;
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(_Fields.SUCCESS,
+                    new org.apache.thrift.meta_data.FieldMetaData("success",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.BOOL)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    verifyAndSwap_result.class, metaDataMap);
+        }
+
+        public verifyAndSwap_result() {}
+
+        public verifyAndSwap_result(boolean success) {
+            this();
+            this.success = success;
+            setSuccessIsSet(true);
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public verifyAndSwap_result(verifyAndSwap_result other) {
+            __isset_bitfield = other.__isset_bitfield;
+            this.success = other.success;
+        }
+
+        public verifyAndSwap_result deepCopy() {
+            return new verifyAndSwap_result(this);
+        }
+
+        @Override
+        public void clear() {
+            setSuccessIsSet(false);
+            this.success = false;
+        }
+
+        public boolean isSuccess() {
+            return this.success;
+        }
+
+        public verifyAndSwap_result setSuccess(boolean success) {
+            this.success = success;
+            setSuccessIsSet(true);
+            return this;
+        }
+
+        public void unsetSuccess() {
+            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
+                    __SUCCESS_ISSET_ID);
+        }
+
+        /**
+         * Returns true if field success is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetSuccess() {
+            return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+        }
+
+        public void setSuccessIsSet(boolean value) {
+            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
+                    __SUCCESS_ISSET_ID, value);
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case SUCCESS:
+                if(value == null) {
+                    unsetSuccess();
+                }
+                else {
+                    setSuccess((Boolean) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case SUCCESS:
+                return Boolean.valueOf(isSuccess());
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case SUCCESS:
+                return isSetSuccess();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof verifyAndSwap_result)
+                return this.equals((verifyAndSwap_result) that);
+            return false;
+        }
+
+        public boolean equals(verifyAndSwap_result that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_success = true;
+            boolean that_present_success = true;
+            if(this_present_success || that_present_success) {
+                if(!(this_present_success && that_present_success))
+                    return false;
+                if(this.success != that.success)
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(verifyAndSwap_result other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            verifyAndSwap_result typedOther = (verifyAndSwap_result) other;
+
+            lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(
+                    typedOther.isSetSuccess());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetSuccess()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.success, typedOther.success);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("verifyAndSwap_result(");
+            boolean first = true;
+
+            sb.append("success:");
+            sb.append(this.success);
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                // it doesn't seem like you should have to do this, but java
+                // serialization is wacky, and doesn't call the default
+                // constructor.
+                __isset_bitfield = 0;
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class verifyAndSwap_resultStandardSchemeFactory implements
+                SchemeFactory {
+            public verifyAndSwap_resultStandardScheme getScheme() {
+                return new verifyAndSwap_resultStandardScheme();
+            }
+        }
+
+        private static class verifyAndSwap_resultStandardScheme extends
+                StandardScheme<verifyAndSwap_result> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    verifyAndSwap_result struct)
+                    throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 0: // SUCCESS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                            struct.success = iprot.readBool();
+                            struct.setSuccessIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    verifyAndSwap_result struct)
+                    throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.isSetSuccess()) {
+                    oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+                    oprot.writeBool(struct.success);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class verifyAndSwap_resultTupleSchemeFactory implements
+                SchemeFactory {
+            public verifyAndSwap_resultTupleScheme getScheme() {
+                return new verifyAndSwap_resultTupleScheme();
+            }
+        }
+
+        private static class verifyAndSwap_resultTupleScheme extends
+                TupleScheme<verifyAndSwap_result> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    verifyAndSwap_result struct)
+                    throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetSuccess()) {
+                    optionals.set(0);
+                }
+                oprot.writeBitSet(optionals, 1);
+                if(struct.isSetSuccess()) {
+                    oprot.writeBool(struct.success);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    verifyAndSwap_result struct)
+                    throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(1);
+                if(incoming.get(0)) {
+                    struct.success = iprot.readBool();
+                    struct.setSuccessIsSet(true);
+                }
             }
         }
 

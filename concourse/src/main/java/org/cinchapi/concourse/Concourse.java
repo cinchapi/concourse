@@ -148,7 +148,7 @@ public interface Concourse {
     public Map<DateTime, String> audit(String key, long record);
 
     /**
-     * Clear {@code key} in {@code record} and remove every mapping
+     * Atomically clear {@code key} in {@code record} and remove every mapping
      * from {@code key} that currently exists in {@code record}.
      * 
      * @param record
@@ -305,9 +305,9 @@ public interface Concourse {
     public <T> boolean remove(String key, T value, long record);
 
     /**
-     * Revert {@code key} in {@code record} to {@code timestamp}. This method
-     * restores the key to its state at {@code timestamp} by reversing all
-     * revisions that have occurred since.
+     * Atomically revert {@code key} in {@code record} to {@code timestamp}.
+     * This method restores the key to its state at {@code timestamp} by
+     * reversing all revisions that have occurred since.
      * <p>
      * Please note that this method <strong>does not</strong> {@code rollback}
      * any revisions, but creates <em>new</em> revisions that are the inverse of
@@ -397,17 +397,15 @@ public interface Concourse {
     public Set<Long> search(String key, String query);
 
     /**
-     * Set {@code key} as {@code value} in {@code record}. This is a convenience
-     * method that clears the values currently mapped from {@code key} and adds
-     * a new mapping to {@code value}.
+     * Atomically set {@code key} as {@code value} in {@code record}. This is a
+     * convenience method that clears the values currently mapped from
+     * {@code key} and adds a new mapping to {@code value}.
      * 
      * @param key
      * @param value
      * @param record
-     * @return {@code true} if the old mappings are removed and the new one is
-     *         added
      */
-    public <T> boolean set(String key, T value, long record);
+    public <T> void set(String key, T value, long record);
 
     /**
      * Turn on {@code staging} mode so that all subsequent changes are
@@ -461,6 +459,19 @@ public interface Concourse {
      */
     public boolean verify(String key, Object value, long record,
             DateTime timestamp);
+
+    /**
+     * Atomically verify {@code key} equals {@code expected} in {@code record}
+     * and swap with {@code replacement}.
+     * 
+     * @param key
+     * @param expected
+     * @param record
+     * @param replacement
+     * @return {@code true} if the swap is successful
+     */
+    public boolean verifyAndSwap(String key, TObject expected, long record,
+            TObject replacement);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -655,11 +666,16 @@ public interface Concourse {
         }
 
         @Override
-        public void clear(String key, long record) {
-            Set<Object> values = fetch(key, record);
-            for (Object value : values) {
-                remove(key, value, record);
-            }
+        public void clear(final String key, final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clear(key, record, creds, transaction);
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -838,12 +854,17 @@ public interface Concourse {
         }
 
         @Override
-        public <T> boolean set(String key, T value, long record) {
-            Set<Object> values = fetch(key, record);
-            for (Object v : values) {
-                remove(key, v, record);
-            }
-            return add(key, value, record);
+        public <T> void set(final String key, final T value, final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.set0(key, Convert.javaToThrift(value), record,
+                            creds, transaction);
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -884,6 +905,22 @@ public interface Concourse {
                 public Boolean call() throws Exception {
                     return client.verify(key, Convert.javaToThrift(value),
                             record, Convert.jodaToUnix(timestamp), creds,
+                            transaction);
+                }
+
+            });
+        }
+
+        @Override
+        public boolean verifyAndSwap(final String key, final TObject expected,
+                final long record, final TObject replacement) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.verifyAndSwap(key,
+                            Convert.javaToThrift(expected), record,
+                            Convert.javaToThrift(replacement), creds,
                             transaction);
                 }
 
