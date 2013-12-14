@@ -134,6 +134,7 @@ public final class ConcourseShell {
             Stopwatch watch = Stopwatch.createUnstarted();
 
             console.println("Use HELP for help.");
+            console.println("Use EXIT to quit.");
             console.setPrompt("cash$ ");
             console.addCompleter(new StringsCompleter("concourse.add",
                     "concourse.audit", "concourse.clear", "concourse.create",
@@ -159,7 +160,8 @@ public final class ConcourseShell {
                 if(line.equalsIgnoreCase("exit")) {
                     System.exit(0);
                 }
-                else if(line.equalsIgnoreCase("help")) {
+                else if(line.equalsIgnoreCase("help")
+                        || line.equalsIgnoreCase("man")) {
                     Process p = Runtime.getRuntime().exec(
                             new String[] {
                                     "sh",
