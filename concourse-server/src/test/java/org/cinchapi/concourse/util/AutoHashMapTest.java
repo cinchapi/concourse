@@ -25,6 +25,8 @@ package org.cinchapi.concourse.util;
 
 import java.util.Set;
 
+import org.junit.Ignore;
+
 import com.google.common.base.Function;
 
 /**
@@ -32,6 +34,7 @@ import com.google.common.base.Function;
  * 
  * @author jnelson
  */
+@Ignore("not in use")
 public class AutoHashMapTest extends AutoMapTest{
 
     @Override
