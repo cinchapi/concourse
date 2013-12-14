@@ -25,13 +25,11 @@ package org.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
-import org.joda.time.DateTime;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -93,18 +91,6 @@ public final class Convert {
     }
 
     /**
-     * Return a long that represents the same Unix timestamp with microsecond
-     * precision as {@link timestamp}.
-     * 
-     * @param timestamp
-     * @return the Unix timestamp
-     */
-    public static long jodaToUnix(DateTime timestamp) {
-        return TimeUnit.MICROSECONDS.convert(timestamp.getMillis(),
-                TimeUnit.MILLISECONDS);
-    }
-
-    /**
      * Return the Java Object that represents {@code object}.
      * 
      * @param object
@@ -138,18 +124,6 @@ public final class Convert {
         }
         buffer.rewind();
         return java;
-    }
-
-    /**
-     * Return a {@link DateTime} object that represents the same Unix timestamp
-     * with microsecond precision as {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the DateTime object
-     */
-    public static DateTime unixToJoda(long timestamp) {
-        return new DateTime(TimeUnit.MILLISECONDS.convert(timestamp,
-                TimeUnit.MICROSECONDS));
     }
 
     private Convert() {/* Utility Class */}

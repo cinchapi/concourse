@@ -40,7 +40,7 @@ import jline.console.completer.StringsCompleter;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.thrift.Operator;
-import org.joda.time.DateTime;
+import org.cinchapi.concourse.time.Timestamp;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -83,23 +83,23 @@ public final class ConcourseShell {
     }
 
     /**
-     * A closure that converts a string description to a time.
+     * A closure that converts a string description to a timestamp.
      */
-    private static Closure<DateTime> STRING_TO_TIME = new Closure<DateTime>(
+    private static Closure<Timestamp> STRING_TO_TIME = new Closure<Timestamp>(
             null) {
 
         private static final long serialVersionUID = 1L;
 
         @Override
-        public DateTime call(Object arg) {
+        public Timestamp call(Object arg) {
             if(Longs.tryParse(arg.toString()) != null) {
                 // We should assume that the timestamp is in microseconds since
                 // that is the output format used in ConcourseShell
-                return new DateTime(TimeUnit.MILLISECONDS.convert(
-                        Long.parseLong(arg.toString()), TimeUnit.MICROSECONDS));
+                return Timestamp.fromMicros(Long.parseLong(arg.toString()));
             }
             else {
-                return StringToTime.parseDateTime(arg.toString());
+                return Timestamp.fromJoda(StringToTime.parseDateTime(arg
+                        .toString()));
             }
         }
 
