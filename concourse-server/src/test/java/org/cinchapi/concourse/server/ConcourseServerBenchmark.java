@@ -85,7 +85,7 @@ public class ConcourseServerBenchmark extends AbstractBenchmark {
 
             });
             t.start();
-            client = new Concourse.Client(SERVER_HOST, SERVER_PORT, "admin",
+            client = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
                     "admin");
         }
 
