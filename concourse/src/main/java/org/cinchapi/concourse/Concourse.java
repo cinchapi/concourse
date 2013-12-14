@@ -42,10 +42,10 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.time.Timestamp;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.TLinkedHashMap;
-import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
@@ -159,7 +159,7 @@ public abstract class Concourse {
      * @param record
      * @return a mapping of timestamps to revision descriptions
      */
-    public abstract Map<DateTime, String> audit(long record);
+    public abstract Map<Timestamp, String> audit(long record);
 
     /**
      * Audit {@code key} in {@code record} and return a log of revisions.
@@ -168,7 +168,7 @@ public abstract class Concourse {
      * @param record
      * @return a mapping of timestamps to revision descriptions
      */
-    public abstract Map<DateTime, String> audit(String key, long record);
+    public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
      * Clear {@code key} in {@code record} and remove every mapping
@@ -215,7 +215,7 @@ public abstract class Concourse {
      * @param timestamp
      * @return the keys for populated keys
      */
-    public abstract Set<String> describe(long record, DateTime timestamp);
+    public abstract Set<String> describe(long record, Timestamp timestamp);
 
     /**
      * Disconnect from the remote Concourse server.
@@ -242,7 +242,7 @@ public abstract class Concourse {
      * @return the contained values
      */
     public abstract Set<Object> fetch(String key, long record,
-            DateTime timestamp);
+            Timestamp timestamp);
 
     /**
      * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
@@ -255,7 +255,7 @@ public abstract class Concourse {
      * @param values
      * @return the records that match the criteria
      */
-    public abstract Set<Long> find(DateTime timestamp, String key,
+    public abstract Set<Long> find(Timestamp timestamp, String key,
             Operator operator, Object... values);
 
     /**
@@ -295,7 +295,7 @@ public abstract class Concourse {
      * @param timestamp
      * @return the first mapped value
      */
-    public abstract <T> T get(String key, long record, DateTime timestamp);
+    public abstract <T> T get(String key, long record, Timestamp timestamp);
 
     /**
      * Link {@code key} in {@code source} to {@code destination}. In other
@@ -343,7 +343,7 @@ public abstract class Concourse {
      * @param record
      * @param timestamp
      */
-    public abstract void revert(String key, long record, DateTime timestamp);
+    public abstract void revert(String key, long record, Timestamp timestamp);
 
     /**
      * Search {@code key} for {@code query} and return the set of records that
@@ -419,7 +419,7 @@ public abstract class Concourse {
      * @return {@code true} if the mapping existed
      */
     public abstract boolean verify(String key, Object value, long record,
-            DateTime timestamp);
+            Timestamp timestamp);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -465,7 +465,7 @@ public abstract class Concourse {
          * Represents a request to respond to a query using the current state as
          * opposed to the history.
          */
-        private static DateTime now = new DateTime(0);
+        private static Timestamp now = Timestamp.fromMicros(0);
 
         private final String username;
         private final String password;
@@ -556,20 +556,20 @@ public abstract class Concourse {
         }
 
         @Override
-        public Map<DateTime, String> audit(final long record) {
-            return execute(new Callable<Map<DateTime, String>>() {
+        public Map<Timestamp, String> audit(final long record) {
+            return execute(new Callable<Map<Timestamp, String>>() {
 
                 @Override
-                public Map<DateTime, String> call() throws Exception {
+                public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, null, creds,
                             transaction);
-                    return ((TLinkedHashMap<DateTime, String>) Transformers
+                    return ((TLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
-                                    new Function<Long, DateTime>() {
+                                    new Function<Long, Timestamp>() {
 
                                         @Override
-                                        public DateTime apply(Long input) {
-                                            return Convert.unixToJoda(input);
+                                        public Timestamp apply(Long input) {
+                                            return Timestamp.fromMicros(input);
                                         }
 
                                     })).setKeyName("DateTime").setValueName(
@@ -580,20 +580,20 @@ public abstract class Concourse {
         }
 
         @Override
-        public Map<DateTime, String> audit(final String key, final long record) {
-            return execute(new Callable<Map<DateTime, String>>() {
+        public Map<Timestamp, String> audit(final String key, final long record) {
+            return execute(new Callable<Map<Timestamp, String>>() {
 
                 @Override
-                public Map<DateTime, String> call() throws Exception {
+                public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, key, creds,
                             transaction);
-                    return ((TLinkedHashMap<DateTime, String>) Transformers
+                    return ((TLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
-                                    new Function<Long, DateTime>() {
+                                    new Function<Long, Timestamp>() {
 
                                         @Override
-                                        public DateTime apply(Long input) {
-                                            return Convert.unixToJoda(input);
+                                        public Timestamp apply(Long input) {
+                                            return Timestamp.fromMicros(input);
                                         }
 
                                     })).setKeyName("DateTime").setValueName(
@@ -628,13 +628,13 @@ public abstract class Concourse {
         }
 
         @Override
-        public Set<String> describe(final long record, final DateTime timestamp) {
+        public Set<String> describe(final long record, final Timestamp timestamp) {
             return execute(new Callable<Set<String>>() {
 
                 @Override
                 public Set<String> call() throws Exception {
-                    return client.describe(record,
-                            Convert.jodaToUnix(timestamp), creds, transaction);
+                    return client.describe(record, timestamp.getMicros(),
+                            creds, transaction);
                 }
 
             });
@@ -653,13 +653,13 @@ public abstract class Concourse {
 
         @Override
         public Set<Object> fetch(final String key, final long record,
-                final DateTime timestamp) {
+                final Timestamp timestamp) {
             return execute(new Callable<Set<Object>>() {
 
                 @Override
                 public Set<Object> call() throws Exception {
                     Set<TObject> values = client.fetch(key, record,
-                            Convert.jodaToUnix(timestamp), creds, transaction);
+                            timestamp.getMicros(), creds, transaction);
                     return Transformers.transformSet(values,
                             new Function<TObject, Object>() {
 
@@ -675,7 +675,7 @@ public abstract class Concourse {
         }
 
         @Override
-        public Set<Long> find(final DateTime timestamp, final String key,
+        public Set<Long> find(final Timestamp timestamp, final String key,
                 final Operator operator, final Object... values) {
             return execute(new Callable<Set<Long>>() {
 
@@ -690,8 +690,7 @@ public abstract class Concourse {
                                     return Convert.javaToThrift(input);
                                 }
 
-                            }), Convert.jodaToUnix(timestamp), creds,
-                            transaction);
+                            }), timestamp.getMicros(), creds, transaction);
                 }
 
             });
@@ -711,7 +710,7 @@ public abstract class Concourse {
         @SuppressWarnings("unchecked")
         @Override
         @Nullable
-        public <T> T get(String key, long record, DateTime timestamp) {
+        public <T> T get(String key, long record, Timestamp timestamp) {
             Set<Object> values = fetch(key, record, timestamp);
             if(!values.isEmpty()) {
                 return (T) values.iterator().next();
@@ -752,13 +751,13 @@ public abstract class Concourse {
 
         @Override
         public void revert(final String key, final long record,
-                final DateTime timestamp) {
+                final Timestamp timestamp) {
             execute(new Callable<Void>() {
 
                 @Override
                 public Void call() throws Exception {
-                    client.revert(key, record, Convert.jodaToUnix(timestamp),
-                            creds, transaction);
+                    client.revert(key, record, timestamp.getMicros(), creds,
+                            transaction);
                     return null;
                 }
 
@@ -811,14 +810,13 @@ public abstract class Concourse {
 
         @Override
         public boolean verify(final String key, final Object value,
-                final long record, final DateTime timestamp) {
+                final long record, final Timestamp timestamp) {
             return execute(new Callable<Boolean>() {
 
                 @Override
                 public Boolean call() throws Exception {
                     return client.verify(key, Convert.javaToThrift(value),
-                            record, Convert.jodaToUnix(timestamp), creds,
-                            transaction);
+                            record, timestamp.getMicros(), creds, transaction);
                 }
 
             });
