@@ -32,14 +32,12 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
-import org.junit.Ignore;
 
 /**
  * 
  * 
  * @author jnelson
  */
-@Ignore("fails on jenkins")
 public class DatabaseTest extends StoreTest {
     
     private String current;
