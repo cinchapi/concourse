@@ -53,6 +53,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
+import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Preconditions;
@@ -422,12 +423,10 @@ public final class Database implements PermanentStore, VersionGetter {
         try {
             SearchRecord record = Record.createSearchRecordPartial(key, query);
             for (SearchBlock block : ctb) {
-                String[] toks = query.toString().split(" "); // Seek each word
-                                                             // in the query
-                                                             // to make sure
-                                                             // that multi
-                                                             // word search
-                                                             // works
+                // Seek each work in the query to make sure that multi word
+                // search works.
+                String[] toks = query.toString().split(
+                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
                     block.seek(key, Text.wrap(tok), record);
                 }

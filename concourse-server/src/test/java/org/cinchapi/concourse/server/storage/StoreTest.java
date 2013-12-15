@@ -284,7 +284,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long timestamp = Time.now();
         List<TObject> otherValues = Lists.newArrayList();
         for (TObject value : getValues()) {
-            while(values.contains(value)){
+            while (values.contains(value)) {
                 value = TestData.getTObject();
             }
             add(key, value, record);
@@ -398,6 +398,23 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Variables.register("query", query);
         String key = Variables.register("key", TestData.getString());
         Set<Long> records = setupSearchTest(key, query, type);
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSeachReproA(SearchType type) {
+        String query = Variables
+                .register(
+                        "query",
+                        "i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx");
+        String key = Variables.register("key", "foo");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("1ub0gsi61bz39y90wbe96rvxo3g4mtt89sg1tfjsf4vuyyjc9oivc7sluuxrmj897ni15p8obu6i7rwvli7esvitzio2 qp  arxwlclruja ulzfhtl4yyxopsc  bk57q2tz30 0y606dwynvffp6vqx"));
         Assert.assertEquals(records, store.search(key, query));
     }
 

@@ -35,6 +35,9 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.util.TStrings;
+
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
@@ -72,11 +75,12 @@ final class SearchRecord extends Record<Text, Text, Position> {
         read.lock();
         try {
             Map<PrimaryKey, Integer> reference = Maps.newHashMap();
-            String[] toks = query.toString().split(" ");
+            String[] toks = query.toString().split(
+                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             boolean initial = true;
             for (String tok : toks) {
                 Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-                if(STOPWORDS.contains(tok)) {
+                if(STOPWORDS.contains(tok) || Strings.isNullOrEmpty(tok)) {
                     continue;
                 }
                 Set<Position> positions = get(Text.wrap(tok));

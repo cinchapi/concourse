@@ -52,7 +52,7 @@ import com.google.common.base.Throwables;
  */
 public final class TestData extends Random {
 
-    public static final String DATA_DIR = "test.out/buffer";
+    public static final String DATA_DIR = "test.out";
 
     public static PrimaryRevision getPrimaryRevision() {
         return Revision.createPrimaryRevision(getPrimaryKey(), getText(),

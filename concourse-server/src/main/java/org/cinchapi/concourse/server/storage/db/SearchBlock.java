@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.TStrings;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
@@ -106,7 +107,10 @@ final class SearchBlock extends Block<Text, Text, Position> {
         Preconditions.checkState(mutable,
                 "Cannot modify a block that is not mutable");
         if(value.getType() == Type.STRING) {
-            String[] toks = value.getObject().toString().split(" ");
+            String[] toks = value
+                    .getObject()
+                    .toString()
+                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             ExecutorService executor = ConcourseExecutors
                     .newCachedThreadPool("SearchBlock");
             int pos = 0;

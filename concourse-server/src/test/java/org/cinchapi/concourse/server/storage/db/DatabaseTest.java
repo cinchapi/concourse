@@ -21,23 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.db;
 
-import org.cinchapi.concourse.server.storage.db.DatabaseTest;
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.io.File;
+
+import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.Store;
+import org.cinchapi.concourse.server.storage.StoreTest;
+import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.TestData;
 
 /**
  * 
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class, DatabaseTest.class })
-public class StoreSuite {
+public class DatabaseTest extends StoreTest {
+    
+    private String current;
+
+    @Override
+    protected void add(String key, TObject value, long record) {
+        ((Database) store).accept(Write.add(key, value, record));
+    }
+
+    @Override
+    protected void cleanup(Store store) {
+        FileSystem.deleteDirectory(current);
+    }
+
+
+    @Override
+    protected Database getStore() {
+        current = TestData.DATA_DIR + File.separator + Time.now();
+        return new Database(current);
+    }
+
+    @Override
+    protected void remove(String key, TObject value, long record) {
+        ((Database) store).accept(Write.remove(key, value, record));
+    }
 
 }
