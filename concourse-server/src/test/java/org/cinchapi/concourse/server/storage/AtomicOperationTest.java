@@ -214,16 +214,6 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     }
 
     @Test(expected = AtomicStateException.class)
-    public void testForcedAbortIfWriteFails() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        destination.accept(Write.add(key, value, record));
-        Assert.assertFalse(((AtomicOperation) store).add(key, value, record));
-        store.verify(key, value, record);
-    }
-
-    @Test(expected = AtomicStateException.class)
     public void testCommitFailsIfVersionChanges() {
         String key = TestData.getString();
         TObject value = TestData.getTObject();

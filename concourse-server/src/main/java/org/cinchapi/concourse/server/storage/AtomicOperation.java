@@ -142,13 +142,7 @@ public class AtomicOperation extends BufferedStore implements
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        if(super.add(key, value, record)) {
-            return true;
-        }
-        else {
-            abort();
-            return false;
-        }
+        return super.add(key, value, record);
     }
 
     @Override
@@ -262,13 +256,7 @@ public class AtomicOperation extends BufferedStore implements
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        if(super.remove(key, value, record)) {
-            return true;
-        }
-        else {
-            abort();
-            return false;
-        }
+        return super.remove(key, value, record);
     }
 
     @Override
