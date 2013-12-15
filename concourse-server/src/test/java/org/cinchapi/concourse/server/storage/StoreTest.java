@@ -403,7 +403,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
-    public void testSeachReproA(SearchType type) {
+    public void testSearchReproC(SearchType type) {
         String query = Variables
                 .register(
                         "query",
@@ -485,6 +485,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 type,
                 Lists.newArrayList(6631928579149921621L),
                 Lists.newArrayList("qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproB(SearchType type) {
+        String query = Variables.register("query",
+                "6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi");
+        String key = Variables.register("key",
+                "2vuag rm1hkhrnjt2nf1 n411ch7djphag6bgrxw9fcpe6c7zqf vny7 z6n");
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
         Assert.assertEquals(records, store.search(key, query));
     }
 

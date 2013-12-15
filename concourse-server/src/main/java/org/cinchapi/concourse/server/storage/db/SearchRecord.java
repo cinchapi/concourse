@@ -37,7 +37,6 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.util.TStrings;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
@@ -78,9 +77,14 @@ final class SearchRecord extends Record<Text, Text, Position> {
             String[] toks = query.toString().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             boolean initial = true;
+            int offset = 0;
             for (String tok : toks) {
                 Map<PrimaryKey, Integer> temp = Maps.newHashMap();
-                if(STOPWORDS.contains(tok) || Strings.isNullOrEmpty(tok)) {
+                if(STOPWORDS.contains(tok)) {
+                    // When skipping a stop word, we must record an offset to
+                    // correctly determine if the next term match is in the
+                    // correct relative position to the previous term match
+                    offset++;
                     continue;
                 }
                 Set<Position> positions = get(Text.wrap(tok));
@@ -92,13 +96,14 @@ final class SearchRecord extends Record<Text, Text, Position> {
                     }
                     else {
                         Integer current = reference.get(key);
-                        if(current != null && pos == current + 1) {
+                        if(current != null && pos == current + 1 + offset) {
                             temp.put(key, pos);
                         }
                     }
                 }
                 initial = false;
                 reference = temp;
+                offset = 0;
             }
             return reference.keySet();
         }
