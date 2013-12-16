@@ -420,6 +420,36 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
+    public void testSearchReproD(SearchType type) {
+        String query = Variables.register("query", "0 tihr2 nva7zd z96x");
+        String key = Variables.register("key", "foo");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("xqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx0 tihr2 nva7zd z96xxqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproE(SearchType type) {
+        String query = Variables
+                .register("query",
+                        "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30 ");
+        String key = Variables.register("key", "foo");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
     public void testSearchReproCON_7(SearchType type) {
         String query = Variables.register("query", "5");
         String key = Variables.register("key", "vhncr15x4vi1r7dx3bw8sgo3");

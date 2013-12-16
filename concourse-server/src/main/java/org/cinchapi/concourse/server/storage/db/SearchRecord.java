@@ -37,7 +37,9 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.util.TStrings;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 
 /**
  * A collection of n-gram indexes that enable fulltext infix searching. For
@@ -73,13 +75,13 @@ final class SearchRecord extends Record<Text, Text, Position> {
     public Set<PrimaryKey> search(Text query) {
         read.lock();
         try {
-            Map<PrimaryKey, Integer> reference = Maps.newHashMap();
+            Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
             String[] toks = query.toString().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             boolean initial = true;
             int offset = 0;
             for (String tok : toks) {
-                Map<PrimaryKey, Integer> temp = Maps.newHashMap();
+                Multimap<PrimaryKey, Integer> temp = HashMultimap.create();
                 if(STOPWORDS.contains(tok)) {
                     // When skipping a stop word, we must record an offset to
                     // correctly determine if the next term match is in the
@@ -95,9 +97,10 @@ final class SearchRecord extends Record<Text, Text, Position> {
                         temp.put(key, pos);
                     }
                     else {
-                        Integer current = reference.get(key);
-                        if(current != null && pos == current + 1 + offset) {
-                            temp.put(key, pos);
+                        for (Integer current : reference.get(key)) {
+                            if(current != null && pos == current + 1 + offset) {
+                                temp.put(key, pos);
+                            }
                         }
                     }
                 }
