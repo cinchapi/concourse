@@ -78,7 +78,7 @@ public final class Timestamp {
      * @return the current timestamp, not null
      */
     public static Timestamp now() {
-        return new Timestamp(DateTime.now());
+        return new Timestamp(Time.now());
     }
 
     /**
@@ -89,7 +89,10 @@ public final class Timestamp {
      * @return the current timestamp, not null
      */
     public static Timestamp now(Chronology chronology) {
-        return new Timestamp(DateTime.now(chronology));
+        long microseconds = Time.now();
+        return new Timestamp(microseconds, new DateTime(
+                TimeUnit.MILLISECONDS.convert(microseconds,
+                        TimeUnit.MICROSECONDS), chronology));
     }
 
     /**
@@ -100,7 +103,10 @@ public final class Timestamp {
      * @return the current timestamp, not null
      */
     public static Timestamp now(DateTimeZone zone) {
-        return new Timestamp(DateTime.now(zone));
+        long microseconds = Time.now();
+        return new Timestamp(microseconds, new DateTime(
+                TimeUnit.MILLISECONDS.convert(microseconds,
+                        TimeUnit.MICROSECONDS), zone));
     }
 
     /**
@@ -150,6 +156,17 @@ public final class Timestamp {
         this.microseconds = microseconds;
         this.joda = new DateTime(TimeUnit.MILLISECONDS.convert(microseconds,
                 TimeUnit.MICROSECONDS));
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param microseconds
+     * @param joda
+     */
+    private Timestamp(long microseconds, DateTime joda) {
+        this.microseconds = microseconds;
+        this.joda = joda;
     }
 
     @Override
