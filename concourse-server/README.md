@@ -48,3 +48,18 @@ A Block is a (possibly) sorted collection of Revisions. This class handles the l
 A Record is a collection of Revisions that all have the same locator. If all the Revisions in the Record also have the same key, then it is a partial Record. 
 
 **Record classes contain the logic for the ways in which the Store interface is handled by Database (i.e. the logic for the find() method is defined in the SecondaryRecord class)**
+
+### org.cinchapi.concourse.server.model
+This package contains immutable and serializable representation of data that is stored in Concourse.
+
+#### Position
+A Position associates the location of a text term with a PrimaryKey in a SearchRecord.
+
+#### PrimaryKey
+A PrimaryKey is the unique identifier and locator for a (Primary) Record.
+
+#### Text
+Text is a wrapper around a UTF-8 encoded string.
+
+#### Value
+A Value is a wrapper around a TObject (which is a wrapper around a java object) that handles weak type comparisons.
