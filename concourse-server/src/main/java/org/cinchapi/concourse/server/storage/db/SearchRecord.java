@@ -97,8 +97,8 @@ final class SearchRecord extends Record<Text, Text, Position> {
                         temp.put(key, pos);
                     }
                     else {
-                        for (Integer current : reference.get(key)) {
-                            if(current != null && pos == current + 1 + offset) {
+                        for (int current : reference.get(key)) {
+                            if(pos == current + 1 + offset) {
                                 temp.put(key, pos);
                             }
                         }
