@@ -245,31 +245,58 @@ public abstract class Concourse {
             Timestamp timestamp);
 
     /**
-     * Find {@code key} {@code operator} {@code values} at {@code timestamp} and
-     * return the set of records that satisfied the criteria. This is analogous
-     * to the SELECT action in SQL.
-     * 
-     * @param timestamp
-     * @param key
-     * @param operator
-     * @param values
-     * @return the records that match the criteria
-     */
-    public abstract Set<Long> find(Timestamp timestamp, String key,
-            Operator operator, Object... values);
-
-    /**
-     * Find {@code key} {@code operator} {@code values} and return the set of
+     * Find {@code key} {@code operator} {@code value} and return the set of
      * records that satisfy the criteria. This is analogous to the SELECT action
      * in SQL.
      * 
      * @param key
      * @param operator
-     * @param values
+     * @param value
      * @return the records that match the criteria
      */
-    public abstract Set<Long> find(String key, Operator operator,
-            Object... values);
+    public abstract Set<Long> find(String key, Operator operator, Object value);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Object value2);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} at
+     * {@code timestamp} and return the set of records that satisfy the
+     * criteria. This is analogous to the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param timestamp
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Object value2, Timestamp timestamp);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} at {@code timestamp} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp);
 
     /**
      * Get {@code key} from {@code record} and return the first mapped value or
@@ -775,14 +802,26 @@ public abstract class Concourse {
         }
 
         @Override
-        public Set<Long> find(final Timestamp timestamp, final String key,
-                final Operator operator, final Object... values) {
+        public Set<Long> find(String key, Operator operator, Object value) {
+            return find(key, operator, value, now);
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
+                Object value2) {
+            return find(key, operator, value, value2, now);
+        }
+
+        @Override
+        public Set<Long> find(final String key, final Operator operator,
+                final Object value, final Object value2,
+                final Timestamp timestamp) {
             return execute(new Callable<Set<Long>>() {
 
                 @Override
                 public Set<Long> call() throws Exception {
                     return client.find(key, operator, Lists.transform(
-                            Lists.newArrayList(values),
+                            Lists.newArrayList(value, value2),
                             new Function<Object, TObject>() {
 
                                 @Override
@@ -797,8 +836,25 @@ public abstract class Concourse {
         }
 
         @Override
-        public Set<Long> find(String key, Operator operator, Object... values) {
-            return find(now, key, operator, values);
+        public Set<Long> find(final String key, final Operator operator,
+                final Object value, final Timestamp timestamp) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.find(key, operator, Lists.transform(
+                            Lists.newArrayList(value),
+                            new Function<Object, TObject>() {
+
+                                @Override
+                                public TObject apply(Object input) {
+                                    return Convert.javaToThrift(input);
+                                }
+
+                            }), timestamp.getMicros(), creds, transaction);
+                }
+
+            });
         }
 
         @Override
