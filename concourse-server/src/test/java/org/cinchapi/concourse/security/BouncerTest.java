@@ -71,7 +71,8 @@ public class BouncerTest extends ConcourseBaseTest {
     public void testDefaultAdminLogin() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        Assert.assertTrue(bouncer.isValidUsernameAndPassword(username, password));
+        Assert.assertTrue(bouncer
+                .isValidUsernameAndPassword(username, password));
     }
 
     @Test
@@ -81,8 +82,10 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer newPassword = ByteBuffer.wrap(TestData.getString()
                 .getBytes());
         bouncer.grantAccess(username, newPassword);
-        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username, password));
-        Assert.assertTrue(bouncer.isValidUsernameAndPassword(username, newPassword));
+        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+                password));
+        Assert.assertTrue(bouncer.isValidUsernameAndPassword(username,
+                newPassword));
     }
 
     @Test
@@ -95,12 +98,61 @@ public class BouncerTest extends ConcourseBaseTest {
             bouncer.grantAccess(username, password);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(bouncer.isValidUsernameAndPassword(entry.getKey(),
-                    entry.getValue()));
+            Assert.assertTrue(bouncer.isValidUsernameAndPassword(
+                    entry.getKey(), entry.getValue()));
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCantRevokeAdmin() {
+        bouncer.revokeAccess(toByteBuffer("admin"));
+    }
+
+    @Test
+    public void testRevokeUser() {
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        bouncer.grantAccess(username, password);
+        bouncer.revokeAccess(username);
+        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+                password));
+    }
+
+    @Test
+    public void testIsValidUsernameAndPassword() {
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
+        bouncer.grantAccess(username, password);
+        Assert.assertTrue(bouncer
+                .isValidUsernameAndPassword(username, password));
+        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+                badpassword));
+    }
+
+    @Test
+    public void testDiskSync() {
+        Map<ByteBuffer, ByteBuffer> users = Maps.newHashMap();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            ByteBuffer username = toByteBuffer(TestData.getString());
+            ByteBuffer password = toByteBuffer(TestData.getString());
+            users.put(username, password);
+            bouncer.grantAccess(username, password);
+        }
+        Bouncer bouncer2 = Bouncer.create(current);
+        for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
+            Assert.assertTrue(bouncer2.isValidUsernameAndPassword(
+                    entry.getKey(), entry.getValue()));
         }
 
     }
 
+    /**
+     * Convert a string to a ByteBuffer.
+     * 
+     * @param string
+     * @return the bytebuffer
+     */
     private static ByteBuffer toByteBuffer(String string) {
         return ByteBuffer.wrap(string.getBytes());
     }
