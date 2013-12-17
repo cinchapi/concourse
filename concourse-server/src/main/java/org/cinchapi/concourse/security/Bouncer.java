@@ -35,12 +35,16 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.RandomStringGenerator;
 
 import static com.google.common.base.Preconditions.*;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -83,32 +87,21 @@ public class Bouncer {
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
 
-    /**
-     * The username for the admin user, who must always have access to the
-     * server.
-     */
     private static final String ADMIN_USERNAME = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
-
-    /**
-     * The default password for the admin user.
-     */
     private static final String ADMIN_PASSWORD = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
 
-    /**
-     * The file that contains the credentials used by this Bouncer.
-     */
     private final String backingStore;
 
-    /**
-     * The in-memory copy of the credentials used by this Bouncer.
-     */
     private final Map<String, Credentials> credentials = Maps.newHashMap();
+    private final Map<String, AccessToken> tokens = Maps.newHashMap();
 
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
     private final ReadLock read = master.readLock();
     private final WriteLock write = master.writeLock();
+
+    private final RandomStringGenerator rsg = new RandomStringGenerator();
 
     /**
      * Construct a new instance.
@@ -122,12 +115,33 @@ public class Bouncer {
         while (it.hasNext()) {
             insert(Credentials.fromByteBuffer(it.next()));
         }
-        // If there are no credential (which implies this is a new server) add
+        // If there are no credentials (which implies this is a new server) add
         // the default admin username/password
         if(credentials.isEmpty()) {
             grantAccess(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
         }
     }
+
+    /**
+     * Return an {@link AccessToken} for {@code username}.
+     * 
+     * @param username
+     * @return the AccessToken
+     */
+    public AccessToken createAccessToken(ByteBuffer username) {
+        checkArgument(isValidUsername(username));
+        StringBuilder sb = new StringBuilder();
+        String hex = encodeHex(username);
+        sb.append(hex);
+        sb.append(rsg.nextString());
+        sb.append(Time.now());
+        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
+                .hashUnencodedChars(sb.toString()).asBytes()));
+        tokens.put(hex, token);
+        return token;
+    }
+
+    // TODO: implement expireAccessToken
 
     /**
      * Grant access to the user identified by {@code username} with
@@ -143,11 +157,22 @@ public class Bouncer {
             password = Passwords.hash(password, salt);
             insert(Credentials.create(encodeHex(username), encodeHex(password),
                     encodeHex(salt)));
+            tokens.remove(encodeHex(username));
             diskSync();
         }
         finally {
             write.unlock();
         }
+    }
+
+    /**
+     * Return {@code true} if {@code token} is a valid AccessToken.
+     * 
+     * @param token
+     * @return {@code true} if {@code token} is valid
+     */
+    public boolean isValidAccessToken(AccessToken token) {
+        return tokens.values().contains(token);
     }
 
     /**
@@ -187,6 +212,7 @@ public class Bouncer {
             String hex = encodeHex(username);
             checkArgument(!hex.equals(ADMIN_USERNAME));
             if(credentials.remove(hex) != null) {
+                tokens.remove(encodeHex(username));
                 diskSync();
             }
         }
@@ -232,6 +258,16 @@ public class Bouncer {
         finally {
             write.unlock();
         }
+    }
+
+    /**
+     * Return {@code true} if {@code username} is valid.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} is valid
+     */
+    private boolean isValidUsername(ByteBuffer username) {
+        return credentials.get(encodeHex(username)) != null;
     }
 
     /**

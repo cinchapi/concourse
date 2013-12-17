@@ -56,7 +56,6 @@ import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
-import org.cinchapi.concourse.thrift.AccessTokens;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
@@ -368,14 +367,13 @@ public class ConcourseServer implements
     public AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         validate(username, password);
-        return AccessTokens.createAccessToken("", "");
+        return bouncer.createAccessToken(username);
     }
 
     @Override
     public void logout(AccessToken creds) throws TException {
         authenticate(creds);
         expire(creds);
-
     }
 
     @Override
@@ -516,7 +514,9 @@ public class ConcourseServer implements
      * @throws SecurityException
      */
     private void authenticate(AccessToken token) throws SecurityException {
-        // TODO check token and throw an exception if its not valid
+        if(!bouncer.isValidAccessToken(token)) {
+            throw new SecurityException("Invalid access token");
+        }
     }
 
     /**
@@ -633,7 +633,7 @@ public class ConcourseServer implements
 
     /**
      * Validate that the {@code username} and {@code password} pair represent
-     * correct credentials.
+     * correct credentials. If not, throw a SecurityException.
      * 
      * @param username
      * @param password

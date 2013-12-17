@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -144,7 +145,53 @@ public class BouncerTest extends ConcourseBaseTest {
             Assert.assertTrue(bouncer2.isValidUsernameAndPassword(
                     entry.getKey(), entry.getValue()));
         }
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testCantCreateAccessTokenForInvalidUser() {
+        bouncer.createAccessToken(toByteBuffer(TestData.getString() + "foo"));
+    }
+
+    @Test
+    public void testCanCreateAccessTokenForValidUser() {
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        bouncer.grantAccess(username, password);
+        AccessToken token = bouncer.createAccessToken(username);
+        Assert.assertTrue(bouncer.isValidAccessToken(token));
+    }
+
+    @Test
+    public void testAccessTokenIsNotValidIfServerRestarts() {
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        bouncer.grantAccess(username, password);
+        AccessToken token = bouncer.createAccessToken(username);
+        Bouncer bouncer2 = Bouncer.create(current); // simulate server
+                                                    // restart by creating new
+                                                    // bouncer
+        Assert.assertFalse(bouncer2.isValidAccessToken(token));
+    }
+    
+    @Test
+    public void testAccessTokenIsNotValidIfPasswordChanges(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        ByteBuffer password2 = toByteBuffer(TestData.getString());
+        bouncer.grantAccess(username, password);
+        AccessToken token = bouncer.createAccessToken(username);
+        bouncer.grantAccess(username, password2);
+        Assert.assertFalse(bouncer.isValidAccessToken(token));
+    }
+    
+    @Test
+    public void testAccessTokenIsNotValidIfAccessIsRevoked(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        bouncer.grantAccess(username, password);
+        AccessToken token = bouncer.createAccessToken(username);
+        bouncer.revokeAccess(username);
+        Assert.assertFalse(bouncer.isValidAccessToken(token));
     }
 
     /**
