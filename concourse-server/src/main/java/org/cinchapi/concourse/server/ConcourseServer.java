@@ -184,7 +184,7 @@ public class ConcourseServer implements
                                                        // future release.
 
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-    private static final String BOUNCER_FILE = ".bouncer";
+    private static final String BOUNCER_FILE = ".access";
 
     /**
      * The Thrift server controls the RPC protocol. Use
