@@ -184,7 +184,12 @@ public class ConcourseServer implements
                                                        // future release.
 
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-    private static final String BOUNCER_FILE = ".access";
+
+    /**
+     * Contains the credentials used by the {@link #manager}. This file is
+     * typically located in the root of the server installation.
+     */
+    private static final String ACCESS_FILE = ".access";
 
     /**
      * The Thrift server controls the RPC protocol. Use
@@ -247,7 +252,7 @@ public class ConcourseServer implements
                         "Server" + "-%d").build()));
         this.server = new TThreadPoolServer(args);
         this.engine = new Engine(bufferStore, dbStore);
-        this.manager = AccessManager.create(BOUNCER_FILE);
+        this.manager = AccessManager.create(ACCESS_FILE);
     }
 
     @Override
