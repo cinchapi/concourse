@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.jmx;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-
 import javax.management.MXBean;
 
 /**

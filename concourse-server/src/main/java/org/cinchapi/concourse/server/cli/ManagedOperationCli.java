@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.cli;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
 import javax.management.MalformedObjectNameException;
@@ -33,8 +32,11 @@ import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
+import jline.console.ConsoleReader;
 
+import org.apache.thrift.TException;
+import org.cinchapi.concourse.server.ConcourseServer;
+import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.CaseFormat;
@@ -46,7 +48,7 @@ import com.google.common.base.CaseFormat;
  * @author jnelson
  */
 public abstract class ManagedOperationCli {
-    
+
     /**
      * The CLI options.
      */
@@ -56,6 +58,11 @@ public abstract class ManagedOperationCli {
      * The parser that validates the CLI options.
      */
     protected JCommander parser;
+
+    /**
+     * Handler to the console for interactive I/O.
+     */
+    protected ConsoleReader console;
 
     /**
      * Construct a new instance that is seeded with an object containing options
@@ -71,10 +78,15 @@ public abstract class ManagedOperationCli {
             this.options = options;
             parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
                     CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+            this.console = new ConsoleReader();
         }
         catch (ParameterException e) {
             System.err.println(e.getMessage());
-            System.exit(127);
+            System.exit(2);
+        }
+        catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(2);
         }
     }
 
@@ -84,9 +96,9 @@ public abstract class ManagedOperationCli {
      * @throws MalformedObjectNameException
      * @throws MalformedURLException
      * @throws IOException
+     * @throws TException
      */
-    public final void run() throws MalformedObjectNameException,
-            MalformedURLException, IOException {
+    public final void run() throws Exception {
         MBeanServerConnection connection = JMXConnectorFactory.connect(
                 new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
                 .getMBeanServerConnection();
@@ -98,9 +110,10 @@ public abstract class ManagedOperationCli {
             parser.usage();
             System.exit(1);
         }
-        else{
+        else {
             doTask(bean);
-        } 
+            System.exit(0);
+        }
     }
 
     /**
@@ -108,6 +121,9 @@ public abstract class ManagedOperationCli {
      * available from {@code bean}. This method is called by the main
      * {@link #run()} method, so the implementer should place all task logic
      * here.
+     * <p>
+     * DO NOT call {@link System#exit(int)} with '0' from this method
+     * </p>
      * 
      * @param bean
      */

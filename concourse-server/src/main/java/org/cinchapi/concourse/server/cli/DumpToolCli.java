@@ -53,9 +53,7 @@ public final class DumpToolCli extends ManagedOperationCli {
      * @throws InstanceNotFoundException
      * @throws TException
      */
-    public static void main(String... args)
-            throws MalformedObjectNameException, MalformedURLException,
-            IOException {
+    public static void main(String... args) throws Exception {
         DumpToolCli cli = new DumpToolCli(args);
         cli.run();
     }
@@ -73,7 +71,6 @@ public final class DumpToolCli extends ManagedOperationCli {
     @Override
     protected void doTask(ConcourseServerMXBean bean) {
         System.out.println(bean.dump(((DumpToolOptions) options).id));
-        System.exit(0);
     }
 
     /**
