@@ -45,7 +45,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.security.AccessControlManager;
+import org.cinchapi.concourse.security.Bouncer;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -186,6 +186,8 @@ public class ConcourseServer implements
 
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
+    private static final String BOUNCER_FILE = ".bouncer";
+
     /**
      * The Thrift server controls the RPC protocol. Use
      * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
@@ -197,6 +199,11 @@ public class ConcourseServer implements
      * The Engine controls all the logic for data storage and retrieval.
      */
     private final Engine engine;
+
+    /**
+     * The Bouncer manages access to the server.
+     */
+    private final Bouncer bouncer;
 
     /**
      * The server maintains a collection of {@link Transaction} objects to
@@ -242,6 +249,7 @@ public class ConcourseServer implements
                         "Server" + "-%d").build()));
         this.server = new TThreadPoolServer(args);
         this.engine = new Engine(bufferStore, dbStore);
+        this.bouncer = Bouncer.create(BOUNCER_FILE);
     }
 
     @Override
@@ -634,7 +642,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
-        if(!AccessControlManager.isValidUsernameAndPassword(username, password)) {
+        if(!bouncer.isValidUsernameAndPassword(username, password)) {
             throw new SecurityException(
                     "Invalid username/password combination.");
         }

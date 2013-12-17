@@ -1,0 +1,351 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.cinchapi.concourse.security;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.io.ByteableCollections;
+import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.util.ByteBuffers;
+
+import static com.google.common.base.Preconditions.*;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import com.google.common.io.BaseEncoding;
+
+/**
+ * A {@link Bouncer} manages access to the server by keeping tracking of valid
+ * credentials and handling authentication requests.
+ * 
+ * @author jnelson
+ */
+public class Bouncer {
+
+    /**
+     * Create a new Bouncer that stores its credentials in {@code backingStore}.
+     * 
+     * @param backingStore
+     * @return the Bouncer
+     */
+    public static Bouncer create(String backingStore) {
+        return new Bouncer(backingStore);
+    }
+
+    /**
+     * Decode the {@code hex}adeciaml string and return the resulting binary
+     * data.
+     * 
+     * @param hex
+     * @return the binary data
+     */
+    private static ByteBuffer decodeHex(String hex) {
+        return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
+    }
+
+    /**
+     * Encode the {@code bytes} as a hexadecimal string.
+     * 
+     * @param bytes
+     * @return the hex string
+     */
+    private static String encodeHex(ByteBuffer bytes) {
+        bytes.rewind();
+        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
+    }
+
+    /**
+     * The username for the admin user, who must always have access to the
+     * server.
+     */
+    private static final String ADMIN_USERNAME = encodeHex(ByteBuffer
+            .wrap("admin".getBytes()));
+
+    /**
+     * The default password for the admin user.
+     */
+    private static final String ADMIN_PASSWORD = encodeHex(ByteBuffer
+            .wrap("admin".getBytes()));
+
+    /**
+     * The file that contains the credentials used by this Bouncer.
+     */
+    private final String backingStore;
+
+    /**
+     * The in-memory copy of the credentials used by this Bouncer.
+     */
+    private final Map<String, Credentials> credentials = Maps.newHashMap();
+
+    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+    private final ReadLock read = master.readLock();
+    private final WriteLock write = master.writeLock();
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param backingStore
+     */
+    private Bouncer(String backingStore) {
+        this.backingStore = backingStore;
+        Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
+                .readBytes(backingStore));
+        while (it.hasNext()) {
+            insert(Credentials.fromByteBuffer(it.next()));
+        }
+        // If there are no credential (which implies this is a new server) add
+        // the default admin username/password
+        if(credentials.isEmpty()) {
+            grantAccess(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
+        }
+    }
+
+    /**
+     * Grant access to the user identified by {@code username} with
+     * {@code password}.
+     * 
+     * @param username
+     * @param password
+     */
+    public void grantAccess(ByteBuffer username, ByteBuffer password) {
+        write.lock();
+        try {
+            ByteBuffer salt = Passwords.getSalt();
+            password = Passwords.hash(password, salt);
+            insert(Credentials.create(encodeHex(username), encodeHex(password),
+                    encodeHex(salt)));
+            diskSync();
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if {@code username} and {@code password} is a valid
+     * combination.
+     * 
+     * @param username
+     * @param password
+     * @return {@code true} if {@code username}/{@code password} is valid
+     */
+    public boolean isValidUsernameAndPassword(ByteBuffer username,
+            ByteBuffer password) {
+        read.lock();
+        try {
+            Credentials accessRecord = credentials.get(encodeHex(username));
+            if(accessRecord != null) {
+                ByteBuffer salt = accessRecord.getSalt();
+                password.rewind();
+                password = Passwords.hash(password, salt);
+                return encodeHex(password).equals(accessRecord.getPassword());
+            }
+            return false;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Revoke access for the user identified by {@code username}.
+     * 
+     * @param username
+     */
+    public void revokeAccess(ByteBuffer username) {
+        write.lock();
+        try {
+            String hex = encodeHex(username);
+            checkArgument(!hex.equals(ADMIN_USERNAME));
+            if(credentials.remove(hex) != null) {
+                diskSync();
+            }
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Sync any changes made to the memory store to disk.
+     */
+    private void diskSync() {
+        write.lock();
+        try {
+            FileChannel channel = FileSystem.getFileChannel(backingStore);
+            ByteBuffer bytes = ByteableCollections.toByteBuffer(credentials
+                    .values());
+            try {
+                channel.write(bytes);
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            finally {
+                FileSystem.closeFileChannel(channel);
+            }
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Insert the {@code creds} into the memory store.
+     * 
+     * @param creds
+     */
+    private void insert(Credentials creds) {
+        write.lock();
+        try {
+            credentials.put(creds.getUsername(), creds);
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * A grouping of a username, password and salt that together identify a
+     * valid authentication scheme for a user.
+     * 
+     * @author jnelson
+     */
+    private static final class Credentials implements Byteable {
+
+        /**
+         * Create a new set of Credentials for {@code username} and
+         * {@code password} hashed with {@code salt}.
+         * 
+         * @param username
+         * @param password
+         * @param salt
+         * @return the Credentials
+         */
+        public static Credentials create(String username, String password,
+                String salt) {
+            return new Credentials(username, password, salt);
+        }
+
+        /**
+         * Deserialize the Credentials that are encoded in {@code bytes}.
+         * 
+         * @param bytes
+         * @return the Credentials
+         */
+        public static Credentials fromByteBuffer(ByteBuffer bytes) {
+            String password = encodeHex(ByteBuffers.get(bytes,
+                    Passwords.PASSWORD_LENGTH));
+            String salt = encodeHex(ByteBuffers.get(bytes,
+                    Passwords.SALT_LENGTH));
+            String username = encodeHex(ByteBuffers.get(bytes,
+                    bytes.remaining()));
+            return new Credentials(username, password, salt);
+        }
+
+        // These are hex encoded values. It Is okay to keep them in memory as a
+        // strings since the actual password can't be reconstructed from the
+        // string hash.
+        private final String username;
+        private final String password;
+        private final String salt;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param username
+         * @param password
+         * @param salt
+         */
+        private Credentials(String username, String password, String salt) {
+            this.username = username;
+            this.password = password;
+            this.salt = salt;
+        }
+
+        @Override
+        public ByteBuffer getBytes() {
+            ByteBuffer bytes = ByteBuffer.allocate(size());
+            bytes.put(decodeHex(password));
+            bytes.put(decodeHex(salt));
+            bytes.put(decodeHex(username));
+            bytes.rewind();
+            return ByteBuffers.asReadOnlyBuffer(bytes);
+        }
+
+        /**
+         * Return the hex encoded password.
+         * 
+         * @return the password hex
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * Return the salt as a ByteBuffer.
+         * 
+         * @return the salt bytes
+         */
+        public ByteBuffer getSalt() {
+            return decodeHex(salt);
+        }
+
+        /**
+         * Return the hex encoded username.
+         * 
+         * @return the username hex
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        @Override
+        public int size() {
+            return Passwords.PASSWORD_LENGTH + Passwords.SALT_LENGTH
+                    + decodeHex(username).capacity();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("username: " + username).append(
+                    System.getProperty("line.seperator"));
+            sb.append("password: " + password).append(
+                    System.getProperty("line.seperator"));
+            sb.append("salt: " + salt);
+            return sb.toString();
+        }
+
+    }
+
+}
