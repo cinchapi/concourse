@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -36,6 +37,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
@@ -571,8 +573,15 @@ public abstract class Concourse {
          */
         private static Timestamp now = Timestamp.fromMicros(0);
 
-        private final String username;
-        private final String password;
+        /**
+         * An encrypted copy of the username passed to the constructor.
+         */
+        private final ByteBuffer username;
+
+        /**
+         * An encrypted copy of the password passed to the constructor.
+         */
+        private final ByteBuffer password;
 
         /**
          * The Thrift client that actually handles all RPC communication.
@@ -615,8 +624,8 @@ public abstract class Concourse {
          * @param password
          */
         public Client(String host, int port, String username, String password) {
-            this.username = username;
-            this.password = password;
+            this.username = ClientSecurity.encrypt(username);
+            this.password = ClientSecurity.encrypt(password);
             final TTransport transport = new TSocket(host, port);
             try {
                 transport.open();
@@ -1012,7 +1021,8 @@ public abstract class Concourse {
          */
         private void authenticate() {
             try {
-                creds = client.login(username, password);
+                creds = client.login(ClientSecurity.decrypt(username),
+                        ClientSecurity.decrypt(password));
             }
             catch (TException e) {
                 throw Throwables.propagate(e);

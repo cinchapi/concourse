@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.security.AccessControlManager;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -356,10 +358,10 @@ public class ConcourseServer implements
     }
 
     @Override
-    public AccessToken login(String username, String password)
+    public AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         validate(username, password);
-        return AccessTokens.createAccessToken(username, password);
+        return AccessTokens.createAccessToken("", "");
     }
 
     @Override
@@ -630,8 +632,11 @@ public class ConcourseServer implements
      * @param password
      * @throws SecurityException
      */
-    private void validate(String username, String password)
+    private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
-        // TODO check if creds are correct
+        if(!AccessControlManager.isValidUsernameAndPassword(username, password)) {
+            throw new SecurityException(
+                    "Invalid username/password combination.");
+        }
     }
 }

@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.util.BitSet;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +47,9 @@ public class ConcourseService {
          * @param username
          * @param password
          */
-        public org.cinchapi.concourse.thrift.AccessToken login(String username,
-                String password) throws org.apache.thrift.TException;
+        public org.cinchapi.concourse.thrift.AccessToken login(
+                ByteBuffer username, ByteBuffer password)
+                throws org.apache.thrift.TException;
 
         /**
          * Logout of the service and deauthorize {@code token}.
@@ -338,8 +340,8 @@ public class ConcourseService {
     public interface AsyncIface {
 
         public void login(
-                String username,
-                String password,
+                ByteBuffer username,
+                ByteBuffer password,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.login_call> resultHandler)
                 throws org.apache.thrift.TException;
 
@@ -506,13 +508,14 @@ public class ConcourseService {
             super(iprot, oprot);
         }
 
-        public org.cinchapi.concourse.thrift.AccessToken login(String username,
-                String password) throws org.apache.thrift.TException {
+        public org.cinchapi.concourse.thrift.AccessToken login(
+                ByteBuffer username, ByteBuffer password)
+                throws org.apache.thrift.TException {
             send_login(username, password);
             return recv_login();
         }
 
-        public void send_login(String username, String password)
+        public void send_login(ByteBuffer username, ByteBuffer password)
                 throws org.apache.thrift.TException {
             login_args args = new login_args();
             args.setUsername(username);
@@ -1079,8 +1082,8 @@ public class ConcourseService {
         }
 
         public void login(
-                String username,
-                String password,
+                ByteBuffer username,
+                ByteBuffer password,
                 org.apache.thrift.async.AsyncMethodCallback<login_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
@@ -1092,12 +1095,12 @@ public class ConcourseService {
 
         public static class login_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
-            private String username;
-            private String password;
+            private ByteBuffer username;
+            private ByteBuffer password;
 
             public login_call(
-                    String username,
-                    String password,
+                    ByteBuffer username,
+                    ByteBuffer password,
                     org.apache.thrift.async.AsyncMethodCallback<login_call> resultHandler,
                     org.apache.thrift.async.TAsyncClient client,
                     org.apache.thrift.protocol.TProtocolFactory protocolFactory,
@@ -2712,8 +2715,8 @@ public class ConcourseService {
             schemes.put(TupleScheme.class, new login_argsTupleSchemeFactory());
         }
 
-        public String username; // required
-        public String password; // required
+        public ByteBuffer username; // required
+        public ByteBuffer password; // required
 
         /**
          * The set of fields this struct contains, along with convenience
@@ -2792,12 +2795,14 @@ public class ConcourseService {
                     new org.apache.thrift.meta_data.FieldMetaData("username",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
-                                    org.apache.thrift.protocol.TType.STRING)));
+                                    org.apache.thrift.protocol.TType.STRING,
+                                    true)));
             tmpMap.put(_Fields.PASSWORD,
                     new org.apache.thrift.meta_data.FieldMetaData("password",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
-                                    org.apache.thrift.protocol.TType.STRING)));
+                                    org.apache.thrift.protocol.TType.STRING,
+                                    true)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     login_args.class, metaDataMap);
@@ -2805,7 +2810,7 @@ public class ConcourseService {
 
         public login_args() {}
 
-        public login_args(String username, String password) {
+        public login_args(ByteBuffer username, ByteBuffer password) {
             this();
             this.username = username;
             this.password = password;
@@ -2816,10 +2821,12 @@ public class ConcourseService {
          */
         public login_args(login_args other) {
             if(other.isSetUsername()) {
-                this.username = other.username;
+                this.username = org.apache.thrift.TBaseHelper
+                        .copyBinary(other.username);;
             }
             if(other.isSetPassword()) {
-                this.password = other.password;
+                this.password = org.apache.thrift.TBaseHelper
+                        .copyBinary(other.password);;
             }
         }
 
@@ -2833,11 +2840,22 @@ public class ConcourseService {
             this.password = null;
         }
 
-        public String getUsername() {
-            return this.username;
+        public byte[] getUsername() {
+            setUsername(org.apache.thrift.TBaseHelper.rightSize(username));
+            return username == null ? null : username.array();
         }
 
-        public login_args setUsername(String username) {
+        public ByteBuffer bufferForUsername() {
+            return username;
+        }
+
+        public login_args setUsername(byte[] username) {
+            setUsername(username == null ? (ByteBuffer) null : ByteBuffer
+                    .wrap(username));
+            return this;
+        }
+
+        public login_args setUsername(ByteBuffer username) {
             this.username = username;
             return this;
         }
@@ -2860,11 +2878,22 @@ public class ConcourseService {
             }
         }
 
-        public String getPassword() {
-            return this.password;
+        public byte[] getPassword() {
+            setPassword(org.apache.thrift.TBaseHelper.rightSize(password));
+            return password == null ? null : password.array();
         }
 
-        public login_args setPassword(String password) {
+        public ByteBuffer bufferForPassword() {
+            return password;
+        }
+
+        public login_args setPassword(byte[] password) {
+            setPassword(password == null ? (ByteBuffer) null : ByteBuffer
+                    .wrap(password));
+            return this;
+        }
+
+        public login_args setPassword(ByteBuffer password) {
             this.password = password;
             return this;
         }
@@ -2894,7 +2923,7 @@ public class ConcourseService {
                     unsetUsername();
                 }
                 else {
-                    setUsername((String) value);
+                    setUsername((ByteBuffer) value);
                 }
                 break;
 
@@ -2903,7 +2932,7 @@ public class ConcourseService {
                     unsetPassword();
                 }
                 else {
-                    setPassword((String) value);
+                    setPassword((ByteBuffer) value);
                 }
                 break;
 
@@ -3039,7 +3068,7 @@ public class ConcourseService {
                 sb.append("null");
             }
             else {
-                sb.append(this.username);
+                org.apache.thrift.TBaseHelper.toString(this.username, sb);
             }
             first = false;
             if(!first)
@@ -3049,7 +3078,7 @@ public class ConcourseService {
                 sb.append("null");
             }
             else {
-                sb.append(this.password);
+                org.apache.thrift.TBaseHelper.toString(this.password, sb);
             }
             first = false;
             sb.append(")");
@@ -3105,7 +3134,7 @@ public class ConcourseService {
                     switch (schemeField.id) {
                     case 1: // USERNAME
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                            struct.username = iprot.readString();
+                            struct.username = iprot.readBinary();
                             struct.setUsernameIsSet(true);
                         }
                         else {
@@ -3115,7 +3144,7 @@ public class ConcourseService {
                         break;
                     case 2: // PASSWORD
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                            struct.password = iprot.readString();
+                            struct.password = iprot.readBinary();
                             struct.setPasswordIsSet(true);
                         }
                         else {
@@ -3143,12 +3172,12 @@ public class ConcourseService {
                 oprot.writeStructBegin(STRUCT_DESC);
                 if(struct.username != null) {
                     oprot.writeFieldBegin(USERNAME_FIELD_DESC);
-                    oprot.writeString(struct.username);
+                    oprot.writeBinary(struct.username);
                     oprot.writeFieldEnd();
                 }
                 if(struct.password != null) {
                     oprot.writeFieldBegin(PASSWORD_FIELD_DESC);
-                    oprot.writeString(struct.password);
+                    oprot.writeBinary(struct.password);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -3180,10 +3209,10 @@ public class ConcourseService {
                 }
                 oprot.writeBitSet(optionals, 2);
                 if(struct.isSetUsername()) {
-                    oprot.writeString(struct.username);
+                    oprot.writeBinary(struct.username);
                 }
                 if(struct.isSetPassword()) {
-                    oprot.writeString(struct.password);
+                    oprot.writeBinary(struct.password);
                 }
             }
 
@@ -3193,11 +3222,11 @@ public class ConcourseService {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
-                    struct.username = iprot.readString();
+                    struct.username = iprot.readBinary();
                     struct.setUsernameIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.password = iprot.readString();
+                    struct.password = iprot.readBinary();
                     struct.setPasswordIsSet(true);
                 }
             }

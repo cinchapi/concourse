@@ -30,7 +30,7 @@ service ConcourseService {
 	 * Login to the service. A user must login to receive an {@link shared.AccessToken}
 	 * which is required for all other method invocations.
 	 */
-	shared.AccessToken login(1: string username, 2: string password);
+	shared.AccessToken login(1: binary username, 2: binary password);
 
 	/**
 	 * Logout of the service and deauthorize {@code token}.
