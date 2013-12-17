@@ -48,12 +48,12 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
 /**
- * A {@link Bouncer} manages access to the server by keeping tracking of valid
- * credentials and handling authentication requests.
+ * The {@link AccessManager} controls access to the server by keeping tracking
+ * of valid credentials and handling authentication requests.
  * 
  * @author jnelson
  */
-public class Bouncer {
+public class AccessManager {
 
     /**
      * Create a new Bouncer that stores its credentials in {@code backingStore}.
@@ -61,8 +61,8 @@ public class Bouncer {
      * @param backingStore
      * @return the Bouncer
      */
-    public static Bouncer create(String backingStore) {
-        return new Bouncer(backingStore);
+    public static AccessManager create(String backingStore) {
+        return new AccessManager(backingStore);
     }
 
     /**
@@ -108,7 +108,7 @@ public class Bouncer {
      * 
      * @param backingStore
      */
-    private Bouncer(String backingStore) {
+    private AccessManager(String backingStore) {
         this.backingStore = backingStore;
         Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
                 .readBytes(backingStore));
@@ -119,6 +119,43 @@ public class Bouncer {
         // the default admin username/password
         if(credentials.isEmpty()) {
             grantAccess(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
+        }
+    }
+
+    /**
+     * Return {@code true} if {@code token} is a valid AccessToken.
+     * 
+     * @param token
+     * @return {@code true} if {@code token} is valid
+     */
+    public boolean approve(AccessToken token) {
+        return tokens.values().contains(token);
+    }
+
+    // TODO: implement expireAccessToken
+
+    /**
+     * Return {@code true} if {@code username} and {@code password} is a valid
+     * combination.
+     * 
+     * @param username
+     * @param password
+     * @return {@code true} if {@code username}/{@code password} is valid
+     */
+    public boolean approve(ByteBuffer username, ByteBuffer password) {
+        read.lock();
+        try {
+            Credentials accessRecord = credentials.get(encodeHex(username));
+            if(accessRecord != null) {
+                ByteBuffer salt = accessRecord.getSalt();
+                password.rewind();
+                password = Passwords.hash(password, salt);
+                return encodeHex(password).equals(accessRecord.getPassword());
+            }
+            return false;
+        }
+        finally {
+            read.unlock();
         }
     }
 
@@ -141,8 +178,6 @@ public class Bouncer {
         return token;
     }
 
-    // TODO: implement expireAccessToken
-
     /**
      * Grant access to the user identified by {@code username} with
      * {@code password}.
@@ -162,42 +197,6 @@ public class Bouncer {
         }
         finally {
             write.unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code token} is a valid AccessToken.
-     * 
-     * @param token
-     * @return {@code true} if {@code token} is valid
-     */
-    public boolean isValidAccessToken(AccessToken token) {
-        return tokens.values().contains(token);
-    }
-
-    /**
-     * Return {@code true} if {@code username} and {@code password} is a valid
-     * combination.
-     * 
-     * @param username
-     * @param password
-     * @return {@code true} if {@code username}/{@code password} is valid
-     */
-    public boolean isValidUsernameAndPassword(ByteBuffer username,
-            ByteBuffer password) {
-        read.lock();
-        try {
-            Credentials accessRecord = credentials.get(encodeHex(username));
-            if(accessRecord != null) {
-                ByteBuffer salt = accessRecord.getSalt();
-                password.rewind();
-                password = Passwords.hash(password, salt);
-                return encodeHex(password).equals(accessRecord.getPassword());
-            }
-            return false;
-        }
-        finally {
-            read.unlock();
         }
     }
 

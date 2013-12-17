@@ -47,10 +47,10 @@ import com.google.common.collect.Maps;
  * 
  * @author jnelson
  */
-public class BouncerTest extends ConcourseBaseTest {
+public class AccessManagerTest extends ConcourseBaseTest {
 
     private String current = null;
-    private Bouncer bouncer = null;
+    private AccessManager bouncer = null;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -63,7 +63,7 @@ public class BouncerTest extends ConcourseBaseTest {
         @Override
         protected void starting(Description desc) {
             current = TestData.DATA_DIR + File.separator + Time.now();
-            bouncer = Bouncer.create(current);
+            bouncer = AccessManager.create(current);
 
         }
     };
@@ -73,7 +73,7 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         Assert.assertTrue(bouncer
-                .isValidUsernameAndPassword(username, password));
+                .approve(username, password));
     }
 
     @Test
@@ -83,9 +83,9 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer newPassword = ByteBuffer.wrap(TestData.getString()
                 .getBytes());
         bouncer.grantAccess(username, newPassword);
-        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+        Assert.assertFalse(bouncer.approve(username,
                 password));
-        Assert.assertTrue(bouncer.isValidUsernameAndPassword(username,
+        Assert.assertTrue(bouncer.approve(username,
                 newPassword));
     }
 
@@ -99,7 +99,7 @@ public class BouncerTest extends ConcourseBaseTest {
             bouncer.grantAccess(username, password);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(bouncer.isValidUsernameAndPassword(
+            Assert.assertTrue(bouncer.approve(
                     entry.getKey(), entry.getValue()));
         }
     }
@@ -115,7 +115,7 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer password = toByteBuffer(TestData.getString());
         bouncer.grantAccess(username, password);
         bouncer.revokeAccess(username);
-        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+        Assert.assertFalse(bouncer.approve(username,
                 password));
     }
 
@@ -126,8 +126,8 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
         bouncer.grantAccess(username, password);
         Assert.assertTrue(bouncer
-                .isValidUsernameAndPassword(username, password));
-        Assert.assertFalse(bouncer.isValidUsernameAndPassword(username,
+                .approve(username, password));
+        Assert.assertFalse(bouncer.approve(username,
                 badpassword));
     }
 
@@ -140,9 +140,9 @@ public class BouncerTest extends ConcourseBaseTest {
             users.put(username, password);
             bouncer.grantAccess(username, password);
         }
-        Bouncer bouncer2 = Bouncer.create(current);
+        AccessManager bouncer2 = AccessManager.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(bouncer2.isValidUsernameAndPassword(
+            Assert.assertTrue(bouncer2.approve(
                     entry.getKey(), entry.getValue()));
         }
     }
@@ -158,7 +158,7 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer password = toByteBuffer(TestData.getString());
         bouncer.grantAccess(username, password);
         AccessToken token = bouncer.createAccessToken(username);
-        Assert.assertTrue(bouncer.isValidAccessToken(token));
+        Assert.assertTrue(bouncer.approve(token));
     }
 
     @Test
@@ -167,10 +167,10 @@ public class BouncerTest extends ConcourseBaseTest {
         ByteBuffer password = toByteBuffer(TestData.getString());
         bouncer.grantAccess(username, password);
         AccessToken token = bouncer.createAccessToken(username);
-        Bouncer bouncer2 = Bouncer.create(current); // simulate server
+        AccessManager bouncer2 = AccessManager.create(current); // simulate server
                                                     // restart by creating new
                                                     // bouncer
-        Assert.assertFalse(bouncer2.isValidAccessToken(token));
+        Assert.assertFalse(bouncer2.approve(token));
     }
     
     @Test
@@ -181,7 +181,7 @@ public class BouncerTest extends ConcourseBaseTest {
         bouncer.grantAccess(username, password);
         AccessToken token = bouncer.createAccessToken(username);
         bouncer.grantAccess(username, password2);
-        Assert.assertFalse(bouncer.isValidAccessToken(token));
+        Assert.assertFalse(bouncer.approve(token));
     }
     
     @Test
@@ -191,7 +191,7 @@ public class BouncerTest extends ConcourseBaseTest {
         bouncer.grantAccess(username, password);
         AccessToken token = bouncer.createAccessToken(username);
         bouncer.revokeAccess(username);
-        Assert.assertFalse(bouncer.isValidAccessToken(token));
+        Assert.assertFalse(bouncer.approve(token));
     }
 
     /**

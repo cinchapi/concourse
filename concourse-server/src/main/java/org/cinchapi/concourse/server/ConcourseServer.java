@@ -45,7 +45,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.security.Bouncer;
+import org.cinchapi.concourse.security.AccessManager;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -199,9 +199,9 @@ public class ConcourseServer implements
     private final Engine engine;
 
     /**
-     * The Bouncer manages access to the server.
+     * The AccessManager controls access to the server.
      */
-    private final Bouncer bouncer;
+    private final AccessManager manager;
 
     /**
      * The server maintains a collection of {@link Transaction} objects to
@@ -247,7 +247,7 @@ public class ConcourseServer implements
                         "Server" + "-%d").build()));
         this.server = new TThreadPoolServer(args);
         this.engine = new Engine(bufferStore, dbStore);
-        this.bouncer = Bouncer.create(BOUNCER_FILE);
+        this.manager = AccessManager.create(BOUNCER_FILE);
     }
 
     @Override
@@ -367,7 +367,7 @@ public class ConcourseServer implements
     public AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         validate(username, password);
-        return bouncer.createAccessToken(username);
+        return manager.createAccessToken(username);
     }
 
     @Override
@@ -514,7 +514,7 @@ public class ConcourseServer implements
      * @throws SecurityException
      */
     private void authenticate(AccessToken token) throws SecurityException {
-        if(!bouncer.isValidAccessToken(token)) {
+        if(!manager.approve(token)) {
             throw new SecurityException("Invalid access token");
         }
     }
@@ -641,7 +641,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
-        if(!bouncer.isValidUsernameAndPassword(username, password)) {
+        if(!manager.approve(username, password)) {
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
