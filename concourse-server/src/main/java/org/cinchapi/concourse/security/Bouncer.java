@@ -26,6 +26,7 @@ package org.cinchapi.concourse.security;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,7 +39,6 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
-import org.cinchapi.concourse.util.RandomStringGenerator;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -101,7 +101,7 @@ public class Bouncer {
     private final ReadLock read = master.readLock();
     private final WriteLock write = master.writeLock();
 
-    private final RandomStringGenerator rsg = new RandomStringGenerator();
+    private final SecureRandom srand = new SecureRandom();
 
     /**
      * Construct a new instance.
@@ -133,7 +133,7 @@ public class Bouncer {
         StringBuilder sb = new StringBuilder();
         String hex = encodeHex(username);
         sb.append(hex);
-        sb.append(rsg.nextString());
+        sb.append(srand.nextLong());
         sb.append(Time.now());
         AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
                 .hashUnencodedChars(sb.toString()).asBytes()));
