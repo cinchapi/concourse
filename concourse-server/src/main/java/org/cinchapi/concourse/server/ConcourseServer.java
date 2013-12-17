@@ -378,7 +378,7 @@ public class ConcourseServer implements
     @Override
     public void logout(AccessToken creds) throws TException {
         authenticate(creds);
-        expire(creds);
+        manager.invalidateAccessToken(creds);
     }
 
     @Override
@@ -624,16 +624,6 @@ public class ConcourseServer implements
             return null;
         }
 
-    }
-
-    /**
-     * Expire {@code token} so that it is no longer valid.
-     * 
-     * @param token
-     * @throws SecurityException
-     */
-    private void expire(AccessToken token) throws SecurityException {
-        // TODO implement
     }
 
     /**

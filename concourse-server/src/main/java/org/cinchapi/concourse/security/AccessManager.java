@@ -29,10 +29,13 @@ import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -43,6 +46,8 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import static com.google.common.base.Preconditions.*;
 
 import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
@@ -56,13 +61,31 @@ import com.google.common.io.BaseEncoding;
 public class AccessManager {
 
     /**
-     * Create a new Bouncer that stores its credentials in {@code backingStore}.
+     * Create a new AccessManager that stores its credentials in
+     * {@code backingStore}.
      * 
      * @param backingStore
-     * @return the Bouncer
+     * @return the AccessManager
      */
     public static AccessManager create(String backingStore) {
-        return new AccessManager(backingStore);
+        return new AccessManager(backingStore, ACCESS_TOKEN_TTL,
+                ACCESS_TOKEN_TTL_UNIT);
+    }
+
+    /**
+     * Create an AccessManager with the specified TTL for access tokens. This
+     * method should only be used for testing.
+     * 
+     * @param backingStore
+     * @param accessTokenTtl
+     * @param accessTokeTtlUnit
+     * @return the AccessManager
+     */
+    @Restricted
+    protected static AccessManager createForTesting(String backingStore,
+            int accessTokenTtl, TimeUnit accessTokeTtlUnit) {
+        return new AccessManager(backingStore, accessTokenTtl,
+                accessTokeTtlUnit);
     }
 
     /**
@@ -87,16 +110,22 @@ public class AccessManager {
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
 
+    // The AccessManager keeps track of user sessions and their associated
+    // AccessTokens. An AccessToken is valid for a limited amount of time.
+    private static final int ACCESS_TOKEN_TTL = 24;
+    private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
+    private final Cache<String, AccessToken> tokens;
+
+    // The AccessManager stores credentials in memory for fast processing and
+    // backs them up on disk for persistence.
     private static final String ADMIN_USERNAME = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
     private static final String ADMIN_PASSWORD = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
-
+    private final Map<String, Credentials> credentials = Maps.newHashMap();
     private final String backingStore;
 
-    private final Map<String, Credentials> credentials = Maps.newHashMap();
-    private final Map<String, AccessToken> tokens = Maps.newHashMap();
-
+    // Concurrency controls
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
     private final ReadLock read = master.readLock();
     private final WriteLock write = master.writeLock();
@@ -107,9 +136,14 @@ public class AccessManager {
      * Construct a new instance.
      * 
      * @param backingStore
+     * @param accessTokenTtl
+     * @param accessTokenTtlUnit
      */
-    private AccessManager(String backingStore) {
+    private AccessManager(String backingStore, int accessTokenTtl,
+            TimeUnit accessTokenTtlUnit) {
         this.backingStore = backingStore;
+        this.tokens = CacheBuilder.newBuilder()
+                .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit).build();
         Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
                 .readBytes(backingStore));
         while (it.hasNext()) {
@@ -129,10 +163,14 @@ public class AccessManager {
      * @return {@code true} if {@code token} is valid
      */
     public boolean approve(AccessToken token) {
-        return tokens.values().contains(token);
+        read.lock();
+        try {
+            return tokens.asMap().values().contains(token);
+        }
+        finally {
+            read.unlock();
+        }
     }
-
-    // TODO: implement expireAccessToken
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
@@ -192,8 +230,28 @@ public class AccessManager {
             password = Passwords.hash(password, salt);
             insert(Credentials.create(encodeHex(username), encodeHex(password),
                     encodeHex(salt)));
-            tokens.remove(encodeHex(username));
+            tokens.invalidate(encodeHex(username));
             diskSync();
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Invalidate an access token.
+     * 
+     * @param token
+     */
+    public void invalidateAccessToken(AccessToken token) {
+        write.lock();
+        try {
+            for (Entry<String, AccessToken> entry : tokens.asMap().entrySet()) {
+                if(entry.getValue().equals(token)) {
+                    tokens.invalidate(entry.getKey());
+                    return;
+                }
+            }
         }
         finally {
             write.unlock();
@@ -211,7 +269,7 @@ public class AccessManager {
             String hex = encodeHex(username);
             checkArgument(!hex.equals(ADMIN_USERNAME));
             if(credentials.remove(hex) != null) {
-                tokens.remove(encodeHex(username));
+                tokens.invalidate(encodeHex(username));
                 diskSync();
             }
         }

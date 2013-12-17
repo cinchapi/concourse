@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -43,14 +44,14 @@ import org.junit.runner.Description;
 import com.google.common.collect.Maps;
 
 /**
- * 
+ * Unit tests for {@link AccessManager}.
  * 
  * @author jnelson
  */
 public class AccessManagerTest extends ConcourseBaseTest {
 
     private String current = null;
-    private AccessManager bouncer = null;
+    private AccessManager manager = null;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -63,7 +64,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
         @Override
         protected void starting(Description desc) {
             current = TestData.DATA_DIR + File.separator + Time.now();
-            bouncer = AccessManager.create(current);
+            manager = AccessManager.create(current);
 
         }
     };
@@ -72,8 +73,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDefaultAdminLogin() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        Assert.assertTrue(bouncer
-                .approve(username, password));
+        Assert.assertTrue(manager.approve(username, password));
     }
 
     @Test
@@ -82,11 +82,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = ByteBuffer.wrap(TestData.getString()
                 .getBytes());
-        bouncer.grantAccess(username, newPassword);
-        Assert.assertFalse(bouncer.approve(username,
-                password));
-        Assert.assertTrue(bouncer.approve(username,
-                newPassword));
+        manager.grantAccess(username, newPassword);
+        Assert.assertFalse(manager.approve(username, password));
+        Assert.assertTrue(manager.approve(username, newPassword));
     }
 
     @Test
@@ -96,27 +94,25 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = toByteBuffer(TestData.getString());
             ByteBuffer password = toByteBuffer(TestData.getString());
             users.put(username, password);
-            bouncer.grantAccess(username, password);
+            manager.grantAccess(username, password);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(bouncer.approve(
-                    entry.getKey(), entry.getValue()));
+            Assert.assertTrue(manager.approve(entry.getKey(), entry.getValue()));
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantRevokeAdmin() {
-        bouncer.revokeAccess(toByteBuffer("admin"));
+        manager.revokeAccess(toByteBuffer("admin"));
     }
 
     @Test
     public void testRevokeUser() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        bouncer.grantAccess(username, password);
-        bouncer.revokeAccess(username);
-        Assert.assertFalse(bouncer.approve(username,
-                password));
+        manager.grantAccess(username, password);
+        manager.revokeAccess(username);
+        Assert.assertFalse(manager.approve(username, password));
     }
 
     @Test
@@ -124,11 +120,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
-        bouncer.grantAccess(username, password);
-        Assert.assertTrue(bouncer
-                .approve(username, password));
-        Assert.assertFalse(bouncer.approve(username,
-                badpassword));
+        manager.grantAccess(username, password);
+        Assert.assertTrue(manager.approve(username, password));
+        Assert.assertFalse(manager.approve(username, badpassword));
     }
 
     @Test
@@ -138,60 +132,83 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = toByteBuffer(TestData.getString());
             ByteBuffer password = toByteBuffer(TestData.getString());
             users.put(username, password);
-            bouncer.grantAccess(username, password);
+            manager.grantAccess(username, password);
         }
-        AccessManager bouncer2 = AccessManager.create(current);
+        AccessManager manager2 = AccessManager.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(bouncer2.approve(
-                    entry.getKey(), entry.getValue()));
+            Assert.assertTrue(manager2.approve(entry.getKey(), entry.getValue()));
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantCreateAccessTokenForInvalidUser() {
-        bouncer.createAccessToken(toByteBuffer(TestData.getString() + "foo"));
+        manager.createAccessToken(toByteBuffer(TestData.getString() + "foo"));
     }
 
     @Test
     public void testCanCreateAccessTokenForValidUser() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        bouncer.grantAccess(username, password);
-        AccessToken token = bouncer.createAccessToken(username);
-        Assert.assertTrue(bouncer.approve(token));
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        Assert.assertTrue(manager.approve(token));
     }
 
     @Test
     public void testAccessTokenIsNotValidIfServerRestarts() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        bouncer.grantAccess(username, password);
-        AccessToken token = bouncer.createAccessToken(username);
-        AccessManager bouncer2 = AccessManager.create(current); // simulate server
-                                                    // restart by creating new
-                                                    // bouncer
-        Assert.assertFalse(bouncer2.approve(token));
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        AccessManager manager2 = AccessManager.create(current); // simulate
+                                                                // server
+                                                                // restart by
+                                                                // creating new
+                                                                // manager
+        Assert.assertFalse(manager2.approve(token));
     }
-    
+
     @Test
-    public void testAccessTokenIsNotValidIfPasswordChanges(){
+    public void testAccessTokenIsNotValidIfPasswordChanges() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
         ByteBuffer password2 = toByteBuffer(TestData.getString());
-        bouncer.grantAccess(username, password);
-        AccessToken token = bouncer.createAccessToken(username);
-        bouncer.grantAccess(username, password2);
-        Assert.assertFalse(bouncer.approve(token));
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        manager.grantAccess(username, password2);
+        Assert.assertFalse(manager.approve(token));
+    }
+
+    @Test
+    public void testAccessTokenIsNotValidIfAccessIsRevoked() {
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        manager.revokeAccess(username);
+        Assert.assertFalse(manager.approve(token));
+    }
+
+    @Test
+    public void testAccessTokenAutoExpiration() throws InterruptedException {
+        manager = AccessManager.createForTesting(current, 60,
+                TimeUnit.MILLISECONDS);
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        TimeUnit.MILLISECONDS.sleep(60);
+        Assert.assertFalse(manager.approve(token));
     }
     
     @Test
-    public void testAccessTokenIsNotValidIfAccessIsRevoked(){
+    public void testInvalidateAccessToken(){
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        bouncer.grantAccess(username, password);
-        AccessToken token = bouncer.createAccessToken(username);
-        bouncer.revokeAccess(username);
-        Assert.assertFalse(bouncer.approve(token));
+        manager.grantAccess(username, password);
+        AccessToken token = manager.createAccessToken(username);
+        manager.invalidateAccessToken(token);
+        Assert.assertFalse(manager.approve(token));
     }
 
     /**
