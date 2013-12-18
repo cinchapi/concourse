@@ -20,7 +20,7 @@ cd -
 ############################ INSTALLER #################################
 ########################################################################
 
-INSTALLER="concourse-server-$VERSION.install"
+INSTALLER="concourse-server-$VERSION-install.bin"
 ../makeself/makeself.sh --notemp $DISTS/concourse-server $INSTALLER "Concourse Server"
 mv $INSTALLER $DISTS
 
@@ -56,7 +56,7 @@ echo "exit 0" >> $SCRIPT
 # Make upgrade script executable
 chmod +x $SCRIPT
 
-UPGRADER="concourse-server-$VERSION.upgrade"
+UPGRADER="concourse-server-$VERSION-upgrade.bin"
 ../makeself/makeself.sh --notemp $DISTS/concourse-server $UPGRADER "Concourse Server" ./$SCRIPT_NAME
 mv $UPGRADER $DISTS
 
