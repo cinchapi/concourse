@@ -31,9 +31,11 @@ echo "files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)" >> $SCRIPT
 # --- copy upgrade files
 echo "if [ \$files -gt 0 ]; then" >> $SCRIPT #start upgrade
 echo "echo 'Upgrading Concourse Server.........................................................................'" >> $SCRIPT
-echo "cp -R lib/ ../lib/" >> $SCRIPT
+echo "rm -r ../lib/" >> $SCRIPT
+echo "cp -fR lib/ ../lib/" >> $SCRIPT
+echo "rm -r ../licenses/" >> $SCRIPT
+echo "cp -fR licenses/ ../licenses/" >> $SCRIPT
 echo "cp -R bin/ ../bin/" >> $SCRIPT
-echo "cp -R licenses/ ../licenses/" >> $SCRIPT
 # TODO: Copy config files???
 
 # --- run upgrade task
