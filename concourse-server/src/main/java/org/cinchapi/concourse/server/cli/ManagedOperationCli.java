@@ -111,8 +111,19 @@ public abstract class ManagedOperationCli {
             System.exit(1);
         }
         else {
-            doTask(bean);
-            System.exit(0);
+            byte[] username = console.readLine("Username: ").getBytes();
+            byte[] password = console.readLine("Password: ", '*').getBytes();
+            if(bean.login(username, password)) {
+                username = null;
+                password = null;
+                doTask(bean);
+                System.exit(0);
+            }
+            else {
+                System.out.println("Invalid username/password");
+                System.exit(1);
+            }
+
         }
     }
 

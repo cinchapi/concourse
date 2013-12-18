@@ -59,6 +59,19 @@ public interface ConcourseServerMXBean {
     public String dump(String id);
 
     /**
+     * Return {@code true} if {@code username} and {@code password} is a valid
+     * combination to login to the server for the purpose of performing a
+     * managed operation. This method should only be used to authenticate a user
+     * for the purpose of performing a single operation.
+     * 
+     * @param username
+     * @param password
+     * @return {@code true} if the credentials are valid
+     */
+    @ManagedOperation
+    public boolean login(byte[] username, byte[] password);
+
+    /**
      * JMX tools
      * 
      * @author jnelson

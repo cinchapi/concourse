@@ -66,6 +66,7 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -366,6 +367,28 @@ public class ConcourseServer implements
         }
         return timestamp == 0 ? engine.find(key, operator, tValues) : engine
                 .find(timestamp, key, operator, tValues);
+    }
+
+    @Override
+    @ManagedOperation
+    public boolean login(byte[] username, byte[] password) {
+        // NOTE: Any existing sessions for the user will be invalidated.
+        try {
+            AccessToken token = login(ByteBuffer.wrap(username),
+                    ByteBuffer.wrap(password));
+            username = null;
+            password = null;
+            if(token != null) {
+                logout(token);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (TException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     @Override
