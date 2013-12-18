@@ -116,8 +116,8 @@ public abstract class ManagedOperationCli {
                     System.exit(0);
                 }
                 else {
-                    System.out
-                            .println("ERROR: Invalid username/password combination.");
+                    System.err.println("ERROR: Invalid username/password "
+                            + "combination.");
                     System.exit(1);
                 }
             }

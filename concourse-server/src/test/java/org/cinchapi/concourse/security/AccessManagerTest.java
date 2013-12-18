@@ -73,7 +73,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testDefaultAdminLogin() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        Assert.assertTrue(manager.approve(username, password));
+        Assert.assertTrue(manager.validate(username, password));
     }
 
     @Test
@@ -82,9 +82,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer newPassword = ByteBuffer.wrap(TestData.getString()
                 .getBytes());
-        manager.grantAccess(username, newPassword);
-        Assert.assertFalse(manager.approve(username, password));
-        Assert.assertTrue(manager.approve(username, newPassword));
+        manager.grant(username, newPassword);
+        Assert.assertFalse(manager.validate(username, password));
+        Assert.assertTrue(manager.validate(username, newPassword));
     }
 
     @Test
@@ -94,25 +94,25 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = toByteBuffer(TestData.getString());
             ByteBuffer password = toByteBuffer(TestData.getString());
             users.put(username, password);
-            manager.grantAccess(username, password);
+            manager.grant(username, password);
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(manager.approve(entry.getKey(), entry.getValue()));
+            Assert.assertTrue(manager.validate(entry.getKey(), entry.getValue()));
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantRevokeAdmin() {
-        manager.revokeAccess(toByteBuffer("admin"));
+        manager.revoke(toByteBuffer("admin"));
     }
 
     @Test
     public void testRevokeUser() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        manager.revokeAccess(username);
-        Assert.assertFalse(manager.approve(username, password));
+        manager.grant(username, password);
+        manager.revoke(username);
+        Assert.assertFalse(manager.validate(username, password));
     }
 
     @Test
@@ -120,9 +120,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
         ByteBuffer badpassword = toByteBuffer(TestData.getString() + "bad");
-        manager.grantAccess(username, password);
-        Assert.assertTrue(manager.approve(username, password));
-        Assert.assertFalse(manager.approve(username, badpassword));
+        manager.grant(username, password);
+        Assert.assertTrue(manager.validate(username, password));
+        Assert.assertFalse(manager.validate(username, badpassword));
     }
 
     @Test
@@ -132,40 +132,41 @@ public class AccessManagerTest extends ConcourseBaseTest {
             ByteBuffer username = toByteBuffer(TestData.getString());
             ByteBuffer password = toByteBuffer(TestData.getString());
             users.put(username, password);
-            manager.grantAccess(username, password);
+            manager.grant(username, password);
         }
         AccessManager manager2 = AccessManager.create(current);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
-            Assert.assertTrue(manager2.approve(entry.getKey(), entry.getValue()));
+            Assert.assertTrue(manager2.validate(entry.getKey(),
+                    entry.getValue()));
         }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCantCreateAccessTokenForInvalidUser() {
-        manager.createAccessToken(toByteBuffer(TestData.getString() + "foo"));
+        manager.authorize(toByteBuffer(TestData.getString() + "foo"));
     }
 
     @Test
     public void testCanCreateAccessTokenForValidUser() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
-        Assert.assertTrue(manager.approve(token));
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
+        Assert.assertTrue(manager.validate(token));
     }
 
     @Test
     public void testAccessTokenIsNotValidIfServerRestarts() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
         AccessManager manager2 = AccessManager.create(current); // simulate
                                                                 // server
                                                                 // restart by
                                                                 // creating new
                                                                 // manager
-        Assert.assertFalse(manager2.approve(token));
+        Assert.assertFalse(manager2.validate(token));
     }
 
     @Test
@@ -173,20 +174,20 @@ public class AccessManagerTest extends ConcourseBaseTest {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
         ByteBuffer password2 = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
-        manager.grantAccess(username, password2);
-        Assert.assertFalse(manager.approve(token));
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
+        manager.grant(username, password2);
+        Assert.assertFalse(manager.validate(token));
     }
 
     @Test
     public void testAccessTokenIsNotValidIfAccessIsRevoked() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
-        manager.revokeAccess(username);
-        Assert.assertFalse(manager.approve(token));
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
+        manager.revoke(username);
+        Assert.assertFalse(manager.validate(token));
     }
 
     @Test
@@ -195,20 +196,20 @@ public class AccessManagerTest extends ConcourseBaseTest {
                 TimeUnit.MILLISECONDS);
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
         TimeUnit.MILLISECONDS.sleep(60);
-        Assert.assertFalse(manager.approve(token));
+        Assert.assertFalse(manager.validate(token));
     }
-    
+
     @Test
-    public void testInvalidateAccessToken(){
+    public void testInvalidateAccessToken() {
         ByteBuffer username = toByteBuffer(TestData.getString());
         ByteBuffer password = toByteBuffer(TestData.getString());
-        manager.grantAccess(username, password);
-        AccessToken token = manager.createAccessToken(username);
-        manager.invalidateAccessToken(token);
-        Assert.assertFalse(manager.approve(token));
+        manager.grant(username, password);
+        AccessToken token = manager.authorize(username);
+        manager.deauthorize(token);
+        Assert.assertFalse(manager.validate(token));
     }
 
     /**

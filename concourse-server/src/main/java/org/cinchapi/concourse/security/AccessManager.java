@@ -152,7 +152,90 @@ public class AccessManager {
         // If there are no credentials (which implies this is a new server) add
         // the default admin username/password
         if(credentials.isEmpty()) {
-            grantAccess(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
+            grant(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
+        }
+    }
+
+    /**
+     * Authorize {@code username} for subsequent access with the returned
+     * {@link AccessToken}.
+     * 
+     * @param username
+     * @return the AccessToken
+     */
+    public AccessToken authorize(ByteBuffer username) {
+        checkArgument(isValidUsername(username));
+        StringBuilder sb = new StringBuilder();
+        String hex = encodeHex(username);
+        sb.append(hex);
+        sb.append(srand.nextLong());
+        sb.append(Time.now());
+        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
+                .hashUnencodedChars(sb.toString()).asBytes()));
+        tokens.put(hex, token);
+        return token;
+    }
+
+    /**
+     * Deauthorize {@code token} so that it is not valid for subsequent access.
+     * 
+     * @param token
+     */
+    public void deauthorize(AccessToken token) {
+        write.lock();
+        try {
+            for (Entry<String, AccessToken> entry : tokens.asMap().entrySet()) {
+                if(entry.getValue().equals(token)) {
+                    tokens.invalidate(entry.getKey());
+                    return;
+                }
+            }
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Grant access to the user identified by {@code username} with
+     * {@code password}.
+     * 
+     * @param username
+     * @param password
+     */
+    public void grant(ByteBuffer username, ByteBuffer password) {
+        write.lock();
+        try {
+            ByteBuffer salt = Passwords.getSalt();
+            password = Passwords.hash(password, salt);
+            insert(Credentials.create(encodeHex(username), encodeHex(password),
+                    encodeHex(salt)));
+            tokens.invalidate(encodeHex(username));
+            diskSync();
+        }
+        finally {
+            write.unlock();
+        }
+    }
+
+    /**
+     * Revoke access for the user identified by {@code username}.
+     * 
+     * @param username
+     */
+    public void revoke(ByteBuffer username) {
+        write.lock();
+        try {
+            String hex = encodeHex(username);
+            checkArgument(!hex.equals(ADMIN_USERNAME),
+                    "Cannot revoke access for the admin user!");
+            if(credentials.remove(hex) != null) {
+                tokens.invalidate(encodeHex(username));
+                diskSync();
+            }
+        }
+        finally {
+            write.unlock();
         }
     }
 
@@ -162,7 +245,7 @@ public class AccessManager {
      * @param token
      * @return {@code true} if {@code token} is valid
      */
-    public boolean approve(AccessToken token) {
+    public boolean validate(AccessToken token) {
         read.lock();
         try {
             return tokens.asMap().values().contains(token);
@@ -180,7 +263,7 @@ public class AccessManager {
      * @param password
      * @return {@code true} if {@code username}/{@code password} is valid
      */
-    public boolean approve(ByteBuffer username, ByteBuffer password) {
+    public boolean validate(ByteBuffer username, ByteBuffer password) {
         read.lock();
         try {
             Credentials accessRecord = credentials.get(encodeHex(username));
@@ -194,87 +277,6 @@ public class AccessManager {
         }
         finally {
             read.unlock();
-        }
-    }
-
-    /**
-     * Return an {@link AccessToken} for {@code username}.
-     * 
-     * @param username
-     * @return the AccessToken
-     */
-    public AccessToken createAccessToken(ByteBuffer username) {
-        checkArgument(isValidUsername(username));
-        StringBuilder sb = new StringBuilder();
-        String hex = encodeHex(username);
-        sb.append(hex);
-        sb.append(srand.nextLong());
-        sb.append(Time.now());
-        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
-                .hashUnencodedChars(sb.toString()).asBytes()));
-        tokens.put(hex, token);
-        return token;
-    }
-
-    /**
-     * Grant access to the user identified by {@code username} with
-     * {@code password}.
-     * 
-     * @param username
-     * @param password
-     */
-    public void grantAccess(ByteBuffer username, ByteBuffer password) {
-        write.lock();
-        try {
-            ByteBuffer salt = Passwords.getSalt();
-            password = Passwords.hash(password, salt);
-            insert(Credentials.create(encodeHex(username), encodeHex(password),
-                    encodeHex(salt)));
-            tokens.invalidate(encodeHex(username));
-            diskSync();
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
-    /**
-     * Invalidate an access token.
-     * 
-     * @param token
-     */
-    public void invalidateAccessToken(AccessToken token) {
-        write.lock();
-        try {
-            for (Entry<String, AccessToken> entry : tokens.asMap().entrySet()) {
-                if(entry.getValue().equals(token)) {
-                    tokens.invalidate(entry.getKey());
-                    return;
-                }
-            }
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
-    /**
-     * Revoke access for the user identified by {@code username}.
-     * 
-     * @param username
-     */
-    public void revokeAccess(ByteBuffer username) {
-        write.lock();
-        try {
-            String hex = encodeHex(username);
-            checkArgument(!hex.equals(ADMIN_USERNAME));
-            if(credentials.remove(hex) != null) {
-                tokens.invalidate(encodeHex(username));
-                diskSync();
-            }
-        }
-        finally {
-            write.unlock();
         }
     }
 

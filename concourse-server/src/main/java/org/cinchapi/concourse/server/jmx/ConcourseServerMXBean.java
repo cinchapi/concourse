@@ -59,6 +59,22 @@ public interface ConcourseServerMXBean {
     public String dump(String id);
 
     /**
+     * Grant access to the user identified by the combination of
+     * {@code username} and {@code password}.
+     * 
+     * @param username
+     * @param password
+     */
+    public void grant(byte[] username, byte[] password);
+
+    /**
+     * Remove the user identified by {@code username}.
+     * 
+     * @param username
+     */
+    public void revoke(byte[] username);
+
+    /**
      * Return {@code true} if {@code username} and {@code password} is a valid
      * combination to login to the server for the purpose of performing a
      * managed operation. This method should only be used to authenticate a user

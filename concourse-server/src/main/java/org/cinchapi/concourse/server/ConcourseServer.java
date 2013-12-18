@@ -371,6 +371,14 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    public void grant(byte[] username, byte[] password) {
+        manager.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
+        username = null;
+        password = null;
+    }
+
+    @Override
+    @ManagedOperation
     public boolean login(byte[] username, byte[] password) {
         // NOTE: Any existing sessions for the user will be invalidated.
         try {
@@ -398,13 +406,13 @@ public class ConcourseServer implements
     public AccessToken login(ByteBuffer username, ByteBuffer password)
             throws TException {
         validate(username, password);
-        return manager.createAccessToken(username);
+        return manager.authorize(username);
     }
 
     @Override
     public void logout(AccessToken creds) throws TException {
         authenticate(creds);
-        manager.invalidateAccessToken(creds);
+        manager.deauthorize(creds);
     }
 
     @Override
@@ -440,6 +448,13 @@ public class ConcourseServer implements
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
+    }
+
+    @Override
+    @ManagedOperation
+    public void revoke(byte[] username) {
+        manager.revoke(ByteBuffer.wrap(username));
+        username = null;
     }
 
     @Override
@@ -545,7 +560,7 @@ public class ConcourseServer implements
      * @throws SecurityException
      */
     private void authenticate(AccessToken token) throws SecurityException {
-        if(!manager.approve(token)) {
+        if(!manager.validate(token)) {
             throw new SecurityException("Invalid access token");
         }
     }
@@ -662,7 +677,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws SecurityException {
-        if(!manager.approve(username, password)) {
+        if(!manager.validate(username, password)) {
             throw new SecurityException(
                     "Invalid username/password combination.");
         }
