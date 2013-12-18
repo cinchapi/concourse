@@ -32,6 +32,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.server.io.Byteable;
@@ -93,11 +94,26 @@ public class BloomFilter implements Syncable {
      * @param file
      * @return the BloomFilter
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "resource" })
     public static BloomFilter open(String file) {
         try {
             ObjectInput input = new ObjectInputStream(new BufferedInputStream(
-                    new FileInputStream(FileSystem.openFile(file))));
+                    new FileInputStream(FileSystem.openFile(file)))) {
+
+                // In v0.3.0 the ByteableFunnel class was moved to a different
+                // package, so we must translate any old data that exists.
+                @Override
+                protected ObjectStreamClass readClassDescriptor()
+                        throws IOException, ClassNotFoundException {
+                    ObjectStreamClass read = super.readClassDescriptor();
+                    if(read.getName()
+                            .equals("org.cinchapi.concourse.server.storage.ByteableFunnel")) {
+                        return ObjectStreamClass.lookup(ByteableFunnel.class);
+                    }
+                    return read;
+                }
+
+            };
             BloomFilter filter = new BloomFilter(file,
                     (com.google.common.hash.BloomFilter<Composite>) input
                             .readObject());
