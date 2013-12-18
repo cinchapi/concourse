@@ -35,9 +35,6 @@ import javax.management.MXBean;
 @MXBean
 public interface ConcourseServerMXBean {
 
-    // Operations
-    public static String DUMP_OPRERATION = "dump";
-
     /**
      * The JMX port for ConcourseServer.
      */
