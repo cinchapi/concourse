@@ -52,3 +52,7 @@ task distZip(type: Zip, dependsOn: jar) {
 	}
 }
 
+task dist(type: Exec, dependsOn: distZip) {
+	commandLine 'bash', '.dist.sh', version
+}
+
