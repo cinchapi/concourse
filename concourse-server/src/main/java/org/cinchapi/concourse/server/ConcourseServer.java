@@ -386,6 +386,9 @@ public class ConcourseServer implements
                 return false;
             }
         }
+        catch (SecurityException e) {
+            return false;
+        }
         catch (TException e) {
             throw Throwables.propagate(e);
         }
