@@ -40,5 +40,11 @@ public abstract class Options {
 
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
     public boolean help;
+    
+    @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
+    public String username = "admin";
+
+    @Parameter(names = "--password", description = "The password", password = true, hidden = true)
+    public String password;
 
 }

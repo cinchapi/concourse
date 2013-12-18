@@ -40,6 +40,7 @@ import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Strings;
 
 /**
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
@@ -111,16 +112,18 @@ public abstract class ManagedOperationCli {
             System.exit(1);
         }
         else {
-            byte[] username = console.readLine("Username: ").getBytes();
-            byte[] password = console.readLine("Password: ", '*').getBytes();
+            if(Strings.isNullOrEmpty(options.password)) {
+                options.password = console.readLine("Password: ", '*');
+            }
+            byte[] username = options.username.getBytes();
+            byte[] password = options.password.getBytes();
             if(bean.login(username, password)) {
-                username = null;
-                password = null;
                 doTask(bean);
                 System.exit(0);
             }
             else {
-                System.out.println("ERROR: Invalid username/password combination.");
+                System.out
+                        .println("ERROR: Invalid username/password combination.");
                 System.exit(1);
             }
 
