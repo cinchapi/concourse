@@ -24,23 +24,21 @@
 package org.cinchapi.concourse.server.cli;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import javax.management.JMX;
 import javax.management.MBeanServerConnection;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import jline.console.ConsoleReader;
 
-import org.apache.thrift.TException;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 
 /**
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
@@ -67,7 +65,7 @@ public abstract class ManagedOperationCli {
 
     /**
      * Construct a new instance that is seeded with an object containing options
-     * metadata. The {@code opts} will be parsed by {@link JCommander} so
+     * metadata. The {@code options} will be parsed by {@link JCommander} to
      * configure them appropriately.
      * 
      * @param options
@@ -93,40 +91,39 @@ public abstract class ManagedOperationCli {
 
     /**
      * Run the CLI. This method should only be called from the main method.
-     * 
-     * @throws MalformedObjectNameException
-     * @throws MalformedURLException
-     * @throws IOException
-     * @throws TException
      */
-    public final void run() throws Exception {
-        MBeanServerConnection connection = JMXConnectorFactory.connect(
-                new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
-                .getMBeanServerConnection();
-        ObjectName objectName = new ObjectName(
-                "org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
-        ConcourseServerMXBean bean = JMX.newMBeanProxy(connection, objectName,
-                ConcourseServerMXBean.class);
-        if(options.help) {
-            parser.usage();
-            System.exit(1);
-        }
-        else {
-            if(Strings.isNullOrEmpty(options.password)) {
-                options.password = console.readLine("Password: ", '*');
-            }
-            byte[] username = options.username.getBytes();
-            byte[] password = options.password.getBytes();
-            if(bean.login(username, password)) {
-                doTask(bean);
-                System.exit(0);
-            }
-            else {
-                System.out
-                        .println("ERROR: Invalid username/password combination.");
+    public final void run() {
+        try {
+            MBeanServerConnection connection = JMXConnectorFactory.connect(
+                    new JMXServiceURL(ConcourseServerMXBean.JMX_SERVICE_URL))
+                    .getMBeanServerConnection();
+            ObjectName objectName = new ObjectName(
+                    "org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
+            ConcourseServerMXBean bean = JMX.newMBeanProxy(connection,
+                    objectName, ConcourseServerMXBean.class);
+            if(options.help) {
+                parser.usage();
                 System.exit(1);
             }
-
+            else {
+                if(Strings.isNullOrEmpty(options.password)) {
+                    options.password = console.readLine("Password: ", '*');
+                }
+                byte[] username = options.username.getBytes();
+                byte[] password = options.password.getBytes();
+                if(bean.login(username, password)) {
+                    doTask(bean);
+                    System.exit(0);
+                }
+                else {
+                    System.out
+                            .println("ERROR: Invalid username/password combination.");
+                    System.exit(1);
+                }
+            }
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
         }
     }
 

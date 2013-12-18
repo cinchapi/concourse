@@ -23,13 +23,6 @@
  */
 package org.cinchapi.concourse.server.cli;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ReflectionException;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 
 import com.beust.jcommander.Parameter;
@@ -45,15 +38,8 @@ public final class DumpToolCli extends ManagedOperationCli {
      * Run the program...
      * 
      * @param args
-     * @throws MalformedURLException
-     * @throws IOException
-     * @throws MalformedObjectNameException
-     * @throws ReflectionException
-     * @throws MBeanException
-     * @throws InstanceNotFoundException
-     * @throws TException
      */
-    public static void main(String... args) throws Exception {
+    public static void main(String... args) {
         DumpToolCli cli = new DumpToolCli(args);
         cli.run();
     }
