@@ -27,7 +27,7 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service + '/lib') {
 		from configurations.runtime
 		from jar.outputs
-		from 'wrapper_lib'
+		from 'wrapperlib'
 	}
 	into(service + '/log'){
 		from 'log/console.log'
