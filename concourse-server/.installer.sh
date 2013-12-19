@@ -3,7 +3,7 @@
 #####################################################################
 ###  Script to make a self-extracting install and uggrade scripts ###
 #####################################################################
-# This script should ONLY be invoked from the Gradle dist task!
+# This script should ONLY be invoked from the Gradle installer task!
 
 # Gradle passes the version number of the current build to this script
 # for uniformity in naming conventions.
@@ -59,17 +59,14 @@ echo "fi" >> $SCRIPT
 
 echo "exit 0" >> $SCRIPT
 
-# Make installer executable
+# Make update script executable
 chmod +x $SCRIPT
 
+# Create the installer package
 INSTALLER="concourse-server-$VERSION.bin"
 ../makeself/makeself.sh --notemp $DISTS/concourse-server $INSTALLER "Concourse Server" ./$SCRIPT_NAME
 chmod +x $INSTALLER
 mv $INSTALLER $DISTS
-
-########################################################################
-############################# #CLEANUP #################################
-########################################################################
 cd $DISTS
 rm -rf concourse-server
 cd - >> /dev/null
