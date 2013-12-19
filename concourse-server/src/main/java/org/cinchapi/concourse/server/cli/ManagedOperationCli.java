@@ -38,7 +38,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 /**
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
@@ -80,12 +79,10 @@ public abstract class ManagedOperationCli {
             this.console = new ConsoleReader();
         }
         catch (ParameterException e) {
-            System.err.println(e.getMessage());
-            System.exit(2);
+            die(e.getMessage());
         }
         catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(2);
+            die(e.getMessage());
         }
     }
 
@@ -116,21 +113,27 @@ public abstract class ManagedOperationCli {
                     System.exit(0);
                 }
                 else {
-                    System.err.println("ERROR: Invalid username/password "
-                            + "combination.");
-                    System.exit(1);
+                    die("Invalid username/password combination.");
                 }
             }
         }
         catch (IOException e) {
-            System.err.println("ERROR: Could not connect to the "
-                    + "management server. Please check that ConcourseServer "
-                    + "is running with JMX enabled.");
-            System.exit(1);
+            die("Could not connect to the management server. Please check "
+                    + "that ConcourseServer is running with JMX enabled.");
         }
         catch (Exception e) {
-            throw Throwables.propagate(e);
+            die(e.getMessage());
         }
+    }
+
+    /**
+     * Print {@code message} to stderr and exit with a non-zero status.
+     * 
+     * @param message
+     */
+    protected void die(String message) {
+        System.err.println("ERROR: " + message);
+        System.exit(2);
     }
 
     /**

@@ -74,8 +74,7 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println("Consider it done.");
             }
             else {
-                System.err.println("Please specify either the --grant "
-                        + "or --revoke option");
+                die("Please specify either the --grant " + "or --revoke option");
             }
         }
         catch (Exception e) {
