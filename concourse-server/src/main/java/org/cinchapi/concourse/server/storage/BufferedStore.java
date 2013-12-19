@@ -34,7 +34,6 @@ import org.cinchapi.concourse.time.Time;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import static com.google.common.base.Preconditions.*;
 
 /**
  * A {@link BufferedStore} holds data in a {@link ProxyStore} buffer before
@@ -89,14 +88,6 @@ public abstract class BufferedStore implements Store {
      * @param destination
      */
     protected BufferedStore(Limbo transportable, PermanentStore destination) {
-        checkArgument(
-                !this.getClass().isAssignableFrom(destination.getClass()),
-                "Cannot embed a %s into %s", destination.getClass(),
-                this.getClass());
-        checkArgument(
-                !this.getClass().isAssignableFrom(transportable.getClass()),
-                "Cannot embed a %s into %s", transportable.getClass(),
-                this.getClass());
         this.buffer = transportable;
         this.destination = destination;
     }
