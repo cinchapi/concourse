@@ -90,10 +90,10 @@ public class ManageUsersCli extends ManagedOperationCli {
      */
     private static class MyOptions extends Options {
 
-        @Parameter(names = { "-g --grant" }, description = "Add a new user or change the password for an existing user.")
+        @Parameter(names = { "-g", "--grant" }, description = "Add a new user or change the password for an existing user.")
         public boolean grant = false;
 
-        @Parameter(names = { "-r --revoke" }, description = "Remove an existing user")
+        @Parameter(names = { "-r", "--revoke" }, description = "Remove an existing user")
         public boolean revoke = false;
 
     }
