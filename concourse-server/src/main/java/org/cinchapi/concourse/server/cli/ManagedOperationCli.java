@@ -124,7 +124,7 @@ public abstract class ManagedOperationCli {
         }
         catch (IOException e) {
             System.err.println("ERROR: Could not connect to the "
-                    + "manager server. Please check that ConcourseServer "
+                    + "management server. Please check that ConcourseServer "
                     + "is running with JMX enabled.");
             System.exit(1);
         }
