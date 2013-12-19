@@ -655,8 +655,9 @@ public abstract class Concourse {
                 @Override
                 public Void call() throws Exception {
                     if(transaction != null) {
-                        client.abort(creds, transaction);
+                        final TransactionToken token = transaction;
                         transaction = null;
+                        client.abort(creds, token);
                     }
                     return null;
                 }
@@ -745,9 +746,9 @@ public abstract class Concourse {
 
                 @Override
                 public Boolean call() throws Exception {
-                    boolean result = client.commit(creds, transaction);
+                    final TransactionToken token = transaction;
                     transaction = null;
-                    return result;
+                    return client.commit(creds, token);
                 }
 
             });
