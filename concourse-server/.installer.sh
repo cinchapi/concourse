@@ -31,7 +31,7 @@ files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)
 
 # --- copy upgrade files
 if [ \$files -gt 0 ]; then 
-	echo 'Upgrading Concourse Server.........................................................................'
+	echo 'Upgrading Concourse Server..........................................................................'
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
 	rm -r ../licenses/ 2>/dev/null
