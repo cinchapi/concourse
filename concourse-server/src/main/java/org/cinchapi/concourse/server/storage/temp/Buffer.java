@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -203,6 +204,16 @@ public final class Buffer extends Limbo {
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    /**
+     * Return the location where the Buffer stores its data.
+     * 
+     * @return the backingStore
+     */
+    @Restricted
+    public String getBackingStore() {
+        return directory;
     }
 
     @Override
@@ -397,9 +408,11 @@ public final class Buffer extends Limbo {
             SortedMap<File, Page> pageSorter = Maps
                     .newTreeMap(NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
-                Page page = new Page(file.getAbsolutePath());
-                pageSorter.put(file, page);
-                Logger.info("Loadding Buffer content from {}...", page);
+                if(!file.isDirectory()) {
+                    Page page = new Page(file.getAbsolutePath());
+                    pageSorter.put(file, page);
+                    Logger.info("Loadding Buffer content from {}...", page);
+                }
             }
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {

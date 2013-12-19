@@ -35,9 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.annotate.Restricted;
-import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Token;
-import org.cinchapi.concourse.server.io.ByteBufferOutputStream;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.db.Database;
@@ -89,7 +87,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * The unique Transaction id.
      */
     private final String id;
-    
+
     /**
      * A collection of listeners that should be notified of a version change for
      * a given token.
@@ -157,6 +155,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
             listeners = versionChangeListeners.get(token);
         }
         listeners.add(listener);
+        ((Engine) destination).addVersionChangeListener(token, listener);
     }
 
     @Override
@@ -180,7 +179,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     @Restricted
     public void notifyVersionChange(Token token) {
-        for(VersionChangeListener listener : versionChangeListeners.get(token)){
+        for (VersionChangeListener listener : versionChangeListeners.get(token)) {
             listener.onVersionChange(token);
         }
     }
@@ -205,8 +204,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     protected void doCommit() {
-        String file = GlobalState.TRANSACTION_DIRECTORY + File.separator + id
-                + ".txn";
+        String file = ((Engine) destination).transactionStore + File.separator
+                + id + ".txn";
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             channel.write(serialize());
@@ -223,7 +222,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         }
     }
 
-
     /**
      * Deserialize the content of this Transaction from {@code bytes}.
      * 
@@ -231,8 +229,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      */
     private void deserialize(ByteBuffer bytes) {
         locks = Maps.newHashMap();
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(
-                ByteBuffers.slice(bytes, bytes.getInt()), LockDescription.SIZE);
+        Iterator<ByteBuffer> it = ByteableCollections.iterator(ByteBuffers
+                .slice(bytes, bytes.getInt()));
         while (it.hasNext()) {
             LockDescription lock = LockDescription.fromByteBuffer(it.next());
             locks.put(lock.getToken(), lock);
@@ -264,12 +262,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * @return the ByteBuffer representation
      */
     private ByteBuffer serialize() {
-        ByteBufferOutputStream out = new ByteBufferOutputStream();
-        out.write((locks.size() * LockDescription.SIZE) + 4); // lockSize
-        out.write(locks.values(), LockDescription.SIZE);
-        out.write(((Queue) buffer).getWrites());
-        out.close();
-        return out.toByteBuffer();
+        ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
+        ByteBuffer _writes = ByteableCollections.toByteBuffer(((Queue) buffer)
+                .getWrites());
+        ByteBuffer bytes = ByteBuffer.allocate(4 + _locks.capacity()
+                + _writes.capacity());
+        bytes.putInt(_locks.capacity());
+        bytes.put(_locks);
+        bytes.put(_writes);
+        bytes.rewind();
+        return bytes;
     }
 
 }

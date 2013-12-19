@@ -33,11 +33,11 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /**
- * Unit tests for an {@link AtomicOperation} that commits to the {@link Engine}
+ * Unit tests for {@link Transaction}.
  * 
  * @author jnelson
  */
-public class EngineAtomicOperationTest extends AtomicOperationTest {
+public class TransactionTest extends AtomicOperationTest {
 
     private String directory;
 
@@ -63,6 +63,12 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         engine.start(); // Start the engine manually because
                         // AtomicOperation#start does not do it
         return engine;
+    }
+
+    @Override
+    protected Transaction getStore() {
+        destination = getDestination();
+        return Transaction.start((Engine) destination);
     }
 
 }

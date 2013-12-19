@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
 
+import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 import ch.qos.logback.classic.Level;
 
@@ -54,12 +55,12 @@ public final class GlobalState {
             && System.getProperty("eclipse").equals("true") ? true : false;
 
     // ========================================================================
-    // ============================== CONFIG ==================================
+    // ============================ PREFERENCES ================================
     /*
      * INSTRUCTIONS FOR ADDING CONFIGURATION PREFERENCES
      * 1. Create the appropriately named static variable and assigned it a
      * default value.
-     * 2. Find the CONFIG READING BLOCK and attempt to read the value from the
+     * 2. Find the PREF READING BLOCK and attempt to read the value from the
      * prefs file, while supplying the variable you made in Step 1 as the
      * defaultValue.
      * 3. Add a placeholder for the new preference to the stock concourse.prefs
@@ -83,16 +84,6 @@ public final class GlobalState {
      */
     public static String BUFFER_DIRECTORY = System.getProperty("user.home")
             + File.separator + "concourse" + File.separator + "buffer";
-
-    /**
-     * The absolute path to the directory where the Transaction backup files are
-     * stored.
-     */
-    public static String TRANSACTION_DIRECTORY = System
-            .getProperty("user.home")
-            + File.separator
-            + "concourse"
-            + File.separator + "txn";
 
     /**
      * The size for each page in the Buffer. During reads, Buffer pages
@@ -141,6 +132,7 @@ public final class GlobalState {
      */
     public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
             : false;
+
     static {
         ConcourseConfiguration config;
         try {
@@ -151,7 +143,7 @@ public final class GlobalState {
             config = null;
         }
         if(config != null) {
-            // =================== CONFIG READING BLOCK ====================
+            // =================== PREF READING BLOCK ====================
             DATABASE_DIRECTORY = config.getString("database_directory",
                     DATABASE_DIRECTORY);
 
@@ -168,18 +160,15 @@ public final class GlobalState {
 
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
-
-            TRANSACTION_DIRECTORY = config.getString("transaction_directory",
-                    TRANSACTION_DIRECTORY);
-            // =================== CONFIG READING BLOCK ====================
+            // =================== PREF READING BLOCK ====================
         }
     }
-    // ========================================================================
-    // ============================= STOPWORDS ================================
+
     /**
      * The list of words that are omitted from search indexes to increase speed
      * and improve space efficiency.
      */
+    @NonPreference
     public static final Set<String> STOPWORDS = Sets.newHashSet();
     static {
         try {

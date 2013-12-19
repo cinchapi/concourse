@@ -21,24 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
-
-import org.cinchapi.concourse.server.storage.db.DatabaseTest;
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+package org.cinchapi.concourse.annotate;
 
 /**
- * 
+ * Indicates a variable that cannot be changed in the preferences file.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class, DatabaseTest.class,
-        TransactionTest.class })
-public class StoreSuite {
+public @interface NonPreference {
 
 }

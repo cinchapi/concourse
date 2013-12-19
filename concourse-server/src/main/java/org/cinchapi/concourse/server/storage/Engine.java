@@ -31,9 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
-import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.Token;
@@ -108,6 +108,11 @@ public final class Engine extends BufferedStore implements
                                                 // ExecutorService.
 
     /**
+     * The location where transaction backups are stored.
+     */
+    protected final String transactionStore; // exposed for Transaction backup
+
+    /**
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
@@ -167,9 +172,12 @@ public final class Engine extends BufferedStore implements
      * @param buffer
      * @param database
      */
+    @Authorized
     private Engine(Buffer buffer, Database database) {
         super(buffer, database);
         this.bufferTransportThread = new BufferTransportThread();
+        this.transactionStore = buffer.getBackingStore() + File.separator
+                + "txn"; /* (authorized) */
     }
 
     /**
@@ -449,9 +457,8 @@ public final class Engine extends BufferedStore implements
      * previous shutdown.
      */
     private void doTransactionRecovery() {
-        FileSystem.mkdirs(GlobalState.TRANSACTION_DIRECTORY);
-        for (File file : new File(GlobalState.TRANSACTION_DIRECTORY)
-                .listFiles()) {
+        FileSystem.mkdirs(transactionStore);
+        for (File file : new File(transactionStore).listFiles()) {
             Transaction.recover(this, file.getAbsolutePath());
             Logger.info("Restored Transaction from {}", file.getName());
         }

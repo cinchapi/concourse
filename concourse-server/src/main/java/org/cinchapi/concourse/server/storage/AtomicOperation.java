@@ -55,8 +55,7 @@ import com.google.common.collect.Maps;
  * operation is staged in an isolated buffer before being committed to a
  * destination store. For optimal concurrency, we use
  * <em>just in time locking</em> where destination resources are only locked
- * when its time to commit the
- * operation.
+ * when its time to commit the operation.
  * 
  * @author jnelson
  */
@@ -303,9 +302,9 @@ public class AtomicOperation extends BufferedStore implements
         // "all or nothing" guarantee. We are willing to live with that risk
         // because the occurrence of that happening seems low and atomic
         // operations don't guarantee consistency or durability, so it is
-        // technically not a violate of "all or nothing" if the entire operation
-        // succeeds but isn't durable on crash and leaves the database in an
-        // inconsistent state.
+        // technically not a violation of "all or nothing" if the entire
+        // operation succeeds but isn't durable on crash and leaves the database
+        // in an inconsistent state.
         buffer.transport(destination);
     }
 
@@ -464,11 +463,6 @@ public class AtomicOperation extends BufferedStore implements
             return new LockDescription(token, lock, type);
         }
 
-        /**
-         * The size of each LockDescription
-         */
-        protected static final int SIZE = Token.SIZE + 1; // token, type (1)
-
         private final Token token;
         private final Lock lock;
         private final LockType type;
@@ -501,7 +495,7 @@ public class AtomicOperation extends BufferedStore implements
             // only ever getBytes() for a lock description once and that only
             // happens if the AtomicOperation is not aborted before an attempt
             // to commit, so its best to not create a copy if we don't have to
-            ByteBuffer bytes = ByteBuffer.allocate(SIZE);
+            ByteBuffer bytes = ByteBuffer.allocate(size());
             bytes.put((byte) type.ordinal());
             bytes.put(token.getBytes());
             bytes.rewind();
@@ -545,7 +539,7 @@ public class AtomicOperation extends BufferedStore implements
 
         @Override
         public int size() {
-            return SIZE;
+            return token.size() + 1; // token + type(1)
         }
 
     }

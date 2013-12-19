@@ -36,13 +36,143 @@ import org.junit.Test;
 import com.google.common.collect.Sets;
 
 /**
- * 
+ * Unit tests for {@link AtomicOperation}.
  * 
  * @author jnelson
  */
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 
-    private Compoundable destination;
+    protected Compoundable destination;
+
+    @Test
+    public void testAbort() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        Assert.assertTrue(store.verify(key, value, record));
+        ((AtomicOperation) store).abort();
+        Assert.assertFalse(destination.verify(key, value, record));
+    }
+
+    @Test
+    public void testCommit() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        ((AtomicOperation) store).commit();
+        Assert.assertTrue(destination.verify(key, value, record));
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testCommitFailsIfVersionChanges() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        add(key, value, record);
+        AtomicOperation other = AtomicOperation.start(destination);
+        other.add(key, value, record);
+        Assert.assertTrue(other.commit());
+        Assert.assertFalse(((AtomicOperation) store).commit());
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testFailureIfWriteToKeyInRecordThatIsRead()
+            throws InterruptedException {
+        final String key = TestData.getString();
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.fetch(key, record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(key, TestData.getTObject(), record));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertFalse(operation.commit());
+    }
+    
+    @Test(expected = AtomicStateException.class)
+    public void testFailureIfWriteToRecordThatIsRead()
+            throws InterruptedException {
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.describe(record);
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination.accept(Write.add(TestData.getString(),
+                        TestData.getTObject(), record));
+
+            }
+
+        });
+        thread.start();
+        thread.join();
+        Assert.assertFalse(operation.commit());
+    }
+
+    @Test
+    public void testImmediateVisibility() {
+        String key = TestData.getString();
+        long record = TestData.getLong();
+        Set<TObject> values = Sets.newHashSet();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            TObject value = TestData.getTObject();
+            while (values.contains(value)) {
+                value = TestData.getTObject();
+            }
+            values.add(value);
+            add(key, value, record);
+        }
+        Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
+        ((AtomicOperation) store).commit();
+        Assert.assertEquals(values, destination.fetch(key, record));
+    }
+
+    @Test
+    public void testIsolation() {
+        AtomicOperation a = AtomicOperation.start(destination);
+        AtomicOperation b = AtomicOperation.start(destination);
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertTrue(((AtomicOperation) a).add(key, value, record));
+        Assert.assertTrue(((AtomicOperation) b).add(key, value, record));
+        Assert.assertFalse(destination.verify(key, value, record));
+    }
+
+    @Test(expected = AtomicStateException.class)
+    public void testNoChangesPersistOnFailure() {
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            String key = TestData.getString();
+            TObject value = TestData.getTObject();
+            ((AtomicOperation) store).add(key, value, i);
+        }
+        destination.accept(Write.add(TestData.getString(), Convert.javaToThrift("foo"), 0));
+        ((AtomicOperation) store).commit(); // throws AtomicStateException
+        for(int i = 0; i < count; i++){
+            Assert.assertTrue(destination.audit(i).isEmpty());
+        }   
+    }
+
+    @Test
+    public void testLockUpgrade() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        store.verify(key, value, record);
+        add(key, value, record);
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
 
     @Test
     public void testOnlyOneSuccessDuringRaceConditionWithConflict()
@@ -79,87 +209,6 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
                 || (!aSuccess.get() && bSuccess.get()));
     }
 
-    private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
-        AtomicOperation operation = AtomicOperation.start(destination);
-        for (int i = 0; i < 1; i++) {
-            operation.add(TestData.getString(), TestData.getTObject(), i);
-        }
-        return operation;
-    }
-
-    @Test
-    public void testAbort() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        add(key, value, record);
-        Assert.assertTrue(store.verify(key, value, record));
-        ((AtomicOperation) store).abort();
-        Assert.assertFalse(destination.verify(key, value, record));
-    }
-
-    @Test(expected = AtomicStateException.class)
-    public void testFailureIfWriteToRecordThatIsRead()
-            throws InterruptedException {
-        final long record = TestData.getLong();
-        AtomicOperation operation = (AtomicOperation) store;
-        operation.describe(record);
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                destination.accept(Write.add(TestData.getString(),
-                        TestData.getTObject(), record));
-
-            }
-
-        });
-        thread.start();
-        thread.join();
-        Assert.assertFalse(operation.commit());
-    }
-    
-    public void testSuccessIfNoWriteToRecordThatIsRead()
-            throws InterruptedException {
-        final long record = TestData.getLong();
-        AtomicOperation operation = (AtomicOperation) store;
-        operation.describe(record);
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                destination.accept(Write.add(TestData.getString(),
-                        TestData.getTObject(), record+1));
-
-            }
-
-        });
-        thread.start();
-        thread.join();
-        Assert.assertTrue(operation.commit());
-    }
-
-    @Test(expected = AtomicStateException.class)
-    public void testFailureIfWriteToKeyInRecordThatIsRead()
-            throws InterruptedException {
-        final String key = TestData.getString();
-        final long record = TestData.getLong();
-        AtomicOperation operation = (AtomicOperation) store;
-        operation.fetch(key, record);
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                destination.accept(Write.add(key, TestData.getTObject(), record));
-
-            }
-
-        });
-        thread.start();
-        thread.join();
-        Assert.assertFalse(operation.commit());
-    }
-
     @Test
     public void testSucceessIfNoWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
@@ -182,75 +231,24 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertTrue(operation.commit());
     }
 
-    // @Test
-    // public void testNoChangesPersistOnFailure(){
-    // for(int i = 0; i < TestData.getScaleCount(); i++){
-    // String key = TestData.getString();
-    // TObject value = TestData.getTObject();
-    // ((AtomicOperation) store).add(key, value, i);
-    // }
-    // }
+    public void testSuccessIfNoWriteToRecordThatIsRead()
+            throws InterruptedException {
+        final long record = TestData.getLong();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.describe(record);
+        Thread thread = new Thread(new Runnable() {
 
-    @Test
-    public void testIsolation() {
-        AtomicOperation a = AtomicOperation.start(destination);
-        AtomicOperation b = AtomicOperation.start(destination);
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        Assert.assertTrue(((AtomicOperation) a).add(key, value, record));
-        Assert.assertTrue(((AtomicOperation) b).add(key, value, record));
-        Assert.assertFalse(destination.verify(key, value, record));
-    }
+            @Override
+            public void run() {
+                destination.accept(Write.add(TestData.getString(),
+                        TestData.getTObject(), record+1));
 
-    @Test
-    public void testCommit() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        add(key, value, record);
-        ((AtomicOperation) store).commit();
-        Assert.assertTrue(destination.verify(key, value, record));
-    }
-
-    @Test(expected = AtomicStateException.class)
-    public void testCommitFailsIfVersionChanges() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        add(key, value, record);
-        AtomicOperation other = AtomicOperation.start(destination);
-        other.add(key, value, record);
-        Assert.assertTrue(other.commit());
-        Assert.assertFalse(((AtomicOperation) store).commit());
-    }
-
-    @Test
-    public void testImmediateVisibility() {
-        String key = TestData.getString();
-        long record = TestData.getLong();
-        Set<TObject> values = Sets.newHashSet();
-        for (int i = 0; i < TestData.getScaleCount(); i++) {
-            TObject value = TestData.getTObject();
-            while (values.contains(value)) {
-                value = TestData.getTObject();
             }
-            values.add(value);
-            add(key, value, record);
-        }
-        Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
-        ((AtomicOperation) store).commit();
-        Assert.assertEquals(values, destination.fetch(key, record));
-    }
 
-    @Test
-    public void testLockUpgrade() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
-        store.verify(key, value, record);
-        add(key, value, record);
-        Assert.assertTrue(((AtomicOperation) store).commit());
+        });
+        thread.start();
+        thread.join();
+        Assert.assertTrue(operation.commit());
     }
 
     @Override
@@ -270,6 +268,14 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     protected void remove(String key, TObject value, long record) {
         ((AtomicOperation) store).remove(key, value, record);
 
+    }
+
+    private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
+        AtomicOperation operation = AtomicOperation.start(destination);
+        for (int i = 0; i < 1; i++) {
+            operation.add(TestData.getString(), TestData.getTObject(), i);
+        }
+        return operation;
     }
 
 }
