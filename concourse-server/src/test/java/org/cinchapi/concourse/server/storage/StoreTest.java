@@ -310,10 +310,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
             add(key, value, record);
         }
         long timestamp = Time.now();
+        Set<TObject> otherValues = Sets.newHashSet();
         for (TObject value : getValues()) {
-            while (values.contains(value)) {
+            while (values.contains(value) || otherValues.contains(value)) {
                 value = TestData.getTObject();
             }
+            otherValues.add(value);
             add(key, value, record);
         }
         Assert.assertEquals(values, store.fetch(key, record, timestamp));
