@@ -22,42 +22,43 @@ SCRIPT="$DISTS/concourse-server/$SCRIPT_NAME"
 # We dynamically create an "update" script that copies certain files from
 # the new distribution to the current install directory. Afterwards, the
 # update script will start the server and run the upgrade task
-echo "#!/usr/bin/env bash" >> $SCRIPT
+cat << EOF > $SCRIPT
+#!/usr/bin/env bash
 
 # --- check if we should upgrade by detecting if the directory above is an
 # --- installation diretory
-echo "files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)" >> $SCRIPT
+files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)
 
 # --- copy upgrade files
-echo "if [ \$files -gt 0 ]; then" >> $SCRIPT #start upgrade
-echo "echo 'Upgrading Concourse Server.........................................................................'" >> $SCRIPT
-echo "rm -r ../lib/" >> $SCRIPT
-echo "cp -fR lib/ ../lib/" >> $SCRIPT
-echo "rm -r ../licenses/" >> $SCRIPT
-echo "cp -fR licenses/ ../licenses/" >> $SCRIPT
-echo "cp -R bin/ ../bin/" >> $SCRIPT
-# TODO: Copy config files???
+if [ \$files -gt 0 ]; then 
+	echo 'Upgrading Concourse Server.........................................................................'
+	rm -r ../lib/
+	cp -fR lib/ ../lib/
+	rm -r ../licenses/ 2>/dev/null
+	cp -fR licenses/ ../licenses/
+	cp -R bin/ ../bin/
 
-# --- run upgrade task
-echo "cd .." >> $SCRIPT
-# TODO exec bin/start
-# TODO exec bin/upgrade
-# TODO exec bin/stop
+	# --- run upgrade task
+	cd ..
+	# TODO exec bin/start
+	# TODO exec bin/upgrade
+	# TODO exec bin/stop
 
-echo "cd - >> /dev/null" >> $SCRIPT
-echo "fi" >> $SCRIPT #end upgrade
+	cd - >> /dev/null
+fi
 
 # -- delete the update file and installer
-echo "rm $SCRIPT_NAME" >> $SCRIPT
-echo "cd .." >> $SCRIPT
-echo "rm concourse-server*bin" >> $SCRIPT
+rm $SCRIPT_NAME
+cd ..
+rm concourse-server*bin
 
 # --- delete upgrade directory
-echo "if [ \$files -gt 0 ]; then" >> $SCRIPT
-echo "rm -r concourse-server" >> $SCRIPT
-echo "fi" >> $SCRIPT
+if [ \$files -gt 0 ]; then
+	rm -r concourse-server
+fi
 
-echo "exit 0" >> $SCRIPT
+exit 0
+EOF
 
 # Make update script executable
 chmod +x $SCRIPT
