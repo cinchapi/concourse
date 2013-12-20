@@ -62,4 +62,8 @@ subprojects {
     	archives javadocJar
     }
 
+    test {
+        exclude '**/*Suite.class'
+    }
+
 }
