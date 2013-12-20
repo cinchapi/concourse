@@ -206,26 +206,22 @@ public final class Engine extends BufferedStore implements
     @DoNotInvoke
     public void accept(Write write) {
         checkArgument(write.getType() != Action.COMPARE);
-        try {
-            String key = write.getKey().toString();
-            TObject value = write.getValue().getTObject();
-            long record = write.getRecord().longValue();
-            boolean accepted = write.getType() == Action.ADD ? add(key, value,
-                    record) : remove(key, value, record);
-            if(!accepted) {
-                Logger.warn("Write {} was rejected by the Engine "
-                        + "because it was previously accepted "
-                        + "but not offset. This implies that a "
-                        + "premature shutdown occurred and the parent"
-                        + "Transaction is attempting to restore "
-                        + "itself from backup and finish committing.", write);
-            }
-            else {
-                Logger.debug("'{}' was accepted by the Engine", write);
-            }
+        String key = write.getKey().toString();
+        TObject value = write.getValue().getTObject();
+        long record = write.getRecord().longValue();
+        boolean accepted = write.getType() == Action.ADD ? add(key, value,
+                record) : remove(key, value, record);
+        if(!accepted) {
+            Logger.warn("Write {} was rejected by the Engine "
+                    + "because it was previously accepted "
+                    + "but not offset. This implies that a "
+                    + "premature shutdown occurred and the parent"
+                    + "Transaction is attempting to restore "
+                    + "itself from backup and finish committing.", write);
         }
-        finally {}
-
+        else {
+            Logger.debug("'{}' was accepted by the Engine", write);
+        }
     }
 
     @Override

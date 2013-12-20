@@ -23,22 +23,34 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.server.storage.db.DatabaseTest;
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.io.File;
+
+import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.TestData;
 
 /**
- * 
+ * Unit tests for an {@link AtomicOperation} that commits to a {@link Transaction}
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class, DatabaseTest.class,
-        TransactionTest.class, TransactionAtomicOperationTest.class })
-public class StoreSuite {
+public class TransactionAtomicOperationTest extends AtomicOperationTest{
+    
+    private String directory;
+
+    @Override
+    protected Transaction getDestination() {
+        directory = TestData.DATA_DIR + File.separator + Time.now();
+        Engine engine = new Engine(directory + File.separator + "buffer",
+                directory + File.separator + "database");
+        engine.start(); // Start the engine manually because
+                        // AtomicOperation#start does not do it
+        return Transaction.start(engine);
+    }
+
+    @Override
+    protected void cleanup(Store store) {
+        FileSystem.deleteDirectory(directory);   
+    }
 
 }

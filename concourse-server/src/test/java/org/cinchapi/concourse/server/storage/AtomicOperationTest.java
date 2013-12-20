@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
@@ -67,9 +68,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test(expected = AtomicStateException.class)
     public void testCommitFailsIfVersionChanges() {
-        String key = TestData.getString();
-        TObject value = TestData.getTObject();
-        long record = TestData.getLong();
+        String key = Variables.register("key", TestData.getString());
+        TObject value = Variables.register("value", TestData.getTObject());
+        long record = Variables.register("record", TestData.getLong());
         add(key, value, record);
         AtomicOperation other = AtomicOperation.start(destination);
         other.add(key, value, record);
@@ -97,7 +98,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         thread.join();
         Assert.assertFalse(operation.commit());
     }
-    
+
     @Test(expected = AtomicStateException.class)
     public void testFailureIfWriteToRecordThatIsRead()
             throws InterruptedException {
@@ -157,11 +158,12 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             TObject value = TestData.getTObject();
             ((AtomicOperation) store).add(key, value, i);
         }
-        destination.accept(Write.add(TestData.getString(), Convert.javaToThrift("foo"), 0));
+        destination.accept(Write.add(TestData.getString(),
+                Convert.javaToThrift("foo"), 0));
         ((AtomicOperation) store).commit(); // throws AtomicStateException
-        for(int i = 0; i < count; i++){
+        for (int i = 0; i < count; i++) {
             Assert.assertTrue(destination.audit(i).isEmpty());
-        }   
+        }
     }
 
     @Test
@@ -187,8 +189,10 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                aSuccess.set(a.commit());
-
+                try {
+                    aSuccess.set(a.commit());
+                }
+                catch (AtomicStateException e) {} // swallow
             }
 
         });
@@ -196,8 +200,10 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
             @Override
             public void run() {
-                bSuccess.set(b.commit());
-
+                try {
+                    bSuccess.set(b.commit());
+                }
+                catch (AtomicStateException e) {} // swallow
             }
 
         });
@@ -241,7 +247,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             @Override
             public void run() {
                 destination.accept(Write.add(TestData.getString(),
-                        TestData.getTObject(), record+1));
+                        TestData.getTObject(), record + 1));
 
             }
 

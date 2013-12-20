@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,9 +40,9 @@ import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
@@ -138,8 +140,44 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     public void accept(Write write) {
-        buffer.insert(write); // Accept writes from an AtomicOperation and put
-                              // them in this Transaction buffer.
+        // Accept writes from an AtomicOperation and put them in this
+        // Transaction's buffer.
+        checkArgument(write.getType() != Action.COMPARE);
+        String key = write.getKey().toString();
+        TObject value = write.getValue().getTObject();
+        long record = write.getRecord().longValue();
+        if(write.getType() == Action.ADD) {
+            add(key, value, record);
+        }
+        else {
+            remove(key, value, record);
+        }
+    }
+
+    @Override
+    public boolean add(String key, TObject value, long record)
+            throws AtomicStateException {
+        if(super.add(key, value, record)) {
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean remove(String key, TObject value, long record)
+            throws AtomicStateException {
+        if(super.remove(key, value, record)) {
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
@@ -161,19 +199,19 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     public long getVersion(long record) {
         return Math.max(buffer.getVersion(record),
-                ((Database) destination).getVersion(record));
+                ((Engine) destination).getVersion(record));
     }
 
     @Override
     public long getVersion(String key) {
         return Math.max(buffer.getVersion(key),
-                ((Database) destination).getVersion(key));
+                ((Engine) destination).getVersion(key));
     }
 
     @Override
     public long getVersion(String key, long record) {
         return Math.max(buffer.getVersion(key, record),
-                ((Database) destination).getVersion(key, record));
+                ((Engine) destination).getVersion(key, record));
     }
 
     @Override

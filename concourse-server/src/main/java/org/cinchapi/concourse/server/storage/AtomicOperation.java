@@ -126,8 +126,10 @@ public class AtomicOperation extends BufferedStore implements
      * any of the changes to the {@link #destination} store.
      */
     public void abort() {
-        open = false;
-        releaseLocks();
+        if(open) {
+            open = false;
+            releaseLocks();
+        }
     }
 
     @Override
