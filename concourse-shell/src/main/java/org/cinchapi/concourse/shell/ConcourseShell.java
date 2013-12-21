@@ -42,6 +42,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Timestamp;
+import org.cinchapi.concourse.util.Version;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -133,7 +134,8 @@ public final class ConcourseShell {
             GroovyShell shell = new GroovyShell(binding);
 
             Stopwatch watch = Stopwatch.createUnstarted();
-
+            console.println("Client Version "
+                    + Version.getVersion(ConcourseShell.class));
             console.println("Use HELP for help.");
             console.println("Use EXIT to quit.");
             console.setPrompt("cash$ ");
