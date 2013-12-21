@@ -69,9 +69,9 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 ### Build your changes
 Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
 
-	$ ./gradlew clean build distZip
+	$ ./gradlew clean build installer
 
-If all goes well, unzip the distribution in `concourse-server/build/distributions`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
+If all goes well, run the installer in `concourse-server/build/distributions`, launch CaSH and sanity check some [smoke tests](https://cinchapi.atlassian.net/wiki/display/CON/Testing+Zone).
 
 ### Submit your changes
 1. Send a pull request.
