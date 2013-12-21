@@ -165,4 +165,9 @@ service ConcourseService {
 		4: data.TObject replacement, 5: shared.AccessToken creds,
 		6: shared.TransactionToken token);
 
+	/**
+	 * Return the release version of the server.
+	 */
+	string getServerVersion();
+
 }

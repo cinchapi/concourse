@@ -56,6 +56,14 @@ public interface ConcourseServerMXBean {
     public String dump(String id);
 
     /**
+     * Return the release version of the server.
+     * 
+     * @return the server Version string
+     */
+    @ManagedOperation
+    public String getServerVersion();
+
+    /**
      * Grant access to the user identified by the combination of
      * {@code username} and {@code password}.
      * 
@@ -63,13 +71,6 @@ public interface ConcourseServerMXBean {
      * @param password
      */
     public void grant(byte[] username, byte[] password);
-
-    /**
-     * Remove the user identified by {@code username}.
-     * 
-     * @param username
-     */
-    public void revoke(byte[] username);
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
@@ -83,6 +84,13 @@ public interface ConcourseServerMXBean {
      */
     @ManagedOperation
     public boolean login(byte[] username, byte[] password);
+
+    /**
+     * Remove the user identified by {@code username}.
+     * 
+     * @param username
+     */
+    public void revoke(byte[] username);
 
     /**
      * JMX tools

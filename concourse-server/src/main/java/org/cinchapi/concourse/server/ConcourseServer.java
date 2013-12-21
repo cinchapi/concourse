@@ -63,6 +63,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.Version;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -367,6 +368,12 @@ public class ConcourseServer implements
         }
         return timestamp == 0 ? engine.find(key, operator, tValues) : engine
                 .find(timestamp, key, operator, tValues);
+    }
+
+    @Override
+    @ManagedOperation
+    public String getServerVersion() {
+        return Version.getVersion(ConcourseServer.class).toString();
     }
 
     @Override

@@ -327,6 +327,14 @@ public abstract class Concourse {
     public abstract <T> T get(String key, long record, Timestamp timestamp);
 
     /**
+     * Return the version of the server to which this client is currently
+     * connected.
+     * 
+     * @return the server version
+     */
+    public abstract String getServerVersion();
+
+    /**
      * Link {@code key} in {@code source} to {@code destination}. In other
      * words, add {@code key} as {@link Link#to(destination)} in {@code source}.
      * 
@@ -646,6 +654,18 @@ public abstract class Concourse {
             catch (TTransportException e) {
                 throw Throwables.propagate(e);
             }
+        }
+
+        @Override
+        public String getServerVersion() {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.getServerVersion();
+                }
+
+            });
         }
 
         @Override
