@@ -53,11 +53,7 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 
 		$ git clone git@github.com:<username>/concourse.git
 
-4. Run the initialization script, which will delete itself upon completion.
-
-		$ ./init.sh
-
-5. Start writing code :)
+4. Start writing code :)
 
 ### Run from Eclipse
 1. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
