@@ -137,6 +137,7 @@ public final class ConcourseShell {
             console.println("Client Version "
                     + Version.getVersion(ConcourseShell.class));
             console.println("Server Version " + concourse.getServerVersion());
+            console.println("");
             console.println("Use HELP for help.");
             console.println("Use EXIT to quit.");
             console.setPrompt("cash$ ");
