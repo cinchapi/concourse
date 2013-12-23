@@ -248,7 +248,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public String toString() {
-        return getObject().toString();
+        return getObject().toString() + " (" + getType() + ")";
     }
 
     /**
@@ -268,13 +268,13 @@ public final class Value implements Byteable, Comparable<Value> {
             else if(v1 == POSITIVE_INFINITY) {
                 return 1;
             }
-            else if(v2 == POSITIVE_INFINITY){
+            else if(v2 == POSITIVE_INFINITY) {
                 return -1;
             }
             else if(v1 == NEGATIVE_INFINITY) {
                 return -1;
             }
-            else if(v2 == NEGATIVE_INFINITY){
+            else if(v2 == NEGATIVE_INFINITY) {
                 return 1;
             }
             else {
