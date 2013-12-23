@@ -111,9 +111,9 @@ import com.google.common.collect.Lists;
 public abstract class Concourse {
 
     /**
-     * Create a new Client connection to the Concourse server specified in
-     * {@code concourse.prefs} and return a handler to facilitate database
-     * interaction.
+     * Create a new Client connection to the default Concourse server (or the
+     * one specified in {@code concourse_client.prefs} if it exists) and return
+     * a handler to facilitate database interaction.
      */
     public static Concourse connect() {
         return new Client();
@@ -592,6 +592,16 @@ public abstract class Concourse {
         private final ByteBuffer password;
 
         /**
+         * The host of the connection.
+         */
+        private final String host;
+
+        /**
+         * The port of the connection.
+         */
+        private final int port;
+
+        /**
          * The Thrift client that actually handles all RPC communication.
          */
         private final ConcourseService.Client client;
@@ -632,6 +642,8 @@ public abstract class Concourse {
          * @param password
          */
         public Client(String host, int port, String username, String password) {
+            this.host = host;
+            this.port = port;
             this.username = ClientSecurity.encrypt(username);
             this.password = ClientSecurity.encrypt(password);
             final TTransport transport = new TSocket(host, port);
@@ -992,8 +1004,8 @@ public abstract class Concourse {
 
         @Override
         public String toString() {
-            return "Connected to " + SERVER_HOST + ":" + SERVER_PORT + " as "
-                    + USERNAME;
+            return "Connected to " + host + ":" + port + " as "
+                    + new String(ClientSecurity.decrypt(username).array());
         }
 
         @Override
