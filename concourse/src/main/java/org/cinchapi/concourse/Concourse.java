@@ -461,8 +461,8 @@ public abstract class Concourse {
      * @param replacement
      * @return {@code true} if the swap is successful
      */
-    public abstract boolean verifyAndSwap(String key, TObject expected,
-            long record, TObject replacement);
+    public abstract boolean verifyAndSwap(String key, Object expected,
+            long record, Object replacement);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -962,8 +962,8 @@ public abstract class Concourse {
         }
 
         @Override
-        public boolean verifyAndSwap(final String key, final TObject expected,
-                final long record, final TObject replacement) {
+        public boolean verifyAndSwap(final String key, final Object expected,
+                final long record, final Object replacement) {
             return execute(new Callable<Boolean>() {
 
                 @Override
