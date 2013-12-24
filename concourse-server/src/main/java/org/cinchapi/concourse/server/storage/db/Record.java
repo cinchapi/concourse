@@ -245,7 +245,13 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
                             || this instanceof SearchRecord,
                     "Cannot append %s because it does not "
                             + "belong to This Record", revision);
-            Preconditions.checkArgument(isOffset(revision), "Cannot append "
+            // NOTE: The check below is ignored for a SearchRecord instance
+            // because it will legitimately appear that "duplicate" data has
+            // been added if similar data is added to the same key in a record
+            // at different times (i.e. adding John Doe and Johnny Doe to the
+            // "name")
+            Preconditions.checkArgument(this instanceof SearchRecord
+                    || isOffset(revision), "Cannot append "
                     + "%s because it represents an action "
                     + "involving a key, value and locator that has not "
                     + "been offset.", revision);
