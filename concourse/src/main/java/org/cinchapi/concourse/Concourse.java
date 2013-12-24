@@ -367,80 +367,9 @@ public abstract class Concourse {
     public abstract <T> boolean remove(String key, T value, long record);
 
     /**
-     * Atomically revert {@code key} in {@code record} to {@code timestamp}.
-     * This method restores the key to its state at {@code timestamp} by
-     * reversing all revisions that have occurred since.
-     * <p>
-     * Please note that this method <strong>does not</strong> {@code rollback}
-     * any revisions, but creates <em>new</em> revisions that are the inverse of
-     * all revisions since {@code timestamp} in reverse order.
-     * </p>
-     * <p>
-     * <table>
-     * <tr>
-     * <th>Time</th>
-     * <th>Revision</th>
-     * </tr>
-     * <tr>
-     * <td>T1</td>
-     * <td>ADD A</td>
-     * </tr>
-     * <tr>
-     * <td>T2</td>
-     * <td>ADD B</td>
-     * </tr>
-     * <tr>
-     * <td>T3</td>
-     * <td>REMOVE A</td>
-     * </tr>
-     * <tr>
-     * <td>T4</td>
-     * <td>ADD C</td>
-     * </tr>
-     * <tr>
-     * <td>T5</td>
-     * <td>REMOVE C</td>
-     * </tr>
-     * <tr>
-     * <td>T6</td>
-     * <td>REMOVE B</td>
-     * </tr>
-     * <tr>
-     * <td>T7</td>
-     * <td>ADD D</td>
-     * </tr>
-     * </table>
-     * In the example above, after {@code T7}, the field contains value
-     * {@code D}. If the field is reverted to T3, the following new revisions
-     * are added:
-     * <table>
-     * <tr>
-     * <th>Time</th>
-     * <th>Revision</th>
-     * </tr>
-     * <tr>
-     * <td>T8</td>
-     * <td>REMOVE D</td>
-     * </tr>
-     * <tr>
-     * <td>T9</td>
-     * <td>ADD B</td>
-     * </tr>
-     * <tr>
-     * <td>T10</td>
-     * <td>ADD C</td>
-     * </tr>
-     * <tr>
-     * <td>T11</td>
-     * <td>REMOVE C</td>
-     * </tr>
-     * </table>
-     * After {@code T11}, the field contains value {@code B}. Regardless of the
-     * current state, ever revision to the field exists in history so it is
-     * possible to revert to any previous state, even after reverting to a much
-     * earlier state (i.e. after reverting to {@code T3} it is possible to
-     * revert to {@code T5}).
-     * </p>
+     * Atomically revert {@code key} in {@code record} to {@code timestamp} by
+     * creating new revisions that undo some of the changes that have occurred
+     * since {@code timestamp}.
      * 
      * @param key
      * @param record
