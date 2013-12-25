@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -388,6 +389,54 @@ public abstract class StoreTest extends ConcourseBaseTest {
         addRecords(key, min, operator);
         Assert.assertEquals(records,
                 store.find(timestamp, key, operator, Convert.javaToThrift(min)));
+    }
+
+    @Test
+    public void testCaseInsensitiveSearch() { // CON-10
+        String key = Variables.register("key", "foo");
+        TObject value = null;
+        while (value == null
+                || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toUpperCase())) {
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toUpperCase()));
+        }
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query", value.toString()
+                .toLowerCase());
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
+    }
+
+    @Test
+    public void testCaseInsensitiveSearchB() {
+        String key = Variables.register("key", "foo");
+        TObject value = null;
+        while (value == null
+                || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toLowerCase())) {
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toLowerCase()));
+        }
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query", value.toString()
+                .toUpperCase());
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
+    }
+
+    @Test
+    public void testCaseInsensitiveSearchReproA() {
+        String key = Variables.register("key", "foo");
+        TObject value = Variables.register("value",
+                Convert.javaToThrift("5KPRAN6MT7RR X  P  ZBC4OMD0"));
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query",
+                "5kpran6mt7rr x  p  zbc4omd0");
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
     }
 
     @Test

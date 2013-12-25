@@ -64,7 +64,8 @@ public final class TStrings {
     public static boolean isInfixSearchMatch(String needle, String haystack) {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (String term : needle.split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
+        for (String term : needle
+                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
             if(!first) {
                 sb.append(REGEX_SINGLE_WHITESPACE);
             }
@@ -86,7 +87,8 @@ public final class TStrings {
      * @return A copy of {@code string} without stopwords
      */
     public static String stripStopWords(String string) {
-        String[] toks = string.split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+        String[] toks = string
+                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
         StringBuilder sb = new StringBuilder();
         for (String tok : toks) {
             if(!GlobalState.STOPWORDS.contains(tok)) {

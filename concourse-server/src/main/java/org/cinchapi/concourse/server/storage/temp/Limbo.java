@@ -414,9 +414,10 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
                  * substring of the term matches the term in the same relative
                  * position of the query.
                  */
-                String stored = TStrings.stripStopWords((String) (value
-                        .getObject()));
-                query = TStrings.stripStopWords(query);
+                // CON-10: compare lowercase for case insensitive search
+                String stored = TStrings.stripStopWords(((String) (value
+                        .getObject())).toLowerCase());
+                query = TStrings.stripStopWords(query.toLowerCase());
                 if(!Strings.isNullOrEmpty(stored)
                         && !Strings.isNullOrEmpty(query)
                         && TStrings.isInfixSearchMatch(query, stored)) {

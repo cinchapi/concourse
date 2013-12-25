@@ -423,9 +423,9 @@ public final class Database implements PermanentStore, VersionGetter {
         try {
             SearchRecord record = Record.createSearchRecordPartial(key, query);
             for (SearchBlock block : ctb) {
-                // Seek each work in the query to make sure that multi word
+                // Seek each word in the query to make sure that multi word
                 // search works.
-                String[] toks = query.toString().split(
+                String[] toks = query.toString().toLowerCase().split(
                         TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
                     block.seek(key, Text.wrap(tok), record);

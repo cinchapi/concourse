@@ -76,8 +76,10 @@ final class SearchRecord extends Record<Text, Text, Position> {
         read.lock();
         try {
             Multimap<PrimaryKey, Integer> reference = HashMultimap.create();
-            String[] toks = query.toString().split(
-                    TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+            String[] toks = query
+                    .toString()
+                    .toLowerCase()
+                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             boolean initial = true;
             int offset = 0;
             for (String tok : toks) {
