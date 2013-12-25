@@ -186,6 +186,11 @@ public final class ConcourseShell {
                                     + watch.elapsed(TimeUnit.MILLISECONDS)
                                     + " ms");
                         }
+                        else {
+                            System.out.println("Completed in "
+                                    + watch.elapsed(TimeUnit.MILLISECONDS)
+                                    + " ms");
+                        }
                     }
                     catch (Exception e) {
                         if(e.getCause() instanceof TTransportException) {
