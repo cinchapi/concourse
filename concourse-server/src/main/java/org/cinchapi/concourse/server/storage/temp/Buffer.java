@@ -206,16 +206,6 @@ public final class Buffer extends Limbo {
         return sb.toString();
     }
 
-    /**
-     * Return the location where the Buffer stores its data.
-     * 
-     * @return the backingStore
-     */
-    @Restricted
-    public String getBackingStore() {
-        return directory;
-    }
-
     @Override
     public Set<TObject> fetch(String key, long record) {
         transportLock.readLock().lock();
@@ -263,10 +253,65 @@ public final class Buffer extends Limbo {
     }
 
     @Override
+    public Set<Long> find(Map<Long, Set<TObject>> context, long timestamp,
+            String key, Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.find(context, timestamp, key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
             return super.find(key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return the location where the Buffer stores its data.
+     * 
+     * @return the backingStore
+     */
+    @Restricted
+    public String getBackingStore() {
+        return directory;
+    }
+
+    @Override
+    public long getVersion(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.getVersion(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public long getVersion(String key) {
+        transportLock.readLock().lock();
+        try {
+            return super.getVersion(key);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public long getVersion(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.getVersion(key, record);
         }
         finally {
             transportLock.readLock().unlock();
