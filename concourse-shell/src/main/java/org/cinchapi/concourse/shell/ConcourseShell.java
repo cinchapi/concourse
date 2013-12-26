@@ -163,6 +163,7 @@ public final class ConcourseShell {
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
                 if(line.equalsIgnoreCase("exit")) {
+                    concourse.exit();
                     System.exit(0);
                 }
                 else if(line.equalsIgnoreCase("help")
