@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import groovy.lang.Binding;
@@ -49,6 +50,7 @@ import com.beust.jcommander.Parameter;
 import com.clutch.dates.StringToTime;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
 /**
@@ -59,53 +61,6 @@ import com.google.common.primitives.Longs;
  * @author jnelson
  */
 public final class ConcourseShell {
-
-    /**
-     * The text that is displayed when the user requests HELP.
-     */
-    private static String HELP_TEXT = "";
-    static {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    ConcourseShell.class.getResourceAsStream("/man")));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.replaceAll("\"", "\\\\\"");
-                HELP_TEXT += line + System.getProperty("line.separator");
-            }
-            HELP_TEXT = HELP_TEXT.trim();
-            reader.close();
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * A closure that converts a string description to a timestamp.
-     */
-    private static Closure<Timestamp> STRING_TO_TIME = new Closure<Timestamp>(
-            null) {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public Timestamp call(Object arg) {
-            if(Longs.tryParse(arg.toString()) != null) {
-                // We should assume that the timestamp is in microseconds since
-                // that is the output format used in ConcourseShell
-                return Timestamp.fromMicros(Long.parseLong(arg.toString()));
-            }
-            else {
-                return Timestamp.fromJoda(StringToTime.parseDateTime(arg
-                        .toString()));
-            }
-        }
-
-    };
 
     /**
      * Run the program...
@@ -176,6 +131,10 @@ public final class ConcourseShell {
                                             + "\" | less > /dev/tty" });
                     p.waitFor();
                 }
+                else if(containsBannedCharSequence(line)) {
+                    System.err.println("Cannot complete command because "
+                            + "it contains an illegal character sequence.");
+                }
                 else {
                     watch.reset().start();
                     Object value = null;
@@ -232,6 +191,22 @@ public final class ConcourseShell {
     }
 
     /**
+     * Return {@code true} if {@code string} contains at last one of the
+     * {@link #BANNED_CHAR_SEQUENCES} strings.
+     * 
+     * @param string
+     * @return {@code true} if string contains a banned character sequence
+     */
+    private static boolean containsBannedCharSequence(String string) {
+        for (String charSequence : BANNED_CHAR_SEQUENCES) {
+            if(string.contains(charSequence)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Print {@code message} to stderr and exit with a non-zero status.
      * 
      * @param message
@@ -240,6 +215,62 @@ public final class ConcourseShell {
         System.err.println("ERROR: " + message);
         System.exit(127);
     }
+
+    /**
+     * A list of char sequences that we must ban for security and other
+     * miscellaneous purposes.
+     */
+    private static List<String> BANNED_CHAR_SEQUENCES = Lists.newArrayList(
+            "concourse.exit()", "concourse.username", "concourse.password",
+            "concourse.client");
+
+    /**
+     * The text that is displayed when the user requests HELP.
+     */
+    private static String HELP_TEXT = "";
+
+    static {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    ConcourseShell.class.getResourceAsStream("/man")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.replaceAll("\"", "\\\\\"");
+                HELP_TEXT += line + System.getProperty("line.separator");
+            }
+            HELP_TEXT = HELP_TEXT.trim();
+            reader.close();
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * A closure that converts a string description to a timestamp.
+     */
+    private static Closure<Timestamp> STRING_TO_TIME = new Closure<Timestamp>(
+            null) {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Timestamp call(Object arg) {
+            if(Longs.tryParse(arg.toString()) != null) {
+                // We should assume that the timestamp is in microseconds since
+                // that is the output format used in ConcourseShell
+                return Timestamp.fromMicros(Long.parseLong(arg.toString()));
+            }
+            else {
+                return Timestamp.fromJoda(StringToTime.parseDateTime(arg
+                        .toString()));
+            }
+        }
+
+    };
 
     /**
      * The options that can be passed to the main method of this script.
