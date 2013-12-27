@@ -37,6 +37,7 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
+import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -525,22 +526,13 @@ public final class Engine extends BufferedStore implements
 
         @Override
         public void run() {
-            while (running && transportLock.writeLock().tryLock()) {
-                buffer.transport(destination);
-                transportLock.writeLock().unlock();
-                try {
-                    Thread.sleep(5);
+            while (running) {
+                if(transportLock.writeLock().tryLock()) {
+                    buffer.transport(destination);
+                    transportLock.writeLock().unlock();
                 }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                    Thread.currentThread().interrupt();
-                    if(transportLock.writeLock().isHeldByCurrentThread()) {
-                        transportLock.writeLock().unlock();
-                    }
-                }
-
+                Threads.sleep(5);
             }
         }
-
     }
 }
