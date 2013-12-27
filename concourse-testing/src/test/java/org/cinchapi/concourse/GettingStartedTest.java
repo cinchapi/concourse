@@ -125,7 +125,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         Assert.assertTrue(it.next()
                 .startsWith("REMOVE baz AS 4 (INTEGER) IN 1"));
         Assert.assertTrue(it.next().startsWith("ADD baz AS 6 (INTEGER) IN 1"));
-        // Assert.assertTrue(it.next().startsWith("ADD count AS 1 (INTEGER) IN 1"));
+        Assert.assertTrue(it.next().startsWith("ADD count AS 1 (INTEGER) IN 1"));
 
         List<String> audit = Lists.newArrayList(client.audit(1).values());
         it = client.audit("age", 1).values().iterator();
@@ -168,11 +168,12 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
 
         // Historical Find
         t1 = client.audit(50).keySet().iterator().next();
-        Assert.assertTrue(client.find("count", Operator.GREATER_THAN, 50, t1).isEmpty());  
-        
+        Assert.assertTrue(client.find("count", Operator.GREATER_THAN, 50, t1)
+                .isEmpty());
+
         t1 = client.audit(500).keySet().iterator().next();
         set = client.find("count", Operator.GREATER_THAN, 50, t1);
-        for(long i = 51; i <= 500; i++){
+        for (long i = 51; i <= 500; i++) {
             Assert.assertTrue(set.contains(i));
         }
 
