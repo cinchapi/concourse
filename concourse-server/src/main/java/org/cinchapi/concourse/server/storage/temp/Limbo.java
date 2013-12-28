@@ -303,7 +303,7 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
         while (it.hasNext()) {
             Write write = it.next();
             long record = write.getRecord().longValue();
-            if(write.getVersion() <= timestamp) {
+            if(write.getVersion() < timestamp) {
                 if(write.getKey().toString().equals(key)
                         && matches(write.getValue(), operator, values)) {
                     Set<TObject> v = context.get(record);
@@ -436,6 +436,8 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
                 }
             }
         }
+        // FIXME sort search results based on frequency (see
+        // SearchRecord#search())
         return Maps.filterValues(rtv, emptySetFilter).keySet();
     }
 

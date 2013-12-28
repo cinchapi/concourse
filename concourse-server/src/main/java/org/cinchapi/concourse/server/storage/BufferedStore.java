@@ -205,6 +205,7 @@ public abstract class BufferedStore implements Store {
 
     @Override
     public Set<Long> search(String key, String query) {
+        // FIXME: should this be implemented using a context instead?
         return Sets.symmetricDifference(buffer.search(key, query),
                 destination.search(key, query));
     }

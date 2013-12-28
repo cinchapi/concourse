@@ -24,8 +24,10 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -57,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -662,6 +665,45 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testVerifyEmpty() {
         Assert.assertFalse(store.verify(TestData.getString(),
                 TestData.getTObject(), TestData.getLong()));
+    }
+
+    @Test
+    @Ignore("not implemented in Limbo")
+    public void testSearchResultSorting() {
+        // FIXME this is not implemented in Limbo (cause its very difficult) so
+        // right now search result order is undefined).
+        String key = Variables.register("key", TestData.getString());
+        String query = Variables.register("query", TestData.getString());
+        Map<Long, String> words = Variables.register("words",
+                Maps.<Long, String> newTreeMap());
+        for (long i = 0; i < 10; i++) {
+            String word = null;
+            while (Strings.isNullOrEmpty(word)
+                    || TStrings.isInfixSearchMatch(query, word)) {
+                word = TestData.getString();
+            }
+            for (long j = 0; j <= i; j++) {
+                word += " " + query;
+                String other = null;
+                while (Strings.isNullOrEmpty(other)
+                        || TStrings.isInfixSearchMatch(query, other)) {
+                    other = TestData.getString();
+                }
+                word += " " + other;
+            }
+            words.put(i, word);
+            add(key, Convert.javaToThrift(word), i);
+        }
+        Set<Long> expected = Variables.register("expected",
+                Sets.newTreeSet(Collections.<Long> reverseOrder()));
+        expected.addAll(words.keySet());
+        Set<Long> actual = Variables.register("actual",
+                store.search(key, query));
+        Iterator<Long> it = expected.iterator();
+        Iterator<Long> it2 = actual.iterator();
+        while (it.hasNext()) {
+            Assert.assertEquals(it.next(), it2.next());
+        }
     }
 
     /**

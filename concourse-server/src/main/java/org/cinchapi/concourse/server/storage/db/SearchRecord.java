@@ -25,7 +25,10 @@ package org.cinchapi.concourse.server.storage.db;
 
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -40,6 +43,8 @@ import org.cinchapi.concourse.util.TStrings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeMultimap;
 
 /**
  * A collection of n-gram indexes that enable fulltext infix searching. For
@@ -110,7 +115,20 @@ final class SearchRecord extends Record<Text, Text, Position> {
                 reference = temp;
                 offset = 0;
             }
-            return reference.keySet();
+
+            // Result Scoring: Scoring is simply the number of times the query
+            // appears in a document [e.g. the number of Positions mapped from
+            // key: #reference.get(key).size()]. The total number of positions
+            // in #reference is equal to the total number of times a document
+            // appears in the corpus [e.g. reference.asMap().values().size()].
+            Multimap<Integer, PrimaryKey> sorted = TreeMultimap.create(
+                    Collections.<Integer> reverseOrder(),
+                    PrimaryKey.Sorter.INSTANCE);
+            for (Entry<PrimaryKey, Collection<Integer>> entry : reference
+                    .asMap().entrySet()) {
+                sorted.put(entry.getValue().size(), entry.getKey());
+            }
+            return Sets.newLinkedHashSet(sorted.values());
         }
         finally {
             read.unlock();

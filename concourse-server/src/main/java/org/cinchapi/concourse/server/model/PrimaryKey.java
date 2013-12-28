@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -164,6 +165,21 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public String toString() {
         return UnsignedLongs.toString(data);
+    }
+
+    /**
+     * A {@link Comparator} that is used to sort PrimaryKey objects.
+     * 
+     * @author jnelson
+     */
+    public static enum Sorter implements Comparator<PrimaryKey> {
+        INSTANCE;
+
+        @Override
+        public int compare(PrimaryKey o1, PrimaryKey o2) {
+            return o1.compareTo(o2);
+        }
+
     }
 
 }
