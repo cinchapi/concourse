@@ -39,6 +39,9 @@ import com.google.common.base.Throwables;
  * This is the base class for all integration tests. This class contains logic
  * to setup a new {@link #server} and a corresponding {@link #client} connection
  * before every test. At the end of each test, those resources are cleaned up.
+ * <p>
+ * Interaction with the server goes through the {@link #client} variable.
+ * </p>
  * 
  * @author jnelson
  */
@@ -72,7 +75,7 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
     /**
      * The instance of the local server that is running. The subclass should not
      * need to access this directly because all calls should be funneled through
-     * the {@link client}.
+     * the {@link #client}.
      */
     private ConcourseServer server;
 
@@ -131,8 +134,7 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
 
         });
         t.start();
-        client = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin",
-                "admin");
+        client = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin", "admin");
     }
 
     /**
