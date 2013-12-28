@@ -41,8 +41,8 @@
 # DEBUG: detailed information about the system that can be used to diagnose bugs.
 #
 # Logging is important, but may cause performance degradation. Only use the DEBUG 
-# level for staging environments or instances when detailed information to diagnose 
-# a bug. Otherwise use the WARN or INFO levels.
+# level for staging environments or instances when detailed information is needed 
+# to diagnose a bug. Otherwise use the WARN or INFO levels.
 #
 # DEFAULT:
 #log_level = INFO
