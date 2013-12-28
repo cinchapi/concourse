@@ -88,7 +88,8 @@ public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     @Override
     public V put(K key, V value) {
         keyLength = Math.max(key.toString().length(), keyLength);
-        valueLength = Math.max(value.toString().length(), valueLength);
+        valueLength = Math.max(value != null ? value.toString().length() : 4,
+                valueLength);
         return super.put(key, value);
     }
 
