@@ -33,7 +33,7 @@ import org.cinchapi.concourse.time.Timestamp;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
