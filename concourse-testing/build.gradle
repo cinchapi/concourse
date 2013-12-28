@@ -1,0 +1,12 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+repositories {
+   mavenCentral()
+   mavenLocal()
+}
+
+dependencies {
+    compile 'mysql:mysql-connector-java:5.1.26'
+}
