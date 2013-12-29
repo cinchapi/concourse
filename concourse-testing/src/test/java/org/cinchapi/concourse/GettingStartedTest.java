@@ -185,7 +185,23 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         t1 = it2.next();
         Assert.assertTrue(client.verify("age", true, 1, t1));
 
-        // TODO search
+        // Search
+        String[] strings = { "The Cat in the Hat", "Green Eggs and Ham",
+                "Horton Hears a Who", "The Cat in the Hat Comes Back",
+                "Scrambled Eggs Super" };
+        
+        Set<Long> expected = Sets.newHashSet();       
+        for (int i = 0; i < 1000; i++) {
+            String value = strings[i % strings.length];
+            client.add("title", value, i);
+            if(value.contains("eggs")){
+                expected.add((long) i);
+            }
+        }      
+        Set<Long> actual = client.search("title", "eggs");
+        for(Long record : expected){
+            Assert.assertTrue(actual.contains(record));
+        }
 
     }
 }
