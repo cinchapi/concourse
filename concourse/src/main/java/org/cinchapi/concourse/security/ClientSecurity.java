@@ -69,7 +69,7 @@ public class ClientSecurity {
 
     /**
      * Decrpyt the specified {@code data} buffer. This method returns a byte
-     * array instead of a string so that the caller can set the array to
+     * buffer instead of a string so that the caller can set the buffer to
      * {@code null} once it is not longer in useful scope. Doing so will help to
      * narrow the window in which vulnerable information resides in memory.
      * 
