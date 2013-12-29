@@ -23,8 +23,8 @@
  */
 package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.concourse.server.io.StorableTest;
-import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.server.io.ByteableTest;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Numbers;
 import org.cinchapi.concourse.util.TestData;
@@ -41,116 +41,95 @@ import org.junit.runner.RunWith;
  * @author jnelson
  */
 @RunWith(Theories.class)
-public class ValueTest extends StorableTest {
+public class ValueTest extends ByteableTest {
 
-	public static @DataPoints
-	Object[] theories = { false, TestData.getDouble(), TestData.getFloat(),
-			TestData.getInt(), TestData.getLong(), TestData.getString() };
-	
-	@Test
-	public void testCompareToForStorageAndForStorage(){
-		Value v1 = TestData.getValueForStorage();
-		Value v2 = TestData.getValueForStorage();
-		Assert.assertTrue(v1.compareTo(v2) > 0);
-	}
-	
-	@Test
-	public void testCompareToForStorageAndNotForStorage(){
-		Value v1 = TestData.getValueForStorage();
-		Value v2 = TestData.getValueNotForStorage();
-		Assert.assertTrue(v1.compareTo(v2) < 0);
-	}
+    public static @DataPoints
+    Object[] objects = { false, TestData.getDouble(), TestData.getFloat(),
+            TestData.getInt(), TestData.getLong(), TestData.getString() };
 
-	@Test
-	@Theory
-	public void testCompareToLogically(Object q1) {
-		Object q2 = increase(q1);
-		Value v1 = Value.forStorage(Convert.javaToThrift(q1));
-		Value v2 = Value.forStorage(Convert.javaToThrift(q2));
-		Assert.assertTrue(v1.compareToLogically(v2) < 0);
-	}
+    public static @DataPoints
+    Number[] numbers = { TestData.getDouble(), TestData.getFloat(),
+            TestData.getInt(), TestData.getLong() };
 
-	@Test
-	public void testCompareToLogicallyNumbersDiffType() {
-		Number o1 = TestData.getNumber();
-		Number o2 = null;
-		while (o2 == null || o2.getClass() == o1.getClass()
-				|| Numbers.isEqualTo(o1, o2)) {
-			o2 = TestData.getNumber();
-		}
-		Assert.assertEquals(
-				Numbers.isGreaterThan(o1, o2),
-				Value.forStorage(Convert.javaToThrift(o1)).compareToLogically(
-						Value.forStorage(Convert.javaToThrift(o2))) > 0);
-	}
+    @Test
+    @Theory
+    public void testCompareTo(Object q1) {
+        Object q2 = increase(q1);
+        Value v1 = Variables.register("v1",
+                Value.wrap(Convert.javaToThrift(q1)));
+        Value v2 = Variables.register("v2",
+                Value.wrap(Convert.javaToThrift(q2)));
+        Assert.assertTrue(v1.compareTo(v2) < 0);
+    }
 
-	@Override
-	protected Value[] getForStorageAndNotForStorageVersionOfObject() {
-		TObject qty = TestData.getTObject();
-		return new Value[] { Value.forStorage(qty), Value.notForStorage(qty) };
-	}
+    @Test
+    @Theory
+    public void testCompareToDiffTypes(Number n1, Number n2) {
+        if(Numbers.isEqualTo(n1, n2)) {
+            Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+                    Value.wrap(Convert.javaToThrift(n2))) == 0);
+        }
+        else if(Numbers.isGreaterThan(n1, n2)) {
+            Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+                    Value.wrap(Convert.javaToThrift(n2))) > 0);
+        }
+        else {
+            Assert.assertTrue(Value.wrap(Convert.javaToThrift(n1)).compareTo(
+                    Value.wrap(Convert.javaToThrift(n2))) < 0);
+        }
+    }
 
-	@Override
-	protected Value getForStorageInstance() {
-		return TestData.getValueForStorage();
-	}
+    @Override
+    protected Class<Value> getTestClass() {
+        return Value.class;
+    }
 
-	@Override
-	protected Value getNotForStorageInstance() {
-		return TestData.getValueNotForStorage();
-	}
+    /**
+     * Return a random number of type {@code clazz}.
+     * 
+     * @param clazz
+     * @return a random Number
+     */
+    private Number getRandomNumber(Class<? extends Number> clazz) {
+        if(clazz == Integer.class) {
+            return TestData.getInt();
+        }
+        else if(clazz == Long.class) {
+            return TestData.getLong();
+        }
+        else if(clazz == Double.class) {
+            return TestData.getDouble();
+        }
+        else {
+            return TestData.getFloat();
+        }
+    }
 
-	@Override
-	protected Class<Value> getTestClass() {
-		return Value.class;
-	}
-
-	/**
-	 * Return a random number of type {@code clazz}.
-	 * 
-	 * @param clazz
-	 * @return a random Number
-	 */
-	private Number getRandomNumber(Class<? extends Number> clazz) {
-		if(clazz == Integer.class) {
-			return TestData.getInt();
-		}
-		else if(clazz == Long.class) {
-			return TestData.getLong();
-		}
-		else if(clazz == Double.class) {
-			return TestData.getDouble();
-		}
-		else {
-			return TestData.getFloat();
-		}
-	}
-
-	/**
-	 * Return an object that is logically greater than {code obj}.
-	 * 
-	 * @param obj
-	 * @return the increased object
-	 */
-	@SuppressWarnings("unchecked")
-	private Object increase(Object obj) {
-		if(obj instanceof Boolean) {
-			return !(boolean) obj;
-		}
-		else if(obj instanceof String) {
-			StringBuilder sb = new StringBuilder();
-			for (char c : ((String) obj).toCharArray()) {
-				sb.append(++c);
-			}
-			return sb.toString();
-		}
-		else {
-			Number n = null;
-			while (n == null || Numbers.isGreaterThan((Number) obj, n)) {
-				n = getRandomNumber((Class<? extends Number>) obj.getClass());
-			}
-			return n;
-		}
-	}
+    /**
+     * Return an object that is logically greater than {code obj}.
+     * 
+     * @param obj
+     * @return the increased object
+     */
+    @SuppressWarnings("unchecked")
+    private Object increase(Object obj) {
+        if(obj instanceof Boolean) {
+            return !(boolean) obj;
+        }
+        else if(obj instanceof String) {
+            StringBuilder sb = new StringBuilder();
+            for (char c : ((String) obj).toCharArray()) {
+                sb.append(++c);
+            }
+            return sb.toString();
+        }
+        else {
+            Number n = null;
+            while (n == null || Numbers.isGreaterThan((Number) obj, n)) {
+                n = getRandomNumber((Class<? extends Number>) obj.getClass());
+            }
+            return n;
+        }
+    }
 
 }

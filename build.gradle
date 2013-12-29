@@ -2,6 +2,17 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.8'
 }
 
+def getVersion = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'bash', 'version.sh'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+ext.globalVersion  = getVersion()
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
@@ -13,7 +24,7 @@ subprojects {
     }
 
     dependencies {
-	compile 'com.google.guava:guava:13.0.1'
+	compile 'com.google.guava:guava:15.0'
 	compile 'org.mockito:mockito-all:1.9.5'
 	compile 'commons-codec:commons-codec:1.8'
 	compile 'com.google.code.findbugs:jsr305:2.0.1'
@@ -27,8 +38,13 @@ subprojects {
 	testCompile 'junit:junit:4.11'
    }
 
+    group = 'org.cinchapi'
+    version = globalVersion
+
     jar {
-        manifest.attributes provider: 'gradle'
+        manifest {
+            attributes("Specificiation-Title": "Concourse", "Specificiation-Version": version, "Implementation-Version": version)
+        }
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -46,6 +62,4 @@ subprojects {
     	archives javadocJar
     }
 
-    group = 'org.cinchapi'
-    version = '0.1.0.' + (System.currentTimeMillis()/1000)
 }

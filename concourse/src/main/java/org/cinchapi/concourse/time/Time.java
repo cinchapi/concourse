@@ -30,16 +30,16 @@ package org.cinchapi.concourse.time;
  */
 public final class Time {
 
-	private static AtomicClock clock = new AtomicClock();
+    private static AtomicClock clock = new AtomicClock();
 
-	/**
-	 * Get the current timestamp. Use this throughout a project to make sure
-	 * that no time collisions happen.
-	 * 
-	 * @return the current timestamp.
-	 */
-	public static long now() {
-		return clock.time();
-	}
+    /**
+     * Get the current timestamp. Use this throughout a project to make sure
+     * that no time collisions happen.
+     * 
+     * @return the current timestamp.
+     */
+    public static long now() {
+        return clock.time();
+    }
 
 }

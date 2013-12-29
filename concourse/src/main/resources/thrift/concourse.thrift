@@ -1,7 +1,7 @@
 # This file defines the RPC protocol for Concourse client/server interaction
 # using Thrift. The services and resources that are defined in this file are 
 # not intended to be used by third parties, but they could be so they must meet
-# high standard of quality.
+# high standards of quality.
 # 
 # To generate java source code run:
 # thrift -out ../../java -gen java concourse.thrift 

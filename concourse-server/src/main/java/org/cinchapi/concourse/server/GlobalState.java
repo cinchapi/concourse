@@ -27,21 +27,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.cinchapi.concourse.config.ConcourseConfiguration;
-import org.cinchapi.concourse.server.model.Write;
-import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.util.Loggers;
-import org.slf4j.Logger;
+import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -51,141 +43,132 @@ import com.google.common.hash.Funnels;
  */
 public final class GlobalState {
 
-	/* ***************************** CONFIG ******************************** */
-	private static final ConcourseConfiguration config = ConcourseConfiguration
-			.loadConfig("concourse.prefs");
+    /**
+     * A flag to indicate if the program is running from Eclipse. This flag has
+     * a value of {@code true} if the JVM is launched with the
+     * {@code -Declipse=true} flag.
+     */
+    private static final boolean RUNNING_FROM_ECLIPSE = System
+            .getProperty("eclipse") != null
+            && System.getProperty("eclipse").equals("true") ? true : false;
 
-	/**
-	 * The absolute path to the directory where Concourse stores permanent data
-	 * on disk.
-	 */
-	public static final String DATABASE_DIRECTORY = config.getString(
-			"database_directory", System.getProperty("user.home")
-					+ File.separator + "concourse" + File.separator + "db");
+    /* ***************************** CONFIG ******************************** */
+    /*
+     * INSTRUCTIONS FOR ADDING CONFIGURATION PREFERENCES
+     * 1. Create the appropriately named static variable and assigned it a
+     * default value.
+     * 2. Find the // !!** CONFIG READING BLOCK **!! and attempt to read the
+     * value from the
+     * prefs file, while supplying the variable you made in Step 1 as the
+     * defaultValue.
+     * 3. Add a placeholder for the new preference to the stock concourse.prefs
+     * file in conf/concourse.prefs.
+     */
 
-	/**
-	 * The absolute path to the directory where Concourse stores buffer data on
-	 * disk.
-	 */
-	public static final String BUFFER_DIRECTORY = config.getString(
-			"buffer_directory", System.getProperty("user.home")
-					+ File.separator + "concourse" + File.separator + "buffer");
+    /**
+     * The absolute path to the directory where the Database record and index
+     * files are stored. For optimal performance, the Database should be
+     * placed on a separate disk partition (ideally a separate physical device)
+     * from the buffer_directory.
+     */
+    public static String DATABASE_DIRECTORY = System.getProperty("user.home")
+            + File.separator + "concourse" + File.separator + "db";
 
-	/**
-	 * The size of a single page in the {@link Buffer}. By using multiple Pages,
-	 * the Buffer can localize its locking when performing reads and writes.
-	 * When choosing a Page size, seek to balance the potential increased
-	 * throughput that smaller pages may produce with the potential for less
-	 * fragmented data storage that larger pages may produce.
-	 */
-	public static final int BUFFER_PAGE_SIZE = (int) config.getSize(
-			"buffer_page_size", 8192);
+    /**
+     * The absolute path to the directory where the Buffer data is stored.
+     * For optimal write performance, the Buffer should be placed on a
+     * separate disk partition (ideally a separate physical device) from
+     * the database_directory.
+     */
+    public static String BUFFER_DIRECTORY = System.getProperty("user.home")
+            + File.separator + "concourse" + File.separator + "buffer";
 
-	/**
-	 * The minimum number of characters to index for searches. This value is
-	 * usually equal to the number of characters a user must enter in an
-	 * autocomplete field before seeing search results. Smaller values allow
-	 * more granular searches at the expense of larger index sizes.
-	 */
-	public static final int MIN_SEARCH_INDEX_SIZE = config.getInt(
-			"min_search_index_size", 3);
+    /**
+     * The size for each page in the Buffer. During reads, Buffer pages
+     * are individually locked, so it is desirable to have several smaller
+     * pages as opposed to few larger ones. Nevertheless, be sure to balance
+     * the desire to maximize lock granularity with the risks of having too
+     * many open buffer files simultaneously.
+     */
+    public static int BUFFER_PAGE_SIZE = 8192;
 
-	/* ************************************************************************ */
-	public static final Logger log = Loggers.getLogger();
-	public static final BloomFilterWrapper BLOOM_FILTERS = new BloomFilterWrapper();
-	public static final Set<String> STOPWORDS = Sets.newHashSet();
-	static {
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(
-					"stopwords.txt"));
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				STOPWORDS.add(line);
-			}
-			reader.close();
-		}
-		catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
-	}
+    /**
+     * The port on which the ShutdownRunner listens.
+     */
+    public static int SHUTDOWN_PORT = 3434;
 
-	/**
-	 * A class that wraps a collection of {@link BloomFilter} objects. We use a
-	 * distinct BloomFilter for each key to determine if data with {@code key}
-	 * as {@code value} in {@code record} <em>probably</em> exists without
-	 * performing a disk lookup.
-	 * 
-	 * @author jnelson
-	 */
-	public static final class BloomFilterWrapper {
+    /**
+     * <p>
+     * The amount of runtime information logged by the system. The options below
+     * are listed from least to most verbose. In addition to the indicated types
+     * of information, each level also logs the information for each less
+     * verbose level (i.e. ERROR only prints error messages, but INFO prints
+     * info, warn and error messages).
+     * </p>
+     * <p>
+     * <ul>
+     * <li><strong>ERROR</strong>: critical information when the system reaches
+     * a potentially fatal state and may not operate normally.</li>
+     * <li><strong>WARN</strong>: useful information when the system reaches a
+     * less than ideal state but can continue to operate normally.</li>
+     * <li><strong>INFO</strong>: status information about the system that can
+     * be used for sanity checking.</li>
+     * <li><strong>DEBUG</strong>: detailed information about the system that
+     * can be used to diagnose bugs.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Logging is important, but may cause performance degradation. Only use the
+     * DEBUG level for staging environments or instances when detailed
+     * information to diagnose a bug. Otherwise use the WARN or INFO levels.
+     * </p>
+     */
+    public static Level LOG_LEVEL = Level.INFO;
 
-		/**
-		 * The expected number of bloom filters. This value should correspond to
-		 * the expected number of keys.
-		 */
-		private static final int EXPECTED_NUM_BLOOM_FILTERS = 100000;
+    /**
+     * Whether log messages should also be printed to the console.
+     */
+    public static boolean ENABLE_CONSOLE_LOGGING = RUNNING_FROM_ECLIPSE ? true
+            : false;
+    static {
+        ConcourseConfiguration config;
+        try {
+            config = ConcourseConfiguration.loadConfig("conf" + File.separator
+                    + "concourse.prefs");
+        }
+        catch (Exception e) {
+            config = null;
+        }
+        if(config != null) { // !!** CONFIG READING BLOCK **!!
+            DATABASE_DIRECTORY = config.getString("database_directory",
+                    DATABASE_DIRECTORY);
+            BUFFER_DIRECTORY = config.getString("buffer_directory",
+                    BUFFER_DIRECTORY);
+            BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
+                    BUFFER_PAGE_SIZE);
+            SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+            LOG_LEVEL = Level.valueOf(config.getString("log_level",
+                    LOG_LEVEL.toString()));
+            ENABLE_CONSOLE_LOGGING = config.getBoolean(
+                    "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+        }
+    }
 
-		/**
-		 * Mapping from key to bloom filter.
-		 */
-		private final Map<String, BloomFilter<Integer>> filters = Maps
-				.newHashMapWithExpectedSize(EXPECTED_NUM_BLOOM_FILTERS);
-
-		private BloomFilterWrapper() {/* Non-Initializable */};
-
-		/**
-		 * Add {@code key} as {@code value} to {@code record} in the appropriate
-		 * bloom filter.
-		 * 
-		 * @param key
-		 * @param value
-		 * @param record
-		 */
-		public void add(String key, TObject value, long record) {
-			BloomFilter<Integer> filter = filters.get(key);
-			if(filter == null) {
-				filter = BloomFilter.create(Funnels.integerFunnel(), 100000);
-				filters.put(key, filter);
-				log.info("Added new bloom filter for '{}'", key);
-			}
-			filter.put(Objects.hash(value, record));
-			log.debug("Added {} as {} to {} in a bloom filter", key, value,
-					record);
-		}
-
-		/**
-		 * Add {@code write} to the appropriate bloom filter.
-		 * 
-		 * @param write
-		 */
-		public void add(Write write) {
-			if(write.isForStorage()) {
-				add(write.getKey().toString(), write.getValue().getQuantity(),
-						write.getRecord().longValue());
-			}
-			else {
-				throw new IllegalArgumentException(
-						"Cannot add a notForStorage Write to a bloom filter");
-			}
-		}
-
-		/**
-		 * Verify that data with {@code key} as {@code value} in {@code record}
-		 * <em>probably</em> exists. If this function returns {@code true}, it
-		 * is necessary to check the appropriate record(s) for certainty.
-		 * However, if the function returns {@code false}, the caller can be
-		 * sure that the data does not exist.
-		 * 
-		 * @param key
-		 * @param value
-		 * @param record
-		 * @return {@code true} if the revision probably exists
-		 */
-		public boolean verify(String key, TObject value, long record) {
-			BloomFilter<Integer> filter = filters.get(key);
-			return filter == null ? false : filter.mightContain(Objects.hash(
-					value, record));
-		}
-	}
+    /* ************************************************************************ */
+    public static final Set<String> STOPWORDS = Sets.newHashSet();
+    static {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("conf"
+                    + File.separator + "stopwords.txt"));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                STOPWORDS.add(line);
+            }
+            reader.close();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
 }

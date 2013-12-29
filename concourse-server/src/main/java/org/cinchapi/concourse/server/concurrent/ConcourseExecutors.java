@@ -29,8 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
-import org.cinchapi.concourse.util.Loggers;
-import org.slf4j.Logger;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -42,86 +41,84 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @UtilityClass
 public final class ConcourseExecutors {
 
-	private static final Logger log = Loggers.getLogger();
+    /**
+     * Catches exceptions thrown from pooled threads. For the Database,
+     * exceptions will occur in the event that an attempt is made to write a
+     * duplicate non-offset write when the system shuts down in the middle of a
+     * buffer flush. Those exceptions can be ignored, so we catch them here and
+     * print log statements.
+     */
+    private static final UncaughtExceptionHandler uncaughtExceptionHandler;
+    static {
+        uncaughtExceptionHandler = new UncaughtExceptionHandler() {
 
-	/**
-	 * Catches exceptions thrown from pooled threads. For the Database,
-	 * exceptions will occur in the event that an attempt is made to write a
-	 * duplicate non-offset write when the system shuts down in the middle of a
-	 * buffer flush. Those exceptions can be ignored, so we catch them here and
-	 * print log statements.
-	 */
-	private static final UncaughtExceptionHandler uncaughtExceptionHandler;
-	static {
-		uncaughtExceptionHandler = new UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                Logger.warn("Uncaught exception in thread '{}'. This possibly "
+                        + "indicates that the system shutdown prematurely "
+                        + "during a buffer transport operation.", t);
+                Logger.warn("", e);
 
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				log.warn("Uncaught exception in thread '{}'. This possibly "
-						+ "indicates that the system shutdown prematurely "
-						+ "during a buffer transport operation.", t);
-				log.warn("", e);
+            }
 
-			}
+        };
+    }
 
-		};
-	}
+    /**
+     * Return a {@link ExecutorService} thread pool with {@code num} threads,
+     * each whose name is prefixed with {@code threadNamePrefix}.
+     * 
+     * @param num
+     * @param threadNamePrefix
+     * @return a new thread pool
+     */
+    public static ExecutorService newThreadPool(int num, String threadNamePrefix) {
+        return Executors.newFixedThreadPool(num,
+                getThreadFactory(threadNamePrefix));
+    }
 
-	/**
-	 * Return a {@link ExecutorService} thread pool with {@code num} threads,
-	 * each whose name is prefixed with {@code threadNamePrefix}.
-	 * 
-	 * @param num
-	 * @param threadNamePrefix
-	 * @return a new thread pool
-	 */
-	public static ExecutorService newThreadPool(int num, String threadNamePrefix) {
-		return Executors.newFixedThreadPool(num,
-				getThreadFactory(threadNamePrefix));
-	}
+    public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
+        return Executors
+                .newCachedThreadPool(getThreadFactory(threadNamePrefix));
+    }
 
-	public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
-		return Executors
-				.newCachedThreadPool(getThreadFactory(threadNamePrefix));
-	}
+    private static ThreadFactory getThreadFactory(String threadNamePrefix) {
+        return new ThreadFactoryBuilder()
+                .setNameFormat(threadNamePrefix + "-%d")
+                .setUncaughtExceptionHandler(uncaughtExceptionHandler).build();
+    }
 
-	private static ThreadFactory getThreadFactory(String threadNamePrefix) {
-		return new ThreadFactoryBuilder()
-				.setNameFormat(threadNamePrefix + "-%d")
-				.setUncaughtExceptionHandler(uncaughtExceptionHandler).build();
-	}
+    /**
+     * Create an {@link ExecutorService} thread pool with enough threads to
+     * execute {@code commands} and block until all the tasks have completed.
+     * 
+     * @param threadNamePrefix
+     * @param commands
+     */
+    public static void executeAndAwaitTermination(String threadNamePrefix,
+            Runnable... commands) {
+        executeAndAwaitTermination(
+                newThreadPool(commands.length, threadNamePrefix), commands);
+    }
 
-	/**
-	 * Create an {@link ExecutorService} thread pool with enough threads to
-	 * execute {@code commands} and block until all the tasks have completed.
-	 * 
-	 * @param threadNamePrefix
-	 * @param commands
-	 */
-	public static void executeAndAwaitTermination(String threadNamePrefix,
-			Runnable... commands) {
-		executeAndAwaitTermination(
-				newThreadPool(commands.length, threadNamePrefix), commands);
-	}
+    /**
+     * Execute {@code commands} using {@code executor} and block until all
+     * tasks have completed.
+     * 
+     * @param executor
+     * @param commands
+     */
+    public static void executeAndAwaitTermination(ExecutorService executor,
+            Runnable... commands) {
+        for (Runnable command : commands) {
+            executor.execute(command);
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+            continue; // block until all tasks have completed
+        }
+    }
 
-	/**
-	 * Execute {@code commands} using {@code executor} and block until all
-	 * tasks have completed.
-	 * 
-	 * @param executor
-	 * @param commands
-	 */
-	public static void executeAndAwaitTermination(ExecutorService executor,
-			Runnable... commands) {
-		for (Runnable command : commands) {
-			executor.execute(command);
-		}
-		executor.shutdown();
-		while (!executor.isTerminated()) {
-			continue; // block until all tasks have completed
-		}
-	}
-
-	private ConcourseExecutors() {/* utility-class */}
+    private ConcourseExecutors() {/* utility-class */}
 
 }

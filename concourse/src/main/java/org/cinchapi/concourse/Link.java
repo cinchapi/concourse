@@ -25,76 +25,95 @@ package org.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.cache.ReferenceCache;
-
 import com.google.common.primitives.Longs;
+import com.google.common.primitives.UnsignedLongs;
 
 /**
- * A {@link Link} is a pointer to the Primary Key of a Record.
+ * A {@link Link} is a wrapper around an unsigned 8 byte long that serves as the
+ * pointer to the primary key of a record.
  * 
  * @author jnelson
  */
+// NOTE: This class extends Number so that it can be treated like other
+// numerical Values during comparisons when the data is stored and sorted in a
+// SecondaryIndex for efficient range queries.
 @Immutable
-public final class Link {
+public final class Link extends Number implements Comparable<Link> {
 
-	/**
-	 * Return a Link to {@code record}
-	 * 
-	 * @param record
-	 * @return the Link
-	 */
-	@PackagePrivate
-	public static Link to(long record) {
-		Link pointer = cache.get(record);
-		if(pointer == null) {
-			pointer = new Link(record);
-			cache.put(pointer, record);
-		}
-		return pointer;
-	}
+    /**
+     * Return a Link that points to {@code record}.
+     * 
+     * @param record
+     * @return the Link
+     */
+    public static Link to(long record) {
+        return new Link(record);
+    }
 
-	// Since Links are unique, we use a cache to ensure that we don't
-	// create duplicate objects in memory;
-	private static final ReferenceCache<Link> cache = new ReferenceCache<Link>();
+    private static final long serialVersionUID = 1L; // Serializability is
+                                                     // inherited from {@link
+                                                     // Number}.
+    /**
+     * The signed representation for the primary key of the record to which this
+     * Link points.
+     */
+    private final long record;
 
-	private final long record;
+    /**
+     * Construct a new instance.
+     * 
+     * @param record
+     */
+    private Link(long record) {
+        this.record = record;
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param record
-	 */
-	private Link(long record) {
-		this.record = record;
-	}
+    @Override
+    public int compareTo(Link other) {
+        return UnsignedLongs.compare(longValue(), other.longValue());
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Link) {
-			Link other = (Link) obj;
-			return Longs.compare(record, other.record) == 0;
-		}
-		return false;
-	}
+    @Override
+    public double doubleValue() {
+        return (double) record;
+    }
 
-	@Override
-	public int hashCode() {
-		return Longs.hashCode(record);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Link) {
+            Link other = (Link) obj;
+            return UnsignedLongs.compare(record, other.record) == 0;
+        }
+        return false;
+    }
 
-	/**
-	 * Return the long value that is wrapped within the Link.
-	 * 
-	 * @return the long value
-	 */
-	public long longValue() {
-		return record;
-	}
+    @Override
+    public float floatValue() {
+        return (float) record;
+    }
 
-	@Override
-	public String toString() {
-		return Long.toString(record);
-	}
+    @Override
+    public int hashCode() {
+        return Longs.hashCode(record);
+    }
 
+    @Override
+    public int intValue() {
+        return (int) record;
+    }
+
+    @Override
+    public long longValue() {
+        return record;
+    }
+
+    @Override
+    public String toString() {
+        return UnsignedLongs.toString(longValue()); // for
+                                                    // compatibility
+                                                    // with
+                                                    // {@link
+                                                    // com.cinchapi.common.Numbers.compare(Number,
+                                                    // Number)}
+    }
 }

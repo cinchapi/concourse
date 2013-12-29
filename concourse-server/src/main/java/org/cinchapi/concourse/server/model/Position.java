@@ -26,206 +26,175 @@ package org.cinchapi.concourse.server.model;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.cache.ReferenceCache;
-import org.cinchapi.concourse.server.io.Byteables;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.base.Preconditions;
+
 /**
- * The association between a location and a {@link PrimaryKey}.
- * <p>
- * A Position is used in a {@link SearchIndex} to specify the precise location
- * of a term in a Record.
- * </p>
+ * A Position is an abstraction for the association between a
+ * relative location and a {@link PrimaryKey} that is used in a
+ * {@link SearchRecord} to specify the location of a term in a record.
  * 
  * @author jnelson
  */
 @Immutable
-public final class Position implements Comparable<Position>, Storable {
+public final class Position implements Byteable, Comparable<Position> {
 
-	/**
-	 * Return the Position encoded in {@code buffer} so long as those bytes
-	 * adhere to the format specified by the {@link #getBytes()} method. This
-	 * method assumes that all the bytes in the {@code buffer} belong to the
-	 * Value. In general, it is necessary to get the appropriate Value slice
-	 * from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param buffer
-	 * @return the Position
-	 */
-	public static Position fromByteBuffer(ByteBuffer buffer) {
-		return Byteables.read(buffer, Position.class); // We are using
-														// Byteables#read(ByteBuffer,
-														// Class) instead of
-														// calling
-														// the constructor
-														// directly
-														// so as to take
-														// advantage
-														// of the automatic
-														// reference caching
-														// that is
-														// provided in the
-														// utility
-														// class
-	}
+    /**
+     * Return the Position encoded in {@code bytes} so long as those bytes
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * Position. In general, it is necessary to get the appropriate Position
+     * slice from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the Position
+     */
+    public static Position fromByteBuffer(ByteBuffer bytes) {
+        PrimaryKey primaryKey = PrimaryKey.fromByteBuffer(ByteBuffers.get(
+                bytes, PrimaryKey.SIZE));
+        int index = bytes.getInt();
+        return new Position(primaryKey, index);
+    }
 
-	/**
-	 * Return a Position based on the {@code key} and {@code index}. The
-	 * Position will have the storage properties of {@code key} and a unique
-	 * timestamp.
-	 * 
-	 * @param key
-	 * @param index
-	 * @return the Position
-	 */
-	public static Position fromPrimaryKeyAndIndex(PrimaryKey key, int index) {
-		if(key.isForStorage()) { // need to make a new PrimaryKey to ensure that
-									// timestamp is unique
-			key = PrimaryKey.forStorage(key.longValue());
-		}
-		Object[] cacheKey = { key, index, key.getTimestamp() };
-		Position position = cache.get(cacheKey);
-		if(position == null) {
-			position = new Position(key, index);
-			cache.put(position, cacheKey);
-		}
-		return position;
-	}
+    /**
+     * Return a Position that is backed by {@code primaryKey} and {@code index}.
+     * 
+     * @param primaryKey
+     * @param index
+     * @return the Position
+     */
+    public static Position wrap(PrimaryKey primaryKey, int index) {
+        return new Position(primaryKey, index);
+    }
 
-	/**
-	 * The total number of bytes used to encoded each Position.
-	 */
-	@PackagePrivate
-	static final int SIZE = PrimaryKey.SIZE + 4; // index
+    /**
+     * The total number of bytes used to store each Position
+     */
+    public static final int SIZE = PrimaryKey.SIZE + 4; // index
 
-	/**
-	 * A ReferenceCache is generated in {@link Byteables} for Positions read
-	 * from ByteBuffers, so this cache is only for notForStorage Positions.
-	 */
-	private static final ReferenceCache<Position> cache = new ReferenceCache<Position>();
+    /**
+     * The PrimaryKey of the record that this Position represents.
+     */
+    private final PrimaryKey primaryKey;
 
-	/**
-	 * The version of the PrimaryKey is used to version the Position.
-	 */
-	private final PrimaryKey key;
+    /**
+     * The index that this Position represents.
+     */
+    private final int index;
 
-	/**
-	 * The numerical index the Position represents.
-	 */
-	private final int index;
+    /**
+     * A cached copy of the binary representation that is returned from
+     * {@link #getBytes()}.
+     */
+    private transient ByteBuffer bytes;
 
-	/**
-	 * Master byte sequence that represents this object. Read-only duplicates
-	 * are made when returning from {@link #getBytes()}.
-	 */
-	private final transient ByteBuffer bytes;
+    /**
+     * Construct a new instance.
+     * 
+     * @param primaryKey
+     * @param index
+     */
+    private Position(PrimaryKey primaryKey, int index) {
+        this(primaryKey, index, null);
+    }
 
-	/**
-	 * Construct an instance that represents an existing Position from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public Position(ByteBuffer bytes) {
-		this.bytes = bytes;
-		this.key = PrimaryKey.fromByteBuffer(bytes);
-		this.index = bytes.getInt();
-		bytes.rewind();
-	}
+    /**
+     * Construct a new instance.
+     * 
+     * @param primaryKey
+     * @param index
+     * @param bytes;
+     */
+    private Position(PrimaryKey primaryKey, int index,
+            @Nullable ByteBuffer bytes) {
+        Preconditions
+                .checkArgument(index >= 0, "Cannot have an negative index");
+        this.primaryKey = primaryKey;
+        this.index = index;
+        this.bytes = bytes;
+    }
 
-	/**
-	 * Construct a new instance.
-	 * 
-	 * @param key
-	 * @param index
-	 */
-	private Position(PrimaryKey key, int index) {
-		this.key = key;
-		this.index = index;
-		this.bytes = ByteBuffer.allocate(SIZE);
-		this.bytes.put(key.getBytes());
-		this.bytes.putInt(index);
-	}
+    @Override
+    public int compareTo(Position other) {
+        int comparison;
+        return (comparison = primaryKey.compareTo(other.primaryKey)) != 0 ? comparison
+                : Integer.compare(index, other.index);
+    }
 
-	@Override
-	public int compareTo(Position o) {
-		int comparison = getPrimaryKey().compareTo(o.getPrimaryKey(), true);
-		return comparison == 0 ? Integer.compare(getIndex(), o.getIndex())
-				: comparison;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Position) {
+            Position other = (Position) obj;
+            return primaryKey.equals(other.primaryKey) && index == other.index;
+        }
+        return false;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof Position) {
-			Position other = (Position) obj;
-			return Objects.equals(getPrimaryKey(), other.getPrimaryKey())
-					&& Objects.equals(getIndex(), other.getIndex());
-		}
-		return false;
-	}
+    /**
+     * Return a byte buffer that represents this Value with the following order:
+     * <ol>
+     * <li><strong>primaryKey</strong> - position 0</li>
+     * <li><strong>index</strong> - position 8</li>
+     * </ol>
+     * 
+     * @return the ByteBuffer representation
+     */
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = ByteBuffer.allocate(size());
+            bytes.put(primaryKey.getBytes());
+            // NOTE: Storing the index as an int instead of some size aware
+            // variable length is probably overkill since most indexes will be
+            // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
+            // size indexes means that the size of the entire Position (as an
+            // int) must be stored before the Position for proper
+            // deserialization. By storing the index as an int, the size of each
+            // Position is constant so we won't need to store the overall size
+            // prior to the Position to deserialize it, which is actually more
+            // space efficient.
+            bytes.putInt(index);
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	@Override
-	public ByteBuffer getBytes() {
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
+    /**
+     * Return the associated {@code index}.
+     * 
+     * @return the index
+     */
+    public int getIndex() {
+        return index;
+    }
 
-	/**
-	 * Return the location index that is associated with this Position.
-	 * 
-	 * @return the position
-	 */
-	@PackagePrivate
-	public int getIndex() {
-		return index;
-	}
+    /**
+     * Return the associated {@code primaryKey}.
+     * 
+     * @return the primaryKey
+     */
+    public PrimaryKey getPrimaryKey() {
+        return primaryKey;
+    }
 
-	/**
-	 * Return the PrimaryKey that is associated with this Position.
-	 * 
-	 * @return the PrimaryKey
-	 */
-	public PrimaryKey getPrimaryKey() {
-		return key;
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryKey, index);
+    }
 
-	@Override
-	public long getTimestamp() {
-		return key.getTimestamp();
-	}
+    @Override
+    public int size() {
+        return SIZE;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(key, index);
-	}
-
-	@Override
-	public boolean isForStorage() {
-		return Storables.isForStorage(this);
-	}
-
-	@Override
-	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
-	}
-
-	@Override
-	public int size() {
-		return SIZE;
-	}
-
-	@Override
-	public String toString() {
-		return "Position " + getIndex() + " in PrimaryRecord "
-				+ getPrimaryKey();
-	}
+    @Override
+    public String toString() {
+        return "Position " + index + " in Record " + primaryKey;
+    }
 
 }

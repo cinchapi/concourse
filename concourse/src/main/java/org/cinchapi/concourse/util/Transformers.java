@@ -30,7 +30,6 @@ import java.util.Set;
 import org.cinchapi.concourse.annotate.UtilityClass;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -42,69 +41,69 @@ import com.google.common.collect.Sets;
 @UtilityClass
 public final class Transformers {
 
-	/**
-	 * Return an array whose content is equal to the content of {@code original}
-	 * after it has been transformed by {@code function}.
-	 * 
-	 * @param original
-	 * @param function
-	 * @param vClass - the class object for the type to which the items in
-	 *            {@code original} will be transformed
-	 * @return the transformed array
-	 */
-	@SuppressWarnings("unchecked")
-	public static <F, V> V[] transformArray(F[] original,
-			Function<? super F, ? extends V> function, Class<V> vClass) {
-		V[] transformed = (V[]) Array.newInstance(vClass, original.length);
-		for (int i = 0; i < original.length; i++) {
-			F item = original[i];
-			transformed[i] = function.apply(item);
-		}
-		return transformed;
-	}
+    /**
+     * Return an array whose content is equal to the content of {@code original}
+     * after it has been transformed by {@code function}.
+     * 
+     * @param original
+     * @param function
+     * @param vClass - the class object for the type to which the items in
+     *            {@code original} will be transformed
+     * @return the transformed array
+     */
+    @SuppressWarnings("unchecked")
+    public static <F, V> V[] transformArray(F[] original,
+            Function<? super F, ? extends V> function, Class<V> vClass) {
+        V[] transformed = (V[]) Array.newInstance(vClass, original.length);
+        for (int i = 0; i < original.length; i++) {
+            F item = original[i];
+            transformed[i] = function.apply(item);
+        }
+        return transformed;
+    }
 
-	/**
-	 * Return a Map whose keys are equal to the those in {@code original} after
-	 * it has been transformed by {@code function}.
-	 * <p>
-	 * <strong>WARNING:</strong> There is the potential for data loss in the
-	 * event that {@code function} returns duplicate transformed results for
-	 * items in {@code original}.
-	 * </p>
-	 * 
-	 * @param original
-	 * @param function
-	 * @return the transformed Map
-	 */
-	public static <K, K2, V> Map<K2, V> transformMap(Map<K, V> original,
-			Function<? super K, ? extends K2> function) {
-		Map<K2, V> transformed = Maps.newLinkedHashMap();
-		for (Map.Entry<K, V> entry : original.entrySet()) {
-			transformed.put(function.apply(entry.getKey()), entry.getValue());
-		}
-		return transformed;
-	}
+    /**
+     * Return a Map whose keys are equal to the those in {@code original} after
+     * it has been transformed by {@code function}.
+     * <p>
+     * <strong>WARNING:</strong> There is the potential for data loss in the
+     * event that {@code function} returns duplicate transformed results for
+     * items in {@code original}.
+     * </p>
+     * 
+     * @param original
+     * @param function
+     * @return the transformed Map
+     */
+    public static <K, K2, V> Map<K2, V> transformMap(Map<K, V> original,
+            Function<? super K, ? extends K2> function) {
+        Map<K2, V> transformed = TLinkedHashMap.newTLinkedHashMap();
+        for (Map.Entry<K, V> entry : original.entrySet()) {
+            transformed.put(function.apply(entry.getKey()), entry.getValue());
+        }
+        return transformed;
+    }
 
-	/**
-	 * Populate {@code transformed} with the items in {@code original} after
-	 * applying {@code function}.
-	 * <p>
-	 * <strong>WARNING:</strong> There is the potential for data loss in the
-	 * event that {@code function} returns duplicate transformed results for
-	 * items in {@code original}.
-	 * </p>
-	 * 
-	 * @param original
-	 * @param function
-	 * @return the transformed Set
-	 */
-	public static <F, V> Set<V> transformSet(Set<F> original,
-			Function<? super F, ? extends V> function) {
-		Set<V> transformed = Sets.newLinkedHashSet();
-		for (F item : original) {
-			transformed.add(function.apply(item));
-		}
-		return transformed;
-	}
+    /**
+     * Populate {@code transformed} with the items in {@code original} after
+     * applying {@code function}.
+     * <p>
+     * <strong>WARNING:</strong> There is the potential for data loss in the
+     * event that {@code function} returns duplicate transformed results for
+     * items in {@code original}.
+     * </p>
+     * 
+     * @param original
+     * @param function
+     * @return the transformed Set
+     */
+    public static <F, V> Set<V> transformSet(Set<F> original,
+            Function<? super F, ? extends V> function) {
+        Set<V> transformed = Sets.newLinkedHashSet();
+        for (F item : original) {
+            transformed.add(function.apply(item));
+        }
+        return transformed;
+    }
 
 }

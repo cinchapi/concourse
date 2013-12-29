@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
+import org.cinchapi.concourse.server.model.TextTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -33,7 +34,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({PositionTest.class, PrimaryKeyTest.class, TextTest.class, ValueTest.class})
+@SuiteClasses({ PositionTest.class, PrimaryKeyTest.class, TextTest.class,
+        ValueTest.class })
 public class ModelSuite {
 
 }

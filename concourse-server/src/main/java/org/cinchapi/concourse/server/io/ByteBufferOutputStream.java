@@ -32,10 +32,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.cinchapi.concourse.server.concurrent.Lock;
-import org.cinchapi.concourse.server.concurrent.Lockable;
-import org.cinchapi.concourse.server.concurrent.Lockables;
-
 import com.google.common.collect.Lists;
 
 /**
@@ -52,303 +48,274 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public class ByteBufferOutputStream extends OutputStream implements Lockable {
+public class ByteBufferOutputStream extends OutputStream {
 
-	/**
-	 * We use an ArrayList to model a dynamically growing byte buffer output
-	 * stream.
-	 */
-	private final ArrayList<Byte> stream;
+    /**
+     * We use an ArrayList to model a dynamically growing byte buffer output
+     * stream.
+     */
+    private final ArrayList<Byte> stream;
 
-	/**
-	 * Construct a new byte buffer output stream.
-	 */
-	public ByteBufferOutputStream() {
-		this(32);
-	}
+    /**
+     * Construct a new byte buffer output stream.
+     */
+    public ByteBufferOutputStream() {
+        this(32);
+    }
 
-	/**
-	 * Construct a new byte buffer output stream with an initial capacity of the
-	 * specified {@code size} in bytes.
-	 * 
-	 * @param size
-	 */
-	public ByteBufferOutputStream(int size) {
-		this.stream = Lists.newArrayListWithCapacity(size);
-	}
+    /**
+     * Construct a new byte buffer output stream with an initial capacity of the
+     * specified {@code size} in bytes.
+     * 
+     * @param size
+     */
+    public ByteBufferOutputStream(int size) {
+        this.stream = Lists.newArrayListWithCapacity(size);
+    }
 
-	/**
-	 * Closing a <tt>ByteBufferOutputStream</tt> has no effect. The methods in
-	 * this class can be called after the stream has been closed without
-	 * generating an <tt>IOException</tt>.
-	 */
-	@Override
-	public void close() {}
+    /**
+     * Closing a <tt>ByteBufferOutputStream</tt> has no effect. The methods in
+     * this class can be called after the stream has been closed without
+     * generating an <tt>IOException</tt>.
+     */
+    @Override
+    public void close() {}
 
-	@Override
-	public Lock readLock() {
-		return Lockables.readLock(this);
-	}
+    /**
+     * Return the current size of the stream
+     * 
+     * @return the number of valid bytes in the stream
+     */
+    public int size() {
+        return stream.size();
+    }
 
-	/**
-	 * Return the current size of the stream
-	 * 
-	 * @return the number of valid bytes in the stream
-	 */
-	public int size() {
-		Lock lock = readLock();
-		try {
-			return stream.size();
-		}
-		finally {
-			lock.release();
-		}
-	}
+    /**
+     * Create a newly allocated ByteBuffer that contains the content of the
+     * stream. The ByteBuffer will have a capacity and limit of {@link #size()}
+     * and a position of 0.
+     * 
+     * @return the current content of the output stream as a ByteBuffer
+     */
+    public ByteBuffer toByteBuffer() {
+        return toByteBuffer(ByteBuffer.allocate(size()));
+    }
 
-	/**
-	 * Create a newly allocated ByteBuffer that contains the content of the
-	 * stream. The ByteBuffer will have a capacity and limit of {@link #size()}
-	 * and a position of 0.
-	 * 
-	 * @return the current content of the output stream as a ByteBuffer
-	 */
-	public ByteBuffer toByteBuffer() {
-		return toByteBuffer(ByteBuffer.allocate(size()));
-	}
+    /**
+     * Create a newly allocated DirectByteBuffer that contains the content of
+     * the
+     * stream. The ByteBuffer will have a capacity and limit of {@link #size()}
+     * and a position of 0.
+     * 
+     * @return the current content of the output stream as a ByteBuffer
+     */
+    public ByteBuffer toDirectByteBuffer() {
+        return toByteBuffer(ByteBuffer.allocateDirect(size()));
+    }
 
-	/**
-	 * Create a newly allocated DirectByteBuffer that contains the content of
-	 * the
-	 * stream. The ByteBuffer will have a capacity and limit of {@link #size()}
-	 * and a position of 0.
-	 * 
-	 * @return the current content of the output stream as a ByteBuffer
-	 */
-	public ByteBuffer toDirectByteBuffer() {
-		return toByteBuffer(ByteBuffer.allocateDirect(size()));
-	}
+    /**
+     * Create a newly allocated MappedByteBuffer that contains the content of
+     * the stream. The ByteBuffer will have a capacity and limit of
+     * {@link #size()} and a position of 0.
+     * 
+     * @return the current content of the output stream as a ByteBuffer
+     */
+    public MappedByteBuffer toMappedByteBuffer(String file, long position) {
+        return (MappedByteBuffer) toByteBuffer(FileSystem.map(file,
+                MapMode.READ_WRITE, position, size()));
+    }
 
-	/**
-	 * Create a newly allocated MappedByteBuffer that contains the content of
-	 * the stream. The ByteBuffer will have a capacity and limit of
-	 * {@link #size()} and a position of 0.
-	 * 
-	 * @return the current content of the output stream as a ByteBuffer
-	 */
-	public MappedByteBuffer toMappedByteBuffer(String file, long position) {
-		return (MappedByteBuffer) toByteBuffer(FileSystem.map(file,
-				MapMode.READ_WRITE, position, size()));
-	}
+    /**
+     * Write a byte that represents {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(boolean value) {
+        write(value ? (byte) 1 : (byte) 0);
+    }
 
-	/**
-	 * Write a byte that represents {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(boolean value) {
-		write(value ? (byte) 1 : (byte) 0);
-	}
+    /**
+     * Write {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(byte value) {
+        stream.add(value);
+    }
 
-	/**
-	 * Write {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(byte value) {
-		Lock lock = writeLock();
-		try {
-			stream.add(value);
-		}
-		finally {
-			lock.release();
-		}
+    @Override
+    public void write(byte[] bytes) {
+        for (byte b : bytes) {
+            write(b);
+        }
+    }
 
-	}
+    @Override
+    public void write(byte[] b, int off, int len) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void write(byte[] bytes) {
-		for (byte b : bytes) {
-			write(b);
-		}
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(Byteable value) {
+        write(value.getBytes());
+    }
 
-	@Override
-	public void write(byte[] b, int off, int len) {
-		throw new UnsupportedOperationException();
-	}
+    /**
+     * Write the remaining bytes from {@code buffer} to the stream.
+     * 
+     * @param buffer
+     */
+    public void write(ByteBuffer buffer) {
+        while (buffer.hasRemaining()) {
+            write(buffer.get());
+        }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(Byteable value) {
-		write(value.getBytes());
-	}
+    }
 
-	/**
-	 * Write the remaining bytes from {@code buffer} to the stream.
-	 * 
-	 * @param buffer
-	 */
-	public void write(ByteBuffer buffer) {
-		while (buffer.hasRemaining()) {
-			write(buffer.get());
-		}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(double value) {
+        write(Double.doubleToRawLongBits(value));
+    }
 
-	}
+    /**
+     * Write the bytes for the enum ordinal of {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(Enum<?> value) {
+        write(value.ordinal());
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(double value) {
-		write(Double.doubleToRawLongBits(value));
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(float value) {
+        write(Float.floatToRawIntBits(value));
+    }
 
-	/**
-	 * Write the bytes for the enum ordinal of {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(Enum<?> value) {
-		write(value.ordinal());
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    @Override
+    public void write(int value) {
+        write((byte) (value >> 24));
+        write((byte) (value >> 16));
+        write((byte) (value >> 8));
+        write((byte) (value));
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(float value) {
-		write(Float.floatToRawIntBits(value));
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(long value) {
+        write((byte) (value >> 56));
+        write((byte) (value >> 48));
+        write((byte) (value >> 40));
+        write((byte) (value >> 32));
+        write((byte) (value >> 24));
+        write((byte) (value >> 16));
+        write((byte) (value >> 8));
+        write((byte) (value));
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	@Override
-	public void write(int value) {
-		write((byte) (value >> 24));
-		write((byte) (value >> 16));
-		write((byte) (value >> 8));
-		write((byte) (value));
-	}
+    /**
+     * Write the bytes for {@code value} to the stream. This method will check
+     * to see if {@code value} is an instance of a primitive type and write the
+     * bytes accordingly. If {@code value} is not a primitive type, then a UTF-8
+     * encoded byte array from the toString() method will be written to the
+     * stream.
+     * 
+     * @param value
+     */
+    public void write(Object value) {
+        if(value instanceof Byte) {
+            write((byte) value);
+        }
+        else if(value instanceof Integer) {
+            write((int) value);
+        }
+        else if(value instanceof Boolean) {
+            write((boolean) value);
+        }
+        else if(value instanceof Long) {
+            write((long) value);
+        }
+        else if(value instanceof Float) {
+            write((float) value);
+        }
+        else if(value instanceof Double) {
+            write((double) value);
+        }
+        else {
+            write(value.toString());
+        }
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(long value) {
-		write((byte) (value >> 56));
-		write((byte) (value >> 48));
-		write((byte) (value >> 40));
-		write((byte) (value >> 32));
-		write((byte) (value >> 24));
-		write((byte) (value >> 16));
-		write((byte) (value >> 8));
-		write((byte) (value));
-	}
+    /**
+     * UTF-8 encode {@code value} and write the bytes to the stream.
+     * 
+     * @param value
+     */
+    public void write(String value) {
+        write(value, StandardCharsets.UTF_8);
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream. This method will check
-	 * to see if {@code value} is an instance of a primitive type and write the
-	 * bytes accordingly. If {@code value} is not a primitive type, then a UTF-8
-	 * encoded byte array from the toString() method will be written to the
-	 * stream.
-	 * 
-	 * @param value
-	 */
-	public void write(Object value) {
-		if(value instanceof Byte) {
-			write((byte) value);
-		}
-		else if(value instanceof Integer) {
-			write((int) value);
-		}
-		else if(value instanceof Boolean) {
-			write((boolean) value);
-		}
-		else if(value instanceof Long) {
-			write((long) value);
-		}
-		else if(value instanceof Float) {
-			write((float) value);
-		}
-		else if(value instanceof Double) {
-			write((double) value);
-		}
-		else {
-			write(value.toString());
-		}
-	}
+    /**
+     * Encode {@code value} using {@code charset} and write the bytes to the
+     * stream.
+     * 
+     * @param value
+     * @param charset
+     */
+    public void write(String value, Charset charset) {
+        write(value.getBytes(charset));
+    }
 
-	/**
-	 * UTF-8 encode {@code value} and write the bytes to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(String value) {
-		write(value, StandardCharsets.UTF_8);
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     */
+    public void write(Collection<? extends Byteable> value) {
+        write(ByteableCollections.toByteBuffer(value));
+    }
 
-	/**
-	 * Encode {@code value} using {@code charset} and write the bytes to the
-	 * stream.
-	 * 
-	 * @param value
-	 * @param charset
-	 */
-	public void write(String value, Charset charset) {
-		write(value.getBytes(charset));
-	}
+    /**
+     * Write the bytes for {@code value} to the stream.
+     * 
+     * @param value
+     * @param sizePerElement
+     */
+    public void write(Collection<? extends Byteable> value, int sizePerElement) {
+        write(ByteableCollections.toByteBuffer(value, sizePerElement));
+    }
 
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 */
-	public void write(Collection<? extends Byteable> value) {
-		write(ByteableCollections.toByteBuffer(value));
-	}
-
-	/**
-	 * Write the bytes for {@code value} to the stream.
-	 * 
-	 * @param value
-	 * @param sizePerElement
-	 */
-	public void write(Collection<? extends Byteable> value, int sizePerElement) {
-		write(ByteableCollections.toByteBuffer(value, sizePerElement));
-	}
-
-	@Override
-	public Lock writeLock() {
-		return Lockables.writeLock(this);
-	}
-
-	/**
-	 * Write the contents of the stream to {@code buffer}.
-	 * 
-	 * @param buffer
-	 * @return {@code buffer}
-	 */
-	private ByteBuffer toByteBuffer(ByteBuffer buffer) {
-		Lock lock = readLock();
-		try {
-			for (byte b : stream) {
-				buffer.put(b);
-			}
-			buffer.rewind();
-			return buffer;
-		}
-		finally {
-			lock.release();
-		}
-	}
+    /**
+     * Write the contents of the stream to {@code buffer}.
+     * 
+     * @param buffer
+     * @return {@code buffer}
+     */
+    private ByteBuffer toByteBuffer(ByteBuffer buffer) {
+        for (byte b : stream) {
+            buffer.put(b);
+        }
+        buffer.rewind();
+        return buffer;
+    }
 
 }

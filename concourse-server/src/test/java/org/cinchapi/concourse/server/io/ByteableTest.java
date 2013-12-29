@@ -23,8 +23,13 @@
  */
 package org.cinchapi.concourse.server.io;
 
+import java.lang.reflect.Method;
+
+import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.base.Throwables;
 
 /**
  * Tests for {@link Byteable} objects.
@@ -33,25 +38,44 @@ import org.junit.Test;
  */
 public abstract class ByteableTest {
 
-	/**
-	 * Return a random instance of the test class.
-	 * 
-	 * @return a random instance
-	 */
-	protected abstract Byteable getRandomTestInstance();
+    /**
+     * Return a random instance of the test class defined in
+     * {@link #getTestClass()}. This method assumes that there is a method in
+     * {@link TestData} that takes no arguments and returns the appropriate
+     * type.
+     * 
+     * @return a random instance
+     */
+    protected Byteable getRandomTestInstance() {
+        try {
+            for (Method method : TestData.class.getMethods()) {
+                if(method.getReturnType() == getTestClass()
+                        && method.getParameterTypes().length == 0) {
+                    return (Byteable) method.invoke(null);
+                }
+            }
+            throw new IllegalStateException(
+                    "There is no method in TestData that takes no parameters and returns a "
+                            + getTestClass());
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
 
-	/**
-	 * Return the test class
-	 * 
-	 * @return the test class
-	 */
-	protected abstract Class<?> getTestClass();
+    }
 
-	@Test
-	public void testSerialization() {
-		Byteable object = getRandomTestInstance();
-		Assert.assertTrue(Byteables.read(object.getBytes(), getTestClass())
-				.equals(object));
-	}
+    /**
+     * Return the test class
+     * 
+     * @return the test class
+     */
+    protected abstract Class<? extends Byteable> getTestClass();
+
+    @Test
+    public void testSerialization() {
+        Byteable object = getRandomTestInstance();
+        Assert.assertTrue(Byteables.readStatic(object.getBytes(),
+                getTestClass()).equals(object));
+    }
 
 }

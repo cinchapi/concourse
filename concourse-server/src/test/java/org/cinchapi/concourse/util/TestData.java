@@ -23,12 +23,29 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+
+import org.cinchapi.concourse.server.concurrent.IdentifiableReentrantReadWriteLock;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Position;
-import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.model.Write;
+import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.storage.Action;
+import org.cinchapi.concourse.server.storage.PrimaryRevision;
+import org.cinchapi.concourse.server.storage.Revision;
+import org.cinchapi.concourse.server.storage.SearchRevision;
+import org.cinchapi.concourse.server.storage.SecondaryRevision;
+import org.cinchapi.concourse.server.storage.Write;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
+
+import com.beust.jcommander.internal.Lists;
+import com.google.common.base.Throwables;
 
 /**
  * A utility class for getting test data.
@@ -37,97 +54,102 @@ import org.cinchapi.concourse.thrift.TObject;
  */
 public final class TestData extends Random {
 
-	/**
-	 * Return a random {@link Position}.
-	 * 
-	 * @return a Position
-	 */
-	public static Position getPosition() {
-		return Position.fromPrimaryKeyAndIndex(getPrimaryKeyForStorage(),
-				Math.abs(getInt()));
-	}
+    public static final String DATA_DIR = "test.out/buffer";
 
-	/**
-	 * Return a random forStorage {@link PrimaryKey}.
-	 * 
-	 * @return a PrimaryKey
-	 */
-	public static PrimaryKey getPrimaryKeyForStorage() {
-		return PrimaryKey.forStorage(getLong());
-	}
+    public static PrimaryRevision getPrimaryRevision() {
+        return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+                getValue(), Time.now(), Action.ADD);
+    }
 
-	/**
-	 * Return a random notForStorage {@link PrimaryKey}.
-	 * 
-	 * @return a PrimaryKey
-	 */
-	public static PrimaryKey getPrimaryKeyNotForStorage() {
-		return PrimaryKey.notForStorage(getLong());
-	}
+    public static SearchRevision getSearchRevision() {
+        return Revision.createSearchRevision(getText(), getText(),
+                getPosition(), Time.now(), Action.ADD);
+    }
 
-	/**
-	 * Return a random {@link Text}.
-	 * 
-	 * @return a Text
-	 */
-	public static Text getText() {
-		return Text.fromString(getString());
-	}
+    public static SecondaryRevision getSecondaryRevision() {
+        return Revision.createSecondaryRevision(getText(), getValue(),
+                getPrimaryKey(), Time.now(), Action.ADD);
+    }
 
-	/**
-	 * Return a random {@link TObject}
-	 * 
-	 * @return a TObject
-	 */
-	public static TObject getTObject() {
-		return Convert.javaToThrift(getObject());
-	}
+    public static IdentifiableReentrantReadWriteLock getIdentifiableReentrantReadWriteLock() {
+        Byteable[] components = new Byteable[Math.abs(TestData.getScaleCount())];
+        for (int i = 0; i < components.length; i++) {
+            components[i] = TestData.getValue();
+        }
+        return IdentifiableReentrantReadWriteLock.create(components);
+    }
 
-	/**
-	 * Get a random forStorage {@link Value}.
-	 * 
-	 * @return a Value
-	 */
-	public static Value getValueForStorage() {
-		return Value.forStorage(getTObject());
-	}
+    /**
+     * Return a random {@link Position}.
+     * 
+     * @return a Position
+     */
+    public static Position getPosition() {
+        return Position.wrap(getPrimaryKey(), Math.abs(getInt()));
+    }
 
-	/**
-	 * Get a random notForStorage {@link Value}.
-	 * 
-	 * @return a Value
-	 */
-	public static Value getValueNotForStorage() {
-		return Value.notForStorage(getTObject());
-	}
+    public static PrimaryKey getPrimaryKey() {
+        return PrimaryKey.wrap(getLong());
+    }
 
-	/**
-	 * Return a random Write with ADD type.
-	 * 
-	 * @return a Write
-	 */
-	public static Write getWriteAdd() {
-		return Write.add(getString(), getTObject(), getLong());
-	}
+    /**
+     * Return a random {@link Text}.
+     * 
+     * @return a Text
+     */
+    public static Text getText() {
+        return Text.wrap(getString());
+    }
 
-	/**
-	 * Return a random notForStorage Write.
-	 * 
-	 * @return a Write
-	 */
-	public static Write getWriteNotForStorage() {
-		return Write.notForStorage(getString(), getTObject(), getLong());
-	}
+    /**
+     * Return a random {@link TObject}
+     * 
+     * @return a TObject
+     */
+    public static TObject getTObject() {
+        return Convert.javaToThrift(getObject());
+    }
 
-	/**
-	 * Return a random Write with REMOVE type.
-	 * 
-	 * @return a Write
-	 */
-	public static Write getWriteRemove() {
-		return Write.add(getString(), getTObject(), getLong());
-	}
+    public static Value getValue() {
+        return Value.wrap(getTObject());
+    }
 
-	private TestData() {/* Utility class */}
+    public static Write getWriteAdd() {
+        return Write.add(getString(), getTObject(), getLong());
+    }
+
+    public static Write getWriteRemove() {
+        return Write.remove(getString(), getTObject(), getLong());
+    }
+
+    public static Write getWriteNotStorable() {
+        return Write.notStorable(getString(), getTObject(), getLong());
+    }
+
+    /**
+     * Get each line from the words.txt file
+     * 
+     * @return
+     */
+    public static Iterable<String> getWordsDotTxt() {
+        try {
+            File file = new File(TestData.class.getResource("/words.txt")
+                    .getFile());
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            List<String> lines = Lists.newArrayList();
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+            reader.close();
+            return lines;
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+
+    }
+
+    private TestData() {/* Utility class */}
 
 }

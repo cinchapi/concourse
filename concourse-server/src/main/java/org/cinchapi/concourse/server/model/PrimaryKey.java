@@ -25,273 +25,145 @@ package org.cinchapi.concourse.server.model;
 
 import java.nio.ByteBuffer;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.cache.ReferenceCache;
-import org.cinchapi.concourse.server.io.Byteables;
-import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
 
-import com.google.common.base.Objects;
+import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
- * A {@link Storable} primary identifier for a normalized {@link Record}.
- * <p>
- * Each key is an unsigned 8 byte long paired with an 8 byte timestamp. The
- * total required storage space is {@value #SIZE} bytes.
- * </p>
- * <p>
- * The pool of possible keys ranges from 0 to 2^64 1 inclusive.
- * </p>
+ * A PrimaryKey is an abstraction for an 8 byte long that represents the
+ * canonical identifier for a normalized {@link Record}. The pool of possible
+ * keys ranges from 0 to 2^64 1 inclusive.
  * 
  * @author jnelson
  */
-// NOTE: This class extends Number so that it can be treated like other
-// numerical values during comparisons. Whenever a field contains a link,
-// the linked PrimaryKey is stored as a {@link Value} which is expected to be
-// sorted amongst other values as if it were a Long.
 @Immutable
-public final class PrimaryKey extends Number implements
-		Comparable<PrimaryKey>,
-		Storable {
+public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
 
-	/**
-	 * Return a key that is appropriate for storage, with the current
-	 * timestamp.
-	 * 
-	 * @param value
-	 * @return the PrimaryKey
-	 */
-	public static PrimaryKey forStorage(long value) {
-		return new PrimaryKey(value, Time.now());
-	}
+    /**
+     * Return the PrimaryKey encoded in {@code bytes} so long as those bytes
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * PrimaryKey. In general, it is necessary to get the appropriate PrimaryKey
+     * slice
+     * from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the PrimaryKey
+     */
+    public static PrimaryKey fromByteBuffer(ByteBuffer bytes) {
+        long data = bytes.getLong();
+        return new PrimaryKey(data, bytes);
+    }
 
-	/**
-	 * Return the PrimaryKey encoded in {@code buffer} so long as those bytes
-	 * adhere to the format specified by the {@link #getBytes()} method. This
-	 * method assumes that all the bytes in the {@code buffer} belong to the
-	 * Value. In general, it is necessary to get the appropriate Value slice
-	 * from the parent ByteBuffer using
-	 * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-	 * 
-	 * @param buffer
-	 * @return the PrimaryKey
-	 */
-	public static PrimaryKey fromByteBuffer(ByteBuffer buffer) {
-		return Byteables.read(buffer, PrimaryKey.class); // We are using
-															// Byteables#read(ByteBuffer,
-															// Class) instead of
-															// calling
-															// the constructor
-															// directly
-															// so as to take
-															// advantage
-															// of the automatic
-															// reference caching
-															// that is
-															// provided in the
-															// utility
-															// class
-	}
+    /**
+     * Return a PrimaryKey that is backed by {@code data}.
+     * 
+     * @param data
+     * @return the PrimaryKey
+     */
+    public static PrimaryKey wrap(long data) {
+        return new PrimaryKey(data);
+    }
 
-	/**
-	 * Return a PrimaryKey that is not appropriate for storage, but can be used
-	 * in comparisons. This is the preferred way to create keys unless the key
-	 * will be stored.
-	 * 
-	 * @param value
-	 * @return the PrimaryKey
-	 */
-	public static PrimaryKey notForStorage(long value) {
-		Object[] cacheKey = { value, NO_TIMESTAMP };
-		PrimaryKey key = cache.get(cacheKey);
-		if(key == null) {
-			key = new PrimaryKey(value);
-			cache.put(key, cacheKey);
-		}
-		return key;
-	}
+    /**
+     * The total number of bytes used to encode a PrimaryKey.
+     */
+    public static final int SIZE = 8;
 
-	@PackagePrivate
-	static final int SIZE = 16; // timestamp, number
+    /**
+     * The underlying data that represents this PrimaryKey.
+     */
+    private final long data;
 
-	/**
-	 * A ReferenceCache is generated in {@link Byteables} for PrimaryKeys read
-	 * from ByteBuffers, so this cache is only for notForStorage PrimaryKeys.
-	 */
-	private static final ReferenceCache<PrimaryKey> cache = new ReferenceCache<PrimaryKey>();
+    /**
+     * A cached copy of the binary representation that is returned from
+     * {@link #getBytes()}.
+     */
+    private transient ByteBuffer bytes = null;
 
-	/**
-	 * Serializability is inherited from {@link Number}.
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     */
+    private PrimaryKey(long data) {
+        this(data, null);
+    }
 
-	/**
-	 * The {@code timestamp} is used to version the PrimaryKey when used as a
-	 * {@link Storable} value.
-	 */
-	private final long timestamp;
+    /**
+     * Construct a new instance.
+     * 
+     * @param data
+     * @param bytes
+     */
+    private PrimaryKey(long data, @Nullable ByteBuffer bytes) {
+        this.data = data;
+        this.bytes = bytes;
+    }
 
-	/**
-	 * The {@code number} captures the numerical value quantity.
-	 */
-	private final long number;
+    /**
+     * Compares keys such that they are sorted in ascending order.
+     */
+    @Override
+    public int compareTo(PrimaryKey other) {
+        return UnsignedLongs.compare(data, other.data);
+    }
 
-	/**
-	 * Master byte sequence that represents this object. Read-only duplicates
-	 * are made when returning from {@link #getBytes()}.
-	 */
-	private final transient ByteBuffer bytes;
+    @Override
+    public int size() {
+        return SIZE;
+    }
 
-	/**
-	 * Construct an instance that represents an existing PrimaryKey from a
-	 * ByteBuffer. This constructor is public so as to comply with the
-	 * {@link Byteable} interface. Calling this constructor directly is not
-	 * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-	 * advantage of reference caching.
-	 * 
-	 * @param bytes
-	 */
-	@DoNotInvoke
-	public PrimaryKey(ByteBuffer bytes) {
-		this.bytes = bytes;
-		this.timestamp = bytes.getLong();
-		this.number = bytes.getLong();
-	}
+    /**
+     * Return a byte buffer that represents this PrimaryKey with the following
+     * order:
+     * <ol>
+     * <li><strong>data</strong> - position 0</li>
+     * </ol>
+     * 
+     * @return the ByteBuffer representation
+     */
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = ByteBuffer.allocate(SIZE);
+            bytes.putLong(data);
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
 
-	/**
-	 * Construct a new notForStorage instance.
-	 * 
-	 * @param number
-	 */
-	private PrimaryKey(long number) {
-		this(number, NO_TIMESTAMP);
-	}
+    @Override
+    public int hashCode() {
+        return Longs.hashCode(data);
+    }
 
-	/**
-	 * Construct a forStorage instance.
-	 * 
-	 * @param number
-	 * @param timestamp
-	 */
-	private PrimaryKey(long number, long timestamp) {
-		this.number = number;
-		this.timestamp = timestamp;
-		this.bytes = ByteBuffer.allocate(SIZE);
-		this.bytes.putLong(timestamp);
-		this.bytes.putLong(number);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof PrimaryKey) {
+            final PrimaryKey other = (PrimaryKey) obj;
+            return Longs.compare(data, other.data) == 0;
+        }
+        return false;
+    }
 
-	/**
-	 * Compares keys such that they are sorted in ascending order.
-	 */
-	@Override
-	public int compareTo(PrimaryKey o) {
-		return UnsignedLongs.compare(longValue(), o.longValue());
-	}
+    /**
+     * Return the long representation of this PrimaryKey.
+     * 
+     * @return the long value
+     */
+    public long longValue() {
+        return data;
+    }
 
-	/**
-	 * Determine if the comparison to {@code o} should be done temporally or
-	 * {@code logically}.
-	 * 
-	 * @param o
-	 * @param logically
-	 *            if {@code true} the value based comparison occurs, otherwise
-	 *            based on timestamp/equality
-	 * @return a negative integer, zero, or a positive integer as this object is
-	 *         less than, equal to, or greater than the specified object.
-	 * @see {@link #compareTo(PrimaryKey)}
-	 * @see {@link Storables#compare(Storable, Storable)}
-	 */
-	public int compareTo(PrimaryKey o, boolean logically) {
-		return logically ? compareTo(o) : Storables.compare(this, o);
-	}
-
-	@Override
-	public double doubleValue() {
-		return (double) longValue();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof PrimaryKey) {
-			final PrimaryKey other = (PrimaryKey) obj;
-			return UnsignedLongs.compare(longValue(), other.longValue()) == 0;
-		}
-		return false;
-	}
-
-	@Override
-	public float floatValue() {
-		return (float) longValue();
-	}
-
-	/**
-	 * Return a byte array that represents the value with the following order:
-	 * <ol>
-	 * <li><strong>timestamp</strong> position 0</li>
-	 * <li><strong>key</strong> position 8</li>
-	 * </ol>
-	 * 
-	 * @return a byte array.
-	 */
-	@Override
-	public ByteBuffer getBytes() {
-		return ByteBuffers.asReadOnlyBuffer(bytes);
-	}
-
-	@Override
-	public long getTimestamp() {
-		return timestamp;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(longValue());
-	}
-
-	@Override
-	public int intValue() {
-		return (int) longValue();
-	}
-
-	@Override
-	public boolean isForStorage() {
-		return Storables.isForStorage(this);
-	}
-
-	@Override
-	public boolean isNotForStorage() {
-		return Storables.isNotForStorage(this);
-	}
-
-	/**
-	 * Return a long that represents the two's complement.
-	 * 
-	 * @return the long value
-	 */
-	@Override
-	public long longValue() {
-		return number;
-	}
-
-	@Override
-	public int size() {
-		return SIZE;
-	}
-
-	@Override
-	public String toString() {
-		String string = UnsignedLongs.toString(longValue()); // for
-																// compatibility
-																// with
-																// {@link
-																// com.cinchapi.common.Numbers.compare(Number,
-																// Number)}
-		return string;
-	}
+    @Override
+    public String toString() {
+        return UnsignedLongs.toString(data);
+    }
 
 }

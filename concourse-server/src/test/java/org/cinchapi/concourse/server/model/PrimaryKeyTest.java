@@ -23,7 +23,7 @@
  */
 package org.cinchapi.concourse.server.model;
 
-import org.cinchapi.concourse.server.io.StorableTest;
+import org.cinchapi.concourse.server.io.ByteableTest;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,68 +33,28 @@ import org.junit.Test;
  * 
  * @author jnelson
  */
-public class PrimaryKeyTest extends StorableTest {
+public class PrimaryKeyTest extends ByteableTest {
 
-	@Test
-	public void testCompareToLogically() {
-		long value1 = TestData.getLong();
-		value1 = value1 == Long.MAX_VALUE ? value1 - 1 : value1;
-		long value2 = value1 + 1;
-		PrimaryKey key1 = PrimaryKey.forStorage(value1);
-		PrimaryKey key2 = PrimaryKey.forStorage(value2);
-		Assert.assertTrue(key1.compareTo(key2) < 0);
-	}
+    @Test
+    public void testCompareTo() {
+        long value1 = TestData.getLong();
+        value1 = value1 == Long.MAX_VALUE ? value1 - 1 : value1;
+        long value2 = value1 + 1;
+        PrimaryKey key1 = PrimaryKey.wrap(value1);
+        PrimaryKey key2 = PrimaryKey.wrap(value2);
+        Assert.assertTrue(key1.compareTo(key2) < 0);
+    }
 
-	@Test
-	public void testCompareToTemporallyWithTwoForStorage() {
-		long value = TestData.getLong();
-		PrimaryKey key1 = PrimaryKey.forStorage(value);
-		PrimaryKey key2 = PrimaryKey.forStorage(value);
-		Assert.assertTrue(key1.compareTo(key2, false) > 0); // smaller timestamp
-															// is "greater" and
-															// pushed to the
-															// back for
-															// descending order
-															// sorting
-	}
+    @Test
+    public void testSize() {
+        PrimaryKey key = TestData.getPrimaryKey();
+        Assert.assertEquals(PrimaryKey.SIZE, key.size());
+        Assert.assertEquals(PrimaryKey.SIZE, key.getBytes().capacity());
+    }
 
-	@Test
-	public void testCompareToTemporallyWithForStorageAndNotForStorage() {
-		long value = TestData.getLong();
-		PrimaryKey key1 = PrimaryKey.notForStorage(value);
-		PrimaryKey key2 = PrimaryKey.forStorage(value);
-		Assert.assertTrue(key1.compareTo(key2, false) > 0); // notForStorage is
-															// always pushed to
-															// the back
-	}
-	
-	@Test
-	public void testSize(){
-		PrimaryKey key = TestData.getPrimaryKeyForStorage();
-		Assert.assertEquals(PrimaryKey.SIZE, key.size());
-		Assert.assertEquals(PrimaryKey.SIZE, key.getBytes().capacity());
-	}
-
-	@Override
-	protected PrimaryKey[] getForStorageAndNotForStorageVersionOfObject() {
-		long key = TestData.getLong();
-		return new PrimaryKey[] { PrimaryKey.forStorage(key),
-				PrimaryKey.notForStorage(key) };
-	}
-
-	@Override
-	protected PrimaryKey getForStorageInstance() {
-		return TestData.getPrimaryKeyForStorage();
-	}
-
-	@Override
-	protected PrimaryKey getNotForStorageInstance() {
-		return TestData.getPrimaryKeyNotForStorage();
-	}
-
-	@Override
-	protected Class<PrimaryKey> getTestClass() {
-		return PrimaryKey.class;
-	}
+    @Override
+    protected Class<PrimaryKey> getTestClass() {
+        return PrimaryKey.class;
+    }
 
 }
