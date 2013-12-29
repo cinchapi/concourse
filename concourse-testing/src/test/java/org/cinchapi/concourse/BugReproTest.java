@@ -25,6 +25,7 @@ package org.cinchapi.concourse;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.concourse.util.StandardActions;
 import org.junit.Assert;
 import org.junit.Test;
 

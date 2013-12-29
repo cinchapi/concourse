@@ -21,12 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.demo;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.cinchapi.concourse.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.time.Timestamp;

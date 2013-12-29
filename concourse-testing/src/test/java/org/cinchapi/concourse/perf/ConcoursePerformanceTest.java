@@ -21,10 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.perf;
 
 import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.util.StandardActions;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;

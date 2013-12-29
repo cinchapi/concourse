@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
