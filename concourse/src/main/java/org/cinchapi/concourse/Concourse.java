@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -932,6 +931,17 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<Long, Boolean> add(String key, Object value,
+                Collection<Long> records) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long record : records) {
+                result.put(record, add(key, value, record));
+            }
+            return result;
+        }
+
+        @Override
         public <T> boolean add(final String key, final T value,
                 final long record) {
             return execute(new Callable<Boolean>() {
@@ -994,6 +1004,29 @@ public abstract class Concourse {
         }
 
         @Override
+        public void clear(Collection<String> keys, Collection<Long> records) {
+            for (long record : records) {
+                for (String key : keys) {
+                    clear(key, record);
+                }
+            }
+        }
+
+        @Override
+        public void clear(Collection<String> keys, long record) {
+            for (String key : keys) {
+                clear(key, record);
+            }
+        }
+
+        @Override
+        public void clear(String key, Collection<Long> records) {
+            for (long record : records) {
+                clear(key, record);
+            }
+        }
+
+        @Override
         public void clear(final String key, final long record) {
             execute(new Callable<Void>() {
 
@@ -1026,6 +1059,27 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<Long, Set<String>> describe(Collection<Long> records) {
+            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Keys");
+            for (long record : records) {
+                result.put(record, describe(record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<String>> describe(Collection<Long> records,
+                Timestamp timestamp) {
+            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Keys");
+            for (long record : records) {
+                result.put(record, describe(record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
         public Set<String> describe(long record) {
             return describe(record, now);
         }
@@ -1047,6 +1101,76 @@ public abstract class Concourse {
         public void exit() {
             client.getInputProtocol().getTransport().close();
             client.getOutputProtocol().getTransport().close();
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> fetch(
+                Collection<String> keys, Collection<Long> records) {
+            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
+                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, fetch(key, record));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> fetch(
+                Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
+                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, fetch(key, record, timestamp));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Set<Object>> fetch(Collection<String> keys,
+                long record) {
+            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Values");
+            for (String key : keys) {
+                result.put(key, fetch(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Set<Object>> fetch(Collection<String> keys,
+                long record, Timestamp timestamp) {
+            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Values");
+            for (String key : keys) {
+                result.put(key, fetch(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
+            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Values");
+            for (long record : records) {
+                result.put(record, fetch(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<Object>> fetch(String key,
+                Collection<Long> records, Timestamp timestamp) {
+            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Values");
+            for (long record : records) {
+                result.put(record, fetch(key, record, timestamp));
+            }
+            return result;
         }
 
         @Override
@@ -1134,6 +1258,74 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<Long, Map<String, Object>> get(Collection<String> keys,
+                Collection<Long> records) {
+            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
+                    .<Long, String, Object> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, get(key, record));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Map<String, Object>> get(Collection<String> keys,
+                Collection<Long> records, Timestamp timestamp) {
+            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
+                    .<Long, String, Object> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, get(key, record, timestamp));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Object> get(Collection<String> keys, long record) {
+            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Value");
+            for (String key : keys) {
+                result.put(key, get(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Object> get(Collection<String> keys, long record,
+                Timestamp timestamp) {
+            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Value");
+            for (String key : keys) {
+                result.put(key, get(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Object> get(String key, Collection<Long> records) {
+            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Value");
+            for (long record : records) {
+                result.put(record, get(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Object> get(String key, Collection<Long> records,
+                Timestamp timestamp) {
+            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Value");
+            for (long record : records) {
+                result.put(record, get(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
         @Nullable
         public <T> T get(String key, long record) {
             return get(key, record, now);
@@ -1163,8 +1355,29 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<Long, Boolean> link(String key, long source,
+                Collection<Long> destinations) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long destination : destinations) {
+                result.put(destination, link(key, source, destination));
+            }
+            return result;
+        }
+
+        @Override
         public boolean link(String key, long source, long destination) {
             return add(key, Link.to(destination), source);
+        }
+
+        @Override
+        public Map<Long, Boolean> ping(Collection<Long> records) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long record : records) {
+                result.put(record, ping(record));
+            }
+            return result;
         }
 
         @Override
@@ -1180,6 +1393,17 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<Long, Boolean> remove(String key, Object value,
+                Collection<Long> records) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long record : records) {
+                result.put(record, remove(key, value, record));
+            }
+            return result;
+        }
+
+        @Override
         public <T> boolean remove(final String key, final T value,
                 final long record) {
             return execute(new Callable<Boolean>() {
@@ -1191,6 +1415,34 @@ public abstract class Concourse {
                 }
 
             });
+        }
+
+        @Override
+        public void revert(Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            for (long record : records) {
+                for (String key : keys) {
+                    revert(key, record, timestamp);
+                }
+            }
+        }
+
+        @Override
+        public void revert(Collection<String> keys, long record,
+                Timestamp timestamp) {
+            for (String key : keys) {
+                revert(key, record, timestamp);
+            }
+
+        }
+
+        @Override
+        public void revert(String key, Collection<Long> records,
+                Timestamp timestamp) {
+            for (long record : records) {
+                revert(key, record, timestamp);
+            }
+
         }
 
         @Override
@@ -1219,6 +1471,13 @@ public abstract class Concourse {
                 }
 
             });
+        }
+
+        @Override
+        public void set(String key, Object value, Collection<Long> records) {
+            for(long record : records){
+                set(key, value, record);
+            }
         }
 
         @Override
@@ -1308,6 +1567,7 @@ public abstract class Concourse {
             }
         }
 
+
         /**
          * Execute the task defined in {@code callable}. This method contains
          * retry logic to handle cases when {@code creds} expires and must be
@@ -1327,284 +1587,6 @@ public abstract class Concourse {
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
-        }
-
-        @Override
-        public Map<Long, Boolean> add(String key, Object value,
-                Collection<Long> records) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Result");
-            for (long record : records) {
-                result.put(record, add(key, value, record));
-            }
-            return result;
-        }
-
-        @Override
-        public void clear(Collection<String> keys, Collection<Long> records) {
-            for (long record : records) {
-                for (String key : keys) {
-                    clear(key, record);
-                }
-            }
-        }
-
-        @Override
-        public void clear(Collection<String> keys, long record) {
-            for (String key : keys) {
-                clear(key, record);
-            }
-        }
-
-        @Override
-        public void clear(String key, Collection<Long> records) {
-            for (long record : records) {
-                clear(key, record);
-            }
-        }
-
-        @Override
-        public Map<Long, Set<String>> describe(Collection<Long> records) {
-            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
-            for (long record : records) {
-                result.put(record, describe(record));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Set<String>> describe(Collection<Long> records,
-                Timestamp timestamp) {
-            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
-            for (long record : records) {
-                result.put(record, describe(record, timestamp));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Map<String, Set<Object>>> fetch(
-                Collection<String> keys, Collection<Long> records) {
-            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
-                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, fetch(key, record));
-                }
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Map<String, Set<Object>>> fetch(
-                Collection<String> keys, Collection<Long> records,
-                Timestamp timestamp) {
-            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
-                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, fetch(key, record, timestamp));
-                }
-            }
-            return result;
-        }
-
-        @Override
-        public Map<String, Set<Object>> fetch(Collection<String> keys,
-                long record) {
-            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
-            for (String key : keys) {
-                result.put(key, fetch(key, record));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<String, Set<Object>> fetch(Collection<String> keys,
-                long record, Timestamp timestamp) {
-            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
-            for (String key : keys) {
-                result.put(key, fetch(key, record, timestamp));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
-            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Values");
-            for (long record : records) {
-                result.put(record, fetch(key, record));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Set<Object>> fetch(String key,
-                Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Values");
-            for (long record : records) {
-                result.put(record, fetch(key, record, timestamp));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Map<String, Object>> get(Collection<String> keys,
-                Collection<Long> records) {
-            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
-                    .<Long, String, Object> newTLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, get(key, record));
-                }
-            }
-            return result;
-        }
-
- 
-        @Override
-        public Map<Long, Map<String, Object>> get(Collection<String> keys,
-                Collection<Long> records, Timestamp timestamp) {
-            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
-                    .<Long, String, Object> newTLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, get(key, record, timestamp));
-                }
-            }
-            return result;
-        }
-
-        @Override
-        public Map<String, Object> get(Collection<String> keys, long record) {
-            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap("Key", "Value");
-            for(String key : keys){
-                result.put(key, get(key, record));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<String, Object> get(Collection<String> keys, long record,
-                Timestamp timestamp) {
-            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap("Key", "Value");
-            for(String key : keys){
-                result.put(key, get(key, record, timestamp));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Object> get(String key, Collection<Long> records) {
-            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap("Record", "Value");
-            for(long record : records){
-                result.put(record, get(key, record));
-            }
-            return result;
-        }
-
-        @Override
-        public Map<Long, Object> get(String key, Collection<Long> records,
-                Timestamp timestamp) {
-            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap("Record", "Value");
-            for(long record : records){
-                result.put(record, get(key, record, timestamp));
-            }
-            return result;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#link(java.lang.String, long,
-         * java.util.Collection)
-         */
-        @Override
-        public Map<Long, Boolean> link(String key, long source,
-                Collection<Long> destinations) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#ping(java.util.Collection)
-         */
-        @Override
-        public Map<Long, Boolean> ping(Collection<Long> records) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#remove(java.lang.String,
-         * java.lang.Object, java.util.Collection)
-         */
-        @Override
-        public Map<Long, Boolean> remove(String key, Object value,
-                Collection<Long> records) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#revert(java.util.Collection,
-         * java.util.Collection, org.cinchapi.concourse.time.Timestamp)
-         */
-        @Override
-        public void revert(Collection<String> keys, Collection<Long> records,
-                Timestamp timestamp) {
-            // TODO Auto-generated method stub
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#revert(java.util.Collection,
-         * long, org.cinchapi.concourse.time.Timestamp)
-         */
-        @Override
-        public void revert(Collection<String> keys, long record,
-                Timestamp timestamp) {
-            // TODO Auto-generated method stub
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#revert(java.lang.String,
-         * java.util.Collection, org.cinchapi.concourse.time.Timestamp)
-         */
-        @Override
-        public void revert(String key, Collection<Long> records,
-                Timestamp timestamp) {
-            // TODO Auto-generated method stub
-
-        }
-
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#set(java.lang.String,
-         * java.lang.Object, java.util.Collection)
-         */
-        @Override
-        public void set(String key, Object value, Collection<Long> records) {
-            // TODO Auto-generated method stub
-
         }
 
     }
