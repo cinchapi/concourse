@@ -24,6 +24,8 @@
 package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -36,6 +38,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
@@ -46,6 +49,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.time.Timestamp;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.TLinkedTableMap;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 
@@ -111,22 +115,26 @@ import com.google.common.collect.Lists;
 public abstract class Concourse {
 
     /**
-     * Create a new Client connection to the default Concourse server (or the
-     * one specified in {@code concourse_client.prefs} if it exists) and return
-     * a handler to facilitate database interaction.
+     * Create a new Client connection using the details provided in
+     * {@code concourse_client.prefs}. If the prefs file does not exist or does
+     * not contain connection information, then the default connection details
+     * ({@code admin@localhost:1717}) will be used.
+     * 
+     * @return the database handler
      */
     public static Concourse connect() {
         return new Client();
     }
 
     /**
-     * Create a new Client connection to a Concourse server and return a
-     * handler to facilitate database interaction.
+     * Create a new Client connection for {@code username}@{@code host}:
+     * {@code port} using {@code password}.
      * 
      * @param host
      * @param port
      * @param username
      * @param password
+     * @return the database handler
      */
     public static Concourse connect(String host, int port, String username,
             String password) {
@@ -137,21 +145,33 @@ public abstract class Concourse {
      * Discard any changes that are currently staged for commit.
      * <p>
      * After this function returns, Concourse will return to {@code autocommit}
-     * mode and all subsequent changes will be immediately written to the
-     * database.
+     * mode and all subsequent changes will be committed immediately.
      * </p>
      */
     public abstract void abort();
 
     /**
-     * Add {@code key} as {@code value} to {@code record} and return
-     * {@code true} if the mapping does not currently exist in {@code record}
-     * and is successfully added.
+     * Add {@code key} as {@code value} in each of the {@code records} if it is
+     * not already contained.
+     * 
+     * @param key
+     * @param value
+     * @param records
+     * @return a mapping from each record to a boolean indicating if
+     *         {@code value} is added
+     */
+    @CompoundOperation
+    public abstract Map<Long, Boolean> add(String key, Object value,
+            Collection<Long> records);
+
+    /**
+     * Add {@code key} as {@code value} to {@code record} if it is not already
+     * contained.
      * 
      * @param key
      * @param value
      * @param record
-     * @return {@code true} if the mapping is added
+     * @return {@code true} if {@code value} is added
      */
     public abstract <T> boolean add(String key, T value, long record);
 
@@ -159,7 +179,7 @@ public abstract class Concourse {
      * Audit {@code record} and return a log of revisions.
      * 
      * @param record
-     * @return a mapping of timestamps to revision descriptions
+     * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(long record);
 
@@ -168,13 +188,42 @@ public abstract class Concourse {
      * 
      * @param key
      * @param record
-     * @return a mapping of timestamps to revision descriptions
+     * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
-     * Atomically clear {@code key} in {@code record} and remove every mapping
-     * from {@code key} that currently exists in {@code record}.
+     * Clear each of the {@code keys} in each of the {@code records} by removing
+     * every value for each key in each record.
+     * 
+     * @param keys
+     * @param records
+     */
+    @CompoundOperation
+    public abstract void clear(Collection<String> keys, Collection<Long> records);
+
+    /**
+     * Clear each of the {@code key} in {@code record} by removing every value
+     * for each key.
+     * 
+     * @param keys
+     * @param record
+     */
+    @CompoundOperation
+    public abstract void clear(Collection<String> keys, long record);
+
+    /**
+     * Clear {@code key} in each of the {@code records} by removing every value
+     * for {@code key} in each record.
+     * 
+     * @param key
+     * @param records
+     */
+    @CompoundOperation
+    public abstract void clear(String key, Collection<Long> records);
+
+    /**
+     * Atomically clear {@code key} in {@code record} by removing value.
      * 
      * @param record
      */
@@ -183,12 +232,11 @@ public abstract class Concourse {
     /**
      * Attempt to permanently commit all the currently staged changes. This
      * function returns {@code true} if and only if all the changes can be
-     * successfully applied to the database. Otherwise, this function returns
-     * {@code false} and all the changes are aborted.
+     * successfully applied. Otherwise, this function returns {@code false} and
+     * all the changes are aborted.
      * <p>
      * After this function returns, Concourse will return to {@code autocommit}
-     * mode and all subsequent changes will be immediately written to the
-     * database.
+     * mode and all subsequent changes will be written immediately.
      * </p>
      */
     public abstract boolean commit();
@@ -201,32 +249,137 @@ public abstract class Concourse {
     public abstract long create();
 
     /**
-     * Describe {@code record} and return its set of keys that currently map to
-     * at least one value.
+     * Describe each of the {@code records} and return a mapping from each
+     * record to the keys that currently have at least one value.
+     * 
+     * @param records
+     * @return the populated keys in each record
+     */
+    @CompoundOperation
+    public abstract Map<Long, Set<String>> describe(Collection<Long> records);
+
+    /**
+     * Describe each of the {@code records} at {@code timestamp} and return a
+     * mapping from each record to the keys that had at least one value.
+     * 
+     * @param records
+     * @param timestamp
+     * @return the populated keys in each record at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Set<String>> describe(Collection<Long> records,
+            Timestamp timestamp);
+
+    /**
+     * Describe {@code record} and return the keys that currently have at least
+     * one value.
      * 
      * @param record
-     * @return the populated keys
+     * @return the populated keys in {@code record}
      */
     public abstract Set<String> describe(long record);
 
     /**
-     * Describe {@code record} at {@code timestamp} and return its set of keys
-     * that mapped to at least one value.
+     * Describe {@code record} at {@code timestamp} and return the keys that had
+     * at least one value.
      * 
      * @param record
      * @param timestamp
-     * @return the keys for populated keys
+     * @return the populated keys in {@code record} at {@code timestamp}
      */
     public abstract Set<String> describe(long record, Timestamp timestamp);
 
     /**
-     * Disconnect from the remote Concourse server.
+     * Close the Client connection.
      */
     public abstract void exit();
 
     /**
-     * Fetch {@code key} from {@code record} and return the set of currently
-     * mapped values.
+     * Fetch each of the {@code keys} from each of the {@code records} and
+     * return a mapping from each record to a mapping from each key to the
+     * contained values.
+     * 
+     * @param keys
+     * @param records
+     * @return the contained values for each of the {@code keys} in each of the
+     *         {@code records}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Map<String, Set<Object>>> fetch(
+            Collection<String> keys, Collection<Long> records);
+
+    /**
+     * Fetch each of the {@code keys} from each of the {@code records} at
+     * {@code timestamp} and return a mapping from each record to a mapping from
+     * each key to the contained values.
+     * 
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @return the contained values for each of the {@code keys} in each
+     *         of the {@code records} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Map<String, Set<Object>>> fetch(
+            Collection<String> keys, Collection<Long> records,
+            Timestamp timestamp);
+
+    /**
+     * Fetch each of the {@code keys} from {@code record} and return a mapping
+     * from each key to the contained values.
+     * 
+     * @param keys
+     * @param record
+     * @return the contained values for each of the {@code keys} in
+     *         {@code record}
+     */
+    @CompoundOperation
+    public abstract Map<String, Set<Object>> fetch(Collection<String> keys,
+            long record);
+
+    /**
+     * Fetch each of the {@code keys} from {@code record} at {@code timestamp}
+     * and return a mapping from each key to the contained values.
+     * 
+     * @param keys
+     * @param record
+     * @param timestamp
+     * @return the contained values for each of the {@code keys} in
+     *         {@code record} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<String, Set<Object>> fetch(Collection<String> keys,
+            long record, Timestamp timestamp);
+
+    /**
+     * Fetch {@code key} from each of the {@code records} and return a mapping
+     * from each record to contained values.
+     * 
+     * @param key
+     * @param records
+     * @return the contained values for {@code key} in each {@code record}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Set<Object>> fetch(String key,
+            Collection<Long> records);
+
+    /**
+     * Fetch {@code key} from} each of the {@code records} at {@code timestamp}
+     * and return a mapping from each record to the contained values.
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the contained values for {@code key} in each of the
+     *         {@code records} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Set<Object>> fetch(String key,
+            Collection<Long> records, Timestamp timestamp);
+
+    /**
+     * Fetch {@code key} from {@code record} and return all the contained
+     * values.
      * 
      * @param key
      * @param record
@@ -301,20 +454,102 @@ public abstract class Concourse {
             Timestamp timestamp);
 
     /**
-     * Get {@code key} from {@code record} and return the first mapped value or
-     * {@code null} if there is none. Compared to {@link #fetch(String, long)},
-     * this method is suited for cases when the caller is certain that
-     * {@code key} in {@code record} maps to a single value of type {@code T}.
+     * Get each of the {@code keys} from each of the {@code records} and return
+     * a mapping from each record to a mapping of each key to the first
+     * contained value.
+     * 
+     * @param keys
+     * @param records
+     * @return the first contained value for each of the {@code keys} in each of
+     *         the {@code records}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Map<String, Object>> get(Collection<String> keys,
+            Collection<Long> records);
+
+    /**
+     * Get each of the {@code keys} from each of the {@code records} at
+     * {@code timestamp} and return a mapping from each record to a mapping of
+     * each key to the first contained value.
+     * 
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @return the first contained value for each of the {@code keys} in each of
+     *         the {@code records} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Map<String, Object>> get(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp);
+
+    /**
+     * Get each of the {@code keys} from {@code record} and return a mapping
+     * from each key to the first contained value.
+     * 
+     * @param keys
+     * @param record
+     * @return the first contained value for each of the {@code keys} in
+     *         {@code record}
+     */
+    @CompoundOperation
+    public abstract Map<String, Object> get(Collection<String> keys, long record);
+
+    /**
+     * Get each of the {@code keys} from {@code record} at {@code timestamp} and
+     * return a mapping from each key to the first contained value.
+     * 
+     * @param keys
+     * @param record
+     * @param timestamp
+     * @return the first contained value for each of the {@code keys} in
+     *         {@code record} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<String, Object> get(Collection<String> keys,
+            long record, Timestamp timestamp);
+
+    /**
+     * Get {@code key} from each of the {@code records} and return a mapping
+     * from each record to the first contained value.
+     * 
+     * @param key
+     * @param records
+     * @return the first contained value for {@code key} in each of the
+     *         {@code records}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Object> get(String key, Collection<Long> records);
+
+    /**
+     * Get {@code key} from each of the {@code records} at {@code timestamp} and
+     * return a mapping from each record to the first contained value.
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     * @return the first contained value for {@code key} in each of the
+     *         {@code records} at {@code timestamp}
+     */
+    @CompoundOperation
+    public abstract Map<Long, Object> get(String key, Collection<Long> records,
+            Timestamp timestamp);
+
+    /**
+     * Get {@code key} from {@code record} and return the first contained value
+     * or {@code null} if there is none. Compared to
+     * {@link #fetch(String, long)}, this method is suited for cases when the
+     * caller is certain that {@code key} in {@code record} maps to a single
+     * value of type {@code T}.
      * 
      * @param key
      * @param record
-     * @return the first mapped value
+     * @return the first contained value
      */
     public abstract <T> T get(String key, long record);
 
     /**
      * Get {@code key} from {@code record} at {@code timestamp} and return the
-     * first mapped value or {@code null} if there was none. Compared to
+     * first contained value or {@code null} if there was none. Compared to
      * {@link #fetch(String, long, long)}, this method is suited for cases when
      * the caller is certain that {@code key} in {@code record} mapped to a
      * single value of type {@code T} at {@code timestamp}.
@@ -322,7 +557,7 @@ public abstract class Concourse {
      * @param key
      * @param record
      * @param timestamp
-     * @return the first mapped value
+     * @return the first contained value
      */
     public abstract <T> T get(String key, long record, Timestamp timestamp);
 
@@ -335,40 +570,112 @@ public abstract class Concourse {
     public abstract String getServerVersion();
 
     /**
-     * Link {@code key} in {@code source} to {@code destination}. In other
-     * words, add {@code key} as {@link Link#to(destination)} in {@code source}.
+     * Link {@code key} in {@code source} to each of the {@code destinations}.
+     * 
+     * @param key
+     * @param source
+     * @param destinations
+     * @return a mapping from each destination to a boolean indicating if the
+     *         link was added
+     */
+    public abstract Map<Long, Boolean> link(String key, long source,
+            Collection<Long> destinations);
+
+    /**
+     * Link {@code key} in {@code source} to {@code destination}.
      * 
      * @param key
      * @param source
      * @param destination
-     * @return {@code true} if the one way link is added
+     * @return {@code true} if the link is added
      */
     public abstract boolean link(String key, long source, long destination);
 
     /**
-     * Ping {@code record} and return {@code true} if there is currently at
-     * least one populated key.
+     * Ping each of the {@code records}.
+     * 
+     * @param records
+     * @return a mapping from each record to a boolean indicating if the record
+     *         currently has at least one populated key
+     */
+    @CompoundOperation
+    public abstract Map<Long, Boolean> ping(Collection<Long> records);
+
+    /**
+     * Ping {@code record}.
      * 
      * @param record
-     * @return {@code true} if {@code record} currently contains data
+     * @return {@code true} if {@code record} currently has at least one
+     *         populated key
      */
     public abstract boolean ping(long record);
 
     /**
-     * Remove {@code key} as {@code value} from {@code record} and return
-     * {@code true} if the mapping currently exists in {@code record} and is
-     * successfully removed.
+     * Remove {@code key} as {@code value} in each of the {@code records} if it
+     * is contained.
+     * 
+     * @param key
+     * @param value
+     * @param records
+     * @return a mapping from each record to a boolean indicating if
+     *         {@code value} is removed
+     */
+    @CompoundOperation
+    public abstract Map<Long, Boolean> remove(String key, Object value,
+            Collection<Long> records);
+
+    /**
+     * Remove {@code key} as {@code value} to {@code record} if it is contained.
      * 
      * @param key
      * @param value
      * @param record
-     * @return {@code true} if the mapping is removed
+     * @return {@code true} if {@code value} is removed
      */
     public abstract <T> boolean remove(String key, T value, long record);
 
     /**
+     * Revert each of the {@code keys} in each of the {@code records} to
+     * {@code timestamp} by creating new revisions that the relevant changes
+     * that have occurred since {@code timestamp}.
+     * 
+     * @param keys
+     * @param records
+     * @param timestamp
+     */
+    @CompoundOperation
+    public abstract void revert(Collection<String> keys,
+            Collection<Long> records, Timestamp timestamp);
+
+    /**
+     * Revert each of the {@code keys} in {@code record} to {@code timestamp} by
+     * creating new revisions that the relevant changes
+     * that have occurred since {@code timestamp}.
+     * 
+     * @param keys
+     * @param record
+     * @param timestamp
+     */
+    @CompoundOperation
+    public abstract void revert(Collection<String> keys, long record,
+            Timestamp timestamp);
+
+    /**
+     * Revert {@code key} in each of the {@code records} to {@code timestamp} by
+     * creating new revisions that the relevant changes that have occurred
+     * since {@code timestamp}.
+     * 
+     * @param key
+     * @param records
+     * @param timestamp
+     */
+    @CompoundOperation
+    public abstract void revert(String key, Collection<Long> records,
+            Timestamp timestamp);
+
+    /**
      * Atomically revert {@code key} in {@code record} to {@code timestamp} by
-     * creating new revisions that undo some of the changes that have occurred
+     * creating new revisions that the relevant changes that have occurred
      * since {@code timestamp}.
      * 
      * @param key
@@ -379,7 +686,7 @@ public abstract class Concourse {
 
     /**
      * Search {@code key} for {@code query} and return the set of records that
-     * match the fulltext query.
+     * match.
      * 
      * @param key
      * @param query
@@ -388,9 +695,19 @@ public abstract class Concourse {
     public abstract Set<Long> search(String key, String query);
 
     /**
+     * Set {@code key} as {@code value} in each of the {@code records}.
+     * 
+     * @param key
+     * @param value
+     * @param records
+     */
+    @CompoundOperation
+    public abstract void set(String key, Object value, Collection<Long> records);
+
+    /**
      * Atomically set {@code key} as {@code value} in {@code record}. This is a
-     * convenience method that clears the values currently mapped from
-     * {@code key} and adds a new mapping to {@code value}.
+     * convenience method that clears the values for {@code key} and adds
+     * {@code value}.
      * 
      * @param key
      * @param value
@@ -400,11 +717,11 @@ public abstract class Concourse {
 
     /**
      * Turn on {@code staging} mode so that all subsequent changes are
-     * collected in a staging area before possibly being committed to the
-     * database. Staged operations are guaranteed to be reliable, all or nothing
+     * collected in a staging area before possibly being committed. Staged
+     * operations are guaranteed to be reliable, all or nothing
      * units of work that allow correct recovery from failures and provide
-     * isolation between clients so the database is always in a consistent state
-     * (i.e. a transaction).
+     * isolation between clients so that Concourse is always in a consistent
+     * state (e.g. a transaction).
      * <p>
      * After this method returns, all subsequent operations will be done in
      * {@code staging} mode until either {@link #abort()} or {@link #commit()}
@@ -595,18 +912,6 @@ public abstract class Concourse {
             catch (TTransportException e) {
                 throw Throwables.propagate(e);
             }
-        }
-
-        @Override
-        public String getServerVersion() {
-            return execute(new Callable<String>() {
-
-                @Override
-                public String call() throws Exception {
-                    return client.getServerVersion();
-                }
-
-            });
         }
 
         @Override
@@ -846,6 +1151,18 @@ public abstract class Concourse {
         }
 
         @Override
+        public String getServerVersion() {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.getServerVersion();
+                }
+
+            });
+        }
+
+        @Override
         public boolean link(String key, long source, long destination) {
             return add(key, Link.to(destination), source);
         }
@@ -863,7 +1180,7 @@ public abstract class Concourse {
         }
 
         @Override
-        public boolean remove(final String key, final Object value,
+        public <T> boolean remove(final String key, final T value,
                 final long record) {
             return execute(new Callable<Boolean>() {
 
@@ -1010,6 +1327,284 @@ public abstract class Concourse {
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
+        }
+
+        @Override
+        public Map<Long, Boolean> add(String key, Object value,
+                Collection<Long> records) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long record : records) {
+                result.put(record, add(key, value, record));
+            }
+            return result;
+        }
+
+        @Override
+        public void clear(Collection<String> keys, Collection<Long> records) {
+            for (long record : records) {
+                for (String key : keys) {
+                    clear(key, record);
+                }
+            }
+        }
+
+        @Override
+        public void clear(Collection<String> keys, long record) {
+            for (String key : keys) {
+                clear(key, record);
+            }
+        }
+
+        @Override
+        public void clear(String key, Collection<Long> records) {
+            for (long record : records) {
+                clear(key, record);
+            }
+        }
+
+        @Override
+        public Map<Long, Set<String>> describe(Collection<Long> records) {
+            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Keys");
+            for (long record : records) {
+                result.put(record, describe(record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<String>> describe(Collection<Long> records,
+                Timestamp timestamp) {
+            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Keys");
+            for (long record : records) {
+                result.put(record, describe(record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> fetch(
+                Collection<String> keys, Collection<Long> records) {
+            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
+                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, fetch(key, record));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Map<String, Set<Object>>> fetch(
+                Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
+                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, fetch(key, record, timestamp));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Set<Object>> fetch(Collection<String> keys,
+                long record) {
+            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Values");
+            for (String key : keys) {
+                result.put(key, fetch(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Set<Object>> fetch(Collection<String> keys,
+                long record, Timestamp timestamp) {
+            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Key", "Values");
+            for (String key : keys) {
+                result.put(key, fetch(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
+            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Values");
+            for (long record : records) {
+                result.put(record, fetch(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Set<Object>> fetch(String key,
+                Collection<Long> records, Timestamp timestamp) {
+            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Values");
+            for (long record : records) {
+                result.put(record, fetch(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Map<String, Object>> get(Collection<String> keys,
+                Collection<Long> records) {
+            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
+                    .<Long, String, Object> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, get(key, record));
+                }
+            }
+            return result;
+        }
+
+ 
+        @Override
+        public Map<Long, Map<String, Object>> get(Collection<String> keys,
+                Collection<Long> records, Timestamp timestamp) {
+            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
+                    .<Long, String, Object> newTLinkedTableMap("Record");
+            for (long record : records) {
+                for (String key : keys) {
+                    result.put(record, key, get(key, record, timestamp));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Object> get(Collection<String> keys, long record) {
+            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap("Key", "Value");
+            for(String key : keys){
+                result.put(key, get(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, Object> get(Collection<String> keys, long record,
+                Timestamp timestamp) {
+            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap("Key", "Value");
+            for(String key : keys){
+                result.put(key, get(key, record, timestamp));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Object> get(String key, Collection<Long> records) {
+            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap("Record", "Value");
+            for(long record : records){
+                result.put(record, get(key, record));
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Long, Object> get(String key, Collection<Long> records,
+                Timestamp timestamp) {
+            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap("Record", "Value");
+            for(long record : records){
+                result.put(record, get(key, record, timestamp));
+            }
+            return result;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#link(java.lang.String, long,
+         * java.util.Collection)
+         */
+        @Override
+        public Map<Long, Boolean> link(String key, long source,
+                Collection<Long> destinations) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#ping(java.util.Collection)
+         */
+        @Override
+        public Map<Long, Boolean> ping(Collection<Long> records) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#remove(java.lang.String,
+         * java.lang.Object, java.util.Collection)
+         */
+        @Override
+        public Map<Long, Boolean> remove(String key, Object value,
+                Collection<Long> records) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#revert(java.util.Collection,
+         * java.util.Collection, org.cinchapi.concourse.time.Timestamp)
+         */
+        @Override
+        public void revert(Collection<String> keys, Collection<Long> records,
+                Timestamp timestamp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#revert(java.util.Collection,
+         * long, org.cinchapi.concourse.time.Timestamp)
+         */
+        @Override
+        public void revert(Collection<String> keys, long record,
+                Timestamp timestamp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#revert(java.lang.String,
+         * java.util.Collection, org.cinchapi.concourse.time.Timestamp)
+         */
+        @Override
+        public void revert(String key, Collection<Long> records,
+                Timestamp timestamp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
+         * @see org.cinchapi.concourse.Concourse#set(java.lang.String,
+         * java.lang.Object, java.util.Collection)
+         */
+        @Override
+        public void set(String key, Object value, Collection<Long> records) {
+            // TODO Auto-generated method stub
+
         }
 
     }
