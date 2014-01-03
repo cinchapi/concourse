@@ -91,7 +91,7 @@ Ping us at [concourse-devs@cinchapi.org](mailto:concourse-devs@cinchapi.org) if 
 
 ### License
 
-Copyright © 2013 Cinchapi Software Collective.
+Copyright © 2013-2014 Jeff Nelson, Cinchapi Software Collective.
 
 Concourse is released under the MIT License. For more information see LICENSE, which is included with this package.
 
