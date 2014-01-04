@@ -28,6 +28,7 @@ import java.io.File;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
@@ -85,7 +86,7 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
     protected Concourse client;
 
     @Rule
-    public TestWatcher watcher = new TestWatcher() {
+    public TestWatcher __watcher = new TestWatcher() {
 
         @Override
         protected void finished(Description description) {
@@ -94,7 +95,17 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
 
         @Override
         protected void starting(Description description) {
+            Variables.clear();
             start();
+        }
+
+        @Override
+        protected void failed(Throwable t, Description description) {
+            System.out.println("TEST FAILURE in " + description.getMethodName()
+                    + ": " + t.getMessage());
+            System.out.println("---");
+            System.out.println(Variables.dump());
+            System.out.println("");
         }
 
     };
