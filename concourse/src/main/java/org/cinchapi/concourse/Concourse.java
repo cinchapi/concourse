@@ -1155,7 +1155,7 @@ public abstract class Concourse {
         @Override
         public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
             Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Values");
+                    "Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record));
             }
@@ -1166,7 +1166,7 @@ public abstract class Concourse {
         public Map<Long, Set<Object>> fetch(String key,
                 Collection<Long> records, Timestamp timestamp) {
             Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Values");
+                    "Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record, timestamp));
             }
@@ -1307,7 +1307,7 @@ public abstract class Concourse {
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records) {
             Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Value");
+                    "Record", key);
             for (long record : records) {
                 result.put(record, get(key, record));
             }
@@ -1318,7 +1318,7 @@ public abstract class Concourse {
         public Map<Long, Object> get(String key, Collection<Long> records,
                 Timestamp timestamp) {
             Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Value");
+                    "Record", key);
             for (long record : records) {
                 result.put(record, get(key, record, timestamp));
             }
