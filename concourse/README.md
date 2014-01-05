@@ -29,14 +29,14 @@ By default, Concourse conducts every operation in  `autocommit` mode where every
 
 
 ### connect
-##### Concourse connect()
+##### `Concourse` connect()
 Create a new client connection using the details provided in *concourse_client.prefs*. If the prefs file does not exist or does not contain connection information, then the default connection details (*admin@localhost:1717*) will be used.
 ###### Returns
 the database handler
 ###### Example
 	Concourse concourse = Concourse.connect();
 
-##### Concourse connect(String host, int port, String username, String password)
+##### `Concourse` connect(String host, int port, String username, String password)
 Create a new client connection for *username@host:port* using *password*.
 ###### Parameters
 * host
@@ -50,7 +50,7 @@ the database handler
 	Concourse concourse = Concourse.connect("localhost", 1717, "admin", "admin");
 ---
 ### abort
-##### void abort()
+##### `void` abort()
 Discard any changes that are currently staged for commit.
 
 After this function returns, Concourse will return to `autocommit` mode and all subsequent changes will be committed immediately.
@@ -60,7 +60,7 @@ After this function returns, Concourse will return to `autocommit` mode and all 
 	concourse.abort();
 ---
 ### add
-##### boolean add(String key, Object value, long record)
+##### `boolean` add(String key, Object value, long record)
 Add *key* as *value* to *record* if it is not already contained.
 ###### Parameters
 * key
@@ -72,7 +72,7 @@ Add *key* as *value* to *record* if it is not already contained.
 ###### Example
 	concourse.add("foo", "bar", 1);
 
-##### Map<Long, Boolean> add(String key, Object value, Collection<Long> records)
+##### `Map<Long, Boolean>` add(String key, Object value, Collection<Long> records)
 Add *key* as *value* in each of the *records* if it is not already contained.
 ###### Parameters
 * key
