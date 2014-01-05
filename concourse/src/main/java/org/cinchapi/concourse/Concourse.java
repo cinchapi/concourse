@@ -201,7 +201,7 @@ public abstract class Concourse {
     public abstract void clear(Collection<String> keys, Collection<Long> records);
 
     /**
-     * Clear each of the {@code key} in {@code record} by removing every value
+     * Clear each of the {@code keys} in {@code record} by removing every value
      * for each key.
      * 
      * @param keys
@@ -221,7 +221,8 @@ public abstract class Concourse {
     public abstract void clear(String key, Collection<Long> records);
 
     /**
-     * Atomically clear {@code key} in {@code record} by removing value.
+     * Atomically clear {@code key} in {@code record} by removing each contained
+     * value.
      * 
      * @param record
      */
@@ -236,6 +237,8 @@ public abstract class Concourse {
      * After this function returns, Concourse will return to {@code autocommit}
      * mode and all subsequent changes will be written immediately.
      * </p>
+     * 
+     * @return {@code true} if all staged changes are successfully committed
      */
     public abstract boolean commit();
 
@@ -1474,7 +1477,7 @@ public abstract class Concourse {
 
         @Override
         public void set(String key, Object value, Collection<Long> records) {
-            for(long record : records){
+            for (long record : records) {
                 set(key, value, record);
             }
         }
@@ -1565,7 +1568,6 @@ public abstract class Concourse {
                 throw Throwables.propagate(e);
             }
         }
-
 
         /**
          * Execute the task defined in {@code callable}. This method contains
