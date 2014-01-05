@@ -79,7 +79,7 @@ import com.google.common.collect.Lists;
  * <li><strong>Key</strong> &mdash; An attribute that maps to a set of
  * <em>one or more</em> distinct {@code values}. A {@code record} can have many
  * different {@code keys}, and the {@code keys} in one {@code record} do not
- * affect the those in another {@code record}.
+ * affect those in another {@code record}.
  * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
  * mapped from a {@code key} in a {@code record}.
  * </ul>
