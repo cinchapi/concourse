@@ -4,6 +4,8 @@
 
 **This README is written for developers looking to contribute to the codebase. Detailed user documentation is available at [http://cinchapi.org/concourse](http://cinchapi.org/concourse)**
 
+***You may also refer to the [API](concourse/README.md) documentation for details on using Concourse in a third party application.***
+
 ## System Requirements
 
 ### Memory
