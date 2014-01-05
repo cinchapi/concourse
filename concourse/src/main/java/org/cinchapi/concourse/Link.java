@@ -29,8 +29,10 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
- * A {@link Link} is a wrapper around an unsigned 8 byte long that serves as the
- * pointer to the primary key of a record.
+ * A {@link Link} is a wrapper around a {@link Long} that represents the primary
+ * key of a record and distinguishes from simple long values. A Link is
+ * returned from the {@code #fetch} or {@code #get} methods in {@link Concourse}
+ * if data was added using one of the {@code #link} operations.
  * 
  * @author jnelson
  */
