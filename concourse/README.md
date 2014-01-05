@@ -14,12 +14,34 @@ The Concourse data model is lightweight and flexible which enables it to support
 Concourse natively stores most of the Java primitives: boolean, double, float, integer, long, and string (UTF-8). Otherwise, the value of the `#toString()` method for the Object is stored.
 
 #### Links
-Concourse supports linking a *key* in one *record* to another *record* using the `#link(String, long, long)` method. Links are one directional, but it is possible to add two inverse links so simulate bi-directionality.
+Concourse supports linking a *key* in one *record* to another *record* using one of the [`#link`](#link) methods. Links are one directional, but it is possible to add two inverse links so simulate bi-directionality.
 
 ### Transactions
 By default, Concourse conducts every operation in  `autocommit` mode where every change is immediately written. Concourse also supports the ability to stage a group of operations in transactions that are atomic, consistent, isolated, and durable using the `#stage()`, `#commit()` and `#abort()` methods.
 
 ## Documentation
+
+### Timestamps
+A `Timestamp` is a wrapper around a unix timestamp with microsecond precision that is required for historical operations. These objects are compatible with the [Joda DateTime API](http://www.joda.org/joda-time/).
+
+You can convert a Joda DateTime to a Timestamp easily using the `Timestamp#fromJoda(DateTime)` method.
+
+### Links
+A `Link` is a wrapper around a Long that represents the primary key of a record and distinguishes from simple long values. Links are never taken as parameters to methods, but will be returned from the [get](#get) or [fetch](#fetch) methods if the data was added using one of the [link](#link) operations.
+
+### Operators
+The `Operator` class defines the operators that can be used to build a query criteria in the [find](#find) methods.
+
+* EQUALS
+* NOT_EQUALS
+* GREATER_THAN
+* GREATER_THAN_OR_EQUALS
+* LESS_THAN
+* LESS_THAN_OR_EQUALS
+* BETWEEN
+* REGEX
+* NOT_REGEX
+
 ### Method Summary
 * [connect](#connect) - Establish connection and get database handler
 * [abort](#abort) - Abort all staged operations and turn on `autocommit` mode
@@ -252,7 +274,7 @@ Fetch each of the *keys* from each of the *records* and return a mapping from ea
 * records
 
 ###### Returns
-the contained *values* for each of the keys in each of the *records*
+the contained values for each of the keys in each of the *records*
 ###### Example
 	Set<String> keys = new HashSet<String>();
 	keys.add("foo");
@@ -274,7 +296,7 @@ Fetch each of the *keys* from each of the *records* at *timestamp* and return a 
 * timestamp
 
 ###### Returns
-the contained *values* for each of the keys in each of the *records* at *timestamp*
+the contained values for each of the keys in each of the *records* at *timestamp*
 ###### Example
 	Set<String> keys = new HashSet<String>();
 	keys.add("foo");
@@ -295,7 +317,7 @@ Fetch each of the *keys* from *record* and return a mapping from each key to the
 * record
 
 ###### Returns
-the contained *values* for each of the keys in *record*
+the contained values for each of the keys in *record*
 ###### Example
 	Set<String> keys = new HashSet<String>();
 	keys.add("foo");
@@ -312,7 +334,7 @@ Fetch each of the *keys* from *record* at *timestamp* and return a mapping from 
 * timestamp
 
 ###### Returns
-the contained *values* for each of the keys in *record* at *timestamp*
+the contained values for each of the keys in *record* at *timestamp*
 ###### Example
 	Set<String> keys = new HashSet<String>();
 	keys.add("foo");
@@ -328,7 +350,7 @@ Fetch each of the *keys* from *record* and return a mapping from each key to the
 * records
 
 ###### Returns
-the contained *values* for *key* in each of the *records*
+the contained values for *key* in each of the *records*
 ###### Example
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
@@ -345,7 +367,7 @@ Fetch each of the *keys* from *record* at *timestamp* and return a mapping from 
 * timestamp
 
 ###### Returns
-the contained *values* for *key* in each of the *records* at *timestamp*
+the contained values for *key* in each of the *records* at *timestamp*
 ###### Example
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
@@ -355,9 +377,168 @@ the contained *values* for *key* in each of the *records* at *timestamp*
 	Map<Long, Set<Object>> data = concourse.fetch("foo", records, Timestamp.fromMicros(13889604150000));
 ---
 ### find
+##### `Set<Long>> find(String key, Operator operator, Object value)`
+Find *key* *operator* *value* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
+###### Parameters
+* key
+* operator
+* value
+
+###### Returns
+the records that match the criteria
+###### Example
+	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20);
+	
+##### `Set<Long>> find(String key, Operator operator, Object value, Timestamp timestamp)`
+Find *key* *operator* *value* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
+###### Parameters
+* key
+* operator
+* value
+* timestamp
+
+###### Returns
+the records that match the criteria
+###### Example
+	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20, Timestamp.fromJoda(DateTime.now().minusYears(1)));
+	
+##### `Set<Long>> find(String key, Operator operator, Object value, Object value2)`
+Find *key* *operator* *value* and *value2* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
+###### Parameters
+* key
+* operator
+* value
+* value2
+
+###### Returns
+the records that match the criteria
+###### Example
+	concourse.find("age", Operator.BETWEEN, 20, 40);
+	
+##### `Set<Long>> find(String key, Operator operator, Object value, Object value2, Timestamp timestamp)`
+Find *key* *operator* *value* and *value2* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
+###### Parameters
+* key
+* operator
+* value
+* value2
+* timestamp
+
+###### Returns
+the records that match the criteria
+###### Example
+	concourse.find("age", Operator.BETWEEN, 20, 40, Timestamp.fromJoda(DateTime.now().minusMonths(5)));
 
 ---
 ### get
+##### `Map<Long, Map<String, Object>> get(Collection<String> keys, Collection<Long> records)`
+Get each of the *keys* from each of the *records* and return a mapping from each record to a mapping from each key to the first contained value.
+###### Parameters
+* keys
+* records
+
+###### Returns
+the first contained value for each of the keys in each of the *records*
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	Map<Long, Map<String, Object>> data = concourse.fetch(keys, records);
+	
+##### `Map<Long, Map<String, Object>> get(Collection<String> keys, Collection<Long> records, Timestamp timestamp)`
+Get each of the *keys* from each of the *records* at *timestamp* and return a mapping from each record to a mapping from each key to the first contained value.
+###### Parameters
+* keys
+* records
+* timestamp
+
+###### Returns
+the first contained value for each of the keys in each of the *records* at *timestamp*
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	Map<Long, Map<String, Object> data = concourse.fetch(keys, records, Timestamp.fromJoda(DateTime.now().minusYears(4)));
+	
+##### `Map<Long, Map<String, Object>> get(Collection<String> keys, long record)`
+Get each of the *keys* from *record* and return a mapping from each key to the first contained value.
+###### Parameters
+* keys
+* record
+
+###### Returns
+the first contained value for each of the keys in *record*
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	Map<String, Object> data = concourse.fetch(keys, 1);
+	
+##### `Map<Long, Map<String, Object>> get(Collection<String> keys, long record, Timestamp timestamp)`
+Get each of the *keys* from *record* at *timestamp* and return a mapping from each key to the first contained value.
+###### Parameters
+* keys
+* record
+* timestamp
+
+###### Returns
+the first contained value for each of the keys in *record* at *timestamp*
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	Map<String, Object> data = concourse.fetch(keys, 1, Timestamp.fromJoda(DateTime.now().minusYears(4)));
+	
+##### `Map<Long, Map<String, Object>> get(String key, Collection<Long> records)`
+Get each of the *keys* from *record* and return a mapping from each key to the first contained value.
+###### Parameters
+* key
+* records
+
+###### Returns
+the contained value for *key* in each of the *records*
+###### Example
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	Map<Long, Object> data = concourse.fetch("foo", records);
+	
+##### `Map<Long, Map<String, Object>> get(String key, Collection<Long> records, Timestamp timestamp)`
+Get each of the *keys* from *record* at *timestamp* and return a mapping from each key to the first contained value.
+###### Parameters
+* key
+* records
+* timestamp
+
+###### Returns
+the first contained value for *key* in each of the *records* at *timestamp*
+###### Example
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	Map<Long, Object> data = concourse.fetch("foo", records, Timestamp.fromMicros(13889604150000));
 
 ---
 ### getServerVersion
@@ -370,15 +551,141 @@ the server version
 	System.out.println(concourse.getServerVersion());
 ---
 ### link
+##### `boolean link(String key, long source, long destination)`
+Add a link from *key* in *source* to *destination*.
+###### Parameters
+* key
+* source
+* destination
 
+###### Returns
+*true* if the link is added
+###### Example
+	concourse.link("following", 1, 2);
+	
+##### `Map<Long, Boolean> link(String key, long source, Collection<Long> destinations)`
+Add a link from *key* in *source* to each of the *destinations*.
+###### Parameters
+* key
+* source
+* destinations
+
+###### Returns
+a mapping from each of the *destinations* to a boolean indicating if the link is added
+###### Example
+	concourse.link("following", 1, concourse.find("class", Operator.EQUALS, "user"));
 ---
 ### ping
+##### `boolean ping(long record)`
+Ping *record*.
+###### Parameters
+* record
+
+###### Returns
+*true* if *record* currently has at least one populated key
+###### Example
+	concourse.ping(1);
+	
+##### `boolean ping(Collection<Long> records)`
+Ping each of the *records*.
+###### Parameters
+* records
+
+###### Returns
+a mapping from each of the *records* to a boolean indicating if the record has at least one populated key
+###### Example
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	concourse.ping(records);
 
 ---
 ### remove
+##### `boolean remove(String key, Object value, long record)`
+Remove *key* as *value* from *record* if it is contained.
+###### Parameters
+* key
+* value
+* record
+
+###### Returns
+*true* if *value* is removed
+###### Example
+	concourse.remove("foo", "bar", 1);
+
+##### `Map<Long, Boolean> remove(String key, Object value, Collection<Long> records)`
+Remove *key* as *value* in each of the *records* if it is contained.
+###### Parameters
+* key
+* value
+* records
+
+###### Returns
+a mapping from each record to a boolean indicating if *value* is removed
+###### Example
+	concourse.remove("foo", "bar", concourse.find("foo", Operator.EQUALS, "bar"));
 
 ---
 ### revert
+##### `void revert(String key, long record, Timestamp timestamp)`
+Atomically revert *key* in *record* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
+###### Parameters
+* key
+* record
+* timestamp
+
+###### Example
+	concourse.revert("foo", 1, Timestamp.fromJoda(DateTime.now().minusDays(1))));
+	
+##### `void revert(Collection<String> keys, Collection<Long> records, Timestamp timestamp)`
+Revert each of the *keys* in each of the *records* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
+###### Parameters
+* keys
+* records
+* timestamp
+
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	concourse.revert(keys, records, Timestamp.fromJoda(DateTime.now().minusDays(1))));
+	
+##### `void revert(Collection<String> keys, long record, Timestamp timestamp)`
+Revert each of the *keys* in *record* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
+###### Parameters
+* keys
+* record
+* timestamp
+
+###### Example
+	Set<String> keys = new HashSet<String>();
+	keys.add("foo");
+	keys.add("bar");
+	keys.add("baz");
+	
+	concourse.revert(keys, 1, Timestamp.fromJoda(DateTime.now().minusDays(1))));
+	
+##### `void revert(String key, Collection<Long> records, Timestamp timestamp)`
+Revert *key* in each of the *records* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
+###### Parameters
+* key
+* records
+* timestamp
+
+###### Example
+	Set<Long> records = new HashSet<Long>();
+	records.add(1);
+	records.add(2);
+	records.add(3);
+	
+	concourse.revert("foo", records, Timestamp.fromJoda(DateTime.now().minusDays(1))));
 
 ---
 ### search
@@ -398,6 +705,25 @@ the records that match the fulltext search *query*
 
 ---
 ### set
+##### `void set(String key, Object value, long record)`
+Atomically set *key* as *value* in *record* by clearing any currently contained values and adding *value*.
+###### Parameters
+* key
+* value
+* record
+
+###### Example
+	concourse.set("foo", "bar", 1);
+
+##### `void set(String key, Object value, Collection<Long> records)`
+Set *key* as *value* in each of the *records*.
+###### Parameters
+* key
+* value
+* records
+
+###### Example
+	concourse.set("foo", "bar", concourse.find("foo", Operator.NOT_EQUALS, "bar"));
 
 ---
 ### stage

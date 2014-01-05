@@ -676,8 +676,8 @@ public abstract class Concourse {
 
     /**
      * Atomically revert {@code key} in {@code record} to {@code timestamp} by
-     * creating new revisions that the relevant changes that have occurred
-     * since {@code timestamp}.
+     * creating new revisions that undo the relevant changes that have
+     * occurred since {@code timestamp}.
      * 
      * @param key
      * @param record
@@ -749,7 +749,8 @@ public abstract class Concourse {
      * @param key
      * @param value
      * @param record
-     * @return {@code true} if {@code key} equals {@code value} in {@code record}
+     * @return {@code true} if {@code key} equals {@code value} in
+     *         {@code record}
      */
     public abstract boolean verify(String key, Object value, long record);
 
@@ -762,7 +763,8 @@ public abstract class Concourse {
      * @param value
      * @param record
      * @param timestamp
-     * @return {@code true} if {@code key} equaled {@code value} in {@code record} at {@code timestamp}
+     * @return {@code true} if {@code key} equaled {@code value} in
+     *         {@code record} at {@code timestamp}
      */
     public abstract boolean verify(String key, Object value, long record,
             Timestamp timestamp);
