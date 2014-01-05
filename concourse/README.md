@@ -21,9 +21,9 @@ By default, Concourse conducts every operation in  `autocommit` mode where every
 
 ## Documentation
 ### Method Summary
-* [connect]()
-* [abort]()
-* [add]()
+* [connect](#connect)
+* [abort](#abort)
+* [add](#add)
 
 ---
 
