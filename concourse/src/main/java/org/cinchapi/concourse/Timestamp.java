@@ -38,7 +38,10 @@ import org.joda.time.format.ISODateTimeFormat;
 import com.google.common.primitives.Longs;
 
 /**
- * A wrapper class for Unix timestamps with microsecond precision.
+ * A wrapper class for a Unix timestamp with microsecond precision. A
+ * {@link Timestamp} is required for historical operations in {@link Concourse}.
+ * This class provides interoperability with Joda {@link DateTime} objects with
+ * the {@link #fromJoda(DateTime)} and {@link #getJoda()} methods.
  * 
  * @author jnelson
  */
