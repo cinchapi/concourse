@@ -46,7 +46,6 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.time.Timestamp;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TLinkedTableMap;
 import org.cinchapi.concourse.util.Transformers;

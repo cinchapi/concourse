@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.time.Timestamp;
 import org.junit.Assert;
 import org.junit.Test;
 
