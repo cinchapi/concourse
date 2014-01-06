@@ -377,7 +377,7 @@ the contained values for *key* in each of the *records* at *timestamp*
 	Map<Long, Set<Object>> data = concourse.fetch("foo", records, Timestamp.fromMicros(13889604150000));
 ---
 ### find
-##### `Set<Long>> find(String key, Operator operator, Object value)`
+##### `Set<Long> find(String key, Operator operator, Object value)`
 Find *key* *operator* *value* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
 * key
@@ -389,7 +389,7 @@ the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20);
 	
-##### `Set<Long>> find(String key, Operator operator, Object value, Timestamp timestamp)`
+##### `Set<Long> find(String key, Operator operator, Object value, Timestamp timestamp)`
 Find *key* *operator* *value* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
 * key
@@ -402,7 +402,7 @@ the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20, Timestamp.fromJoda(DateTime.now().minusYears(1)));
 	
-##### `Set<Long>> find(String key, Operator operator, Object value, Object value2)`
+##### `Set<Long> find(String key, Operator operator, Object value, Object value2)`
 Find *key* *operator* *value* and *value2* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
 * key
@@ -415,7 +415,7 @@ the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.BETWEEN, 20, 40);
 	
-##### `Set<Long>> find(String key, Operator operator, Object value, Object value2, Timestamp timestamp)`
+##### `Set<Long> find(String key, Operator operator, Object value, Object value2, Timestamp timestamp)`
 Find *key* *operator* *value* and *value2* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
 * key
