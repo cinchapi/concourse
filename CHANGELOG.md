@@ -1,6 +1,6 @@
-# Changelog
+## Changelog
 
-### Version 0.3.0
+#### Version 0.3.0-rc1 (January 5th, 2014)
 * Changed install and upgrade distributions from zip file to self-extracting binary.
 * Added logic to upgrade from previous versions.
 * Added server-side atomic operation and transaction protocols.
@@ -23,7 +23,7 @@
 * Added server side range locking protocol for `#find()` queries.
 * Bug fixes.
 
-### Version 0.2.0
+#### Version 0.2.0
 * Changed database storage model from one record per file to several revisions across blocks.
 * Added CLI to dump buffer and block contents.
 * Added Concourse Action SHeLL (CaSH)
