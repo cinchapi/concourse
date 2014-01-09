@@ -7,3 +7,7 @@ repositories {
    mavenLocal()
 }
 
+dependencies {
+    compile 'mysql:mysql-connector-java:5.1.26'
+    compile 'org.cinchapi:concourse:0.3.0+'
+}
