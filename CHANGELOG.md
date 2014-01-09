@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.3.0-rc1 (January 5th, 2014)
+#### Version 0.3.0 RC1 (January 5th, 2014)
 * Changed install and upgrade distributions from zip file to self-extracting binary.
 * Added logic to upgrade from previous versions.
 * Added server-side atomic operation and transaction protocols.
