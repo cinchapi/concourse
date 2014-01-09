@@ -20,13 +20,6 @@ CREATE TABLE `followers` (
   KEY `followed` (`followed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `followers`
---
-
-INSERT INTO `followers` (`follower`, `followed`) VALUES
-(1388178689165000, 1388178455872000),
-(1388178689165000, 1388178455872000);
 
 -- --------------------------------------------------------
 
@@ -41,12 +34,6 @@ CREATE TABLE `mentions` (
   KEY `uid` (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `mentions`
---
-
-INSERT INTO `mentions` (`tid`, `uid`) VALUES
-(1388179288131000, 1388178689165000);
 
 -- --------------------------------------------------------
 
@@ -62,19 +49,6 @@ CREATE TABLE `tweets` (
   PRIMARY KEY (`tid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `tweets`
---
-
-INSERT INTO `tweets` (`tid`, `author`, `message`, `timestamp`) VALUES
-(1388178666361000, 1388178455872000, 'does this work?', 1388178666362000),
-(1388178704213000, 1388178689165000, 'hi @jnelson', 1388178704214000),
-(1388178956024000, 1388178455872000, 'hello@null', 1388178956024001),
-(1388178962711000, 1388178455872000, 'hello @ashleah', 1388178962715000),
-(1388179004450000, 1388178455872000, 'hello @ashleah love you', 1388179004450001),
-(1388179070215000, 1388178455872000, 'hello @ashleah i really love you', 1388179070216000),
-(1388179160500000, 1388178455872000, 'hi @ashleah i love you', 1388179160500001),
-(1388179288131000, 1388178455872000, '@ashleah is really pretty', 1388179288131001);
 
 -- --------------------------------------------------------
 
@@ -94,10 +68,6 @@ CREATE TABLE `users` (
 --
 -- Dumping data for table `users`
 --
-
-INSERT INTO `users` (`uid`, `username`, `password`, `salt`) VALUES
-(1388178455872000, 'jnelson', '264dd96dc9888ddbc96b1b4ec2fe3e71daf9ae3cda437432e24941a78c9c4009', 7780312038078664493),
-(1388178689165000, 'ashleah', '6168df601595d4d040d914c75425359c35921934fa483bd5de6269554f8f783c', -7003299741269065862);
 
 --
 -- Constraints for dumped tables
