@@ -911,7 +911,9 @@ public abstract class Concourse {
                 });
             }
             catch (TTransportException e) {
-                throw Throwables.propagate(e);
+                throw new RuntimeException(
+                        "Could not connect to the Concourse Server at " + host
+                                + ":" + port);
             }
         }
 
