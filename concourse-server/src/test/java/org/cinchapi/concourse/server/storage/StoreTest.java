@@ -102,6 +102,54 @@ public abstract class StoreTest extends ConcourseBaseTest {
     // TODO test audit
 
     @Test
+    public void testCaseInsensitiveSearch() { // CON-10
+        String key = Variables.register("key", "foo");
+        TObject value = null;
+        while (value == null
+                || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toUpperCase())) {
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toUpperCase()));
+        }
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query", value.toString()
+                .toLowerCase());
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
+    }
+
+    @Test
+    public void testCaseInsensitiveSearchB() {
+        String key = Variables.register("key", "foo");
+        TObject value = null;
+        while (value == null
+                || GlobalState.STOPWORDS.contains(value.toString())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toLowerCase())) {
+            value = Variables.register("value",
+                    Convert.javaToThrift(TestData.getString().toLowerCase()));
+        }
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query", value.toString()
+                .toUpperCase());
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
+    }
+
+    @Test
+    public void testCaseInsensitiveSearchReproA() {
+        String key = Variables.register("key", "foo");
+        TObject value = Variables.register("value",
+                Convert.javaToThrift("5KPRAN6MT7RR X  P  ZBC4OMD0"));
+        long record = Variables.register("record", 1);
+        String query = Variables.register("query",
+                "5kpran6mt7rr x  p  zbc4omd0");
+        add(key, value, record);
+        Assert.assertTrue(store.search(key, query).contains(record));
+    }
+
+    @Test
     public void testDescribeAfterAddAndRemoveSingle() {
         String key = TestData.getString();
         TObject value = TestData.getTObject();
@@ -395,54 +443,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCaseInsensitiveSearch() { // CON-10
-        String key = Variables.register("key", "foo");
-        TObject value = null;
-        while (value == null
-                || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toUpperCase())) {
-            value = Variables.register("value",
-                    Convert.javaToThrift(TestData.getString().toUpperCase()));
-        }
-        long record = Variables.register("record", 1);
-        String query = Variables.register("query", value.toString()
-                .toLowerCase());
-        add(key, value, record);
-        Assert.assertTrue(store.search(key, query).contains(record));
-    }
-
-    @Test
-    public void testCaseInsensitiveSearchB() {
-        String key = Variables.register("key", "foo");
-        TObject value = null;
-        while (value == null
-                || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase())) {
-            value = Variables.register("value",
-                    Convert.javaToThrift(TestData.getString().toLowerCase()));
-        }
-        long record = Variables.register("record", 1);
-        String query = Variables.register("query", value.toString()
-                .toUpperCase());
-        add(key, value, record);
-        Assert.assertTrue(store.search(key, query).contains(record));
-    }
-
-    @Test
-    public void testCaseInsensitiveSearchReproA() {
-        String key = Variables.register("key", "foo");
-        TObject value = Variables.register("value",
-                Convert.javaToThrift("5KPRAN6MT7RR X  P  ZBC4OMD0"));
-        long record = Variables.register("record", 1);
-        String query = Variables.register("query",
-                "5kpran6mt7rr x  p  zbc4omd0");
-        add(key, value, record);
-        Assert.assertTrue(store.search(key, query).contains(record));
-    }
-
-    @Test
     @Theory
     public void testSearch(SearchType type) {
         String query = null;
@@ -452,6 +452,33 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Variables.register("query", query);
         String key = Variables.register("key", TestData.getString());
         Set<Long> records = setupSearchTest(key, query, type);
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproA(SearchType type) {
+        String query = Variables.register("query", "tc e");
+        String key = Variables.register("key", "2 6f0wzcw2ixa   dcf sa");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(6631928579149921621L),
+                Lists.newArrayList("qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproB(SearchType type) {
+        String query = Variables.register("query",
+                "6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi");
+        String key = Variables.register("key",
+                "2vuag rm1hkhrnjt2nf1 n411ch7djphag6bgrxw9fcpe6c7zqf vny7 z6n");
+        Set<Long> records = setupSearchTest(key, query, type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
@@ -474,31 +501,104 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
-    public void testSearchReproD(SearchType type) {
-        String query = Variables.register("query", "0 tihr2 nva7zd z96x");
-        String key = Variables.register("key", "foo");
+    public void testSearchReproF(SearchType type) {
+        String query = Variables.register("query", "34 y");
+        String key = Variables.register("key",
+                "gpvokxzt84dsbm2ylhsooal v0fyhqukc");
         Set<Long> records = setupSearchTest(
                 key,
                 query,
                 type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("xqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx0 tihr2 nva7zd z96xxqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx"));
+                Lists.newArrayList(-4473008077619333882L,
+                        -8351207459167435413L, -4459427393681524497L,
+                        4939907340215037652L, -6886124796950548141L,
+                        5712289740182081898L, -5352871050404061986L,
+                        9078216912764450349L, 368752644783891597L,
+                        -731408778453015380L, 2833136306920397583L,
+                        8970944616841919904L, -2557996967788292936L,
+                        3011361709098214638L, 9131206744594670786L,
+                        -269685979046038300L, -7557829318518279649L,
+                        -2403971717188586598L, 7144064178377245110L,
+                        -1901968551799565728L, 4040139761808173392L,
+                        -6949001582626254753L, -3136222895901082164L,
+                        5566791123710361043L, 5050276518482596641L,
+                        -8202827082220536933L, 8450772276451962700L,
+                        2171722260496954622L, 8691364971781746515L,
+                        1772440781478734988L, -3401640223866128972L,
+                        -1892754300252444576L, -9049673414695221207L,
+                        -2759568085991866192L, 2220378323437157183L),
+                Lists.newArrayList(
+                        "es5wpos73i60li2sv17trbgas5j7",
+                        "p9xbp2jf0q134 yp9xbp2jf0q1",
+                        "5xkc8h642h9i9y15pb b13q4mlentzvnslco2 e7dzxaxyodxgwr0ktqghr8sbgnptppk5ztnakenk0b9nh hohf",
+                        "249isiqqwpkeeyzluyo8k87fb7z2tu36ybvkpek9jyoflwxpjsgow80tqupnzi0kks4ch1zzfdyz7nd6wpwj3djxt81eh6v0jk4v34 y249isiqqwpkeeyzluyo8k87fb7z2tu36ybvkpek9jyoflwxpjsgow80tqupnzi0kks4ch1zzfdyz7nd6wpwj3djxt81eh6v0jk4v",
+                        "zgakm3nmk5n24ibpbhdigskr 1 3se5p2kmhaparqmk50vmwgwgisip6otvbnckkb7dv",
+                        "qwnu9d6xj 1zzxd2rg snnevznghg4 1nehuqpdid06vjt8",
+                        "ilnp05hlx34 yilnp05hlx",
+                        "y yz8k j558gk47ir0l02nccnxovsb8mnyt rus1ps98iqveavt7fxeil",
+                        "mop i",
+                        "7ctzo7n4zdt0udlw2r122qdbnfiu7kxj4bopbs7u6tsrxahp01gqnkl20ezic2z7fu kxe vr58n",
+                        "bzzsys ish7rs5 35a5jnfc76 pc u76pp9w60p7kqsm",
+                        "qgqmt4mkalkllogybpiwp54aw151435k01taohihs30ydmc4",
+                        "35m8tdk58 iaa1d1d",
+                        "c6hfmlp1yh6eqxuhln3jcr1ix4mjfo1sclz1k3xsj75jebx79wejpyje34 yc6hfmlp1yh6eqxuhln3jcr1ix4mjfo1sclz1k3xsj75jebx79wejpyje",
+                        "kmno8f3bl9m4mvkhq 3hknzwwplzv7oybwhxkrde 5hc74qcq0  srswuav9cl",
+                        "5garx88 4kaq4zg8z0yps3o1ipymfftcqp a0icy0fpfcgcd9ys67f7yql6vv5xhmh41vmo834 y5garx88 4kaq4zg8z0yps3o1ipymfftcqp a0icy0fpfcgcd9ys67f7yql6vv5xhmh41vmo8",
+                        "3z4y8o9yynujfip4ia zgnhw5p2qzlmk5ngygexo70o262bu2j4wn3itwwy ph35s11zf5 4mv8kkfxse",
+                        "zkmsu22sun6qtozwyjyqe c137cstb98ex 8lja3sg",
+                        "6h1v3ar4z45p 574wohd9lp6y qo8vuwp91lrj03bq4wp7mgzt2qjdv jst3nmi7huvgga6cn",
+                        "xoe7xrkxezla4yqx4ckulogibruuggnw1bta34iobrme0mq8fb",
+                        "f8vd4ehlrc8",
+                        "tgr0rtl98pod047tbxfc6pi52y9onh9jzdt4cj6zb8ofb5gt7c0o87f59qlwjps1u1rih2tb",
+                        "v76eyuorcqk6czzk3 s5p1f95o81ywv1i48izht0v7yx1k7ebewgomjwgcjixe1v1n2bu5g7zkjkuj9h5kmd521m9",
+                        "stk4bjrb08n143le9ij4534 ystk4bjrb08n143le9ij45",
+                        "15j0dy4uf3ychzayss7die",
+                        "0 ua72nxf nosl8msw34 y0 ua72nxf nosl8msw",
+                        "x253x2bbcjxxtuegqk68q d2ku lz3k0dvmj8hf2zbmh25b",
+                        "xt8v7sir9uqt12f9tcq12gp2k27e3k12oe4wbpf3ob9t3pqjpg6zci4d 5y534 yxt8v7sir9uqt12f9tcq12gp2k27e3k12oe4wbpf3ob9t3pqjpg6zci4d 5y5",
+                        "4yz10yezarmf34 y4yz10yezarmf",
+                        "o8r1m34 yo8r1m",
+                        "lqe462we526s7tnc39ia8e 2dhq7iojy5wwx4uj4i08hk9b6kx074ppjpj1 it2rk4rh9vxe7zrgvv9ibyj0t2h7wm",
+                        "ndpehrrvwa32cxzc7uouly1ys39vg8 khpmv5kqwnwazdzchfmxk1p6vp4hj4pvcy8q019w89ktjc2p0p2n957th37 7o834 yndpehrrvwa32cxzc7uouly1ys39vg8 khpmv5kqwnwazdzchfmxk1p6vp4hj4pvcy8q019w89ktjc2p0p2n957th37",
+                        "u2 kgkkdf9gshpfnkj8539m059k8e749erbwb1075men1xn9g1xyfl5grb4xfkjwji5bbxblmt",
+                        "vp4lxzi4sgbeybp3t  sdbiv2oonm02i06phf0s b7f4sixhq 1w 2cqdklb ic ue96z9f",
+                        "radc6q2a6 qlxi2wmqfwykevv dx2o ij5o 07u9ba4ukygfha7 t 8 pavj1tgm4 nl9p laz7enfg0sq35 3k5233 "));
         Assert.assertEquals(records, store.search(key, query));
     }
 
     @Test
     @Theory
-    public void testSearchReproE(SearchType type) {
-        String query = Variables
-                .register("query",
-                        "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30 ");
-        String key = Variables.register("key", "foo");
+    public void testSearchReproCON_2(SearchType type) {
+        String query = Variables.register("query", "k i");
+        String key = Variables.register("key", "oq99f7u7vizpob4o");
         Set<Long> records = setupSearchTest(
                 key,
                 query,
                 type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
+                Lists.newArrayList(1902752458578581194L, 1959599694661426747L,
+                        -9154557670941699129L, -984115036014491508L,
+                        5194905945498812204L, 5521526792899195281L,
+                        4893428588236612746L, -6469751959947965328L,
+                        -6053272917723840881L, -3780108145350335994L,
+                        3428649801035140268L, 8581751009047755290L,
+                        -8274546879060748693L, 4433133031784539226L,
+                        2539259213139177697L),
+                Lists.newArrayList(
+                        "mbqg6 ls47i09bqt76lhtefjevbxt v9gc mqhily6agpweptt7dj jl a vbvqisuz4d xky18xs",
+                        "9j6eue5m2 rn rovj4p4y bh kderm7xw40epfmbibtay6l2 x6 cw 833uhgkde43bwy8 b5u5rrlzdmqx",
+                        "z22eb7likgl1xd1 bna93h2y  2nq  1kfejkmk iz22eb7likgl1xd1 bna93h2y  2nq  1kfejkm",
+                        "n3a6dsk7gdhhp5re0piodkkvb085q7b7jj7bac0m27t6hhhajwyf",
+                        "i4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78k ii4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78",
+                        "b8yljef75 lvfwevcbb sg40mtoaovr2g8lgpgkcu88kprfdms7qncflm8wx0e9a9zt0zx8uvy4yf0mnqg",
+                        "qfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww puk iqfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww pu",
+                        "yte1xocdz agzid h3juda8fwpehyztqcc9ka2jb5",
+                        "j1nl2lvd5ie",
+                        "zqw e tfvd9y 4i7921apde59kfetaxcqcj89 s 1c5ncb t",
+                        "simk a7 s7oh1 oz9wfrh7830q82hoorvfomcw8dzy9eaku cvu1pdknxwkcf1w9",
+                        "eurti8wfy244clx15u",
+                        "ig5 bq",
+                        "y9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xhk iy9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xh",
+                        "s93z3eggrxiuyb1enl59y  gwu7gn2cj 1luh j  pj"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
@@ -549,6 +649,75 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
+    public void testSearchReproD(SearchType type) {
+        String query = Variables.register("query", "0 tihr2 nva7zd z96x");
+        String key = Variables.register("key", "foo");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("xqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx0 tihr2 nva7zd z96xxqwqd3q522  3hnlzuu22qctkmc5 4xwxdz52iesr6nd820ihe5j6iz5 rn8g 0vkwzl  jxjyb494lhvhmqu9cvzuc3v9wnngx"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproE(SearchType type) {
+        String query = Variables
+                .register("query",
+                        "5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30 ");
+        String key = Variables.register("key", "foo");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1L),
+                Lists.newArrayList("5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Ignore("not implemented in Limbo")
+    public void testSearchResultSorting() {
+        // FIXME this is not implemented in Limbo (cause its very difficult) so
+        // right now search result order is undefined).
+        String key = Variables.register("key", TestData.getString());
+        String query = Variables.register("query", TestData.getString());
+        Map<Long, String> words = Variables.register("words",
+                Maps.<Long, String> newTreeMap());
+        for (long i = 0; i < 10; i++) {
+            String word = null;
+            while (Strings.isNullOrEmpty(word)
+                    || TStrings.isInfixSearchMatch(query, word)) {
+                word = TestData.getString();
+            }
+            for (long j = 0; j <= i; j++) {
+                word += " " + query;
+                String other = null;
+                while (Strings.isNullOrEmpty(other)
+                        || TStrings.isInfixSearchMatch(query, other)) {
+                    other = TestData.getString();
+                }
+                word += " " + other;
+            }
+            words.put(i, word);
+            add(key, Convert.javaToThrift(word), i);
+        }
+        Set<Long> expected = Variables.register("expected",
+                Sets.newTreeSet(Collections.<Long> reverseOrder()));
+        expected.addAll(words.keySet());
+        Set<Long> actual = Variables.register("actual",
+                store.search(key, query));
+        Iterator<Long> it = expected.iterator();
+        Iterator<Long> it2 = actual.iterator();
+        while (it.hasNext()) {
+            Assert.assertEquals(it.next(), it2.next());
+        }
+    }
+
+    @Test
+    @Theory
     @Ignore
     public void testSearchWithStopWordSubStringInQuery() {
         // TODO: Filed as CON-6 and CON-7. This should be fixed in an 0.2 update
@@ -556,69 +725,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add("string", Convert.javaToThrift("but foobar barfoo"), 1);
         Assert.assertTrue(store.search("string", "ut foobar barfoo")
                 .contains(1));
-    }
-
-    @Test
-    @Theory
-    public void testSearchReproA(SearchType type) {
-        String query = Variables.register("query", "tc e");
-        String key = Variables.register("key", "2 6f0wzcw2ixa   dcf sa");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(6631928579149921621L),
-                Lists.newArrayList("qi2sqa06xhn5quxbdasrtjsrzucbmo24fc4u78iv4rtc1ea7dnas74uxadvrf"));
-        Assert.assertEquals(records, store.search(key, query));
-    }
-
-    @Test
-    @Theory
-    public void testSearchReproB(SearchType type) {
-        String query = Variables.register("query",
-                "6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi");
-        String key = Variables.register("key",
-                "2vuag rm1hkhrnjt2nf1 n411ch7djphag6bgrxw9fcpe6c7zqf vny7 z6n");
-        Set<Long> records = setupSearchTest(key, query, type,
-                Lists.newArrayList(1L),
-                Lists.newArrayList("6w07u z a3euaaekb13li7je0b2jyeaztu5se9xsi"));
-        Assert.assertEquals(records, store.search(key, query));
-    }
-
-    @Test
-    @Theory
-    public void testSearchReproCON_2(SearchType type) {
-        String query = Variables.register("query", "k i");
-        String key = Variables.register("key", "oq99f7u7vizpob4o");
-        Set<Long> records = setupSearchTest(
-                key,
-                query,
-                type,
-                Lists.newArrayList(1902752458578581194L, 1959599694661426747L,
-                        -9154557670941699129L, -984115036014491508L,
-                        5194905945498812204L, 5521526792899195281L,
-                        4893428588236612746L, -6469751959947965328L,
-                        -6053272917723840881L, -3780108145350335994L,
-                        3428649801035140268L, 8581751009047755290L,
-                        -8274546879060748693L, 4433133031784539226L,
-                        2539259213139177697L),
-                Lists.newArrayList(
-                        "mbqg6 ls47i09bqt76lhtefjevbxt v9gc mqhily6agpweptt7dj jl a vbvqisuz4d xky18xs",
-                        "9j6eue5m2 rn rovj4p4y bh kderm7xw40epfmbibtay6l2 x6 cw 833uhgkde43bwy8 b5u5rrlzdmqx",
-                        "z22eb7likgl1xd1 bna93h2y  2nq  1kfejkmk iz22eb7likgl1xd1 bna93h2y  2nq  1kfejkm",
-                        "n3a6dsk7gdhhp5re0piodkkvb085q7b7jj7bac0m27t6hhhajwyf",
-                        "i4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78k ii4jfmy3nnfiupbnf04ecthucbj4pzisu4xpqy78",
-                        "b8yljef75 lvfwevcbb sg40mtoaovr2g8lgpgkcu88kprfdms7qncflm8wx0e9a9zt0zx8uvy4yf0mnqg",
-                        "qfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww puk iqfih uzg8 7 cy euxg 7sz8i8mj c40czvac6yk b worw65  3wkwhtc etulr1b9gsww pu",
-                        "yte1xocdz agzid h3juda8fwpehyztqcc9ka2jb5",
-                        "j1nl2lvd5ie",
-                        "zqw e tfvd9y 4i7921apde59kfetaxcqcj89 s 1c5ncb t",
-                        "simk a7 s7oh1 oz9wfrh7830q82hoorvfomcw8dzy9eaku cvu1pdknxwkcf1w9",
-                        "eurti8wfy244clx15u",
-                        "ig5 bq",
-                        "y9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xhk iy9rf7s 14y8o c8kraxfd714e9r9rqzq  ghoctaln2g 24dxirf ewwskvu5p7pn1h80s1nn fd88 z1c8k5dx7z0i5xh",
-                        "s93z3eggrxiuyb1enl59y  gwu7gn2cj 1luh j  pj"));
-        Assert.assertEquals(records, store.search(key, query));
     }
 
     @Test
@@ -665,45 +771,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testVerifyEmpty() {
         Assert.assertFalse(store.verify(TestData.getString(),
                 TestData.getTObject(), TestData.getLong()));
-    }
-
-    @Test
-    @Ignore("not implemented in Limbo")
-    public void testSearchResultSorting() {
-        // FIXME this is not implemented in Limbo (cause its very difficult) so
-        // right now search result order is undefined).
-        String key = Variables.register("key", TestData.getString());
-        String query = Variables.register("query", TestData.getString());
-        Map<Long, String> words = Variables.register("words",
-                Maps.<Long, String> newTreeMap());
-        for (long i = 0; i < 10; i++) {
-            String word = null;
-            while (Strings.isNullOrEmpty(word)
-                    || TStrings.isInfixSearchMatch(query, word)) {
-                word = TestData.getString();
-            }
-            for (long j = 0; j <= i; j++) {
-                word += " " + query;
-                String other = null;
-                while (Strings.isNullOrEmpty(other)
-                        || TStrings.isInfixSearchMatch(query, other)) {
-                    other = TestData.getString();
-                }
-                word += " " + other;
-            }
-            words.put(i, word);
-            add(key, Convert.javaToThrift(word), i);
-        }
-        Set<Long> expected = Variables.register("expected",
-                Sets.newTreeSet(Collections.<Long> reverseOrder()));
-        expected.addAll(words.keySet());
-        Set<Long> actual = Variables.register("actual",
-                store.search(key, query));
-        Iterator<Long> it = expected.iterator();
-        Iterator<Long> it2 = actual.iterator();
-        while (it.hasNext()) {
-            Assert.assertEquals(it.next(), it2.next());
-        }
     }
 
     /**
@@ -843,6 +910,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     /**
+     * Setup a search test by adding some random matches for {@code query} that
+     * obey search {@code type} for {@code key} in a random set of records.
+     * 
+     * @param key
+     * @param query
+     * @param type
+     * @return the records where the query matches
+     */
+    private Set<Long> setupSearchTest(String key, String query, SearchType type) {
+        return setupSearchTest(key, query, type, null, null);
+    }
+
+    /**
      * Setup a search test by adding some matches for {@code query} that
      * obey search {@code type} for {@code key} in some of the records from
      * {@code recordSource}.
@@ -937,19 +1017,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
         }
         return records;
 
-    }
-
-    /**
-     * Setup a search test by adding some random matches for {@code query} that
-     * obey search {@code type} for {@code key} in a random set of records.
-     * 
-     * @param key
-     * @param query
-     * @param type
-     * @return the records where the query matches
-     */
-    private Set<Long> setupSearchTest(String key, String query, SearchType type) {
-        return setupSearchTest(key, query, type, null, null);
     }
 
     /**
