@@ -39,6 +39,7 @@ import org.cinchapi.concourse.server.storage.db.SearchRecord;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -91,7 +92,10 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
             value = Value.wrap(Convert.javaToThrift(TestData.getString()));
             position = 0;
             for (String string : value.getObject().toString().split(" ")) {
-                string = string.trim();
+                string = string.replaceAll(
+                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS,
+                        ""); // normalize white spaces so that we get the
+                             // position right below
                 if(!GlobalState.STOPWORDS.contains(string)
                         && !Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
