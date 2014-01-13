@@ -548,12 +548,11 @@ public class ConcourseServer implements
                 .start(transaction != null ? transactions.get(transaction)
                         : engine);
         try {
-            if(operation.verify(key, expected, record)) {
-                operation.remove(key, expected, record);
-                operation.add(key, replacement, record);
-                return operation.commit();
-            }
-            return false;
+            return (operation.verify(key, expected, record)
+                    && operation.remove(key, expected, record) && operation
+                        .add(key, replacement, record)) ? operation.commit()
+                    : false;
+
         }
         catch (AtomicStateException e) {
             return false;
