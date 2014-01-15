@@ -58,10 +58,12 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 4. Start writing code :)
 
 ### Run from Eclipse
-1. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
-2. Use **Start Server** to start a local server with the default configuration.
-3. Use **Stop Server** to stop all locally running servers.
-4. Use **Launch CaSH** to launch a cash terminal that is connected to a locally running server listening on the default port.
+1. Install the [gradle eclipse plugin](https://github.com/spring-projects/eclipse-integration-gradle/#installing-gradle-tooling-from-update-site).
+2. Import all the concourse projects.
+3. Import the launch configurations from `concourse-server/launch` and `concourse-shell/launch`.
+4. Use **Start Server** to start a local server with the default configuration.
+5. Use **Stop Server** to stop all locally running servers.
+6. Use **Launch CaSH** to launch a cash terminal that is connected to a locally running server listening on the default port.
 
 
 ### Build your changes
