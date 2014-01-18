@@ -1,5 +1,12 @@
 ## Changelog
 
+#### Version 0.3.0 RC2 (January 18, 2014)
+* Fixed bug that occured when invoking `#verifyAndSwap()` on an existing swap value.
+* Improved error message when client cannot connect to server.
+* Additional unit and integration tests.
+* Improved build infrastructure.
+* Improved documentation.
+
 #### Version 0.3.0 RC1 (January 5th, 2014)
 * Changed install and upgrade distributions from zip file to self-extracting binary.
 * Added logic to upgrade from previous versions.
