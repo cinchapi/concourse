@@ -3,6 +3,26 @@
 
 ## Introduction
 
+The concourse jar is available at [Maven Central](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22org.cinchapi%22%20AND%20a%3A%22concourse%22). We recommend using Gradle to handle depenency management for your project.
+
+######build.gradle
+
+	repositories {
+   		mavenCentral()
+	}
+
+	dependencies {
+    	compile 'org.cinchapi:concourse:0.3.0+'
+	} 
+	
+If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
+	
+	GroupId: org.cinchapi
+	ArtifactId: concourse
+	Version: 0.3.0+
+	
+Alternatively, you can [download](http://cinchapi.org/concourse/download-api) the latest jar and manually add it to your project's classpath.
+
 ### Data Model
 The Concourse data model is lightweight and flexible which enables it to support any kind of data at very large scales. Concourse trades unnecessary structural notions of schemas, tables and indexes for a more natural modeling of data based solely on the following concepts:
 
