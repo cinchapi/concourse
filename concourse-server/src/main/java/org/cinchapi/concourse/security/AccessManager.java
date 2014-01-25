@@ -164,16 +164,22 @@ public class AccessManager {
      * @return the AccessToken
      */
     public AccessToken authorize(ByteBuffer username) {
-        checkArgument(isValidUsername(username));
-        StringBuilder sb = new StringBuilder();
-        String hex = encodeHex(username);
-        sb.append(hex);
-        sb.append(srand.nextLong());
-        sb.append(Time.now());
-        AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing.sha256()
-                .hashUnencodedChars(sb.toString()).asBytes()));
-        tokens.put(hex, token);
-        return token;
+        read.lock();
+        try {
+            checkArgument(isValidUsername(username));
+            StringBuilder sb = new StringBuilder();
+            String hex = encodeHex(username);
+            sb.append(hex);
+            sb.append(srand.nextLong());
+            sb.append(Time.now());
+            AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing
+                    .sha256().hashUnencodedChars(sb.toString()).asBytes()));
+            tokens.put(hex, token);
+            return token;
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     /**
