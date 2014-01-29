@@ -126,7 +126,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
         while (value == null
                 || GlobalState.STOPWORDS.contains(value.toString())
                 || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase())) {
+                        .toLowerCase())
+                || Strings.isNullOrEmpty(TStrings.stripStopWords(value
+                        .toString()))) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
