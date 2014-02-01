@@ -78,6 +78,21 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertFalse(((AtomicOperation) store).commit());
     }
 
+    @Test
+    public void testCommitSucceedsIfChangeIsMadeToRecordInDiffKey() {
+        // CON-20
+        long record = 1;
+        String keyA = "keyA";
+        TObject valueA = Convert.javaToThrift("valueA");
+        String keyB = "keyB";
+        TObject valueB = Convert.javaToThrift("valueB");
+        add(keyA, valueA, 1);
+        AtomicOperation other = AtomicOperation.start(destination);
+        other.add(keyB, valueB, record);
+        Assert.assertTrue(other.commit());
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
+
     @Test(expected = AtomicStateException.class)
     public void testFailureIfWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
@@ -153,13 +168,16 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Test(expected = AtomicStateException.class)
     public void testNoChangesPersistOnFailure() {
         int count = TestData.getScaleCount();
+        String key0 = "";
         for (int i = 0; i < count; i++) {
             String key = TestData.getString();
+            if(i == 0) {
+                key0 = key;
+            }
             TObject value = TestData.getTObject();
             ((AtomicOperation) store).add(key, value, i);
         }
-        destination.accept(Write.add(TestData.getString(),
-                Convert.javaToThrift("foo"), 0));
+        destination.accept(Write.add(key0, Convert.javaToThrift("foo"), 0));
         ((AtomicOperation) store).commit(); // throws AtomicStateException
         for (int i = 0; i < count; i++) {
             Assert.assertTrue(destination.audit(i).isEmpty());

@@ -137,8 +137,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        ((Compoundable) destination).addVersionChangeListener(
-                Token.wrap(record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
@@ -251,8 +249,6 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        ((Compoundable) destination).addVersionChangeListener(
-                Token.wrap(record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
