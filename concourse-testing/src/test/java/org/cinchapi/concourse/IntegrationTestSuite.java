@@ -33,7 +33,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({CompoundOperationTest.class, AtomicOperationTest.class})
+@SuiteClasses({ CompoundOperationTest.class, AtomicOperationTest.class,
+        TransactionWorkflowTest.class })
 public class IntegrationTestSuite {
 
 }
