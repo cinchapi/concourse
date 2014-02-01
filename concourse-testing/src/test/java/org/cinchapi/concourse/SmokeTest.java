@@ -28,7 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.StandardActions;
+import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -65,6 +67,33 @@ public class SmokeTest extends ConcourseIntegrationTest {
         Assert.assertFalse(a.isEmpty());
         Assert.assertEquals(a, b);
         Assert.assertTrue(c.isEmpty());
+    }
+    
+    @Test(expected = NullPointerException.class)
+    public void testCannotAddNullValue(){
+        client.add("foo", null, 1);
+    }
+    
+    @Test
+    @Ignore("CON-21")
+    public void testCannotAddEmptyStringValue(){
+        Assert.assertFalse(client.add("foo", "", 1));
+        String string = "";
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            string+= " ";
+        }
+        Assert.assertFalse(client.add("foo", string, 1));
+    }
+    
+    @Test
+    @Ignore("CON-21")
+    public void testCannotAddEmptyKey(){
+        Assert.assertFalse(client.add("", "foo", 1));
+        String string = "";
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            string+= " ";
+        }
+        Assert.assertFalse(client.add(string, "foo", 1));
     }
 
 }
