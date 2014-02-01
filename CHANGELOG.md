@@ -1,5 +1,10 @@
 ## Changelog
 
+#### Version 0.3.0 (February 1, 2014)
+* Fixed a bug that caused a TLinkedTableMap to display its header incorrectly.
+* Added concurrenty controls to AccessManager `authorize()` method.
+* Fixed a bug that caused an AtomicOperation to fail unnecessarily if it touched a key in a record but another operation touched a different key in the same record.
+
 #### Version 0.3.0 RC2 (January 18, 2014)
 * Fixed bug that occured when invoking `#verifyAndSwap()` on an existing swap value.
 * Improved error message when client cannot connect to server.
