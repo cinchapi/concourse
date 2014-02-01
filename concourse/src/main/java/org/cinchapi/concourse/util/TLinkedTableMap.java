@@ -98,6 +98,7 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             rowdata = Maps.newLinkedHashMap();
             super.put(row, rowdata);
         }
+        rowLength = Math.max(row.toString().length(), rowLength);
         int current = columns.containsKey(column) ? columns.get(column) : 0;
         columns.put(column,
                 Math.max(current, Math.max(column.toString().length(), value
