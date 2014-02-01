@@ -36,7 +36,7 @@ if [ -z "$1" ] ; then
 			EXTRA=`echo $EXTRA | tr '[:lower:]' '[:upper:]'`
 			;;
 		release* )
-			EXTRA="-BETA"
+			EXTRA=""
 			;;
 		* )
 			# At this point we do not need to refer
