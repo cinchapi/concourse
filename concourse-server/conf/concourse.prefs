@@ -51,9 +51,3 @@
 #
 # DEFAULT:
 #enable_console_logging = FALSE
-
-# The absolute path to the directory where the transaction backup files are 
-# stored.
-#
-# DEFAULT: {$user.home}/concourse/txn
-#transaction_directory = /var/lib/concourse/txn
