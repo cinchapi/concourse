@@ -95,14 +95,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param version
      * @param type
      */
-    /*
-     * (non-Javadoc)
-     * This method is synchronized because it spawns threads to asynchronously
-     * call doInsert(), which invokes a super class method that grabs the
-     * write lock Therefore, we can't grab the write lock here because
-     * that would create a deadlock.
-     */
-    public final synchronized void insert(Text key, Value value,
+    public final void insert(Text key, Value value,
             PrimaryKey record, long version, Action type) {
         Preconditions.checkState(mutable,
                 "Cannot modify a block that is not mutable");
