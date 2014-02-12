@@ -26,6 +26,9 @@ package org.cinchapi.concourse.server.storage.db;
 // import java.util.Iterator;
 // import java.util.Set;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
@@ -137,6 +140,63 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         SearchRecord searchRecord = Record.createSearchRecordPartial(key, term);
         ((SearchBlock) block).seek(key, term, searchRecord);
         Assert.assertTrue(searchRecord.search(term).contains(record));
+    }
+
+    @Test
+    public void testAsyncInsert() {// Verify that inserting data serially and
+                                   // asynchronously produces a SearchBlock with
+                                   // the same content
+        final Text aKey = Variables.register("aKey", TestData.getText());
+        final Value aValue = Variables.register("aValue",
+                Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
+                                                                         // string
+        final PrimaryKey aRecord = Variables.register("aRecord", getRecord());
+        final long aTimestamp = Time.now();
+
+        final Text bKey = Variables.register("bKey", TestData.getText());
+        final Value bValue = Variables.register("bValue",
+                Value.wrap(Convert.javaToThrift(TestData.getString()))); // force
+                                                                         // string
+        final PrimaryKey bRecord = Variables.register("bRecord", getRecord());
+        final long bTimestamp = Time.now();
+
+        SearchBlock serial = getMutableBlock(directory);
+        serial.insert(aKey, aValue, aRecord, aTimestamp, Action.ADD);
+        serial.insert(bKey, bValue, bRecord, bTimestamp, Action.ADD);
+
+        final SearchBlock async = (SearchBlock) block;
+
+        Runnable a = new Runnable() {
+
+            @Override
+            public void run() {
+                async.insert(aKey, aValue, aRecord, aTimestamp, Action.ADD);
+            }
+
+        };
+
+        Runnable b = new Runnable() {
+
+            @Override
+            public void run() {
+                async.insert(bKey, bValue, bRecord, bTimestamp, Action.ADD);
+            }
+
+        };
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        executor.execute(a);
+        executor.execute(b);
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+            continue;
+        }
+
+        Assert.assertEquals(serial.dump().split("\n")[1],
+                async.dump().split("\n")[1]); // must ignore the first line of
+                                              // dump output which contains the
+                                              // block i
+
     }
 
     @Test
