@@ -47,11 +47,10 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
         extends ConcourseBaseTest {
 
     protected Block<L, K, V> block;
+    protected String directory;
 
     @Rule
     public TestWatcher watcher = new TestWatcher() {
-
-        private String directory;
 
         @Override
         protected void starting(Description description) {
@@ -64,6 +63,13 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
             block = null;
             FileSystem.deleteDirectory(directory);
         }
+
+        @Override
+        protected void failed(Throwable e, Description description) {
+            System.out.println(block.dump());
+        }
+        
+        
 
     };
 
