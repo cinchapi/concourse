@@ -23,10 +23,14 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.cinchapi.concourse.server.GlobalState;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 /**
  * A collection of {@link String} related tools.
@@ -34,6 +38,26 @@ import org.cinchapi.concourse.server.GlobalState;
  * @author jnelson
  */
 public final class TStrings {
+
+    /**
+     * Return a set that contains every possible substring of {@code string}
+     * excluding pure whitespace strings.
+     * 
+     * @param string
+     * @return the set of substrings
+     */
+    public static Set<String> getAllSubStrings(String string) {
+        Set<String> result = Sets.newHashSet();
+        for (int i = 0; i < string.length(); i++) {
+            for (int j = i + 1; j <= string.length(); j++) {
+                String substring = string.substring(i, j).trim();
+                if(!Strings.isNullOrEmpty(substring)) {
+                    result.add(substring);
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * Return {@code true} if {@code haystack} is an <strong>infix
