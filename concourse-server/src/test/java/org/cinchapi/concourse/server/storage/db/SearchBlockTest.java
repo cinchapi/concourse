@@ -195,7 +195,7 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         Assert.assertEquals(serial.dump().split("\n")[1],
                 async.dump().split("\n")[1]); // must ignore the first line of
                                               // dump output which contains the
-                                              // block i
+                                              // block id
 
     }
 
