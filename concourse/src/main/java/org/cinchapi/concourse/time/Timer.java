@@ -31,7 +31,9 @@ import com.google.common.base.Preconditions;
  * A basic timer.
  * 
  * @author jnelson
+ * @deprecated use {@link com.google.common.base.Stopwatch} instead
  */
+@Deprecated
 public class Timer {
 
     private final static int defaultStartTime = 0;
