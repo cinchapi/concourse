@@ -45,7 +45,7 @@ Look over the [wiki](https://cinchapi.atlassian.net/wiki/display/CON/Concourse) 
 
 ### Pick an issue
 1. Choose an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature.
-2. Create an account in Jira.
+2. [Create an account](https://cinchapi.atlassian.net/secure/Signup!default.jspa) in Jira.
 3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket. yourself.
 
 ### Write some code
