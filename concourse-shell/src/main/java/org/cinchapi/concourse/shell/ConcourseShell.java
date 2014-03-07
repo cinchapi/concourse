@@ -27,7 +27,11 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import groovy.lang.Binding;
@@ -51,6 +55,7 @@ import com.clutch.dates.StringToTime;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Longs;
 
 /**
@@ -61,6 +66,25 @@ import com.google.common.primitives.Longs;
  * @author jnelson
  */
 public final class ConcourseShell {
+
+    /**
+     * Return a sorted array that contains all the accessible API methods.
+     * 
+     * @return the accessible API methods
+     */
+    private static String[] getAccessibleApiMethods() {
+        Set<String> banned = Sets.newHashSet("equals", "getClass", "hashCode",
+                "notify", "notifyAll", "toString", "wait", "exit");
+        Set<String> methods = Sets.newTreeSet();
+        for (Method method : Concourse.class.getMethods()) {
+            if(!Modifier.isStatic(method.getModifiers())
+                    && !banned.contains(method.getName())) {
+                methods.add(MessageFormat.format("concourse.{0}",
+                        method.getName()));
+            }
+        }
+        return methods.toArray(new String[methods.size()]);
+    }
 
     /**
      * Run the program...
@@ -96,12 +120,7 @@ public final class ConcourseShell {
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
             console.setPrompt("cash$ ");
-            console.addCompleter(new StringsCompleter("concourse.add",
-                    "concourse.audit", "concourse.clear", "concourse.create",
-                    "concourse.describe", "concourse.fetch", "concourse.find",
-                    "concourse.get", "concourse.link", "concourse.ping",
-                    "concourse.remove", "concourse.revert", "concourse.search",
-                    "concourse.set", "concourse.unlink", "concourse.verify"));
+            console.addCompleter(new StringsCompleter(getAccessibleApiMethods()));
 
             String line;
             while ((line = console.readLine().trim()) != null) {
