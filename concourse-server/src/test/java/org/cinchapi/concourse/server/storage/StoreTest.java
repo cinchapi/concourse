@@ -321,9 +321,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMultiAndRemoveMultiWithTime() {
-        String key = TestData.getString();
-        long record = TestData.getLong();
-        Set<TObject> values = getValues();
+        String key = Variables.register("key", TestData.getString());
+        long record = Variables.register("record", TestData.getLong());
+        Set<TObject> values = Variables.register("values", getValues());
         for (TObject value : values) {
             add(key, value, record);
         }
@@ -336,7 +336,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         long timestamp = Time.now();
-        List<TObject> otherValues = Lists.newArrayList();
+        List<TObject> otherValues = Variables.register("otherValues",
+                Lists.<TObject> newArrayList());
         for (TObject value : getValues()) {
             while (values.contains(value)) {
                 value = TestData.getTObject();
@@ -740,8 +741,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         8726162261843572788L, -1009173904547593201L,
                         -2751278487748655682L, -2345450785095954225L,
                         -6366403077042069753L, 6192140380630656305L,
-                        2742476713515734831L, 5255788341749360850L, -1599496265723822053L,
-                        -8972410565681248229L, 8390960620509055056L),
+                        2742476713515734831L, 5255788341749360850L,
+                        -1599496265723822053L, -8972410565681248229L,
+                        8390960620509055056L),
                 Lists.newArrayList(
                         "zntcnz 2ob317e2hkhui2dneo69rkej0a5qj",
                         "opsrx2y5fqkxclc3ux bf0pxik4r1pddesxsr25yek70z fcojyyojnz9mjfw4r62unjh",
