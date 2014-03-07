@@ -321,9 +321,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchAfterAddMultiAndRemoveMultiWithTime() {
-        String key = TestData.getString();
-        long record = TestData.getLong();
-        Set<TObject> values = getValues();
+        String key = Variables.register("key", TestData.getString());
+        long record = Variables.register("record", TestData.getLong());
+        Set<TObject> values = Variables.register("values", getValues());
         for (TObject value : values) {
             add(key, value, record);
         }
@@ -336,7 +336,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         long timestamp = Time.now();
-        List<TObject> otherValues = Lists.newArrayList();
+        List<TObject> otherValues = Variables.register("otherValues",
+                Lists.<TObject> newArrayList());
         for (TObject value : getValues()) {
             while (values.contains(value)) {
                 value = TestData.getTObject();
@@ -721,6 +722,48 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 type,
                 Lists.newArrayList(1L),
                 Lists.newArrayList("5 6ib73dp0b dwjjfa8pcfgd8uz0y0k t6eueqd4cjgujg2d7j825e8f  lxt7khroy30"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
+    @Theory
+    public void testSearchReproG(SearchType type) {
+        String query = Variables.register("query", "w  8");
+        String key = Variables.register("key", "kqlqkg");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(-277580307881000612L, -5255148899331404410L,
+                        -6420115819351478982L, 6866110824999006259L,
+                        -4492041108193153731L, 3352888707677394801L,
+                        -2860842597796167717L, -6888793119513119872L,
+                        8726162261843572788L, -1009173904547593201L,
+                        -2751278487748655682L, -2345450785095954225L,
+                        -6366403077042069753L, 6192140380630656305L,
+                        2742476713515734831L, 5255788341749360850L,
+                        -1599496265723822053L, -8972410565681248229L,
+                        8390960620509055056L),
+                Lists.newArrayList(
+                        "zntcnz 2ob317e2hkhui2dneo69rkej0a5qj",
+                        "opsrx2y5fqkxclc3ux bf0pxik4r1pddesxsr25yek70z fcojyyojnz9mjfw4r62unjh",
+                        "35ckl663czoibu2gxwy9mdsspr9jko694x6qqrkx6kgb9lrpvshq7g9bjzbivp5ajuiyh90y0lkuckl2qmvhdmw  835ckl663czoibu2gxwy9mdsspr9jko694x6qqrkx6kgb9lrpvshq7g9bjzbivp5ajuiyh90y0lkuckl2qmvhdm",
+                        "33sd4z7 0gys0py9ipbjltz jp3lvbqw  833sd4z7 0gys0py9ipbjltz jp3lvbq",
+                        "q4p13puyp7nxroteiak30jwaew  8q4p13puyp7nxroteiak30jwae",
+                        "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o",
+                        "snou",
+                        "6mwg3pl6f1hy2qq6agh",
+                        "wsnv12h c5xa1rk099 rumx9jdhf9pf e1",
+                        "t2j62i78z39r2hyt49q9 lsdoeq7tuyczcqyh4ar lpx1gubry4bb 26tymj6bkrktcq10lq8xj65yqv8bt8b3flxb 2zoqp",
+                        "7ra3 67i9t3q8azuq9j fu5tt28mg 0j3qvposw  87ra3 67i9t3q8azuq9j fu5tt28mg 0j3qvpos",
+                        "i2f d0g",
+                        "onc1l75d7xyk6jm4rebv89jy05jurpk651h8xygc5eol6b6ufpl4s9hifc3etv7d6iv84fzb70ua1363605pf4owb8w  8onc1l75d7xyk6jm4rebv89jy05jurpk651h8xygc5eol6b6ufpl4s9hifc3etv7d6iv84fzb70ua1363605pf4owb8 ",
+                        "zs94",
+                        "hbhq3c9ll li1jz9cplbbzrt t9vt14r",
+                        "cdb24id6us  cn k49egrbbqqysww0wzgdndm0kkmer05so8mvnt99499xqygldqoh3aqpf xscrlsnuugnw  8cdb24id6us  cn k49egrbbqqysww0wzgdndm0kkmer05so8mvnt99499xqygldqoh3aqpf xscrlsnuugn",
+                        "ww1bevsi9j9u07fpw",
+                        "i6qzle7myjtb p8zzvr48jle jb951bhnjrbz1 r455s9 g9zbgth9ugexl  fl55d8h4a08r wnd2q",
+                        "9iltboo1ejsy08cmd9562lwni9"));
         Assert.assertEquals(records, store.search(key, query));
     }
 
