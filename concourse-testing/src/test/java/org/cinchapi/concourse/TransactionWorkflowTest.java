@@ -73,4 +73,28 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         Assert.assertTrue(client.verify(key, value, record));
     }
 
+    @Test
+    public void testConcurrentTransactionsForSameUserAreCorrectlyRouted() {
+        client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin", "admin");
+        client.stage();
+        client2.stage();
+        client.add("foo", "bar", 1);
+        client2.add("foo", "bar", 2);
+        Assert.assertTrue(client.verify("foo", "bar", 1));
+        Assert.assertFalse(client.verify("foo", "bar", 2));
+        Assert.assertTrue(client2.verify("foo", "bar", 2));
+        Assert.assertFalse(client2.verify("foo", "bar", 1));
+    }
+    
+    @Test
+    public void testConcurrentTransactionsForSameUserCanBeCommitted(){
+        client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin", "admin");
+        client.stage();
+        client2.stage();
+        client.add("foo", "bar", 1);
+        client2.add("foo", "bar", 2);
+        Assert.assertTrue(client.commit());
+        Assert.assertTrue(client2.commit());
+    }
+
 }
