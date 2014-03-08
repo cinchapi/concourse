@@ -178,7 +178,7 @@ public class AccessManager {
      * @param token
      */
     public void deauthorize(AccessToken token) {
-        tokenManager.deleteToken(token);
+        tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
     /**
@@ -231,13 +231,8 @@ public class AccessManager {
      * @return {@code true} if {@code token} is valid
      */
     public boolean validate(AccessToken token) {
-        read.lock();
-        try {
-            return tokenManager.isValidToken(token);
-        }
-        finally {
-            read.unlock();
-        }
+        return tokenManager.isValidToken(token); // the #tokenManager does
+                                                 // locking
     }
 
     /**
