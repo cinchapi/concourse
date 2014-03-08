@@ -339,7 +339,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         List<TObject> otherValues = Variables.register("otherValues",
                 Lists.<TObject> newArrayList());
         for (TObject value : getValues()) {
-            while (values.contains(value)) {
+            while (values.contains(value) || otherValues.contains(value)) {
                 value = TestData.getTObject();
             }
             add(key, value, record);
