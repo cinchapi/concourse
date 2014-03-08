@@ -25,6 +25,7 @@ package org.cinchapi.concourse.security;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +42,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -210,6 +212,59 @@ public class AccessManagerTest extends ConcourseBaseTest {
         AccessToken token = manager.authorize(username);
         manager.deauthorize(token);
         Assert.assertFalse(manager.validate(token));
+    }
+    
+    @Test
+    public void testTwoAccessTokensForSameUser(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grant(username, password);
+        AccessToken token1 = manager.authorize(username);
+        AccessToken token2 = manager.authorize(username);
+        Assert.assertNotEquals(token1, token2);
+        Assert.assertTrue(manager.validate(token1));
+        Assert.assertTrue(manager.validate(token2));
+    }
+    
+    @Test
+    public void testInvalidatingOneAccessTokenDoesNotAffectOther(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grant(username, password);
+        AccessToken token1 = manager.authorize(username);
+        AccessToken token2 = manager.authorize(username);
+        manager.deauthorize(token2);
+        Assert.assertTrue(manager.validate(token1));
+    }
+    
+    @Test
+    public void testRevokingAccessInvalidatesAllAccessTokens(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grant(username, password);
+        List<AccessToken> tokens = Lists.newArrayList();
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            tokens.add(manager.authorize(username));
+        }
+        manager.revoke(username);
+        for(AccessToken token : tokens){
+            Assert.assertFalse(manager.validate(token));
+        }
+    }
+    
+    @Test
+    public void testChangingPasswordInvalidatesAllAccessTokens(){
+        ByteBuffer username = toByteBuffer(TestData.getString());
+        ByteBuffer password = toByteBuffer(TestData.getString());
+        manager.grant(username, password);
+        List<AccessToken> tokens = Lists.newArrayList();
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            tokens.add(manager.authorize(username));
+        }
+        manager.grant(username, toByteBuffer(TestData.getString()));
+        for(AccessToken token : tokens){
+            Assert.assertFalse(manager.validate(token));
+        }
     }
 
     /**

@@ -29,7 +29,7 @@ import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -114,7 +114,7 @@ public class AccessManager {
     // AccessTokens. An AccessToken is valid for a limited amount of time.
     private static final int ACCESS_TOKEN_TTL = 24;
     private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
-    private final Cache<String, AccessToken> tokens;
+    private final AccessTokenManager tokenManager;
 
     // The AccessManager stores credentials in memory for fast processing and
     // backs them up on disk for persistence.
@@ -130,8 +130,6 @@ public class AccessManager {
     private final ReadLock read = master.readLock();
     private final WriteLock write = master.writeLock();
 
-    private final SecureRandom srand = new SecureRandom();
-
     /**
      * Construct a new instance.
      * 
@@ -142,8 +140,8 @@ public class AccessManager {
     private AccessManager(String backingStore, int accessTokenTtl,
             TimeUnit accessTokenTtlUnit) {
         this.backingStore = backingStore;
-        this.tokens = CacheBuilder.newBuilder()
-                .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit).build();
+        this.tokenManager = AccessTokenManager.create(accessTokenTtl,
+                accessTokenTtlUnit);
         Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
                 .readBytes(backingStore));
         while (it.hasNext()) {
@@ -167,15 +165,7 @@ public class AccessManager {
         read.lock();
         try {
             checkArgument(isValidUsername(username));
-            StringBuilder sb = new StringBuilder();
-            String hex = encodeHex(username);
-            sb.append(hex);
-            sb.append(srand.nextLong());
-            sb.append(Time.now());
-            AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing
-                    .sha256().hashUnencodedChars(sb.toString()).asBytes()));
-            tokens.put(hex, token);
-            return token;
+            return tokenManager.addToken(encodeHex(username));
         }
         finally {
             read.unlock();
@@ -188,18 +178,7 @@ public class AccessManager {
      * @param token
      */
     public void deauthorize(AccessToken token) {
-        write.lock();
-        try {
-            for (Entry<String, AccessToken> entry : tokens.asMap().entrySet()) {
-                if(entry.getValue().equals(token)) {
-                    tokens.invalidate(entry.getKey());
-                    return;
-                }
-            }
-        }
-        finally {
-            write.unlock();
-        }
+        tokenManager.deleteToken(token);
     }
 
     /**
@@ -216,7 +195,7 @@ public class AccessManager {
             password = Passwords.hash(password, salt);
             insert(Credentials.create(encodeHex(username), encodeHex(password),
                     encodeHex(salt)));
-            tokens.invalidate(encodeHex(username));
+            tokenManager.deleteAllUserTokens(encodeHex(username));
             diskSync();
         }
         finally {
@@ -236,7 +215,7 @@ public class AccessManager {
             checkArgument(!hex.equals(ADMIN_USERNAME),
                     "Cannot revoke access for the admin user!");
             if(credentials.remove(hex) != null) {
-                tokens.invalidate(encodeHex(username));
+                tokenManager.deleteAllUserTokens(hex);
                 diskSync();
             }
         }
@@ -254,7 +233,7 @@ public class AccessManager {
     public boolean validate(AccessToken token) {
         read.lock();
         try {
-            return tokens.asMap().values().contains(token);
+            return tokenManager.isValidToken(token);
         }
         finally {
             read.unlock();
@@ -333,6 +312,230 @@ public class AccessManager {
      */
     private boolean isValidUsername(ByteBuffer username) {
         return credentials.get(encodeHex(username)) != null;
+    }
+
+    /**
+     * The {@link AccessTokenManager} handles the work necessary to create,
+     * validate and delete AccessTokens for the {@link AccessManager}.
+     * 
+     * @author jnelson
+     */
+    private final static class AccessTokenManager {
+
+        // NOTE: This class does not define #hasCode() or #equals() because the
+        // defaults are the desired behaviour.
+
+        /**
+         * Return a new {@link AccessTokenManager}.
+         * 
+         * @param accessTokenTtl
+         * @param accessTokenTtlUnit
+         * @return the AccessTokenManager
+         */
+        private static AccessTokenManager create(int accessTokenTtl,
+                TimeUnit accessTokenTtlUnit) {
+            return new AccessTokenManager(accessTokenTtl, accessTokenTtlUnit);
+        }
+
+        /**
+         * The collection of currently valid tokens is maintained as a cache
+         * mapping from a raw AccessToken to an AccessTokenWrapper. Each raw
+         * AccessToken is unique and "equal" to its corresponding wrapper, which
+         * contains metadata about the user and timestamp associated with the
+         * access token.
+         */
+        private final Cache<AccessToken, AccessTokenWrapper> tokens;
+        private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+        private final SecureRandom srand = new SecureRandom();
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param accessTokenTtl
+         * @param accessTokenTtlUnit
+         */
+        private AccessTokenManager(int accessTokenTtl,
+                TimeUnit accessTokenTtlUnit) {
+            this.tokens = CacheBuilder.newBuilder()
+                    .expireAfterWrite(accessTokenTtl, accessTokenTtlUnit)
+                    .build();
+        }
+
+        /**
+         * Add and return a new access token for {@code username}.
+         * 
+         * @param username
+         * @return the AccessToken
+         */
+        public AccessToken addToken(String username) {
+            masterLock.writeLock().lock();
+            try {
+                long timestamp = Time.now();
+                StringBuilder sb = new StringBuilder();
+                sb.append(username);
+                sb.append(srand.nextLong());
+                sb.append(timestamp);
+                AccessToken token = new AccessToken(ByteBuffer.wrap(Hashing
+                        .sha256().hashUnencodedChars(sb.toString()).asBytes()));
+                AccessTokenWrapper wapper = AccessTokenWrapper.create(token,
+                        username, timestamp);
+                tokens.put(token, wapper);
+                return token;
+            }
+            finally {
+                masterLock.writeLock().unlock();
+            }
+        }
+
+        /**
+         * Invalidate any and all tokens that exist for {@code username}.
+         * 
+         * @param username
+         */
+        public void deleteAllUserTokens(String username) {
+            masterLock.writeLock().lock();
+            try {
+                for (AccessToken token : tokens.asMap().keySet()) {
+                    if(tokens.getIfPresent(token).getUsername()
+                            .equals(username)) {
+                        tokens.invalidate(token);
+                    }
+                }
+            }
+            finally {
+                masterLock.writeLock().unlock();
+            }
+        }
+
+        /**
+         * Invalidate {@code token} if it exists.
+         * 
+         * @param token
+         */
+        public void deleteToken(AccessToken token) {
+            masterLock.writeLock().lock();
+            try {
+                tokens.invalidate(token);
+            }
+            finally {
+                masterLock.writeLock().unlock();
+            }
+
+        }
+
+        /**
+         * Return {@code true} if {@code token} is valid.
+         * 
+         * @param token
+         * @return {@code true} if {@code token} is valid
+         */
+        public boolean isValidToken(AccessToken token) {
+            masterLock.readLock().lock();
+            try {
+                return tokens.getIfPresent(token) != null;
+            }
+            finally {
+                masterLock.readLock().unlock();
+            }
+        }
+    }
+
+    /**
+     * An {@link AccessTokenWrapper} associates metadata with an
+     * {@link AccessToken}. This data isn't stored directly with the access
+     * token because it would provide unnecessary bloat when the token is
+     * transferred between client and server, so we use a wrapper on the server
+     * side to assist with certain permissions based operations.
+     * <p>
+     * <strong>NOTE:</strong> The {@link #hashCode} and {@link #equals(Object)}
+     * functions only take the wrapped token into account so that objects in
+     * this class can be considered to the raw tokens they wrap for the purpose
+     * of collection storage.
+     * </p>
+     * 
+     * @author jnelson
+     */
+    private static class AccessTokenWrapper {
+
+        /**
+         * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
+         * {@code username} at {@code timestamp}.
+         * 
+         * @param token
+         * @param username
+         * @param timestamp
+         * @return the AccessTokenWrapper
+         */
+        public static AccessTokenWrapper create(AccessToken token,
+                String username, long timestamp) {
+            return new AccessTokenWrapper(token, username, timestamp);
+        }
+
+        private final AccessToken token;
+        private final String username; // hex
+        private final long timestamp;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param token
+         * @param username
+         * @param timestamp
+         */
+        private AccessTokenWrapper(AccessToken token, String username,
+                long timestamp) {
+            this.token = token;
+            this.username = username;
+            this.timestamp = timestamp;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof AccessTokenWrapper) {
+                return token.equals(((AccessTokenWrapper) obj).token);
+            }
+            return false;
+        }
+
+        /**
+         * Return the wrapped access token.
+         * 
+         * @return the token.
+         */
+        @SuppressWarnings("unused")
+        public AccessToken getAccessToken() {
+            return token;
+        }
+
+        /**
+         * Return the timestamp that is associated with the wrapped access
+         * token.
+         * 
+         * @return the associated timestamp
+         */
+        @SuppressWarnings("unused")
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        /**
+         * Return the username that is represented by the wrapped access token.
+         * 
+         * @return the associated username
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(token);
+        }
+
+        @Override
+        public String toString() {
+            return token.toString();
+        }
     }
 
     /**
