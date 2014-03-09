@@ -1274,7 +1274,10 @@ public abstract class Concourse {
                     .<Long, String, Object> newTLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
-                    result.put(record, key, get(key, record));
+                    Object value = get(key, record);
+                    if(value != null) {
+                        result.put(record, key, value);
+                    }
                 }
             }
             return result;
@@ -1287,7 +1290,10 @@ public abstract class Concourse {
                     .<Long, String, Object> newTLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
-                    result.put(record, key, get(key, record, timestamp));
+                    Object value = get(key, record, timestamp);
+                    if(value != null) {
+                        result.put(record, key, value);
+                    }
                 }
             }
             return result;
@@ -1298,7 +1304,10 @@ public abstract class Concourse {
             Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
                     "Key", "Value");
             for (String key : keys) {
-                result.put(key, get(key, record));
+                Object value = get(key, record);
+                if(value != null) {
+                    result.put(key, value);
+                }
             }
             return result;
         }
@@ -1309,7 +1318,10 @@ public abstract class Concourse {
             Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
                     "Key", "Value");
             for (String key : keys) {
-                result.put(key, get(key, record, timestamp));
+                Object value = get(key, record, timestamp);
+                if(value != null) {
+                    result.put(key, value);
+                }
             }
             return result;
         }
@@ -1319,7 +1331,10 @@ public abstract class Concourse {
             Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
                     "Record", key);
             for (long record : records) {
-                result.put(record, get(key, record));
+                Object value = get(key, record);
+                if(value != null) {
+                    result.put(record, value);
+                }
             }
             return result;
         }
@@ -1330,7 +1345,10 @@ public abstract class Concourse {
             Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
                     "Record", key);
             for (long record : records) {
-                result.put(record, get(key, record, timestamp));
+                Object value = get(key, record, timestamp);
+                if(value != null) {
+                    result.put(record, value);
+                }
             }
             return result;
         }
