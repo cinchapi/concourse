@@ -102,13 +102,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
     // TODO test audit
 
     @Test
-    public void testCaseInsensitiveSearch() { // CON-10
+    public void testCaseInsensitiveSearchLower() { // CON-10
         String key = Variables.register("key", "foo");
         TObject value = null;
         while (value == null
                 || GlobalState.STOPWORDS.contains(value.toString())
                 || GlobalState.STOPWORDS.contains(value.toString()
-                        .toUpperCase())) {
+                        .toUpperCase())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toLowerCase())) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
@@ -120,13 +122,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testCaseInsensitiveSearchB() {
+    public void testCaseInsensitiveSearchUpper() {
         String key = Variables.register("key", "foo");
         TObject value = null;
         while (value == null
                 || GlobalState.STOPWORDS.contains(value.toString())
                 || GlobalState.STOPWORDS.contains(value.toString()
                         .toLowerCase())
+                || GlobalState.STOPWORDS.contains(value.toString()
+                        .toUpperCase())
                 || Strings.isNullOrEmpty(TStrings.stripStopWords(value
                         .toString()))) {
             value = Variables.register("value",
