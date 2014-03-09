@@ -30,7 +30,6 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.StandardActions;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -75,7 +74,6 @@ public class SmokeTest extends ConcourseIntegrationTest {
     }
     
     @Test
-    @Ignore("CON-21")
     public void testCannotAddEmptyStringValue(){
         Assert.assertFalse(client.add("foo", "", 1));
         String string = "";
@@ -86,7 +84,6 @@ public class SmokeTest extends ConcourseIntegrationTest {
     }
     
     @Test
-    @Ignore("CON-21")
     public void testCannotAddEmptyKey(){
         Assert.assertFalse(client.add("", "foo", 1));
         String string = "";
