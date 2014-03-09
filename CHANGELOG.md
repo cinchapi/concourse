@@ -1,5 +1,13 @@
 ## Changelog
 
+#### Version 0.3.1 (March 9, 2014)
+* Added the ability to have multiple concurrent connections for a single user.
+* Added support for connection pooling to the client API.
+* Removed unused `transaction_directory` key from concourse.prefs.
+* Fixed and issue that allowed the storage of blank string keys and values.
+* Slighly increased full text indexing speed.
+* Improved CaSH documentation.
+
 #### Version 0.3.0 (February 1, 2014)
 * Fixed a bug that caused a TLinkedTableMap to display its header incorrectly.
 * Added concurrenty controls to AccessManager `authorize()` method.
