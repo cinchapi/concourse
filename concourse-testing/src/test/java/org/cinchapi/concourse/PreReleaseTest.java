@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.demo.GettingStartedTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
