@@ -25,6 +25,8 @@ package org.cinchapi.concourse.util;
 
 import org.cinchapi.concourse.util.RandomStringGenerator;
 
+import com.google.common.base.Strings;
+
 /**
  * Random generators.
  * 
@@ -202,7 +204,11 @@ public abstract class Random {
      * @return the string
      */
     public static String getString() {
-        return strand.nextStringAllowDigits();
+        String string = null;
+        while (Strings.isNullOrEmpty(string.trim())) {
+            string = strand.nextStringAllowDigits();
+        }
+        return string;
     }
 
     /**
