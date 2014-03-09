@@ -5,7 +5,7 @@
 * Added support for connection pooling to the client API.
 * Removed unused `transaction_directory` key from concourse.prefs.
 * Fixed an issue that allowed the storage of blank string keys and values.
-* Fixed an issue that prevented the client from properly processing compound #get operations that attemped to retrieve data for a key in a record that did not contain any values.
+* Fixed an issue that prevented the client from properly processing compound `#get` operations that tried to retrieve data for a key in a record that did not contain any values.
 * Slighly increased full text indexing speed.
 * Improved CaSH documentation.
 
