@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.StandardActions;
-import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
