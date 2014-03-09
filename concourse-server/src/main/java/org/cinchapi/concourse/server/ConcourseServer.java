@@ -496,7 +496,7 @@ public class ConcourseServer implements
         TransactionToken token = new TransactionToken(creds, Time.now());
         Transaction transaction = engine.startTransaction();
         transactions.put(token, transaction);
-        Logger.info("Started Transaction {}", transaction.hashCode());
+        Logger.info("Started Transaction {}", transaction);
         return token;
     }
 
