@@ -67,30 +67,5 @@ public class SmokeTest extends ConcourseIntegrationTest {
         Assert.assertEquals(a, b);
         Assert.assertTrue(c.isEmpty());
     }
-    
-    @Test(expected = NullPointerException.class)
-    public void testCannotAddNullValue(){
-        client.add("foo", null, 1);
-    }
-    
-    @Test
-    public void testCannotAddEmptyStringValue(){
-        Assert.assertFalse(client.add("foo", "", 1));
-        String string = "";
-        for(int i = 0; i < TestData.getScaleCount(); i++){
-            string+= " ";
-        }
-        Assert.assertFalse(client.add("foo", string, 1));
-    }
-    
-    @Test
-    public void testCannotAddEmptyKey(){
-        Assert.assertFalse(client.add("", "foo", 1));
-        String string = "";
-        for(int i = 0; i < TestData.getScaleCount(); i++){
-            string+= " ";
-        }
-        Assert.assertFalse(client.add(string, "foo", 1));
-    }
 
 }
