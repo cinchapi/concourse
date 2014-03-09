@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -948,15 +949,20 @@ public abstract class Concourse {
         @Override
         public <T> boolean add(final String key, final T value,
                 final long record) {
-            return execute(new Callable<Boolean>() {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Boolean>() {
 
-                @Override
-                public Boolean call() throws Exception {
-                    return client.add(key, Convert.javaToThrift(value), record,
-                            creds, transaction);
-                }
+                    @Override
+                    public Boolean call() throws Exception {
+                        return client.add(key, Convert.javaToThrift(value),
+                                record, creds, transaction);
+                    }
 
-            });
+                });
+            }
+            return false;
         }
 
         @Override
@@ -1410,15 +1416,20 @@ public abstract class Concourse {
         @Override
         public <T> boolean remove(final String key, final T value,
                 final long record) {
-            return execute(new Callable<Boolean>() {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Boolean>() {
 
-                @Override
-                public Boolean call() throws Exception {
-                    return client.remove(key, Convert.javaToThrift(value),
-                            record, creds, transaction);
-                }
+                    @Override
+                    public Boolean call() throws Exception {
+                        return client.remove(key, Convert.javaToThrift(value),
+                                record, creds, transaction);
+                    }
 
-            });
+                });
+            }
+            return false;
         }
 
         @Override
