@@ -205,7 +205,7 @@ public abstract class Random {
      */
     public static String getString() {
         String string = null;
-        while (Strings.isNullOrEmpty(string.trim())) {
+        while (Strings.nullToEmpty(string).trim().isEmpty()) {
             string = strand.nextStringAllowDigits();
         }
         return string;
