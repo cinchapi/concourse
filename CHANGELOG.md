@@ -6,6 +6,7 @@
 * Removed unused `transaction_directory` key from concourse.prefs.
 * Fixed an issue that allowed the storage of blank string keys and values.
 * Fixed an issue that prevented the client from properly processing compound `#get` operations that tried to retrieve data for a key in a record that did not contain any values.
+* Improved the info logging for transactions by only using a unique id to refer to each transaction. 
 * Slighly increased full text indexing speed.
 * Improved CaSH documentation.
 
