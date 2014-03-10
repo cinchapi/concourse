@@ -2,24 +2,30 @@
 
 [Concourse](http://cinchapi.org/concourse) is a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
 
-**This README is written for developers looking to contribute to the codebase. Detailed user documentation is available at [http://cinchapi.org/concourse](http://cinchapi.org/concourse)**
+## Overview
+* [End User Installation Guide](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started#GettingStarted-InstallConcourse)
+* [End User Upgrade Guide](https://cinchapi.atlassian.net/wiki/display/CON/Upgrade+Guide)
+* [Hello World Tutorial](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started)
+* [API Documentation](concourse/README.md)
+* [Developer Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup)
+* [Understanding the codebase](https://cinchapi.atlassian.net/wiki/display/CON/Understanding+the+codebase)
+* [Data Model](https://cinchapi.atlassian.net/wiki/display/CON/Data+Model)
+* [Storage Model](https://cinchapi.atlassian.net/wiki/display/CON/Storage+Model)
 
-***You may also refer to the [API](concourse/README.md) documentation for details on using Concourse in a third party application.***
+### System Requirements
 
-## System Requirements
-
-### Memory
+#### Memory
 Concourse immediately writes all data to disk, but also keeps recently written and read content in memory. Since memory operations are faster, having more on hand is great, but you can operate Concourse safely with a minimum 256 MB heap.
 
-### Operating System
+#### Operating System
 Concourse is only supported on Linux and Mac OS X operating systems. Things _should_ also work on Windows, but we can't make any guarantees.
 
-### Java
+#### Java
 Concourse runs on Java 1.7.
 
-## General Information
+### General Information
 
-### Versioning
+#### Versioning
 
 This is version 0.4.0 of Concourse.
 
@@ -31,7 +37,7 @@ where
 * new additions while maintaining backward compatibility bumps the minor, and
 * bug fixes or miscellaneous changes bumps the patch.
 
-### Modules
+#### Modules
 This repository contains several modules that form the concourse-core.
 
 * The **concourse** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
