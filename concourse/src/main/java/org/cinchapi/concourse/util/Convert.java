@@ -101,23 +101,24 @@ public final class Convert {
      * <h1>Conversion Rules</h1>
      * <ul>
      * <li><strong>String</strong> - the value is converted to a string if it
-     * leads and ends with matching single (') or double ('') quotes.
+     * starts and ends with matching single (') or double ('') quotes.
      * Alternatively, the value is converted to a string if it cannot be
-     * converted to another Object type</li>
+     * converted to another type</li>
      * <li><strong>{@link ResolvableLink}</strong> - the value is converted to a
      * ResolvableLink if it is a properly formatted specification returned from
-     * the {@link #stringToResolvableLinkSpecification(String, String)} method</li>
+     * the {@link #stringToResolvableLinkSpecification(String, String)} method
+     * (<strong>NOTE: </strong> this is a rare case)</li>
      * <li><strong>{@link Link}</strong> - the value is converted to a Link if
-     * it is a number that is wrapped by @ signs</li>
+     * it is an int or long that is wrapped by '@' signs (i.e. @1234@)</li>
      * <li><strong>Boolean</strong> - the value is converted to a Boolean if it
      * is equal to 'true', or 'false' regardless of case</li>
      * <li><strong>Double</strong> - the value is converted to a double if and
-     * only if it is a number that is immediately followed by a single capital
-     * "D" (e.g. 3.14D)</li>
+     * only if it is a decimal number that is immediately followed by a single
+     * capital "D" (e.g. 3.14D)</li>
      * <li><strong>Integer, Long, Float</strong> - the value is converted to a
      * non double number depending upon whether it is a standard integer (e.g.
-     * less than {@value Integer#MAX_VALUE}), a long integer, or a floating
-     * point decimal</li>
+     * less than {@value Integer#MAX_VALUE}), a long, or a floating point
+     * decimal</li>
      * </ul>
      * </p>
      * 
@@ -175,14 +176,22 @@ public final class Convert {
     }
 
     /**
-     * Convert the {@code rawValue} into a resolvable link specification that
-     * instructs the receiver to link to records that have {@code rawValue}
-     * mapped from {@code key}.
+     * <p>
+     * <strong>USE WITH CAUTION: </strong> This conversation is only necessary
+     * for applications that import raw data but cannot use the Concourse API
+     * directly and therefore cannot explicitly add links (e.g. the
+     * import-framework that handles raw string data). <strong>
+     * <em>If you have access to the Concourse API, you should not use this 
+     * method!</em> </strong>
+     * </p>
+     * Convert the {@code rawValue} into a {@link ResolvableLink} specification
+     * that instructs the receiver to add a link to all the records that have
+     * {@code rawValue} mapped from {@code key}.
      * <p>
      * Please note that this method only returns a specification and not an
      * actual {@link ResolvableLink} object. Use the
      * {@link #stringToJava(String)} method on the value returned from this
-     * method to get an actual ResolvableLink object.
+     * method to get the object.
      * </p>
      * 
      * @param resolvableKey
@@ -267,8 +276,8 @@ public final class Convert {
      * <p>
      * To get an object of this class, call {@link Convert#stringToJava(String)}
      * on the result of calling
-     * {@link Convert#stringToResolvableLinkSpecification(String String)} on the
-     * raw data.
+     * {@link Convert#stringToResolvableLinkSpecification(String, String)} on
+     * the raw data.
      * </p>
      * 
      * @author jnelson
@@ -323,6 +332,12 @@ public final class Convert {
          */
         public Object getValue() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return MessageFormat.format("{0} for {1} AS {2}", this.getClass()
+                    .getSimpleName(), key, value);
         }
 
     }
