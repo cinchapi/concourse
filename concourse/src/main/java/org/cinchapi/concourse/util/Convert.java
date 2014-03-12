@@ -47,24 +47,6 @@ import org.cinchapi.concourse.thrift.Type;
 public final class Convert {
 
     /**
-     * The component of a resolvable link symbol that comes before the
-     * resolvable key specification in the raw data.
-     */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
-                                                                   // for
-                                                                   // testing
-
-    /**
-     * The component of a resolvable link symbol that comes after the
-     * resolvable key specification in the raw data.
-     */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
-                                                                  // for
-                                                                  // testing
-
-    /**
      * Return the Thrift Object that represents {@code object}.
      * 
      * @param object
@@ -113,66 +95,10 @@ public final class Convert {
     }
 
     /**
-     * Return the Java Object that represents {@code object}.
-     * 
-     * @param object
-     * @return the Object
-     */
-    public static Object thriftToJava(TObject object) {
-        Object java = null;
-        ByteBuffer buffer = object.bufferForData();
-        switch (object.getType()) {
-        case BOOLEAN:
-            java = ByteBuffers.getBoolean(buffer);
-            break;
-        case DOUBLE:
-            java = buffer.getDouble();
-            break;
-        case FLOAT:
-            java = buffer.getFloat();
-            break;
-        case INTEGER:
-            java = buffer.getInt();
-            break;
-        case LINK:
-            java = Link.to(buffer.getLong());
-            break;
-        case LONG:
-            java = buffer.getLong();
-            break;
-        default:
-            java = ByteBuffers.getString(buffer);
-            break;
-        }
-        buffer.rewind();
-        return java;
-    }
-
-    /**
-     * Convert the {@code rawValue} into a resolvable link specification that
-     * instructs the receiver to link to records that have {@code rawValue}
-     * mapped from {@code key}.
-     * <p>
-     * Please note that this method only returns a specification and not an
-     * actual {@link ResolvableLink} object. Use the
-     * {@link #stringToJava(String)} method on the value returned from this
-     * method to get an actual ResolvableLink object.
-     * </p>
-     * 
-     * @param resolvableKey
-     * @param rawValue
-     * @return the transformed value.
-     */
-    public static String stringToResolvableLinkSpecification(String key,
-            String rawValue) {
-        return MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), rawValue);
-    }
-
-    /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
-     * Object. <h1>Conversion Rules</h1>
+     * Object.
+     * <p>
+     * <h1>Conversion Rules</h1>
      * <ul>
      * <li><strong>String</strong> - the value is converted to a string if it
      * leads and ends with matching single (') or double ('') quotes.
@@ -181,8 +107,8 @@ public final class Convert {
      * <li><strong>{@link ResolvableLink}</strong> - the value is converted to a
      * ResolvableLink if it is a properly formatted specification returned from
      * the {@link #stringToResolvableLinkSpecification(String, String)} method</li>
-     * <li><strong>{@link Link}</strong> - the value is converted to a Link if it is a
-     * number that is wrapped by @ signs</li>
+     * <li><strong>{@link Link}</strong> - the value is converted to a Link if
+     * it is a number that is wrapped by @ signs</li>
      * <li><strong>Boolean</strong> - the value is converted to a Boolean if it
      * is equal to 'true', or 'false' regardless of case</li>
      * <li><strong>Double</strong> - the value is converted to a double if and
@@ -193,6 +119,7 @@ public final class Convert {
      * less than {@value Integer#MAX_VALUE}), a long integer, or a floating
      * point decimal</li>
      * </ul>
+     * </p>
      * 
      * 
      * @param value
@@ -246,6 +173,84 @@ public final class Convert {
             return value;
         }
     }
+
+    /**
+     * Convert the {@code rawValue} into a resolvable link specification that
+     * instructs the receiver to link to records that have {@code rawValue}
+     * mapped from {@code key}.
+     * <p>
+     * Please note that this method only returns a specification and not an
+     * actual {@link ResolvableLink} object. Use the
+     * {@link #stringToJava(String)} method on the value returned from this
+     * method to get an actual ResolvableLink object.
+     * </p>
+     * 
+     * @param resolvableKey
+     * @param rawValue
+     * @return the transformed value.
+     */
+    public static String stringToResolvableLinkSpecification(String key,
+            String rawValue) {
+        return MessageFormat.format("{0}{1}{0}", MessageFormat.format(
+                "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
+                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), rawValue);
+    }
+
+    /**
+     * Return the Java Object that represents {@code object}.
+     * 
+     * @param object
+     * @return the Object
+     */
+    public static Object thriftToJava(TObject object) {
+        Object java = null;
+        ByteBuffer buffer = object.bufferForData();
+        switch (object.getType()) {
+        case BOOLEAN:
+            java = ByteBuffers.getBoolean(buffer);
+            break;
+        case DOUBLE:
+            java = buffer.getDouble();
+            break;
+        case FLOAT:
+            java = buffer.getFloat();
+            break;
+        case INTEGER:
+            java = buffer.getInt();
+            break;
+        case LINK:
+            java = Link.to(buffer.getLong());
+            break;
+        case LONG:
+            java = buffer.getLong();
+            break;
+        default:
+            java = ByteBuffers.getString(buffer);
+            break;
+        }
+        buffer.rewind();
+        return java;
+    }
+
+    /**
+     * The component of a resolvable link symbol that comes before the
+     * resolvable key specification in the raw data.
+     */
+    @PackagePrivate
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
+                                                                   // for
+                                                                   // testing
+
+    /**
+     * The component of a resolvable link symbol that comes after the
+     * resolvable key specification in the raw data.
+     */
+    @PackagePrivate
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
+                                                                  // for
+                                                                  // testing
+
+    private Convert() {/* Utility Class */}
 
     /**
      * A special class that is used to indicate that the record to which a Link
@@ -321,7 +326,5 @@ public final class Convert {
         }
 
     }
-
-    private Convert() {/* Utility Class */}
 
 }
