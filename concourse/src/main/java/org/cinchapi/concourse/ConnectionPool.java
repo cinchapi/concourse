@@ -23,7 +23,8 @@
  */
 package org.cinchapi.concourse;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.config.ConcourseClientPreferences;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 
 /**
  * <p>
@@ -60,7 +64,7 @@ import com.google.common.collect.Lists;
  * @author jnelson
  */
 @ThreadSafe
-public final class ConnectionPool implements AutoCloseable {
+public abstract class ConnectionPool implements AutoCloseable {
 
     // NOTE: This class does not define #hashCode or #equals because the
     // defaults are the desired behaviour
@@ -72,9 +76,11 @@ public final class ConnectionPool implements AutoCloseable {
      * 
      * @param prefs
      * @return the ConnectionPool
+     * @deprecated Use {@link #newFixedConnectionPool(String, int)} instead.
      */
+    @Deprecated
     public static ConnectionPool newConnectionPool(String prefs) {
-        return newConnectionPool(prefs, DEFAULT_POOL_SIZE);
+        return newFixedConnectionPool(prefs, DEFAULT_POOL_SIZE);
     }
 
     /**
@@ -85,11 +91,11 @@ public final class ConnectionPool implements AutoCloseable {
      * @param prefs
      * @param poolSize
      * @return the ConnectionPool
+     * @deprecated Use {@link #newFixedConnectionPool(String, int)} instead.
      */
+    @Deprecated
     public static ConnectionPool newConnectionPool(String prefs, int poolSize) {
-        ConcourseClientPreferences cp = ConcourseClientPreferences.load(prefs);
-        return new ConnectionPool(cp.getHost(), cp.getPort(), cp.getUsername(),
-                new String(cp.getPassword()), poolSize);
+        return newFixedConnectionPool(prefs, poolSize);
     }
 
     /**
@@ -102,10 +108,14 @@ public final class ConnectionPool implements AutoCloseable {
      * @param username
      * @param password
      * @return the ConnectionPool
+     * @deprecated Use
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
+     *             instead.
      */
+    @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
             String username, String password) {
-        return new ConnectionPool(host, port, username, password,
+        return newFixedConnectionPool(host, port, username, password,
                 DEFAULT_POOL_SIZE);
     }
 
@@ -119,11 +129,56 @@ public final class ConnectionPool implements AutoCloseable {
      * @param username
      * @param password
      * @param poolSize
-     * @return
+     * @return the ConnectionPool
+     * @deprecated Use
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
+     *             instead.
      */
+    @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
             String username, String password, int poolSize) {
-        return new ConnectionPool(host, port, username, password, poolSize);
+        return newFixedConnectionPool(host, port, username, password, poolSize);
+    }
+
+    /**
+     * Return a new {@link ConnectionPool} with a fixed number of
+     * connections to the Concourse instance defined in the client {@code prefs}
+     * on behalf of the user defined in the client {@code prefs}.
+     * <p>
+     * If all the connections from the pool are active, subsequent request
+     * attempts will block until a connection is returned.
+     * </p>
+     * 
+     * @param prefs
+     * @param poolSize
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newFixedConnectionPool(String prefs,
+            int poolSize) {
+        ConcourseClientPreferences cp = ConcourseClientPreferences.load(prefs);
+        return new FixedConnectionPool(cp.getHost(), cp.getPort(),
+                cp.getUsername(), new String(cp.getPassword()), poolSize);
+    }
+
+    /**
+     * Return a new {@link ConnectionPool} with a fixed number of connections to
+     * the Concourse instance at {@code host}:{@code port} on behalf of the user
+     * identified by {@code username} and {@code password}.
+     * 
+     * <p>
+     * If all the connections from the pool are active, subsequent request
+     * attempts will block until a connection is returned.
+     * </p>
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newFixedConnectionPool(String host, int port,
+            String username, String password, int poolSize) {
+        return new FixedConnectionPool(host, port, username, password, poolSize);
     }
 
     /**
@@ -131,16 +186,22 @@ public final class ConnectionPool implements AutoCloseable {
      */
     private static final int DEFAULT_POOL_SIZE = 10;
 
-    /**
-     * The list of connections that are available for use.
-     */
-    private final List<Concourse> available = Lists.newArrayList();
+    // Each connection will, if not active, will automatically expire. These
+    // units are chosen to correspond to the AccessToken TTL that is defined in
+    // {@link AccessManager}.
+    private static final int CONNECTION_TTL = 24;
+    private static final TimeUnit CONNECTION_TTL_UNIT = TimeUnit.HOURS;
 
     /**
-     * The list of connections that are currently in use and are waiting to be
-     * returned.
+     * A mapping from connection to a flag indicating if the connection is
+     * active (e.g. taken).
      */
-    private final List<Concourse> taken = Lists.newArrayList();
+    private final Cache<Concourse, AtomicBoolean> connections;
+
+    /**
+     * The number of connections that are currently available;
+     */
+    private int numAvailableConnections;
 
     /**
      * A flag to indicate if the pool is currently open and operational.
@@ -161,10 +222,53 @@ public final class ConnectionPool implements AutoCloseable {
      * @param password
      * @param poolSize
      */
-    private ConnectionPool(String host, int port, String username,
+    protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
+        this.connections = CacheBuilder
+                .newBuilder()
+                .initialCapacity(poolSize)
+                .expireAfterWrite(CONNECTION_TTL, CONNECTION_TTL_UNIT)
+                .removalListener(
+                        new RemovalListener<Concourse, AtomicBoolean>() {
+
+                            @Override
+                            public void onRemoval(
+                                    RemovalNotification<Concourse, AtomicBoolean> notification) {
+                                lock.writeLock().lock();
+                                try {
+                                    if(notification.getValue().get()) { // ensure
+                                                                        // that
+                                                                        // active
+                                                                        // connections
+                                                                        // don't
+                                                                        // get
+                                                                        // dropped
+                                        connections.put(notification.getKey(),
+                                                notification.getValue());
+
+                                    }
+                                    else {
+                                        // Take care of the case where a
+                                        // non-active connection is evicted. For
+                                        // example, a FixedConnectionPool will
+                                        // probably want to add back a new
+                                        // connection to ensure that the
+                                        // poolSize remains the same
+                                        handleEvictedNonActiveConnection(notification
+                                                .getKey());
+                                    }
+                                }
+                                finally {
+                                    lock.writeLock().unlock();
+                                }
+
+                            }
+
+                        }).build();
+        this.numAvailableConnections = poolSize;
         for (int i = 0; i < poolSize; i++) {
-            available.add(Concourse.connect(host, port, username, password));
+            connections.put(Concourse.connect(host, port, username, password),
+                    new AtomicBoolean(false));
         }
         // Ensure that the client connections are forced closed when the JVM is
         // shutdown in case the user does not properly shutdown the pool
@@ -173,16 +277,28 @@ public final class ConnectionPool implements AutoCloseable {
             @Override
             public void run() {
                 if(open) {
-                    for (Concourse concourse : available) {
-                        concourse.exit();
-                    }
-                    for (Concourse concourse : taken) {
-                        concourse.exit();
-                    }
+                    exitAllConnections();
                 }
             }
 
         }));
+    }
+
+    @Override
+    public void close() throws Exception {
+        lock.writeLock().lock();
+        try {
+            Preconditions.checkState(open, "Connection pool is closed");
+            Preconditions.checkState(isCloseable(),
+                    "Cannot shutdown the connection pool "
+                            + "until all the connections have been returned");
+            open = false;
+            exitAllConnections();
+        }
+        finally {
+            lock.writeLock().unlock();
+        }
+
     }
 
     /**
@@ -194,10 +310,37 @@ public final class ConnectionPool implements AutoCloseable {
         Preconditions.checkState(open, "Connection pool is closed");
         lock.readLock().lock();
         try {
-            return !available.isEmpty();
+            return numAvailableConnections > 0;
         }
         finally {
             lock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return a previously requested connection back to the pool.
+     * 
+     * @param connection
+     */
+    public void release(Concourse connection) {
+        Preconditions.checkState(open, "Connection pool is closed");
+        Preconditions.checkArgument(
+                connections.getIfPresent(connection) != null,
+                "Cannot release the connection because it "
+                        + "was not previously requested from this pool");
+        lock.writeLock().lock();
+        try {
+            if(connections.getIfPresent(connection).compareAndSet(true, false)) {
+                numAvailableConnections++;
+            }
+            else {
+                throw new IllegalStateException(
+                        "This is an unreachable state that is obviously "
+                                + "reachable, indicating a bug in the code");
+            }
+        }
+        finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -214,9 +357,16 @@ public final class ConnectionPool implements AutoCloseable {
         }
         lock.writeLock().lock();
         try {
-            Concourse connection = available.remove(0);
-            taken.add(connection);
-            return connection;
+            for (Concourse connection : connections.asMap().keySet()) {
+                if(connections.getIfPresent(connection).compareAndSet(false,
+                        true)) {
+                    numAvailableConnections--;
+                    return connection;
+                }
+            }
+            throw new IllegalStateException(
+                    "This is an unreachable state that is obviously "
+                            + "reachable, indicating a bug in the code");
         }
         finally {
             lock.writeLock().unlock();
@@ -224,47 +374,40 @@ public final class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * Return a previously requested connection back to the pool.
+     * Handle the case where a non-active connection is evicted from the
+     * {@link #connections} cache.
      * 
      * @param connection
      */
-    public void release(Concourse connection) {
-        Preconditions.checkState(open, "Connection pool is closed");
-        lock.writeLock().lock();
-        try {
-            int index = taken.indexOf(connection);
-            if(index != -1) {
-                taken.remove(index);
-                available.add(connection);
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Cannot return the connection because it was not "
-                                + "previously requested from this pool");
-            }
-        }
-        finally {
-            lock.writeLock().unlock();
+    protected void handleEvictedNonActiveConnection(Concourse connection) {
+        connections.put(connection, new AtomicBoolean(false));
+    }
+
+    /**
+     * Exit all the connections managed by the pool.
+     */
+    private void exitAllConnections() {
+        // No need to do local locking since this is a private method called
+        // internally in an already locked context
+        for (Concourse concourse : connections.asMap().keySet()) {
+            concourse.exit();
         }
     }
 
-    @Override
-    public void close() throws Exception {
-        lock.writeLock().lock();
-        try {
-            Preconditions.checkState(open, "Connection pool is closed");
-            Preconditions.checkState(taken.isEmpty(),
-                    "Cannot shutdown the connection pool "
-                            + "until all the connections have been returned");
-            open = false;
-            for (Concourse connection : available) {
-                connection.exit();
+    /**
+     * Return {@code true} if none of the connections are currently active.
+     * 
+     * @return {@code true} if the pool can be closed
+     */
+    private boolean isCloseable() {
+        // No need to do local locking since this is a private method called
+        // internally in an already locked context
+        for (AtomicBoolean bool : connections.asMap().values()) {
+            if(bool.get()) {
+                return false;
             }
         }
-        finally {
-            lock.writeLock().unlock();
-        }
-
+        return true;
     }
 
 }

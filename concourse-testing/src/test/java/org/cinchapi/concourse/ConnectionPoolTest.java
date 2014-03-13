@@ -38,11 +38,11 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public class ConnectionPoolTest extends ConcourseIntegrationTest {
+public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
 
-    private static final int POOL_SIZE = 3;
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "admin";
+    protected static final int POOL_SIZE = 3;
+    protected static final String USERNAME = "admin";
+    protected static final String PASSWORD = "admin";
     private ConnectionPool connections = null;
 
     @Override
@@ -117,10 +117,6 @@ public class ConnectionPoolTest extends ConcourseIntegrationTest {
      * 
      * @return the ConnectionPool
      */
-    private final ConnectionPool getConnectionPool() {
-        return ConnectionPool.newConnectionPool(SERVER_HOST, SERVER_PORT,
-                USERNAME, PASSWORD, POOL_SIZE);
-
-    }
+    protected abstract ConnectionPool getConnectionPool();
 
 }
