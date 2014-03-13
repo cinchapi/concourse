@@ -50,7 +50,7 @@ import com.google.common.cache.Cache;
  *  ...
  * }
  * finally {
- *  pool.release();
+ *  pool.release(concourse);
  * }
  * ...
  * // All the threads with connections are done
