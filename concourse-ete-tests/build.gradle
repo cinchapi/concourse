@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+repositories {
+   mavenCentral()
+   mavenLocal()
+}
+
+dependencies {
+    testCompile project('../concourse')
+    testCompile 'junit:junit:4.11'
+}
