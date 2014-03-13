@@ -71,6 +71,24 @@ class CachedConnectionPool extends ConnectionPool {
     }
 
     @Override
+    public boolean hasAvailableConnection() {
+        return true;
+    }
+
+    @Override
+    public Concourse request() {
+        try {
+            return super.request();
+        }
+        catch (IllegalStateException e) {
+            Concourse connection = Concourse.connect(host, port, username,
+                    password);
+            connections.put(connection, new AtomicBoolean(true));
+            return connection;
+        }
+    }
+
+    @Override
     protected Cache<Concourse, AtomicBoolean> buildCache(int size) {
         return CacheBuilder
                 .newBuilder()
@@ -94,24 +112,6 @@ class CachedConnectionPool extends ConnectionPool {
                             }
 
                         }).build();
-    }
-
-    @Override
-    public boolean hasAvailableConnection() {
-        return true;
-    }
-
-    @Override
-    public Concourse request() {
-        try {
-            return super.request();
-        }
-        catch (IllegalStateException e) {
-            Concourse connection = Concourse.connect(host, port, username,
-                    password);
-            connections.put(connection, new AtomicBoolean(true));
-            return connection;
-        }
     }
 
 }
