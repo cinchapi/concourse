@@ -1,67 +1,13 @@
-apply plugin: 'signing'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+repositories {
+   mavenCentral()
+   mavenLocal()
+}
 
 dependencies {
-    compile project(':concourse-server')
-    compile project(':concourse-shell')
-    compile 'com.google.guava:guava:15.0'
+    testCompile project('../concourse')
+    testCompile 'junit:junit:4.11'
 }
-
-signing {
-    required { gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
-def getMaven = { ->
-        def stdout = new ByteArrayOutputStream()
-        exec {
-            commandLine 'cat', '../.maven'
-            standardOutput = stdout
-        }
-        return stdout.toString().trim()
-    }
-
-project.ext.maven = getMaven()
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: project.maven) {
-              authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
-
-            pom.version = '0.4.0-SNAPSHOT'
-
-            pom.project {
-               name 'Concourse Test Framework'
-               packaging 'jar'
-               description 'This is a framework to build end-to-end integration tests that interact with the Concourse client and server'
-               url 'http://cinchapi.org/concourse'
-
-               scm {
-                   url 'git@github.com:cinchapi/concourse.git'
-                   connection 'git@github.com:cinchapi/concourse.git'
-                   developerConnection 'git@github.com:cinchapi/concourse.git'
-               }
-
-               licenses {
-                   license {
-                       name 'The MIT License'
-                       url 'http://opensource.org/licenses/MIT'
-                       distribution 'repo'
-                   }
-               }
-
-               developers {
-                   developer {
-                       id 'jnelson'
-                       name 'Jeff Nelson'
-                   }
-               }
-           }
-        }
-    }
-}
-
-

@@ -54,7 +54,6 @@ else
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse/README.md
 		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse/build.gradle
-		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse-testing/build.gradle
 		echo "The version has been set to $NEW_VERSION"
 	else
 		echo "Please specify a valid version <major>.<minor>.<patch>"
