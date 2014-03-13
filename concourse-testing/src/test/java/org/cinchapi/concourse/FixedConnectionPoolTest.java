@@ -23,6 +23,15 @@
  */
 package org.cinchapi.concourse;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.cinchapi.concourse.util.StandardActions;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
+
 /**
  * Unit tests for {@link FixedConnectionPool}.
  * 
@@ -34,6 +43,46 @@ public class FixedConnectionPoolTest extends ConnectionPoolTest {
     protected ConnectionPool getConnectionPool() {
         return ConnectionPool.newFixedConnectionPool(SERVER_HOST, SERVER_PORT,
                 USERNAME, PASSWORD, POOL_SIZE);
+    }
+    
+    @Test
+    public void testNotHasAvailableConnectionWhenAllInUse() {
+        List<Concourse> toReturn = Lists.newArrayList();
+        for (int i = 0; i < POOL_SIZE; i++) {
+            toReturn.add(connections.request());
+        }
+        Assert.assertFalse(connections.hasAvailableConnection());
+        for (Concourse concourse : toReturn) {
+            // must return all the connections so the pool can shutdown after
+            // the test
+            connections.release(concourse);
+        }
+    }
+
+    @Test
+    public void testBlockUnitlConnectionAvailable() {
+        List<Concourse> toReturn = Lists.newArrayList();
+        for (int i = 0; i < POOL_SIZE; i++) {
+            toReturn.add(connections.request());
+        }
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                System.out.println("Waiting for next available connection...");
+                Concourse connection = connections.request();
+                System.out.println("Finally acquired connection");
+                connections.release(connection);
+            }
+
+        });
+        thread.start();
+        StandardActions.wait(60, TimeUnit.MILLISECONDS);
+        for (Concourse concourse : toReturn) {
+            // must return all the connections so the pool can shutdown after
+            // the test
+            connections.release(concourse);
+        }
     }
 
 }
