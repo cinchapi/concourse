@@ -23,6 +23,11 @@
  */
 package org.cinchapi.concourse;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 /**
  * A {@link ConnectionPool} with a fixed number of connections. If all the
  * connections from the pool are active, subsequent request attempts will block
@@ -44,6 +49,11 @@ class FixedConnectionPool extends ConnectionPool {
     protected FixedConnectionPool(String host, int port, String username,
             String password, int poolSize) {
         super(host, port, username, password, poolSize);
+    }
+
+    @Override
+    protected Cache<Concourse, AtomicBoolean> buildCache(int size) {
+        return CacheBuilder.newBuilder().initialCapacity(size).build();
     }
 
 }

@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -33,9 +32,6 @@ import org.cinchapi.concourse.config.ConcourseClientPreferences;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
 
 /**
  * <p>
@@ -186,12 +182,6 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     private static final int DEFAULT_POOL_SIZE = 10;
 
-    // Each connection will, if not active, will automatically expire. These
-    // units are chosen to correspond to the AccessToken TTL that is defined in
-    // {@link AccessManager}.
-    private static final int CONNECTION_TTL = 24;
-    private static final TimeUnit CONNECTION_TTL_UNIT = TimeUnit.HOURS;
-
     /**
      * A mapping from connection to a flag indicating if the connection is
      * active (e.g. taken).
@@ -224,47 +214,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
-        this.connections = CacheBuilder
-                .newBuilder()
-                .initialCapacity(poolSize)
-                .expireAfterWrite(CONNECTION_TTL, CONNECTION_TTL_UNIT)
-                .removalListener(
-                        new RemovalListener<Concourse, AtomicBoolean>() {
-
-                            @Override
-                            public void onRemoval(
-                                    RemovalNotification<Concourse, AtomicBoolean> notification) {
-                                lock.writeLock().lock();
-                                try {
-                                    if(notification.getValue().get()) { // ensure
-                                                                        // that
-                                                                        // active
-                                                                        // connections
-                                                                        // don't
-                                                                        // get
-                                                                        // dropped
-                                        connections.put(notification.getKey(),
-                                                notification.getValue());
-
-                                    }
-                                    else {
-                                        // Take care of the case where a
-                                        // non-active connection is evicted. For
-                                        // example, a FixedConnectionPool will
-                                        // probably want to add back a new
-                                        // connection to ensure that the
-                                        // poolSize remains the same
-                                        handleEvictedNonActiveConnection(notification
-                                                .getKey());
-                                    }
-                                }
-                                finally {
-                                    lock.writeLock().unlock();
-                                }
-
-                            }
-
-                        }).build();
+        this.connections = buildCache(poolSize);
         this.numAvailableConnections = poolSize;
         for (int i = 0; i < poolSize; i++) {
             connections.put(Concourse.connect(host, port, username, password),
@@ -282,7 +232,17 @@ public abstract class ConnectionPool implements AutoCloseable {
             }
 
         }));
+
     }
+
+    /**
+     * Return the {@link Cache} that will hold the connections.
+     * 
+     * @param size
+     * 
+     * @return the connections cache
+     */
+    protected abstract Cache<Concourse, AtomicBoolean> buildCache(int size);
 
     @Override
     public void close() throws Exception {
@@ -324,12 +284,12 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     public void release(Concourse connection) {
         Preconditions.checkState(open, "Connection pool is closed");
-        Preconditions.checkArgument(
-                connections.getIfPresent(connection) != null,
-                "Cannot release the connection because it "
-                        + "was not previously requested from this pool");
         lock.writeLock().lock();
         try {
+            Preconditions.checkArgument(
+                    connections.getIfPresent(connection) != null,
+                    "Cannot release the connection because it "
+                            + "was not previously requested from this pool");
             if(connections.getIfPresent(connection).compareAndSet(true, false)) {
                 numAvailableConnections++;
             }
@@ -371,16 +331,6 @@ public abstract class ConnectionPool implements AutoCloseable {
         finally {
             lock.writeLock().unlock();
         }
-    }
-
-    /**
-     * Handle the case where a non-active connection is evicted from the
-     * {@link #connections} cache.
-     * 
-     * @param connection
-     */
-    protected void handleEvictedNonActiveConnection(Concourse connection) {
-        connections.put(connection, new AtomicBoolean(false));
     }
 
     /**
