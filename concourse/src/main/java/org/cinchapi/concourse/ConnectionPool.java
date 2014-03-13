@@ -24,7 +24,7 @@
 package org.cinchapi.concourse;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -186,22 +186,17 @@ public abstract class ConnectionPool implements AutoCloseable {
      * A mapping from connection to a flag indicating if the connection is
      * active (e.g. taken).
      */
-    private final Cache<Concourse, AtomicBoolean> connections;
+    protected final Cache<Concourse, AtomicBoolean> connections;
 
     /**
      * The number of connections that are currently available;
      */
-    private int numAvailableConnections;
+    private AtomicInteger numAvailableConnections;
 
     /**
      * A flag to indicate if the pool is currently open and operational.
      */
-    private boolean open = true;
-
-    /**
-     * The lock that is used for concurrency control.
-     */
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+    private AtomicBoolean open = new AtomicBoolean(true);
 
     /**
      * Construct a new instance.
@@ -215,7 +210,7 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
         this.connections = buildCache(poolSize);
-        this.numAvailableConnections = poolSize;
+        this.numAvailableConnections = new AtomicInteger(poolSize);
         for (int i = 0; i < poolSize; i++) {
             connections.put(Concourse.connect(host, port, username, password),
                     new AtomicBoolean(false));
@@ -226,7 +221,7 @@ public abstract class ConnectionPool implements AutoCloseable {
 
             @Override
             public void run() {
-                if(open) {
+                if(open.get()) {
                     exitAllConnections();
                 }
             }
@@ -246,19 +241,15 @@ public abstract class ConnectionPool implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        lock.writeLock().lock();
-        try {
-            Preconditions.checkState(open, "Connection pool is closed");
-            Preconditions.checkState(isCloseable(),
-                    "Cannot shutdown the connection pool "
-                            + "until all the connections have been returned");
-            open = false;
+        Preconditions.checkState(isCloseable(),
+                "Cannot shutdown the connection pool "
+                        + "until all the connections have been returned");
+        if(open.compareAndSet(true, false)) {
             exitAllConnections();
         }
-        finally {
-            lock.writeLock().unlock();
+        else {
+            throw new IllegalStateException("Connection pool is closed");
         }
-
     }
 
     /**
@@ -267,14 +258,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return {@code true} if there are one or more available connections
      */
     public boolean hasAvailableConnection() {
-        Preconditions.checkState(open, "Connection pool is closed");
-        lock.readLock().lock();
-        try {
-            return numAvailableConnections > 0;
-        }
-        finally {
-            lock.readLock().unlock();
-        }
+        Preconditions.checkState(open.get(), "Connection pool is closed");
+        return numAvailableConnections.get() > 0;
     }
 
     /**
@@ -283,24 +268,18 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param connection
      */
     public void release(Concourse connection) {
-        Preconditions.checkState(open, "Connection pool is closed");
-        lock.writeLock().lock();
-        try {
-            Preconditions.checkArgument(
-                    connections.getIfPresent(connection) != null,
-                    "Cannot release the connection because it "
-                            + "was not previously requested from this pool");
-            if(connections.getIfPresent(connection).compareAndSet(true, false)) {
-                numAvailableConnections++;
-            }
-            else {
-                throw new IllegalStateException(
-                        "This is an unreachable state that is obviously "
-                                + "reachable, indicating a bug in the code");
-            }
+        Preconditions.checkState(open.get(), "Connection pool is closed");
+        Preconditions.checkArgument(
+                connections.getIfPresent(connection) != null,
+                "Cannot release the connection because it "
+                        + "was not previously requested from this pool");
+        if(connections.getIfPresent(connection).compareAndSet(true, false)) {
+            numAvailableConnections.incrementAndGet();
         }
-        finally {
-            lock.writeLock().unlock();
+        else {
+            throw new IllegalStateException(
+                    "This is an unreachable state that is obviously "
+                            + "reachable, indicating a bug in the code");
         }
     }
 
@@ -311,34 +290,25 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return a connection
      */
     public Concourse request() {
-        Preconditions.checkState(open, "Connection pool is closed");
+        Preconditions.checkState(open.get(), "Connection pool is closed");
         while (!hasAvailableConnection()) {
             continue;
         }
-        lock.writeLock().lock();
-        try {
-            for (Concourse connection : connections.asMap().keySet()) {
-                if(connections.getIfPresent(connection).compareAndSet(false,
-                        true)) {
-                    numAvailableConnections--;
-                    return connection;
-                }
+        for (Concourse connection : connections.asMap().keySet()) {
+            if(connections.getIfPresent(connection).compareAndSet(false, true)) {
+                numAvailableConnections.decrementAndGet();
+                return connection;
             }
-            throw new IllegalStateException(
-                    "This is an unreachable state that is obviously "
-                            + "reachable, indicating a bug in the code");
         }
-        finally {
-            lock.writeLock().unlock();
-        }
+        throw new IllegalStateException(
+                "This is an unreachable state that is obviously "
+                        + "reachable, indicating a bug in the code");
     }
 
     /**
      * Exit all the connections managed by the pool.
      */
     private void exitAllConnections() {
-        // No need to do local locking since this is a private method called
-        // internally in an already locked context
         for (Concourse concourse : connections.asMap().keySet()) {
             concourse.exit();
         }
@@ -350,8 +320,6 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return {@code true} if the pool can be closed
      */
     private boolean isCloseable() {
-        // No need to do local locking since this is a private method called
-        // internally in an already locked context
         for (AtomicBoolean bool : connections.asMap().values()) {
             if(bool.get()) {
                 return false;
