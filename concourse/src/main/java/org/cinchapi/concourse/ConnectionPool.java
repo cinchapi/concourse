@@ -108,7 +108,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * 
      * @param prefs
      * @return the ConnectionPool
-     * @deprecated Use {@link #newFixedConnectionPool(String, int)} instead.
+     * @deprecated As of version 0.3.2, replaced by {@link #newFixedConnectionPool(String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String prefs) {
@@ -123,7 +123,7 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param prefs
      * @param poolSize
      * @return the ConnectionPool
-     * @deprecated Use {@link #newFixedConnectionPool(String, int)} instead.
+     * @deprecated As of version 0.3.2, replaced by {@link #newFixedConnectionPool(String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String prefs, int poolSize) {
@@ -140,9 +140,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param username
      * @param password
      * @return the ConnectionPool
-     * @deprecated Use
-     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
-     *             instead.
+     * @deprecated As of version 0.3.2, replaced by 
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
@@ -162,9 +161,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param password
      * @param poolSize
      * @return the ConnectionPool
-     * @deprecated Use
-     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
-     *             instead.
+     * @deprecated As of version 0.3.2, replaced by 
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
