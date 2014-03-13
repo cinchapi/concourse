@@ -66,6 +66,42 @@ public abstract class ConnectionPool implements AutoCloseable {
     // defaults are the desired behaviour
 
     /**
+     * Return a {@link ConnectionPool} that has no limit on the number of
+     * connections it can manage to the Concourse instance at {@code host}:
+     * {@code port} on behalf of the user identified by {@code username} and
+     * {@code password}, but will try to use previously created connections
+     * before establishing new ones for any request.
+     * 
+     * @param prefs
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newCachedConnectionPool(String prefs) {
+        ConcourseClientPreferences cp = ConcourseClientPreferences.load(prefs);
+        return new CachedConnectionPool(cp.getHost(), cp.getPort(),
+                cp.getUsername(), new String(cp.getPassword()),
+                DEFAULT_POOL_SIZE);
+    }
+
+    /**
+     * Return a {@link ConnectionPool} that has no limit on the number of
+     * connections it can manage to the Concourse instance defined in the client
+     * {@code prefs} on behalf of the user defined in the client {@code prefs},
+     * but will try to use previously created connections before establishing
+     * new ones for any request.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newCachedConnectionPool(String host, int port,
+            String username, String password) {
+        return new CachedConnectionPool(host, port, username, password,
+                DEFAULT_POOL_SIZE);
+    }
+
+    /**
      * Return a new {@link ConnectionPool} that provides connections to the
      * Concourse instance defined in the client {@code prefs} on behalf of the
      * user defined in the client {@code prefs}.
@@ -180,7 +216,7 @@ public abstract class ConnectionPool implements AutoCloseable {
     /**
      * The default connection pool size.
      */
-    private static final int DEFAULT_POOL_SIZE = 10;
+    protected static final int DEFAULT_POOL_SIZE = 10;
 
     /**
      * A mapping from connection to a flag indicating if the connection is
@@ -229,15 +265,6 @@ public abstract class ConnectionPool implements AutoCloseable {
         }));
 
     }
-
-    /**
-     * Return the {@link Cache} that will hold the connections.
-     * 
-     * @param size
-     * 
-     * @return the connections cache
-     */
-    protected abstract Cache<Concourse, AtomicBoolean> buildCache(int size);
 
     @Override
     public void close() throws Exception {
@@ -304,6 +331,15 @@ public abstract class ConnectionPool implements AutoCloseable {
                 "This is an unreachable state that is obviously "
                         + "reachable, indicating a bug in the code");
     }
+
+    /**
+     * Return the {@link Cache} that will hold the connections.
+     * 
+     * @param size
+     * 
+     * @return the connections cache
+     */
+    protected abstract Cache<Concourse, AtomicBoolean> buildCache(int size);
 
     /**
      * Exit all the connections managed by the pool.
