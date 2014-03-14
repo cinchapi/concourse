@@ -772,6 +772,47 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Theory
+    public void testSearchReproH(SearchType type) {
+        String query = Variables.register("query", "4  w");
+        String key = Variables.register("key",
+                "viho04sfbnz8zdfqsdyw9zwk5o2genjl2engu28ap0uyzxgyv9wc");
+        Set<Long> records = setupSearchTest(
+                key,
+                query,
+                type,
+                Lists.newArrayList(1378249483279686062L, -6161014232753001252L,
+                        8433543546648615058L, 417782169298412285L,
+                        -3539644780337239226L, -714055345939181564L,
+                        -4659589834251389440L, 2974961501049931858L,
+                        1498065777882054524L, 1714252475302608813L,
+                        -5234135322684760593L, -7612584946477396261L,
+                        9023646044357780211L, -2252683871509119265L,
+                        -8081867832259689703L, -374594252064464588L,
+                        8025017904883834843L, -7866768561866704644L),
+                Lists.newArrayList(
+                        "eg lb36kp t4",
+                        "lt rzrttfbhglt0423181mgtk le5",
+                        "qc8vkeyk294mr8",
+                        "7bbfk6lsinjfy0n4c1hr0gwe2zso8yalti4oefzzstv274q6twl90f033mb4vlg3ch19  afnodtnm1p4  w",
+                        "2fc1p1ksst88ut70u38weagn4q5ziwfqad4o4ldpu5z9shdcpr21p6t4quebt7ehzptphxw3j8x5f",
+                        "al75cmqjmzv9uy6difn95gu11pq5csb3",
+                        "cquxx8kt",
+                        "h919c0 ct79xk4h98x",
+                        "dq70ohga8ze79m9hygwjtjtbn2g",
+                        "omr8n rvjc pcg9k1uc8yv0ut7n w3f ouwg0 91 r5hr7h7p419ancsm",
+                        "56uotxg3daytxa zpi6e6 w 83dst7 ujenhtr1muzxg8n cnt t3h4yytwuvjf0k5hc2gcvk9vh 92zcr6p fdvu2qg",
+                        "thsleyyy628wzeciiv",
+                        "i94  w",
+                        "1zw2jj2r510sjg0sqauagjzpk5yt9jgcc2iiu5dy6i85kwi511esjihep9zk3p11nde",
+                        "1z0ef75 poaz6h1v1903f9 xkvmq fpf1o3mb4v4xd2o1n u azamd8oanwmz46c163ta77c2rlc4ad6 9qhnqegqpk9os",
+                        "uk7c1pmx tp9ytkk2p35ekyogtiwgblgf3d1b5bl aw5bbnh7odic9h",
+                        "ut3x5hs0 sivxixboqn36p107if0g1v4u54  w",
+                        "g989rxtkel4 g3vc85 0b42iektum6y610pxtuml"));
+        Assert.assertEquals(records, store.search(key, query));
+    }
+
+    @Test
     @Ignore("not implemented in Limbo")
     public void testSearchResultSorting() {
         // FIXME this is not implemented in Limbo (cause its very difficult) so
