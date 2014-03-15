@@ -175,11 +175,6 @@ public class ConcourseServer implements
         });
     }
 
-    protected static final int SERVER_PORT = 1717; // This may become
-                                                   // configurable in a
-                                                   // prefs file in a
-                                                   // future release.
-
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -227,7 +222,7 @@ public class ConcourseServer implements
      * @throws TTransportException
      */
     public ConcourseServer() throws TTransportException {
-        this(SERVER_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
+        this(CLIENT_PORT, BUFFER_DIRECTORY, DATABASE_DIRECTORY);
     }
 
     /**

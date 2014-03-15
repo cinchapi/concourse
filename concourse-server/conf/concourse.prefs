@@ -19,6 +19,11 @@
 # DEFAULT: 8M
 #buffer_page_size = 8M
 
+# The listener port (1-65535) for client connections. Choose a port between 49152 
+# and 65535 to minimize the possibility of conflicts with other services on this
+# host.
+#client_port = 1717 
+
 # The absolute path to the directory where the Database record and index
 # files are stored. For optimal performance, the Database should be 
 # placed on a separate disk partition (ideally a separate physical device)
@@ -26,6 +31,11 @@
 #
 # DEFAULT: {$user.home}/concourse/db
 #database_directory = /var/lib/concourse/db
+
+# Determine whether log messages should also be printed to the console (STDOUT).
+#
+# DEFAULT:
+#enable_console_logging = FALSE
 
 # The amount of runtime information logged by the system. The options below
 # are listed from least to most verbose. In addition to the indicated types
@@ -47,7 +57,8 @@
 # DEFAULT:
 #log_level = INFO
 
-# Determine whether log messages should also be printed to the console (STDOUT).
-#
-# DEFAULT:
-#enable_console_logging = FALSE
+# The listener port (1-65535) for shutdown commands. Choose a port between 49152 
+# and 65535 to minimize the possibility of conflicts with other services on this
+# host.
+#shutdown_port = 3434
+
