@@ -95,6 +95,13 @@ public final class GlobalState {
     public static int BUFFER_PAGE_SIZE = 8192;
 
     /**
+     * The listener port (1-65535) for client connections. Choose a port between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
+     */
+    public static int CLIENT_PORT = 1717;
+
+    /**
      * The port on which the ShutdownRunner listens.
      */
     public static int SHUTDOWN_PORT = 3434;
@@ -152,6 +159,8 @@ public final class GlobalState {
 
             BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                     BUFFER_PAGE_SIZE);
+            
+            CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
 
             SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
 
