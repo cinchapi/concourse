@@ -236,6 +236,9 @@ public class ConcourseServer implements
      */
     public ConcourseServer(int port, String bufferStore, String dbStore)
             throws TTransportException {
+        Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
+                "Cannot store buffer and database files in the same directory. "
+                        + "Please check concourse.prefs.");
         FileSystem.mkdirs(bufferStore);
         FileSystem.mkdirs(dbStore);
         TServerSocket socket = new TServerSocket(port);
