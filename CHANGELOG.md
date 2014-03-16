@@ -1,5 +1,13 @@
 ## Changelog
 
+#### Version 0.3.2 (March 16, 2014)
+* Added support for creating a cached connection pool that continues to establish new connections on demand, but will use previously created ones when possible.
+* Deprecated the `ConnectionPool#newConnectionPool` factory methods in favour of more descriptive ones.
+* Added a method to the `Convert` utility class to transform a raw string value to the appropriate java primitive.
+* Added a method to the `Convert` utility class to transform a raw string value to a resolvable link specification that instructs the receiver to add a link in a record to all the records that map a certain key to that value.
+* Made server-side `client_port` and `shutdown_port` parameters configurable in concourse.prefs.
+* Added check on server startup to ensure that the `buffer_directory` and `database_directory` parameters are not identical.
+
 #### Version 0.3.1 (March 9, 2014)
 * Added the ability to have multiple concurrent connections for a single user.
 * Added support for connection pooling to the client API.
@@ -11,18 +19,6 @@
 * Improved CaSH documentation.
 
 #### Version 0.3.0 (February 1, 2014)
-* Fixed a bug that caused a TLinkedTableMap to display its header incorrectly.
-* Added concurrenty controls to AccessManager `authorize()` method.
-* Fixed a bug that caused an AtomicOperation to fail unnecessarily if it touched a key in a record but another operation touched a different key in the same record.
-
-#### Version 0.3.0 RC2 (January 18, 2014)
-* Fixed bug that occured when invoking `#verifyAndSwap()` on an existing swap value.
-* Improved error message when client cannot connect to server.
-* Additional unit and integration tests.
-* Improved build infrastructure.
-* Improved documentation.
-
-#### Version 0.3.0 RC1 (January 5th, 2014)
 * Changed install and upgrade distributions from zip file to self-extracting binary.
 * Added logic to upgrade from previous versions.
 * Added server-side atomic operation and transaction protocols.
@@ -34,7 +30,6 @@
 * Added several compound operations to API.
 * Fixed bug that prevented server from starting on non-OSX systems.
 * Made historical `#find()` methods consistent with other historical operations by specifying the timestamp last.
-* Improved documentation.
 * Added Timestamp wrapper class that is interoperable with Joda DateTime, but has microsecond precision.
 * Added requirement for authentication when using management CLIs.
 * Fixed bug that allowed access to private variables in CaSH.
@@ -42,10 +37,13 @@
 * Added API method to get server release version.
 * Improved background data indexing protocol.
 * Made artifact versioning more consistent.
-* Added server side range locking protocol for `#find()` queries.
+* Added server side range locking protocol for #find() queries.
 * Bug fixes.
+* Improved documentation.
+* Improved error messages.
+* Improved build infrastructure.
 
-#### Version 0.2.0
+#### Version 0.2.0 (December 28, 2013)
 * Changed database storage model from one record per file to several revisions across blocks.
 * Added CLI to dump buffer and block contents.
 * Added Concourse Action SHeLL (CaSH)
@@ -59,3 +57,6 @@
 * Added JMX support.
 * Improved documentation.
 * Bug fixes.
+
+#### Version 0.1.0 (October 18, 2013)
+* Hello World.

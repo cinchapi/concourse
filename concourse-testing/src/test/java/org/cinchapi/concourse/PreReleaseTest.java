@@ -36,8 +36,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ GettingStartedTest.class, FastSmokeTest.class,
         AtomicOperationTest.class, BugReproTest.class,
-        CompoundOperationTest.class, ConnectionPoolTest.class,
-        TransactionWorkflowTest.class, SmokeTest.class })
+        CompoundOperationTest.class, FixedConnectionPoolTest.class,
+        TransactionWorkflowTest.class, SmokeTest.class,
+        CachedConnectionPoolTest.class })
 public class PreReleaseTest {
 
 }
