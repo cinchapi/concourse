@@ -812,10 +812,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     @Theory
-    @Ignore
+    @Ignore("CON-8")
     public void testSearchWithStopWordSubStringInQuery() {
-        // TODO: Filed as CON-6 and CON-7. This should be fixed in an 0.2 update
-        // release and 0.3
         add("string", Convert.javaToThrift("but foobar barfoo"), 1);
         Assert.assertTrue(store.search("string", "ut foobar barfoo")
                 .contains(1));
