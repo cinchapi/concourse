@@ -44,7 +44,7 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service) {
 		from '../LICENSE'
 	}
-	into(service) {
+	into(service + '/wrapper') {
 		from 'wrapper'
 	}
 	into(service) {
