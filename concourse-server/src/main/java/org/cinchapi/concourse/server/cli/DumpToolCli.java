@@ -56,7 +56,23 @@ public final class DumpToolCli extends ManagedOperationCli {
 
     @Override
     protected void doTask(ConcourseServerMXBean bean) {
-        System.out.println(bean.dump(((DumpToolOptions) options).id));
+        if(((DumpToolOptions) options).list) {
+            System.out.println("These are the storage units "
+                    + "that are currently dumpable, sorted in "
+                    + "reverse chronological such that units "
+                    + "holding newer data appear first.");
+            System.out.println(bean.getDumpList());
+        }
+        else if(((DumpToolOptions) options).id != null) {
+            System.out.println(bean.dump(((DumpToolOptions) options).id));
+        }
+        else {
+            throw new IllegalArgumentException(
+                    "Please specify the id of "
+                            + "a storage unit to dump. Call this CLI with the '--list' "
+                            + "flag to list all the available storage units.");
+        }
+
     }
 
     /**
@@ -66,8 +82,11 @@ public final class DumpToolCli extends ManagedOperationCli {
      */
     private static class DumpToolOptions extends Options {
 
-        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content", required = true)
+        @Parameter(names = { "-i", "--id" }, description = "The id of the storage component to dump. Specify an ID of 'BUFFER' to dump the Buffer content")
         public String id;
+
+        @Parameter(names = { "-l", "--list" }, description = "List the ids of the blocks that can be dumped")
+        public boolean list;
 
     }
 

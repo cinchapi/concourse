@@ -369,6 +369,11 @@ public class ConcourseServer implements
     }
 
     @Override
+    public String getDumpList() {
+        return engine.getDumpList();
+    }
+
+    @Override
     @ManagedOperation
     public String getServerVersion() {
         return Version.getVersion(ConcourseServer.class).toString();

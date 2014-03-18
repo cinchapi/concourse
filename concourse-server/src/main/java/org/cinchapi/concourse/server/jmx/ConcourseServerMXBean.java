@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.jmx;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
 import javax.management.MXBean;
 
 /**
@@ -54,6 +55,15 @@ public interface ConcourseServerMXBean {
      */
     @ManagedOperation
     public String dump(String id);
+
+    /**
+     * Return a string that contains a list of the ids for all the blocks that
+     * can be dumped using {@link #dump(String)}.
+     * 
+     * @return the dump list
+     */
+    @ManagedOperation
+    public String getDumpList();
 
     /**
      * Return the release version of the server.
