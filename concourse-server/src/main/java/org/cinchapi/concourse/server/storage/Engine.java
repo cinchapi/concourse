@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -380,6 +382,26 @@ public final class Engine extends BufferedStore implements
             RangeLockService.getReadLock(key, operator, values).unlock();
             transportLock.readLock().unlock();
         }
+    }
+
+    /**
+     * Public interface for the {@link Database#getDumpList()} method.
+     * 
+     * @return the dump list
+     */
+    @ManagedOperation
+    public String getDumpList() {
+        List<String> ids = ((Database) destination).getDumpList();
+        ids.add("BUFFER");
+        ListIterator<String> it = ids.listIterator(ids.size());
+        StringBuilder sb = new StringBuilder();
+        while (it.hasPrevious()) {
+            sb.append(Math.abs(it.previousIndex() - ids.size()));
+            sb.append(") ");
+            sb.append(it.previous());
+            sb.append(System.getProperty("line.separator"));
+        }
+        return sb.toString();
     }
 
     @Override

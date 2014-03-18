@@ -40,6 +40,7 @@ import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -288,6 +289,20 @@ public final class Database implements PermanentStore, VersionGetter {
                 Functions.PRIMARY_KEY_TO_LONG);
     }
 
+    /**
+     * Return a the list of ids for all the blocks that are currently in scope.
+     * 
+     * @return the block dump list
+     */
+    @ManagedOperation
+    public List<String> getDumpList() {
+        List<String> ids = Lists.newArrayList();
+        for (PrimaryBlock block : cpb) {
+            ids.add(block.getId());
+        }
+        return ids;
+    }
+
     @Override
     public long getVersion(long record) {
         return getPrimaryRecord(PrimaryKey.wrap(record)).getVersion();
@@ -425,8 +440,10 @@ public final class Database implements PermanentStore, VersionGetter {
             for (SearchBlock block : ctb) {
                 // Seek each word in the query to make sure that multi word
                 // search works.
-                String[] toks = query.toString().toLowerCase().split(
-                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+                String[] toks = query
+                        .toString()
+                        .toLowerCase()
+                        .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                 for (String tok : toks) {
                     block.seek(key, Text.wrap(tok), record);
                 }
