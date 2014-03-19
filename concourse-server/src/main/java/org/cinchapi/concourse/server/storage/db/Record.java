@@ -235,16 +235,16 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
                             + "than the Record's current version(%s). The",
                             revision, revision.getVersion(), version);
             Preconditions.checkArgument(revision.getLocator().equals(locator),
-                    "Cannot append %s because it does not belong "
-                            + "to this Record", revision);
+                    "Cannot append %s because it does not belong to %s",
+                    revision, this);
             // NOTE: The check below is ignored for a partial SearchRecord
             // instance because they 'key' is the entire search query, but we
             // append Revisions for each term in the query
             Preconditions.checkArgument(
                     (partial && revision.getKey().equals(key)) || !partial
                             || this instanceof SearchRecord,
-                    "Cannot append %s because it does not "
-                            + "belong to This Record", revision);
+                    "Cannot append %s because it does not belong to %s",
+                    revision, this);
             // NOTE: The check below is ignored for a SearchRecord instance
             // because it will legitimately appear that "duplicate" data has
             // been added if similar data is added to the same key in a record
