@@ -861,6 +861,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testSearchIsLimitedToKey() {
+        add("foo", Convert.javaToThrift("importer"), 1);
+        add("bar", Convert.javaToThrift("importer"), 2);
+        Assert.assertTrue(store.search("foo", "importer").contains(1L));
+        Assert.assertFalse(store.search("foo", "importer").contains(2L));
+    }
+
+    @Test
     public void testVerifyAfterAdd() {
         String key = TestData.getString();
         TObject value = TestData.getTObject();
