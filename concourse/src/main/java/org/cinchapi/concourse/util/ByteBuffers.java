@@ -172,20 +172,7 @@ public abstract class ByteBuffers {
         try {
             CharsetDecoder decoder = charset.newDecoder();
             decoder.onMalformedInput(CodingErrorAction.IGNORE);
-            return decoder.decode(buffer).toString().trim(); // it
-                                                             // is
-                                                             // necessary
-                                                             // to
-                                                             // trim
-                                                             // here
-                                                             // because
-                                                             // the
-                                                             // decoding
-                                                             // picks
-                                                             // up
-                                                             // trailing
-                                                             // whitespace
-                                                             // sometimes
+            return decoder.decode(buffer).toString();
         }
         catch (CharacterCodingException e) {
             throw Throwables.propagate(e);
