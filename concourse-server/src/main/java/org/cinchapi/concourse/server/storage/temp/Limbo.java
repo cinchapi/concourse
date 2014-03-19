@@ -402,7 +402,8 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
             Write write = it.next();
             Value value = write.getValue();
             long record = write.getRecord().longValue();
-            if(value.getType() == Type.STRING) {
+            if(write.getKey().toString().equals(key)
+                    && value.getType() == Type.STRING) {
                 /*
                  * NOTE: It is not enough to merely check if the stored text
                  * contains the query because the Database does infix
