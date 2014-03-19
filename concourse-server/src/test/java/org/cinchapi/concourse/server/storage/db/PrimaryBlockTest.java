@@ -26,10 +26,14 @@ package org.cinchapi.concourse.server.storage.db;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.db.Block;
 import org.cinchapi.concourse.server.storage.db.PrimaryBlock;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * 
@@ -37,6 +41,18 @@ import org.cinchapi.concourse.util.TestData;
  * @author jnelson
  */
 public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value> {
+    
+    @Test
+    public void testInsertLocatorWithTrailingWhiteSpace() {
+        PrimaryKey locator = PrimaryKey.wrap(1);
+        Text key = Text.wrap("Youtube Embed Link ");
+        Value value = Value.wrap(Convert.javaToThrift("http://youtube.com"));
+        block.insert(locator, key, value, Time.now(), Action.ADD);
+        PrimaryRecord record = Record.createPrimaryRecordPartial(locator, key);
+        block.sync();
+        block.seek(locator, key, record);
+        Assert.assertTrue(record.get(key).contains(value));
+    }
 
     @Override
     protected PrimaryKey getLocator() {

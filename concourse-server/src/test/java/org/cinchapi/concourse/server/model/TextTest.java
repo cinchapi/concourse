@@ -49,5 +49,13 @@ public class TextTest extends ByteableTest {
     protected Class<Text> getTestClass() {
         return Text.class;
     }
+    
+    @Test
+    public void testDeserializationWithTrailingWhitespace(){
+        String s = "Youtube Embed Link ";
+        Text t1 = Text.wrap(s);
+        Text t2 = Text.fromByteBuffer(t1.getBytes());
+        Assert.assertEquals(t1, t2);
+    }
 
 }
