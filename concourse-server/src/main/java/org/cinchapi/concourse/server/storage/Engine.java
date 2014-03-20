@@ -460,7 +460,13 @@ public final class Engine extends BufferedStore implements
         // we must be willing to live with the fact that a search query may
         // provide inconsistent results if a match is added while the read is
         // processing.
-        return super.search(key, query);
+        transportLock.readLock().lock();
+        try{
+            return super.search(key, query);
+        }
+        finally{
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
