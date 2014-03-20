@@ -81,6 +81,29 @@ public final class StandardActions {
             throw Throwables.propagate(e);
         }
     }
+    
+    /**
+     * Import 1027 youtube links
+     * @param client
+     */
+    public static void import1027YoutubeLinks(Concourse client){
+        System.out.println("Importing 1027 youtube links");
+        try {
+            File file = new File(TestData.class.getResource("/youtube.txt")
+                    .getFile());
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            int record = 0;
+            while ((line = reader.readLine()) != null) {
+                client.add("Youtube Embed Link", line, record);
+                record++;
+            }
+            reader.close();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
     /**
      * Kill the process that was started from
