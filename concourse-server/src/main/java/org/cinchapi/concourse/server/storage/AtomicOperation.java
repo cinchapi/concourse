@@ -24,8 +24,10 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -74,6 +76,66 @@ public class AtomicOperation extends BufferedStore implements
      */
     public static AtomicOperation start(Compoundable store) {
         return new AtomicOperation(store);
+    }
+
+    /**
+     * It is technically not possible to upgrade a READ lock to a WRITE lock, so
+     * we must apply some logical rules to determine if we need to release one
+     * of our read locks because the next lock will be an offsetting write lock.
+     * 
+     * @param expectation
+     * @param locks
+     */
+    protected static void prepareLockForPossibleUpgrade(
+            VersionExpectation expectation, Map<Token, LockDescription> locks) { // visible
+                                                                                 // for
+                                                                                 // testing
+        LockType type = expectation.getLockType();
+        Token token = expectation.getToken();
+        if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
+            Iterator<Entry<Token, LockDescription>> it = locks.entrySet()
+                    .iterator();
+            while (it.hasNext()) {
+                Entry<Token, LockDescription> entry = it.next();
+                Token otherToken = entry.getKey();
+                LockDescription otherLock = entry.getValue();
+                if(otherToken instanceof RangeToken
+                        && otherLock.getType() == LockType.RANGE_READ) {
+                    RangeToken myRangeToken = (RangeToken) token;
+                    RangeToken otherRangeToken = (RangeToken) otherToken;
+                    if(myRangeToken.getKey().equals(otherRangeToken.getKey())) {
+                        // Since the keys are equal, check to see if my value is
+                        // equal to or within the range of the other values. If
+                        // so, that means the lock needs to be upgraded because
+                        // a write lock for my value will do the appropriate
+                        // range blocking
+                        boolean foundSmaller = false;
+                        boolean foundLarger = false;
+                        boolean foundEqual = false;
+                        for (Value otherValue : otherRangeToken.getValues()) {
+                            for (Value myValue : myRangeToken.getValues()) {
+                                foundEqual = myValue.compareTo(otherValue) == 0 ? true
+                                        : foundEqual;
+                                foundSmaller = myValue.compareTo(otherValue) < 0 ? true
+                                        : foundSmaller;
+                                foundLarger = myValue.compareTo(otherValue) > 0 ? true
+                                        : foundLarger;
+                            }
+                        }
+                        if(foundEqual || (foundSmaller && foundLarger)) {
+                            otherLock.getLock().unlock();
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else if(token instanceof Token && type == LockType.WRITE
+                && locks.containsKey(token)
+                && locks.get(token).getType() == LockType.READ) {
+            locks.remove(token).getLock().unlock();
+        }
     }
 
     /**
@@ -332,17 +394,7 @@ public class AtomicOperation extends BufferedStore implements
         locks = Maps.newHashMap();
         try {
             for (VersionExpectation expectation : expectations) {
-                if(locks.containsKey(expectation.getToken())
-                        && (locks.get(expectation.getToken()).getType() == LockType.READ || locks
-                                .get(expectation.getToken()).getType() == LockType.RANGE_READ)
-                        && (expectation.getLockType() == LockType.WRITE || expectation
-                                .getLockType() == LockType.RANGE_WRITE)) {
-                    // This means we need to "upgrade" from a READ lock to a
-                    // WRITE lock. It is technically not possible to do lock
-                    // upgrades, so we must remove and unlock the existing READ
-                    // lock and later grab a WRITE lock.
-                    locks.remove(expectation.getToken()).getLock().unlock();
-                }
+                prepareLockForPossibleUpgrade(expectation, locks);
                 if(!locks.containsKey(expectation.getToken())) {
                     LockDescription description = LockDescription
                             .forVersionExpectation(expectation);
