@@ -28,7 +28,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -255,6 +257,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertTrue(operation.commit());
     }
 
+    @Test
     public void testSuccessIfNoWriteToRecordThatIsRead()
             throws InterruptedException {
         final long record = TestData.getLong();
@@ -272,6 +275,94 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         });
         thread.start();
         thread.join();
+        Assert.assertTrue(operation.commit());
+    }
+
+    @Test
+    public void testNoDeadLockIfFindEqOnKeyBeforeAddingToKey() {
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.EQUALS, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindGtOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.GREATER_THAN, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindGteOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.GREATER_THAN_OR_EQUALS, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindLteOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.LESS_THAN_OR_EQUALS, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindLtOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.LESS_THAN, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindBwOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.BETWEEN, value, Convert.javaToThrift(3));
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindRegexOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.REGEX, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+    
+    @Test
+    public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey(){
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.NOT_REGEX, value);
+        operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
 
