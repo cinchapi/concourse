@@ -95,7 +95,7 @@ public class AtomicOperation extends BufferedStore implements
         if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
             Iterator<Entry<Token, LockDescription>> it = locks.entrySet()
                     .iterator();
-            while (it.hasNext()) {
+            outer: while (it.hasNext()) {
                 Entry<Token, LockDescription> entry = it.next();
                 Token otherToken = entry.getKey();
                 LockDescription otherLock = entry.getValue();
@@ -120,12 +120,12 @@ public class AtomicOperation extends BufferedStore implements
                                         : foundSmaller;
                                 foundLarger = myValue.compareTo(otherValue) > 0 ? true
                                         : foundLarger;
+                                if(foundEqual || (foundSmaller && foundLarger)) {
+                                    otherLock.getLock().unlock();
+                                    it.remove();
+                                    break outer;
+                                }
                             }
-                        }
-                        if(foundEqual || (foundSmaller && foundLarger)) {
-                            otherLock.getLock().unlock();
-                            it.remove();
-                            break;
                         }
                     }
                 }
