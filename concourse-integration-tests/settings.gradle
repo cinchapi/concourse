@@ -1,0 +1,2 @@
+rootProject.name = "concourse-integration-tests"
+include "../concourse"
