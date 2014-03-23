@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.testsuite;
 
 import org.cinchapi.concourse.demo.GettingStartedTest;
 import org.junit.runner.RunWith;
@@ -34,11 +34,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ GettingStartedTest.class, FastSmokeTest.class,
-        AtomicOperationTest.class, BugReproTest.class,
-        CompoundOperationTest.class, FixedConnectionPoolTest.class,
-        TransactionWorkflowTest.class, SmokeTest.class,
-        CachedConnectionPoolTest.class })
-public class PreReleaseTest {
+@SuiteClasses({ GettingStartedTest.class, IntegrationTestSuite.class,
+        BugReproSuite.class })
+public class PreReleaseTestSuite {
 
 }

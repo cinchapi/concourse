@@ -40,7 +40,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class AtomicOperationTest extends ConcourseIntegrationTest {
+public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyAndSwapSanityCheck() {
