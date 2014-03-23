@@ -151,7 +151,7 @@ public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
      */
     protected void restartServer() {
         server.stop();
-        startServer();
+        start();
     }
 
     /**
