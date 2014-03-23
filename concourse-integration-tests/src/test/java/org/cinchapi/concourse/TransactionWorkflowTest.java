@@ -67,8 +67,8 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         Object value = TestData.getObject();
         long record = TestData.getLong();
         client.stage();
-        client.stage();
         client.add(key, value, record);
+        client.commit();
         restartServer();
         Assert.assertTrue(client.verify(key, value, record));
     }
