@@ -21,8 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.testsuite;
 
+import org.cinchapi.concourse.AtomicOperationWofkflowTest;
+import org.cinchapi.concourse.CachedConnectionPoolTest;
+import org.cinchapi.concourse.CompoundOperationTest;
+import org.cinchapi.concourse.FastSmokeTest;
+import org.cinchapi.concourse.FixedConnectionPoolTest;
+import org.cinchapi.concourse.TransactionWorkflowTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -33,8 +39,9 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ CompoundOperationTest.class, AtomicOperationTest.class,
-        TransactionWorkflowTest.class })
+@SuiteClasses({ TransactionWorkflowTest.class, AtomicOperationWofkflowTest.class,
+        CachedConnectionPoolTest.class, CompoundOperationTest.class,
+        FastSmokeTest.class, FixedConnectionPoolTest.class })
 public class IntegrationTestSuite {
 
 }
