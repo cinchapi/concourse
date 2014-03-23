@@ -8,9 +8,6 @@ repositories {
 }
 
 dependencies {
-    testCompile project(':concourse')
-    testCompile project(':concourse-server')
-    testCompile project(':concourse').sourceSets.test.output
-    testCompile project(':concourse-server').sourceSets.test.output
+    testCompile project('../concourse')
     testCompile 'junit:junit:4.11'
 }
