@@ -102,9 +102,18 @@ public final class GlobalState {
     public static int CLIENT_PORT = 1717;
 
     /**
-     * The port on which the ShutdownRunner listens.
+     * The port on which the ShutdownRunner listens. Choose a port between
+     * 49152 and 65535 to minimize the possibility of conflicts with other
+     * services on this host.
      */
     public static int SHUTDOWN_PORT = 3434;
+
+    /**
+     * The listener port (1-65535) for management connections via JMX. Choose a
+     * port between 49152 and 65535 to minimize the possibility of conflicts
+     * with other services on this host.
+     */
+    public static int JMX_PORT = 9010;
 
     /**
      * <p>
@@ -159,10 +168,12 @@ public final class GlobalState {
 
             BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                     BUFFER_PAGE_SIZE);
-            
+
             CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
 
             SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+            
+            JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));

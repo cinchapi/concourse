@@ -37,6 +37,11 @@
 # DEFAULT:
 #enable_console_logging = FALSE
 
+# The listener port (1-65535) for management commands via JMX. Choose a port
+# between 49152 and 65535 to minimize the possibility of conflicts with other
+# services on this host.
+#jmx_port = 9010
+
 # The amount of runtime information logged by the system. The options below
 # are listed from least to most verbose. In addition to the indicated types
 # of information, each level also logs the information for each less verbose
