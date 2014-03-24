@@ -33,7 +33,7 @@ import org.junit.Test;
  * 
  * @author jnelson
  */
-public class FastSmokeTest extends ConcourseIntegrationTest {
+public class SmokeTest extends ConcourseIntegrationTest {
     
     @Test
     public void testAddBoolean(){
