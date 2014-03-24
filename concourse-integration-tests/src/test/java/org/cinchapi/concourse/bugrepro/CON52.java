@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.bugrepro;
 
-import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
@@ -32,6 +31,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
+ * Repro of <a href="https://cinchapi.atlassian.net/browse/CON-52">CON-52</a>
+ * where search can temporarily return inconsistent results when
+ * data is being transported from the buffer to the database.
  * 
  * 
  * @author jnelson
@@ -43,9 +45,10 @@ public class CON52 extends ConcourseIntegrationTest {
         StandardActions.import1027YoutubeLinks(client);
         for (int i = 0; i < 20; i++) {
             int size = client.search("Youtube Embed Link", "youtube").size();
-            System.out.println(MessageFormat.format("Size is {0}", size));
             Assert.assertEquals(size, 1027);
-            StandardActions.wait(5, TimeUnit.MILLISECONDS);
+            StandardActions.wait(5, TimeUnit.MILLISECONDS); // slight delay to
+                                                            // give data time to
+                                                            // transport
         }
 
     }
