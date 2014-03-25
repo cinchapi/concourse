@@ -1,12 +1,15 @@
 ## Changelog
 
-#### Version 0.3.3-rc1 (March 21, 2014)
+#### Version 0.3.3 (March 25, 2014)
 * Upgraded Tanuki service wrapper to version 3.5.24 which fixes an issue that prevented the server from starting in OSX Mavericks.
 * Consolidated service wrapper native libraries in `wrapper` directory within the root of the concourse-server installation.
 * Added support for 32-bit Linux and OSX systems.
+* Added `--list` and `-l` flags to the `dumptool` CLI to display a list of dumpable storage units.
 * Fixed a bug that caused some searches to return false-positive results.
 * Fixed a bug that caused mishandling of data containing leading or trailing whitespaces. 
 * Fixed a bug that made it possible to see inconsistent search results if a query was issued while the engine was indexing relavent data in the background.
+* Fixed a bug that caused a deadlock when committing a transaction that performed a range query against a key and then subsequently added that key to a record as a value within the range.
+* Made server-side `jmx_port` configurable in concourse.prefs.  
 
 #### Version 0.3.2 (March 16, 2014)
 * Added support for creating a cached connection pool that continues to establish new connections on demand, but will use previously created ones when possible.
