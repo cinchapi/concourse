@@ -27,11 +27,17 @@ import static org.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_APP
 import static org.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_PREPEND;
 
 import java.text.MessageFormat;
+import java.util.Set;
 
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.gson.JsonParseException;
 
 /**
  * Unit tests for the {@link Convert} utility class
@@ -212,6 +218,96 @@ public class ConvertTest {
         Number number = Random.getDouble();
         String string = number.toString() + "D";
         Assert.assertEquals(number, Convert.stringToJava(string));
+    }
+
+    @Test(expected = JsonParseException.class)
+    public void testCannotConvertJsonLeadingWithArray() {
+        Convert.jsonToJava("[\"a\",\"b\",\"c\"]");
+    }
+
+    @Test
+    public void testConvertJsonString() {
+        String value = Random.getString();
+        String json = "{\"elt\": \"" + value + "\"}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonInteger() {
+        int value = Random.getInt();
+        String json = "{\"elt\": " + value + "}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonStringNumber() {
+        Number value = Random.getNumber();
+        String json = "{\"elt\": \"" + value + "\"}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals("" + value + "",
+                Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonStringBoolean() {
+        boolean value = Random.getBoolean();
+        String json = "{\"elt\": \"" + value + "\"}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals("" + value + "",
+                Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonBoolean() {
+        boolean value = Random.getBoolean();
+        String json = "{\"elt\": " + value + "}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonFloat() {
+        float value = Random.getFloat();
+        String json = "{\"elt\": " + value + "}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonDouble() {
+        double value = Random.getDouble();
+        String json = "{\"elt\": \"" + value + "D\"}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonLong() {
+        long value = Random.getLong();
+        String json = "{\"elt\": " + value + "}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Assert.assertEquals(value, Iterables.getOnlyElement(data.get("elt")));
+    }
+
+    @Test
+    public void testConvertJsonArray() {
+        int intValue = Random.getInt();
+        String string = Random.getString();
+        boolean bool = Random.getBoolean();
+        long longVal = Random.getLong();
+        float floatVal = Random.getFloat();
+        double doubleVal = Random.getDouble();
+        Set<Object> expected = Sets.<Object> newHashSet(intValue, string, bool,
+                longVal, floatVal, doubleVal);
+        String json = "{\"array\": [" + intValue + ", \"" + string + "\", "
+                + bool + ", " + longVal + ", " + floatVal + ", \"" + doubleVal
+                + "D\"]}";
+        Multimap<String, Object> data = Convert.jsonToJava(json);
+        Set<Object> values = Sets.newHashSet(data.get("array"));
+        Set<Object> oddMenOut = Sets.symmetricDifference(expected, values);
+        Assert.assertEquals(0, oddMenOut.size());
     }
 
     /**

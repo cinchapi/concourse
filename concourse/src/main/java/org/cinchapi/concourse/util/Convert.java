@@ -26,6 +26,8 @@ package org.cinchapi.concourse.util;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -34,6 +36,13 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
+
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -92,6 +101,85 @@ public final class Convert {
         }
         bytes.rewind();
         return new TObject(bytes, type);
+    }
+
+    /**
+     * Convert a JSON formatted string to a mapping that associates each key
+     * with the Java objects that represent the corresponding values. This
+     * method is designed to parse simple JSON structures that associate keys to
+     * simple values or arrays without knowing the type of each element ahead of
+     * time.
+     * <p>
+     * This method can properly handle JSON strings that abide by the following
+     * rules:
+     * <ul>
+     * <li>The top level element in the JSON string must be an Object</li>
+     * <li>No nested objects (e.g. a key cannot map to an object)</li>
+     * <li>No null values</li>
+     * </ul>
+     * </p>
+     * 
+     * @param json
+     * @return the converted data
+     */
+    public static Multimap<String, Object> jsonToJava(String json) {
+        // NOTE: in this method we use the #toString instead of the #getAsString
+        // method of each JsonElement to trigger the conversion to a java
+        // primitive to ensure that quotes are taken into account and we
+        // properly convert strings masquerading as numbers (e.g. "3").
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        JsonParser parser = new JsonParser();
+        JsonElement top = parser.parse(json);
+        if(!top.isJsonObject()) {
+            throw new JsonParseException(
+                    "The JSON string must encapsulate data within an object");
+        }
+        JsonObject object = (JsonObject) parser.parse(json);
+        for (Entry<String, JsonElement> entry : object.entrySet()) {
+            String key = entry.getKey();
+            JsonElement val = entry.getValue();
+            if(val.isJsonArray()) {
+                // If we have an array, add the elements individually. If there
+                // are any duplicates in the array, they will be filtered out by
+                // virtue of the fact that a LinkedHashMultimap does not store
+                // dupes.
+                Iterator<JsonElement> it = val.getAsJsonArray().iterator();
+                while (it.hasNext()) {
+                    JsonElement elt = it.next();
+                    if(elt.isJsonPrimitive()) {
+                        Object value = jsonElementToJava(elt);
+                        data.put(key, value);
+                    }
+                    else {
+                        throw new JsonParseException(
+                                "Cannot parse a non-primitive "
+                                        + "element inside of an array");
+                    }
+                }
+            }
+            else {
+                Object value = jsonElementToJava(val);
+                data.put(key, value);
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Convert a {@link JsonElement} to a a Java object and respect the desire
+     * to force a numeric string to a double.
+     * 
+     * @param element
+     * @return the java object
+     */
+    private static Object jsonElementToJava(JsonElement element) {
+        if(element.getAsString().matches("-?[0-9]+\\.[0-9]+D")) {
+            return stringToJava(element.getAsString()); // respect desire
+                                                        // to force double
+        }
+        else {
+            return stringToJava(element.toString());
+        }
     }
 
     /**
