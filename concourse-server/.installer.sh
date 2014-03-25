@@ -36,11 +36,11 @@ if [ \$files -gt 0 ]; then
 	cp -fR lib/ ../lib/
 	rm -r ../licenses/ 2>/dev/null
 	cp -fR licenses/ ../licenses/
-	cp -R bin/ ../bin/
+	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
         rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
         mkdir -p ../wrapper
-        cp -fR wrapper/ ../wrapper
+        cp -R wrapper/* ../wrapper
 	cp -f conf/concourse.conf ../conf/concourse.conf
 
 	# --- run upgrade task
