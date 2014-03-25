@@ -94,11 +94,10 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
         while (term == null) {
             value = Value.wrap(Convert.javaToThrift(TestData.getString()));
             position = 0;
-            for (String string : value.getObject().toString().split(" ")) {
-                string = string.replaceAll(
-                        TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS,
-                        ""); // normalize white spaces so that we get the
-                             // position right below
+            for (String string : value
+                    .getObject()
+                    .toString()
+                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
                 if(!GlobalState.STOPWORDS.contains(string)
                         && !Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
@@ -121,6 +120,33 @@ public class SearchBlockTest extends BlockTest<Text, Text, Position> {
                 Value.wrap(Convert
                         .javaToThrift("w jvnwa8xofm6asavrgpyxpk1mbgah7slcaookolqo fpa3g5 5csjly")),
                 Text.wrap("w"), PrimaryKey.wrap(52259011321627880L), 0);
+    }
+
+    @Test
+    public void testMightContainLocatorKeyValueReproA() {
+        Value value = null;
+        Text term = null;
+        int position = 0;
+        while (term == null) {
+            value = Value.wrap(Convert.javaToThrift("l  z15zses"));
+            position = 0;
+            for (String string : value
+                    .getObject()
+                    .toString()
+                    .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
+                if(!GlobalState.STOPWORDS.contains(string)
+                        && !Strings.isNullOrEmpty(string)) {
+                    term = Text.wrap(string);
+                    break;
+                }
+                else {
+                    position++;
+                    continue;
+                }
+            }
+        }
+        doTestMightContainLocatorKeyValue(getLocator(), value, term,
+                getRecord(), position);
     }
 
     @Test
