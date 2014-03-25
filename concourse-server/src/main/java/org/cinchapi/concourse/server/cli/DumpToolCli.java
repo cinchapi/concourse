@@ -59,7 +59,7 @@ public final class DumpToolCli extends ManagedOperationCli {
         if(((DumpToolOptions) options).list) {
             System.out.println("These are the storage units "
                     + "that are currently dumpable, sorted in "
-                    + "reverse chronological such that units "
+                    + "reverse chronological order such that units "
                     + "holding newer data appear first.");
             System.out.println(bean.getDumpList());
         }
