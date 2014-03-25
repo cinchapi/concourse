@@ -415,7 +415,7 @@ JMX_CONF=`cat $WRAPPER_CONF | grep -e '-Dcom.sun.management.jmxremote.port\s*=\s
 if [ -z "$JMX_PREF" ]; then
     JMX_PREF="9010"
 fi
-sed -i '' -E "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
+sed -i -E "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
 
 gettext() {
     "$WRAPPER_CMD" --translate "$1" "$WRAPPER_CONF" 2>/dev/null
