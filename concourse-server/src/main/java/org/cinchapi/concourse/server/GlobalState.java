@@ -172,7 +172,7 @@ public final class GlobalState {
             CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
 
             SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
-            
+
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
