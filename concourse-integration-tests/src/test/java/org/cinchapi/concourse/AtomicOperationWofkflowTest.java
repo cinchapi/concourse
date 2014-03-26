@@ -26,6 +26,7 @@ package org.cinchapi.concourse;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Random;
@@ -206,6 +207,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         long record = client.insert(json);
         for (String key : data.keySet()) {
             for (Object value : data.get(key)) {
+                Variables.register("key", key);
+                Variables.register("value", value);
                 Assert.assertTrue(client.verify(key, value, record));
             }
         }
@@ -239,6 +242,11 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
                 Assert.assertTrue(client.verify(key, value, record));
             }
         }
+    }
+    
+    @Test(expected = RuntimeException.class)
+    public void testInsertFailsForNonJsonString(){
+        client.insert(TestData.getString());
     }
 
     // TODO testRevertCompletesEvenIfInterrupted
