@@ -75,6 +75,7 @@ The `Operator` class defines the operators that can be used to build a query cri
 * [find](#find) - Find records that match a query
 * [get](#get) - Get the first contained value for a key in a record
 * [getServerVersion](#getserverversion) - Get the release version of the server
+* [insert](#insert) - Bulk insert new data into new or existing records
 * [link](#link) - Link one record to another
 * [ping](#ping) - Check to see if a record exists
 * [remove](#remove) - Remove an existing value
@@ -569,6 +570,34 @@ Return the version of the server to which this client is currently connected.
 the server version
 ###### Example
 	System.out.println(concourse.getServerVersion());
+---
+### insert
+#### `long insert(String json)`
+Atomically insert they key/value mappings described in the *json* formatted string into a new record. The JSON formatted string must describe a JSON object that contains one or more keys, each of which maps to a JSON primitive or array of primitives.
+
+###### Returns
+the primary key of the newly created record
+###### Example
+	String json = "{\"array\":[1,2,3],\"boolean\":true,\"number\":123,\"string\":\"Hello World\"}";
+	concourse.insert(json);
+ 
+#### `Map<Long, Boolean> insert(String json, Collection<Long> records)`
+Insert they key/value mappings described in the *json* formatted string into each of the *records*. The JSON formatted string must describe a JSON object that contains one or more keys, each of which maps to a JSON primitive or array of primitives.
+
+###### Returns
+a mapping from each record to a boolean indicating if the data was successfully inserted
+###### Example
+	String json = "{\"array\":[1,2,3],\"boolean\":true,\"number\":123,\"string\":\"Hello World\"}";
+	concourse.insert(json, concourse.find("class", eq, "Human"));
+
+#### `boolean insert(String json, long record)`
+Atomically insert the key/value mappings described in the *json* formatted string into *record*. The JSON formatted string must describe a JSON object that contains one or more keys, each of which maps to a JSON primitive or array of primitives.
+
+###### Returns
+*true* if all the data is inserted into *record*
+###### Example
+	String json = "{\"array\":[1,2,3],\"boolean\":true,\"number\":123,\"string\":\"Hello World\"}";
+	concourse.insert(json, 1);
 ---
 ### link
 ##### `boolean link(String key, long source, long destination)`
