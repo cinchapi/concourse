@@ -54,6 +54,37 @@ fi
 
 # -- delete the update file and installer
 rm $SCRIPT_NAME
+
+# -- install scripts on the path
+BASE=\$(pwd)
+if [ \$files -gt 0 ]; then
+        cd ..
+	BASE=\$(pwd)
+	cd - >> /dev/null
+fi
+# -- concourse
+BINARY=\$BASE"/bin/concourse"
+touch /usr/local/bin/concourse
+ARGS=\$(echo '"\$@"')
+cat << JEFFNELSON > /usr/local/bin/concourse
+#!/usr/bin/env bash
+sh \$BINARY \$ARGS
+exit 0
+JEFFNELSON
+chmod +x /usr/local/bin/concourse
+
+# -- cash
+BINARY=\$(pwd)
+BINARY=\$BASE"/bin/cash"
+touch /usr/local/bin/cash
+ARGS=\$(echo '"\$@"')
+cat << ASHLEAHGILMORE > /usr/local/bin/cash
+#!/usr/bin/env bash
+sh \$BINARY \$ARGS
+exit 0
+ASHLEAHGILMORE
+chmod +x /usr/local/bin/cash
+
 cd ..
 rm concourse-server*bin
 
