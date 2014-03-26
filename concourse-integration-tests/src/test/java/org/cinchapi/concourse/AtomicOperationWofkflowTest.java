@@ -26,8 +26,8 @@ package org.cinchapi.concourse;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-
 import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Random;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
@@ -49,6 +49,45 @@ import com.google.gson.JsonPrimitive;
  * @author jnelson
  */
 public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
+
+    /**
+     * Return a random collection of data to be used in a test of the insert
+     * function.
+     * 
+     * @return the data
+     */
+    private static Multimap<String, Object> getInsertData() {
+        Multimap<String, Object> data = LinkedHashMultimap.create();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            String key = TestData.getString();
+            if(Time.now() % 3 == 0) {
+                for (int j = 0; j < TestData.getScaleCount() / 4; j++) {
+                    // add multiple values
+                    data.put(key, TestData.getObject());
+                }
+            }
+            else {
+                data.put(key, TestData.getObject());
+            }
+        }
+        return data;
+    }
+
+    /**
+     * Return a random collection of data that also includes {@code key} and
+     * {@code value} to be used in a test of the insert function.
+     * 
+     * @param key
+     * @param value
+     * @return the data
+     */
+    private static Multimap<String, Object> getInsertData(String key,
+            Object value) {
+        Multimap<String, Object> data = getInsertData();
+        data.put(key, value);
+        data.putAll(getInsertData());
+        return data;
+    }
 
     /**
      * Convert an object to a {@link JsonElement}.
@@ -143,20 +182,33 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     @Test
     public void testInsertFailsIfSomeDataAlreadyExists() {
         long record = client.create();
+        String key0 = TestData.getString();
+        Object value0 = TestData.getObject();
         Multimap<String, Object> data = Variables.register("data",
-                LinkedHashMultimap.<String, Object> create());
-        String a = Random.getString();
-        Boolean b = Random.getBoolean();
-        Number c = Random.getNumber();
-        data.put("a", a);
-        data.put("b", b);
-        data.put("c", c);
+                getInsertData(key0, value0));
         String json = Variables.register("json", toJsonString(data));
-        client.add("b", b, record);
+        client.add(key0, value0, record);
         Assert.assertFalse(client.insert(json, record));
-        Assert.assertFalse(client.verify("a", a, record));
-        Assert.assertTrue(client.verify("b", b, record));
-        Assert.assertFalse(client.verify("c", c, record));
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
+                if(!key.equals(key0) && !value.equals(value0)) {
+                    Assert.assertFalse(client.verify(key, value, record));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testInsertIntoNewRecordAlwaysSucceeds() {
+        Multimap<String, Object> data = Variables.register("data",
+                getInsertData());
+        String json = Variables.register("json", toJsonString(data));
+        long record = client.insert(json);
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
+                Assert.assertTrue(client.verify(key, value, record));
+            }
+        }
     }
 
     @Test
@@ -179,18 +231,14 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     public void testInsertSucceedsIfAllDataIsNew() {
         long record = client.create();
         Multimap<String, Object> data = Variables.register("data",
-                LinkedHashMultimap.<String, Object> create());
-        String a = Random.getString();
-        Boolean b = Random.getBoolean();
-        Number c = Random.getNumber();
-        data.put("a", a);
-        data.put("b", b);
-        data.put("c", c);
+                getInsertData());
         String json = Variables.register("json", toJsonString(data));
         Assert.assertTrue(client.insert(json, record));
-        Assert.assertTrue(client.verify("a", a, record));
-        Assert.assertTrue(client.verify("b", b, record));
-        Assert.assertTrue(client.verify("c", c, record));
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
+                Assert.assertTrue(client.verify(key, value, record));
+            }
+        }
     }
 
     // TODO testRevertCompletesEvenIfInterrupted
