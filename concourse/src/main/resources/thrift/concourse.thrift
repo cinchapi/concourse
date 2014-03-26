@@ -169,5 +169,12 @@ service ConcourseService {
 	 * Return the release version of the server.
 	 */
 	string getServerVersion();
+	
+	/**
+	  * Atomically add the key-value mappings defined in the {@code json} formatted 
+	  * string to {@code record}.
+	  */
+	bool insert(1: string json, 2: i64 record, 3: shared.AccessToken creds, 
+		4: shared.TransactionToken token);
 
 }

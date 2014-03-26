@@ -572,6 +572,54 @@ public abstract class Concourse {
     public abstract String getServerVersion();
 
     /**
+     * Atomically insert the key/value mappings described in the {@code json}
+     * formatted string into a new record.
+     * <p>
+     * The {@code json} formatted string must describe an JSON object that
+     * contains one or more keys, each of which maps to a JSON primitive or an
+     * array of JSON primitives.
+     * </p>
+     * 
+     * @param json
+     * @return the primary key of the new record or {@code null} if the insert
+     *         is unsuccessful
+     */
+    public abstract long insert(String json);
+
+    /**
+     * Insert the key/value mappings described in the {@code json} formated
+     * string into each of the {@code records}.
+     * <p>
+     * The {@code json} formatted string must describe an JSON object that
+     * contains one or more keys, each of which maps to a JSON primitive or an
+     * array of JSON primitives.
+     * </p>
+     * 
+     * @param json
+     * @param records
+     * @return a mapping from each primary key to a boolean describing if the
+     *         data was successfully inserted into that record
+     */
+    @CompoundOperation
+    public abstract Map<Long, Boolean> insert(String json,
+            Collection<Long> records);
+
+    /**
+     * Atomically insert the key/value mappings described in the {@code json}
+     * formatted string into {@code record}.
+     * <p>
+     * The {@code json} formatted string must describe an JSON object that
+     * contains one or more keys, each of which maps to a JSON primitive or an
+     * array of JSON primitives.
+     * </p>
+     * 
+     * @param json
+     * @param record
+     * @return {@code true} if the data is inserted into {@code record}
+     */
+    public abstract boolean insert(String json, long record);
+
+    /**
      * Link {@code key} in {@code source} to each of the {@code destinations}.
      * 
      * @param key
@@ -1377,6 +1425,45 @@ public abstract class Concourse {
                 @Override
                 public String call() throws Exception {
                     return client.getServerVersion();
+                }
+
+            });
+        }
+
+        @Override
+        public long insert(String json) {
+            long record = create();
+            if(insert(json, record)) {
+                return record;
+            }
+            else {
+                // We include retry logic here because this function should
+                // never "fail" since we are inserting the data into a new
+                // record. On the off chance, that some other process decides to
+                // use the primary key we just got, then we should just retry
+                // the function to get a new primary key.
+                return insert(json);
+            }
+
+        }
+
+        @Override
+        public Map<Long, Boolean> insert(String json, Collection<Long> records) {
+            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+                    "Record", "Result");
+            for (long record : records) {
+                result.put(record, insert(json, record));
+            }
+            return result;
+        }
+
+        @Override
+        public boolean insert(final String json, final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.insert(json, record, creds, transaction);
                 }
 
             });

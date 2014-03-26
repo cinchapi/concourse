@@ -62,6 +62,7 @@ import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.Version;
 
@@ -69,6 +70,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -385,6 +387,30 @@ public class ConcourseServer implements
         manager.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
         username = null;
         password = null;
+    }
+
+    @Override
+    public boolean insert(String json, long record, AccessToken creds,
+            TransactionToken transaction) throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = AtomicOperation
+                .start(transaction != null ? transactions.get(transaction)
+                        : engine);
+        try {
+            Multimap<String, Object> data = Convert.jsonToJava(json);
+            for (String key : data.keySet()) {
+                for (Object value : data.get(key)) {
+                    if(!operation.add(key, Convert.javaToThrift(value), record)) {
+                        return false;
+                    }
+                }
+            }
+            return operation.commit();
+        }
+        catch (AtomicStateException e) {
+            return false;
+        }
+
     }
 
     @Override
