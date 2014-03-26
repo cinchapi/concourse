@@ -41,7 +41,7 @@ if [ \$files -gt 0 ]; then
         rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
         mkdir -p ../wrapper
         cp -R wrapper/* ../wrapper
-	cp -f conf/concourse.conf ../conf/concourse.conf
+	cp -f conf/.concourse.conf ../conf/.concourse.conf
 
 	# --- run upgrade task
 	cd ..
