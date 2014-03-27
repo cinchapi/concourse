@@ -2,6 +2,6 @@
 # Script to print context info in the project
 
 FILE="context.txt";
-rm $FILE
+rm $FILE >> /dev/null
 cat <(echo "Last Commit:" & git rev-parse HEAD) <(git status) <(git diff ../*) > $FILE
 exit 0
