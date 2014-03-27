@@ -8,6 +8,11 @@ repositories {
 }
 
 dependencies {
-    testCompile project('../concourse')
+    testCompile project(':concourse')
+    testCompile project(':concourse-server')
     testCompile 'junit:junit:4.11'
+}
+
+test {
+	exclude '**'
 }
