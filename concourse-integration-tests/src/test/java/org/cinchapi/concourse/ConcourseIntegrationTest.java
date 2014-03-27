@@ -46,7 +46,12 @@ import com.google.common.base.Throwables;
  * 
  * @author jnelson
  */
-public abstract class ConcourseIntegrationTest extends ConcourseBaseTest {
+public abstract class ConcourseIntegrationTest {
+
+    // Initialization for all tests
+    static {
+        System.setProperty("test", "true");
+    }
 
     /**
      * The tests run against a local server.
