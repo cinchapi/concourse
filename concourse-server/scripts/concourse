@@ -28,7 +28,7 @@ APP_LONG_NAME="Concourse Server"
 
 # Wrapper
 WRAPPER_CMD="../wrapper/wrapper"
-WRAPPER_CONF="../conf/.concourse.conf"
+WRAPPER_CONF="../conf/concourse.conf"
 
 # Prefs
 PREFS="../conf/concourse.prefs"
