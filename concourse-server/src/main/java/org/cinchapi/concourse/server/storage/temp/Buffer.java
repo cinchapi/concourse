@@ -456,7 +456,7 @@ public final class Buffer extends Limbo {
                 if(!file.isDirectory()) {
                     Page page = new Page(file.getAbsolutePath());
                     pageSorter.put(file, page);
-                    Logger.info("Loadding Buffer content from {}...", page);
+                    Logger.info("Loading Buffer content from {}...", page);
                 }
             }
             pages.addAll(pageSorter.values());
