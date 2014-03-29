@@ -552,8 +552,8 @@ public abstract class Concourse {
     /**
      * Get {@code key} from {@code record} at {@code timestamp} and return the
      * first contained value or {@code null} if there was none. Compared to
-     * {@link #fetch(String, long, long)}, this method is suited for cases when
-     * the caller is certain that {@code key} in {@code record} mapped to a
+     * {@link #fetch(String, long, Timestamp)}, this method is suited for cases
+     * when the caller is certain that {@code key} in {@code record} mapped to a
      * single value of type {@code T} at {@code timestamp}.
      * 
      * @param key

@@ -108,7 +108,6 @@ public abstract class ByteBuffers {
      * 
      * @param buffer
      * @return the boolean value at the current position
-     * @see {@link ByteBufferOutputStream#write(boolean)}
      */
     public static boolean getBoolean(ByteBuffer buffer) {
         return buffer.get() > 0 ? true : false;
@@ -139,7 +138,6 @@ public abstract class ByteBuffers {
      * @param buffer
      * @param clazz
      * @return the enum value at the current position
-     * @see {@link ByteBufferOutputStream#write(Enum)}
      */
     public static <T extends Enum<?>> T getEnum(ByteBuffer buffer,
             Class<T> clazz) {
@@ -153,7 +151,6 @@ public abstract class ByteBuffers {
      * @param buffer
      * @param charset
      * @return the string value at the current position
-     * @see {@link ByteBufferOutputStream#write(String)}
      */
     public static String getString(ByteBuffer buffer) {
         return getString(buffer, StandardCharsets.UTF_8);
@@ -166,7 +163,6 @@ public abstract class ByteBuffers {
      * @param buffer
      * @param charset
      * @return the string value at the current position
-     * @see {@link ByteBufferOutputStream#write(String, Charset)}
      */
     public static String getString(ByteBuffer buffer, Charset charset) {
         try {

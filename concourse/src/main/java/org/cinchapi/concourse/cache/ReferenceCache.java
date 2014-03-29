@@ -35,8 +35,8 @@ import com.google.common.hash.Hashing;
  * <p>
  * A concurrent cache that holds references to objects so as to prevent
  * unnecessary constructor calls. The cache does not have a maximum capacity or
- * expulsion policy, but it uses a {@link SoftReference} for each stored object
- * so that the garbage collector will clear the cache only before an OOM occurs.
+ * expulsion policy, but it uses a SoftReference for each stored object so that
+ * the garbage collector will clear the cache only before an OOM occurs.
  * </p>
  * <h2>Example:</h2>
  * 
@@ -98,7 +98,6 @@ public class ReferenceCache<T> {
      * 
      * @param value
      * @param args
-     * @return {@code true} if {@code value} is successfully cached.
      */
     public void put(T value, Object... args) {
         Preconditions.checkNotNull(value);
@@ -114,7 +113,6 @@ public class ReferenceCache<T> {
      * cache.
      * 
      * @param args
-     * @return {@code true} if the associated value is successfully removed.
      */
     public void remove(Object... args) {
         cache.invalidate(getCacheKey(args));
