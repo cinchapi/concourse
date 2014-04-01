@@ -64,26 +64,32 @@ if [ \$files -gt 0 ]; then
 fi
 # -- concourse
 BINARY=\$BASE"/bin/concourse"
-touch /usr/local/bin/concourse
+sudo touch /usr/local/bin/concourse #run without -n flag to prompt for password once
+if [ \$? -ne 0 ]; then
+	echo "Unable to install the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin"
+fi
 ARGS=\$(echo '"\$@"')
-cat << JEFFNELSON > /usr/local/bin/concourse
+sudo -n cat << JEFFNELSON > /usr/local/bin/concourse 2>/dev/null
+
 #!/usr/bin/env bash
 sh \$BINARY \$ARGS
 exit 0
 JEFFNELSON
-chmod +x /usr/local/bin/concourse
+sudo -n chmod +x /usr/local/bin/concourse 2>/dev/null
+sudo -n chown \$(whoami) /usr/local/bin/concourse 2>/dev/null
 
 # -- cash
 BINARY=\$(pwd)
 BINARY=\$BASE"/bin/cash"
-touch /usr/local/bin/cash
+sudo -n touch /usr/local/bin/cash 2>/dev/null
 ARGS=\$(echo '"\$@"')
-cat << ASHLEAHGILMORE > /usr/local/bin/cash
+sudo -n cat << ASHLEAHGILMORE > /usr/local/bin/cash 2>/dev/null
 #!/usr/bin/env bash
 sh \$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
-chmod +x /usr/local/bin/cash
+sudo -n chmod +x /usr/local/bin/cash 2>/dev/null
+sudo -n chown \$(whoami) /usr/local/bin/cash 2>/dev/null
 
 cd ..
 rm concourse-server*bin
