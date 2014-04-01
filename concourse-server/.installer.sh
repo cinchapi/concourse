@@ -70,7 +70,6 @@ if [ \$? -ne 0 ]; then
 fi
 ARGS=\$(echo '"\$@"')
 sudo -n cat << JEFFNELSON > /usr/local/bin/concourse 2>/dev/null
-
 #!/usr/bin/env bash
 sh \$BINARY \$ARGS
 exit 0
