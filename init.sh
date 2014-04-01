@@ -3,5 +3,8 @@
 
 printf "sonatypeUsername=\nsonatypePassword=" > gradle.properties
 git update-index --assume-unchanged $0
+git update-index --assume-unchanged concourse-server/launch/Start\ Concourse.launch
+git update-index --assume-unchanged concourse-server/launch/Stop\ Concourse.launch
+git update-index --assume-unchanged concourse-shell/launch/Launch\ CaSH.launch
 rm $0
 exit 0
