@@ -197,6 +197,7 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public boolean add(String key, TObject value, long record)
             throws AtomicStateException {
+        checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
