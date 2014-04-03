@@ -34,6 +34,7 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -288,9 +289,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindGtOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindGtOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -299,9 +300,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindGteOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindGteOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -310,9 +311,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindLteOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindLteOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -321,9 +322,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindLtOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindLtOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -332,9 +333,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindBwOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindBwOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -343,9 +344,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindRegexOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindRegexOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
@@ -354,9 +355,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         operation.add(key, value, record);
         Assert.assertTrue(operation.commit());
     }
-    
+
     @Test
-    public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey(){
+    public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
         long record = Time.now();
