@@ -64,9 +64,10 @@ if [ \$files -gt 0 ]; then
 fi
 # -- concourse
 BINARY=\$BASE"/bin/concourse"
-sudo touch /usr/local/bin/concourse #run without -n flag to prompt for password once
+echo "Please type your administrative password to allow the installer to make some system-wide changes."
+sudo -k touch /usr/local/bin/concourse #run without -n flag to prompt for password once
 if [ \$? -ne 0 ]; then
-	echo "Unable to install the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin"
+	echo "[WARN] The installer was unable to place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
 fi
 ARGS=\$(echo '"\$@"')
 sudo -n cat << JEFFNELSON > /usr/local/bin/concourse 2>/dev/null
