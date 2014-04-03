@@ -32,6 +32,7 @@ import org.cinchapi.concourse.time.Time;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -208,7 +209,7 @@ public final class Timestamp {
 
     @Override
     public String toString() {
-        return joda.toString();
+        return joda.toString(DateTimeFormat.forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z"));
     }
 
 }
