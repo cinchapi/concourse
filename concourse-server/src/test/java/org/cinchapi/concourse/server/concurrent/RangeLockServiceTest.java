@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.annotate.Experimental;
@@ -31,6 +32,7 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,6 +44,80 @@ import org.junit.Test;
  */
 @Experimental
 public class RangeLockServiceTest extends ConcourseBaseTest {
+
+    @Test
+    public void testLockServiceDoesNotEvictLocksThatAreBeingUsed()
+            throws InterruptedException {
+
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean passed = new AtomicBoolean(true);
+        Thread a = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!done.get()) {
+                    try {
+                        RangeLockService.getReadLock("foo", Operator.EQUALS,
+                                Convert.javaToThrift(1)).lock();
+                        RangeLockService.getReadLock("foo", Operator.EQUALS,
+                                Convert.javaToThrift(1)).unlock();
+                    }
+                    catch (IllegalMonitorStateException e) {
+                        e.printStackTrace();
+                        passed.set(false);
+                        done.set(true);
+                        break;
+                    }
+                }
+            }
+
+        });
+
+        Thread b = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!done.get()) {
+                    try {
+                        RangeLockService.getWriteLock("foo",
+                                Convert.javaToThrift(1)).lock();
+                        RangeLockService.getWriteLock("foo",
+                                Convert.javaToThrift(1)).unlock();
+                    }
+                    catch (IllegalMonitorStateException e) {
+                        e.printStackTrace();
+                        passed.set(false);
+                        done.set(true);
+                        break;
+
+                    }
+                }
+            }
+
+        });
+        Thread c = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(TestData.getScaleCount() * 10);
+                    done.set(true);
+                }
+                catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+        a.start();
+        b.start();
+        TestData.getScaleCount(); // make sure that a and b start first
+        c.start();
+        a.join();
+        b.join();
+        c.join();
+        Assert.assertTrue(passed.get());
+    }
 
     @Test
     public void testWriteLtLowerValueIsNotRangeBlockedIfReadingBw()
