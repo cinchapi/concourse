@@ -85,6 +85,7 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
+        System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
     }
 
     @Override
