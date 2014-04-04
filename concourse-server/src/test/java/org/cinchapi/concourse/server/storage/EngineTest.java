@@ -56,7 +56,7 @@ public class EngineTest extends BufferedStoreTest {
         }
     };
 
-    @Test(timeout = 5000)
+    @Test(timeout = 30000)
     public void testNoDeadlockIfTransportExceptionOccurs()
             throws InterruptedException {
         // NOTE: This test is EXPECTED to print a NoSuchFileException
