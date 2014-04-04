@@ -461,10 +461,10 @@ public final class Engine extends BufferedStore implements
         // provide inconsistent results if a match is added while the read is
         // processing.
         transportLock.readLock().lock();
-        try{
+        try {
             return super.search(key, query);
         }
-        finally{
+        finally {
             transportLock.readLock().unlock();
         }
     }
@@ -555,12 +555,25 @@ public final class Engine extends BufferedStore implements
         @Override
         public void run() {
             while (running) {
-                if(transportLock.writeLock().tryLock()) {
-                    buffer.transport(destination);
-                    transportLock.writeLock().unlock();
-                }
+                doTransport();
                 Threads.sleep(5);
             }
+        }
+
+        /**
+         * Tell the Buffer to transport data and prevent deadlock in the event
+         * of failure.
+         */
+        private void doTransport() {
+            if(transportLock.writeLock().tryLock()) {
+                try {
+                    buffer.transport(destination);
+                }
+                finally {
+                    transportLock.writeLock().unlock();
+                }
+            }
+
         }
     }
 }
