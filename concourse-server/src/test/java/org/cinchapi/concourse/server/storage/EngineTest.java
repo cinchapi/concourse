@@ -26,10 +26,15 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -50,6 +55,37 @@ public class EngineTest extends BufferedStoreTest {
                           // the middle of a test.
         }
     };
+
+    @Test(timeout = 5000)
+    public void testNoDeadlockIfTransportExceptionOccurs()
+            throws InterruptedException {
+        // NOTE: This test is EXPECTED to print a NoSuchFileException
+        // stacktrace. It can be ignored.
+        String loc = TestData.DATA_DIR + File.separator + Time.now();
+        final Engine engine = new Engine(loc + File.separator + "buffer", loc
+                + File.separator + "db");
+        engine.start();
+        for (int i = 0; i < 1000; i++) {
+            engine.accept(Write.add("foo", Convert.javaToThrift("bar"), i));
+        }
+        FileSystem.deleteDirectory(loc);
+        Thread a = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                engine.find("foo", Operator.EQUALS, Convert.javaToThrift("bar"));
+            }
+
+        });
+        Thread.sleep(2000); // this is an arbitrary amount. In 2 seconds, at
+                            // least one page should have transported...
+        a.start();
+        a.join();
+        engine.stop();
+        Assert.assertTrue(true); // if we reach here, this means that the Engine
+                                 // was able to break out of the transport
+                                 // exception
+    }
 
     @Override
     protected void add(String key, TObject value, long record) {
