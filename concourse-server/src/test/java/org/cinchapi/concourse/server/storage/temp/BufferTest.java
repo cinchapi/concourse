@@ -26,6 +26,8 @@ package org.cinchapi.concourse.server.storage.temp;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.Store;
@@ -136,6 +138,28 @@ public class BufferTest extends LimboTest {
             index--;
         }
         Assert.assertEquals(-1, index);
+    }
+    
+    @Test
+    public void testWaitUntilTransportable() throws InterruptedException{
+        final AtomicLong later = new AtomicLong(0);
+        Thread thread = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                ((Buffer) store).waitUntilTransportable();
+                later.set(Time.now());               
+            }
+            
+        });
+        thread.start();
+        long before = Time.now();
+        while(!((Buffer) store).canTransport()){
+            before = Time.now();
+            add(TestData.getString(), TestData.getTObject(), TestData.getLong());
+        }
+        thread.join(); //make sure thread finishes before comparing
+        Assert.assertTrue(later.get() > before);
     }
 
 }

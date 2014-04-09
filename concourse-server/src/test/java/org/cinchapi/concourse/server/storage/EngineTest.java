@@ -25,8 +25,10 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 
+import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -85,7 +87,40 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-        System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
+        System.out
+                .println("[INFO] You can ignore the NoSuchFileException stack trace above");
+    }
+
+    @Test
+    public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
+        String loc = TestData.DATA_DIR + File.separator + Time.now();
+        final Engine engine = new Engine(loc + File.separator + "buffer", loc
+                + File.separator + "db");
+        Variables.register("now", Time.now());
+        engine.start();
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        engine.stop();
+        Assert.assertFalse(engine.bufferTransportThreadHasBlocked.get());  
+        FileSystem.deleteDirectory(loc);
+    }
+
+    @Test
+    public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
+        String loc = TestData.DATA_DIR + File.separator + Time.now();
+        final Engine engine = new Engine(loc + File.separator + "buffer", loc
+                + File.separator + "db");
+        engine.start();
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS + 1);
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        Assert.assertTrue(engine.bufferTransportThreadHasBlocked.get());
+        engine.stop();
+        FileSystem.deleteDirectory(loc);
     }
 
     @Override

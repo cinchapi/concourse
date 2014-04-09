@@ -528,4 +528,15 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
         return exists;
     }
 
+    /**
+     * Wait (block) until the Buffer has enough data to complete a transport.
+     * This method should be called from the external service to avoid busy
+     * waiting if continuously transporting data in the background.
+     */
+    public void waitUntilTransportable() {
+        return; // do nothing because Limbo is assumed to always be
+                // transportable. But the Buffer will override this method with
+                // the appropriate conditions.
+    }
+
 }

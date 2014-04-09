@@ -30,6 +30,8 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,6 +50,7 @@ import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
 
 import com.beust.jcommander.internal.Sets;
@@ -101,6 +104,17 @@ public final class Engine extends BufferedStore implements
      * The id used to determine that the Buffer should be dumped.
      */
     public static final String BUFFER_DUMP_ID = "BUFFER";
+
+    /**
+     * The number of milliseconds we allow between writes before we pause the
+     * {@link BufferTransportThread}. If there amount of time between writes is
+     * less than this value then we assume we are streaming writes, which means
+     * it is more efficient for the BufferTransportThread to busy-wait than
+     * block.
+     */
+    protected static final int BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS = 1000; // visible
+                                                                                                  // for
+                                                                                                  // testing
 
     /**
      * The thread that is responsible for transporting buffer content in the
@@ -157,6 +171,13 @@ public final class Engine extends BufferedStore implements
         }
 
     };
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has gone into
+     * block mode instead of busy waiting at least once.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasBlocked = new AtomicBoolean(
+            false); // visible for testing
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -555,8 +576,24 @@ public final class Engine extends BufferedStore implements
         @Override
         public void run() {
             while (running) {
+                long idleTime = Time.now()
+                        - ((Buffer) buffer).getTimeOfLastTransport();
+                if(TimeUnit.MILLISECONDS.convert(idleTime,
+                        TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS) {
+                    // If there have been no transports within the last second
+                    // then make this thread block until the buffer is
+                    // transportable so that we do not waste CPU cycles
+                    // busy waiting unnecessarily.
+                    bufferTransportThreadHasBlocked.set(true);
+                    Logger.debug(
+                            "Paused the background data transport thread because "
+                                    + "it has been inactive for at least {} milliseconds",
+                            BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS);
+                    buffer.waitUntilTransportable();
+                }
                 doTransport();
-                Threads.sleep(5);
+                Threads.sleep(5); // this thread needs to sleep for a small
+                                  // amount of time to avoid thrashing
             }
         }
 

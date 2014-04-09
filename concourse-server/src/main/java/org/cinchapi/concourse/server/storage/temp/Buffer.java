@@ -34,6 +34,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -54,6 +55,7 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -105,6 +107,15 @@ public final class Buffer extends Limbo {
     private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
     /**
+     * A monitor that is used to make a thread block while waiting for the
+     * Buffer to become transportable. The {@link #waitUntilTransportable()}
+     * waits for this monitor and the {@link #insert(Write)} method notifies the
+     * threads waiting on this monitor whenever there is more than single page
+     * worth of data in the Buffer.
+     */
+    private final Object transportable = new Object();
+
+    /**
      * A pointer to the current Page.
      */
     private Page currentPage;
@@ -113,6 +124,13 @@ public final class Buffer extends Limbo {
      * A flag to indicate if the Buffer is running or not.
      */
     private boolean running = false;
+
+    /**
+     * We keep track of the time when the last transport occurred so that the
+     * Engine can determine if it should avoid busy waiting in the
+     * BufferTransportThread.
+     */
+    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -285,6 +303,16 @@ public final class Buffer extends Limbo {
         return directory;
     }
 
+    /**
+     * Return the timestamp of the most recent data transport from the Buffer.
+     * 
+     * @return the time of last transport
+     */
+    @Restricted
+    public long getTimeOfLastTransport() {
+        return timeOfLastTransport.get();
+    }
+
     @Override
     public long getVersion(long record) {
         transportLock.readLock().lock();
@@ -323,6 +351,11 @@ public final class Buffer extends Limbo {
         writeLock.lock();
         try {
             currentPage.append(write);
+            if(pages.size() > 1) {
+                synchronized (transportable) {
+                    transportable.notifyAll();
+                }
+            }
         }
         catch (CapacityException e) {
             addPage();
@@ -491,6 +524,7 @@ public final class Buffer extends Limbo {
                 Page page = pages.get(0);
                 if(page.hasNext()) {
                     destination.accept(page.next());
+                    timeOfLastTransport.set(Time.now());
                     page.remove();
                 }
                 else {
@@ -529,6 +563,20 @@ public final class Buffer extends Limbo {
         }
         finally {
             transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void waitUntilTransportable() {
+        if(pages.size() <= 1) {
+            synchronized (transportable) {
+                try {
+                    transportable.wait();
+                }
+                catch (InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
+            }
         }
     }
 
