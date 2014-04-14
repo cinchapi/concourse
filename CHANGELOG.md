@@ -1,5 +1,18 @@
 ## Changelog
 
+#### Version 0.3.4 (April 13, 2014)
+* Added support for issuing commands in CaSH using short syntax. Short syntax allows the user to make Concourse API calls by invoking the desired method directly by name instead of prepending the invocation with `concourse.`. For example, the following commands are all equivalent and can now be used interchangably in stand-alone statements:
+	
+		cash$ add("name", "jeff", 1)
+		cash$ concourse.add("name", "jeff", 1)
+		cash$ add "name", "jeff", 1
+		cash$ concourse.add "name", "jeff", 1 
+		
+* Improved the `toString()` output of `Timestamp` objects so that they match the following format: `Thu Apr 03, 2014 @ 1:32:42:54 PM PDT`.
+* Fixed an issue that caused the server to incorrectly lock resources when processing lots of concurrent reads/writes to a record or key in record.
+* Fixed an issue that caused the server to deadlock if an error occured while indexing data in the background.
+* Fixed an issue where the installer would launch a separate X11 window when configuring the `concourse-server` directory in some environments.
+
 #### Version 0.3.3 (March 25, 2014)
 * Upgraded Tanuki service wrapper to version 3.5.24 which fixes an issue that prevented the server from starting in OSX Mavericks.
 * Consolidated service wrapper native libraries in `wrapper` directory within the root of the concourse-server installation.
