@@ -190,6 +190,16 @@ public abstract class Concourse {
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
+    
+    /**
+     * Chronologize non-empty sets of values in {@code key} from {@code record} 
+     * and return a mapping from each timestamp to the non-empty set of values.
+     * 
+     * @param key
+     * @param record
+     * @return
+     */
+    public abstract Map<Timestamp, Set<Object>> chronologize(String key, long record);
 
     /**
      * Clear each of the {@code keys} in each of the {@code records} by removing
@@ -1059,6 +1069,19 @@ public abstract class Concourse {
                 }
 
             });
+        }
+        
+        @Override
+        public Map<Timestamp, Set<Object>> chronologize(final String key, final long record) {
+            Map<Timestamp, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
+                    "DateTime", "Value");
+            for (Timestamp timestamp : audit(key, record).keySet()) {
+                Set<Object> values = fetch(key, record, timestamp);
+                if (!values.isEmpty()) {
+                    result.put(timestamp, values);
+                }
+            }
+            return result;
         }
 
         @Override
