@@ -1,18 +1,26 @@
 package org.cinchapi.concourse;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.testing.Variables;
-import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
 
+/**
+ * Tests new API named chronologize which returns a mapping from 
+ * from each timestamp to each non-empty set of values over time.
+ * 
+ * @author knd
+ *
+ */
 public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
@@ -140,26 +148,28 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
     }
     
     /**
+     * Return a set of values at given index in an ordered mapping from 
+     * each timestamp to each non-empty set of values.
      * 
-     * @param map
+     * @param map an ordered LinkedHashMap 
      * @param index
-     * @return
+     * @return a Set at a given index from the ordered map
      */
     private static Set<Object> getSetInMap(Map<Timestamp, Set<Object>> map, int index) {
         if (index < 0 || index >= map.size()) {
             return null;
         }
-        Iterator<Map.Entry<Timestamp, Set<Object>>> it = map.entrySet().iterator();
+        Iterator<Map.Entry<Timestamp, Set<Object>>> mapIter = map.entrySet().iterator();
         int i = 0;
-        Set<Object> finalSet = null;
-        while (it.hasNext()) {
-            finalSet = it.next().getValue();
+        Set<Object> setAtGivenIndex = null;
+        while (mapIter.hasNext()) {
+            setAtGivenIndex = mapIter.next().getValue();
             if (index == i) {
                 break;
             }
             i++;
         }
-        return finalSet;
+        return setAtGivenIndex;
     }
     
 
