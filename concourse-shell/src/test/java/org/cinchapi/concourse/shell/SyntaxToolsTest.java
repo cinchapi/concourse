@@ -160,6 +160,12 @@ public class SyntaxToolsTest {
                 SyntaxTools.handleShortSyntax(line, options()));
     }
 
+    /**
+     * A convenience method to return the accessible API methods in CaSH as a
+     * list instead of an array
+     * 
+     * @return the list of accessible API methods
+     */
     private List<String> options() {
         return Lists.newArrayList(ConcourseShell.getAccessibleApiMethods());
     }

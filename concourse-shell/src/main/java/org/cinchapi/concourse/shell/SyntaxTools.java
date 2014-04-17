@@ -70,7 +70,8 @@ public final class SyntaxTools {
             Set<String> shortInvokedMethods = parseShortInvokedMethods(line);
             for (String method : shortInvokedMethods) {
                 if(options.contains(prepend + method)) {
-                    line = line.replaceAll(method + "\\(", prepend + method + "\\(");
+                    line = line.replaceAll(method + "\\(", prepend + method
+                            + "\\(");
                 }
             }
         }
@@ -89,7 +90,9 @@ public final class SyntaxTools {
      * @return the set of all the methods which are being invoked using short
      *         syntax
      */
-    public static Set<String> parseShortInvokedMethods(String line) {
+    protected static Set<String> parseShortInvokedMethods(String line) { // visible
+                                                                         // for
+                                                                         // testing
         Set<String> methods = Sets.newHashSet();
         Set<String> blacklist = Sets.newHashSet("time", "date");
         String regex = "\\b(?!" + StringUtils.join(blacklist, "|")
