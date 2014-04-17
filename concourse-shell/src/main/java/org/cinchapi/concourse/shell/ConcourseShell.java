@@ -33,7 +33,6 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.GroovyShell;
@@ -101,13 +100,14 @@ public final class ConcourseShell {
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
             console.setPrompt("cash$ ");
-            console.addCompleter(new StringsCompleter(getAccessibleApiMethods()));
+            console.addCompleter(new StringsCompleter(
+                    getAccessibleApiMethodsUsingShortSyntax()));
 
             final List<String> methods = Lists
                     .newArrayList(getAccessibleApiMethods());
             String line;
             while ((line = console.readLine().trim()) != null) {
-                line = handleShortSyntax(line, methods);
+                line = SyntaxTools.handleShortSyntax(line, methods);
                 binding.setVariable("concourse", concourse);
                 binding.setVariable("eq", Operator.EQUALS);
                 binding.setVariable("ne", Operator.NOT_EQUALS);
@@ -194,6 +194,25 @@ public final class ConcourseShell {
     }
 
     /**
+     * Return a sorted array that contains all the accessible API methods.
+     * 
+     * @return the accessible API methods
+     */
+    protected static String[] getAccessibleApiMethods() {
+        Set<String> banned = Sets.newHashSet("equals", "getClass", "hashCode",
+                "notify", "notifyAll", "toString", "wait", "exit");
+        Set<String> methods = Sets.newTreeSet();
+        for (Method method : Concourse.class.getMethods()) {
+            if(!Modifier.isStatic(method.getModifiers())
+                    && !banned.contains(method.getName())) {
+                methods.add(MessageFormat.format("concourse.{0}",
+                        method.getName()));
+            }
+        }
+        return methods.toArray(new String[methods.size()]);
+    }
+
+    /**
      * Return {@code true} if {@code string} contains at last one of the
      * {@link #BANNED_CHAR_SEQUENCES} strings.
      * 
@@ -220,50 +239,17 @@ public final class ConcourseShell {
     }
 
     /**
-     * Return a sorted array that contains all the accessible API methods.
+     * Return a sorted array that contains all the accessible API methods using
+     * short syntax.
      * 
-     * @return the accessible API methods
+     * @return the accessible API methods using short syntax
      */
-    private static String[] getAccessibleApiMethods() {
-        Set<String> banned = Sets.newHashSet("equals", "getClass", "hashCode",
-                "notify", "notifyAll", "toString", "wait", "exit");
+    private static String[] getAccessibleApiMethodsUsingShortSyntax() {
         Set<String> methods = Sets.newTreeSet();
-        for (Method method : Concourse.class.getMethods()) {
-            if(!Modifier.isStatic(method.getModifiers())
-                    && !banned.contains(method.getName())) {
-                methods.add(MessageFormat.format("concourse.{0}",
-                        method.getName()));
-            }
+        for (String method : getAccessibleApiMethods()) {
+            methods.add(method.replace("concourse.", ""));
         }
         return methods.toArray(new String[methods.size()]);
-    }
-
-    /**
-     * Check to see if {@code line} is a command that uses short syntax. Short
-     * syntax allows the user to call an API method without starting the command
-     * with {@code concourse.}. This method compares the line to the list of
-     * {@code options} to see if it should be "expanded" from short syntax.
-     * Otherwise, the original line is returned.
-     * 
-     * @param line
-     * @param options
-     * @return the expanded line, if it is using short syntax, otherwise the
-     *         original line
-     */
-    private static String handleShortSyntax(String line, List<String> options) {
-        if(line.equalsIgnoreCase("time") || line.equalsIgnoreCase("date")) {
-            return line + " \"now\"";
-        }
-        else {
-            final String prepend = "concourse.";
-            String expanded = prepend + line;
-            for (String option : options) {
-                if(expanded.startsWith(option)) {
-                    return expanded;
-                }
-            }
-            return line;
-        }
     }
 
     /**
