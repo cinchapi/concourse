@@ -8,7 +8,9 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.1.8'
     compile 'jline:jline:2.11' 
     compile 'com.beust:jcommander:1.32' 
-    compile fileTree(dir: 'libs', include: '*.jar')  
+    compile fileTree(dir: 'libs', include: '*.jar')
+    
+    testCompile 'junit:junit:4.11' 
 }
 
 
