@@ -199,17 +199,27 @@ public final class ConcourseShell {
      * @return the accessible API methods
      */
     protected static String[] getAccessibleApiMethods() {
-        Set<String> banned = Sets.newHashSet("equals", "getClass", "hashCode",
-                "notify", "notifyAll", "toString", "wait", "exit");
-        Set<String> methods = Sets.newTreeSet();
-        for (Method method : Concourse.class.getMethods()) {
-            if(!Modifier.isStatic(method.getModifiers())
-                    && !banned.contains(method.getName())) {
-                methods.add(MessageFormat.format("concourse.{0}",
-                        method.getName()));
+        if(ACCESSIBLE_API_METHODS == null) {
+            Set<String> banned = Sets.newHashSet("equals", "getClass",
+                    "hashCode", "notify", "notifyAll", "toString", "wait",
+                    "exit");
+            Set<String> methods = Sets.newTreeSet();
+            for (Method method : Concourse.class.getMethods()) {
+                if(!Modifier.isStatic(method.getModifiers())
+                        && !banned.contains(method.getName())) {
+                    // NOTE: Even though the StringCompleter strips the
+                    // "concourse." from these method names, we must add it here
+                    // so that we can properly handle short syntax in
+                    // SyntaxTools#handleShortSyntax
+                    methods.add(MessageFormat.format("concourse.{0}",
+                            method.getName()));
+                }
             }
+            ACCESSIBLE_API_METHODS = methods
+                    .toArray(new String[methods.size()]);
         }
-        return methods.toArray(new String[methods.size()]);
+        return ACCESSIBLE_API_METHODS;
+
     }
 
     /**
@@ -259,6 +269,11 @@ public final class ConcourseShell {
     private static List<String> BANNED_CHAR_SEQUENCES = Lists.newArrayList(
             "concourse.exit()", "concourse.username", "concourse.password",
             "concourse.client");
+
+    /**
+     * A cache of the API methods that are accessible in CaSH.
+     */
+    private static String[] ACCESSIBLE_API_METHODS = null;
 
     /**
      * The text that is displayed when the user requests HELP.
