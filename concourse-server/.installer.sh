@@ -5,6 +5,11 @@
 #####################################################################
 # This script should ONLY be invoked from the Gradle installer task!
 
+# Meta variables
+# See http://misc.flogisoft.com/bash/tip_colors_and_formatting for formatting tips
+bold=`tput bold`
+normal=`tput sgr0`
+
 # Gradle passes the version number of the current build to this script
 # for uniformity in naming conventions.
 VERSION=$1
@@ -62,34 +67,40 @@ if [ \$files -gt 0 ]; then
 	BASE=\$(pwd)
 	cd - >> /dev/null
 fi
-# -- concourse
-BINARY=\$BASE"/bin/concourse"
 echo "Please type your administrative password to allow the installer to make some (optional) system-wide changes."
-sudo -k touch /usr/local/bin/concourse #run without -n flag to prompt for password once
+sudo -K # clear the sudo creds cash, so user is forced to type in password
+sudo touch /usr/local/bin/.jeffnelson # dummy command to see if we can escalate permissions
 if [ \$? -ne 0 ]; then
 	echo "[WARN] The installer was unable to place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
-fi
-ARGS=\$(echo '"\$@"')
-sudo -n cat << JEFFNELSON > /usr/local/bin/concourse 2>/dev/null
+else
+	# delete dummy file
+	sudo rm /usr/local/bin/.jeffnelson
+	# -- concourse
+	BINARY=\$BASE"/bin/concourse"
+	ARGS=\$(echo '"\$@"')
+# NOTE: The section below cannot be indented!
+sudo cat << JEFFNELSON > /usr/local/bin/concourse
 #!/usr/bin/env bash
 sh \$BINARY \$ARGS
 exit 0
 JEFFNELSON
-sudo -n chmod +x /usr/local/bin/concourse 2>/dev/null
-sudo -n chown \$(whoami) /usr/local/bin/concourse 2>/dev/null
+	sudo chmod +x /usr/local/bin/concourse
+	sudo chown \$(whoami) /usr/local/bin/concourse
+	echo "[INFO] Use 'concourse' to manage Concourse Server"
 
-# -- cash
-BINARY=\$(pwd)
-BINARY=\$BASE"/bin/cash"
-sudo -n touch /usr/local/bin/cash 2>/dev/null
-ARGS=\$(echo '"\$@"')
-sudo -n cat << ASHLEAHGILMORE > /usr/local/bin/cash 2>/dev/null
+	# -- cash
+	BINARY=\$BASE"/bin/cash"
+	ARGS=\$(echo '"\$@"')
+# NOTE: The section below cannot be indented!
+sudo cat << ASHLEAHGILMORE > /usr/local/bin/cash
 #!/usr/bin/env bash
 sh \$BINARY \$ARGS
 exit 0
 ASHLEAHGILMORE
-sudo -n chmod +x /usr/local/bin/cash 2>/dev/null
-sudo -n chown \$(whoami) /usr/local/bin/cash 2>/dev/null
+	sudo chmod +x /usr/local/bin/cash
+	sudo chown \$(whoami) /usr/local/bin/cash
+	echo "[INFO] Use 'cash' to launch the Concourse Action SHell"
+fi
 
 cd ..
 rm concourse-server*bin
