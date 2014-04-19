@@ -197,7 +197,8 @@ public abstract class Concourse {
      * 
      * @param key
      * @param record
-     * @return
+     * @return a chronological mapping from each timestamp to the set of values
+     *          that were contained for the key in record
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key, long record);
 
@@ -1073,15 +1074,44 @@ public abstract class Concourse {
         
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key, final long record) {
-            Map<Timestamp, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "DateTime", "Value");
-            for (Timestamp timestamp : audit(key, record).keySet()) {
-                Set<Object> values = fetch(key, record, timestamp);
-                if (!values.isEmpty()) {
-                    result.put(timestamp, values);
+            return execute(new Callable<Map<Timestamp, Set<Object>>>() {
+                
+                @Override
+                public Map<Timestamp, Set<Object>> call() throws Exception {
+                   Map<Long, Set<TObject>> chronologie = client.chronologize(record, key,
+                           creds, transaction);
+                   Map<Timestamp, Set<TObject>> tmpResult;
+                   Map<Timestamp, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap();
+                   tmpResult = ((TLinkedHashMap<Timestamp, Set<TObject>>) Transformers
+                           .transformMap(chronologie, 
+                                   new Function<Long, Timestamp>() {
+                               
+                                       @Override
+                                       public Timestamp apply(Long input) {
+                                           return Timestamp.fromMicros(input);
+                                       }
+                                       
+                                   })).setKeyName("DateTime").setValueName(
+                            "Values");   
+                   for (Map.Entry<Timestamp, Set<TObject>> entry : tmpResult.entrySet()) {
+                       Timestamp timestamp = entry.getKey();
+                       Set<TObject> values = entry.getValue();
+                       Set<Object> newValues =
+                               Transformers.transformSet(values,
+                                       new Function<TObject, Object>() {
+
+                                           @Override
+                                           public Object apply(TObject input) {
+                                               return Convert.thriftToJava(input);
+                                           }
+
+                                       });
+                       result.put(timestamp, newValues);
+                   }    
+                   return result;
                 }
-            }
-            return result;
+                
+            });
         }
 
         @Override

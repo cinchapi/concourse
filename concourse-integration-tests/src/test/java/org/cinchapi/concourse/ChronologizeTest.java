@@ -4,7 +4,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,6 +14,7 @@ import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 /**
@@ -22,155 +25,187 @@ import com.google.common.collect.Sets;
  *
  */
 public class ChronologizeTest extends ConcourseIntegrationTest {
-
+    
     @Test
-    public void testWithoutRemoval() {
+    public void testChronologizeIsEmptyForNonExistingKeyInRecord() {
+        long record = Variables.register("record", client.create());
+        String key = Variables.register("key", TestData.getString());
+        String diffKey = Variables.register("diffKey", null);
+        Object diffValue = Variables.register("diffValue", TestData.getObject());
+        while (diffKey == null || key.equals(diffKey)) {
+            diffKey = TestData.getString();
+        }
+        client.add(diffKey, diffValue, record);
+        assertTrue(client.chronologize(key, record).isEmpty());
+    }
+    
+    @Test
+    public void testChronologizeWhenNoRemovalHasHappened() {
         long record = Variables.register("record", client.create());
         String key = Variables.register("key", TestData.getString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", 
                 Sets.newHashSet());
-        // test no values
-        assertTrue(client.chronologize(key, record).isEmpty());
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
                 value = TestData.getObject();
             }
             initValues.add(value);
-            boolean isAdded = client.add(key, value, record);
-            // test if the value has been added
-            assertTrue(isAdded);
+            client.add(key, value, record);
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record);
-        // test size of returned map
         assertEquals(testSize, result.size());
-        Iterator<Map.Entry<Timestamp, Set<Object>>> it = result.entrySet().iterator();
+        Iterator<Map.Entry<Timestamp, Set<Object>>> setIter = result.entrySet().iterator();
         for (int i = 0; i < testSize; i++) {
-            // test size of each set of values
-            assertEquals(i+1, it.next().getValue().size());
+            assertEquals(i+1, setIter.next().getValue().size());
         }
     }
     
     @Test
-    public void testWithRemoval() {
+    public void testChronologizeWhenRemovalHasHappened() {
         long record = Variables.register("record", client.create());
         String key = Variables.register("key", TestData.getString());
-        Map<Timestamp, Set<Object>> result;
-        Object v0 = TestData.getObject();
-        Object v1 = TestData.getObject();
-        Object v2 = TestData.getObject();
-        Object v3 = TestData.getObject();
-        Object v4 = TestData.getObject();
-        
-        // initially
-        assertTrue(client.chronologize(key, record).isEmpty());
-        
-        client.add(key, v0, record);
-        client.add(key, v1, record);
-        client.add(key, v2, record);
-        client.add(key, v3, record);
-        client.add(key, v4, record);
-        
-        // after 5 consecutive adds
-        // test sizes of a few sets
-        result = client.chronologize(key, record);
-        assertEquals(5, result.size());
-        assertEquals(1, getSetInMap(result, 0).size());
-        assertEquals(3, getSetInMap(result, 2).size());
-        assertEquals(5, getSetInMap(result, 4).size());
-        
-        // remove 3 values consecutively
-        // test size of final set in map after each remove
-        client.remove(key, v2, record);
-        result = client.chronologize(key, record);
-        assertFalse(client.verify(key, v2, record));
-        assertEquals(6, result.size());
-        assertEquals(4, getSetInMap(result, 5).size());
-        
-        client.remove(key, v0, record);
-        result = client.chronologize(key, record);
-        assertFalse(client.verify(key, v0, record));
-        assertEquals(7, result.size());
-        assertEquals(3, getSetInMap(result, 6).size());
-        
-        client.remove(key, v4, record);
-        result = client.chronologize(key, record);
-        assertFalse(client.verify(key, v4, record));
-        assertEquals(8, result.size());
-        assertEquals(2, getSetInMap(result, 7).size());
-        
-        // add one value again
-        client.add(key, v2, record);
-        result = client.chronologize(key, record);
-        assertTrue(client.verify(key, v2, record));
-        assertEquals(9, result.size());
-        assertEquals(3, getSetInMap(result, 8).size());
-        
-        // add v2 again but should fail
-        assertFalse(client.add(key, v2, record));
-        result = client.chronologize(key, record);
-        assertEquals(9, result.size());
-        assertEquals(3, getSetInMap(result, 8).size());
-        
-        // remove value not in key in record
-        Object v5 = TestData.getObject();
-        while (v5.equals(v0) || v5.equals(v1) ||
-                v5.equals(v2) || v5.equals(v3) || v5.equals(v4)) {
-            v5 = TestData.getObject();
+        int testSize = Variables.register("testSize", 5);
+        Set<Object> initValues = Variables.register("initValues", 
+                Sets.newHashSet());
+        List<Object> listOfValues = new ArrayList<Object>();
+        Map<Timestamp, Set<Object>> result = null;
+        for (int i = 0; i < testSize; i++) {
+            Object value = null;
+            while (value == null || initValues.contains(value)) {
+                value = TestData.getObject();
+            }
+            initValues.add(value);
+            listOfValues.add(value);
+            client.add(key, value, record);
         }
-        client.remove(key, v5, record);
+        int expectedMapSize = testSize;
+        int expectedLastSetSize = testSize;
+        Set<Object> lastValueSet = null;
+        // remove 1 value
+        expectedMapSize += 1;
+        expectedLastSetSize -= 1;
+        client.remove(key, listOfValues.get(2), record);
         result = client.chronologize(key, record);
-        assertEquals(9, result.size());
-        assertEquals(3, getSetInMap(result, 8).size());
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size());
         
-        // clear all, empty set is filtered and not include in returned map
-        // right now, 3 values left, so should add 2 more timestamp
+        // remove 2 values
+        expectedMapSize += 2;
+        expectedLastSetSize -= 2;
+        client.remove(key, listOfValues.get(0), record);
+        client.remove(key, listOfValues.get(4), record);
+        result = client.chronologize(key, record);
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size());
+        
+        // add 1 value
+        expectedMapSize += 1;
+        expectedLastSetSize += 1;
+        client.add(key, listOfValues.get(2), record);
+        result = client.chronologize(key, record);
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size());
+        
+        // clear all values
+        expectedMapSize += expectedLastSetSize - 1; // last empty set filtered out
+        expectedLastSetSize = 1;
         client.clear(key, record);
         result = client.chronologize(key, record);
-        assertEquals(11, result.size());
-        assertEquals(1, getSetInMap(result, 10).size());
-        
-        // set some values again
-        client.set(key, v0, record);
-        result = client.chronologize(key, record);
-        assertEquals(12, result.size());
-        assertEquals(1, getSetInMap(result, 11).size());
-        assertTrue(getSetInMap(result, 11).contains(v0));
-        
-        client.set(key, v1, record);
-        result = client.chronologize(key, record);
-        assertEquals(13, result.size());
-        assertEquals(1, getSetInMap(result, 12).size());
-        assertTrue(getSetInMap(result, 12).contains(v1));
-        assertTrue(getSetInMap(result, 11).contains(v0));
-       
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size());    
     }
     
-    /**
-     * Return a set of values at given index in an ordered mapping from 
-     * each timestamp to each non-empty set of values.
-     * 
-     * @param map an ordered LinkedHashMap 
-     * @param index
-     * @return a Set at a given index from the ordered map
-     */
-    private static Set<Object> getSetInMap(Map<Timestamp, Set<Object>> map, int index) {
-        if (index < 0 || index >= map.size()) {
-            return null;
-        }
-        Iterator<Map.Entry<Timestamp, Set<Object>>> mapIter = map.entrySet().iterator();
-        int i = 0;
-        Set<Object> setAtGivenIndex = null;
-        while (mapIter.hasNext()) {
-            setAtGivenIndex = mapIter.next().getValue();
-            if (index == i) {
-                break;
+    @Test
+    public void testChronologizeIsNotAffectedByAddingValueAlreadyInKeyInRecord() {
+        long record = Variables.register("record", client.create());
+        String key = Variables.register("key", TestData.getString());
+        int testSize = Variables.register("testSize", 5);
+        Set<Object> initValues = Variables.register("initValues", 
+                Sets.newHashSet());
+        List<Object> listOfValues = new ArrayList<Object>();
+        Map<Timestamp, Set<Object>> result = null;
+        for (int i = 0; i < testSize; i++) {
+            Object value = null;
+            while (value == null || initValues.contains(value)) {
+                value = TestData.getObject();
             }
-            i++;
+            initValues.add(value);
+            listOfValues.add(value);
+            client.add(key, value, record);
         }
-        return setAtGivenIndex;
+        int expectedMapSize = testSize;
+        int expectedLastSetSize = testSize;
+        Set<Object> lastValueSet = null;
+        // add 1 already existed value
+        client.add(key, listOfValues.get(2), record);
+        result = client.chronologize(key, record);
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size());  
     }
     
-
+    @Test
+    public void testChronologizeIsNotAffectedByRemovingValueNotInKeyInRecord() {
+        long record = Variables.register("record", client.create());
+        String key = Variables.register("key", TestData.getString());
+        int testSize = Variables.register("testSize", 5);
+        Set<Object> initValues = Variables.register("initValues", 
+                Sets.newHashSet());
+        Map<Timestamp, Set<Object>> result = null;
+        for (int i = 0; i < testSize; i++) {
+            Object value = null;
+            while (value == null || initValues.contains(value)) {
+                value = TestData.getObject();
+            }
+            initValues.add(value);
+            client.add(key, value, record);
+        }
+        int expectedMapSize = testSize;
+        int expectedLastSetSize = testSize;
+        Set<Object> lastValueSet = null;
+        // remove 1 non-existing value
+        Object nonValue = null;
+        while (nonValue == null || initValues.contains(nonValue)) {
+            nonValue = TestData.getObject();
+        }
+        client.remove(key, nonValue, record);
+        result = client.chronologize(key, record);
+        assertEquals(expectedMapSize, result.size());
+        lastValueSet = Iterables.getLast(
+                (Iterable<Set<Object>>) result.values());
+        assertEquals(expectedLastSetSize, lastValueSet.size()); 
+    }
+    
+    @Test
+    public void testChronologizeHasFilteredOutEmptyValueSets() {
+        long record = Variables.register("record", client.create());
+        String key = Variables.register("key", TestData.getString());
+        int testSize = Variables.register("testSize", 5);
+        Set<Object> initValues = Variables.register("initValues", 
+                Sets.newHashSet());
+        Map<Timestamp, Set<Object>> result = null;
+        for (int i = 0; i < testSize; i++) {
+            Object value = null;
+            while (value == null || initValues.contains(value)) {
+                value = TestData.getObject();
+            }
+            initValues.add(value);
+            client.set(key, value, record);
+        } 
+        result = client.chronologize(key, record);
+        for (Set<Object> values : result.values()) {
+            assertFalse(values.isEmpty());
+        }
+    }
 }

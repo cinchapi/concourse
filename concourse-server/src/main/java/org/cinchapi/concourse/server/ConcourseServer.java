@@ -64,11 +64,13 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.Version;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -291,6 +293,25 @@ public class ConcourseServer implements
         }
         return Strings.isNullOrEmpty(key) ? engine.audit(record) : engine
                 .audit(key, record);
+    }
+    
+    @Override
+    public Map<Long, Set<TObject>> chronologize(long record, String key, 
+            AccessToken creds, TransactionToken transaction) throws TException {
+        checkAccess(creds, transaction);
+        Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
+        for (Long timestamp : audit(record, key, creds, transaction).keySet()) {
+            Set<TObject> values = fetch(key, record, timestamp, creds, transaction);
+            if (!values.isEmpty()) {
+                result.put(timestamp, values);
+            }
+        }
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = updateChronologize(key, record, result,
+                    transaction != null ? transactions.get(transaction) : engine);
+        }
+        return result;
     }
 
     @Override
@@ -700,6 +721,38 @@ public class ConcourseServer implements
             return null;
         }
 
+    }
+    
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to update chronologized values in {@code key} in {@code record}.
+     * 
+     * @param key
+     * @param record
+     * @param result
+     * @param store
+     * @return the AtomicOperation that must be committed
+     */
+    private AtomicOperation updateChronologize(String key, long record,
+            Map<Long, Set<TObject>> result, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        try {
+             Map<Long, String> newResult = operation.audit(key, record);
+             if (newResult.size() > result.size()) {
+                 for (int i = result.size(); i < newResult.size(); i++) {
+                     Long timestamp = Iterables.get((Iterable<Long>) newResult.keySet(), 
+                             i);
+                     Set<TObject> values = operation.fetch(key, record);
+                     if (!values.isEmpty()) {
+                         result.put(timestamp, operation.fetch(key, record));
+                     }
+                 }
+             }
+             return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
     }
 
     /**
