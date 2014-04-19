@@ -26,6 +26,7 @@ package org.cinchapi.concourse;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -1080,24 +1081,11 @@ public abstract class Concourse {
                 public Map<Timestamp, Set<Object>> call() throws Exception {
                    Map<Long, Set<TObject>> chronologie = client.chronologize(record, key,
                            creds, transaction);
-                   Map<Timestamp, Set<TObject>> tmpResult;
-                   Map<Timestamp, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap();
-                   tmpResult = ((TLinkedHashMap<Timestamp, Set<TObject>>) Transformers
-                           .transformMap(chronologie, 
-                                   new Function<Long, Timestamp>() {
-                               
-                                       @Override
-                                       public Timestamp apply(Long input) {
-                                           return Timestamp.fromMicros(input);
-                                       }
-                                       
-                                   })).setKeyName("DateTime").setValueName(
-                            "Values");   
-                   for (Map.Entry<Timestamp, Set<TObject>> entry : tmpResult.entrySet()) {
-                       Timestamp timestamp = entry.getKey();
-                       Set<TObject> values = entry.getValue();
-                       Set<Object> newValues =
-                               Transformers.transformSet(values,
+                   Map<Timestamp, Set<Object>> result = TLinkedHashMap.
+                           newTLinkedHashMap("DateTime", "Values");
+                   for (Entry<Long, Set<TObject>> entry : chronologie.entrySet()) {
+                       result.put(Timestamp.fromMicros(entry.getKey()), 
+                               Transformers.transformSet(entry.getValue(), 
                                        new Function<TObject, Object>() {
 
                                            @Override
@@ -1105,8 +1093,7 @@ public abstract class Concourse {
                                                return Convert.thriftToJava(input);
                                            }
 
-                                       });
-                       result.put(timestamp, newValues);
+                                       }));
                    }    
                    return result;
                 }

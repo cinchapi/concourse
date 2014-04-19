@@ -299,17 +299,19 @@ public class ConcourseServer implements
     public Map<Long, Set<TObject>> chronologize(long record, String key, 
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
+        Compoundable store = transaction != null ? 
+                transactions.get(transaction): engine;
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
-        for (Long timestamp : audit(record, key, creds, transaction).keySet()) {
-            Set<TObject> values = fetch(key, record, timestamp, creds, transaction);
+        for (Long timestamp : store.audit(key, record).keySet()) {
+            Set<TObject> values = store.fetch(key, record, timestamp);
             if (!values.isEmpty()) {
                 result.put(timestamp, values);
             }
         }
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = updateChronologize(key, record, result,
-                    transaction != null ? transactions.get(transaction) : engine);
+            operation = updateChronologizeResultSet(key, record,
+                    result, store);
         }
         return result;
     }
@@ -733,7 +735,7 @@ public class ConcourseServer implements
      * @param store
      * @return the AtomicOperation that must be committed
      */
-    private AtomicOperation updateChronologize(String key, long record,
+    private AtomicOperation updateChronologizeResultSet(String key, long record,
             Map<Long, Set<TObject>> result, Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
