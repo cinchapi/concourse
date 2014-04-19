@@ -26,6 +26,7 @@ package org.cinchapi.concourse;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -190,6 +191,17 @@ public abstract class Concourse {
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
+    
+    /**
+     * Chronologize non-empty sets of values in {@code key} from {@code record} 
+     * and return a mapping from each timestamp to the non-empty set of values.
+     * 
+     * @param key
+     * @param record
+     * @return a chronological mapping from each timestamp to the set of values
+     *          that were contained for the key in record
+     */
+    public abstract Map<Timestamp, Set<Object>> chronologize(String key, long record);
 
     /**
      * Clear each of the {@code keys} in each of the {@code records} by removing
@@ -1058,6 +1070,34 @@ public abstract class Concourse {
                             "Revision");
                 }
 
+            });
+        }
+        
+        @Override
+        public Map<Timestamp, Set<Object>> chronologize(final String key, final long record) {
+            return execute(new Callable<Map<Timestamp, Set<Object>>>() {
+                
+                @Override
+                public Map<Timestamp, Set<Object>> call() throws Exception {
+                   Map<Long, Set<TObject>> chronologie = client.chronologize(record, key,
+                           creds, transaction);
+                   Map<Timestamp, Set<Object>> result = TLinkedHashMap.
+                           newTLinkedHashMap("DateTime", "Values");
+                   for (Entry<Long, Set<TObject>> entry : chronologie.entrySet()) {
+                       result.put(Timestamp.fromMicros(entry.getKey()), 
+                               Transformers.transformSet(entry.getValue(), 
+                                       new Function<TObject, Object>() {
+
+                                           @Override
+                                           public Object apply(TObject input) {
+                                               return Convert.thriftToJava(input);
+                                           }
+
+                                       }));
+                   }    
+                   return result;
+                }
+                
             });
         }
 

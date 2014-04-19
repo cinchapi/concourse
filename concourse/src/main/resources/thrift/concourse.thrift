@@ -94,6 +94,14 @@ service ConcourseService {
 	 */
 	map<i64,string> audit(1: i64 record, 2: string key, 3: shared.AccessToken creds,
 		5: shared.TransactionToken transaction);
+	
+	/**
+	 * Chronologize non-empty sets of values in {@code key} from {@code record}.
+	 * This method returns a chronological mapping from each timestamp to the set
+	 * of values that were contained for the key in record.
+	 */
+	map<i64, set<data.TObject>> chronologize(1: i64 record, 2: string key,
+		3: shared.AccessToken creds, 4: shared.TransactionToken transaction);
 
 	/**
 	 * Describe {@code record} at {@code timestamp}. This method returns keys for
