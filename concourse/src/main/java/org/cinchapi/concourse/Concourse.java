@@ -1079,11 +1079,11 @@ public abstract class Concourse {
                 
                 @Override
                 public Map<Timestamp, Set<Object>> call() throws Exception {
-                   Map<Long, Set<TObject>> chronologie = client.chronologize(record, key,
+                   Map<Long, Set<TObject>> chronologize = client.chronologize(record, key,
                            creds, transaction);
                    Map<Timestamp, Set<Object>> result = TLinkedHashMap.
                            newTLinkedHashMap("DateTime", "Values");
-                   for (Entry<Long, Set<TObject>> entry : chronologie.entrySet()) {
+                   for (Entry<Long, Set<TObject>> entry : chronologize.entrySet()) {
                        result.put(Timestamp.fromMicros(entry.getKey()), 
                                Transformers.transformSet(entry.getValue(), 
                                        new Function<TObject, Object>() {
