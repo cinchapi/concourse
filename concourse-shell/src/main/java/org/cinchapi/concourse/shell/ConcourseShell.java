@@ -99,6 +99,7 @@ public final class ConcourseShell {
             console.println("");
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
+            console.println("Use  TAB for completion.");
             console.setPrompt("cash$ ");
             console.addCompleter(new StringsCompleter(
                     getAccessibleApiMethodsUsingShortSyntax()));
