@@ -75,6 +75,16 @@ public final class Timestamp {
     public static Timestamp fromMicros(long microseconds) {
         return new Timestamp(microseconds);
     }
+    
+    /**
+     * Return a {@code Timestamp} that corresponds to the system
+     * epoch timestamp with microsecond precision.
+     * 
+     * @return the timestamp for system epoch
+     */
+    public static Timestamp epoch() {
+        return Timestamp.fromMicros(-1);
+    }
 
     /**
      * Return a {@code Timestamp} set the current system microsecond time using
