@@ -9,10 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import org.cinchapi.concourse.testing.Variables;
-import org.cinchapi.concourse.util.StandardActions;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
@@ -27,6 +24,21 @@ import com.google.common.collect.Sets;
  *
  */
 public class ChronologizeTest extends ConcourseIntegrationTest {
+    
+  @Test
+  public void testChronologizeRangeSanityCheck(){
+      String key = "foo";
+      long record = 1;
+      client.add(key, 1, record);
+      client.add(key, 2, record);
+      client.add(key, 3, record);
+      Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
+      Timestamp preStart = Iterables.get(chronology.keySet(), 0);
+      Timestamp start = Iterables.get(chronology.keySet(), 1);
+      chronology = client.chronologize(key, record, start, Timestamp.now());
+      assertFalse(chronology.keySet().contains(preStart));
+      assertEquals(2, chronology.size());
+  }
 
     @Test
     public void testChronologizeIsEmptyForNonExistingKeyInRecord() {
@@ -207,9 +219,9 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -230,7 +242,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -240,7 +252,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -271,7 +283,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -281,7 +293,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(1, TimeUnit.MICROSECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -335,7 +347,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Variables.register("exactStartTimestamp", Iterables.getFirst((Iterable<Timestamp>) chronology.keySet(), null));
@@ -358,7 +370,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.epoch(), timestamps.get(0));
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -382,7 +394,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Variables.register("exactStartTimestamp", Iterables.getFirst((Iterable<Timestamp>) chronology.keySet(), null));
@@ -407,7 +419,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
         Timestamp exactEndTimestamp = Variables.register("exactEndTimestamp", Iterables.getLast((Iterable<Timestamp>) chronologie.keySet()));
@@ -432,7 +444,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, timestamps.get(testSize - 1), Timestamp.now());
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -455,7 +467,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         // check same timestamps before initial add
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.epoch(), Timestamp.epoch());
@@ -477,7 +489,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Iterables.getFirst(chronologie.keySet(), null);
@@ -502,7 +514,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.now(), Timestamp.now());
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -525,7 +537,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(1, TimeUnit.MICROSECONDS);
+            
         }
         client.chronologize(key, record, timestamps.get(3), timestamps.get(2));
     }
