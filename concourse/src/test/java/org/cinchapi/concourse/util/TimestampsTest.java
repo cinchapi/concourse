@@ -36,7 +36,7 @@ import com.google.common.collect.Iterables;
 /**
  * Unit tests for {@link Timestamps}.
  * 
- * @author jnelson
+ * @author knd
  */
 public class TimestampsTest {
     

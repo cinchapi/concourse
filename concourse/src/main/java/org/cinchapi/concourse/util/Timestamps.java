@@ -32,7 +32,7 @@ import com.google.common.collect.Iterables;
 /**
  * {@link Timestamp} related utility methods.
  * 
- * @author jnelson
+ * @author knd
  */
 public class Timestamps {
 
