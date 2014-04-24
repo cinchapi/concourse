@@ -206,6 +206,21 @@ public abstract class Concourse {
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record);
+    
+    /**
+     * Chronologize non-empty sets of values in {@code key} from {@code record}
+     * from {@code start} timestamp inclusively to present and return a mapping
+     * from each timestamp to the non-emtpy set of values.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @return a chronological mapping from each timestamp to the set of values
+     *         that were contained for the key in record from specified start
+     *         timestamp to present
+     */
+    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+            long record, Timestamp start);
 
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
@@ -219,7 +234,7 @@ public abstract class Concourse {
      * @param end
      * @return a chronological mapping from each timestamp to the set of values
      *         that were contained for the key in record from specified start
-     *         timesetamp to specified end timestamp
+     *         timestamp to specified end timestamp
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start, Timestamp end);
@@ -1124,7 +1139,13 @@ public abstract class Concourse {
 
             });
         }
-
+        
+        @Override
+        public Map<Timestamp, Set<Object>> chronologize(final String key,
+                final long record, final Timestamp start) {
+            return chronologize(key, record, start, Timestamp.now());
+        }
+        
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start, final Timestamp end) {
