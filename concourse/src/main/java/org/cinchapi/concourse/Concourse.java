@@ -25,7 +25,6 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -51,6 +50,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TLinkedTableMap;
+import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 
@@ -194,18 +194,19 @@ public abstract class Concourse {
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
-    
+
     /**
-     * Chronologize non-empty sets of values in {@code key} from {@code record} 
+     * Chronologize non-empty sets of values in {@code key} from {@code record}
      * and return a mapping from each timestamp to the non-empty set of values.
      * 
      * @param key
      * @param record
      * @return a chronological mapping from each timestamp to the set of values
-     *          that were contained for the key in record
+     *         that were contained for the key in record
      */
-    public abstract Map<Timestamp, Set<Object>> chronologize(String key, long record);
-    
+    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+            long record);
+
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * from {@code start} timestamp inclusively to {@code end} timestamp
@@ -217,20 +218,11 @@ public abstract class Concourse {
      * @param start
      * @param end
      * @return a chronological mapping from each timestamp to the set of values
-     *          that were contained for the key in record from specified start
-     *          timesetamp to specified end timestamp
+     *         that were contained for the key in record from specified start
+     *         timesetamp to specified end timestamp
      */
-    public abstract Map<Timestamp, Set<Object>> chronologize(
-            String key, long record, Timestamp start, Timestamp end);
-    /**
-     * Find and return the index of the nearest successor of given 
-     * {@code timestamp} from the ordered set of {@code timestamps}.
-     * 
-     * @param timestamps
-     * @param sought
-     * @return an index of nearest successor timestamp
-     */
-    protected abstract int findIndexOfNearestSuccessorTimestamp(Set<Timestamp> timestamps, Timestamp sought);
+    public abstract Map<Timestamp, Set<Object>> chronologize(String key,
+            long record, Timestamp start, Timestamp end);
 
     /**
      * Clear each of the {@code keys} in each of the {@code records} by removing
@@ -871,8 +863,6 @@ public abstract class Concourse {
      */
     public abstract boolean verifyAndSwap(String key, Object expected,
             long record, Object replacement);
-    
-    
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -919,7 +909,7 @@ public abstract class Concourse {
          * opposed to the history.
          */
         private static Timestamp now = Timestamp.fromMicros(0);
-        
+
         /**
          * An encrypted copy of the username passed to the constructor.
          */
@@ -1103,78 +1093,61 @@ public abstract class Concourse {
 
             });
         }
-        
+
         @Override
-        public Map<Timestamp, Set<Object>> chronologize(final String key, final long record) {
+        public Map<Timestamp, Set<Object>> chronologize(final String key,
+                final long record) {
             return execute(new Callable<Map<Timestamp, Set<Object>>>() {
-                
+
                 @Override
                 public Map<Timestamp, Set<Object>> call() throws Exception {
-                   Map<Long, Set<TObject>> chronologize = client.chronologize(record, key,
-                           creds, transaction);
-                   Map<Timestamp, Set<Object>> result = TLinkedHashMap.
-                           newTLinkedHashMap("DateTime", "Values");
-                   for (Entry<Long, Set<TObject>> entry : chronologize.entrySet()) {
-                       result.put(Timestamp.fromMicros(entry.getKey()), 
-                               Transformers.transformSet(entry.getValue(), 
-                                       new Function<TObject, Object>() {
+                    Map<Long, Set<TObject>> chronologize = client.chronologize(
+                            record, key, creds, transaction);
+                    Map<Timestamp, Set<Object>> result = TLinkedHashMap
+                            .newTLinkedHashMap("DateTime", "Values");
+                    for (Entry<Long, Set<TObject>> entry : chronologize
+                            .entrySet()) {
+                        result.put(Timestamp.fromMicros(entry.getKey()),
+                                Transformers.transformSet(entry.getValue(),
+                                        new Function<TObject, Object>() {
 
-                                           @Override
-                                           public Object apply(TObject input) {
-                                               return Convert.thriftToJava(input);
-                                           }
+                                            @Override
+                                            public Object apply(TObject input) {
+                                                return Convert
+                                                        .thriftToJava(input);
+                                            }
 
-                                       }));
-                   }    
-                   return result;
+                                        }));
+                    }
+                    return result;
                 }
-                
+
             });
         }
-        
+
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
-            Map<Timestamp, Set<Object>> result = TLinkedHashMap.
-                    newTLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, Set<Object>> result = TLinkedHashMap
+                    .newTLinkedHashMap("DateTime", "Values");
             Map<Timestamp, Set<Object>> chronology = chronologize(key, record);
-            int index = findIndexOfNearestSuccessorTimestamp(chronology.keySet(), start);
+            int index = Timestamps.findIndexOfTimestampOrNearestSuccessor(
+                    chronology.keySet(), start);
             Entry<Timestamp, Set<Object>> entry = null;
-            if (index > 0) {
-                entry = Iterables.get(chronology.entrySet(), index-1);
+            if(index > 0) {
+                entry = Iterables.get(chronology.entrySet(), index - 1);
                 result.put(entry.getKey(), entry.getValue());
-            }  
+            }
             for (int i = index; i < chronology.size(); i++) {
                 entry = Iterables.get(chronology.entrySet(), i);
-                if (entry.getKey().getMicros() >= end.getMicros()) {
+                if(entry.getKey().getMicros() >= end.getMicros()) {
                     break;
                 }
                 result.put(entry.getKey(), entry.getValue());
             }
             return result;
-        }
-        
-        @Override
-        protected int findIndexOfNearestSuccessorTimestamp(Set<Timestamp> timestamps,
-                Timestamp sought) {
-            int start = 0;
-            int end = timestamps.size() - 1;
-            while (start <= end) {
-                int mid = (start + end) / 2;
-                Timestamp stored = Iterables.get(timestamps, mid);
-                if (stored.getMicros() == sought.getMicros()) {
-                    return mid + 1;
-                }
-                else if (stored.getMicros() < sought.getMicros()) {
-                    start = mid + 1;
-                }
-                else {
-                    end = mid - 1;
-                }
-            }
-            return start;    
         }
 
         @Override
