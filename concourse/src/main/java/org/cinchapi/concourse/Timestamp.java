@@ -77,11 +77,13 @@ public final class Timestamp {
     }
     
     /**
+     * Return a {@code Timestamp} that corresponds to the system
+     * epoch timestamp with microsecond precision.
      * 
-     * @return
+     * @return the timestamp for system epoch
      */
     public static Timestamp epoch() {
-        return new Timestamp(0);
+        return Timestamp.fromMicros(-1);
     }
 
     /**

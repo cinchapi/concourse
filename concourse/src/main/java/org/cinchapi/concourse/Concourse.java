@@ -55,6 +55,7 @@ import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -207,7 +208,7 @@ public abstract class Concourse {
     
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
-     * from specified start timestamp inclusively to specified end timestamp
+     * from {@code start} timestamp inclusively to {@code end} timestamp
      * exclusively and return a mapping from each timestamp to the non-empty
      * set of values.
      * 
@@ -221,6 +222,15 @@ public abstract class Concourse {
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(
             String key, long record, Timestamp start, Timestamp end);
+    /**
+     * Find and return the index of the nearest successor of given 
+     * {@code timestamp} from the ordered set of {@code timestamps}.
+     * 
+     * @param timestamps
+     * @param sought
+     * @return an index of nearest successor timestamp
+     */
+    protected abstract int findIndexOfNearestSuccessorTimestamp(Set<Timestamp> timestamps, Timestamp sought);
 
     /**
      * Clear each of the {@code keys} in each of the {@code records} by removing
@@ -861,6 +871,8 @@ public abstract class Concourse {
      */
     public abstract boolean verifyAndSwap(String key, Object expected,
             long record, Object replacement);
+    
+    
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -908,11 +920,6 @@ public abstract class Concourse {
          */
         private static Timestamp now = Timestamp.fromMicros(0);
         
-        /**
-         * 
-         */
-        private static Timestamp epoch = Timestamp.epoch();
-
         /**
          * An encrypted copy of the username passed to the constructor.
          */
@@ -1128,71 +1135,46 @@ public abstract class Concourse {
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start, final Timestamp end) {
+            Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
+                    "Start of range cannot be greater than the end");
             Map<Timestamp, Set<Object>> result = TLinkedHashMap.
                     newTLinkedHashMap("DateTime", "Values");
-            Map<Timestamp, Set<Object>> chronologie = chronologize(key, record);
-            Timestamp firstTimestamp = Iterables.getFirst(
-                    chronologie.keySet(), null);
-            Timestamp lastTimestamp = Iterables.getLast(chronologie.keySet());
-            
-            // return empty
-            if (start.getMicros() > end.getMicros()
-                    || firstTimestamp == null
-                    || (start.getMicros() == end.getMicros() && 
-                            start.getMicros() < firstTimestamp.getMicros())
-                    || (start.getMicros() < end.getMicros() &&
-                            end.getMicros() <= firstTimestamp.getMicros())) {
-                return result;
-            }
-            
-            // return last result entry
-            if (start.getMicros() >= lastTimestamp.getMicros() &&
-                    start.getMicros() <= end.getMicros()) {
-                Entry<Timestamp, Set<Object>> lastEntry = 
-                        Iterables.getLast(chronologie.entrySet());
-                result.put(lastEntry.getKey(), lastEntry.getValue());
-                return result;
-            }
-            
-            // return from firstTimestamp till end timestamp or finish loop
-            if (start.getMicros() < end.getMicros() &&
-                    start.getMicros() <= firstTimestamp.getMicros() &&
-                    end.getMicros() > firstTimestamp.getMicros()) {
-                Iterator<Entry<Timestamp, Set<Object>>> chronologieIter =
-                        chronologie.entrySet().iterator();
-                while(chronologieIter.hasNext()) {
-                    Entry<Timestamp, Set<Object>> entry = 
-                            chronologieIter.next();
-                    if (entry.getKey().getMicros() < end.getMicros()) {
-                        result.put(entry.getKey(), entry.getValue());
-                    } else {
-                        break;
-                    }
-                }
-                return result;
-            }
-            
-            // return from the timestamp found by binary search till finish loop or end timestamp
-            if (start.getMicros() >= firstTimestamp.getMicros() &&
-                    start.getMicros() < lastTimestamp.getMicros() &&
-                    start.getMicros() <= end.getMicros()) {
-                int startIndex = findIndexOfClosestStartTimestamp(chronologie,
-                        start, 0, chronologie.size()-1);
-                Entry<Timestamp, Set<Object>> entry = 
-                        Iterables.get(chronologie.entrySet(), startIndex);
+            Map<Timestamp, Set<Object>> chronology = chronologize(key, record);
+            int index = findIndexOfNearestSuccessorTimestamp(chronology.keySet(), start);
+            Entry<Timestamp, Set<Object>> entry = null;
+            if (index > 0) {
+                entry = Iterables.get(chronology.entrySet(), index-1);
                 result.put(entry.getKey(), entry.getValue());
-                for (int i = startIndex+1; i < chronologie.size()-1; i++) {
-                    entry = Iterables.get(chronologie.entrySet(), i);
-                    if (entry.getKey().getMicros() < end.getMicros()) {
-                        result.put(entry.getKey(), entry.getValue());
-                    } else {
-                        break;
-                    }
+            }  
+            for (int i = index; i < chronology.size(); i++) {
+                entry = Iterables.get(chronology.entrySet(), i);
+                if (entry.getKey().getMicros() >= end.getMicros()) {
+                    break;
                 }
-                return result;
+                result.put(entry.getKey(), entry.getValue());
             }
-                                   
             return result;
+        }
+        
+        @Override
+        protected int findIndexOfNearestSuccessorTimestamp(Set<Timestamp> timestamps,
+                Timestamp sought) {
+            int start = 0;
+            int end = timestamps.size() - 1;
+            while (start <= end) {
+                int mid = (start + end) / 2;
+                Timestamp stored = Iterables.get(timestamps, mid);
+                if (stored.getMicros() == sought.getMicros()) {
+                    return mid + 1;
+                }
+                else if (stored.getMicros() < sought.getMicros()) {
+                    start = mid + 1;
+                }
+                else {
+                    end = mid - 1;
+                }
+            }
+            return start;    
         }
 
         @Override
@@ -1841,43 +1823,6 @@ public abstract class Concourse {
                 throw Throwables.propagate(e);
             }
         }
-        
-        /**
-         * Find the exact or right before index of the entry in a mapping in 
-         * which the timestamp as key in that entry is the same or the next
-         * lower timestamp than the specified timestamp.
-         * 
-         * @param chronologie
-         * @param timestamp
-         * @param startIndex
-         * @param endIndex
-         * @return an index of the entry in a mapping in which the timestamp
-         *          as key in that entry is the same or the next lower timestamp
-         *          than the specified timestamp
-         */
-        private int findIndexOfClosestStartTimestamp(Map<Timestamp, Set<Object>> chronologie,
-                Timestamp timestamp, int startIndex, int endIndex) {
-            int retIndex = -1;
-            while (endIndex >= startIndex) {
-                int mid = (startIndex + endIndex) / 2;
-                Entry<Timestamp, Set<Object>> entry = 
-                        Iterables.get(chronologie.entrySet(), mid);
-                Timestamp tmpTimestamp = entry.getKey();
-                if (tmpTimestamp.getMicros() == timestamp.getMicros()) {
-                    retIndex = mid;
-                    break;
-                } else if (tmpTimestamp.getMicros() < timestamp.getMicros()) {
-                    startIndex = mid + 1;
-                } else {
-                    endIndex = mid - 1;
-                }
-            }
-            if (retIndex == -1) {
-                retIndex = startIndex - 1;
-            }
-            return retIndex;
-        }
 
     }
-
 }
