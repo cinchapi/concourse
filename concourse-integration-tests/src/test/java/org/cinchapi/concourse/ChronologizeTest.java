@@ -6,15 +6,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import org.cinchapi.concourse.testing.Variables;
-import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.util.StandardActions;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
@@ -29,6 +24,21 @@ import com.google.common.collect.Sets;
  *
  */
 public class ChronologizeTest extends ConcourseIntegrationTest {
+    
+  @Test
+  public void testChronologizeRangeSanityCheck(){
+      String key = "foo";
+      long record = 1;
+      client.add(key, 1, record);
+      client.add(key, 2, record);
+      client.add(key, 3, record);
+      Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
+      Timestamp preStart = Iterables.get(chronology.keySet(), 0);
+      Timestamp start = Iterables.get(chronology.keySet(), 1);
+      chronology = client.chronologize(key, record, start, Timestamp.now());
+      assertFalse(chronology.keySet().contains(preStart));
+      assertEquals(2, chronology.size());
+  }
 
     @Test
     public void testChronologizeIsEmptyForNonExistingKeyInRecord() {
@@ -209,9 +219,9 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -232,7 +242,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -242,7 +252,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -273,7 +283,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp startTimestamp = Variables.register("startTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -283,7 +293,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         Timestamp endTimestamp = Variables.register("endTimestamp", Timestamp.now());
-        StandardActions.wait(200, TimeUnit.MILLISECONDS);
+        
         for (int i = 0; i < testSize; i++) {
             Object value = null;
             while (value == null || initValues.contains(value)) {
@@ -337,7 +347,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Variables.register("exactStartTimestamp", Iterables.getFirst((Iterable<Timestamp>) chronology.keySet(), null));
@@ -360,7 +370,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.epoch(), timestamps.get(0));
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -384,7 +394,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronology = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Variables.register("exactStartTimestamp", Iterables.getFirst((Iterable<Timestamp>) chronology.keySet(), null));
@@ -409,7 +419,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
         Timestamp exactEndTimestamp = Variables.register("exactEndTimestamp", Iterables.getLast((Iterable<Timestamp>) chronologie.keySet()));
@@ -434,7 +444,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, timestamps.get(testSize - 1), Timestamp.now());
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -457,7 +467,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         // check same timestamps before initial add
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.epoch(), Timestamp.epoch());
@@ -479,7 +489,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
         Timestamp exactStartTimestamp = Iterables.getFirst(chronologie.keySet(), null);
@@ -504,7 +514,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.now(), Timestamp.now());
         Set<Object> lastResultSet = Iterables.getLast(result.values());
@@ -527,92 +537,9 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
             initValues.add(value);
             client.add(key, value, record);
             timestamps.add(Timestamp.now());
-            StandardActions.wait(200, TimeUnit.MILLISECONDS);
+            
         }
         client.chronologize(key, record, timestamps.get(3), timestamps.get(2));
     }
     
-    @Test
-    public void testFindIndexOfNearestSuccessorTimestampWithStartTimestampLessThanFirstTimestampInChronology() {
-        Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
-        timestamps.add(Timestamp.fromMicros(1000L));
-        for (int i = 0; i < TestData.getScaleCount(); i++) {
-            long increment = 0;
-            while (increment == 0) {
-                increment = Math.abs(TestData.getScaleCount());
-            }
-            timestamps.add(Timestamp.fromMicros(
-                    Iterables.getLast(timestamps).getMicros() + increment));            
-        }
-        timestamps = Variables.register("timestamps", timestamps);
-        Timestamp startTimestamp = Timestamp.epoch();
-        assertEquals(0, client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));
-    }
-    
-    @Test
-    public void testFindIndexOfNearestSuccessorTimestampWithStartTimestampGreaterThanLastTimestampInChronology() {
-        Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
-        timestamps.add(Timestamp.fromMicros(1000L));
-        for (int i = 0; i < TestData.getScaleCount(); i++) {
-            long increment = 0;
-            while (increment == 0) {
-                increment = Math.abs(TestData.getScaleCount());
-            }
-            timestamps.add(Timestamp.fromMicros(
-                    Iterables.getLast(timestamps).getMicros() + increment));            
-        }
-        timestamps = Variables.register("timestamps", timestamps);
-        Variables.register("timestampsSize", timestamps.size());
-        Timestamp startTimestamp = Timestamp.fromMicros(
-                Iterables.getLast(timestamps).getMicros() + 1000L);
-        assertEquals(timestamps.size(), client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));
-    }
-    
-    @Test
-    public void testFindIndexOfNearestSuccessorTimestampWithStartTimestampEqualToATimestampInChronology() {
-        Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
-        timestamps.add(Timestamp.fromMicros(1000L));
-        for (int i = 0; i < TestData.getScaleCount(); i++) {
-            long increment = 0;
-            while (increment == 0) {
-                increment = Math.abs(TestData.getScaleCount());
-            }
-            timestamps.add(Timestamp.fromMicros(
-                    Iterables.getLast(timestamps).getMicros() + increment));            
-        }
-        Timestamp startTimestamp = Timestamp.fromMicros(
-                Iterables.getFirst(timestamps, null).getMicros());
-        assertEquals(1, client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));
-        startTimestamp = Timestamp.fromMicros(
-                Iterables.get(timestamps, timestamps.size()/2).getMicros());
-        assertEquals(timestamps.size()/2+1, client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));
-        startTimestamp = Timestamp.fromMicros(
-                Iterables.getLast(timestamps).getMicros());
-        assertEquals(timestamps.size(), client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));   
-    }
-    
-    @Test
-    public void testFindIndexOfNearestSuccessorTimestampWithStartTimestampGreaterThanFirstTimestampAndLessThanLastTimestampInChronology() {
-        Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
-        timestamps.add(Timestamp.fromMicros(1000L));
-        for (int i = 0; i < TestData.getScaleCount(); i++) {
-            long increment = 0;
-            while (increment == 0) {
-                increment = Math.abs(TestData.getScaleCount()) + 100L;
-            }
-            timestamps.add(Timestamp.fromMicros(
-                    Iterables.getLast(timestamps).getMicros() + increment));
-        }
-        Timestamp abitrary = Iterables.get(timestamps, timestamps.size()/3);
-        Timestamp abitrarySuccessor = Iterables.get(timestamps, timestamps.size()/3+1);
-        Timestamp startTimestamp = Timestamp.fromMicros(
-                (abitrary.getMicros() + abitrarySuccessor.getMicros()) / 2);
-        assertEquals(timestamps.size()/3 + 1, client.
-                findIndexOfNearestSuccessorTimestamp(timestamps, startTimestamp));
-    }
 }
