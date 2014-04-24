@@ -41,7 +41,7 @@ import com.google.common.collect.Iterables;
 public class TimestampsTest {
     
     @Test
-    public void testFindIndexOfTimestampOrNearestSuccessorWithStartTimestampLessThanFirstTimestampInChronology() {
+    public void testFindNearestSuccessorForTimestampWithStartTimestampLessThanFirstTimestampInChronology() {
         Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
         timestamps.add(Timestamp.fromMicros(1000L));
         for (int i = 0; i < Random.getScaleCount(); i++) {
@@ -54,11 +54,11 @@ public class TimestampsTest {
         }
         Timestamp startTimestamp = Timestamp.epoch();
         assertEquals(0, Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
     
     @Test
-    public void testFindIndexOfTimestampOrNearestSuccessorWithStartTimestampGreaterThanLastTimestampInChronology() {
+    public void testFindNearestSuccessorForTimestampWithStartTimestampGreaterThanLastTimestampInChronology() {
         Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
         timestamps.add(Timestamp.fromMicros(1000L));
         for (int i = 0; i < Random.getScaleCount(); i++) {
@@ -72,11 +72,11 @@ public class TimestampsTest {
         Timestamp startTimestamp = Timestamp.fromMicros(
                 Iterables.getLast(timestamps).getMicros() + 1000L);
         assertEquals(timestamps.size(), Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
     
     @Test
-    public void testFindIndexOfTimestampOrNearestSuccessorWithStartTimestampEqualToATimestampInChronology() {
+    public void testFindNearestSuccessorForTimestampWithStartTimestampEqualToATimestampInChronology() {
         Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
         timestamps.add(Timestamp.fromMicros(1000L));
         for (int i = 0; i < Random.getScaleCount(); i++) {
@@ -90,19 +90,19 @@ public class TimestampsTest {
         Timestamp startTimestamp = Timestamp.fromMicros(
                 Iterables.getFirst(timestamps, null).getMicros());
         assertEquals(1, Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp.fromMicros(
                 Iterables.get(timestamps, timestamps.size()/2).getMicros());
         assertEquals(timestamps.size()/2+1, Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp.fromMicros(
                 Iterables.getLast(timestamps).getMicros());
         assertEquals(timestamps.size(), Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));   
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));   
     }
     
     @Test
-    public void testFindIndexOfTimestampOrNearestSuccessorWithStartTimestampGreaterThanFirstTimestampAndLessThanLastTimestampInChronology() {
+    public void testFindNearestSuccessorForTimestampWithStartTimestampGreaterThanFirstTimestampAndLessThanLastTimestampInChronology() {
         Set<Timestamp> timestamps = new LinkedHashSet<Timestamp>();
         timestamps.add(Timestamp.fromMicros(1000L));
         for (int i = 0; i < Random.getScaleCount(); i++) {
@@ -118,7 +118,7 @@ public class TimestampsTest {
         Timestamp startTimestamp = Timestamp.fromMicros(
                 (abitrary.getMicros() + abitrarySuccessor.getMicros()) / 2);
         assertEquals(timestamps.size()/3 + 1, Timestamps.
-                findIndexOfTimestampOrNearestSuccessor(timestamps, startTimestamp));
+                findNearestSuccessorForTimestamp(timestamps, startTimestamp));
     }
 
 }

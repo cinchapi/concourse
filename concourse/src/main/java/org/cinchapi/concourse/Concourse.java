@@ -1133,7 +1133,7 @@ public abstract class Concourse {
             Map<Timestamp, Set<Object>> result = TLinkedHashMap
                     .newTLinkedHashMap("DateTime", "Values");
             Map<Timestamp, Set<Object>> chronology = chronologize(key, record);
-            int index = Timestamps.findIndexOfTimestampOrNearestSuccessor(
+            int index = Timestamps.findNearestSuccessorForTimestamp(
                     chronology.keySet(), start);
             Entry<Timestamp, Set<Object>> entry = null;
             if(index > 0) {

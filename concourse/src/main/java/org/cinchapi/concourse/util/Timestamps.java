@@ -37,9 +37,9 @@ import com.google.common.collect.Iterables;
 public class Timestamps {
 
     /**
-     * Search the chronological set of {@code timestamps} to return the index of
-     * the the {@code sought} timestamp if it is contained or the index of a
-     * contained timestamp that occurs afterwards more closely than any others.
+     * Search the chronological set of {@code timestamps} to return the index of 
+     * a contained timestamp that occurs after the {@code sought} timestamp
+     * and more closely than any others.
      * <p>
      * <ul>
      * <li>If the search set is empty, this function will return {@code 0}</li>
@@ -55,7 +55,7 @@ public class Timestamps {
      * @param sought
      * @return an index of nearest successor timestamp
      */
-    public static int findIndexOfTimestampOrNearestSuccessor(
+    public static int findNearestSuccessorForTimestamp(
             Set<Timestamp> timestamps, Timestamp sought) {
         int start = 0;
         int end = timestamps.size() - 1;
