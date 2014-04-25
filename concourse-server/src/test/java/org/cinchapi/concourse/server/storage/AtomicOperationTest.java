@@ -46,6 +46,36 @@ import com.google.common.collect.Sets;
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     protected Compoundable destination;
+    
+    @Test
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingEqKeyAndValue(){
+        long record = TestData.getLong();
+        String key = "foo";
+        TObject value = Convert.javaToThrift("bar");
+        add(key, value, record);
+        store.find(key, Operator.EQUALS, value);
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
+    
+    @Test
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingGttKeyAndValue(){
+        long record = TestData.getLong();
+        String key = "foo";
+        TObject value = Convert.javaToThrift("bar");
+        add(key, value, record);
+        store.find(key, Operator.GREATER_THAN, value);
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
+    
+    @Test
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingBwtKeyAndValue(){
+        long record = TestData.getLong();
+        String key = "foo";
+        TObject value = Convert.javaToThrift("bar");
+        add(key, value, record);
+        store.find(key, Operator.BETWEEN, value, Convert.javaToThrift("bars"));
+        Assert.assertTrue(((AtomicOperation) store).commit());
+    }
 
     @Test
     public void testAbort() {
