@@ -393,8 +393,23 @@ public class AtomicOperation extends BufferedStore implements
     private boolean grabLocks() {
         locks = Maps.newHashMap();
         try {
-            for (VersionExpectation expectation : expectations) {
+            search: for (VersionExpectation expectation : expectations) {
                 prepareLockForPossibleUpgrade(expectation, locks);
+                if(expectation.getLockType() == LockType.RANGE_READ) {
+                    // CON-72: Check to see if we already have a RANE_WRITE that
+                    // covers one of the values in this RANGE_READ. If so skip
+                    // this lock since the write will adequately block any
+                    // conflicting reads
+                    for (Value value : ((RangeToken) expectation.getToken())
+                            .getValues()) {
+                        RangeToken rt = RangeToken.forWriting(
+                                ((RangeToken) expectation.getToken()).getKey(),
+                                value);
+                        if(locks.containsKey(rt)) {
+                            continue search;
+                        }
+                    }
+                }
                 if(!locks.containsKey(expectation.getToken())) {
                     LockDescription description = LockDescription
                             .forVersionExpectation(expectation);
