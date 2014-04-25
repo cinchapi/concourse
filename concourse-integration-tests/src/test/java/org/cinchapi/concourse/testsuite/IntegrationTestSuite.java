@@ -25,7 +25,6 @@ package org.cinchapi.concourse.testsuite;
 
 import org.cinchapi.concourse.AtomicOperationWofkflowTest;
 import org.cinchapi.concourse.CachedConnectionPoolTest;
-import org.cinchapi.concourse.ChronologizeTest;
 import org.cinchapi.concourse.CompoundOperationTest;
 import org.cinchapi.concourse.SmokeTest;
 import org.cinchapi.concourse.FixedConnectionPoolTest;
@@ -40,10 +39,9 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ TransactionWorkflowTest.class,
-        AtomicOperationWofkflowTest.class, CachedConnectionPoolTest.class,
-        CompoundOperationTest.class, SmokeTest.class,
-        FixedConnectionPoolTest.class, ChronologizeTest.class })
+@SuiteClasses({ TransactionWorkflowTest.class, AtomicOperationWofkflowTest.class,
+        CachedConnectionPoolTest.class, CompoundOperationTest.class,
+        SmokeTest.class, FixedConnectionPoolTest.class })
 public class IntegrationTestSuite {
 
 }
