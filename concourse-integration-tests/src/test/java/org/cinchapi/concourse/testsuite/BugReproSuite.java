@@ -25,6 +25,7 @@ package org.cinchapi.concourse.testsuite;
 
 import org.cinchapi.concourse.bugrepro.CON52;
 import org.cinchapi.concourse.bugrepro.CON55;
+import org.cinchapi.concourse.bugrepro.CON72;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -35,7 +36,7 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ CON52.class, CON55.class })
+@SuiteClasses({ CON52.class, CON55.class, CON72.class })
 public class BugReproSuite {
 
 }
