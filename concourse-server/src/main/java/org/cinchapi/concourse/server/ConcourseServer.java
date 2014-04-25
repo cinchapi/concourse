@@ -302,7 +302,8 @@ public class ConcourseServer implements
         Compoundable store = transaction != null ? 
                 transactions.get(transaction): engine;
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
-        for (Long timestamp : store.audit(key, record).keySet()) {
+        Map<Long, String> history = store.audit(key, record);
+        for (Long timestamp : history.keySet()) {
             Set<TObject> values = store.fetch(key, record, timestamp);
             if (!values.isEmpty()) {
                 result.put(timestamp, values);
@@ -311,7 +312,7 @@ public class ConcourseServer implements
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
             operation = updateChronologizeResultSet(key, record,
-                    result, store);
+                    result, history, store);
         }
         return result;
     }
@@ -727,21 +728,23 @@ public class ConcourseServer implements
     
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to update chronologized values in {@code key} in {@code record}.
+     * and do the work to update chronologized values in {@code key} in {@code record}
+     * with respect to {@code history} audit.
      * 
      * @param key
      * @param record
      * @param result
+     * @param history
      * @param store
      * @return the AtomicOperation that must be committed
      */
     private AtomicOperation updateChronologizeResultSet(String key, long record,
-            Map<Long, Set<TObject>> result, Compoundable store) {
+            Map<Long, Set<TObject>> result, Map<Long, String> history, Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
              Map<Long, String> newResult = operation.audit(key, record);
-             if (newResult.size() > result.size()) {
-                 for (int i = result.size(); i < newResult.size(); i++) {
+             if (newResult.size() > history.size()) {
+                 for (int i = history.size(); i < newResult.size(); i++) {
                      Long timestamp = Iterables.get((Iterable<Long>) newResult.keySet(), 
                              i);
                      Set<TObject> values = operation.fetch(key, record);
