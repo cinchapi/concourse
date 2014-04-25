@@ -132,6 +132,50 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         lastValueSet = Iterables.getLast((Iterable<Set<Object>>) result.values());
         assertEquals(expectedLastSetSize, lastValueSet.size());
     }
+    
+    @Test
+    public void testChronologizeWhenRemovalHasHappenedWithEmptyValues() {
+        long record = Variables.register("record", client.create());
+        String key = Variables.register("key", TestData.getString());
+        int testSize = Variables.register("testSize", 5);
+        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
+        List<Object> listOfValues = new ArrayList<Object>();
+        Map<Timestamp, Set<Object>> result = null;
+        for (int i = 0; i < testSize; i++) {
+            Object value = null;
+            while (value == null || initValues.contains(value)) {
+                value = TestData.getObject();
+            }
+            initValues.add(value);
+            listOfValues.add(value);
+            client.add(key, value, record);
+        }
+        client.remove(key, listOfValues.get(2), record);
+        client.remove(key, listOfValues.get(0), record);
+        client.remove(key, listOfValues.get(4), record);
+        client.add(key, listOfValues.get(2), record);
+        client.set(key, listOfValues.get(0), record);
+        client.add(key, listOfValues.get(1), record);
+        client.add(key, listOfValues.get(2), record);
+        client.set(key, listOfValues.get(3), record);
+        result = client.chronologize(key, record);
+        Variables.register("result", result);
+        Variables.register("audit", client.audit(key, record));
+        assertEquals(17, result.size());
+        assertEquals(5, Iterables.get(result.entrySet(), 4).getValue().size());
+        assertEquals(4, Iterables.get(result.entrySet(), 5).getValue().size());
+        assertEquals(3, Iterables.get(result.entrySet(), 6).getValue().size());
+        assertEquals(2, Iterables.get(result.entrySet(), 7).getValue().size());
+        assertEquals(3, Iterables.get(result.entrySet(), 8).getValue().size());
+        assertEquals(2, Iterables.get(result.entrySet(), 9).getValue().size());
+        assertEquals(1, Iterables.get(result.entrySet(), 10).getValue().size());
+        assertEquals(1, Iterables.get(result.entrySet(), 11).getValue().size());
+        assertEquals(2, Iterables.get(result.entrySet(), 12).getValue().size());
+        assertEquals(3, Iterables.get(result.entrySet(), 13).getValue().size());
+        assertEquals(2, Iterables.get(result.entrySet(), 14).getValue().size());
+        assertEquals(1, Iterables.get(result.entrySet(), 15).getValue().size());
+        assertEquals(1, Iterables.get(result.entrySet(), 16).getValue().size());
+    }
 
     @Test
     public void testChronologizeIsNotAffectedByAddingValueAlreadyInKeyInRecord() {
