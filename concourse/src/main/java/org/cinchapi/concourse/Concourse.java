@@ -196,6 +196,20 @@ public abstract class Concourse {
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
+     * Browse {@code record} and return all the data that is presently contained
+     * as a mapping from key name to value set.
+     * <p>
+     * <em>This method is the atomic equivalent of calling
+     * {@code fetch(describe(record), record)}</em>
+     * </p>
+     * 
+     * @param record
+     * @return a mapping of all the presently contained keys and their mapped
+     *         values
+     */
+    public abstract Map<String, Set<Object>> browse(long record);
+
+    /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * and return a mapping from each timestamp to the non-empty set of values.
      * 
@@ -206,7 +220,7 @@ public abstract class Concourse {
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record);
-    
+
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * from {@code start} timestamp inclusively to present and return a mapping
@@ -1112,6 +1126,33 @@ public abstract class Concourse {
         }
 
         @Override
+        public Map<String, Set<Object>> browse(final long record) {
+            return execute(new Callable<Map<String, Set<Object>>>() {
+
+                @Override
+                public Map<String, Set<Object>> call() throws Exception {
+                    Map<String, Set<Object>> data = TLinkedHashMap
+                            .newTLinkedHashMap("Key", "Values");
+                    for (Entry<String, Set<TObject>> entry : client.browse(
+                            record, creds, transaction).entrySet()) {
+                        data.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(),
+                                new Function<TObject, Object>() {
+
+                                    @Override
+                                    public Object apply(TObject input) {
+                                        return Convert.thriftToJava(input);
+                                    }
+
+                                }));
+                    }
+                    return data;
+                }
+
+            });
+        }
+
+        @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record) {
             return execute(new Callable<Map<Timestamp, Set<Object>>>() {
@@ -1141,13 +1182,13 @@ public abstract class Concourse {
 
             });
         }
-        
+
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start) {
             return chronologize(key, record, start, Timestamp.now());
         }
-        
+
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start, final Timestamp end) {
