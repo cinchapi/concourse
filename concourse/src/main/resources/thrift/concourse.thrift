@@ -179,10 +179,16 @@ service ConcourseService {
 	string getServerVersion();
 	
 	/**
-	  * Atomically add the key-value mappings defined in the {@code json} formatted 
-	  * string to {@code record}.
-	  */
+	 * Atomically add the key-value mappings defined in the {@code json} formatted 
+	 * string to {@code record}.
+	 */
 	bool insert(1: string json, 2: i64 record, 3: shared.AccessToken creds, 
 		4: shared.TransactionToken token);
+	
+	/**
+	 * Return all the data that is presently contained in {@code record}.
+	 */	
+	map<string, set<data.TObject>> browse(1: i64 record, 2: shared.AccessToken creds, 
+		3: shared.TransactionToken token);
 
 }

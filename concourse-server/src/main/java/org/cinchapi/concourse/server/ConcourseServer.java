@@ -294,25 +294,40 @@ public class ConcourseServer implements
         return Strings.isNullOrEmpty(key) ? engine.audit(record) : engine
                 .audit(key, record);
     }
-    
+
     @Override
-    public Map<Long, Set<TObject>> chronologize(long record, String key, 
+    public Map<String, Set<TObject>> browse(long record, AccessToken creds,
+            TransactionToken transaction) throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
+        while (operation == null || !operation.commit()) {
+            data.clear();
+            operation = doBrowse(record, data,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
+        return data;
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologize(long record, String key,
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = transaction != null ? 
-                transactions.get(transaction): engine;
+        Compoundable store = transaction != null ? transactions
+                .get(transaction) : engine;
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
         Map<Long, String> history = store.audit(key, record);
         for (Long timestamp : history.keySet()) {
             Set<TObject> values = store.fetch(key, record, timestamp);
-            if (!values.isEmpty()) {
+            if(!values.isEmpty()) {
                 result.put(timestamp, values);
             }
         }
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = updateChronologizeResultSet(key, record,
-                    result, history, store);
+            operation = updateChronologizeResultSet(key, record, result,
+                    history, store);
         }
         return result;
     }
@@ -643,6 +658,30 @@ public class ConcourseServer implements
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to browse and populate all the {@code data} in
+     * {@code record}.
+     * 
+     * @param record
+     * @param data
+     * @param store
+     * @return the data in {@code record}
+     */
+    private AtomicOperation doBrowse(long record,
+            Map<String, Set<TObject>> data, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        try {
+            for (String key : operation.describe(record)) {
+                data.put(key, operation.fetch(key, record));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
      * and do the work to clear {@code key} in {@code record}.
      * 
      * @param key
@@ -725,11 +764,11 @@ public class ConcourseServer implements
         }
 
     }
-    
+
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to update chronologized values in {@code key} in {@code record}
-     * with respect to {@code history} audit.
+     * and do the work to update chronologized values in {@code key} in
+     * {@code record} with respect to {@code history} audit.
      * 
      * @param key
      * @param record
@@ -738,22 +777,23 @@ public class ConcourseServer implements
      * @param store
      * @return the AtomicOperation that must be committed
      */
-    private AtomicOperation updateChronologizeResultSet(String key, long record,
-            Map<Long, Set<TObject>> result, Map<Long, String> history, Compoundable store) {
+    private AtomicOperation updateChronologizeResultSet(String key,
+            long record, Map<Long, Set<TObject>> result,
+            Map<Long, String> history, Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
-             Map<Long, String> newResult = operation.audit(key, record);
-             if (newResult.size() > history.size()) {
-                 for (int i = history.size(); i < newResult.size(); i++) {
-                     Long timestamp = Iterables.get((Iterable<Long>) newResult.keySet(), 
-                             i);
-                     Set<TObject> values = operation.fetch(key, record);
-                     if (!values.isEmpty()) {
-                         result.put(timestamp, operation.fetch(key, record));
-                     }
-                 }
-             }
-             return operation;
+            Map<Long, String> newResult = operation.audit(key, record);
+            if(newResult.size() > history.size()) {
+                for (int i = history.size(); i < newResult.size(); i++) {
+                    Long timestamp = Iterables.get(
+                            (Iterable<Long>) newResult.keySet(), i);
+                    Set<TObject> values = operation.fetch(key, record);
+                    if(!values.isEmpty()) {
+                        result.put(timestamp, operation.fetch(key, record));
+                    }
+                }
+            }
+            return operation;
         }
         catch (AtomicStateException e) {
             return null;
@@ -775,4 +815,5 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
+
 }
