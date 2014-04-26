@@ -219,6 +219,7 @@ public abstract class Concourse {
      *         that were contained for the key in record from specified start
      *         timestamp to present
      */
+    @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start);
 
@@ -236,6 +237,7 @@ public abstract class Concourse {
      *         that were contained for the key in record from specified start
      *         timestamp to specified end timestamp
      */
+    @CompoundOperation
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record, Timestamp start, Timestamp end);
 
