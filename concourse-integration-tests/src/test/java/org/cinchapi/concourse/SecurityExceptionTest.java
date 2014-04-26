@@ -1,6 +1,7 @@
 package org.cinchapi.concourse;
 
 import org.cinchapi.concourse.thrift.TSecurityException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -13,10 +14,23 @@ import org.junit.Test;
  */
 public class SecurityExceptionTest extends ConcourseIntegrationTest {
     
-    @Test(expected=TSecurityException.class)
+    @Test
     public void testTSecurityExceptionIsThrown(){
-        grantAccess("admin", "admin2");
-        client.add("name", "brad", 1); // this should throw TSecurityException
+        try {
+            grantAccess("admin", "admin2");
+            client.add("name", "brad", 1); // this should throw
+                                           // TSecurityException
+            Assert.fail("Expecting TSecurityException");
+        }
+        catch (Exception e) {
+            if(e.getCause() != null
+                    & e.getCause() instanceof TSecurityException) {
+                Assert.assertTrue(true);
+            }
+            else {
+                throw e;
+            }
+        }
     }
     
 }
