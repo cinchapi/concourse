@@ -45,6 +45,7 @@ import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.util.Version;
 
@@ -159,6 +160,9 @@ public final class ConcourseShell {
                     catch (Exception e) {
                         if(e.getCause() instanceof TTransportException) {
                             die(e.getMessage());
+                        }
+                        else if (e.getCause() instanceof TSecurityException) {
+                            die("A security change has occurred and your session cannot continue");
                         }
                         else {
                             System.err.print("ERROR: " + e.getMessage());

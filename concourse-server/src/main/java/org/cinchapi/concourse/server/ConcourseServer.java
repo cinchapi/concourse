@@ -60,6 +60,7 @@ import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
@@ -469,7 +470,7 @@ public class ConcourseServer implements
                 return false;
             }
         }
-        catch (SecurityException e) {
+        catch (TSecurityException e) {
             return false;
         }
         catch (TException e) {
@@ -631,11 +632,11 @@ public class ConcourseServer implements
      * Verify that {@code token} is valid.
      * 
      * @param token
-     * @throws SecurityException
+     * @throws TSecurityException
      */
-    private void authenticate(AccessToken token) throws SecurityException {
+    private void authenticate(AccessToken token) throws TSecurityException {
         if(!manager.validate(token)) {
-            throw new SecurityException("Invalid access token");
+            throw new TSecurityException("Invalid access token");
         }
     }
 
@@ -645,11 +646,11 @@ public class ConcourseServer implements
      * 
      * @param creds
      * @param transaction
-     * @throws SecurityException
+     * @throws TSecurityException
      * @throws IllegalArgumentException
      */
     private void checkAccess(AccessToken creds, TransactionToken transaction)
-            throws SecurityException, IllegalArgumentException {
+            throws TSecurityException, IllegalArgumentException {
         authenticate(creds);
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
@@ -802,16 +803,16 @@ public class ConcourseServer implements
 
     /**
      * Validate that the {@code username} and {@code password} pair represent
-     * correct credentials. If not, throw a SecurityException.
+     * correct credentials. If not, throw a TSecurityException.
      * 
      * @param username
      * @param password
-     * @throws SecurityException
+     * @throws TSecurityException
      */
     private void validate(ByteBuffer username, ByteBuffer password)
-            throws SecurityException {
+            throws TSecurityException {
         if(!manager.validate(username, password)) {
-            throw new SecurityException(
+            throw new TSecurityException(
                     "Invalid username/password combination.");
         }
     }
