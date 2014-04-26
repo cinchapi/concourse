@@ -162,7 +162,7 @@ public final class ConcourseShell {
                             die(e.getMessage());
                         }
                         else if (e.getCause() instanceof TSecurityException) {
-                            die(e.getMessage());
+                            die("A security change has occurred and your session cannot continue");
                         }
                         else {
                             System.err.print("ERROR: " + e.getMessage());
