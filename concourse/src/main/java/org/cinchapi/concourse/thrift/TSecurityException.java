@@ -34,12 +34,14 @@ import org.slf4j.LoggerFactory;
  * The security ex that occurs when the user session
  * is invalidated from Concourse server.
  */
+@SuppressWarnings({ "serial", "unused", "unchecked" })
 public class TSecurityException extends TException implements org.apache.thrift.TBase<TSecurityException, TSecurityException._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("TSecurityException");
 
   private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRING, (short)1);
 
-  private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+  @SuppressWarnings("rawtypes")
+private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
     schemes.put(StandardScheme.class, new TSecurityExceptionStandardSchemeFactory());
     schemes.put(TupleScheme.class, new TSecurityExceptionTupleSchemeFactory());
