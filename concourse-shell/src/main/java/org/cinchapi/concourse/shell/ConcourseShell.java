@@ -161,7 +161,7 @@ public final class ConcourseShell {
                         if(e.getCause() instanceof TTransportException) {
                             die(e.getMessage());
                         }
-                        else if (e.getCause() instanceof TSecurityException) {
+                        else if(e.getCause() instanceof TSecurityException) {
                             die("A security change has occurred and your session cannot continue");
                         }
                         else {
