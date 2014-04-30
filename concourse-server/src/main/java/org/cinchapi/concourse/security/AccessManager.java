@@ -305,7 +305,7 @@ public class AccessManager {
      * @param username
      * @return {@code true} if {@code username} is valid
      */
-    private boolean isValidUsername(ByteBuffer username) {
+    public boolean isValidUsername(ByteBuffer username) {
         return credentials.get(encodeHex(username)) != null;
     }
 

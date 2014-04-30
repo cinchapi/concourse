@@ -75,6 +75,14 @@ public interface ConcourseServerMXBean {
      * @param password
      */
     public void grant(byte[] username, byte[] password);
+    
+    /**
+     * 
+     * @param username
+     * @return
+     */
+    @ManagedOperation
+    public boolean hasUser(byte[] username);
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
