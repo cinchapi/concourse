@@ -77,9 +77,11 @@ public interface ConcourseServerMXBean {
     public void grant(byte[] username, byte[] password);
     
     /**
+     * Check if the user identified by {@code username}
+     * already exists.
      * 
      * @param username
-     * @return
+     * @return true/false
      */
     @ManagedOperation
     public boolean hasUser(byte[] username);
