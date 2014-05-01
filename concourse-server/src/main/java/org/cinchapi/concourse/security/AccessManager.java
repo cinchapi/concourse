@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
@@ -45,6 +47,9 @@ import org.cinchapi.concourse.util.ByteBuffers;
 
 import static com.google.common.base.Preconditions.*;
 
+import com.beust.jcommander.IParameterValidator;
+import com.beust.jcommander.ParameterException;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -645,6 +650,90 @@ public class AccessManager {
             return sb.toString();
         }
 
+    }
+    
+    /**
+     * The validator to validate parsed username from JCommander.
+     * 
+     * @author knd
+     */
+    public static class UsernameValidator implements IParameterValidator {
+        
+        public String validationErrorMsg = "Username cannot be empty " +
+                "or contain whitespaces.";
+        
+        @Override
+        public void validate(String name, String value) throws ParameterException { 
+            if(Strings.isNullOrEmpty(value)) {
+                throw new ParameterException(validationErrorMsg);
+            }
+            Matcher matcher = Pattern.compile("\\s").matcher(value);
+            boolean hasWhiteSpace = matcher.find();
+            if (hasWhiteSpace) {
+                throw new ParameterException(validationErrorMsg);
+            }
+        }
+        
+        /**
+         * Checks if the username is valid.
+         * 
+         * @param value
+         * @return true/false
+         */
+        public boolean isValidUsername(String value) {
+            try {
+                validate(null, value);
+                return true;
+            }
+            catch (Exception e) {
+                return false;
+            }
+        }
+        
+    }
+    
+    /**
+     * The validator to validate parsed password from JCommander.
+     * 
+     * @author knd
+     */
+    public static class PasswordValidator implements IParameterValidator {
+        
+        public String validationErrorMsg = "Password " +
+                "cannot be empty, or have fewer than 3 characters, " +
+                "or contain whitespaces.";
+        
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            if(Strings.isNullOrEmpty(value)) {
+                throw new ParameterException(validationErrorMsg);
+            }
+            else if (value.length() < 3) {
+                throw new ParameterException(validationErrorMsg);
+            }
+            Matcher matcher = Pattern.compile("\\s").matcher(value);
+            boolean hasWhiteSpace = matcher.find();
+            if (hasWhiteSpace) {
+                throw new ParameterException(validationErrorMsg);
+            }
+        }
+        
+        /**
+         * Check if the password is valid.
+         * 
+         * @param value
+         * @return true/false
+         */
+        public boolean isValidPassword(String value) {
+            try {
+                validate(null, value);
+                return true;
+            }
+            catch (Exception e) {
+                return false;
+            }
+        }
+        
     }
 
 }
