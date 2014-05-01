@@ -34,9 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -44,11 +41,11 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.TStrings;
 
 import static com.google.common.base.Preconditions.*;
 
-import com.beust.jcommander.IParameterValidator;
-import com.beust.jcommander.ParameterException;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
@@ -194,6 +191,10 @@ public class AccessManager {
      * @param password
      */
     public void grant(ByteBuffer username, ByteBuffer password) {
+        Preconditions.checkArgument(isAcceptableUsername(username),
+                "Username must not be empty, or contain any whitespace.");
+        Preconditions.checkArgument(isSecuredPassword(password),
+                "Password must not be empty, or have fewer than 3 characters.");
         write.lock();
         try {
             ByteBuffer salt = Passwords.getSalt();
@@ -206,6 +207,33 @@ public class AccessManager {
         finally {
             write.unlock();
         }
+    }
+    
+    /**
+     * Return {@code true} if {@code username} is in valid format,
+     * in which it must not be null or empty, or contain any whitespace.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} is valid format
+     */
+    private boolean isAcceptableUsername(ByteBuffer username) {
+        String usernameStr = new String(username.array());
+        return !Strings.isNullOrEmpty(usernameStr) && !usernameStr.contains(
+                TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+    }
+    
+    /**
+     * Return {@code true} if {@code password} is in valid format,
+     * in which it must not be null or empty, or contain fewer than
+     * 3 characters.
+     * 
+     * @param password
+     * @return {@code true} if {@code password} is valid format
+     */
+    private boolean isSecuredPassword(ByteBuffer password) {
+        String passwordStr = new String(password.array());
+        return !Strings.isNullOrEmpty(passwordStr) && 
+                passwordStr.length() >= 3;
     }
 
     /**
@@ -650,105 +678,6 @@ public class AccessManager {
             return sb.toString();
         }
 
-    }
-    
-    /**
-     * The validator to validate parsed username from JCommander.
-     * 
-     * @author knd
-     */
-    public static class UsernameValidator implements IParameterValidator {
-        
-        public String validationErrorMsg = "Username cannot be empty " +
-                "or contain any whitespace.";
-        
-        /**
-         * Validate the {@code username} format that it must
-         * not be empty, or contain any whitespace.
-         */
-        @Override
-        public void validate(String paramName, String username) throws ParameterException { 
-            if(Strings.isNullOrEmpty(username)) {
-                throw new ParameterException(validationErrorMsg);
-            }
-            Matcher matcher = Pattern.compile("\\s").matcher(username);
-            boolean hasWhiteSpace = matcher.find();
-            if (hasWhiteSpace) {
-                throw new ParameterException(validationErrorMsg);
-            }
-        }
-        
-        /**
-         * Return {@code true} if the {@code username} is in valid 
-         * format as defined in {@link #validate(String, String) validate}
-         * method.
-         * 
-         * @param value
-         * @return true/false
-         */
-        public boolean isValidUsername(String username) {
-            try {
-                validate(null, username);
-                return true;
-            }
-            catch (Exception e) {
-                return false;
-            }
-        }
-        
-    }
-    
-    /**
-     * The validator to validate parsed password from JCommander,
-     * 
-     * 
-     * 
-     * @author knd
-     */
-    public static class PasswordValidator implements IParameterValidator {
-        
-        public String validationErrorMsg = "Password " +
-                "cannot be empty, or have fewer than 3 characters, " +
-                "or contain any whitespace.";
-        
-        /**
-         * Validate the {@code password} format that it must 
-         * not be empty, or have fewer than 3 characters, or
-         * contain any whitespace.
-         */
-        @Override
-        public void validate(String paramName, String password) throws ParameterException {
-            if(Strings.isNullOrEmpty(password)) {
-                throw new ParameterException(validationErrorMsg);
-            }
-            else if (password.length() < 3) {
-                throw new ParameterException(validationErrorMsg);
-            }
-            Matcher matcher = Pattern.compile("\\s").matcher(password);
-            boolean hasWhiteSpace = matcher.find();
-            if (hasWhiteSpace) {
-                throw new ParameterException(validationErrorMsg);
-            }
-        }
-        
-        /**
-         * Return {@code true} if the {@code password} is in valid 
-         * format as defined in {@link #validate(String, String) validate}
-         * method.
-         * 
-         * @param value
-         * @return true/false
-         */
-        public boolean isValidPassword(String password) {
-            try {
-                validate(null, password);
-                return true;
-            }
-            catch (Exception e) {
-                return false;
-            }
-        }
-        
     }
 
 }

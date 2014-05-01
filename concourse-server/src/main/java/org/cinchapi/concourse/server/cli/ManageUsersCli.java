@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.cli;
 
-import org.cinchapi.concourse.security.AccessManager.PasswordValidator;
-import org.cinchapi.concourse.security.AccessManager.UsernameValidator;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 
 import com.beust.jcommander.Parameter;
@@ -81,43 +79,42 @@ public class ManageUsersCli extends ManagedOperationCli {
                 bean.revoke(username);
                 System.out.println("Consider it done.");
             }
+            else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
+                if(bean.hasUser(opts.addingUsername.getBytes())) {
+                    System.out.println("WARNING: " +
+                    		    opts.addingUsername + " already exists. " +
+                    		    "Use CTRL-C to terminate or continue to edit this user.");
+                }
+                if(Strings.isNullOrEmpty(opts.newPassword)) {
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.addingUsername + " : ", '*');
+                }
+                bean.grant(opts.addingUsername.getBytes(), opts.newPassword.getBytes());
+                System.out.println("Consider it done.");
+            }
+            else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
+                if(!bean.hasUser(opts.editingUsername.getBytes())) {
+                    System.out.println("WARNING: " + 
+                            opts.editingUsername + " does not exist. " +
+                            "Use CTRL-C to terminate or continue to add this user.");   
+                }
+                if(Strings.isNullOrEmpty(opts.newPassword)) {
+                    opts.newPassword = console.readLine(
+                            "Password for " + opts.editingUsername + " : ", '*');
+                }
+                bean.grant(opts.editingUsername.getBytes(), opts.newPassword.getBytes());
+                System.out.println("Consider it done.");
+            }
+            else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
+                if(!bean.hasUser(opts.deletingUsername.getBytes())) {
+                    System.out.println("WARNING: " + opts.deletingUsername + 
+                            " does not exist.");
+                }
+                bean.revoke(opts.deletingUsername.getBytes());
+                System.out.println("Consider it done.");
+            }
             else {
-                boolean addingUser = !Strings.isNullOrEmpty(opts.addingUsername);
-                boolean editingUser = !Strings.isNullOrEmpty(opts.editingUsername);
-                boolean deletingUser = !Strings.isNullOrEmpty(opts.deletingUsername);           
-                if((addingUser && editingUser) || (addingUser && deletingUser)
-                        || (editingUser && deletingUser)) {
-                    die("You can only do one action at a time.");
-                }          
-                while (!addingUser && !editingUser && !deletingUser)  {
-                    String action = console.readLine(
-                            "Specify action [add | edit | delete | exit]: ").trim();
-                    if("add".equalsIgnoreCase(action)) {
-                        addingUser = true;
-                    }
-                    else if("edit".equalsIgnoreCase(action)) {
-                        editingUser = true;
-                    }
-                    else if("delete".equalsIgnoreCase(action)) {
-                        deletingUser = true;
-                    }
-                    else if("exit".equalsIgnoreCase(action)) {
-                        System.exit(1);
-                    }
-                    else {
-                        System.out.println(action + " action does not exist.");
-                    }
-                }
-                if(addingUser) {
-                    doAddNewUserTask(opts.addingUsername, opts.newPassword, bean);
-                }
-                else if(editingUser) {
-                    doEditUserTask(opts.editingUsername, opts.newPassword, bean);
-                }
-                else if(deletingUser) {
-                    doDeleteUserTask(opts.deletingUsername, bean);
-                }  
-                System.out.println("Consider it done.");;
+                die("Action not found.\nTry `./useradmin --help` for more information.");
             }
         }
         catch (Exception e) {
@@ -134,170 +131,29 @@ public class ManageUsersCli extends ManagedOperationCli {
     private static class MyOptions extends Options {
         
         @Parameter(names = { "-g", "--grant" }, 
-                description = "[BEING DEPRECATED] Add a new user or change the password for an existing user. ")
+                description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
         public boolean grant = false;
 
         @Parameter(names = { "-r", "--revoke" }, 
-                description = "[BEING DEPRECATED] Remove an existing user")
+                description = "[DEPRECATED] Remove an existing user")
         public boolean revoke = false;
 
-        @Parameter(names = { "-a", "--add-user" }, validateWith = UsernameValidator.class,
+        @Parameter(names = { "-a", "--add-user" }, 
                 description = "Username of new user to add.")
         public String addingUsername;
         
-        @Parameter(names = { "-e", "--edit-user" }, validateWith = UsernameValidator.class,
+        @Parameter(names = { "-e", "--edit-user" }, 
                 description = "Username of existing user to edit.")
         public String editingUsername;
         
-        @Parameter(names = { "-d", "--delete-user" }, validateWith = UsernameValidator.class,
+        @Parameter(names = { "-d", "--delete-user" },
                 description = "Username of existing user to delete.")
         public String deletingUsername;
         
-        @Parameter(names = { "-np", "--new-password" }, validateWith = PasswordValidator.class,
+        @Parameter(names = { "-np", "--new-password" },
                 description = "Password of new user to add/edit.")
         public String newPassword;
         
-    }
-    
-    /**
-     * Execute the task of adding new user with {@code newUsername}
-     * and {@code newPassword} to {@code bean} server.
-     * 
-     * @param newUsername
-     * @param newPassword
-     * @param bean
-     * @throws Exception
-     */
-    private void doAddNewUserTask(String newUsername, String newPassword,
-            ConcourseServerMXBean bean) throws Exception {
-        UsernameValidator userValidator = new UsernameValidator();
-        PasswordValidator passwordValidator = new PasswordValidator();
-        boolean validUsername = false;    
-        if(!Strings.isNullOrEmpty(newUsername)) {
-            // if in here, which means newUsername passes 
-            // the validator of JCommander parser
-            if(!bean.hasUser(newUsername.getBytes())) {
-                validUsername = true;
-            }
-            else {
-                System.out.println(newUsername + " already exists.");
-            }
-        }
-        while (!validUsername) {
-            String usernameInput = console.readLine("Username you want to add: ");
-            if (!userValidator.isValidUsername(usernameInput)) {
-                System.out.println(userValidator.validationErrorMsg);
-                continue;
-            }        
-            if (!bean.hasUser(usernameInput.getBytes())) {
-                newUsername = usernameInput;
-                validUsername = true;
-            }
-            else {
-                System.out.println(usernameInput + " already exists.");
-            }
-        } 
-        while (Strings.isNullOrEmpty(newPassword)) {
-            String passwordInput = console.readLine(
-                    "Password for " + newUsername + " : ", '*');
-            if (!passwordValidator.isValidPassword(passwordInput)) {
-                System.out.println(passwordValidator.validationErrorMsg);
-            }
-            else {
-                newPassword = passwordInput;
-            }      
-        }
-        bean.grant(newUsername.getBytes(), newPassword.getBytes());
-    }
-    
-    /**
-     * Execute the task of editing existing user by {@code username}
-     * with {@code newPassword} to {@code bean} server.
-     * 
-     * @param username
-     * @param newPassword
-     * @param bean
-     * @throws Exception
-     */
-    private void doEditUserTask(String username, String newPassword,
-            ConcourseServerMXBean bean) throws Exception {
-        UsernameValidator userValidator = new UsernameValidator();
-        PasswordValidator passwordValidator = new PasswordValidator();
-        boolean validUsername = false;     
-        if (!Strings.isNullOrEmpty(username)) {
-            // if in here, which means newUsername passes 
-            // the validator of JCommander parser
-            if (bean.hasUser(username.getBytes())) {
-                validUsername = true;
-            }
-            else {
-                System.out.println(username + " does not exist.");
-            }
-        }
-        while (!validUsername) {
-            String usernameInput = console.readLine("Username you want to edit: ");
-            if (!userValidator.isValidUsername(usernameInput)) {
-                System.out.println(userValidator.validationErrorMsg);
-                continue;
-            }        
-            if (bean.hasUser(usernameInput.getBytes())) {
-                username = usernameInput;
-                validUsername = true;
-            }
-            else {
-                System.out.println(usernameInput + " does not exist.");
-            }
-        } 
-        while (Strings.isNullOrEmpty(newPassword)) {
-            String passwordInput = console.readLine(
-                    "Password for " + username + " : " , '*');
-            if (!passwordValidator.isValidPassword(passwordInput)) {
-                System.out.println(passwordValidator.validationErrorMsg);
-            }
-            else {
-                newPassword = passwordInput;
-            }      
-        }
-        bean.grant(username.getBytes(), newPassword.getBytes());
-    }
-    
-    /**
-     * Execute the task of deleting existing user by {@code username}
-     * to {@code bean} server.
-     * 
-     * @param username
-     * @param bean
-     * @throws Exception
-     */
-    private void doDeleteUserTask(String username, ConcourseServerMXBean bean)
-            throws Exception {
-        UsernameValidator userValidator = new UsernameValidator();
-        boolean validUsername = false;
-        if (!Strings.isNullOrEmpty(username)) {
-            // if in here, which means newUsername passes 
-            // the validator of JCommander parser
-            if (bean.hasUser(username.getBytes())) {
-                validUsername = true;
-            }
-            else {
-                System.out.println(username + " does not exist.");
-            }
-        }
-        while (!validUsername) {
-            String usernameInput = console.readLine("Username you want to edit: ");
-            if (!userValidator.isValidUsername(usernameInput)) {
-                System.out.println(userValidator.validationErrorMsg);
-                continue;
-            }        
-            if (bean.hasUser(usernameInput.getBytes())) {
-                username = usernameInput;
-                validUsername = true;
-            }
-            else {
-                System.out.println(usernameInput + " does not exist.");
-            }
-        }
-        bean.revoke(username.getBytes());
     }
 
 }
