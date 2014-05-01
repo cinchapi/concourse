@@ -77,8 +77,8 @@ public interface ConcourseServerMXBean {
     public void grant(byte[] username, byte[] password);
     
     /**
-     * Check if the user identified by {@code username}
-     * already exists.
+     * Return {@code true} if the server can be accessed 
+     * by a user identified by {@code username}.
      * 
      * @param username
      * @return true/false

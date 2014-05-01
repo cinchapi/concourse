@@ -63,7 +63,7 @@ public class ManageUsersCli extends ManagedOperationCli {
         MyOptions opts = (MyOptions) options;
         try {
             if(opts.grant) {
-                System.out.println("Option --grant is being deprecated," +
+                System.out.println("WARNING: Option --grant is being deprecated," +
                 		" and replaced by options --add-user and --edit-user.");
                 System.out.println("What is the username you want "
                         + "to add or modify?");
@@ -74,7 +74,7 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println("Consider it done.");
             }
             else if(opts.revoke) {
-                System.out.println("Option --revoke is being deprecated," +
+                System.out.println("WARNING: Option --revoke is being deprecated," +
                 		" and replaced by option --delete-user.");
                 System.out.println("What is the username you want to delete?");
                 byte[] username = console.readLine("").getBytes();

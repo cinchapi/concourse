@@ -660,14 +660,18 @@ public class AccessManager {
     public static class UsernameValidator implements IParameterValidator {
         
         public String validationErrorMsg = "Username cannot be empty " +
-                "or contain whitespaces.";
+                "or contain any whitespace.";
         
+        /**
+         * Validate the {@code username} format that it must
+         * not be empty, or contain any whitespace.
+         */
         @Override
-        public void validate(String name, String value) throws ParameterException { 
-            if(Strings.isNullOrEmpty(value)) {
+        public void validate(String paramName, String username) throws ParameterException { 
+            if(Strings.isNullOrEmpty(username)) {
                 throw new ParameterException(validationErrorMsg);
             }
-            Matcher matcher = Pattern.compile("\\s").matcher(value);
+            Matcher matcher = Pattern.compile("\\s").matcher(username);
             boolean hasWhiteSpace = matcher.find();
             if (hasWhiteSpace) {
                 throw new ParameterException(validationErrorMsg);
@@ -675,14 +679,16 @@ public class AccessManager {
         }
         
         /**
-         * Checks if the username is valid.
+         * Return {@code true} if the {@code username} is in valid 
+         * format as defined in {@link #validate(String, String) validate}
+         * method.
          * 
          * @param value
          * @return true/false
          */
-        public boolean isValidUsername(String value) {
+        public boolean isValidUsername(String username) {
             try {
-                validate(null, value);
+                validate(null, username);
                 return true;
             }
             catch (Exception e) {
@@ -693,7 +699,9 @@ public class AccessManager {
     }
     
     /**
-     * The validator to validate parsed password from JCommander.
+     * The validator to validate parsed password from JCommander,
+     * 
+     * 
      * 
      * @author knd
      */
@@ -701,17 +709,22 @@ public class AccessManager {
         
         public String validationErrorMsg = "Password " +
                 "cannot be empty, or have fewer than 3 characters, " +
-                "or contain whitespaces.";
+                "or contain any whitespace.";
         
+        /**
+         * Validate the {@code password} format that it must 
+         * not be empty, or have fewer than 3 characters, or
+         * contain any whitespace.
+         */
         @Override
-        public void validate(String name, String value) throws ParameterException {
-            if(Strings.isNullOrEmpty(value)) {
+        public void validate(String paramName, String password) throws ParameterException {
+            if(Strings.isNullOrEmpty(password)) {
                 throw new ParameterException(validationErrorMsg);
             }
-            else if (value.length() < 3) {
+            else if (password.length() < 3) {
                 throw new ParameterException(validationErrorMsg);
             }
-            Matcher matcher = Pattern.compile("\\s").matcher(value);
+            Matcher matcher = Pattern.compile("\\s").matcher(password);
             boolean hasWhiteSpace = matcher.find();
             if (hasWhiteSpace) {
                 throw new ParameterException(validationErrorMsg);
@@ -719,14 +732,16 @@ public class AccessManager {
         }
         
         /**
-         * Check if the password is valid.
+         * Return {@code true} if the {@code password} is in valid 
+         * format as defined in {@link #validate(String, String) validate}
+         * method.
          * 
          * @param value
          * @return true/false
          */
-        public boolean isValidPassword(String value) {
+        public boolean isValidPassword(String password) {
             try {
-                validate(null, value);
+                validate(null, password);
                 return true;
             }
             catch (Exception e) {
