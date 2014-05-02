@@ -210,6 +210,24 @@ public abstract class Concourse {
     public abstract Map<String, Set<Object>> browse(long record);
 
     /**
+     * Browse {@code record} at {@code timestamp} and return all the data that
+     * was contained as a mapping from key name to value set.
+     * <p>
+     * <em>This method is the atomic equivalent of calling
+     * {@code fetch(describe(record, timestamp), record, timestamp)}</em>
+     * </p>
+     * 
+     * @param record
+     * @param timestamp
+     * @return a mapping of all the contained keys and their mapped
+     *         values
+     */
+    public Map<String, Set<Object>> browse(long record, Timestamp timestamp) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * and return a mapping from each timestamp to the non-empty set of values.
      * 
@@ -1126,7 +1144,13 @@ public abstract class Concourse {
         }
 
         @Override
-        public Map<String, Set<Object>> browse(final long record) {
+        public Map<String, Set<Object>> browse(long record) {
+            return browse(record, now);
+        }
+
+        @Override
+        public Map<String, Set<Object>> browse(final long record,
+                final Timestamp timestamp) {
             return execute(new Callable<Map<String, Set<Object>>>() {
 
                 @Override
@@ -1134,7 +1158,8 @@ public abstract class Concourse {
                     Map<String, Set<Object>> data = TLinkedHashMap
                             .newTLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : client.browse0(
-                            record, creds, transaction).entrySet()) {
+                            record, timestamp.getMicros(), creds, transaction)
+                            .entrySet()) {
                         data.put(entry.getKey(), Transformers.transformSet(
                                 entry.getValue(),
                                 new Function<TObject, Object>() {

@@ -297,14 +297,14 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse0(long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+    public Map<String, Set<TObject>> browse0(long record, long timestamp,
+            AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
         Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
         while (operation == null || !operation.commit()) {
             data.clear();
-            operation = doBrowse(record, data,
+            operation = doBrowse(record, timestamp, data,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -312,8 +312,9 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse1(String key, AccessToken creds,
-            TransactionToken token) throws TSecurityException, TException {
+    public Map<TObject, Set<Long>> browse1(String key, long timestamp,
+            AccessToken creds, TransactionToken token)
+            throws TSecurityException, TException {
         // TODO implement me
         throw new UnsupportedOperationException();
     }
@@ -670,16 +671,19 @@ public class ConcourseServer implements
      * {@code record}.
      * 
      * @param record
+     * @param timestamp
      * @param data
      * @param store
      * @return the data in {@code record}
      */
-    private AtomicOperation doBrowse(long record,
+    private AtomicOperation doBrowse(long record, long timestamp,
             Map<String, Set<TObject>> data, Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
-            for (String key : operation.describe(record)) {
-                data.put(key, operation.fetch(key, record));
+            for (String key : timestamp == 0 ? operation.describe(record)
+                    : operation.describe(record, timestamp)) {
+                data.put(key, timestamp == 0 ? operation.fetch(key, record)
+                        : operation.fetch(key, record, timestamp));
             }
             return operation;
         }
