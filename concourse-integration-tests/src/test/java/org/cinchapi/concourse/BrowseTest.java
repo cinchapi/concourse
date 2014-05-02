@@ -43,12 +43,12 @@ import com.google.common.collect.Lists;
 public class BrowseTest extends ConcourseIntegrationTest {
 
     @Test
-    public void testBrowseEmpty() {
+    public void testBrowseEmptyRecord() {
         Assert.assertTrue(client.browse(1).isEmpty());
     }
 
     @Test
-    public void testBrowseIsSameAsFetchDescribe() {
+    public void testBrowseRecordIsSameAsFetchDescribe() {
         long record = Variables.register("record", TestData.getLong());
         List<String> keys = Variables.register("keys",
                 Lists.<String> newArrayList());
@@ -72,7 +72,7 @@ public class BrowseTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testBrowseIsSameAsFetchDescribeAfterRemoves() {
+    public void testBrowseRecordIsSameAsFetchDescribeAfterRemoves() {
         long record = TestData.getLong();
         client.add("a", 1, record);
         client.add("a", 2, record);
@@ -83,6 +83,28 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.remove("a", 2, record);
         Assert.assertEquals(client.browse(record),
                 client.fetch(client.describe(record), record));
+    }
+
+    @Test
+    public void testHistoricalBrowseRecordIsSameAsHistoricalFetchDescribe() {
+        long record = TestData.getLong();
+        client.add("a", 1, record);
+        client.add("a", 2, record);
+        client.add("a", 3, record);
+        client.add("b", 1, record);
+        client.add("b", 2, record);
+        client.add("b", 3, record);
+        client.remove("a", 2, record);
+        Timestamp timestamp = Timestamp.now();
+        client.add("c", 1, record);
+        client.add("c", 2, record);
+        client.add("c", 3, record);
+        client.add("d", 1, record);
+        client.add("d", 2, record);
+        client.add("d", 3, record);
+        client.remove("c", 2, record);
+        Assert.assertEquals(client.browse(record, timestamp), client.fetch(
+                client.describe(record, timestamp), record, timestamp));
     }
 
 }
