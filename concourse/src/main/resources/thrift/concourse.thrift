@@ -207,7 +207,14 @@ service ConcourseService {
 	/**
 	 * Return all the data that is presently contained in {@code record}.
 	 */	
-	map<string, set<data.TObject>> browse(1: i64 record, 2: shared.AccessToken creds, 
+	map<string, set<data.TObject>> browse0(1: i64 record, 2: shared.AccessToken creds, 
+		3: shared.TransactionToken token) throws (1: TSecurityException ex);
+	
+	/**
+	 * Return an ordered mapping from each value associated with {@code key} to the
+	 * set of records which contain the value. 
+	 */	
+	map<data.TObject, set<i64>> browse1(1: string key, 2: shared.AccessToken creds, 
 		3: shared.TransactionToken token) throws (1: TSecurityException ex);
 
 }

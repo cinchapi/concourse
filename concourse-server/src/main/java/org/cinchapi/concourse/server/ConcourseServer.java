@@ -297,7 +297,7 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, AccessToken creds,
+    public Map<String, Set<TObject>> browse0(long record, AccessToken creds,
             TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
@@ -309,6 +309,13 @@ public class ConcourseServer implements
                             : engine);
         }
         return data;
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse1(String key, AccessToken creds,
+            TransactionToken token) throws TSecurityException, TException {
+        // TODO implement me
+        throw new UnsupportedOperationException();
     }
 
     @Override
