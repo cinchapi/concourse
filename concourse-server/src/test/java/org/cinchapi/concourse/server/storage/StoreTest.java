@@ -28,12 +28,14 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -58,9 +60,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.TreeMultimap;
 
 /**
  * Base unit tests for {@link Store} services.
@@ -100,6 +105,249 @@ public abstract class StoreTest extends ConcourseBaseTest {
     };
 
     // TODO test audit
+
+    @Test
+    public void testBrowseKeyIsSorted() {
+        String key = TestData.getString();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        Map<TObject, Set<Long>> data = Variables.register("data",
+                store.browse(key));
+        TObject previous = null;
+        for (TObject current : data.keySet()) {
+            if(previous != null) {
+                Variables.register("previous", previous);
+                Variables.register("current", current);
+                Assert.assertTrue(TObjectSorter.INSTANCE.compare(previous, current) < 0);
+            }
+            previous = current;
+        }
+    }
+
+    @Test
+    public void testBrowseKey() {
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+        String key = TestData.getString();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(key));
+    }
+
+    @Test
+    public void testBrowseKeyAfterRemove() {
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+        String key = TestData.getString();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+        Iterator<Entry<TObject, Long>> it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                it.remove();
+                remove(key, entry.getKey(), entry.getValue());
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(key));
+    }
+
+    @Test
+    public void testBrowseKeyWithTime() {
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+        String key = TestData.getString();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+        long timestamp = Time.now();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(key, timestamp));
+    }
+
+    @Test
+    public void testBrowseKeyAfterRemoveWithTime() {
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+        String key = TestData.getString();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+        Iterator<Entry<TObject, Long>> it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                it.remove();
+                remove(key, entry.getKey(), entry.getValue());
+            }
+        }
+        long timestamp = Time.now();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                remove(key, entry.getKey(), entry.getValue());
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(key, timestamp));
+    }
+
+    @Test
+    public void testBrowseRecord() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(record));
+    }
+
+    @Test
+    public void testBrowseRecordAfterRemove() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+        Iterator<Entry<String, TObject>> it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<String, TObject> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                it.remove();
+                remove(entry.getKey(), entry.getValue(), record);
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(record));
+    }
+
+    @Test
+    public void testBrowseRecordWithTime() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+        long timestamp = Time.now();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+    }
+
+    @Test
+    public void testBrowseRecordAfterRemovesWithTime() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+        Iterator<Entry<String, TObject>> it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<String, TObject> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                it.remove();
+                remove(entry.getKey(), entry.getValue(), record);
+            }
+        }
+        long timestamp = Time.now();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<String, TObject> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                remove(entry.getKey(), entry.getValue(), record);
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+
+    }
 
     @Test
     public void testCaseInsensitiveSearchLower() { // CON-10

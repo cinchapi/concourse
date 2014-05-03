@@ -267,6 +267,7 @@ public final class Engine extends BufferedStore implements
             if(super.add(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
+                notifyVersionChange(Token.wrap(key));
                 return true;
             }
             return false;
@@ -319,11 +320,35 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<String> describe(long record) {
+    public Map<TObject, Set<Long>> browse(String key) {
+        transportLock.readLock().lock();
+        LockService.getReadLock(key).lock();
+        try {
+            return super.browse(key);
+        }
+        finally {
+            LockService.getReadLock(key).unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
         LockService.getReadLock(record).lock();
         try {
-            return super.describe(record);
+            return super.browse(record);
         }
         finally {
             LockService.getReadLock(record).unlock();
@@ -332,10 +357,10 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.describe(record, timestamp);
+            return super.browse(record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -458,6 +483,7 @@ public final class Engine extends BufferedStore implements
             if(super.remove(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
+                notifyVersionChange(Token.wrap(key));
                 return true;
             }
             return false;

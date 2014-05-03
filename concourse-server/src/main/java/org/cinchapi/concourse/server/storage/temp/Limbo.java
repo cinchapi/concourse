@@ -26,16 +26,18 @@ package org.cinchapi.concourse.server.storage.temp;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.cinchapi.concourse.util.TStrings;
+import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
+import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.PermanentStore;
-import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.VersionGetter;
 import org.cinchapi.concourse.server.storage.Versioned;
 import org.cinchapi.concourse.server.storage.db.Database;
@@ -49,6 +51,8 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that
@@ -72,7 +76,9 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 @NotThreadSafe
-public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
+public abstract class Limbo extends BaseStore implements
+        Iterable<Write>,
+        VersionGetter {
 
     /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
@@ -181,14 +187,109 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
     }
 
     @Override
-    public Set<String> describe(long record) {
-        return describe(record, Time.now());
+    public Map<String, Set<TObject>> browse(long record) {
+        return browse(record, Time.now());
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
-        return describe(record, timestamp,
-                Maps.<String, Set<TObject>> newHashMap());
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+        return browse(record, timestamp,
+                Maps.<String, Set<TObject>> newLinkedHashMap());
+    }
+
+    /**
+     * Calculate the browsable view of {@code record} at {@code timestamp} using
+     * prior {@code context} as if it were also a part of the Buffer.
+     * 
+     * @param key
+     * @param timestamp
+     * @param context
+     * @return a possibly empty Map of data
+     */
+    public Map<String, Set<TObject>> browse(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record
+                    && write.getVersion() <= timestamp) {
+                Set<TObject> values;
+                values = context.get(write.getKey().toString());
+                if(values == null) {
+                    values = Sets.newHashSet();
+                    context.put(write.getKey().toString(), values);
+                }
+                if(write.getType() == Action.ADD) {
+                    values.add(write.getValue().getTObject());
+                }
+                else {
+                    values.remove(write.getValue().getTObject());
+                }
+            }
+            else if(write.getVersion() > timestamp) {
+                break;
+            }
+            else {
+                continue;
+            }
+        }
+        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter));
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key) {
+        return browse(key, Time.now());
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        Map<TObject, Set<Long>> context = Maps
+                .newTreeMap(TObjectSorter.INSTANCE);
+        return browse(key, timestamp, context);
+    }
+
+    /**
+     * Calculate the browsable view of {@code key} at {@code timestamp} using
+     * prior {@code context} as if it were also a part of the Buffer.
+     * 
+     * @param key
+     * @param timestamp
+     * @param context
+     * @return a possibly empty Map of data
+     */
+    public Map<TObject, Set<Long>> browse(String key, long timestamp,
+            Map<TObject, Set<Long>> context) {
+        if(!(context instanceof SortedMap)) {
+            Map<TObject, Set<Long>> sorted = Maps
+                    .newTreeMap(TObjectSorter.INSTANCE);
+            sorted.putAll(context);
+            context = sorted;
+        }
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getKey().toString().equals(key)
+                    && write.getVersion() <= timestamp) {
+                Set<Long> records = context.get(write.getValue().getTObject());
+                if(records == null) {
+                    records = Sets.newLinkedHashSet();
+                    context.put(write.getValue().getTObject(), records);
+                }
+                if(write.getType() == Action.ADD) {
+                    records.add(write.getRecord().longValue());
+                }
+                else {
+                    records.remove(write.getRecord().longValue());
+                }
+            }
+            else if(write.getVersion() > timestamp) {
+                break;
+            }
+            else {
+                continue;
+            }
+        }
+        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter));
     }
 
     /**
@@ -203,29 +304,32 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
         Iterator<Write> it = iterator();
-        search: while (it.hasNext()) {
+        while (it.hasNext()) {
             Write write = it.next();
-            if(write.getRecord().longValue() == record) {
-                if(write.getVersion() <= timestamp) {
-                    Set<TObject> values;
-                    values = context.get(write.getKey().toString());
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        context.put(write.getKey().toString(), values);
-                    }
-                    if(write.getType() == Action.ADD) {
-                        values.add(write.getValue().getTObject());
-                    }
-                    else {
-                        values.remove(write.getValue().getTObject());
-                    }
+            if(write.getRecord().longValue() == record
+                    && write.getVersion() <= timestamp) {
+                Set<TObject> values;
+                values = context.get(write.getKey().toString());
+                if(values == null) {
+                    values = Sets.newHashSet();
+                    context.put(write.getKey().toString(), values);
+                }
+                if(write.getType() == Action.ADD) {
+                    values.add(write.getValue().getTObject());
                 }
                 else {
-                    break search;
+                    values.remove(write.getValue().getTObject());
                 }
             }
+            else if(write.getVersion() > timestamp) {
+                break;
+            }
+            else {
+                continue;
+            }
         }
-        return Maps.filterValues(context, emptySetFilter).keySet();
+        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
+                .keySet();
     }
 
     @Override
@@ -323,7 +427,8 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
                 break;
             }
         }
-        return Maps.filterValues(context, emptySetFilter).keySet();
+        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
+                .keySet();
     }
 
     @Override
@@ -439,7 +544,8 @@ public abstract class Limbo implements Store, Iterable<Write>, VersionGetter {
         }
         // FIXME sort search results based on frequency (see
         // SearchRecord#search())
-        return Maps.filterValues(rtv, emptySetFilter).keySet();
+        return newLinkedHashMap(Maps.filterValues(rtv, emptySetFilter))
+                .keySet();
     }
 
     /**

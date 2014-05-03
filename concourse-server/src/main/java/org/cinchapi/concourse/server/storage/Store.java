@@ -90,6 +90,61 @@ public interface Store {
     public Map<Long, String> audit(String key, long record);
 
     /**
+     * Browse {@code key}.
+     * <p>
+     * This method returns a mapping from each of the values that is currently
+     * indexed to {@code key} to a Set the records that contain {@code key} as
+     * the associated value. If there are no such values, an empty Map is
+     * returned.
+     * </p>
+     * 
+     * @param key
+     * @return a possibly empty Map of data
+     */
+    public Map<TObject, Set<Long>> browse(String key);
+
+    /**
+     * Browse {@code key} at {@code timestamp}.
+     * <p>
+     * This method returns a mapping from each of the values that was indexed to
+     * {@code key} at {@code timestamp} to a Set the records that contained
+     * {@code key} as the associated value at {@code timestamp}. If there were
+     * no such values, an empty Map is returned.
+     * </p>
+     * 
+     * @param key
+     * @param timestamp
+     * @return a possibly empty Map of data
+     */
+    public Map<TObject, Set<Long>> browse(String key, long timestamp);
+
+    /**
+     * Browse {@code record}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} to a Set of associated values. If there are no such keys,
+     * an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> browse(long record);
+
+    /**
+     * Browse {@code record} at {@code timestamp}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} at {@code timestamp} to a Set of associated values. If
+     * there were no such keys, an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> browse(long record, long timestamp);
+
+    /**
      * Describe {@code record}.
      * <p>
      * This method returns the keys for fields that currently have at least one

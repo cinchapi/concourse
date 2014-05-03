@@ -177,10 +177,10 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<String> describe(long record) {
+    public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
         try {
-            return super.describe(record);
+            return super.browse(record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -188,10 +188,56 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.describe(record, timestamp);
+            return super.browse(record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browse(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(record, timestamp, context);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp,
+            Map<TObject, Set<Long>> context) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key, timestamp, context);
         }
         finally {
             transportLock.readLock().unlock();

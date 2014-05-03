@@ -222,10 +222,29 @@ public abstract class Concourse {
      * @return a mapping of all the contained keys and their mapped
      *         values
      */
-    public Map<String, Set<Object>> browse(long record, Timestamp timestamp) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public abstract Map<String, Set<Object>> browse(long record,
+            Timestamp timestamp);
+
+    /**
+     * Browse {@code key} and return all the data that is indexed as a mapping
+     * from value to the set of records containing the value for {@code key}.
+     * 
+     * @param key
+     * @return a mapping of all the indexed values and their associated records.
+     */
+    public abstract Map<Object, Set<Long>> browse(String key);
+
+    /**
+     * Browse {@code key} at {@code timestamp} and return all the data that was
+     * indexed as a mapping from value to the set of records that contained the
+     * value for {@code key} .
+     * 
+     * @param key
+     * @param timestamp
+     * @return a mapping of all the indexed values and their associated records.
+     */
+    public abstract Map<Object, Set<Long>> browse(String key,
+            Timestamp timestamp);
 
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
@@ -1170,6 +1189,32 @@ public abstract class Concourse {
                                     }
 
                                 }));
+                    }
+                    return data;
+                }
+
+            });
+        }
+
+        @Override
+        public Map<Object, Set<Long>> browse(String key) {
+            return browse(key, now);
+        }
+
+        @Override
+        public Map<Object, Set<Long>> browse(final String key,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Object, Set<Long>>>() {
+
+                @Override
+                public Map<Object, Set<Long>> call() throws Exception {
+                    Map<Object, Set<Long>> data = TLinkedHashMap
+                            .newTLinkedHashMap("Value", "Records");
+                    for (Entry<TObject, Set<Long>> entry : client.browse1(key,
+                            timestamp.getMicros(), creds, transaction)
+                            .entrySet()) {
+                        data.put(Convert.thriftToJava(entry.getKey()),
+                                entry.getValue());
                     }
                     return data;
                 }

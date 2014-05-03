@@ -300,23 +300,21 @@ public class ConcourseServer implements
     public Map<String, Set<TObject>> browse0(long record, long timestamp,
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = null;
-        Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
-        while (operation == null || !operation.commit()) {
-            data.clear();
-            operation = doBrowse(record, timestamp, data,
-                    transaction != null ? transactions.get(transaction)
-                            : engine);
-        }
-        return data;
+        Compoundable store = transaction != null ? transactions
+                .get(transaction) : engine;
+        return timestamp == 0 ? store.browse(record) : store.browse(record,
+                timestamp);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse1(String key, long timestamp,
-            AccessToken creds, TransactionToken token)
+            AccessToken creds, TransactionToken transaction)
             throws TSecurityException, TException {
-        // TODO implement me
-        throw new UnsupportedOperationException();
+        checkAccess(creds, transaction);
+        Compoundable store = transaction != null ? transactions
+                .get(transaction) : engine;
+        return timestamp == 0 ? store.browse(key) : store
+                .browse(key, timestamp);
     }
 
     @Override
@@ -663,33 +661,6 @@ public class ConcourseServer implements
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-    }
-
-    /**
-     * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to browse and populate all the {@code data} in
-     * {@code record}.
-     * 
-     * @param record
-     * @param timestamp
-     * @param data
-     * @param store
-     * @return the data in {@code record}
-     */
-    private AtomicOperation doBrowse(long record, long timestamp,
-            Map<String, Set<TObject>> data, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
-        try {
-            for (String key : timestamp == 0 ? operation.describe(record)
-                    : operation.describe(record, timestamp)) {
-                data.put(key, timestamp == 0 ? operation.fetch(key, record)
-                        : operation.fetch(key, record, timestamp));
-            }
-            return operation;
-        }
-        catch (AtomicStateException e) {
-            return null;
-        }
     }
 
     /**

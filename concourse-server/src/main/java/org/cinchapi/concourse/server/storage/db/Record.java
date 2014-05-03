@@ -330,6 +330,47 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     }
 
     /**
+     * Return the Set of {@code keys} that map to fields which
+     * <em>currently</em> contain values.
+     * 
+     * @return the Set of non-empty field keys
+     */
+    protected Set<K> describe() {
+        read.lock();
+        try {
+            return Collections.unmodifiableSet(present.keySet()); /* Authorized */
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return the Set of {@code keys} that mapped to fields which contained
+     * values at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the Set of non-empty field keys
+     */
+    protected Set<K> describe(long timestamp) {
+        read.lock();
+        try {
+            Set<K> description = Sets.newLinkedHashSet();
+            Iterator<K> it = history.keySet().iterator(); /* Authorized */
+            while (it.hasNext()) {
+                K key = it.next();
+                if(!get(key, timestamp).isEmpty()) {
+                    description.add(key);
+                }
+            }
+            return description;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
      * Lazily retrieve an unmodifiable view of the current set of values mapped
      * from {@code key}.
      * 

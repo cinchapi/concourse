@@ -227,6 +227,40 @@ public class AtomicOperation extends BufferedStore implements
         return super.audit(key, record);
     }
 
+    @Override
+    public Map<String, Set<TObject>> browse(long record)
+            throws AtomicStateException {
+        checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
+        expectations.add(new RecordVersionExpectation(record));
+        return super.browse(record);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browse(long record, long timestamp)
+            throws AtomicStateException {
+        checkState();
+        return super.browse(record, timestamp);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key)
+            throws AtomicStateException {
+        checkState();
+        ((Compoundable) destination).addVersionChangeListener(Token.wrap(key),
+                this);
+        expectations.add(new KeyVersionExcpectation(key));
+        return super.browse(key);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp)
+            throws AtomicStateException {
+        checkState();
+        return super.browse(key, timestamp);
+    }
+
     /**
      * Commit the atomic operation to the destination store. The commit is only
      * successful if all the grouped operations can be successfully applied to
@@ -247,22 +281,6 @@ public class AtomicOperation extends BufferedStore implements
             abort();
             return false;
         }
-    }
-
-    @Override
-    public Set<String> describe(long record) throws AtomicStateException {
-        checkState();
-        ((Compoundable) destination).addVersionChangeListener(
-                Token.wrap(record), this);
-        expectations.add(new RecordVersionExpectation(record));
-        return super.describe(record);
-    }
-
-    @Override
-    public Set<String> describe(long record, long timestamp)
-            throws AtomicStateException {
-        checkState();
-        return super.describe(record, timestamp);
     }
 
     @Override
@@ -657,6 +675,44 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * A VersionExpectation for a read that touches an entire key (i.e.
+     * browse(key)).
+     * 
+     * @author jnelson
+     */
+    private final class KeyVersionExcpectation extends VersionExpectation {
+
+        private final String key;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param token
+         * @param expectedVersion
+         */
+        protected KeyVersionExcpectation(String key) {
+            super(Token.wrap(key), ((Compoundable) destination).getVersion(key));
+            this.key = key;
+        }
+
+        @Override
+        public String getKey() throws UnsupportedOperationException {
+            return key;
+        }
+
+        @Override
+        public LockType getLockType() {
+            return LockType.READ;
+        }
+
+        @Override
+        public long getRecord() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    /**
      * A VersionExpectation for a range read/write. No version is actually
      * expected, but this is a placeholder so that we know to grab to
      * appropriate range lock.
@@ -713,7 +769,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * A VersionExpectation for a read that touches an entire record (i.e.
-     * describe, audit, etc).
+     * browse(record), audit, etc).
      * 
      * @author jnelson
      */

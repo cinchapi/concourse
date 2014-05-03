@@ -26,18 +26,17 @@ package org.cinchapi.concourse.server.storage.db;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
-import org.cinchapi.concourse.server.storage.db.PrimaryRecord;
 import org.cinchapi.concourse.server.storage.db.Record;
 import org.cinchapi.concourse.server.storage.db.Revision;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 
 /**
- * 
+ * Unit tests for {@link PrimaryRecord}.
  * 
  * @author jnelson
  */
-public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value> {
+public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Value> {
 
     @Override
     protected Text getKey() {
@@ -50,12 +49,12 @@ public class PrimaryRecordTest extends RecordTest<PrimaryKey, Text, Value> {
     }
 
     @Override
-    protected PrimaryRecord getRecord(PrimaryKey locator) {
+    protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator) {
         return Record.createPrimaryRecord(locator);
     }
 
     @Override
-    protected PrimaryRecord getRecord(PrimaryKey locator, Text key) {
+    protected Record<PrimaryKey, Text, Value> getRecord(PrimaryKey locator, Text key) {
         return Record.createPrimaryRecordPartial(locator, key);
     }
 
