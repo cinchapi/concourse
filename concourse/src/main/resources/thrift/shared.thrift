@@ -51,3 +51,11 @@ struct TransactionToken {
 	1:required AccessToken accessToken
 	2:required i64 timestamp
 }
+
+/**
+ * The security ex that occurs when the user session
+ * is invalidated from Concourse server.
+ */
+exception TSecurityException {
+	1: string message
+}

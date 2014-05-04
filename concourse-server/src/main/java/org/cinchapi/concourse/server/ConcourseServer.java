@@ -297,18 +297,24 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+    public Map<String, Set<TObject>> browse0(long record, long timestamp,
+            AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = null;
-        Map<String, Set<TObject>> data = Maps.newLinkedHashMap();
-        while (operation == null || !operation.commit()) {
-            data.clear();
-            operation = doBrowse(record, data,
-                    transaction != null ? transactions.get(transaction)
-                            : engine);
-        }
-        return data;
+        Compoundable store = transaction != null ? transactions
+                .get(transaction) : engine;
+        return timestamp == 0 ? store.browse(record) : store.browse(record,
+                timestamp);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse1(String key, long timestamp,
+            AccessToken creds, TransactionToken transaction)
+            throws TSecurityException, TException {
+        checkAccess(creds, transaction);
+        Compoundable store = transaction != null ? transactions
+                .get(transaction) : engine;
+        return timestamp == 0 ? store.browse(key) : store
+                .browse(key, timestamp);
     }
 
     @Override
@@ -661,30 +667,6 @@ public class ConcourseServer implements
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-    }
-
-    /**
-     * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to browse and populate all the {@code data} in
-     * {@code record}.
-     * 
-     * @param record
-     * @param data
-     * @param store
-     * @return the data in {@code record}
-     */
-    private AtomicOperation doBrowse(long record,
-            Map<String, Set<TObject>> data, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
-        try {
-            for (String key : operation.describe(record)) {
-                data.put(key, operation.fetch(key, record));
-            }
-            return operation;
-        }
-        catch (AtomicStateException e) {
-            return null;
-        }
     }
 
     /**

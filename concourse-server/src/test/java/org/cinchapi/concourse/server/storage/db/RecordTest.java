@@ -156,6 +156,37 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         Set<V> values = populateRecord(record, locator, key);
         Assert.assertEquals(values, record.get(key));
     }
+    
+    @Test
+    public void testDescribe(){
+        L locator = getLocator();
+        Set<K> keys = Sets.newHashSet();
+        record = getRecord(locator);
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            K key = getKey();
+            keys.add(key);
+            populateRecord(record, locator, key);
+        }
+        Assert.assertEquals(keys, record.describe());
+    }
+    
+    @Test
+    public void testDescribeWithTime(){
+        L locator = getLocator();
+        Set<K> keys = Sets.newHashSet();
+        record = getRecord(locator);
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            K key = getKey();
+            keys.add(key);
+            populateRecord(record, locator, key);
+        }
+        long timestamp = Time.now();
+        for(int i = 0; i < TestData.getScaleCount(); i++){
+            K key = getKey();
+            populateRecord(record, locator, key);
+        }
+        Assert.assertEquals(keys, record.describe(timestamp));
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -247,7 +278,7 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         return getRevision(getLocator(), getKey(), getValue());
     }
 
-    private Set<V> populateRecord(Record<L, K, V> record, L locator, K key) {
+    protected Set<V> populateRecord(Record<L, K, V> record, L locator, K key) {
         Set<V> values = Sets.newHashSet();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {

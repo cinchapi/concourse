@@ -55,7 +55,7 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 @PackagePrivate
-final class SecondaryRecord extends Record<Text, Value, PrimaryKey> {
+final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
 
     /**
      * DO NOT INVOKE. Use {@link Record#createSearchRecord(Text)} or

@@ -23,7 +23,6 @@
  */
 package org.cinchapi.concourse.server.storage.db;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,6 @@ import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Versioned;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * A logical grouping of data for a single entity.
@@ -54,7 +52,7 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 @PackagePrivate
-final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
+final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
 
     /**
      * DO NOT INVOKE. Use {@link Record#createPrimaryRecord(PrimaryKey)} or
@@ -113,27 +111,6 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
         finally {
             read.unlock();
         }
-    }
-
-    /**
-     * Return the Set of {@code keys} that map to fields which
-     * <em>currently</em> contain values.
-     * 
-     * @return the Set of non-empty field keys
-     */
-    public Set<Text> describe() {
-        return describe(false, Versioned.NO_VERSION);
-    }
-
-    /**
-     * Return the Set of {@code keys} that mapped to fields which contained
-     * values at {@code timestamp}.
-     * 
-     * @param timestamp
-     * @return the Set of non-empty field keys
-     */
-    public Set<Text> describe(long timestamp) {
-        return describe(true, timestamp);
     }
 
     /**
@@ -196,41 +173,6 @@ final class PrimaryRecord extends Record<PrimaryKey, Text, Value> {
     @Override
     protected Map<Text, Set<Value>> mapType() {
         return Maps.newHashMap();
-    }
-
-    /**
-     * Return an unmodifiable view of the Set of {@code keys} that
-     * <em>currently</em> contain values or contained values at
-     * {@code timestamp} if {@code historical} is {@code true}.
-     * 
-     * @param historical - if {@code true}, read from the history, otherwise
-     *            read from the present state
-     * @param timestamp - this value is ignored if {@code historical} is set to
-     *            false, otherwise this value is the historical timestamp at
-     *            which to read
-     * @return the Set of non-empty field keys
-     */
-    private Set<Text> describe(boolean historical, long timestamp) {
-        read.lock();
-        try {
-            if(historical) {
-                Set<Text> description = Sets.newLinkedHashSet();
-                Iterator<Text> it = history.keySet().iterator(); /* Authorized */
-                while (it.hasNext()) {
-                    Text key = it.next();
-                    if(!get(key, timestamp).isEmpty()) {
-                        description.add(key);
-                    }
-                }
-                return description;
-            }
-            else {
-                return Collections.unmodifiableSet(present.keySet()); /* Authorized */
-            }
-        }
-        finally {
-            read.unlock();
-        }
     }
 
     /**

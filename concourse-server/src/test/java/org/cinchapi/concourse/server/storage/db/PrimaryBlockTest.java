@@ -48,7 +48,7 @@ public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value> {
         Text key = Text.wrap("Youtube Embed Link ");
         Value value = Value.wrap(Convert.javaToThrift("http://youtube.com"));
         block.insert(locator, key, value, Time.now(), Action.ADD);
-        PrimaryRecord record = Record.createPrimaryRecordPartial(locator, key);
+        Record<PrimaryKey, Text, Value> record = Record.createPrimaryRecordPartial(locator, key);
         block.sync();
         block.seek(locator, key, record);
         Assert.assertTrue(record.get(key).contains(value));

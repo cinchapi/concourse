@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public abstract class BufferedStore implements Store {
+public abstract class BufferedStore extends BaseStore {
 
     // NOTE ON LOCKING:
     // ================
@@ -131,21 +131,28 @@ public abstract class BufferedStore implements Store {
     }
 
     @Override
-    public Set<String> describe(long record) {
-        Map<String, Set<TObject>> context = Maps.newLinkedHashMap();
-        for (String key : destination.describe(record)) {
-            context.put(key, destination.fetch(key, record));
-        }
-        return buffer.describe(record, Time.now(), context);
+    public Map<TObject, Set<Long>> browse(String key) {
+        Map<TObject, Set<Long>> context = destination.browse(key);
+        return buffer.browse(key, Time.now(), context);
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
-        Map<String, Set<TObject>> context = Maps.newLinkedHashMap();
-        for (String key : destination.describe(record, timestamp)) {
-            context.put(key, destination.fetch(key, record, timestamp));
-        }
-        return buffer.describe(record, timestamp, context);
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
+        return buffer.browse(key, timestamp, context);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browse(long record) {
+        Map<String, Set<TObject>> context = destination.browse(record);
+        return buffer.browse(record, Time.now(), context);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+        Map<String, Set<TObject>> context = destination.browse(record,
+                timestamp);
+        return buffer.browse(record, timestamp, context);
     }
 
     @Override

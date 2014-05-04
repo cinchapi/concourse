@@ -85,6 +85,32 @@ public final class Transformers {
     }
 
     /**
+     * Transform they keys in {@code original} with the {@code keys} function
+     * and each of the values with the {@code values} function and return the
+     * result.
+     * <p>
+     * <strong>WARNING:</strong> There is the potential for data loss in the
+     * event that {@code function} returns duplicate transformed results for
+     * items in {@code original}.
+     * </p>
+     * 
+     * @param original
+     * @param keys
+     * @param values
+     * @return the transformed Map
+     */
+    public static <K, K2, V, V2> Map<K2, Set<V2>> transformMapSet(
+            Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
+            Function<? super V, ? extends V2> values) {
+        Map<K2, Set<V2>> transformed = TLinkedHashMap.newTLinkedHashMap();
+        for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
+            transformed.put(keys.apply(entry.getKey()),
+                    transformSet(entry.getValue(), values));
+        }
+        return transformed;
+    }
+
+    /**
      * Populate {@code transformed} with the items in {@code original} after
      * applying {@code function}.
      * <p>

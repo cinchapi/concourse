@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,47 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.db;
+package org.cinchapi.concourse.server.storage;
 
-import java.io.File;
-
-import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.storage.Store;
-import org.cinchapi.concourse.server.storage.StoreTest;
-import org.cinchapi.concourse.server.storage.temp.Write;
-import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.time.Time;
-import org.cinchapi.concourse.util.TestData;
+import java.util.Set;
 
 /**
- * Unit tests for the {@link Database}.
+ * The {@link Store} that provides basic functionality to all of its children.
  * 
  * @author jnelson
  */
-public class DatabaseTest extends StoreTest {
+public abstract class BaseStore implements Store {
+
+
+    @Override
+    public final Set<String> describe(long record) {
+        return browse(record).keySet();
+    }
+
+
+    @Override
+    public final Set<String> describe(long record, long timestamp) {
+        return browse(record, timestamp).keySet();
+    }
     
-    private String current;
-
-    @Override
-    protected void add(String key, TObject value, long record) {
-        ((Database) store).accept(Write.add(key, value, record));
-    }
-
-    @Override
-    protected void cleanup(Store store) {
-        FileSystem.deleteDirectory(current);
-    }
-
-
-    @Override
-    protected Database getStore() {
-        current = TestData.DATA_DIR + File.separator + Time.now();
-        return new Database(current);
-    }
-
-    @Override
-    protected void remove(String key, TObject value, long record) {
-        ((Database) store).accept(Write.remove(key, value, record));
-    }
+    
 
 }

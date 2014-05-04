@@ -44,6 +44,7 @@ import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.VersionGetter;
@@ -75,7 +76,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author jnelson
  */
 @ThreadSafe
-public final class Database implements PermanentStore, VersionGetter {
+public final class Database extends BaseStore implements PermanentStore, VersionGetter {
 
     /**
      * Return a cache for records of type {@code T}.
@@ -215,17 +216,31 @@ public final class Database implements PermanentStore, VersionGetter {
     }
 
     @Override
-    public Set<String> describe(long record) {
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).describe(),
-                Functions.TEXT_TO_STRING);
+    public Map<String, Set<TObject>> browse(long record) {
+        return Transformers.transformMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT);
     }
 
     @Override
-    public Set<String> describe(long record, long timestamp) {
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).describe(timestamp),
-                Functions.TEXT_TO_STRING);
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+        return Transformers.transformMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key) {
+        return Transformers.transformMapSet(getSecondaryRecord(Text.wrap(key))
+                .browse(), Functions.VALUE_TO_TOBJECT,
+                Functions.PRIMARY_KEY_TO_LONG);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        return Transformers.transformMapSet(getSecondaryRecord(Text.wrap(key))
+                .browse(timestamp), Functions.VALUE_TO_TOBJECT,
+                Functions.PRIMARY_KEY_TO_LONG);
     }
 
     /**
@@ -626,10 +641,11 @@ public final class Database implements PermanentStore, VersionGetter {
                         .insert(write.getRecord(), write.getKey(),
                                 write.getValue(), write.getVersion(),
                                 write.getType());
-                PrimaryRecord record = cpc.getIfPresent(Composite.create(write
-                        .getRecord()));
-                PrimaryRecord partialRecord = cppc.getIfPresent(Composite
-                        .create(write.getRecord(), write.getKey()));
+                Record<PrimaryKey, Text, Value> record = cpc
+                        .getIfPresent(Composite.create(write.getRecord()));
+                Record<PrimaryKey, Text, Value> partialRecord = cppc
+                        .getIfPresent(Composite.create(write.getRecord(),
+                                write.getKey()));
                 if(record != null) {
                     record.append(revision);
                 }

@@ -34,11 +34,11 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
 
 /**
- * 
+ * Unit tests for {@link SecondaryRecord}.
  * 
  * @author jnelson
  */
-public class SecondaryRecordTest extends RecordTest<Text, Value, PrimaryKey> {
+public class SecondaryRecordTest extends BrowsableRecordTest<Text, Value, PrimaryKey> {
 
     @Override
     protected Value getKey() {
