@@ -24,8 +24,11 @@
 package org.cinchapi.concourse.server.storage.temp;
 
 import java.io.File;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.Store;
@@ -33,6 +36,7 @@ import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Limbo;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -73,6 +77,51 @@ public class BufferTest extends LimboTest {
     @Override
     protected void cleanup(Store store) {
         FileSystem.deleteDirectory(current);
+    }
+
+    @Test
+    public void testBufferCanAddPageWhileServicingRead()
+            throws InterruptedException {
+        int count = 0;
+        while (!((Buffer) store).canTransport()) {
+            add("foo", Convert.javaToThrift(count), 1);
+            count++;
+        }
+        // Now add a second page worth of writes, but but don't spill over into
+        // a third page yet
+        int max = 0;
+        for (int i = count; i < (count * 2) - 2; i++) {
+            add("foo", Convert.javaToThrift(i), 1);
+            max = i;
+        }
+        final int value = max + 1;
+        final AtomicBoolean caughtException = new AtomicBoolean(false);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    store.fetch("foo", 1);
+                }
+                catch (ConcurrentModificationException e) {
+                    caughtException.set(true);
+                }
+            }
+
+        });
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                add("foo", Convert.javaToThrift(value + 1), 1);
+            }
+
+        });
+        read.start();
+        write.start();
+        write.join();
+        read.join();
+        Assert.assertFalse(caughtException.get());
     }
 
     @Test

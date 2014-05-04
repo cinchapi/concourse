@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.AbstractList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
@@ -95,7 +96,97 @@ public final class Buffer extends Limbo {
     /**
      * The sequence of Pages that make up the Buffer.
      */
-    private final List<Page> pages = Lists.newArrayList();
+    private final List<Page> pages = new AbstractList<Page>() { // This List
+                                                                // implementation
+                                                                // provides an
+                                                                // iterator that
+                                                                // has
+                                                                // "reloading"
+                                                                // functionality
+                                                                // such that we
+                                                                // aren't halted
+                                                                // by a CME that
+                                                                // occurs when
+                                                                // one thread
+                                                                // adds a page
+                                                                // to the
+                                                                // underlying
+                                                                // collection
+                                                                // while another
+                                                                // thread is
+                                                                // using the
+                                                                // iterator
+
+        /**
+         * The wrapped list that actually stores the data.
+         */
+        private final List<Page> delegate = Lists.newArrayList();
+
+        @Override
+        public void add(int index, Page element) {
+            delegate.add(index, element);
+        }
+
+        @Override
+        public Page remove(int index) {
+            return delegate.remove(index);
+        }
+
+        @Override
+        public Page get(int index) {
+            return delegate.get(index);
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
+        }
+
+        @Override
+        public Iterator<Page> iterator() {
+            return new Iterator<Page>() {
+
+                int index = 0;
+                ListIterator<Page> it = delegate.listIterator(index);
+
+                @Override
+                public boolean hasNext() {
+                    return it.hasNext();
+                }
+
+                @Override
+                public Page next() {
+                    try {
+                        index = it.nextIndex();
+                        return it.next();
+                    }
+                    catch (ConcurrentModificationException e) {
+                        // CON-75: The exception is thrown because a new page
+                        // was adding by another thread while the current thread
+                        // (which owns the iterator) was in the middle of the
+                        // read. We can ignore this exception, because adding a
+                        // new page will not lead to inconsistent results since
+                        // all the data we've read so far is still valid. This
+                        // just means we have more work to do before finishing
+                        // than we originally anticipated.
+                        //
+                        // It is worth noting that each read method grabs the
+                        // transportLock which prevents the case of a page being
+                        // removed in the middle of a read.
+                        it = delegate.listIterator(index);
+                        return next();
+                    }
+                }
+
+                @Override
+                public void remove() {
+                    it.remove();
+                }
+
+            };
+        }
+
+    };
 
     /**
      * The transportLock makes it possible to append new Writes and transport
