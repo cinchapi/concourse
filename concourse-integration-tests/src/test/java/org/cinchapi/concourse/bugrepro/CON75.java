@@ -33,7 +33,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit
+ * Unit test to ensure that we do not encounter a
+ * ConcurrentModificationException when expanding the Buffer during a read.
  * 
  * @author jnelson
  */
