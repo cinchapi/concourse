@@ -38,7 +38,8 @@ import org.cinchapi.concourse.util.TestData;
  * 
  * @author jnelson
  */
-public class SecondaryRecordTest extends BrowsableRecordTest<Text, Value, PrimaryKey> {
+public class SecondaryRecordTest extends
+        BrowsableRecordTest<Text, Value, PrimaryKey> {
 
     @Override
     protected Value getKey() {
