@@ -81,9 +81,9 @@ public class ManageUsersCli extends ManagedOperationCli {
             }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
                 if(bean.hasUser(opts.addingUsername.getBytes())) {
-                    System.out.println("WARNING: " +
-                    		    opts.addingUsername + " already exists. " +
-                    		    "Use CTRL-C to terminate or continue to edit this user.");
+                    console.readLine(opts.addingUsername + " already exists. " +
+                    		    "Use CTRL-C to terminate or press RETURN to " +
+                    		    "continue editing this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
                     opts.newPassword = console.readLine(
@@ -94,9 +94,9 @@ public class ManageUsersCli extends ManagedOperationCli {
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
                 if(!bean.hasUser(opts.editingUsername.getBytes())) {
-                    System.out.println("WARNING: " + 
-                            opts.editingUsername + " does not exist. " +
-                            "Use CTRL-C to terminate or continue to add this user.");   
+                    console.readLine(opts.editingUsername + " does not exist. " +
+                            "Use CTRL-C to terminate or press RETURN to " +
+                            "continue adding this user.");   
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
                     opts.newPassword = console.readLine(
@@ -107,11 +107,12 @@ public class ManageUsersCli extends ManagedOperationCli {
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
                 if(!bean.hasUser(opts.deletingUsername.getBytes())) {
-                    System.out.println("WARNING: " + opts.deletingUsername + 
-                            " does not exist.");
+                    System.out.println(opts.deletingUsername + " does not exist.");
                 }
-                bean.revoke(opts.deletingUsername.getBytes());
-                System.out.println("Consider it done.");
+                else {
+                    bean.revoke(opts.deletingUsername.getBytes());
+                    System.out.println("Consider it done.");
+                }
             }
             else {
                 die("Action not found.\nTry `./useradmin --help` for more information.");
