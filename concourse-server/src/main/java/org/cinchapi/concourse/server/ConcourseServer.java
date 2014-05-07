@@ -434,6 +434,12 @@ public class ConcourseServer implements
         username = null;
         password = null;
     }
+    
+    @Override
+    @ManagedOperation
+    public boolean hasUser(byte[] username) {
+        return manager.isValidUsername(ByteBuffer.wrap(username));
+    }
 
     @Override
     public boolean insert(String json, long record, AccessToken creds,

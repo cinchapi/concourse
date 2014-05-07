@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -42,9 +41,12 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.TStrings;
 
 import static com.google.common.base.Preconditions.*;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -189,6 +191,10 @@ public class AccessManager {
      * @param password
      */
     public void grant(ByteBuffer username, ByteBuffer password) {
+        Preconditions.checkArgument(isAcceptableUsername(username),
+                "Username must not be empty, or contain any whitespace.");
+        Preconditions.checkArgument(isSecuredPassword(password),
+                "Password must not be empty, or have fewer than 3 characters.");
         write.lock();
         try {
             ByteBuffer salt = Passwords.getSalt();
@@ -201,6 +207,33 @@ public class AccessManager {
         finally {
             write.unlock();
         }
+    }
+    
+    /**
+     * Return {@code true} if {@code username} is in valid format,
+     * in which it must not be null or empty, or contain any whitespace.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} is valid format
+     */
+    private boolean isAcceptableUsername(ByteBuffer username) {
+        String usernameStr = new String(username.array());
+        return !Strings.isNullOrEmpty(usernameStr) && !usernameStr.contains(
+                TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+    }
+    
+    /**
+     * Return {@code true} if {@code password} is in valid format,
+     * in which it must not be null or empty, or contain fewer than
+     * 3 characters.
+     * 
+     * @param password
+     * @return {@code true} if {@code password} is valid format
+     */
+    private boolean isSecuredPassword(ByteBuffer password) {
+        String passwordStr = new String(password.array());
+        return !Strings.isNullOrEmpty(passwordStr) && 
+                passwordStr.length() >= 3;
     }
 
     /**
@@ -305,7 +338,7 @@ public class AccessManager {
      * @param username
      * @return {@code true} if {@code username} is valid
      */
-    private boolean isValidUsername(ByteBuffer username) {
+    public boolean isValidUsername(ByteBuffer username) {
         return credentials.get(encodeHex(username)) != null;
     }
 

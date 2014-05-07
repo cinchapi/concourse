@@ -44,7 +44,7 @@ public abstract class Options {
     @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
     public String username = "admin";
 
-    @Parameter(names = "--password", description = "The password", password = true, hidden = true)
+    @Parameter(names = "--password", description = "The password", hidden = true)
     public String password;
 
 }
