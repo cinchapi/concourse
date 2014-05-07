@@ -91,6 +91,37 @@ public class AccessManager {
     }
 
     /**
+     * Return {@code true} if {@code username} is in valid format,
+     * in which it must not be null or empty, or contain any whitespace.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} is valid format
+     */
+    protected static boolean isAcceptableUsername(ByteBuffer username) { // visible
+                                                                         // for
+                                                                         // testing
+        String usernameStr = new String(username.array());
+        return !Strings.isNullOrEmpty(usernameStr)
+                && !usernameStr
+                        .contains(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+    }
+
+    /**
+     * Return {@code true} if {@code password} is in valid format,
+     * in which it must not be null or empty, or contain fewer than
+     * 3 characters.
+     * 
+     * @param password
+     * @return {@code true} if {@code password} is valid format
+     */
+    protected static boolean isSecuredPassword(ByteBuffer password) { // visible
+                                                                      // for
+                                                                      // testing
+        String passwordStr = new String(password.array());
+        return !Strings.isNullOrEmpty(passwordStr) && passwordStr.length() >= 3;
+    }
+
+    /**
      * Decode the {@code hex}adeciaml string and return the resulting binary
      * data.
      * 
@@ -100,7 +131,6 @@ public class AccessManager {
     private static ByteBuffer decodeHex(String hex) {
         return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
     }
-
     /**
      * Encode the {@code bytes} as a hexadecimal string.
      * 
@@ -111,25 +141,26 @@ public class AccessManager {
         bytes.rewind();
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
-
     // The AccessManager keeps track of user sessions and their associated
     // AccessTokens. An AccessToken is valid for a limited amount of time.
     private static final int ACCESS_TOKEN_TTL = 24;
+
     private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
     private final AccessTokenManager tokenManager;
-
     // The AccessManager stores credentials in memory for fast processing and
     // backs them up on disk for persistence.
     private static final String ADMIN_USERNAME = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
     private static final String ADMIN_PASSWORD = encodeHex(ByteBuffer
             .wrap("admin".getBytes()));
+
     private final Map<String, Credentials> credentials = Maps.newHashMap();
     private final String backingStore;
-
     // Concurrency controls
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+
     private final ReadLock read = master.readLock();
+
     private final WriteLock write = master.writeLock();
 
     /**
@@ -208,32 +239,15 @@ public class AccessManager {
             write.unlock();
         }
     }
-    
+
     /**
-     * Return {@code true} if {@code username} is in valid format,
-     * in which it must not be null or empty, or contain any whitespace.
+     * Return {@code true} if {@code username} is valid.
      * 
      * @param username
-     * @return {@code true} if {@code username} is valid format
+     * @return {@code true} if {@code username} is valid
      */
-    private boolean isAcceptableUsername(ByteBuffer username) {
-        String usernameStr = new String(username.array());
-        return !Strings.isNullOrEmpty(usernameStr) && !usernameStr.contains(
-                TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-    }
-    
-    /**
-     * Return {@code true} if {@code password} is in valid format,
-     * in which it must not be null or empty, or contain fewer than
-     * 3 characters.
-     * 
-     * @param password
-     * @return {@code true} if {@code password} is valid format
-     */
-    private boolean isSecuredPassword(ByteBuffer password) {
-        String passwordStr = new String(password.array());
-        return !Strings.isNullOrEmpty(passwordStr) && 
-                passwordStr.length() >= 3;
+    public boolean isValidUsername(ByteBuffer username) {
+        return credentials.get(encodeHex(username)) != null;
     }
 
     /**
@@ -330,16 +344,6 @@ public class AccessManager {
         finally {
             write.unlock();
         }
-    }
-
-    /**
-     * Return {@code true} if {@code username} is valid.
-     * 
-     * @param username
-     * @return {@code true} if {@code username} is valid
-     */
-    public boolean isValidUsername(ByteBuffer username) {
-        return credentials.get(encodeHex(username)) != null;
     }
 
     /**
