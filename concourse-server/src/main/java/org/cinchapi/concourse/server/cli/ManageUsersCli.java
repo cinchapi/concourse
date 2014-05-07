@@ -61,8 +61,9 @@ public class ManageUsersCli extends ManagedOperationCli {
         MyOptions opts = (MyOptions) options;
         try {
             if(opts.grant) {
-                System.out.println("WARNING: Option --grant is being deprecated," +
-                		" and replaced by options --add-user and --edit-user.");
+                System.out
+                        .println("WARNING: Option --grant is being deprecated,"
+                                + " and replaced by options --add-user and --edit-user.");
                 System.out.println("What is the username you want "
                         + "to add or modify?");
                 byte[] username = console.readLine("").getBytes();
@@ -72,8 +73,9 @@ public class ManageUsersCli extends ManagedOperationCli {
                 System.out.println("Consider it done.");
             }
             else if(opts.revoke) {
-                System.out.println("WARNING: Option --revoke is being deprecated," +
-                		" and replaced by option --delete-user.");
+                System.out
+                        .println("WARNING: Option --revoke is being deprecated,"
+                                + " and replaced by option --delete-user.");
                 System.out.println("What is the username you want to delete?");
                 byte[] username = console.readLine("").getBytes();
                 bean.revoke(username);
@@ -81,33 +83,36 @@ public class ManageUsersCli extends ManagedOperationCli {
             }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
                 if(bean.hasUser(opts.addingUsername.getBytes())) {
-                    console.readLine(opts.addingUsername + " already exists. " +
-                    		    "Use CTRL-C to terminate or press RETURN to " +
-                    		    "continue editing this user.");
+                    console.readLine(opts.addingUsername + " already exists. "
+                            + "Use CTRL-C to terminate or press RETURN to "
+                            + "continue editing this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine(
-                            "Password for " + opts.addingUsername + " : ", '*');
+                    opts.newPassword = console.readLine("Password for "
+                            + opts.addingUsername + " : ", '*');
                 }
-                bean.grant(opts.addingUsername.getBytes(), opts.newPassword.getBytes());
+                bean.grant(opts.addingUsername.getBytes(),
+                        opts.newPassword.getBytes());
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.editingUsername)) {
                 if(!bean.hasUser(opts.editingUsername.getBytes())) {
-                    console.readLine(opts.editingUsername + " does not exist. " +
-                            "Use CTRL-C to terminate or press RETURN to " +
-                            "continue adding this user.");   
+                    console.readLine(opts.editingUsername + " does not exist. "
+                            + "Use CTRL-C to terminate or press RETURN to "
+                            + "continue adding this user.");
                 }
                 if(Strings.isNullOrEmpty(opts.newPassword)) {
-                    opts.newPassword = console.readLine(
-                            "Password for " + opts.editingUsername + " : ", '*');
+                    opts.newPassword = console.readLine("Password for "
+                            + opts.editingUsername + " : ", '*');
                 }
-                bean.grant(opts.editingUsername.getBytes(), opts.newPassword.getBytes());
+                bean.grant(opts.editingUsername.getBytes(),
+                        opts.newPassword.getBytes());
                 System.out.println("Consider it done.");
             }
             else if(!Strings.isNullOrEmpty(opts.deletingUsername)) {
                 if(!bean.hasUser(opts.deletingUsername.getBytes())) {
-                    System.out.println(opts.deletingUsername + " does not exist.");
+                    System.out.println(opts.deletingUsername
+                            + " does not exist.");
                 }
                 else {
                     bean.revoke(opts.deletingUsername.getBytes());
@@ -121,7 +126,7 @@ public class ManageUsersCli extends ManagedOperationCli {
         catch (Exception e) {
             throw Throwables.propagate(e);
         }
-        
+
     }
 
     /**
@@ -130,31 +135,25 @@ public class ManageUsersCli extends ManagedOperationCli {
      * @author jnelson
      */
     private static class MyOptions extends Options {
-        
-        @Parameter(names = { "-g", "--grant" }, 
-                description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
+
+        @Parameter(names = { "-g", "--grant" }, description = "[DEPRECATED] Add a new user or change the password for an existing user. ")
         public boolean grant = false;
 
-        @Parameter(names = { "-r", "--revoke" }, 
-                description = "[DEPRECATED] Remove an existing user")
+        @Parameter(names = { "-r", "--revoke" }, description = "[DEPRECATED] Remove an existing user")
         public boolean revoke = false;
 
-        @Parameter(names = { "-a", "--add-user" }, 
-                description = "Username of new user to add.")
+        @Parameter(names = { "-a", "--add-user" }, description = "Username of new user to add.")
         public String addingUsername;
-        
-        @Parameter(names = { "-e", "--edit-user" }, 
-                description = "Username of existing user to edit.")
+
+        @Parameter(names = { "-e", "--edit-user" }, description = "Username of existing user to edit.")
         public String editingUsername;
-        
-        @Parameter(names = { "-d", "--delete-user" },
-                description = "Username of existing user to delete.")
+
+        @Parameter(names = { "-d", "--delete-user" }, description = "Username of existing user to delete.")
         public String deletingUsername;
-        
-        @Parameter(names = { "-np", "--new-password" },
-                description = "Password of new user to add/edit.")
+
+        @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
         public String newPassword;
-        
+
     }
 
 }
