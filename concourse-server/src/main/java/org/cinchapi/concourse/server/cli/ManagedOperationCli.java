@@ -104,7 +104,8 @@ public abstract class ManagedOperationCli {
             }
             else {
                 if(Strings.isNullOrEmpty(options.password)) {
-                    options.password = console.readLine("Password: ", '*');
+                    options.password = console.readLine("Password ["
+                            + options.username + "]: ", '*');
                 }
                 byte[] username = options.username.getBytes();
                 byte[] password = options.password.getBytes();
