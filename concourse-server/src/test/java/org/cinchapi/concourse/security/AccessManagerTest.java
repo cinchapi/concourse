@@ -199,12 +199,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
             manager.grant(username, password);
         }
         AccessManager manager2 = AccessManager.create(current);
-        int count = 0;
-        Variables.register("countTest", count);
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
             Assert.assertTrue(manager2.validate(entry.getKey(),
                     entry.getValue()));
-            count++;
         }
     }
 
