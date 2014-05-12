@@ -381,11 +381,11 @@ public class AccessManager {
         write.lock();
         try {
             this.maxUid += 1;
+            return this.maxUid;
         }
         finally {
             write.unlock();
         }
-        return this.maxUid;
     }
 
     /**
@@ -420,6 +420,8 @@ public class AccessManager {
          */
         private final Cache<AccessToken, AccessTokenWrapper> tokens;
         private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+        private final ReadLock tokenRead = masterLock.readLock();
+        private final WriteLock tokenWrite = masterLock.writeLock();
         private final SecureRandom srand = new SecureRandom();
 
         /**
@@ -442,7 +444,7 @@ public class AccessManager {
          * @return the AccessToken
          */
         public AccessToken addToken(String username) {
-            masterLock.writeLock().lock();
+            tokenWrite.lock();
             try {
                 long timestamp = Time.now();
                 StringBuilder sb = new StringBuilder();
@@ -457,7 +459,7 @@ public class AccessManager {
                 return token;
             }
             finally {
-                masterLock.writeLock().unlock();
+                tokenWrite.unlock();
             }
         }
 
@@ -467,7 +469,7 @@ public class AccessManager {
          * @param username
          */
         public void deleteAllUserTokens(String username) {
-            masterLock.writeLock().lock();
+            tokenWrite.lock();
             try {
                 for (AccessToken token : tokens.asMap().keySet()) {
                     if(tokens.getIfPresent(token).getUsername()
@@ -477,7 +479,7 @@ public class AccessManager {
                 }
             }
             finally {
-                masterLock.writeLock().unlock();
+                tokenWrite.unlock();
             }
         }
 
@@ -487,12 +489,12 @@ public class AccessManager {
          * @param token
          */
         public void deleteToken(AccessToken token) {
-            masterLock.writeLock().lock();
+            tokenWrite.lock();
             try {
                 tokens.invalidate(token);
             }
             finally {
-                masterLock.writeLock().unlock();
+                tokenWrite.unlock();
             }
 
         }
@@ -504,12 +506,12 @@ public class AccessManager {
          * @return {@code true} if {@code token} is valid
          */
         public boolean isValidToken(AccessToken token) {
-            masterLock.readLock().lock();
+            tokenRead.lock();
             try {
                 return tokens.getIfPresent(token) != null;
             }
             finally {
-                masterLock.readLock().unlock();
+                tokenRead.unlock();
             }
         }
     }
