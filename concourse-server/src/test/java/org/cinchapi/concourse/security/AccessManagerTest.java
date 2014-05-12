@@ -275,9 +275,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         manager.deauthorize(token);
         Assert.assertFalse(manager.validate(token));
     }
-    
+
     @Test
-    public void testTwoAccessTokensForSameUser(){
+    public void testTwoAccessTokensForSameUser() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         manager.grant(username, password);
@@ -287,9 +287,9 @@ public class AccessManagerTest extends ConcourseBaseTest {
         Assert.assertTrue(manager.validate(token1));
         Assert.assertTrue(manager.validate(token2));
     }
-    
+
     @Test
-    public void testInvalidatingOneAccessTokenDoesNotAffectOther(){
+    public void testInvalidatingOneAccessTokenDoesNotAffectOther() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         manager.grant(username, password);
@@ -298,33 +298,33 @@ public class AccessManagerTest extends ConcourseBaseTest {
         manager.deauthorize(token2);
         Assert.assertTrue(manager.validate(token1));
     }
-    
+
     @Test
-    public void testRevokingAccessInvalidatesAllAccessTokens(){
+    public void testRevokingAccessInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         manager.grant(username, password);
         List<AccessToken> tokens = Lists.newArrayList();
-        for(int i = 0; i < TestData.getScaleCount(); i++){
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.authorize(username));
         }
         manager.revoke(username);
-        for(AccessToken token : tokens){
+        for (AccessToken token : tokens) {
             Assert.assertFalse(manager.validate(token));
         }
     }
-    
+
     @Test
-    public void testChangingPasswordInvalidatesAllAccessTokens(){
+    public void testChangingPasswordInvalidatesAllAccessTokens() {
         ByteBuffer username = getAcceptableUsername();
         ByteBuffer password = getSecurePassword();
         manager.grant(username, password);
         List<AccessToken> tokens = Lists.newArrayList();
-        for(int i = 0; i < TestData.getScaleCount(); i++){
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
             tokens.add(manager.authorize(username));
         }
         manager.grant(username, getSecurePassword());
-        for(AccessToken token : tokens){
+        for (AccessToken token : tokens) {
             Assert.assertFalse(manager.validate(token));
         }
     }
@@ -338,18 +338,29 @@ public class AccessManagerTest extends ConcourseBaseTest {
     private static ByteBuffer toByteBuffer(String string) {
         return ByteBuffer.wrap(string.getBytes());
     }
-    
-    private static ByteBuffer getAcceptableUsername(){
+
+    /**
+     * Return a username that will pass the acceptance test.
+     * 
+     * @return username
+     */
+    private static ByteBuffer getAcceptableUsername() {
         ByteBuffer username = null;
-        while(username == null || !AccessManager.isAcceptableUsername(username)){
+        while (username == null
+                || !AccessManager.isAcceptableUsername(username)) {
             username = toByteBuffer(TestData.getString());
         }
         return username;
     }
-    
-    private static ByteBuffer getSecurePassword(){
+
+    /**
+     * Return a password that will pass the security test.
+     * 
+     * @return password
+     */
+    private static ByteBuffer getSecurePassword() {
         ByteBuffer password = null;
-        while(password == null || !AccessManager.isSecuredPassword(password)){
+        while (password == null || !AccessManager.isSecuredPassword(password)) {
             password = toByteBuffer(TestData.getString());
         }
         return password;
