@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -34,13 +35,13 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for {@link Concourse#browse(long)} API method. Basically the idea
- * is to add/remove some data and ensure browse(record) returns the same thing
- * as fetch(describe(record), record)
+ * Unit tests for {@link Concourse#clear(long)} API method. The clear method
+ * takes any record and removes all the keys and the values contained inside the
+ * key.
  * 
  * @author jnelson
  */
-public class BrowseTest extends ConcourseIntegrationTest {
+public class ClearTest extends ConcourseIntegrationTest {
 
     @Test
     public void testBrowseEmptyRecord() {
@@ -49,31 +50,7 @@ public class BrowseTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testBrowseRecordIsSameAsFetchDescribe() {
-        long record = Variables.register("record", TestData.getLong());
-        List<String> keys = Variables.register("keys",
-                Lists.<String> newArrayList());
-        int count = TestData.getScaleCount();
-        for (int i = 0; i < count; i++) {
-            keys.add(TestData.getString());
-        }
-        count = TestData.getScaleCount();
-        ListIterator<String> lit = keys.listIterator();
-        for (int i = 0; i < count; i++) {
-            if(!lit.hasNext()) {
-                lit = keys.listIterator();
-            }
-            String key = lit.next();
-            Object value = TestData.getObject();
-            client.add(key, TestData.getObject(), record);
-            Variables.register(key + "_" + i, value);
-        }
-        Assert.assertEquals(client.browse(record),
-                client.fetch(client.describe(record), record));
-    }
-
-    @Test
-    public void testBrowseRecordIsSameAsFetchDescribeAfterRemoves() {
+    public void testClear() {
         long record = TestData.getLong();
         client.add("a", 1, record);
         client.add("a", 2, record);
@@ -81,31 +58,39 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.add("b", 1, record);
         client.add("b", 2, record);
         client.add("b", 3, record);
-        client.remove("a", 2, record);
-        Assert.assertEquals(client.browse(record),
-                client.fetch(client.describe(record), record));
-    }
-
-    @Test
-    public void testHistoricalBrowseRecordIsSameAsHistoricalFetchDescribe() {
-        long record = TestData.getLong();
-        client.add("a", 1, record);
-        client.add("a", 2, record);
-        client.add("a", 3, record);
-        client.add("b", 1, record);
-        client.add("b", 2, record);
-        client.add("b", 3, record);
-        client.remove("a", 2, record);
-        Timestamp timestamp = Timestamp.now();
         client.add("c", 1, record);
         client.add("c", 2, record);
         client.add("c", 3, record);
         client.add("d", 1, record);
         client.add("d", 2, record);
         client.add("d", 3, record);
-        client.remove("c", 2, record);
-        Assert.assertEquals(client.browse(record, timestamp), client.fetch(
-                client.describe(record, timestamp), record, timestamp));
+        client.clear(record);
+        Assert.assertTrue(client.browse(record).isEmpty());
+    }
+    
+    @Test
+    public void testClearRecordList() {
+    	long record = 1;
+    	long record2 = 2;
+    	long record3 = 3;
+    	List<Long> recordsList = new ArrayList<Long>();
+    	recordsList.add(record);
+    	recordsList.add(record2);
+        client.add("a", 1, record);
+        client.add("a", 2, record);
+        client.add("a", 3, record);
+        client.add("b", 1, record);
+        client.add("b", 2, record);
+        client.add("b", 3, record);
+        client.add("c", 1, record2);
+        client.add("c", 2, record2);
+        client.add("c", 3, record2);
+        client.add("d", 1, record3);
+        client.add("d", 2, record3);
+        client.add("d", 3, record3);
+        client.clear(recordsList);
+        Assert.assertEquals(client.browse(record), client.browse(record2));
+        Assert.assertFalse(client.browse(record3).isEmpty());
     }
 
 }

@@ -25,6 +25,7 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -329,6 +330,25 @@ public abstract class Concourse {
      * @param record
      */
     public abstract void clear(String key, long record);
+    
+    /**
+     * Atomically clear {@code record} by removing each contained
+     * key and their values.
+     * 
+     * @param record
+     */
+    public abstract void clear(long record);
+    
+    /**
+     * Clear every {@code key} and contained value in each of 
+     * the {@code records} by removing every value for {@code key}
+     * in each record.
+     * 
+     * @param key
+     * @param records
+     */
+    @CompoundOperation
+    public abstract void clear(Collection<Long> records);
 
     /**
      * Attempt to permanently commit all the currently staged changes. This
@@ -1318,6 +1338,35 @@ public abstract class Concourse {
                 }
 
             });
+        }
+        
+        @Override        
+        public void clear(final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clear1(record, creds, transaction);
+                    return null;
+                }
+
+            });
+
+        }
+         
+        public void clear(final Collection<Long> records) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                	for (Long record: records) {
+                		client.clear1(record, creds, transaction);
+                	}
+                    return null;
+                }
+
+            });
+
         }
 
         @Override
