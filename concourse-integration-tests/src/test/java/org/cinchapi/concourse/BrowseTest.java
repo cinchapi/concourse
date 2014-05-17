@@ -44,7 +44,6 @@ public class BrowseTest extends ConcourseIntegrationTest {
 
     @Test
     public void testBrowseEmptyRecord() {
-    	client.clear(1);
         Assert.assertTrue(client.browse(1).isEmpty());
     }
 
