@@ -39,58 +39,53 @@ import com.google.common.collect.Lists;
  * takes any record and removes all the keys and the values contained inside the
  * key.
  * 
- * @author jnelson
+ * @author hyin
  */
 public class ClearTest extends ConcourseIntegrationTest {
 
-    @Test
-    public void testBrowseEmptyRecord() {
-    	client.clear(1);
-        Assert.assertTrue(client.browse(1).isEmpty());
-    }
+	@Test
+	public void testClear() {
+		long record = TestData.getLong();
+		client.add("a", 1, record);
+		client.add("a", 2, record);
+		client.add("a", 3, record);
+		client.add("b", 1, record);
+		client.add("b", 2, record);
+		client.add("b", 3, record);
+		client.add("c", 1, record);
+		client.add("c", 2, record);
+		client.add("c", 3, record);
+		client.add("d", 1, record);
+		client.add("d", 2, record);
+		client.add("d", 3, record);
+		client.clear(record);
+		Assert.assertTrue(client.browse(record).isEmpty());
+	}
 
-    @Test
-    public void testClear() {
-        long record = TestData.getLong();
-        client.add("a", 1, record);
-        client.add("a", 2, record);
-        client.add("a", 3, record);
-        client.add("b", 1, record);
-        client.add("b", 2, record);
-        client.add("b", 3, record);
-        client.add("c", 1, record);
-        client.add("c", 2, record);
-        client.add("c", 3, record);
-        client.add("d", 1, record);
-        client.add("d", 2, record);
-        client.add("d", 3, record);
-        client.clear(record);
-        Assert.assertTrue(client.browse(record).isEmpty());
-    }
-    
-    @Test
-    public void testClearRecordList() {
-    	long record = 1;
-    	long record2 = 2;
-    	long record3 = 3;
-    	List<Long> recordsList = new ArrayList<Long>();
-    	recordsList.add(record);
-    	recordsList.add(record2);
-        client.add("a", 1, record);
-        client.add("a", 2, record);
-        client.add("a", 3, record);
-        client.add("b", 1, record);
-        client.add("b", 2, record);
-        client.add("b", 3, record);
-        client.add("c", 1, record2);
-        client.add("c", 2, record2);
-        client.add("c", 3, record2);
-        client.add("d", 1, record3);
-        client.add("d", 2, record3);
-        client.add("d", 3, record3);
-        client.clear(recordsList);
-        Assert.assertEquals(client.browse(record), client.browse(record2));
-        Assert.assertFalse(client.browse(record3).isEmpty());
-    }
+	@Test
+	public void testClearRecordList() {
+		long record = 1;
+		long record2 = 2;
+		long record3 = 3;
+		List<Long> recordsList = new ArrayList<Long>();
+		recordsList.add(record);
+		recordsList.add(record2);
+		client.add("a", 1, record);
+		client.add("a", 2, record);
+		client.add("a", 3, record);
+		client.add("b", 1, record);
+		client.add("b", 2, record);
+		client.add("b", 3, record);
+		client.add("c", 1, record2);
+		client.add("c", 2, record2);
+		client.add("c", 3, record2);
+		client.add("d", 1, record3);
+		client.add("d", 2, record3);
+		client.add("d", 3, record3);
+		client.clear(recordsList);
+		Assert.assertEquals(client.browse(record).isEmpty(),
+				client.browse(record2).isEmpty());
+		Assert.assertFalse(client.browse(record3).isEmpty());
+	}
 
 }

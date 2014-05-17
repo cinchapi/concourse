@@ -25,7 +25,6 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -1360,7 +1359,7 @@ public abstract class Concourse {
                 @Override
                 public Void call() throws Exception {
                 	for (Long record: records) {
-                		client.clear1(record, creds, transaction);
+                		clear(record);
                 	}
                     return null;
                 }
