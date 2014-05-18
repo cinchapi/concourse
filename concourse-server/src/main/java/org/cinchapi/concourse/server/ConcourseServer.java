@@ -350,6 +350,18 @@ public class ConcourseServer implements
                             : engine);
         }
     }
+    
+    @Override
+    public void clear1(long record, AccessToken creds, 
+            TransactionToken transaction) throws TException {
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doClear(record,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
+    }
+    
 
     @Override
     public boolean commit(AccessToken creds, TransactionToken transaction)
@@ -691,6 +703,32 @@ public class ConcourseServer implements
             return null;
         }
     }
+    
+    /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to clear {@code record}.
+     * 
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doClear(long record, Compoundable store) {
+           AtomicOperation operation = AtomicOperation.start(store);
+           try {
+               Map<String, Set<TObject>> values = operation.browse(record);
+               for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
+                   String key = entry.getKey();
+                   Set<TObject> valueSet = entry.getValue();
+                   for (TObject value: valueSet) {
+                       operation.remove(key, value, record);
+                   }
+               }
+               return operation;
+           }
+           catch (AtomicStateException e) {
+               return null;
+           }
+       } 
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
