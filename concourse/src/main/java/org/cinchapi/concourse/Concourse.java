@@ -340,10 +340,9 @@ public abstract class Concourse {
     
     /**
      * Clear every {@code key} and contained value in each of 
-     * the {@code records} by removing every value for {@code key}
-     * in each record.
+     * the {@code records} by removing every value for each 
+     * {@code key} in each record.
      * 
-     * @param key
      * @param records
      */
     @CompoundOperation
@@ -1352,20 +1351,12 @@ public abstract class Concourse {
             });
 
         }
-         
+        
+        @Override
         public void clear(final Collection<Long> records) {
-            execute(new Callable<Void>() {
-
-                @Override
-                public Void call() throws Exception {
-                	for (Long record: records) {
-                		clear(record);
-                	}
-                    return null;
-                }
-
-            });
-
+            for (Long record: records) {
+            	clear(record);
+            }
         }
 
         @Override
