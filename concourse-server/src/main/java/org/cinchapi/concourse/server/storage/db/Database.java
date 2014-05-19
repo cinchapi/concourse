@@ -488,6 +488,8 @@ public final class Database implements PermanentStore, VersionGetter {
         masterLock.writeLock().lock();
         try {
             if(doSync) {
+                // TODO we need a transactional file system to ensure that these
+                // blocks are written atomically (all or nothing)
                 ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
                         new BlockSyncer(cpb0), new BlockSyncer(csb0),
                         new BlockSyncer(ctb0));
@@ -593,6 +595,7 @@ public final class Database implements PermanentStore, VersionGetter {
         @Override
         public void run() {
             block.sync();
+            Logger.debug("Completed sync of {}", block);
         }
 
     }

@@ -69,10 +69,21 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * @return The restored Transaction
      */
     public static void recover(Engine destination, String file) {
-        Transaction transaction = new Transaction(destination, FileSystem.map(
-                file, MapMode.READ_ONLY, 0, FileSystem.getFileSize(file)));
-        transaction.invokeSuperDoCommit();
-        FileSystem.deleteFile(file);
+        try {
+            Transaction transaction = new Transaction(destination,
+                    FileSystem.map(file, MapMode.READ_ONLY, 0,
+                            FileSystem.getFileSize(file)));
+            transaction.invokeSuperDoCommit();
+            FileSystem.deleteFile(file);
+        }
+        catch (Exception e) {
+            Logger.warn("Attempted to recover a transaction from {}, "
+                    + "but the data is corrupted. This indicates that "
+                    + "Concourse Server shutdown before the transaction "
+                    + "could properly commit, so none of the data "
+                    + "in the transaction has persisted.", file);
+            FileSystem.deleteFile(file);
+        }
     }
 
     /**
@@ -247,8 +258,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             channel.write(serialize());
-            Logger.info("Created backup for transaction {} at '{}'", this, file);
             channel.force(true);
+            Logger.info("Created backup for transaction {} at '{}'", this, file);
             invokeSuperDoCommit();
             FileSystem.deleteFile(file);
         }
