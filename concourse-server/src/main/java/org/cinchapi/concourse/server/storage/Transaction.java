@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.annotate.Restricted;
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -46,6 +47,8 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
+
+import ch.qos.logback.classic.Level;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Throwables;
@@ -82,6 +85,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
                     + "Concourse Server shutdown before the transaction "
                     + "could properly commit, so none of the data "
                     + "in the transaction has persisted.", file);
+            Logger.debug("Transaction backup in {} is corrupt because "
+                    + "of {}", file, e);
             FileSystem.deleteFile(file);
         }
     }
