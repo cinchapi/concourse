@@ -64,6 +64,8 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.Version;
+import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -266,15 +268,23 @@ public class ConcourseServer implements
         transactions.remove(transaction).abort();
     }
 
+    private boolean isValidLink(Link link, long record){
+        return link.longValue() == record;
+    }
+
     @Override
     public boolean add(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction) throws TException {
-        authenticate(creds);
-        Preconditions.checkArgument((transaction != null
-                && transaction.getAccessToken().equals(creds) && transactions
+                       AccessToken creds, TransactionToken transaction) throws TException {
+        if(value.getType() != Type.LINK || isValidLink((Link)Convert.thriftToJava(value), record)){
+            authenticate(creds);
+            Preconditions.checkArgument((transaction != null
+                    && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-        return transaction != null ? transactions.get(transaction).add(key,
-                value, record) : engine.add(key, value, record);
+            return transaction != null ? transactions.get(transaction).add(key,
+                    value, record) : engine.add(key, value, record);
+        }else{
+            return false;
+        }
     }
 
     @Override
@@ -436,13 +446,17 @@ public class ConcourseServer implements
 
     @Override
     public boolean remove(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction) throws TException {
-        authenticate(creds);
-        Preconditions.checkArgument((transaction != null
-                && transaction.getAccessToken().equals(creds) && transactions
+                          AccessToken creds, TransactionToken transaction) throws TException {
+        if(value.getType() != Type.LINK || isValidLink((Link)Convert.thriftToJava(value), record)){
+            authenticate(creds);
+            Preconditions.checkArgument((transaction != null
+                    && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-        return transaction != null ? transactions.get(transaction).remove(key,
-                value, record) : engine.remove(key, value, record);
+            return transaction != null ? transactions.get(transaction).remove(key,
+                    value, record) : engine.remove(key, value, record);
+        }else{
+            return false;
+        }
     }
 
     @Override
