@@ -209,5 +209,12 @@ service ConcourseService {
 	map<data.TObject, set<i64>> browse1(1: string key, 2: i64 timestamp, 
 		3: shared.AccessToken creds, 4: shared.TransactionToken token) 
 		throws (1: shared.TSecurityException ex);
+		
+	/**
+	* Atomically clear all the keys in {@code record} by removing every value that
+	* currently exists for each key.
+	*/
+	void clear1(1: i64 record, 2: shared.AccessToken creds, 3: shared.TransactionToken token)
+	throws (1: shared.TSecurityException ex);
 
 }
