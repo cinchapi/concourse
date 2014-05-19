@@ -466,6 +466,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + id;
+    }
+
     /**
      * Return a dump of the revisions in the block as a String. This method
      * primarily exists for debugging using the {@link DumpToolCli} tool.
