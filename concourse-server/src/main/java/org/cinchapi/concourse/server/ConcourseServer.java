@@ -276,8 +276,9 @@ public class ConcourseServer implements
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-        return transaction != null ? transactions.get(transaction).add(key,
-                value, record) : engine.add(key, value, record);
+        short uid = getUidByAccessToken(creds);
+        return transaction != null ? transactions.get(transaction).add(uid, key,
+                value, record) : engine.add(uid, key, value, record);
     }
 
     @Override
@@ -344,8 +345,9 @@ public class ConcourseServer implements
             TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
+        short uid = getUidByAccessToken(creds);
         while (operation == null || !operation.commit()) {
-            operation = doClear(key, record,
+            operation = doClear(uid, key, record,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -355,8 +357,9 @@ public class ConcourseServer implements
     public void clear1(long record, AccessToken creds, 
             TransactionToken transaction) throws TException {
         AtomicOperation operation = null;
+        short uid = getUidByAccessToken(creds);
         while (operation == null || !operation.commit()) {
-            operation = doClear(record,
+            operation = doClear(uid, record,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -460,11 +463,12 @@ public class ConcourseServer implements
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
                         : engine);
+        short uid = getUidByAccessToken(creds);
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {
-                    if(!operation.add(key, Convert.javaToThrift(value), record)) {
+                    if(!operation.add(uid, key, Convert.javaToThrift(value), record)) {
                         return false;
                     }
                 }
@@ -534,8 +538,9 @@ public class ConcourseServer implements
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
-        return transaction != null ? transactions.get(transaction).remove(key,
-                value, record) : engine.remove(key, value, record);
+        short uid = getUidByAccessToken(creds);
+        return transaction != null ? transactions.get(transaction).remove(uid, key,
+                value, record) : engine.remove(uid, key, value, record);
     }
 
     @Override
@@ -543,8 +548,9 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
+        short uid = getUidByAccessToken(creds);
         while (operation == null || !operation.commit()) {
-            operation = doRevert(key, record, timestamp,
+            operation = doRevert(uid, key, record, timestamp,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -576,8 +582,9 @@ public class ConcourseServer implements
             TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
+        short uid = getUidByAccessToken(creds);
         while (operation == null || !operation.commit()) {
-            operation = doSet(key, value, record,
+            operation = doSet(uid, key, value, record,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -620,16 +627,17 @@ public class ConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction)
             throws TException {
         authenticate(creds);
+        short uid = getUidByAccessToken(creds);
         if(transaction != null) {
             Preconditions.checkArgument(transaction.getAccessToken().equals(
                     creds)
                     && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
-            return timestamp == 0 ? t.verify(key, value, record) : t.verify(
-                    key, value, record, timestamp);
+            return timestamp == 0 ? t.verify(uid, key, value, record) : t.verify(
+                    uid, key, value, record, timestamp);
         }
-        return timestamp == 0 ? engine.verify(key, value, record) : engine
-                .verify(key, value, record, timestamp);
+        return timestamp == 0 ? engine.verify(uid, key, value, record) : engine
+                .verify(uid, key, value, record, timestamp);
     }
 
     @Override
@@ -640,10 +648,11 @@ public class ConcourseServer implements
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
                         : engine);
+        short uid = getUidByAccessToken(creds);
         try {
-            return (operation.verify(key, expected, record)
-                    && operation.remove(key, expected, record) && operation
-                        .add(key, replacement, record)) ? operation.commit()
+            return (operation.verify(uid, key, expected, record)
+                    && operation.remove(uid, key, expected, record) && operation
+                        .add(uid, key, replacement, record)) ? operation.commit()
                     : false;
 
         }
@@ -690,12 +699,12 @@ public class ConcourseServer implements
      * @param store
      * @return the AtomicOperation
      */
-    private AtomicOperation doClear(String key, long record, Compoundable store) {
+    private AtomicOperation doClear(short uid, String key, long record, Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject value : values) {
-                operation.remove(key, value, record);
+                operation.remove(uid, key, value, record);
             }
             return operation;
         }
@@ -712,7 +721,7 @@ public class ConcourseServer implements
      * @param store
      * @return the AtomicOperation
      */
-    private AtomicOperation doClear(long record, Compoundable store) {
+    private AtomicOperation doClear(short uid, long record, Compoundable store) {
            AtomicOperation operation = AtomicOperation.start(store);
            try {
                Map<String, Set<TObject>> values = operation.browse(record);
@@ -720,7 +729,7 @@ public class ConcourseServer implements
                    String key = entry.getKey();
                    Set<TObject> valueSet = entry.getValue();
                    for (TObject value: valueSet) {
-                       operation.remove(key, value, record);
+                       operation.remove(uid, key, value, record);
                    }
                }
                return operation;
@@ -741,7 +750,7 @@ public class ConcourseServer implements
      * @param store
      * @return the AtomicOperation that must be committed
      */
-    private AtomicOperation doRevert(String key, long record, long timestamp,
+    private AtomicOperation doRevert(short uid, String key, long record, long timestamp,
             Compoundable store) {
         AtomicOperation operation = AtomicOperation.start(store);
         try {
@@ -750,10 +759,10 @@ public class ConcourseServer implements
             Set<TObject> xor = Sets.symmetricDifference(past, present);
             for (TObject value : xor) {
                 if(present.contains(value)) {
-                    operation.remove(key, value, record);
+                    operation.remove(uid, key, value, record);
                 }
                 else {
-                    operation.add(key, value, record);
+                    operation.add(uid, key, value, record);
                 }
             }
             return operation;
@@ -773,7 +782,7 @@ public class ConcourseServer implements
      * @param store
      * @return
      */
-    private AtomicOperation doSet(String key, TObject value, long record,
+    private AtomicOperation doSet(short uid, String key, TObject value, long record,
             Compoundable store) {
         // NOTE: We cannot use the #clear() method because our removes must be
         // defined in terms of the AtomicOperation for true atomic safety.
@@ -781,15 +790,26 @@ public class ConcourseServer implements
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject oldValue : values) {
-                operation.remove(key, oldValue, record);
+                operation.remove(uid, key, oldValue, record);
             }
-            operation.add(key, value, record);
+            operation.add(uid, key, value, record);
             return operation;
         }
         catch (AtomicStateException e) {
             return null;
         }
 
+    }
+    
+    /**
+     * 
+     * @param creds
+     * @return
+     */
+    private short getUidByAccessToken(AccessToken creds) {
+        ByteBuffer username = manager.getUsernameByAccessToken(creds);
+        short uid = manager.getUidByUsername(username);
+        return uid;
     }
 
     /**

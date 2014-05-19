@@ -239,6 +239,16 @@ public class AccessManager {
             read.unlock();
         }
     }
+    
+    /**
+     * 
+     * @param token
+     * @return
+     */
+    public ByteBuffer getUsernameByAccessToken(AccessToken token) {
+        String username = tokenManager.getUsernameByAccessToken(token);
+        return decodeHex(username);
+    }
 
     /**
      * Grant access to the user identified by {@code username} with
@@ -497,6 +507,23 @@ public class AccessManager {
                 tokenWrite.unlock();
             }
 
+        }
+        
+        /**
+         * 
+         * @param token
+         * @return
+         */
+        public String getUsernameByAccessToken(AccessToken token) {
+            Preconditions.checkArgument(isValidToken(token), 
+                    "Access token is no longer invalid.");
+            tokenRead.lock();
+            try {
+                return tokens.getIfPresent(token).getUsername();
+            }
+            finally {
+                tokenRead.unlock();
+            }
         }
 
         /**

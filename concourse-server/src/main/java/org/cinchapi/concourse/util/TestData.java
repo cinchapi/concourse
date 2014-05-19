@@ -55,17 +55,17 @@ public final class TestData extends Random {
     public static final String DATA_DIR = "test.out";
 
     public static PrimaryRevision getPrimaryRevision() {
-        return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
+        return Revision.createPrimaryRevision(getUid(), getPrimaryKey(), getText(),
                 getValue(), Time.now(), Action.ADD);
     }
 
     public static SearchRevision getSearchRevision() {
-        return Revision.createSearchRevision(getText(), getText(),
+        return Revision.createSearchRevision(getUid(), getText(), getText(),
                 getPosition(), Time.now(), Action.ADD);
     }
 
     public static SecondaryRevision getSecondaryRevision() {
-        return Revision.createSecondaryRevision(getText(), getValue(),
+        return Revision.createSecondaryRevision(getUid(), getText(), getValue(),
                 getPrimaryKey(), Time.now(), Action.ADD);
     }
 
@@ -103,17 +103,21 @@ public final class TestData extends Random {
     public static Value getValue() {
         return Value.wrap(getTObject());
     }
+    
+    public static short getUid() {
+        return getPositiveNumber().shortValue();
+    }
 
     public static Write getWriteAdd() {
-        return Write.add(getString(), getTObject(), getLong());
+        return Write.add(getUid(), getString(), getTObject(), getLong());
     }
 
     public static Write getWriteRemove() {
-        return Write.remove(getString(), getTObject(), getLong());
+        return Write.remove(getUid(), getString(), getTObject(), getLong());
     }
 
     public static Write getWriteNotStorable() {
-        return Write.notStorable(getString(), getTObject(), getLong());
+        return Write.notStorable(getUid(), getString(), getTObject(), getLong());
     }
 
     /**

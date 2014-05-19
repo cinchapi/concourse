@@ -108,8 +108,8 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @return {@code true} if the mapping is added
      */
-    public boolean add(String key, TObject value, long record) {
-        Write write = Write.add(key, value, record);
+    public boolean add(short uid, String key, TObject value, long record) {
+        Write write = Write.add(uid, key, value, record);
         if(!verify(write)) {
             return buffer.insert(write); /* Authorized */
         }
@@ -202,8 +202,8 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @return {@code true} if the mapping is removed
      */
-    public boolean remove(String key, TObject value, long record) {
-        Write write = Write.remove(key, value, record);
+    public boolean remove(short uid, String key, TObject value, long record) {
+        Write write = Write.remove(uid, key, value, record);
         if(verify(write)) {
             return buffer.insert(write); /* Authorized */
         }
@@ -218,15 +218,15 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
-        return buffer.verify(Write.notStorable(key, value, record),
-                destination.verify(key, value, record));
+    public boolean verify(short uid, String key, TObject value, long record) {
+        return buffer.verify(Write.notStorable(uid, key, value, record),
+                destination.verify(uid, key, value, record));
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
-        return buffer.verify(Write.notStorable(key, value, record), timestamp,
-                destination.verify(key, value, record, timestamp));
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp) {
+        return buffer.verify(Write.notStorable(uid, key, value, record), timestamp,
+                destination.verify(uid, key, value, record, timestamp));
     }
 
     /**
@@ -239,7 +239,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if {@code write} currently exists
      */
     private boolean verify(Write write) {
-        return buffer.verify(write, destination.verify(write.getKey()
+        return buffer.verify(write, destination.verify(write.getUid(), write.getKey()
                 .toString(), write.getValue().getTObject(), write.getRecord()
                 .longValue()));
     }

@@ -80,7 +80,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
      */
     @Override
     @DoNotInvoke
-    public final SearchRevision insert(Text locator, Text key, Position value,
+    public final SearchRevision insert(short uid, Text locator, Text key, Position value,
             long version, Action type) {
         throw new UnsupportedOperationException();
     }
@@ -95,7 +95,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param version
      * @param type
      */
-    public final void insert(Text key, Value value,
+    public final void insert(short uid, Text key, Value value,
             PrimaryKey record, long version, Action type) {
         Preconditions.checkState(mutable,
                 "Cannot modify a block that is not mutable");
@@ -107,7 +107,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
                     .newCachedThreadPool("SearchBlock");
             int pos = 0;
             for (String tok : toks) {
-                executor.submit(getRunnable(key, tok, pos, record, version,
+                executor.submit(getRunnable(uid, key, tok, pos, record, version,
                         type));
                 pos++;
             }
@@ -119,10 +119,10 @@ final class SearchBlock extends Block<Text, Text, Position> {
     }
 
     @Override
-    protected SearchRevision makeRevision(Text locator, Text key,
+    protected SearchRevision makeRevision(short uid, Text locator, Text key,
             Position value, long version, Action type) {
         return Revision
-                .createSearchRevision(locator, key, value, version, type);
+                .createSearchRevision(uid, locator, key, value, version, type);
     }
 
     @Override
@@ -139,9 +139,9 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param version
      * @param type
      */
-    private final void doInsert(Text locator, Text key, Position value,
+    private final void doInsert(short uid, Text locator, Text key, Position value,
             long version, Action type) {
-        super.insert(locator, key, value, version, type);
+        super.insert(uid, locator, key, value, version, type);
     }
 
     /**
@@ -156,7 +156,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param type
      * @return the index Runnable
      */
-    private Runnable getRunnable(final Text key, final String term,
+    private Runnable getRunnable(final short uid, final Text key, final String term,
             final int position, final PrimaryKey record, final long version,
             final Action type) {
         return new Runnable() {
@@ -178,7 +178,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
                         if(!Strings.isNullOrEmpty(substring)
                                 && !STOPWORDS.contains(substring)
                                 && !indexed.contains(substring)) {
-                            doInsert(key, Text.wrap(term.substring(i, j)),
+                            doInsert(uid, key, Text.wrap(term.substring(i, j)),
                                     Position.wrap(record, position), version,
                                     type);
                             indexed.add(substring);

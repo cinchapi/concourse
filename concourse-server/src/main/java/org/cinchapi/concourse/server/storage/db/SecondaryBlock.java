@@ -55,9 +55,9 @@ final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
     }
 
     @Override
-    protected SecondaryRevision makeRevision(Text locator, Value key,
+    protected SecondaryRevision makeRevision(short uid, Text locator, Value key,
             PrimaryKey value, long version, Action type) {
-        return Revision.createSecondaryRevision(locator, key, value, version,
+        return Revision.createSecondaryRevision(uid, locator, key, value, version,
                 type);
     }
 

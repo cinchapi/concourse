@@ -563,13 +563,13 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
-        return verify(key, value, record, Time.now());
+    public boolean verify(short uid, String key, TObject value, long record) {
+        return verify(uid, key, value, record, Time.now());
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
-        return verify(Write.notStorable(key, value, record), timestamp);
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp) {
+        return verify(Write.notStorable(uid, key, value, record), timestamp);
     }
 
     /**
