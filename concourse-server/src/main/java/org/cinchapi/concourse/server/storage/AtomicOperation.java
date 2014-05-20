@@ -195,7 +195,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record)
+    public boolean add(short uid, String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
@@ -204,7 +204,7 @@ public class AtomicOperation extends BufferedStore implements
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        return super.add(key, value, record);
+        return super.add(uid, key, value, record);
     }
 
     @Override
@@ -325,7 +325,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record)
+    public boolean remove(short uid, String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
@@ -334,7 +334,7 @@ public class AtomicOperation extends BufferedStore implements
                 LockType.WRITE));
         expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
                 .wrap(value)));
-        return super.remove(key, value, record);
+        return super.remove(uid, key, value, record);
     }
 
     @Override
@@ -351,21 +351,21 @@ public class AtomicOperation extends BufferedStore implements
     public final void stop() {}
 
     @Override
-    public boolean verify(String key, TObject value, long record)
+    public boolean verify(short uid, String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
         expectations.add(new KeyInRecordVersionExpectation(key, record,
                 LockType.READ));
-        return super.verify(key, value, record);
+        return super.verify(uid, key, value, record);
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp)
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp)
             throws AtomicStateException {
         checkState();
-        return super.verify(key, value, record, timestamp);
+        return super.verify(uid, key, value, record, timestamp);
     }
 
     /**

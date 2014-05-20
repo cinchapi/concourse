@@ -58,8 +58,8 @@ public final class Write implements Byteable, Versioned {
      * @param record
      * @return the Write
      */
-    public static Write add(String key, TObject value, long record) {
-        return new Write(Action.ADD, Text.wrap(key), Value.wrap(value),
+    public static Write add(short uid, String key, TObject value, long record) {
+        return new Write(Action.ADD, uid, Text.wrap(key), Value.wrap(value),
                 PrimaryKey.wrap(record), Time.now());
     }
 
@@ -76,13 +76,14 @@ public final class Write implements Byteable, Versioned {
     public static Write fromByteBuffer(ByteBuffer bytes) {
         int keySize = bytes.getInt();
         Action type = Action.values()[bytes.get()];
+        short uid = bytes.getShort();
         long version = bytes.getLong();
         PrimaryKey record = PrimaryKey.fromByteBuffer(ByteBuffers.get(bytes,
                 PrimaryKey.SIZE));
         Text key = Text.fromByteBuffer(ByteBuffers.get(bytes, keySize));
         Value value = Value.fromByteBuffer(ByteBuffers.get(bytes,
                 bytes.remaining()));
-        return new Write(type, key, value, record, version);
+        return new Write(type, uid, key, value, record, version);
     }
 
     /**
@@ -94,8 +95,8 @@ public final class Write implements Byteable, Versioned {
      * @param record
      * @return the Write
      */
-    public static Write notStorable(String key, TObject value, long record) {
-        return new Write(Action.COMPARE, Text.wrap(key), Value.wrap(value),
+    public static Write notStorable(short uid, String key, TObject value, long record) {
+        return new Write(Action.COMPARE, uid, Text.wrap(key), Value.wrap(value),
                 PrimaryKey.wrap(record), NO_VERSION);
     }
 
@@ -108,15 +109,16 @@ public final class Write implements Byteable, Versioned {
      * @param record
      * @return the Write
      */
-    public static Write remove(String key, TObject value, long record) {
-        return new Write(Action.REMOVE, Text.wrap(key), Value.wrap(value),
+    public static Write remove(short uid, String key, TObject value, long record) {
+        return new Write(Action.REMOVE, uid, Text.wrap(key), Value.wrap(value),
                 PrimaryKey.wrap(record), Time.now());
     }
 
     /**
      * The minimum number of bytes needed to encode every Write.
      */
-    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 13; // type(1),
+    private static final int CONSTANT_SIZE = PrimaryKey.SIZE + 15; // type(1),
+                                                                   // uid(2),
                                                                    // version(8),
                                                                    // keySize(4)
 
@@ -126,6 +128,7 @@ public final class Write implements Byteable, Versioned {
      * it from a transport.
      */
     private final Action type;
+    private final short uid;
     private final Text key;
     private final Value value;
     private final PrimaryKey record;
@@ -147,9 +150,9 @@ public final class Write implements Byteable, Versioned {
      * @param record
      * @param version
      */
-    private Write(Action type, Text key, Value value, PrimaryKey record,
+    private Write(Action type, short uid, Text key, Value value, PrimaryKey record,
             long version) {
-        this(type, key, value, record, version, null);
+        this(type, uid, key, value, record, version, null);
     }
 
     /**
@@ -162,9 +165,10 @@ public final class Write implements Byteable, Versioned {
      * @param version
      * @param bytes
      */
-    private Write(Action type, Text key, Value value, PrimaryKey record,
+    private Write(Action type, short uid, Text key, Value value, PrimaryKey record,
             long version, @Nullable ByteBuffer bytes) {
         this.type = type;
+        this.uid = uid;
         this.key = key;
         this.value = value;
         this.record = record;
@@ -209,6 +213,7 @@ public final class Write implements Byteable, Versioned {
             bytes = ByteBuffer.allocate(size());
             bytes.putInt(key.size());
             bytes.put((byte) type.ordinal());
+            bytes.putShort(uid);
             bytes.putLong(version);
             bytes.put(record.getBytes());
             bytes.put(key.getBytes());
@@ -242,6 +247,14 @@ public final class Write implements Byteable, Versioned {
      */
     public Action getType() {
         return type;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public short getUid() {
+        return uid;
     }
 
     /**
@@ -295,7 +308,7 @@ public final class Write implements Byteable, Versioned {
     @Override
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + record + " AT "
-                + version;
+                + version + " BY " + uid;
     }
 
 }

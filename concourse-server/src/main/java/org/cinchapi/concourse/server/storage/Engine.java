@@ -241,11 +241,12 @@ public final class Engine extends BufferedStore implements
     @DoNotInvoke
     public void accept(Write write) {
         checkArgument(write.getType() != Action.COMPARE);
+        short uid = write.getUid();
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean accepted = write.getType() == Action.ADD ? add(key, value,
-                record) : remove(key, value, record);
+        boolean accepted = write.getType() == Action.ADD ? add(uid, key, value,
+                record) : remove(uid, key, value, record);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -260,11 +261,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record) {
+    public boolean add(short uid, String key, TObject value, long record) {
         LockService.getWriteLock(key, record).lock();
         RangeLockService.getWriteLock(key, value).lock();
         try {
-            if(super.add(key, value, record)) {
+            if(super.add(uid, key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
                 notifyVersionChange(Token.wrap(key));
@@ -476,11 +477,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record) {
+    public boolean remove(short uid, String key, TObject value, long record) {
         LockService.getWriteLock(key, record).lock();
         RangeLockService.getWriteLock(key, value).lock();
         try {
-            if(super.remove(key, value, record)) {
+            if(super.remove(uid, key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
                 notifyVersionChange(Token.wrap(key));
@@ -548,11 +549,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
+    public boolean verify(short uid, String key, TObject value, long record) {
         transportLock.readLock().lock();
         LockService.getReadLock(key, record).lock();
         try {
-            return super.verify(key, value, record);
+            return super.verify(uid, key, value, record);
         }
         finally {
             LockService.getReadLock(key, record).unlock();
@@ -561,10 +562,10 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.verify(key, value, record, timestamp);
+            return super.verify(uid, key, value, record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();

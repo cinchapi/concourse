@@ -28,10 +28,12 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
@@ -41,6 +43,7 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.mockito.internal.util.collections.Sets;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -100,6 +103,65 @@ public class AccessManagerTest extends ConcourseBaseTest {
         }
         for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
             Assert.assertTrue(manager.validate(entry.getKey(), entry.getValue()));
+        }
+    }
+    
+    @Test
+    public void testAllUsersHaveUniqueUids() {
+        Map<ByteBuffer, ByteBuffer> users = Maps.newHashMap();
+        Set<Short> uniqueUids = Sets.newSet();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            ByteBuffer username = getAcceptableUsername();
+            ByteBuffer password = getSecurePassword();
+            users.put(username, password);
+            manager.grant(username, password);
+        }
+        for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
+            short uid = manager.getUidByUsername(entry.getKey());
+            Assert.assertFalse(uniqueUids.contains(uid));
+            uniqueUids.add(uid);
+        }
+        AccessManager manager2 = AccessManager.create(current); // simulate
+                                                                // server
+                                                                // restart by
+                                                                // creating new
+                                                                // manager
+        for (int i = 0; i < TestData.getScaleCount(); i++) {    // and add
+            ByteBuffer username = getAcceptableUsername();      // more users
+            ByteBuffer password = getSecurePassword();
+            users.put(username, password);
+            manager2.grant(username, password);
+        }
+        uniqueUids = Sets.newSet();
+        for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
+            short uid = manager2.getUidByUsername(entry.getKey());
+            Assert.assertFalse(uniqueUids.contains(uid));
+            uniqueUids.add(uid);
+        }
+    }
+    
+    @Test
+    public void testAllUsersHaveSameUidsAsBeforeServerRestarts() {
+        Map<ByteBuffer, ByteBuffer> users = Maps.newHashMap();
+        Map<ByteBuffer, Short> uids = Maps.newHashMap();
+        for (int i = 0; i < TestData.getScaleCount(); i++) {
+            ByteBuffer username = getAcceptableUsername();
+            ByteBuffer password = getSecurePassword();
+            users.put(username, password);
+            manager.grant(username, password);
+        }
+        for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
+            short uid = manager.getUidByUsername(entry.getKey());
+            uids.put(entry.getKey(), uid);
+        }
+        AccessManager manager2 = AccessManager.create(current); // simulate
+                                                                // server
+                                                                // restart by
+                                                                // creating new
+                                                                // manager
+        for (Entry<ByteBuffer, ByteBuffer> entry : users.entrySet()) {
+            short uid = manager2.getUidByUsername(entry.getKey());
+            Assert.assertEquals((short)uids.get(entry.getKey()), uid);
         }
     }
 

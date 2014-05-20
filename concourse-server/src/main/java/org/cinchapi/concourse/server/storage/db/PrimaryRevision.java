@@ -63,9 +63,9 @@ public final class PrimaryRevision extends Revision<PrimaryKey, Text, Value> {
      * @param version
      * @param type
      */
-    PrimaryRevision(PrimaryKey locator, Text key, Value value, long version,
+    PrimaryRevision(short uid, PrimaryKey locator, Text key, Value value, long version,
             Action type) {
-        super(locator, key, value, version, type);
+        super(uid, locator, key, value, version, type);
     }
 
     @Override

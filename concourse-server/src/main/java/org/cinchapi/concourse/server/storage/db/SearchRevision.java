@@ -62,9 +62,9 @@ public final class SearchRevision extends Revision<Text, Text, Position> {
      * @param version
      * @param type
      */
-    SearchRevision(Text locator, Text key, Position value, long version,
+    SearchRevision(short uid, Text locator, Text key, Position value, long version,
             Action type) {
-        super(locator, key, value, version, type);
+        super(uid, locator, key, value, version, type);
     }
 
     @Override

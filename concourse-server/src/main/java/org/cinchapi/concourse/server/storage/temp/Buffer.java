@@ -676,10 +676,10 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.verify(key, value, record, timestamp);
+            return super.verify(uid, key, value, record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();

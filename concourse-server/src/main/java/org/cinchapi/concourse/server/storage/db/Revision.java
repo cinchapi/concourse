@@ -69,9 +69,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * 
      * @return the PrimaryRevision
      */
-    public static PrimaryRevision createPrimaryRevision(PrimaryKey record,
+    public static PrimaryRevision createPrimaryRevision(short uid, PrimaryKey record,
             Text key, Value value, long version, Action type) {
-        return new PrimaryRevision(record, key, value, version, type);
+        return new PrimaryRevision(uid, record, key, value, version, type);
     }
 
     /**
@@ -85,9 +85,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @param type
      * @return the SearchRevision
      */
-    public static SearchRevision createSearchRevision(Text key, Text word,
+    public static SearchRevision createSearchRevision(short uid, Text key, Text word,
             Position position, long version, Action type) {
-        return new SearchRevision(key, word, position, version, type);
+        return new SearchRevision(uid, key, word, position, version, type);
     }
 
     /**
@@ -101,9 +101,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @param type
      * @return the SecondaryRevision
      */
-    public static SecondaryRevision createSecondaryRevision(Text key,
+    public static SecondaryRevision createSecondaryRevision(short uid, Text key,
             Value value, PrimaryKey record, long version, Action type) {
-        return new SecondaryRevision(key, value, record, version, type);
+        return new SecondaryRevision(uid, key, value, record, version, type);
     }
 
     /**
@@ -118,6 +118,11 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * maintaining consistent state.
      */
     private final Action type;
+    
+    /**
+     * 
+     */
+    private final short uid;
 
     /**
      * The primary component used to locate the index, to which this Revision
@@ -173,6 +178,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public Revision(ByteBuffer bytes) {
         this.bytes = bytes;
         this.type = Action.values()[bytes.get()];
+        this.uid = bytes.getShort();
         this.version = bytes.getLong();
         this.locator = Byteables.readStatic(ByteBuffers.get(bytes,
                 xLocatorSize() == VARIABLE_SIZE ? bytes.getInt()
@@ -194,14 +200,15 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * @param version
      * @param type
      */
-    protected Revision(L locator, K key, V value, long version, Action type) {
+    protected Revision(short uid, L locator, K key, V value, long version, Action type) {
         Preconditions.checkArgument(type != Action.COMPARE);
         this.type = type;
+        this.uid = uid;
         this.locator = locator;
         this.key = key;
         this.value = value;
         this.version = version;
-        this.size = 1 + 8 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
+        this.size = 1 + 8 + 2 + (xLocatorSize() == VARIABLE_SIZE ? 4 : 0)
                 + (xKeySize() == VARIABLE_SIZE ? 4 : 0) + locator.size()
                 + key.size() + value.size();
     }
@@ -246,6 +253,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
             bytes.put((byte) type.ordinal());
+            bytes.putShort(uid);
             bytes.putLong(version);
             if(xLocatorSize() == VARIABLE_SIZE) {
                 bytes.putInt(locator.size());
@@ -286,6 +294,14 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public Action getType() {
         return type;
     }
+    
+    /**
+     * 
+     * @return
+     */
+    public short getUid() {
+        return uid;
+    }
 
     /**
      * Return the {@link #value} associated with this Revision.
@@ -319,7 +335,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     @Override
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + locator + " AT "
-                + version;
+                + version + " BY " + uid;
     }
 
     /**

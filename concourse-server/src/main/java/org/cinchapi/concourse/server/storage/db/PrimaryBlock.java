@@ -55,9 +55,9 @@ final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
     }
 
     @Override
-    protected PrimaryRevision makeRevision(PrimaryKey locator, Text key,
+    protected PrimaryRevision makeRevision(short uid, PrimaryKey locator, Text key,
             Value value, long version, Action type) {
-        return Revision.createPrimaryRevision(locator, key, value, version,
+        return Revision.createPrimaryRevision(uid, locator, key, value, version,
                 type);
     }
 

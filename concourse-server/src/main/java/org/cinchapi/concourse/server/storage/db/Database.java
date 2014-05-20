@@ -378,14 +378,14 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record) {
+    public boolean verify(short uid, String key, TObject value, long record) {
         Text key0 = Text.wrap(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
                 Value.wrap(value));
     }
 
     @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
+    public boolean verify(short uid, String key, TObject value, long record, long timestamp) {
         Text key0 = Text.wrap(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
                 Value.wrap(value), timestamp);
@@ -643,7 +643,7 @@ public final class Database extends BaseStore implements
             Logger.debug("Writing {} to {}", write, block);
             if(block instanceof PrimaryBlock) {
                 PrimaryRevision revision = (PrimaryRevision) ((PrimaryBlock) block)
-                        .insert(write.getRecord(), write.getKey(),
+                        .insert(write.getUid(), write.getRecord(), write.getKey(),
                                 write.getValue(), write.getVersion(),
                                 write.getType());
                 Record<PrimaryKey, Text, Value> record = cpc
@@ -660,7 +660,7 @@ public final class Database extends BaseStore implements
             }
             else if(block instanceof SecondaryBlock) {
                 SecondaryRevision revision = (SecondaryRevision) ((SecondaryBlock) block)
-                        .insert(write.getKey(), write.getValue(),
+                        .insert(write.getUid(), write.getKey(), write.getValue(),
                                 write.getRecord(), write.getVersion(),
                                 write.getType());
                 SecondaryRecord record = csc.getIfPresent(Composite
@@ -670,7 +670,7 @@ public final class Database extends BaseStore implements
                 }
             }
             else if(block instanceof SearchBlock) {
-                ((SearchBlock) block).insert(write.getKey(), write.getValue(),
+                ((SearchBlock) block).insert(write.getUid(), write.getKey(), write.getValue(),
                         write.getRecord(), write.getVersion(), write.getType());
                 // NOTE: We do not cache SearchRecords because they have the
                 // potential to be VERY large. Holding references to them in a

@@ -156,21 +156,22 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         // Accept writes from an AtomicOperation and put them in this
         // Transaction's buffer.
         checkArgument(write.getType() != Action.COMPARE);
+        short uid = write.getUid();
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         if(write.getType() == Action.ADD) {
-            add(key, value, record);
+            add(uid, key, value, record);
         }
         else {
-            remove(key, value, record);
+            remove(uid, key, value, record);
         }
     }
 
     @Override
-    public boolean add(String key, TObject value, long record)
+    public boolean add(short uid, String key, TObject value, long record)
             throws AtomicStateException {
-        if(super.add(key, value, record)) {
+        if(super.add(uid, key, value, record)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             return true;
@@ -181,9 +182,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record)
+    public boolean remove(short uid, String key, TObject value, long record)
             throws AtomicStateException {
-        if(super.remove(key, value, record)) {
+        if(super.remove(uid, key, value, record)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             return true;
