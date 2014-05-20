@@ -97,24 +97,28 @@ public class BlockIndex implements Byteable, Syncable {
     /**
      * The entries contained in the index.
      */
-    private final Map<Composite, Entry> entries;
+    private Map<Composite, Entry> entries;
 
     /**
-     * Construct a new instance.
+     * A flag that indicates if the data in the index has been loaded.
+     */
+    private boolean loaded;
+
+    /**
+     * A flag that indicates if this index is mutable. An index is no longer
+     * mutable after it has been synced.
+     */
+    private final boolean mutable;
+
+    /**
+     * Lazily construct an existing instance from the data in {@code file}.
      * 
      * @param file
      */
     public BlockIndex(String file) {
         this.file = file;
-        ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                FileSystem.getFileSize(file));
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-        this.entries = Maps.newHashMapWithExpectedSize(bytes.capacity()
-                / Entry.CONSTANT_SIZE);
-        while (it.hasNext()) {
-            Entry entry = new Entry(it.next());
-            this.entries.put(entry.getKey(), entry);
-        }
+        this.loaded = false;
+        this.mutable = false;
     }
 
     /**
@@ -125,25 +129,13 @@ public class BlockIndex implements Byteable, Syncable {
     private BlockIndex(String file, int expectedInsertions) {
         this.file = file;
         this.entries = Maps.newHashMapWithExpectedSize(expectedInsertions);
-    }
-
-    @Override
-    public void sync() {
-        masterLock.readLock().lock();
-        try {
-            FileSystem.getFileChannel(file).write(getBytes());
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
-
+        this.loaded = true;
+        this.mutable = true;
     }
 
     @Override
     public ByteBuffer getBytes() {
+        Preconditions.checkState(mutable);
         masterLock.readLock().lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size());
@@ -167,8 +159,9 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the end position
      */
     public int getEnd(Byteable... byteables) {
+        lazyLoad();
         masterLock.readLock().lock();
-        try {
+        try {            
             Composite composite = Composite.create(byteables);
             Entry entry = entries.get(composite);
             if(entry != null) {
@@ -191,8 +184,9 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the start position
      */
     public int getStart(Byteable... byteables) {
+        lazyLoad();
         masterLock.readLock().lock();
-        try {
+        try {          
             Composite composite = Composite.create(byteables);
             Entry entry = entries.get(composite);
             if(entry != null) {
@@ -216,6 +210,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putEnd(int end, Byteable... byteables) {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
+        Preconditions.checkState(mutable);
         masterLock.writeLock().lock();
         try {
             Composite composite = Composite.create(byteables);
@@ -239,6 +234,7 @@ public class BlockIndex implements Byteable, Syncable {
     public void putStart(int start, Byteable... byteables) {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
+        Preconditions.checkState(mutable);
         masterLock.writeLock().lock();
         try {
             Composite composite = Composite.create(byteables);
@@ -266,6 +262,62 @@ public class BlockIndex implements Byteable, Syncable {
         }
     }
 
+    @Override
+    public void sync() {
+        Preconditions.checkState(mutable);
+        masterLock.readLock().lock();
+        try {
+            FileSystem.getFileChannel(file).write(getBytes());
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return {@code true} if this index has been fully loaded.
+     * 
+     * @return {@code true} if lazily loaded
+     */
+    protected boolean isLoaded() { // visible for testing
+        masterLock.readLock().lock();
+        try {
+            return loaded;
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Load the entries in the index in an on-demand fashion to avoid wasting
+     * memory unnecessarily.
+     */
+    private final void lazyLoad() {
+        if(!loaded) {
+            masterLock.writeLock().lock();
+            try {
+                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                        FileSystem.getFileSize(file));
+                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+                entries = Maps.newHashMapWithExpectedSize(bytes.capacity()
+                        / Entry.CONSTANT_SIZE);
+                while (it.hasNext()) {
+                    Entry entry = new Entry(it.next());
+                    entries.put(entry.getKey(), entry);
+                }
+                loaded = true;
+            }
+            finally {
+                masterLock.writeLock().unlock();
+            }
+        }
+
+    }
+
     /**
      * Represents a single entry in the Index.
      * 
@@ -278,15 +330,6 @@ public class BlockIndex implements Byteable, Syncable {
         private final Composite key;
         private int start = NO_ENTRY;
         private int end = NO_ENTRY;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         */
-        public Entry(Composite key) {
-            this.key = key;
-        }
 
         /**
          * Construct an instance that represents an existing Entry from a
@@ -302,6 +345,15 @@ public class BlockIndex implements Byteable, Syncable {
             this.end = bytes.getInt();
             this.key = Composite.fromByteBuffer(ByteBuffers.get(bytes,
                     bytes.remaining()));
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param key
+         */
+        public Entry(Composite key) {
+            this.key = key;
         }
 
         @Override
