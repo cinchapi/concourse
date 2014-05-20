@@ -18,10 +18,10 @@ import org.apache.thrift.TException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.EnumMap;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.EnumSet;
 import java.util.Collections;
 import java.util.BitSet;
@@ -30,6 +30,7 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings({ "rawtypes", "serial", "unchecked", "unused" })
 public class ConcourseService {
 
   /**
@@ -41,7 +42,7 @@ public class ConcourseService {
   public interface Iface {
 
     /**
-     * Login to the service. A user must login to receive an {@link shared.AccessToken}
+     * Login to the service. A user must login to receive an {@link AccessToken}
      * which is required for all other method invocations.
      * 
      * @param username
@@ -64,8 +65,8 @@ public class ConcourseService {
      * so the database is always in a consistent state.
      * <p>
      * After this method returns, all subsequent operations will be done in
-     * {@code staging} mode until either {@link #abort(shared.AccessToken)} or
-     * {@link #commit(shared.AccessToken)} is invoked.
+     * {@code staging} mode until either {@link #abort(AccessToken)} or
+     * {@link #commit(AccessToken)} is invoked.
      * </p>
      * 
      * @param token
@@ -76,7 +77,7 @@ public class ConcourseService {
      * Abort and remove any changes that are currently sitting in the staging area.
      * <p>
      * After this function returns, all subsequent operations will commit to the
-     * database immediately until {@link #stage(shared.AccessToken)} is invoked.
+     * database immediately until {@link #stage(AccessToken)} is invoked.
      * </p>
      * 
      * @param creds
@@ -84,19 +85,22 @@ public class ConcourseService {
      */
     public void abort(org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken transaction) throws org.cinchapi.concourse.thrift.TSecurityException, org.apache.thrift.TException;
 
-    /**
-     * Attempt to permanently commit all the changes that are currently sitting in
-     * the staging area to the database. This function only returns {@code true}
-     * if all the changes can be successfully applied to the database. Otherwise,
-     * this function returns {@code false} and all the changes are aborted.
-     * <p>
-     * After this function returns, all subsequent operations will commit to the
-     * database immediately until {@link #stage(shared.AccessToken)} is invoked.
-     * </p>
-     * 
-     * @param creds
-     * @param transaction
-     */
+        /**
+         * Attempt to permanently commit all the changes that are currently
+         * sitting in
+         * the staging area to the database. This function only returns
+         * {@code true} if all the changes can be successfully applied to the
+         * database. Otherwise,
+         * this function returns {@code false} and all the changes are aborted.
+         * <p>
+         * After this function returns, all subsequent operations will commit to
+         * the database immediately until {@link #stage(AccessToken)} is
+         * invoked.
+         * </p>
+         * 
+         * @param creds
+         * @param transaction
+         */
     public boolean commit(org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken transaction) throws org.cinchapi.concourse.thrift.TSecurityException, org.apache.thrift.TException;
 
     /**
@@ -2044,7 +2048,7 @@ public class ConcourseService {
   public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor<I> implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
     public Processor(I iface) {
-      super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
+      super(iface, getProcessMap(new LinkedHashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
     }
 
     protected Processor(I iface, Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
@@ -2670,7 +2674,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField USERNAME_FIELD_DESC = new org.apache.thrift.protocol.TField("username", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField PASSWORD_FIELD_DESC = new org.apache.thrift.protocol.TField("password", org.apache.thrift.protocol.TType.STRING, (short)2);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new login_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new login_argsTupleSchemeFactory());
@@ -2684,7 +2688,7 @@ public class ConcourseService {
       USERNAME((short)1, "username"),
       PASSWORD((short)2, "password");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -3146,7 +3150,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new login_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new login_resultTupleSchemeFactory());
@@ -3160,7 +3164,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -3606,7 +3610,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new logout_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new logout_argsTupleSchemeFactory());
@@ -3618,7 +3622,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       TOKEN((short)1, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -3965,7 +3969,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new logout_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new logout_resultTupleSchemeFactory());
@@ -3977,7 +3981,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -4321,7 +4325,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new stage_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new stage_argsTupleSchemeFactory());
@@ -4333,7 +4337,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       TOKEN((short)1, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -4681,7 +4685,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new stage_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new stage_resultTupleSchemeFactory());
@@ -4695,7 +4699,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -5142,7 +5146,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new abort_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new abort_argsTupleSchemeFactory());
@@ -5156,7 +5160,7 @@ public class ConcourseService {
       CREDS((short)1, "creds"),
       TRANSACTION((short)2, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -5605,7 +5609,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new abort_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new abort_resultTupleSchemeFactory());
@@ -5617,7 +5621,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -5962,7 +5966,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new commit_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new commit_argsTupleSchemeFactory());
@@ -5976,7 +5980,7 @@ public class ConcourseService {
       CREDS((short)1, "creds"),
       TRANSACTION((short)2, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -6426,7 +6430,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new commit_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new commit_resultTupleSchemeFactory());
@@ -6440,7 +6444,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -6885,7 +6889,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new add_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new add_argsTupleSchemeFactory());
@@ -6905,7 +6909,7 @@ public class ConcourseService {
       CREDS((short)4, "creds"),
       TRANSACTION((short)5, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -7649,7 +7653,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new add_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new add_resultTupleSchemeFactory());
@@ -7663,7 +7667,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -8108,7 +8112,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new remove_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new remove_argsTupleSchemeFactory());
@@ -8128,7 +8132,7 @@ public class ConcourseService {
       CREDS((short)4, "creds"),
       TRANSACTION((short)5, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -8872,7 +8876,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new remove_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new remove_resultTupleSchemeFactory());
@@ -8886,7 +8890,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -9330,7 +9334,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new audit_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new audit_argsTupleSchemeFactory());
@@ -9348,7 +9352,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TRANSACTION((short)5, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -9990,7 +9994,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new audit_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new audit_resultTupleSchemeFactory());
@@ -10004,7 +10008,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -10091,7 +10095,7 @@ public class ConcourseService {
      */
     public audit_result(audit_result other) {
       if (other.isSetSuccess()) {
-        Map<Long,String> __this__success = new HashMap<Long,String>();
+        Map<Long,String> __this__success = new LinkedHashMap<Long,String>();
         for (Map.Entry<Long, String> other_element : other.success.entrySet()) {
 
           Long other_element_key = other_element.getKey();
@@ -10126,7 +10130,7 @@ public class ConcourseService {
 
     public void putToSuccess(long key, String val) {
       if (this.success == null) {
-        this.success = new HashMap<Long,String>();
+        this.success = new LinkedHashMap<Long,String>();
       }
       this.success.put(key, val);
     }
@@ -10376,7 +10380,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
                   org.apache.thrift.protocol.TMap _map0 = iprot.readMapBegin();
-                  struct.success = new HashMap<Long,String>(2*_map0.size);
+                  struct.success = new LinkedHashMap<Long,String>(2*_map0.size);
                   for (int _i1 = 0; _i1 < _map0.size; ++_i1)
                   {
                     long _key2; // required
@@ -10481,7 +10485,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TMap _map6 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new HashMap<Long,String>(2*_map6.size);
+            struct.success = new LinkedHashMap<Long,String>(2*_map6.size);
             for (int _i7 = 0; _i7 < _map6.size; ++_i7)
             {
               long _key8; // required
@@ -10511,7 +10515,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new chronologize_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new chronologize_argsTupleSchemeFactory());
@@ -10529,7 +10533,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TRANSACTION((short)4, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -11171,7 +11175,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new chronologize_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new chronologize_resultTupleSchemeFactory());
@@ -11185,7 +11189,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -11273,7 +11277,7 @@ public class ConcourseService {
      */
     public chronologize_result(chronologize_result other) {
       if (other.isSetSuccess()) {
-        Map<Long,Set<org.cinchapi.concourse.thrift.TObject>> __this__success = new HashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>();
+        Map<Long,Set<org.cinchapi.concourse.thrift.TObject>> __this__success = new LinkedHashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>();
         for (Map.Entry<Long, Set<org.cinchapi.concourse.thrift.TObject>> other_element : other.success.entrySet()) {
 
           Long other_element_key = other_element.getKey();
@@ -11281,7 +11285,7 @@ public class ConcourseService {
 
           Long __this__success_copy_key = other_element_key;
 
-          Set<org.cinchapi.concourse.thrift.TObject> __this__success_copy_value = new HashSet<org.cinchapi.concourse.thrift.TObject>();
+          Set<org.cinchapi.concourse.thrift.TObject> __this__success_copy_value = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
           for (org.cinchapi.concourse.thrift.TObject other_element_value_element : other_element_value) {
             __this__success_copy_value.add(new org.cinchapi.concourse.thrift.TObject(other_element_value_element));
           }
@@ -11311,7 +11315,7 @@ public class ConcourseService {
 
     public void putToSuccess(long key, Set<org.cinchapi.concourse.thrift.TObject> val) {
       if (this.success == null) {
-        this.success = new HashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>();
+        this.success = new LinkedHashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>();
       }
       this.success.put(key, val);
     }
@@ -11561,7 +11565,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
                   org.apache.thrift.protocol.TMap _map10 = iprot.readMapBegin();
-                  struct.success = new HashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map10.size);
+                  struct.success = new LinkedHashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map10.size);
                   for (int _i11 = 0; _i11 < _map10.size; ++_i11)
                   {
                     long _key12; // required
@@ -11569,7 +11573,7 @@ public class ConcourseService {
                     _key12 = iprot.readI64();
                     {
                       org.apache.thrift.protocol.TSet _set14 = iprot.readSetBegin();
-                      _val13 = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set14.size);
+                      _val13 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set14.size);
                       for (int _i15 = 0; _i15 < _set14.size; ++_i15)
                       {
                         org.cinchapi.concourse.thrift.TObject _elem16; // required
@@ -11690,7 +11694,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TMap _map21 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.SET, iprot.readI32());
-            struct.success = new HashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map21.size);
+            struct.success = new LinkedHashMap<Long,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map21.size);
             for (int _i22 = 0; _i22 < _map21.size; ++_i22)
             {
               long _key23; // required
@@ -11698,7 +11702,7 @@ public class ConcourseService {
               _key23 = iprot.readI64();
               {
                 org.apache.thrift.protocol.TSet _set25 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-                _val24 = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set25.size);
+                _val24 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set25.size);
                 for (int _i26 = 0; _i26 < _set25.size; ++_i26)
                 {
                   org.cinchapi.concourse.thrift.TObject _elem27; // required
@@ -11730,7 +11734,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new describe_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new describe_argsTupleSchemeFactory());
@@ -11748,7 +11752,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TRANSACTION((short)4, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -12384,7 +12388,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new describe_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new describe_resultTupleSchemeFactory());
@@ -12398,7 +12402,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -12484,7 +12488,7 @@ public class ConcourseService {
      */
     public describe_result(describe_result other) {
       if (other.isSetSuccess()) {
-        Set<String> __this__success = new HashSet<String>();
+        Set<String> __this__success = new LinkedHashSet<String>();
         for (String other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -12515,7 +12519,7 @@ public class ConcourseService {
 
     public void addToSuccess(String elem) {
       if (this.success == null) {
-        this.success = new HashSet<String>();
+        this.success = new LinkedHashSet<String>();
       }
       this.success.add(elem);
     }
@@ -12765,7 +12769,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set28 = iprot.readSetBegin();
-                  struct.success = new HashSet<String>(2*_set28.size);
+                  struct.success = new LinkedHashSet<String>(2*_set28.size);
                   for (int _i29 = 0; _i29 < _set28.size; ++_i29)
                   {
                     String _elem30; // required
@@ -12866,7 +12870,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set33 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new HashSet<String>(2*_set33.size);
+            struct.success = new LinkedHashSet<String>(2*_set33.size);
             for (int _i34 = 0; _i34 < _set33.size; ++_i34)
             {
               String _elem35; // required
@@ -12895,7 +12899,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new fetch_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new fetch_argsTupleSchemeFactory());
@@ -12915,7 +12919,7 @@ public class ConcourseService {
       CREDS((short)4, "creds"),
       TRANSACTION((short)5, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -13648,7 +13652,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new fetch_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new fetch_resultTupleSchemeFactory());
@@ -13662,7 +13666,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -13748,7 +13752,7 @@ public class ConcourseService {
      */
     public fetch_result(fetch_result other) {
       if (other.isSetSuccess()) {
-        Set<org.cinchapi.concourse.thrift.TObject> __this__success = new HashSet<org.cinchapi.concourse.thrift.TObject>();
+        Set<org.cinchapi.concourse.thrift.TObject> __this__success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
         for (org.cinchapi.concourse.thrift.TObject other_element : other.success) {
           __this__success.add(new org.cinchapi.concourse.thrift.TObject(other_element));
         }
@@ -13779,7 +13783,7 @@ public class ConcourseService {
 
     public void addToSuccess(org.cinchapi.concourse.thrift.TObject elem) {
       if (this.success == null) {
-        this.success = new HashSet<org.cinchapi.concourse.thrift.TObject>();
+        this.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
       }
       this.success.add(elem);
     }
@@ -14029,7 +14033,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set36 = iprot.readSetBegin();
-                  struct.success = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set36.size);
+                  struct.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set36.size);
                   for (int _i37 = 0; _i37 < _set36.size; ++_i37)
                   {
                     org.cinchapi.concourse.thrift.TObject _elem38; // required
@@ -14131,7 +14135,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set41 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set41.size);
+            struct.success = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set41.size);
             for (int _i42 = 0; _i42 < _set41.size; ++_i42)
             {
               org.cinchapi.concourse.thrift.TObject _elem43; // required
@@ -14162,7 +14166,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)5);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new find_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new find_argsTupleSchemeFactory());
@@ -14192,7 +14196,7 @@ public class ConcourseService {
       CREDS((short)5, "creds"),
       TRANSACTION((short)6, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -15090,7 +15094,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new find_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new find_resultTupleSchemeFactory());
@@ -15104,7 +15108,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -15190,7 +15194,7 @@ public class ConcourseService {
      */
     public find_result(find_result other) {
       if (other.isSetSuccess()) {
-        Set<Long> __this__success = new HashSet<Long>();
+        Set<Long> __this__success = new LinkedHashSet<Long>();
         for (Long other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -15221,7 +15225,7 @@ public class ConcourseService {
 
     public void addToSuccess(long elem) {
       if (this.success == null) {
-        this.success = new HashSet<Long>();
+        this.success = new LinkedHashSet<Long>();
       }
       this.success.add(elem);
     }
@@ -15471,7 +15475,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set52 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set52.size);
+                  struct.success = new LinkedHashSet<Long>(2*_set52.size);
                   for (int _i53 = 0; _i53 < _set52.size; ++_i53)
                   {
                     long _elem54; // required
@@ -15572,7 +15576,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set57 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set57.size);
+            struct.success = new LinkedHashSet<Long>(2*_set57.size);
             for (int _i58 = 0; _i58 < _set57.size; ++_i58)
             {
               long _elem59; // required
@@ -15599,7 +15603,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new ping_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new ping_argsTupleSchemeFactory());
@@ -15615,7 +15619,7 @@ public class ConcourseService {
       CREDS((short)2, "creds"),
       TRANSACTION((short)3, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -16160,7 +16164,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new ping_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new ping_resultTupleSchemeFactory());
@@ -16174,7 +16178,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -16618,7 +16622,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new search_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new search_argsTupleSchemeFactory());
@@ -16636,7 +16640,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TRANSACTION((short)4, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -17280,7 +17284,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.SET, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new search_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new search_resultTupleSchemeFactory());
@@ -17294,7 +17298,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -17380,7 +17384,7 @@ public class ConcourseService {
      */
     public search_result(search_result other) {
       if (other.isSetSuccess()) {
-        Set<Long> __this__success = new HashSet<Long>();
+        Set<Long> __this__success = new LinkedHashSet<Long>();
         for (Long other_element : other.success) {
           __this__success.add(other_element);
         }
@@ -17411,7 +17415,7 @@ public class ConcourseService {
 
     public void addToSuccess(long elem) {
       if (this.success == null) {
-        this.success = new HashSet<Long>();
+        this.success = new LinkedHashSet<Long>();
       }
       this.success.add(elem);
     }
@@ -17661,7 +17665,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
                   org.apache.thrift.protocol.TSet _set60 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set60.size);
+                  struct.success = new LinkedHashSet<Long>(2*_set60.size);
                   for (int _i61 = 0; _i61 < _set60.size; ++_i61)
                   {
                     long _elem62; // required
@@ -17762,7 +17766,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TSet _set65 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set65.size);
+            struct.success = new LinkedHashSet<Long>(2*_set65.size);
             for (int _i66 = 0; _i66 < _set65.size; ++_i66)
             {
               long _elem67; // required
@@ -17792,7 +17796,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)5);
     private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("transaction", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new verify_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new verify_argsTupleSchemeFactory());
@@ -17814,7 +17818,7 @@ public class ConcourseService {
       CREDS((short)5, "creds"),
       TRANSACTION((short)6, "transaction");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -18649,7 +18653,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new verify_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new verify_resultTupleSchemeFactory());
@@ -18663,7 +18667,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -19108,7 +19112,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new revert_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new revert_argsTupleSchemeFactory());
@@ -19128,7 +19132,7 @@ public class ConcourseService {
       CREDS((short)4, "creds"),
       TOKEN((short)5, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -19860,7 +19864,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new revert_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new revert_resultTupleSchemeFactory());
@@ -19872,7 +19876,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -20219,7 +20223,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new clear_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new clear_argsTupleSchemeFactory());
@@ -20237,7 +20241,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TOKEN((short)5, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -20878,7 +20882,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new clear_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new clear_resultTupleSchemeFactory());
@@ -20890,7 +20894,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -21238,7 +21242,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new set0_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new set0_argsTupleSchemeFactory());
@@ -21258,7 +21262,7 @@ public class ConcourseService {
       CREDS((short)4, "creds"),
       TOKEN((short)5, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -22001,7 +22005,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new set0_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new set0_resultTupleSchemeFactory());
@@ -22013,7 +22017,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -22362,7 +22366,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)5);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new verifyAndSwap_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new verifyAndSwap_argsTupleSchemeFactory());
@@ -22384,7 +22388,7 @@ public class ConcourseService {
       CREDS((short)5, "creds"),
       TOKEN((short)6, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -23230,7 +23234,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new verifyAndSwap_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new verifyAndSwap_resultTupleSchemeFactory());
@@ -23244,7 +23248,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -23684,7 +23688,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getServerVersion_args");
 
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new getServerVersion_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new getServerVersion_argsTupleSchemeFactory());
@@ -23695,7 +23699,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
 ;
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -23932,7 +23936,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new getServerVersion_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new getServerVersion_resultTupleSchemeFactory());
@@ -23946,7 +23950,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -24390,7 +24394,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new insert_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new insert_argsTupleSchemeFactory());
@@ -24408,7 +24412,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TOKEN((short)4, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -25050,7 +25054,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new insert_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new insert_resultTupleSchemeFactory());
@@ -25064,7 +25068,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -25508,7 +25512,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new browse0_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new browse0_argsTupleSchemeFactory());
@@ -25526,7 +25530,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TOKEN((short)4, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -26162,7 +26166,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new browse0_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new browse0_resultTupleSchemeFactory());
@@ -26176,7 +26180,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -26264,7 +26268,7 @@ public class ConcourseService {
      */
     public browse0_result(browse0_result other) {
       if (other.isSetSuccess()) {
-        Map<String,Set<org.cinchapi.concourse.thrift.TObject>> __this__success = new HashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>();
+        Map<String,Set<org.cinchapi.concourse.thrift.TObject>> __this__success = new LinkedHashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>();
         for (Map.Entry<String, Set<org.cinchapi.concourse.thrift.TObject>> other_element : other.success.entrySet()) {
 
           String other_element_key = other_element.getKey();
@@ -26272,7 +26276,7 @@ public class ConcourseService {
 
           String __this__success_copy_key = other_element_key;
 
-          Set<org.cinchapi.concourse.thrift.TObject> __this__success_copy_value = new HashSet<org.cinchapi.concourse.thrift.TObject>();
+          Set<org.cinchapi.concourse.thrift.TObject> __this__success_copy_value = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>();
           for (org.cinchapi.concourse.thrift.TObject other_element_value_element : other_element_value) {
             __this__success_copy_value.add(new org.cinchapi.concourse.thrift.TObject(other_element_value_element));
           }
@@ -26302,7 +26306,7 @@ public class ConcourseService {
 
     public void putToSuccess(String key, Set<org.cinchapi.concourse.thrift.TObject> val) {
       if (this.success == null) {
-        this.success = new HashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>();
+        this.success = new LinkedHashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>();
       }
       this.success.put(key, val);
     }
@@ -26552,7 +26556,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
                   org.apache.thrift.protocol.TMap _map68 = iprot.readMapBegin();
-                  struct.success = new HashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map68.size);
+                  struct.success = new LinkedHashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map68.size);
                   for (int _i69 = 0; _i69 < _map68.size; ++_i69)
                   {
                     String _key70; // required
@@ -26560,7 +26564,7 @@ public class ConcourseService {
                     _key70 = iprot.readString();
                     {
                       org.apache.thrift.protocol.TSet _set72 = iprot.readSetBegin();
-                      _val71 = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set72.size);
+                      _val71 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set72.size);
                       for (int _i73 = 0; _i73 < _set72.size; ++_i73)
                       {
                         org.cinchapi.concourse.thrift.TObject _elem74; // required
@@ -26681,7 +26685,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TMap _map79 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.SET, iprot.readI32());
-            struct.success = new HashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map79.size);
+            struct.success = new LinkedHashMap<String,Set<org.cinchapi.concourse.thrift.TObject>>(2*_map79.size);
             for (int _i80 = 0; _i80 < _map79.size; ++_i80)
             {
               String _key81; // required
@@ -26689,7 +26693,7 @@ public class ConcourseService {
               _key81 = iprot.readString();
               {
                 org.apache.thrift.protocol.TSet _set83 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-                _val82 = new HashSet<org.cinchapi.concourse.thrift.TObject>(2*_set83.size);
+                _val82 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(2*_set83.size);
                 for (int _i84 = 0; _i84 < _set83.size; ++_i84)
                 {
                   org.cinchapi.concourse.thrift.TObject _elem85; // required
@@ -26721,7 +26725,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new browse1_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new browse1_argsTupleSchemeFactory());
@@ -26739,7 +26743,7 @@ public class ConcourseService {
       CREDS((short)3, "creds"),
       TOKEN((short)4, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -27381,7 +27385,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.MAP, (short)0);
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new browse1_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new browse1_resultTupleSchemeFactory());
@@ -27395,7 +27399,7 @@ public class ConcourseService {
       SUCCESS((short)0, "success"),
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -27483,7 +27487,7 @@ public class ConcourseService {
      */
     public browse1_result(browse1_result other) {
       if (other.isSetSuccess()) {
-        Map<org.cinchapi.concourse.thrift.TObject,Set<Long>> __this__success = new HashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>();
+        Map<org.cinchapi.concourse.thrift.TObject,Set<Long>> __this__success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>();
         for (Map.Entry<org.cinchapi.concourse.thrift.TObject, Set<Long>> other_element : other.success.entrySet()) {
 
           org.cinchapi.concourse.thrift.TObject other_element_key = other_element.getKey();
@@ -27491,7 +27495,7 @@ public class ConcourseService {
 
           org.cinchapi.concourse.thrift.TObject __this__success_copy_key = new org.cinchapi.concourse.thrift.TObject(other_element_key);
 
-          Set<Long> __this__success_copy_value = new HashSet<Long>();
+          Set<Long> __this__success_copy_value = new LinkedHashSet<Long>();
           for (Long other_element_value_element : other_element_value) {
             __this__success_copy_value.add(other_element_value_element);
           }
@@ -27521,7 +27525,7 @@ public class ConcourseService {
 
     public void putToSuccess(org.cinchapi.concourse.thrift.TObject key, Set<Long> val) {
       if (this.success == null) {
-        this.success = new HashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>();
+        this.success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>();
       }
       this.success.put(key, val);
     }
@@ -27771,7 +27775,7 @@ public class ConcourseService {
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
                   org.apache.thrift.protocol.TMap _map86 = iprot.readMapBegin();
-                  struct.success = new HashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>(2*_map86.size);
+                  struct.success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>(2*_map86.size);
                   for (int _i87 = 0; _i87 < _map86.size; ++_i87)
                   {
                     org.cinchapi.concourse.thrift.TObject _key88; // required
@@ -27780,7 +27784,7 @@ public class ConcourseService {
                     _key88.read(iprot);
                     {
                       org.apache.thrift.protocol.TSet _set90 = iprot.readSetBegin();
-                      _val89 = new HashSet<Long>(2*_set90.size);
+                      _val89 = new LinkedHashSet<Long>(2*_set90.size);
                       for (int _i91 = 0; _i91 < _set90.size; ++_i91)
                       {
                         long _elem92; // required
@@ -27900,7 +27904,7 @@ public class ConcourseService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TMap _map97 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.SET, iprot.readI32());
-            struct.success = new HashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>(2*_map97.size);
+            struct.success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject,Set<Long>>(2*_map97.size);
             for (int _i98 = 0; _i98 < _map97.size; ++_i98)
             {
               org.cinchapi.concourse.thrift.TObject _key99; // required
@@ -27909,7 +27913,7 @@ public class ConcourseService {
               _key99.read(iprot);
               {
                 org.apache.thrift.protocol.TSet _set101 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-                _val100 = new HashSet<Long>(2*_set101.size);
+                _val100 = new LinkedHashSet<Long>(2*_set101.size);
                 for (int _i102 = 0; _i102 < _set101.size; ++_i102)
                 {
                   long _elem103; // required
@@ -27939,7 +27943,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new clear1_argsStandardSchemeFactory());
       schemes.put(TupleScheme.class, new clear1_argsTupleSchemeFactory());
@@ -27955,7 +27959,7 @@ public class ConcourseService {
       CREDS((short)2, "creds"),
       TOKEN((short)3, "token");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
@@ -28499,7 +28503,7 @@ public class ConcourseService {
 
     private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField("ex", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
       schemes.put(StandardScheme.class, new clear1_resultStandardSchemeFactory());
       schemes.put(TupleScheme.class, new clear1_resultTupleSchemeFactory());
@@ -28511,7 +28515,7 @@ public class ConcourseService {
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       EX((short)1, "ex");
 
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+      private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
       static {
         for (_Fields field : EnumSet.allOf(_Fields.class)) {
