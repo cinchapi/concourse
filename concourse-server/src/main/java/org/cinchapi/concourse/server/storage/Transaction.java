@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.annotate.Restricted;
-import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -48,11 +47,9 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
 
-import ch.qos.logback.classic.Level;
-
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
