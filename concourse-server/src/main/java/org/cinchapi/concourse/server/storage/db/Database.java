@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.io.Composite;
@@ -287,6 +288,16 @@ public final class Database implements PermanentStore, VersionGetter {
                         Transformers.transformArray(values,
                                 Functions.TOBJECT_TO_VALUE, Value.class)),
                 Functions.PRIMARY_KEY_TO_LONG);
+    }
+
+    /**
+     * Return the location where the Database stores its data.
+     * 
+     * @return the backingStore
+     */
+    @Restricted
+    public String getBackingStore() {
+        return backingStore;
     }
 
     /**
@@ -546,7 +557,8 @@ public final class Database implements PermanentStore, VersionGetter {
 
                     @Override
                     public boolean accept(File dir, String name) {
-                        return dir.getAbsolutePath().equals(path)
+                        return dir.getAbsolutePath().equals(
+                                new File(path).getAbsolutePath())
                                 && name.endsWith(Block.BLOCK_NAME_EXTENSION);
                     }
 
