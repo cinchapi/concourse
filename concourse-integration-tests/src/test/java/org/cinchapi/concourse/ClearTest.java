@@ -25,14 +25,9 @@ package org.cinchapi.concourse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
-
-import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link Concourse#clear(long)} API method. The clear method
