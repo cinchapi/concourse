@@ -40,6 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.cli.DumpToolCli;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
@@ -47,6 +48,7 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Syncable;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.cache.BloomFilter;
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -266,6 +268,18 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Block) {
+            // CON-83: I am intentionally making all Blocks with the same #id
+            // equal, regardless of sublcass type.
+            return id.equals(((Block<?, ?, ?>) obj).id);
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
     public ByteBuffer getBytes() {
         read.lock();
         try {
@@ -335,6 +349,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     public String getId() {
         return id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 
     /**
@@ -581,6 +600,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                         while (it.hasNext()) {
                             Revision<L, K, V> revision = Byteables.read(
                                     it.next(), xRevisionClass());
+                            Logger.debug("Attempting to append {} from {} to "
+                                    + "{}", revision, this, record);
                             record.append(revision);
                         }
                     }

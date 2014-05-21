@@ -474,8 +474,8 @@ public final class Engine extends BufferedStore implements
         if(!running) {
             Logger.info("Starting the Engine...");
             running = true;
-            buffer.start();
             destination.start();
+            buffer.start();
             doTransactionRecovery();
             bufferTransportThread.start();
         }

@@ -109,6 +109,17 @@ public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends By
     public void testSeekLocatorAndKeyInImmutableBlock() {
 
     }
+    
+    @Test
+    public final void testEquals(){
+        String id = Long.toString(TestData.getLong());
+        PrimaryBlock p = Block.createPrimaryBlock(id, directory + File.separator + "cpb");
+        SecondaryBlock s = Block.createSecondaryBlock(id, directory + File.separator + "csb");
+        SearchBlock t = Block.createSearchBlock(id, directory + File.separator + "ctb");
+        Assert.assertEquals(p, s);
+        Assert.assertEquals(p, t);
+        Assert.assertEquals(s, t);
+    }
 
     protected abstract L getLocator();
 

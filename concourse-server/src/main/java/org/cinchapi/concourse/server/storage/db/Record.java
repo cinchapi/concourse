@@ -399,10 +399,10 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * @return {@code true} if the revision if offset.
      */
     private boolean isOffset(Revision<L, K, V> revision) {
-        return (revision.getType() == Action.ADD && !get(revision.getKey())
-                .contains(revision.getValue()))
-                || (revision.getType() == Action.REMOVE && get(
-                        revision.getKey()).contains(revision.getValue()));
+        boolean contained = get(revision.getKey())
+                .contains(revision.getValue());
+        return ((revision.getType() == Action.ADD && !contained) || (revision
+                .getType() == Action.REMOVE && contained)) ? true : false;
     }
 
     /**

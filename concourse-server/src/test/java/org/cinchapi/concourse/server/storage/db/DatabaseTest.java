@@ -24,6 +24,8 @@
 package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.util.List;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.Store;
@@ -32,6 +34,8 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * 
@@ -39,8 +43,30 @@ import org.cinchapi.concourse.util.TestData;
  * @author jnelson
  */
 public class DatabaseTest extends StoreTest {
-    
+
     private String current;
+
+    @Test
+    public void testDatabaseRemovesUnbalancedBlocksOnStartup() throws Exception {
+        Database db = (Database) store;
+        db.accept(Write.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong()));
+        db.triggerSync();
+        db.stop();
+        FileSystem.deleteDirectory(current + File.separator + "csb");
+        FileSystem.mkdirs(current + File.separator + "csb");
+        db = new Database(db.getBackingStore()); // simulate server restart
+        db.start();
+        Field cpb = db.getClass().getDeclaredField("cpb");
+        Field csb = db.getClass().getDeclaredField("csb");
+        Field ctb = db.getClass().getDeclaredField("ctb");
+        cpb.setAccessible(true);
+        csb.setAccessible(true);
+        ctb.setAccessible(true);
+        Assert.assertEquals(1, ((List<?>) ctb.get(db)).size());
+        Assert.assertEquals(1, ((List<?>) csb.get(db)).size());
+        Assert.assertEquals(1, ((List<?>) cpb.get(db)).size());
+    }
 
     @Override
     protected void add(String key, TObject value, long record) {
@@ -51,7 +77,6 @@ public class DatabaseTest extends StoreTest {
     protected void cleanup(Store store) {
         FileSystem.deleteDirectory(current);
     }
-
 
     @Override
     protected Database getStore() {
