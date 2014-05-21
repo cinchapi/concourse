@@ -102,8 +102,7 @@ public class BlockIndex implements Byteable, Syncable {
 
     /**
      * A {@link SoftReference} to the entries contained in the index that is
-     * used to reduce memory
-     * overhead.
+     * used to reduce memory overhead.
      */
     private SoftReference<Map<Composite, Entry>> softEntries;
 
