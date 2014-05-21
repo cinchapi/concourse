@@ -90,7 +90,6 @@ public class EngineTest extends BufferedStoreTest {
                                  // was able to break out of the transport
                                  // exception
         System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
-        FileSystem.deleteDirectory(loc);
     }
 
     @Test
