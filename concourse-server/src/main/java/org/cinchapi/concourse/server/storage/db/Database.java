@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -615,6 +619,7 @@ public final class Database extends BaseStore implements
                 FileSystem.mkdirs(path);
                 SortedMap<File, T> blockSorter = Maps
                         .newTreeMap(NaturalSorter.INSTANCE);
+                Set<String> checksums = Sets.newHashSet();
                 for (File file : new File(path).listFiles(new FilenameFilter() {
 
                     @Override
@@ -630,14 +635,26 @@ public final class Database extends BaseStore implements
                     Constructor<T> constructor = clazz.getDeclaredConstructor(
                             String.class, String.class, Boolean.TYPE);
                     constructor.setAccessible(true);
-                    blockSorter.put(file,
-                            constructor.newInstance(id, path.toString(), true));
-                    Logger.info("Loaded {} metadata for {}",
-                            clazz.getSimpleName(), file.getName());
+                    String checksum = Files.hash(file, Hashing.md5())
+                            .toString();
+                    if(!checksums.contains(checksum)) {
+                        blockSorter.put(file, constructor.newInstance(id,
+                                path.toString(), true));
+                        Logger.info("Loaded {} metadata for {}",
+                                clazz.getSimpleName(), file.getName());
+                        checksums.add(checksum);
+                    }
+                    else {
+                        Logger.warn("{} {} contains duplicate data, so "
+                                + "it was not loaded. You can safely "
+                                + "delete this file.", clazz.getSimpleName(),
+                                id);
+                    }
+
                 }
                 blocks.addAll(blockSorter.values());
             }
-            catch (ReflectiveOperationException e) {
+            catch (ReflectiveOperationException | IOException e) {
                 Logger.error(
                         "An error occured while loading {} metadata for {}",
                         clazz.getSimpleName(), _file.getName());
