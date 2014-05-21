@@ -93,7 +93,6 @@ public class EngineTest extends BufferedStoreTest {
                                  // exception
         System.out
                 .println("[INFO] You can ignore the NoSuchFileException stack trace above");
-        FileSystem.deleteDirectory(loc);
     }
 
     @Test
