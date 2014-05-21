@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.storage.db;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
@@ -100,15 +101,17 @@ public class BlockIndex implements Byteable, Syncable {
     private Map<Composite, Entry> entries;
 
     /**
-     * A flag that indicates if the data in the index has been loaded.
+     * A {@link SoftReference} to the entries contained in the index that is
+     * used to reduce memory
+     * overhead.
      */
-    private boolean loaded;
+    private SoftReference<Map<Composite, Entry>> softEntries;
 
     /**
      * A flag that indicates if this index is mutable. An index is no longer
      * mutable after it has been synced.
      */
-    private final boolean mutable;
+    private boolean mutable;
 
     /**
      * Lazily construct an existing instance from the data in {@code file}.
@@ -117,8 +120,9 @@ public class BlockIndex implements Byteable, Syncable {
      */
     public BlockIndex(String file) {
         this.file = file;
-        this.loaded = false;
         this.mutable = false;
+        this.entries = null;
+        this.softEntries = null;
     }
 
     /**
@@ -129,7 +133,7 @@ public class BlockIndex implements Byteable, Syncable {
     private BlockIndex(String file, int expectedInsertions) {
         this.file = file;
         this.entries = Maps.newHashMapWithExpectedSize(expectedInsertions);
-        this.loaded = true;
+        this.softEntries = null;
         this.mutable = true;
     }
 
@@ -159,11 +163,10 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the end position
      */
     public int getEnd(Byteable... byteables) {
-        lazyLoad();
         masterLock.readLock().lock();
-        try {            
+        try {
             Composite composite = Composite.create(byteables);
-            Entry entry = entries.get(composite);
+            Entry entry = entries().get(composite);
             if(entry != null) {
                 return entry.getEnd();
             }
@@ -184,11 +187,10 @@ public class BlockIndex implements Byteable, Syncable {
      * @return the start position
      */
     public int getStart(Byteable... byteables) {
-        lazyLoad();
         masterLock.readLock().lock();
-        try {          
+        try {
             Composite composite = Composite.create(byteables);
-            Entry entry = entries.get(composite);
+            Entry entry = entries().get(composite);
             if(entry != null) {
                 return entry.getStart();
             }
@@ -214,7 +216,7 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.writeLock().lock();
         try {
             Composite composite = Composite.create(byteables);
-            Entry entry = entries.get(composite);
+            Entry entry = entries().get(composite);
             Preconditions.checkState(entry != null,
                     "Cannot set the end position before setting "
                             + "the start position. Tried to put %s", end);
@@ -238,7 +240,7 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.writeLock().lock();
         try {
             Composite composite = Composite.create(byteables);
-            Entry entry = entries.get(composite);
+            Entry entry = entries().get(composite);
             if(entry == null) {
                 entry = new Entry(composite);
                 entries.put(composite, entry);
@@ -268,6 +270,9 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.readLock().lock();
         try {
             FileSystem.getFileChannel(file).write(getBytes());
+            softEntries = new SoftReference<Map<Composite, Entry>>(entries);
+            mutable = false;
+            entries = null;
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -278,14 +283,16 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Return {@code true} if this index has been fully loaded.
+     * Return {@code true} if this index is considered <em>loaded</em> meaning
+     * all of its entries are available in memory.
      * 
-     * @return {@code true} if lazily loaded
+     * @return {@code true} if the entries are loaded
      */
     protected boolean isLoaded() { // visible for testing
         masterLock.readLock().lock();
         try {
-            return loaded;
+            return mutable
+                    || (softEntries != null && softEntries.get() != null);
         }
         finally {
             masterLock.readLock().unlock();
@@ -293,29 +300,39 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     /**
-     * Load the entries in the index in an on-demand fashion to avoid wasting
-     * memory unnecessarily.
+     * Return the entries in this index. This method will lazily load the
+     * entries on demand if they do not currently exist in memory.
+     * 
+     * @return the entries
      */
-    private final void lazyLoad() {
-        if(!loaded) {
-            masterLock.writeLock().lock();
-            try {
-                ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
-                        FileSystem.getFileSize(file));
-                Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
-                entries = Maps.newHashMapWithExpectedSize(bytes.capacity()
-                        / Entry.CONSTANT_SIZE);
-                while (it.hasNext()) {
-                    Entry entry = new Entry(it.next());
-                    entries.put(entry.getKey(), entry);
-                }
-                loaded = true;
-            }
-            finally {
-                masterLock.writeLock().unlock();
-            }
+    private synchronized Map<Composite, Entry> entries() {
+        if(mutable && entries != null) {
+            return entries;
         }
-
+        else if(!mutable && (softEntries == null || softEntries.get() == null)) { // do
+                                                                                  // lazy
+                                                                                  // load
+            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                    FileSystem.getFileSize(file));
+            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            Map<Composite, Entry> entries = Maps
+                    .newHashMapWithExpectedSize(bytes.capacity()
+                            / Entry.CONSTANT_SIZE);
+            while (it.hasNext()) {
+                Entry entry = new Entry(it.next());
+                entries.put(entry.getKey(), entry);
+            }
+            softEntries = new SoftReference<Map<Composite, Entry>>(entries);
+            return softEntries.get();
+        }
+        else if(!mutable && softEntries.get() != null) {
+            return softEntries.get();
+        }
+        else {
+            // "If i'm really an engineer thats worth a damn, we won't ever get
+            // to this point" -jnelson
+            throw new IllegalStateException();
+        }
     }
 
     /**
