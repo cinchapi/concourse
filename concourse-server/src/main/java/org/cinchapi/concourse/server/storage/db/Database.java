@@ -45,6 +45,7 @@ import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.PermanentStore;
@@ -56,6 +57,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
+import org.cinchapi.concourse.util.TLists;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.util.Transformers;
 
@@ -178,6 +180,17 @@ public final class Database extends BaseStore implements
     private transient boolean running = false;
 
     /**
+     * A flag to indicate if the Database has verified the data it is seeing is
+     * acceptable. We use this flag to handle the case where the server
+     * unexpectedly crashes before removing a Buffer page and tries to transport
+     * Writes that have already been accepted. The SLA for this flag is that the
+     * Database will assume no Writes are acceptable (and will therefore
+     * manually verify) until it sees one, at which point it will assume all
+     * subsequent Writes are acceptable.
+     */
+    private transient boolean acceptable = false;
+
+    /**
      * Construct a Database that is backed by the default location which is in
      * {@link GlobalState#DATABASE_DIRECTORY}.
      * 
@@ -199,12 +212,30 @@ public final class Database extends BaseStore implements
 
     @Override
     public void accept(Write write) {
-        // NOTE: Write locking happens in each individual Block, and furthermore
-        // this method is only called from the Buffer, which transports data
-        // serially.
-        ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
-                new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
-                new BlockWriter(ctb0, write));
+        // CON-83: Keeping manually verifying writes until we find one that is
+        // acceptable, after which assume all subsequent writes are acceptable.
+        if(!acceptable
+                && ((write.getType() == Action.ADD && !verify(write.getKey()
+                        .toString(), write.getValue().getTObject(), write
+                        .getRecord().longValue())) || (write.getType() == Action.REMOVE && verify(
+                        write.getKey().toString(), write.getValue()
+                                .getTObject(), write.getRecord().longValue())))) {
+            acceptable = true;
+        }
+        if(acceptable) {
+            // NOTE: Write locking happens in each individual Block, and
+            // furthermore this method is only called from the Buffer, which
+            // transports data serially.
+            ConcourseExecutors.executeAndAwaitTermination(threadNamePrefix,
+                    new BlockWriter(cpb0, write), new BlockWriter(csb0, write),
+                    new BlockWriter(ctb0, write));
+        }
+        else {
+            Logger.warn("The Engine refused to accept {} because "
+                    + "it appears that the data was already transported. "
+                    + "This indicates that the server shutdown prematurely.",
+                    write);
+        }
     }
 
     @Override
@@ -369,6 +400,20 @@ public final class Database extends BaseStore implements
                             SECONDARY_BLOCK_DIRECTORY, csb),
                     new BlockLoader<SearchBlock>(SearchBlock.class,
                             SEARCH_BLOCK_DIRECTORY, ctb));
+
+            // CON-83: Get rid of any blocks that aren't "balanced" (e.g. has
+            // primary and secondary) under the assumption that the server
+            // crashed and the corresponding Buffer page still exists. Please
+            // note that since we do not sync empty blocks, it is possible
+            // that there are some primary and secondary blocks without a
+            // corresponding search one. But, it is also possible that a
+            // legitimate search block is missing because the server crashed
+            // before it was synced, in which case the data that was in that
+            // block is lost because we can't both legitimately avoid syncing
+            // empty (search) blocks and rely on the fact that a search block is
+            // missing to assume that the server crashed. :-/
+            TLists.retainIntersection(cpb, csb);
+            ctb.retainAll(cpb);
             triggerSync(false);
         }
     }

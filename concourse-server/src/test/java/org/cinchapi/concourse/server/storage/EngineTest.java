@@ -24,15 +24,19 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.lang.reflect.Method;
 
 import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.db.Database;
+import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Random;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -41,7 +45,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 /**
- * 
+ * Unit tests for {@link Engine}.
  * 
  * @author jnelson
  */
@@ -89,6 +93,7 @@ public class EngineTest extends BufferedStoreTest {
                                  // exception
         System.out
                 .println("[INFO] You can ignore the NoSuchFileException stack trace above");
+        FileSystem.deleteDirectory(loc);
     }
 
     @Test
@@ -103,8 +108,47 @@ public class EngineTest extends BufferedStoreTest {
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
         engine.stop();
-        Assert.assertFalse(engine.bufferTransportThreadHasBlocked.get());  
+        Assert.assertFalse(engine.bufferTransportThreadHasBlocked.get());
         FileSystem.deleteDirectory(loc);
+    }
+
+    @Test
+    public void testNoDuplicateDataIfUnexpectedShutdownOccurs()
+            throws Exception {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.buffer;
+        Database db = (Database) engine.destination;
+        Method method = buffer.getClass().getDeclaredMethod("canTransport");
+        method.setAccessible(true);
+        int count = 0;
+        while (!(boolean) method.invoke(buffer)) {
+            engine.add("count", Convert.javaToThrift(count),
+                    Integer.valueOf(count).longValue());
+            count++;
+        }
+        for (int i = 0; i < count - 2; i++) { // leave one write on the page so
+                                              // buffer doesn't automatically
+                                              // call db.triggerSync()
+            buffer.transport(db);
+        }
+        db.triggerSync();
+        engine = new Engine(buffer.getBackingStore(), db.getBackingStore());
+        engine.start(); // Simulate unexpected shutdown by "restarting" the
+                        // Engine
+        while ((boolean) method.invoke(engine.buffer)) { // wait until the first
+                                                         // page in the buffer
+                                                         // (which contains the
+                                                         // same data that was
+                                                         // previously
+                                                         // transported) is done
+                                                         // transporting again
+            Random.sleep();
+        }
+        for (int i = 0; i < count; i++) {
+            Assert.assertTrue(engine.find("count", Operator.EQUALS,
+                    Convert.javaToThrift(i)).contains(
+                    Integer.valueOf(i).longValue()));
+        }
     }
 
     @Test
