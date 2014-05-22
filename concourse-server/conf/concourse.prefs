@@ -2,39 +2,39 @@
 ###  PREFERENCES FOR CONCOURSE SERVER  ###
 ##########################################
 
-# The absolute path to the directory where the Buffer data is stored.
-# For optimal write performance, the Buffer should be placed on a 
-# separate disk partition (ideally a separate physical device) from
-# the database_directory.
+# The absolute path to the directory where the Buffer data is stored. For
+# optimal write performance, the Buffer should be placed on a separate disk
+# partition (ideally a separate physical device) from the database_directory.
 #
 # DEFAULT: {$user.home}/concourse/buffer
 #buffer_directory = /var/lib/concourse/buffer
 
-# The size for each page in the Buffer. During reads, Buffer pages
-# are individually locked, so it is desirable to have several smaller 
-# pages as opposed to few larger ones. Nevertheless, be sure to balance
-# the desire to maximize lock granularity with the risks of having too
-# many open buffer files simultaneously.
-# 
+# The size for each page in the Buffer. During reads, Buffer pages are
+# individually locked, so it is desirable to have several smaller  pages as
+# opposed to few larger ones. Nevertheless, be sure to balance the desire to
+# maximize lock granularity with the risks of having too many open buffer files
+# which may lead to more frequent and less efficient disk I/O.
+#
 # DEFAULT: 8M
 #buffer_page_size = 8M
 
-# The listener port (1-65535) for client connections. Choose a port between 49152 
-# and 65535 to minimize the possibility of conflicts with other services on this
-# host.
-#client_port = 1717 
+# The listener port (1-65535) for client connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host.
+#client_port = 1717
 
-# The absolute path to the directory where the Database record and index
-# files are stored. For optimal performance, the Database should be 
-# placed on a separate disk partition (ideally a separate physical device)
-# from the buffer_directory.
+# The absolute path to the directory where the Database record and index files
+# are stored. For optimal performance, the Database should be placed on a
+# separate disk partition (ideally a separate physical device) from the
+# buffer_directory.
 #
 # DEFAULT: {$user.home}/concourse/db
 #database_directory = /var/lib/concourse/db
 
-# Determine whether log messages should also be printed to the console (STDOUT).
+# Determine whether log messages should also be printed to the console (STDOUT)
+# in addition to the log files.
 #
-# DEFAULT:
+# DEFAULT: FALSE
 #enable_console_logging = FALSE
 
 # The listener port (1-65535) for management commands via JMX. Choose a port
@@ -45,25 +45,27 @@
 # The amount of runtime information logged by the system. The options below
 # are listed from least to most verbose. In addition to the indicated types
 # of information, each level also logs the information for each less verbose
-# level (i.e. ERROR only prints error messages, but INFO prints info, warn 
+# level (i.e. ERROR only prints error messages, but INFO prints info, warn
 # and error messages).
 #
 # ERROR: critical information when the system reaches a potentially fatal
 #		 state and may not operate normally.
 # WARN: useful information when the system reaches a less than ideal state but
 #		can continue to operate normally.
-# INFO: status information about the system that can be used for sanity checking.
-# DEBUG: detailed information about the system that can be used to diagnose bugs.
+# INFO: status information about the system that can be used for sanity
+# checking.
+# DEBUG: detailed information about the system that can be used to diagnose
+# bugs.
 #
-# Logging is important, but may cause performance degradation. Only use the DEBUG 
-# level for staging environments or instances when detailed information is needed 
-# to diagnose a bug. Otherwise use the WARN or INFO levels.
+# Logging is important, but may cause performance degradation. Only use the
+# DEBUG level for staging environments or instances when detailed information
+# is needed to diagnose a bug. Otherwise use the WARN or INFO levels.
 #
-# DEFAULT:
+# DEFAULT: INFO
 #log_level = INFO
 
-# The listener port (1-65535) for shutdown commands. Choose a port between 49152 
-# and 65535 to minimize the possibility of conflicts with other services on this
-# host.
+# The listener port (1-65535) for shutdown commands. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host.
 #shutdown_port = 3434
 
