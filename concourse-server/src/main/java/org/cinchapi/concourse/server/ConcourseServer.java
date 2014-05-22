@@ -280,7 +280,8 @@ public class ConcourseServer implements
                     .containsKey(transaction)) || transaction == null);
             return transaction != null ? transactions.get(transaction).add(key,
                     value, record) : engine.add(key, value, record);
-        }else{
+        }
+        else{
             return false;
         }
     }
@@ -457,7 +458,8 @@ public class ConcourseServer implements
                     .containsKey(transaction)) || transaction == null);
             return transaction != null ? transactions.get(transaction).remove(key,
                     value, record) : engine.remove(key, value, record);
-        }else{
+        }
+        else{
             return false;
         }
     }
