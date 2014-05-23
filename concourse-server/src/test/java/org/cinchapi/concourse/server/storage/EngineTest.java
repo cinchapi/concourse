@@ -25,9 +25,7 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
@@ -91,8 +89,7 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-        System.out
-                .println("[INFO] You can ignore the NoSuchFileException stack trace above");
+        System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
     }
 
     @Test
@@ -132,40 +129,6 @@ public class EngineTest extends BufferedStoreTest {
                     Convert.javaToThrift(i)).contains(
                     Integer.valueOf(i).longValue()));
         }
-    }
-
-    @Test
-    public void testBufferTransportThreadWillRestartIfHung() {
-        Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
-        Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
-        int lag = 2000;
-        Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
-                + lag;
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
-        engine.start();
-        final AtomicBoolean done = new AtomicBoolean(false);
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (!done.get()) {
-                    engine.add(TestData.getString(), TestData.getTObject(),
-                            TestData.getLong());
-                }
-
-            }
-
-        });
-        thread.start();
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
-                + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-        Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung.get());
-        Assert.assertTrue(engine.bufferTransportThreasHasEverBeenRestarted
-                .get());
-        engine.stop();
-        FileSystem.deleteDirectory(loc);
     }
 
     @Override
