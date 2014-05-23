@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -108,7 +107,7 @@ public class EngineTest extends BufferedStoreTest {
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
         engine.stop();
-        Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
+        Assert.assertFalse(engine.bufferTransportThreadHasBlocked.get());
         FileSystem.deleteDirectory(loc);
     }
 
@@ -159,40 +158,10 @@ public class EngineTest extends BufferedStoreTest {
         engine.start();
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 1);
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS + 1);
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
-        engine.stop();
-        FileSystem.deleteDirectory(loc);
-    }
-
-    @Test
-    public void testBufferTransportThreadWillRestartIfHung() {
-        Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
-        Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
-        int lag = 2000;
-        Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS + lag;
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
-        engine.start();
-        final AtomicBoolean done = new AtomicBoolean(false);
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while(!done.get()){
-                    engine.add(TestData.getString(), TestData.getTObject(), TestData.getLong());
-                }
-
-            }
-
-        });
-        thread.start();
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-        Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung.get());
-        Assert.assertTrue(engine.bufferTransportThreasHasEverBeenRestarted.get());
+        Assert.assertTrue(engine.bufferTransportThreadHasBlocked.get());
         engine.stop();
         FileSystem.deleteDirectory(loc);
     }
