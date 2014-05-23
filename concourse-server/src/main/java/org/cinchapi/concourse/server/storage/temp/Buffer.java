@@ -56,6 +56,7 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -709,7 +710,9 @@ public final class Buffer extends Limbo {
                 try {
                     transportable.wait();
                 }
-                catch (InterruptedException e) {/* ignore */}
+                catch (InterruptedException e) {
+                    throw Throwables.propagate(e);
+                }
             }
         }
     }
