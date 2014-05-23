@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.db.Database;
@@ -89,7 +90,28 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
+<<<<<<< HEAD
         System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
+=======
+        System.out
+                .println("[INFO] You can ignore the NoSuchFileException stack trace above");
+    }
+
+    @Test
+    public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
+        String loc = TestData.DATA_DIR + File.separator + Time.now();
+        final Engine engine = new Engine(loc + File.separator + "buffer", loc
+                + File.separator + "db");
+        Variables.register("now", Time.now());
+        engine.start();
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        engine.stop();
+        Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
+        FileSystem.deleteDirectory(loc);
+>>>>>>> 5b87491... another attempt to make hung thread detection work
     }
 
     @Test
@@ -131,6 +153,72 @@ public class EngineTest extends BufferedStoreTest {
         }
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
+        String loc = TestData.DATA_DIR + File.separator + Time.now();
+        final Engine engine = new Engine(loc + File.separator + "buffer", loc
+                + File.separator + "db");
+        engine.start();
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 1);
+        engine.add(TestData.getString(), TestData.getTObject(),
+                TestData.getLong());
+        Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
+        engine.stop();
+        FileSystem.deleteDirectory(loc);
+    }
+
+    @Test
+    public void testBufferTransportThreadWillRestartIfHung() {
+        int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
+        int threshold = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
+        int sleep = Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS;
+        final AtomicBoolean done = new AtomicBoolean(false);
+        try {
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
+            int lag = 5000;
+            Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+                    + lag;
+            String loc = TestData.DATA_DIR + File.separator + Time.now();
+            final Engine engine = new Engine(loc + File.separator + "buffer",
+                    loc + File.separator + "db");
+            engine.start();
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    while (!done.get()) {
+                        engine.add(TestData.getString(), TestData.getTObject(),
+                                TestData.getLong());
+                    }
+
+                }
+
+            });
+            thread.start();
+            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+                    + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+            Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung
+                    .get());
+            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+            Assert.assertTrue(engine.bufferTransportThreadHasEverBeenRestarted
+                    .get());            
+            engine.stop();
+            FileSystem.deleteDirectory(loc);
+        }
+        finally {
+            done.set(true);
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = frequency;
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = threshold;
+            Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = sleep;
+        }
+    }
+
+>>>>>>> 5b87491... another attempt to make hung thread detection work
     @Override
     protected void add(String key, TObject value, long record) {
         ((Engine) store).add(key, value, record);
