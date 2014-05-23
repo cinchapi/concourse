@@ -1061,6 +1061,8 @@ public abstract class Concourse {
             this.port = port;
             this.username = ClientSecurity.encrypt(username);
             this.password = ClientSecurity.encrypt(password);
+            Strings.nullify(username);
+            Strings.nullify(password);
             final TTransport transport = new TSocket(host, port);
             try {
                 transport.open();
