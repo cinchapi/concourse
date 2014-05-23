@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -107,7 +108,7 @@ public class EngineTest extends BufferedStoreTest {
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
         engine.stop();
-        Assert.assertFalse(engine.bufferTransportThreadHasBlocked.get());
+        Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
         FileSystem.deleteDirectory(loc);
     }
 
@@ -158,12 +159,59 @@ public class EngineTest extends BufferedStoreTest {
         engine.start();
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS + 1);
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 1);
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Assert.assertTrue(engine.bufferTransportThreadHasBlocked.get());
+        Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
         engine.stop();
         FileSystem.deleteDirectory(loc);
+    }
+
+    @Test
+    public void testBufferTransportThreadWillRestartIfHung() {
+        int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
+        int threshold = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
+        int sleep = Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS;
+        final AtomicBoolean done = new AtomicBoolean(false);
+        try {
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
+            int lag = 5000;
+            Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+                    + lag;
+            String loc = TestData.DATA_DIR + File.separator + Time.now();
+            final Engine engine = new Engine(loc + File.separator + "buffer",
+                    loc + File.separator + "db");
+            engine.start();
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    while (!done.get()) {
+                        engine.add(TestData.getString(), TestData.getTObject(),
+                                TestData.getLong());
+                    }
+
+                }
+
+            });
+            thread.start();
+            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+                    + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+            Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung
+                    .get());
+            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+            Assert.assertTrue(engine.bufferTransportThreadHasEverBeenRestarted
+                    .get());            
+            engine.stop();
+            FileSystem.deleteDirectory(loc);
+        }
+        finally {
+            done.set(true);
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = frequency;
+            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = threshold;
+            Engine.BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = sleep;
+        }
     }
 
     @Override

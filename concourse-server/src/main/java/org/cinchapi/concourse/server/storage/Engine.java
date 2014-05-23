@@ -29,9 +29,12 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,7 +44,6 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
-import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -112,9 +114,54 @@ public final class Engine extends BufferedStore implements
      * it is more efficient for the BufferTransportThread to busy-wait than
      * block.
      */
-    protected static final int BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS = 1000; // visible
-                                                                                                  // for
-                                                                                                  // testing
+    protected static final int BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS = 1000; // visible
+                                                                                                              // for
+                                                                                                              // testing
+
+    /**
+     * The number of milliseconds we allow the {@link BufferTransportThread} to
+     * sleep without waking up (e.g. being in the TIMED_WAITING) state before we
+     * assume that the thread has hung/stalled and we try to rescue it.
+     */
+    protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 5000; // visible
+                                                                                                 // for
+                                                                                                 // testing
+
+    /**
+     * The frequency with which we check to see if the
+     * {@link BufferTransportThread} has hung/stalled.
+     */
+    protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 10000; // visible
+                                                                                                   // for
+                                                                                                   // testing
+
+    /**
+     * The number of milliseconds that the {@link BufferTransportThread} sleeps
+     * after each transport in order to avoid CPU thrashing.
+     */
+    protected static int BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = 5; // visible
+                                                                                 // for
+                                                                                 // testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThrread} has appeared
+     * to be hung at some point during the current lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has ever been
+     * sucessfully restarted after appearing to be hung during the current
+     * lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * The location where transaction backups are stored.
+     */
+    protected final String transactionStore; // exposed for Transaction backup
 
     /**
      * The thread that is responsible for transporting buffer content in the
@@ -126,9 +173,24 @@ public final class Engine extends BufferedStore implements
                                                 // ExecutorService.
 
     /**
-     * The location where transaction backups are stored.
+     * An {@link Timer} that is used to schedule some regular tasks.
      */
-    protected final String transactionStore; // exposed for Transaction backup
+    private final Timer scheduler = new Timer(true);
+
+    /**
+     * The timestamp when the {@link BufferTransportThread} last awoke from
+     * sleep. We use this to help monitor and detect whether the thread has
+     * stalled/hung.
+     */
+    private final AtomicLong bufferTransportThreadLastWakeUp = new AtomicLong(
+            Time.now());
+
+    /**
+     * A flag that indicates that the {@link BufferTransportThread} is currently
+     * paused due to inactivity (e.g. no writes).
+     */
+    private final AtomicBoolean bufferTransportThreadIsPaused = new AtomicBoolean(
+            false);
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -176,7 +238,7 @@ public final class Engine extends BufferedStore implements
      * A flag to indicate that the {@link BufferTransportThread} has gone into
      * block mode instead of busy waiting at least once.
      */
-    protected final AtomicBoolean bufferTransportThreadHasBlocked = new AtomicBoolean(
+    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
             false); // visible for testing
 
     /**
@@ -320,30 +382,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key) {
-        transportLock.readLock().lock();
-        LockService.getReadLock(key).lock();
-        try {
-            return super.browse(key);
-        }
-        finally {
-            LockService.getReadLock(key).unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return super.browse(key, timestamp);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
         LockService.getReadLock(record).lock();
@@ -361,6 +399,30 @@ public final class Engine extends BufferedStore implements
         transportLock.readLock().lock();
         try {
             return super.browse(record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key) {
+        transportLock.readLock().lock();
+        LockService.getReadLock(key).lock();
+        try {
+            return super.browse(key);
+        }
+        finally {
+            LockService.getReadLock(key).unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -524,6 +586,29 @@ public final class Engine extends BufferedStore implements
             destination.start();
             buffer.start();
             doTransactionRecovery();
+            scheduler.scheduleAtFixedRate(
+                    new TimerTask() {
+
+                        @Override
+                        public void run() {
+                            if(!bufferTransportThreadIsPaused.get()
+                                    && bufferTransportThreadLastWakeUp.get() != 0
+                                    && TimeUnit.MILLISECONDS
+                                            .convert(
+                                                    Time.now()
+                                                            - bufferTransportThreadLastWakeUp
+                                                                    .get(),
+                                                    TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                                bufferTransportThreadHasEverAppearedHung
+                                        .set(true);
+                                bufferTransportThread.interrupt();
+                            }
+
+                        }
+
+                    },
+                    BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
+                    BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             bufferTransportThread.start();
         }
     }
@@ -542,6 +627,7 @@ public final class Engine extends BufferedStore implements
     public void stop() {
         if(running) {
             running = false;
+            scheduler.cancel();
             buffer.stop();
             destination.stop();
         }
@@ -584,6 +670,18 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
+     * Return the number of milliseconds that have elapsed since the last time
+     * the {@link BufferTransportThread} successfully transported data.
+     * 
+     * @return the idle time
+     */
+    private long getBufferTransportThreadIdleTimeInMs() {
+        return TimeUnit.MILLISECONDS.convert(
+                Time.now() - ((Buffer) buffer).getTimeOfLastTransport(),
+                TimeUnit.MICROSECONDS);
+    }
+
+    /**
      * A thread that is responsible for transporting content from
      * {@link #buffer} to {@link #destination}.
      * 
@@ -602,24 +700,35 @@ public final class Engine extends BufferedStore implements
         @Override
         public void run() {
             while (running) {
-                long idleTime = Time.now()
-                        - ((Buffer) buffer).getTimeOfLastTransport();
-                if(TimeUnit.MILLISECONDS.convert(idleTime,
-                        TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS) {
+                if(getBufferTransportThreadIdleTimeInMs() > BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS) {
                     // If there have been no transports within the last second
                     // then make this thread block until the buffer is
                     // transportable so that we do not waste CPU cycles
                     // busy waiting unnecessarily.
-                    bufferTransportThreadHasBlocked.set(true);
+                    bufferTransportThreadHasEverPaused.set(true);
+                    bufferTransportThreadIsPaused.set(true);
                     Logger.debug(
                             "Paused the background data transport thread because "
                                     + "it has been inactive for at least {} milliseconds",
-                            BUFFER_TRANSPORT_THREAD_INACTIVE_THRESHOLD_IN_MILLISECONDS);
+                            BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS);
                     buffer.waitUntilTransportable();
                 }
                 doTransport();
-                Threads.sleep(5); // this thread needs to sleep for a small
-                                  // amount of time to avoid thrashing
+                try {
+                    // NOTE: This thread needs to sleep for a small amount of
+                    // time to avoid thrashing
+                    Thread.sleep(BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS);
+                    bufferTransportThreadLastWakeUp.set(Time.now());
+                }
+                catch (InterruptedException e) {
+                    Logger.warn(
+                            "The data transport thread been sleeping for over "
+                                    + "{} milliseconds even though there is work to do. "
+                                    + "An attempt has been made to restart the stalled "
+                                    + "process.",
+                            BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+                    bufferTransportThreadHasEverBeenRestarted.set(true);
+                }
             }
         }
 
@@ -630,6 +739,7 @@ public final class Engine extends BufferedStore implements
         private void doTransport() {
             if(transportLock.writeLock().tryLock()) {
                 try {
+                    bufferTransportThreadIsPaused.compareAndSet(true, false);
                     buffer.transport(destination);
                 }
                 finally {
