@@ -27,6 +27,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.cinchapi.concourse.server.concurrent.Threads;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
@@ -90,29 +91,10 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-<<<<<<< HEAD
-        System.out.println("[INFO] You can ignore the NoSuchFileException stack trace above");
-=======
         System.out
                 .println("[INFO] You can ignore the NoSuchFileException stack trace above");
     }
 
-    @Test
-    public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
-        Variables.register("now", Time.now());
-        engine.start();
-        engine.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
-        engine.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
-        engine.stop();
-        Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
-        FileSystem.deleteDirectory(loc);
->>>>>>> 5b87491... another attempt to make hung thread detection work
-    }
 
     @Test
     public void testNoDuplicateDataIfUnexpectedShutdownOccurs()
@@ -151,24 +133,6 @@ public class EngineTest extends BufferedStoreTest {
                     Convert.javaToThrift(i)).contains(
                     Integer.valueOf(i).longValue()));
         }
-    }
-
-<<<<<<< HEAD
-=======
-    @Test
-    public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer", loc
-                + File.separator + "db");
-        engine.start();
-        engine.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 1);
-        engine.add(TestData.getString(), TestData.getTObject(),
-                TestData.getLong());
-        Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
-        engine.stop();
-        FileSystem.deleteDirectory(loc);
     }
 
     @Test
@@ -218,7 +182,6 @@ public class EngineTest extends BufferedStoreTest {
         }
     }
 
->>>>>>> 5b87491... another attempt to make hung thread detection work
     @Override
     protected void add(String key, TObject value, long record) {
         ((Engine) store).add(key, value, record);
