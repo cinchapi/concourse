@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TestData;
@@ -105,6 +106,17 @@ public class LockServiceTest extends ConcourseBaseTest {
         b.join();
         c.join();
         Assert.assertTrue(passed.get());
+    }
+
+    @Test(expected = IllegalMonitorStateException.class)
+    public void testLockServiceDoesEvictLocksThatAreNotBeingUsed() {
+        ReadLock a = LockService.getReadLock("foo");
+        a.lock();
+        LockService.getReadLock("foo").unlock();
+        LockService.getReadLock("foo").lock();
+        a.unlock();
+    
+
     }
 
 }
