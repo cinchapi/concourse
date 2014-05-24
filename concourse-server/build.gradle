@@ -7,7 +7,7 @@ dependencies {
     compile ('org.cinchapi:concourse-import:1.0.2'){
     	exclude group: 'org.cinchapi'
     }
-    compile ('org.cinchapi:concourse-cli:1.0.2'){
+    compile ('org.cinchapi:concourse-cli:1.0.3'){
     	exclude group: 'org.cinchapi'
     }
     
