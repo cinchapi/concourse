@@ -174,7 +174,7 @@ public final class Engine extends BufferedStore implements
                                                 // ExecutorService.
 
     /**
-     * An {@link Timer} that is used to schedule some regular tasks.
+     * A {@link Timer} that is used to schedule some regular tasks.
      */
     private final Timer scheduler = new Timer(true);
 
