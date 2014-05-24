@@ -76,6 +76,10 @@ public abstract class ManagedOperationCli {
             this.options = options;
             parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
                     CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
+            if(options.help) {
+                parser.usage();
+                System.exit(1);
+            }
             this.console = new ConsoleReader();
         }
         catch (ParameterException e) {
@@ -98,24 +102,18 @@ public abstract class ManagedOperationCli {
                     "org.cinchapi.concourse.server.jmx:type=ConcourseServerMXBean");
             ConcourseServerMXBean bean = JMX.newMBeanProxy(connection,
                     objectName, ConcourseServerMXBean.class);
-            if(options.help) {
-                parser.usage();
-                System.exit(1);
+            if(Strings.isNullOrEmpty(options.password)) {
+                options.password = console.readLine("Password ["
+                        + options.username + "]: ", '*');
+            }
+            byte[] username = options.username.getBytes();
+            byte[] password = options.password.getBytes();
+            if(bean.login(username, password)) {
+                doTask(bean);
+                System.exit(0);
             }
             else {
-                if(Strings.isNullOrEmpty(options.password)) {
-                    options.password = console.readLine("Password ["
-                            + options.username + "]: ", '*');
-                }
-                byte[] username = options.username.getBytes();
-                byte[] password = options.password.getBytes();
-                if(bean.login(username, password)) {
-                    doTask(bean);
-                    System.exit(0);
-                }
-                else {
-                    die("Invalid username/password combination.");
-                }
+                die("Invalid username/password combination.");
             }
         }
         catch (IOException e) {
