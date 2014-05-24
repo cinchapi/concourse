@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# This config will setup all the enviornment variables and check that
+# pthats are proper
+. "`dirname "$0"`/.env"
+
+# Specify the fully qualified name of the java CLI class to run. 
+CLI="org.cinchapi.concourse.importer.cli.GeneralCsvImportCli"
+
+# run the program
+exec $JAVACMD -classpath "$CLASSPATH" org.cinchapi.concourse.cli.CommandLineInterfaceRunner $CLI "$@"
