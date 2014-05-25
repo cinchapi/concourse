@@ -34,6 +34,7 @@ import javax.annotation.concurrent.Immutable;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
@@ -180,6 +181,44 @@ public final class Convert {
         else {
             return stringToJava(element.toString());
         }
+    }
+
+    /**
+     * Convert the {@code operator} to a string representation.
+     * 
+     * @param operator
+     * @return the operator string
+     */
+    public static String operatorToString(Operator operator) {
+        String string = "";
+        switch (operator) {
+        case EQUALS:
+            string = "=";
+            break;
+        case NOT_EQUALS:
+            string = "!=";
+            break;
+        case GREATER_THAN:
+            string = ">";
+            break;
+        case GREATER_THAN_OR_EQUALS:
+            string = ">=";
+            break;
+        case LESS_THAN:
+            string = "<";
+            break;
+        case LESS_THAN_OR_EQUALS:
+            string = "<=";
+            break;
+        case BETWEEN:
+            string = "><";
+            break;
+        default:
+            string = operator.name();
+            break;
+
+        }
+        return string;
     }
 
     /**
