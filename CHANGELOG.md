@@ -1,5 +1,25 @@
 ## Changelog
 
+#### Version 0.3.5 (May 26, 2014)
+* Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
+	
+		cash$ get(describe(1), find("name", eq, 1))
+		cash$ concourse.get(concourse.describe(1), concourse.find("name", eq, 1))
+		
+* Fixed a bug that caused a deadlock when committing a transaction that wrote a value to a key and then subsequently performed a query against the key that included the value directly.
+* Fixed a bug that made it possible for the server to hang after reaching an inconsistent state caused by the Buffer expanding to accommodate new data written by one client while simultaneously servicing a read request for another client.
+* Fixed a bug that prvented the server from starting after an unexpected shutdown corrupted an uncommited transaction.
+* Fixed a bug that caused the database to appear to lose data if the `database_directory` preference was specified using a relative path.
+* Fixed a bug that made it possible for the server to accidentally reindex data when starting up after an unexpected shutdown.
+* Added checks to detect and warn about the existence of duplicate data that can safely be deleted without affecting data consistency.
+* Improved memory management by using soft references and just-in-time metadata retrieval.
+* Added logic to detect and repair stalled background index jobs.
+* Fixed an issue that caused the server to unreliably lock resources under load.
+* Fixed an bug that failed to prevent the addition of circular links.
+* Improved CLI usability by displaying the username alongside the interactive password prompt and making it possible to display the help/usage text without authenticating.
+* Added a CLI to import CSV files.
+* Added logic to rollover and archive log files once they reach 10MB in size.
+
 #### Version 0.3.4 (April 13, 2014)
 * Added support for issuing commands in CaSH using short syntax. Short syntax allows the user to make Concourse API calls by invoking the desired method directly by name instead of prepending the invocation with `concourse.`. For example, the following commands are all equivalent and can now be used interchangably in stand-alone statements:
 	
