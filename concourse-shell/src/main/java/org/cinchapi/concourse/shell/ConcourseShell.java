@@ -82,7 +82,8 @@ public final class ConcourseShell {
             System.exit(1);
         }
         if(Strings.isNullOrEmpty(opts.password)) {
-            opts.password = console.readLine("Password: ", '*');
+            opts.password = console.readLine("Password [" + opts.username
+                    + "]: ", '*');
         }
         try {
             Concourse concourse = Concourse.connect(opts.host, opts.port,
