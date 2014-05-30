@@ -41,6 +41,8 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.lang.Translate;
 import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -293,6 +295,16 @@ public abstract class Concourse {
             long record, Timestamp start, Timestamp end);
 
     /**
+     * Clear every {@code key} and contained value in each of
+     * the {@code records} by removing every value for each {@code key} in each
+     * record.
+     * 
+     * @param records
+     */
+    @CompoundOperation
+    public abstract void clear(Collection<Long> records);
+
+    /**
      * Clear each of the {@code keys} in each of the {@code records} by removing
      * every value for each key in each record.
      * 
@@ -313,6 +325,14 @@ public abstract class Concourse {
     public abstract void clear(Collection<String> keys, long record);
 
     /**
+     * Atomically clear {@code record} by removing each contained
+     * key and their values.
+     * 
+     * @param record
+     */
+    public abstract void clear(long record);
+
+    /**
      * Clear {@code key} in each of the {@code records} by removing every value
      * for {@code key} in each record.
      * 
@@ -329,24 +349,6 @@ public abstract class Concourse {
      * @param record
      */
     public abstract void clear(String key, long record);
-    
-    /**
-     * Atomically clear {@code record} by removing each contained
-     * key and their values.
-     * 
-     * @param record
-     */
-    public abstract void clear(long record);
-    
-    /**
-     * Clear every {@code key} and contained value in each of 
-     * the {@code records} by removing every value for each 
-     * {@code key} in each record.
-     * 
-     * @param records
-     */
-    @CompoundOperation
-    public abstract void clear(Collection<Long> records);
 
     /**
      * Attempt to permanently commit all the currently staged changes. This
@@ -519,6 +521,25 @@ public abstract class Concourse {
      */
     public abstract Set<Object> fetch(String key, long record,
             Timestamp timestamp);
+
+    /**
+     * Find and return the set of records that satisfy the {@code criteria}.
+     * This is analogous to the SELECT action in SQL.
+     * 
+     * @param criteria
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Criteria criteria);
+
+    /**
+     * Find and return the set of records that satisfied the {@code criteria} at
+     * {@code timestamp}. This is analogous to the SELECT action in SQL.
+     * 
+     * @param criteria
+     * @param timestamp
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Criteria criteria, Timestamp timestamp);
 
     /**
      * Find {@code key} {@code operator} {@code value} and return the set of
@@ -1303,6 +1324,13 @@ public abstract class Concourse {
         }
 
         @Override
+        public void clear(final Collection<Long> records) {
+            for (Long record : records) {
+                clear(record);
+            }
+        }
+
+        @Override
         public void clear(Collection<String> keys, Collection<Long> records) {
             for (long record : records) {
                 for (String key : keys) {
@@ -1316,6 +1344,20 @@ public abstract class Concourse {
             for (String key : keys) {
                 clear(key, record);
             }
+        }
+
+        @Override
+        public void clear(final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clear1(record, creds, transaction);
+                    return null;
+                }
+
+            });
+
         }
 
         @Override
@@ -1336,27 +1378,6 @@ public abstract class Concourse {
                 }
 
             });
-        }
-        
-        @Override        
-        public void clear(final long record) {
-            execute(new Callable<Void>() {
-
-                @Override
-                public Void call() throws Exception {
-                    client.clear1(record, creds, transaction);
-                    return null;
-                }
-
-            });
-
-        }
-        
-        @Override
-        public void clear(final Collection<Long> records) {
-            for (Long record: records) {
-            	clear(record);
-            }
         }
 
         @Override
@@ -1516,6 +1537,24 @@ public abstract class Concourse {
                                 }
 
                             });
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> find(Criteria criteria) {
+            return find(criteria, now);
+        }
+
+        @Override
+        public Set<Long> find(final Criteria criteria, final Timestamp timestamp) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.find1(Translate.toThrift(criteria),
+                            timestamp.getMicros(), creds, transaction);
                 }
 
             });

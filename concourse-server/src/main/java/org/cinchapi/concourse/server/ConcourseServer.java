@@ -27,8 +27,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
@@ -45,6 +48,12 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.lang.ConjunctionSymbol;
+import org.cinchapi.concourse.lang.Expression;
+import org.cinchapi.concourse.lang.Parser;
+import org.cinchapi.concourse.lang.PostfixNotationSymbol;
+import org.cinchapi.concourse.lang.Symbol;
+import org.cinchapi.concourse.lang.Translate;
 import org.cinchapi.concourse.security.AccessManager;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
@@ -57,15 +66,18 @@ import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
+import org.cinchapi.concourse.thrift.TCriteria;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TSecurityException;
+import org.cinchapi.concourse.thrift.TSymbol;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TLinkedHashMap;
+import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
@@ -74,6 +86,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -438,6 +451,26 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Set<Long> find1(TCriteria tcriteria, long timestamp,
+            AccessToken creds, TransactionToken transaction)
+            throws TSecurityException, TException {
+        checkAccess(creds, transaction);
+        List<Symbol> symbols = Lists.newArrayList();
+        for (TSymbol tsymbol : tcriteria.getSymbols()) {
+            symbols.add(Translate.fromThrift(tsymbol));
+        }
+        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
+        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doFind1(timestamp, queue, stack,
+                    transaction != null ? transactions.get(transaction)
+                            : engine);
+        }
+        return Sets.newTreeSet(stack.pop());
+    }
+
+    @Override
     public String getDumpList() {
         return engine.getDumpList();
     }
@@ -745,6 +778,48 @@ public class ConcourseServer implements
         catch (AtomicStateException e) {
             return null;
         }
+    }
+
+    /**
+     * Do the work necessary to complete the
+     * {@link #find1(TCriteria, long, AccessToken, TransactionToken)} method as
+     * an AtomicOperation.
+     * 
+     * @param timestamp
+     * @param queue
+     * @param stack
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doFind1(long timestamp,
+            Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
+            Compoundable store) {
+        // TODO there is room to do some query planning/optimization by going
+        // through the pfn and plotting an Abstract Syntax Tree and looking for
+        // the optimal routes to start with
+        Preconditions.checkArgument(stack.isEmpty());
+        AtomicOperation operation = store.startAtomicOperation();
+        for (PostfixNotationSymbol symbol : queue) {
+            if(symbol == ConjunctionSymbol.AND) {
+                stack.push(TSets.intersection(stack.pop(), stack.pop()));
+            }
+            else if(symbol == ConjunctionSymbol.OR) {
+                stack.push(TSets.union(stack.pop(), stack.pop()));
+            }
+            else if(symbol instanceof Expression) {
+                Expression exp = (Expression) symbol;
+                stack.push(timestamp == 0 ? operation.find(exp.getKeyRaw(),
+                        exp.getOperatorRaw(), exp.getValuesRaw()) : operation
+                        .find(timestamp, exp.getKeyRaw(), exp.getOperatorRaw(),
+                                exp.getValuesRaw()));
+            }
+            else {
+                // If we reach here, then the conversion to postfix notation
+                // failed :-/
+                throw new IllegalStateException();
+            }
+        }
+        return operation;
     }
 
     /**

@@ -26,6 +26,9 @@ package org.cinchapi.concourse.lang;
 import java.text.MessageFormat;
 import java.util.List;
 
+import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -83,6 +86,15 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
     }
 
     /**
+     * Return the raw key associated with this {@link Expression}.
+     * 
+     * @return the key
+     */
+    public String getKeyRaw() {
+        return getKey().getKey();
+    }
+
+    /**
      * Return the operator associated with this {@link Expression}.
      * 
      * @return the operator
@@ -93,11 +105,33 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
     }
 
     /**
+     * Return the raw operator associated with this {@link Expression}.
+     * 
+     * @return the operator
+     */
+    public Operator getOperatorRaw() {
+        return getOperator().getOperator();
+    }
+
+    /**
      * Return the values associated with this {@link Expression}.
      * 
      * @return the values
      */
     public List<ValueSymbol> getValues() {
+        return values;
+    }
+
+    /**
+     * Return the raw values associated with this {@link Expression}.
+     * 
+     * @return the values
+     */
+    public TObject[] getValuesRaw() {
+        TObject[] values = new TObject[getValues().size()];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = getValues().get(i).getValue();
+        }
         return values;
     }
 

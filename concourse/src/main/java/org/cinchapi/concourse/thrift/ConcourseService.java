@@ -255,6 +255,23 @@ public class ConcourseService {
                 org.apache.thrift.TException;
 
         /**
+         * Find the records that match the {@code criteria} at {@code timestamp}
+         * .
+         * 
+         * @param criteria
+         * @param timestamp
+         * @param creds
+         * @param transaction
+         */
+        public Set<Long> find1(
+                org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
+                throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.apache.thrift.TException;
+
+        /**
          * Ping {@code record}. This method returns {@code true} if
          * {@code record} has at
          * least one populated field.
@@ -536,6 +553,14 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.find_call> resultHandler)
+                throws org.apache.thrift.TException;
+
+        public void find1(
+                org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
+                org.apache.thrift.async.AsyncMethodCallback<AsyncClient.find1_call> resultHandler)
                 throws org.apache.thrift.TException;
 
         public void ping(
@@ -1085,6 +1110,47 @@ public class ConcourseService {
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
                     "find failed: unknown result");
+        }
+
+        public Set<Long> find1(
+                org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
+                throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.apache.thrift.TException {
+            send_find1(criteria, timestamp, creds, transaction);
+            return recv_find1();
+        }
+
+        public void send_find1(
+                org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction)
+                throws org.apache.thrift.TException {
+            find1_args args = new find1_args();
+            args.setCriteria(criteria);
+            args.setTimestamp(timestamp);
+            args.setCreds(creds);
+            args.setTransaction(transaction);
+            sendBase("find1", args);
+        }
+
+        public Set<Long> recv_find1()
+                throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.apache.thrift.TException {
+            find1_result result = new find1_result();
+            receiveBase(result, "find1");
+            if(result.isSetSuccess()) {
+                return result.success;
+            }
+            if(result.ex != null) {
+                throw result.ex;
+            }
+            throw new org.apache.thrift.TApplicationException(
+                    org.apache.thrift.TApplicationException.MISSING_RESULT,
+                    "find1 failed: unknown result");
         }
 
         public boolean ping(long record,
@@ -2310,6 +2376,73 @@ public class ConcourseService {
             }
         }
 
+        public void find1(
+                org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction,
+                org.apache.thrift.async.AsyncMethodCallback<find1_call> resultHandler)
+                throws org.apache.thrift.TException {
+            checkReady();
+            find1_call method_call = new find1_call(criteria, timestamp, creds,
+                    transaction, resultHandler, this, ___protocolFactory,
+                    ___transport);
+            this.___currentMethod = method_call;
+            ___manager.call(method_call);
+        }
+
+        public static class find1_call extends
+                org.apache.thrift.async.TAsyncMethodCall {
+            private org.cinchapi.concourse.thrift.TCriteria criteria;
+            private long timestamp;
+            private org.cinchapi.concourse.thrift.AccessToken creds;
+            private org.cinchapi.concourse.thrift.TransactionToken transaction;
+
+            public find1_call(
+                    org.cinchapi.concourse.thrift.TCriteria criteria,
+                    long timestamp,
+                    org.cinchapi.concourse.thrift.AccessToken creds,
+                    org.cinchapi.concourse.thrift.TransactionToken transaction,
+                    org.apache.thrift.async.AsyncMethodCallback<find1_call> resultHandler,
+                    org.apache.thrift.async.TAsyncClient client,
+                    org.apache.thrift.protocol.TProtocolFactory protocolFactory,
+                    org.apache.thrift.transport.TNonblockingTransport transport)
+                    throws org.apache.thrift.TException {
+                super(client, protocolFactory, transport, resultHandler, false);
+                this.criteria = criteria;
+                this.timestamp = timestamp;
+                this.creds = creds;
+                this.transaction = transaction;
+            }
+
+            public void write_args(org.apache.thrift.protocol.TProtocol prot)
+                    throws org.apache.thrift.TException {
+                prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage(
+                        "find1", org.apache.thrift.protocol.TMessageType.CALL,
+                        0));
+                find1_args args = new find1_args();
+                args.setCriteria(criteria);
+                args.setTimestamp(timestamp);
+                args.setCreds(creds);
+                args.setTransaction(transaction);
+                args.write(prot);
+                prot.writeMessageEnd();
+            }
+
+            public Set<Long> getResult()
+                    throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.apache.thrift.TException {
+                if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+                    throw new IllegalStateException("Method call not finished!");
+                }
+                org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(
+                        getFrameBuffer().array());
+                org.apache.thrift.protocol.TProtocol prot = client
+                        .getProtocolFactory().getProtocol(memoryTransport);
+                return (new Client(prot)).recv_find1();
+            }
+        }
+
         public void ping(
                 long record,
                 org.cinchapi.concourse.thrift.AccessToken creds,
@@ -3141,6 +3274,7 @@ public class ConcourseService {
             processMap.put("describe", new describe());
             processMap.put("fetch", new fetch());
             processMap.put("find", new find());
+            processMap.put("find1", new find1());
             processMap.put("ping", new ping());
             processMap.put("search", new search());
             processMap.put("verify", new verify());
@@ -3483,6 +3617,34 @@ public class ConcourseService {
                     result.success = iface.find(args.key, args.operator,
                             args.values, args.timestamp, args.creds,
                             args.transaction);
+                }
+                catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
+                    result.ex = ex;
+                }
+                return result;
+            }
+        }
+
+        public static class find1<I extends Iface> extends
+                org.apache.thrift.ProcessFunction<I, find1_args> {
+            public find1() {
+                super("find1");
+            }
+
+            public find1_args getEmptyArgsInstance() {
+                return new find1_args();
+            }
+
+            protected boolean isOneway() {
+                return false;
+            }
+
+            public find1_result getResult(I iface, find1_args args)
+                    throws org.apache.thrift.TException {
+                find1_result result = new find1_result();
+                try {
+                    result.success = iface.find1(args.criteria, args.timestamp,
+                            args.creds, args.transaction);
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
@@ -12671,7 +12833,7 @@ public class ConcourseService {
                                 struct.success = new LinkedHashMap<Long, String>(
                                         2 * _map0.size);
                                 for (int _i1 = 0; _i1 < _map0.size; ++_i1) {
-                                    long _key2; // required
+                                    long _key2; // optional
                                     String _val3; // required
                                     _key2 = iprot.readI64();
                                     _val3 = iprot.readString();
@@ -12793,7 +12955,7 @@ public class ConcourseService {
                         struct.success = new LinkedHashMap<Long, String>(
                                 2 * _map6.size);
                         for (int _i7 = 0; _i7 < _map6.size; ++_i7) {
-                            long _key8; // required
+                            long _key8; // optional
                             String _val9; // required
                             _key8 = iprot.readI64();
                             _val9 = iprot.readString();
@@ -14046,7 +14208,7 @@ public class ConcourseService {
                                 struct.success = new LinkedHashMap<Long, Set<org.cinchapi.concourse.thrift.TObject>>(
                                         2 * _map10.size);
                                 for (int _i11 = 0; _i11 < _map10.size; ++_i11) {
-                                    long _key12; // required
+                                    long _key12; // optional
                                     Set<org.cinchapi.concourse.thrift.TObject> _val13; // required
                                     _key12 = iprot.readI64();
                                     {
@@ -14198,7 +14360,7 @@ public class ConcourseService {
                         struct.success = new LinkedHashMap<Long, Set<org.cinchapi.concourse.thrift.TObject>>(
                                 2 * _map21.size);
                         for (int _i22 = 0; _i22 < _map21.size; ++_i22) {
-                            long _key23; // required
+                            long _key23; // optional
                             Set<org.cinchapi.concourse.thrift.TObject> _val24; // required
                             _key23 = iprot.readI64();
                             {
@@ -18672,6 +18834,1356 @@ public class ConcourseService {
 
     }
 
+    public static class find1_args implements
+            org.apache.thrift.TBase<find1_args, find1_args._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "find1_args");
+
+        private static final org.apache.thrift.protocol.TField CRITERIA_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "criteria", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "timestamp", org.apache.thrift.protocol.TType.I64, (short) 2);
+        private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 3);
+        private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "transaction", org.apache.thrift.protocol.TType.STRUCT,
+                (short) 4);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new find1_argsStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new find1_argsTupleSchemeFactory());
+        }
+
+        public org.cinchapi.concourse.thrift.TCriteria criteria; // required
+        public long timestamp; // required
+        public org.cinchapi.concourse.thrift.AccessToken creds; // required
+        public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            CRITERIA((short) 1, "criteria"),
+            TIMESTAMP((short) 2, "timestamp"),
+            CREDS((short) 3, "creds"),
+            TRANSACTION((short) 4, "transaction");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 1: // CRITERIA
+                    return CRITERIA;
+                case 2: // TIMESTAMP
+                    return TIMESTAMP;
+                case 3: // CREDS
+                    return CREDS;
+                case 4: // TRANSACTION
+                    return TRANSACTION;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        private static final int __TIMESTAMP_ISSET_ID = 0;
+        private byte __isset_bitfield = 0;
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(
+                    _Fields.CRITERIA,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "criteria",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TCriteria.class)));
+            tmpMap.put(_Fields.TIMESTAMP,
+                    new org.apache.thrift.meta_data.FieldMetaData("timestamp",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.I64)));
+            tmpMap.put(
+                    _Fields.CREDS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "creds",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.AccessToken.class)));
+            tmpMap.put(
+                    _Fields.TRANSACTION,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "transaction",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.StructMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT,
+                                    org.cinchapi.concourse.thrift.TransactionToken.class)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    find1_args.class, metaDataMap);
+        }
+
+        public find1_args() {}
+
+        public find1_args(org.cinchapi.concourse.thrift.TCriteria criteria,
+                long timestamp,
+                org.cinchapi.concourse.thrift.AccessToken creds,
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
+            this();
+            this.criteria = criteria;
+            this.timestamp = timestamp;
+            setTimestampIsSet(true);
+            this.creds = creds;
+            this.transaction = transaction;
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public find1_args(find1_args other) {
+            __isset_bitfield = other.__isset_bitfield;
+            if(other.isSetCriteria()) {
+                this.criteria = new org.cinchapi.concourse.thrift.TCriteria(
+                        other.criteria);
+            }
+            this.timestamp = other.timestamp;
+            if(other.isSetCreds()) {
+                this.creds = new org.cinchapi.concourse.thrift.AccessToken(
+                        other.creds);
+            }
+            if(other.isSetTransaction()) {
+                this.transaction = new org.cinchapi.concourse.thrift.TransactionToken(
+                        other.transaction);
+            }
+        }
+
+        public find1_args deepCopy() {
+            return new find1_args(this);
+        }
+
+        @Override
+        public void clear() {
+            this.criteria = null;
+            setTimestampIsSet(false);
+            this.timestamp = 0;
+            this.creds = null;
+            this.transaction = null;
+        }
+
+        public org.cinchapi.concourse.thrift.TCriteria getCriteria() {
+            return this.criteria;
+        }
+
+        public find1_args setCriteria(
+                org.cinchapi.concourse.thrift.TCriteria criteria) {
+            this.criteria = criteria;
+            return this;
+        }
+
+        public void unsetCriteria() {
+            this.criteria = null;
+        }
+
+        /**
+         * Returns true if field criteria is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetCriteria() {
+            return this.criteria != null;
+        }
+
+        public void setCriteriaIsSet(boolean value) {
+            if(!value) {
+                this.criteria = null;
+            }
+        }
+
+        public long getTimestamp() {
+            return this.timestamp;
+        }
+
+        public find1_args setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+            setTimestampIsSet(true);
+            return this;
+        }
+
+        public void unsetTimestamp() {
+            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
+                    __TIMESTAMP_ISSET_ID);
+        }
+
+        /**
+         * Returns true if field timestamp is set (has been assigned a value)
+         * and false otherwise
+         */
+        public boolean isSetTimestamp() {
+            return EncodingUtils
+                    .testBit(__isset_bitfield, __TIMESTAMP_ISSET_ID);
+        }
+
+        public void setTimestampIsSet(boolean value) {
+            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
+                    __TIMESTAMP_ISSET_ID, value);
+        }
+
+        public org.cinchapi.concourse.thrift.AccessToken getCreds() {
+            return this.creds;
+        }
+
+        public find1_args setCreds(
+                org.cinchapi.concourse.thrift.AccessToken creds) {
+            this.creds = creds;
+            return this;
+        }
+
+        public void unsetCreds() {
+            this.creds = null;
+        }
+
+        /**
+         * Returns true if field creds is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetCreds() {
+            return this.creds != null;
+        }
+
+        public void setCredsIsSet(boolean value) {
+            if(!value) {
+                this.creds = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TransactionToken getTransaction() {
+            return this.transaction;
+        }
+
+        public find1_args setTransaction(
+                org.cinchapi.concourse.thrift.TransactionToken transaction) {
+            this.transaction = transaction;
+            return this;
+        }
+
+        public void unsetTransaction() {
+            this.transaction = null;
+        }
+
+        /**
+         * Returns true if field transaction is set (has been assigned a value)
+         * and false otherwise
+         */
+        public boolean isSetTransaction() {
+            return this.transaction != null;
+        }
+
+        public void setTransactionIsSet(boolean value) {
+            if(!value) {
+                this.transaction = null;
+            }
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case CRITERIA:
+                if(value == null) {
+                    unsetCriteria();
+                }
+                else {
+                    setCriteria((org.cinchapi.concourse.thrift.TCriteria) value);
+                }
+                break;
+
+            case TIMESTAMP:
+                if(value == null) {
+                    unsetTimestamp();
+                }
+                else {
+                    setTimestamp((Long) value);
+                }
+                break;
+
+            case CREDS:
+                if(value == null) {
+                    unsetCreds();
+                }
+                else {
+                    setCreds((org.cinchapi.concourse.thrift.AccessToken) value);
+                }
+                break;
+
+            case TRANSACTION:
+                if(value == null) {
+                    unsetTransaction();
+                }
+                else {
+                    setTransaction((org.cinchapi.concourse.thrift.TransactionToken) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case CRITERIA:
+                return getCriteria();
+
+            case TIMESTAMP:
+                return Long.valueOf(getTimestamp());
+
+            case CREDS:
+                return getCreds();
+
+            case TRANSACTION:
+                return getTransaction();
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case CRITERIA:
+                return isSetCriteria();
+            case TIMESTAMP:
+                return isSetTimestamp();
+            case CREDS:
+                return isSetCreds();
+            case TRANSACTION:
+                return isSetTransaction();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof find1_args)
+                return this.equals((find1_args) that);
+            return false;
+        }
+
+        public boolean equals(find1_args that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_criteria = true && this.isSetCriteria();
+            boolean that_present_criteria = true && that.isSetCriteria();
+            if(this_present_criteria || that_present_criteria) {
+                if(!(this_present_criteria && that_present_criteria))
+                    return false;
+                if(!this.criteria.equals(that.criteria))
+                    return false;
+            }
+
+            boolean this_present_timestamp = true;
+            boolean that_present_timestamp = true;
+            if(this_present_timestamp || that_present_timestamp) {
+                if(!(this_present_timestamp && that_present_timestamp))
+                    return false;
+                if(this.timestamp != that.timestamp)
+                    return false;
+            }
+
+            boolean this_present_creds = true && this.isSetCreds();
+            boolean that_present_creds = true && that.isSetCreds();
+            if(this_present_creds || that_present_creds) {
+                if(!(this_present_creds && that_present_creds))
+                    return false;
+                if(!this.creds.equals(that.creds))
+                    return false;
+            }
+
+            boolean this_present_transaction = true && this.isSetTransaction();
+            boolean that_present_transaction = true && that.isSetTransaction();
+            if(this_present_transaction || that_present_transaction) {
+                if(!(this_present_transaction && that_present_transaction))
+                    return false;
+                if(!this.transaction.equals(that.transaction))
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(find1_args other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            find1_args typedOther = (find1_args) other;
+
+            lastComparison = Boolean.valueOf(isSetCriteria()).compareTo(
+                    typedOther.isSetCriteria());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetCriteria()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.criteria, typedOther.criteria);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetTimestamp()).compareTo(
+                    typedOther.isSetTimestamp());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetTimestamp()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.timestamp, typedOther.timestamp);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetCreds()).compareTo(
+                    typedOther.isSetCreds());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetCreds()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.creds, typedOther.creds);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetTransaction()).compareTo(
+                    typedOther.isSetTransaction());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetTransaction()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.transaction, typedOther.transaction);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("find1_args(");
+            boolean first = true;
+
+            sb.append("criteria:");
+            if(this.criteria == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.criteria);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("timestamp:");
+            sb.append(this.timestamp);
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("creds:");
+            if(this.creds == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.creds);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("transaction:");
+            if(this.transaction == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.transaction);
+            }
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+            if(criteria != null) {
+                criteria.validate();
+            }
+            if(creds != null) {
+                creds.validate();
+            }
+            if(transaction != null) {
+                transaction.validate();
+            }
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                // it doesn't seem like you should have to do this, but java
+                // serialization is wacky, and doesn't call the default
+                // constructor.
+                __isset_bitfield = 0;
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class find1_argsStandardSchemeFactory implements
+                SchemeFactory {
+            public find1_argsStandardScheme getScheme() {
+                return new find1_argsStandardScheme();
+            }
+        }
+
+        private static class find1_argsStandardScheme extends
+                StandardScheme<find1_args> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    find1_args struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 1: // CRITERIA
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.criteria = new org.cinchapi.concourse.thrift.TCriteria();
+                            struct.criteria.read(iprot);
+                            struct.setCriteriaIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 2: // TIMESTAMP
+                        if(schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                            struct.timestamp = iprot.readI64();
+                            struct.setTimestampIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 3: // CREDS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                            struct.creds.read(iprot);
+                            struct.setCredsIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 4: // TRANSACTION
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
+                            struct.transaction.read(iprot);
+                            struct.setTransactionIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    find1_args struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.criteria != null) {
+                    oprot.writeFieldBegin(CRITERIA_FIELD_DESC);
+                    struct.criteria.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldBegin(TIMESTAMP_FIELD_DESC);
+                oprot.writeI64(struct.timestamp);
+                oprot.writeFieldEnd();
+                if(struct.creds != null) {
+                    oprot.writeFieldBegin(CREDS_FIELD_DESC);
+                    struct.creds.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.transaction != null) {
+                    oprot.writeFieldBegin(TRANSACTION_FIELD_DESC);
+                    struct.transaction.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class find1_argsTupleSchemeFactory implements
+                SchemeFactory {
+            public find1_argsTupleScheme getScheme() {
+                return new find1_argsTupleScheme();
+            }
+        }
+
+        private static class find1_argsTupleScheme extends
+                TupleScheme<find1_args> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    find1_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetCriteria()) {
+                    optionals.set(0);
+                }
+                if(struct.isSetTimestamp()) {
+                    optionals.set(1);
+                }
+                if(struct.isSetCreds()) {
+                    optionals.set(2);
+                }
+                if(struct.isSetTransaction()) {
+                    optionals.set(3);
+                }
+                oprot.writeBitSet(optionals, 4);
+                if(struct.isSetCriteria()) {
+                    struct.criteria.write(oprot);
+                }
+                if(struct.isSetTimestamp()) {
+                    oprot.writeI64(struct.timestamp);
+                }
+                if(struct.isSetCreds()) {
+                    struct.creds.write(oprot);
+                }
+                if(struct.isSetTransaction()) {
+                    struct.transaction.write(oprot);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    find1_args struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(4);
+                if(incoming.get(0)) {
+                    struct.criteria = new org.cinchapi.concourse.thrift.TCriteria();
+                    struct.criteria.read(iprot);
+                    struct.setCriteriaIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.timestamp = iprot.readI64();
+                    struct.setTimestampIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
+                    struct.creds.read(iprot);
+                    struct.setCredsIsSet(true);
+                }
+                if(incoming.get(3)) {
+                    struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
+                    struct.transaction.read(iprot);
+                    struct.setTransactionIsSet(true);
+                }
+            }
+        }
+
+    }
+
+    public static class find1_result implements
+            org.apache.thrift.TBase<find1_result, find1_result._Fields>,
+            java.io.Serializable,
+            Cloneable {
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+                "find1_result");
+
+        private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "success", org.apache.thrift.protocol.TType.SET, (short) 0);
+        private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+
+        private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
+        static {
+            schemes.put(StandardScheme.class,
+                    new find1_resultStandardSchemeFactory());
+            schemes.put(TupleScheme.class, new find1_resultTupleSchemeFactory());
+        }
+
+        public Set<Long> success; // required
+        public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+
+        /**
+         * The set of fields this struct contains, along with convenience
+         * methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+
+            private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
+
+            static {
+                for (_Fields field : EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its
+             * not found.
+             */
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                case 0: // SUCCESS
+                    return SUCCESS;
+                case 1: // EX
+                    return EX;
+                default:
+                    return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an
+             * exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if(fields == null)
+                    throw new IllegalArgumentException("Field " + fieldId
+                            + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not
+             * found.
+             */
+            public static _Fields findByName(String name) {
+                return byName.get(name);
+            }
+
+            private final short _thriftId;
+            private final String _fieldName;
+
+            _Fields(short thriftId, String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public String getFieldName() {
+                return _fieldName;
+            }
+        }
+
+        // isset id assignments
+        public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        static {
+            Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
+                    _Fields.class);
+            tmpMap.put(
+                    _Fields.SUCCESS,
+                    new org.apache.thrift.meta_data.FieldMetaData(
+                            "success",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.SetMetaData(
+                                    org.apache.thrift.protocol.TType.SET,
+                                    new org.apache.thrift.meta_data.FieldValueMetaData(
+                                            org.apache.thrift.protocol.TType.I64))));
+            tmpMap.put(_Fields.EX,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
+            metaDataMap = Collections.unmodifiableMap(tmpMap);
+            org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
+                    find1_result.class, metaDataMap);
+        }
+
+        public find1_result() {}
+
+        public find1_result(Set<Long> success,
+                org.cinchapi.concourse.thrift.TSecurityException ex) {
+            this();
+            this.success = success;
+            this.ex = ex;
+        }
+
+        /**
+         * Performs a deep copy on <i>other</i>.
+         */
+        public find1_result(find1_result other) {
+            if(other.isSetSuccess()) {
+                Set<Long> __this__success = new LinkedHashSet<Long>();
+                for (Long other_element : other.success) {
+                    __this__success.add(other_element);
+                }
+                this.success = __this__success;
+            }
+            if(other.isSetEx()) {
+                this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
+                        other.ex);
+            }
+        }
+
+        public find1_result deepCopy() {
+            return new find1_result(this);
+        }
+
+        @Override
+        public void clear() {
+            this.success = null;
+            this.ex = null;
+        }
+
+        public int getSuccessSize() {
+            return (this.success == null) ? 0 : this.success.size();
+        }
+
+        public java.util.Iterator<Long> getSuccessIterator() {
+            return (this.success == null) ? null : this.success.iterator();
+        }
+
+        public void addToSuccess(long elem) {
+            if(this.success == null) {
+                this.success = new LinkedHashSet<Long>();
+            }
+            this.success.add(elem);
+        }
+
+        public Set<Long> getSuccess() {
+            return this.success;
+        }
+
+        public find1_result setSuccess(Set<Long> success) {
+            this.success = success;
+            return this;
+        }
+
+        public void unsetSuccess() {
+            this.success = null;
+        }
+
+        /**
+         * Returns true if field success is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetSuccess() {
+            return this.success != null;
+        }
+
+        public void setSuccessIsSet(boolean value) {
+            if(!value) {
+                this.success = null;
+            }
+        }
+
+        public org.cinchapi.concourse.thrift.TSecurityException getEx() {
+            return this.ex;
+        }
+
+        public find1_result setEx(
+                org.cinchapi.concourse.thrift.TSecurityException ex) {
+            this.ex = ex;
+            return this;
+        }
+
+        public void unsetEx() {
+            this.ex = null;
+        }
+
+        /**
+         * Returns true if field ex is set (has been assigned a value) and false
+         * otherwise
+         */
+        public boolean isSetEx() {
+            return this.ex != null;
+        }
+
+        public void setExIsSet(boolean value) {
+            if(!value) {
+                this.ex = null;
+            }
+        }
+
+        public void setFieldValue(_Fields field, Object value) {
+            switch (field) {
+            case SUCCESS:
+                if(value == null) {
+                    unsetSuccess();
+                }
+                else {
+                    setSuccess((Set<Long>) value);
+                }
+                break;
+
+            case EX:
+                if(value == null) {
+                    unsetEx();
+                }
+                else {
+                    setEx((org.cinchapi.concourse.thrift.TSecurityException) value);
+                }
+                break;
+
+            }
+        }
+
+        public Object getFieldValue(_Fields field) {
+            switch (field) {
+            case SUCCESS:
+                return getSuccess();
+
+            case EX:
+                return getEx();
+
+            }
+            throw new IllegalStateException();
+        }
+
+        /**
+         * Returns true if field corresponding to fieldID is set (has been
+         * assigned a value) and false otherwise
+         */
+        public boolean isSet(_Fields field) {
+            if(field == null) {
+                throw new IllegalArgumentException();
+            }
+
+            switch (field) {
+            case SUCCESS:
+                return isSetSuccess();
+            case EX:
+                return isSetEx();
+            }
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public boolean equals(Object that) {
+            if(that == null)
+                return false;
+            if(that instanceof find1_result)
+                return this.equals((find1_result) that);
+            return false;
+        }
+
+        public boolean equals(find1_result that) {
+            if(that == null)
+                return false;
+
+            boolean this_present_success = true && this.isSetSuccess();
+            boolean that_present_success = true && that.isSetSuccess();
+            if(this_present_success || that_present_success) {
+                if(!(this_present_success && that_present_success))
+                    return false;
+                if(!this.success.equals(that.success))
+                    return false;
+            }
+
+            boolean this_present_ex = true && this.isSetEx();
+            boolean that_present_ex = true && that.isSetEx();
+            if(this_present_ex || that_present_ex) {
+                if(!(this_present_ex && that_present_ex))
+                    return false;
+                if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        public int compareTo(find1_result other) {
+            if(!getClass().equals(other.getClass())) {
+                return getClass().getName().compareTo(
+                        other.getClass().getName());
+            }
+
+            int lastComparison = 0;
+            find1_result typedOther = (find1_result) other;
+
+            lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(
+                    typedOther.isSetSuccess());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetSuccess()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.success, typedOther.success);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            lastComparison = Boolean.valueOf(isSetEx()).compareTo(
+                    typedOther.isSetEx());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex, typedOther.ex);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
+            return 0;
+        }
+
+        public _Fields fieldForId(int fieldId) {
+            return _Fields.findByThriftId(fieldId);
+        }
+
+        public void read(org.apache.thrift.protocol.TProtocol iprot)
+                throws org.apache.thrift.TException {
+            schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+        }
+
+        public void write(org.apache.thrift.protocol.TProtocol oprot)
+                throws org.apache.thrift.TException {
+            schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("find1_result(");
+            boolean first = true;
+
+            sb.append("success:");
+            if(this.success == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.success);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex:");
+            if(this.ex == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex);
+            }
+            first = false;
+            sb.append(")");
+            return sb.toString();
+        }
+
+        public void validate() throws org.apache.thrift.TException {
+            // check for required fields
+            // check for sub-struct validity
+        }
+
+        private void writeObject(java.io.ObjectOutputStream out)
+                throws java.io.IOException {
+            try {
+                write(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(out)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private void readObject(java.io.ObjectInputStream in)
+                throws java.io.IOException, ClassNotFoundException {
+            try {
+                read(new org.apache.thrift.protocol.TCompactProtocol(
+                        new org.apache.thrift.transport.TIOStreamTransport(in)));
+            }
+            catch (org.apache.thrift.TException te) {
+                throw new java.io.IOException(te);
+            }
+        }
+
+        private static class find1_resultStandardSchemeFactory implements
+                SchemeFactory {
+            public find1_resultStandardScheme getScheme() {
+                return new find1_resultStandardScheme();
+            }
+        }
+
+        private static class find1_resultStandardScheme extends
+                StandardScheme<find1_result> {
+
+            public void read(org.apache.thrift.protocol.TProtocol iprot,
+                    find1_result struct) throws org.apache.thrift.TException {
+                org.apache.thrift.protocol.TField schemeField;
+                iprot.readStructBegin();
+                while (true) {
+                    schemeField = iprot.readFieldBegin();
+                    if(schemeField.type == org.apache.thrift.protocol.TType.STOP) {
+                        break;
+                    }
+                    switch (schemeField.id) {
+                    case 0: // SUCCESS
+                        if(schemeField.type == org.apache.thrift.protocol.TType.SET) {
+                            {
+                                org.apache.thrift.protocol.TSet _set60 = iprot
+                                        .readSetBegin();
+                                struct.success = new LinkedHashSet<Long>(
+                                        2 * _set60.size);
+                                for (int _i61 = 0; _i61 < _set60.size; ++_i61) {
+                                    long _elem62; // required
+                                    _elem62 = iprot.readI64();
+                                    struct.success.add(_elem62);
+                                }
+                                iprot.readSetEnd();
+                            }
+                            struct.setSuccessIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    case 1: // EX
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
+                            struct.ex.read(iprot);
+                            struct.setExIsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
+                    default:
+                        org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
+                                schemeField.type);
+                    }
+                    iprot.readFieldEnd();
+                }
+                iprot.readStructEnd();
+
+                // check for required fields of primitive type, which can't be
+                // checked in the validate method
+                struct.validate();
+            }
+
+            public void write(org.apache.thrift.protocol.TProtocol oprot,
+                    find1_result struct) throws org.apache.thrift.TException {
+                struct.validate();
+
+                oprot.writeStructBegin(STRUCT_DESC);
+                if(struct.success != null) {
+                    oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+                    {
+                        oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(
+                                org.apache.thrift.protocol.TType.I64,
+                                struct.success.size()));
+                        for (long _iter63 : struct.success) {
+                            oprot.writeI64(_iter63);
+                        }
+                        oprot.writeSetEnd();
+                    }
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex != null) {
+                    oprot.writeFieldBegin(EX_FIELD_DESC);
+                    struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                oprot.writeFieldStop();
+                oprot.writeStructEnd();
+            }
+
+        }
+
+        private static class find1_resultTupleSchemeFactory implements
+                SchemeFactory {
+            public find1_resultTupleScheme getScheme() {
+                return new find1_resultTupleScheme();
+            }
+        }
+
+        private static class find1_resultTupleScheme extends
+                TupleScheme<find1_result> {
+
+            @Override
+            public void write(org.apache.thrift.protocol.TProtocol prot,
+                    find1_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol oprot = (TTupleProtocol) prot;
+                BitSet optionals = new BitSet();
+                if(struct.isSetSuccess()) {
+                    optionals.set(0);
+                }
+                if(struct.isSetEx()) {
+                    optionals.set(1);
+                }
+                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetSuccess()) {
+                    {
+                        oprot.writeI32(struct.success.size());
+                        for (long _iter64 : struct.success) {
+                            oprot.writeI64(_iter64);
+                        }
+                    }
+                }
+                if(struct.isSetEx()) {
+                    struct.ex.write(oprot);
+                }
+            }
+
+            @Override
+            public void read(org.apache.thrift.protocol.TProtocol prot,
+                    find1_result struct) throws org.apache.thrift.TException {
+                TTupleProtocol iprot = (TTupleProtocol) prot;
+                BitSet incoming = iprot.readBitSet(2);
+                if(incoming.get(0)) {
+                    {
+                        org.apache.thrift.protocol.TSet _set65 = new org.apache.thrift.protocol.TSet(
+                                org.apache.thrift.protocol.TType.I64,
+                                iprot.readI32());
+                        struct.success = new LinkedHashSet<Long>(
+                                2 * _set65.size);
+                        for (int _i66 = 0; _i66 < _set65.size; ++_i66) {
+                            long _elem67; // required
+                            _elem67 = iprot.readI64();
+                            struct.success.add(_elem67);
+                        }
+                    }
+                    struct.setSuccessIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
+                    struct.ex.read(iprot);
+                    struct.setExIsSet(true);
+                }
+            }
+        }
+
+    }
+
     public static class ping_args implements
             org.apache.thrift.TBase<ping_args, ping_args._Fields>,
             java.io.Serializable,
@@ -21044,14 +22556,14 @@ public class ConcourseService {
                     case 0: // SUCCESS
                         if(schemeField.type == org.apache.thrift.protocol.TType.SET) {
                             {
-                                org.apache.thrift.protocol.TSet _set60 = iprot
+                                org.apache.thrift.protocol.TSet _set68 = iprot
                                         .readSetBegin();
                                 struct.success = new LinkedHashSet<Long>(
-                                        2 * _set60.size);
-                                for (int _i61 = 0; _i61 < _set60.size; ++_i61) {
-                                    long _elem62; // required
-                                    _elem62 = iprot.readI64();
-                                    struct.success.add(_elem62);
+                                        2 * _set68.size);
+                                for (int _i69 = 0; _i69 < _set68.size; ++_i69) {
+                                    long _elem70; // required
+                                    _elem70 = iprot.readI64();
+                                    struct.success.add(_elem70);
                                 }
                                 iprot.readSetEnd();
                             }
@@ -21097,8 +22609,8 @@ public class ConcourseService {
                         oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(
                                 org.apache.thrift.protocol.TType.I64,
                                 struct.success.size()));
-                        for (long _iter63 : struct.success) {
-                            oprot.writeI64(_iter63);
+                        for (long _iter71 : struct.success) {
+                            oprot.writeI64(_iter71);
                         }
                         oprot.writeSetEnd();
                     }
@@ -21140,8 +22652,8 @@ public class ConcourseService {
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
-                        for (long _iter64 : struct.success) {
-                            oprot.writeI64(_iter64);
+                        for (long _iter72 : struct.success) {
+                            oprot.writeI64(_iter72);
                         }
                     }
                 }
@@ -21157,15 +22669,15 @@ public class ConcourseService {
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     {
-                        org.apache.thrift.protocol.TSet _set65 = new org.apache.thrift.protocol.TSet(
+                        org.apache.thrift.protocol.TSet _set73 = new org.apache.thrift.protocol.TSet(
                                 org.apache.thrift.protocol.TType.I64,
                                 iprot.readI32());
                         struct.success = new LinkedHashSet<Long>(
-                                2 * _set65.size);
-                        for (int _i66 = 0; _i66 < _set65.size; ++_i66) {
-                            long _elem67; // required
-                            _elem67 = iprot.readI64();
-                            struct.success.add(_elem67);
+                                2 * _set73.size);
+                        for (int _i74 = 0; _i74 < _set73.size; ++_i74) {
+                            long _elem75; // required
+                            _elem75 = iprot.readI64();
+                            struct.success.add(_elem75);
                         }
                     }
                     struct.setSuccessIsSet(true);
@@ -31275,28 +32787,28 @@ public class ConcourseService {
                     case 0: // SUCCESS
                         if(schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                             {
-                                org.apache.thrift.protocol.TMap _map68 = iprot
+                                org.apache.thrift.protocol.TMap _map76 = iprot
                                         .readMapBegin();
                                 struct.success = new LinkedHashMap<String, Set<org.cinchapi.concourse.thrift.TObject>>(
-                                        2 * _map68.size);
-                                for (int _i69 = 0; _i69 < _map68.size; ++_i69) {
-                                    String _key70; // required
-                                    Set<org.cinchapi.concourse.thrift.TObject> _val71; // required
-                                    _key70 = iprot.readString();
+                                        2 * _map76.size);
+                                for (int _i77 = 0; _i77 < _map76.size; ++_i77) {
+                                    String _key78; // optional
+                                    Set<org.cinchapi.concourse.thrift.TObject> _val79; // required
+                                    _key78 = iprot.readString();
                                     {
-                                        org.apache.thrift.protocol.TSet _set72 = iprot
+                                        org.apache.thrift.protocol.TSet _set80 = iprot
                                                 .readSetBegin();
-                                        _val71 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
-                                                2 * _set72.size);
-                                        for (int _i73 = 0; _i73 < _set72.size; ++_i73) {
-                                            org.cinchapi.concourse.thrift.TObject _elem74; // required
-                                            _elem74 = new org.cinchapi.concourse.thrift.TObject();
-                                            _elem74.read(iprot);
-                                            _val71.add(_elem74);
+                                        _val79 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
+                                                2 * _set80.size);
+                                        for (int _i81 = 0; _i81 < _set80.size; ++_i81) {
+                                            org.cinchapi.concourse.thrift.TObject _elem82; // required
+                                            _elem82 = new org.cinchapi.concourse.thrift.TObject();
+                                            _elem82.read(iprot);
+                                            _val79.add(_elem82);
                                         }
                                         iprot.readSetEnd();
                                     }
-                                    struct.success.put(_key70, _val71);
+                                    struct.success.put(_key78, _val79);
                                 }
                                 iprot.readMapEnd();
                             }
@@ -31343,16 +32855,16 @@ public class ConcourseService {
                                 org.apache.thrift.protocol.TType.STRING,
                                 org.apache.thrift.protocol.TType.SET,
                                 struct.success.size()));
-                        for (Map.Entry<String, Set<org.cinchapi.concourse.thrift.TObject>> _iter75 : struct.success
+                        for (Map.Entry<String, Set<org.cinchapi.concourse.thrift.TObject>> _iter83 : struct.success
                                 .entrySet()) {
-                            oprot.writeString(_iter75.getKey());
+                            oprot.writeString(_iter83.getKey());
                             {
                                 oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(
                                         org.apache.thrift.protocol.TType.STRUCT,
-                                        _iter75.getValue().size()));
-                                for (org.cinchapi.concourse.thrift.TObject _iter76 : _iter75
+                                        _iter83.getValue().size()));
+                                for (org.cinchapi.concourse.thrift.TObject _iter84 : _iter83
                                         .getValue()) {
-                                    _iter76.write(oprot);
+                                    _iter84.write(oprot);
                                 }
                                 oprot.writeSetEnd();
                             }
@@ -31397,14 +32909,14 @@ public class ConcourseService {
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
-                        for (Map.Entry<String, Set<org.cinchapi.concourse.thrift.TObject>> _iter77 : struct.success
+                        for (Map.Entry<String, Set<org.cinchapi.concourse.thrift.TObject>> _iter85 : struct.success
                                 .entrySet()) {
-                            oprot.writeString(_iter77.getKey());
+                            oprot.writeString(_iter85.getKey());
                             {
-                                oprot.writeI32(_iter77.getValue().size());
-                                for (org.cinchapi.concourse.thrift.TObject _iter78 : _iter77
+                                oprot.writeI32(_iter85.getValue().size());
+                                for (org.cinchapi.concourse.thrift.TObject _iter86 : _iter85
                                         .getValue()) {
-                                    _iter78.write(oprot);
+                                    _iter86.write(oprot);
                                 }
                             }
                         }
@@ -31422,30 +32934,30 @@ public class ConcourseService {
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     {
-                        org.apache.thrift.protocol.TMap _map79 = new org.apache.thrift.protocol.TMap(
+                        org.apache.thrift.protocol.TMap _map87 = new org.apache.thrift.protocol.TMap(
                                 org.apache.thrift.protocol.TType.STRING,
                                 org.apache.thrift.protocol.TType.SET,
                                 iprot.readI32());
                         struct.success = new LinkedHashMap<String, Set<org.cinchapi.concourse.thrift.TObject>>(
-                                2 * _map79.size);
-                        for (int _i80 = 0; _i80 < _map79.size; ++_i80) {
-                            String _key81; // required
-                            Set<org.cinchapi.concourse.thrift.TObject> _val82; // required
-                            _key81 = iprot.readString();
+                                2 * _map87.size);
+                        for (int _i88 = 0; _i88 < _map87.size; ++_i88) {
+                            String _key89; // optional
+                            Set<org.cinchapi.concourse.thrift.TObject> _val90; // required
+                            _key89 = iprot.readString();
                             {
-                                org.apache.thrift.protocol.TSet _set83 = new org.apache.thrift.protocol.TSet(
+                                org.apache.thrift.protocol.TSet _set91 = new org.apache.thrift.protocol.TSet(
                                         org.apache.thrift.protocol.TType.STRUCT,
                                         iprot.readI32());
-                                _val82 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
-                                        2 * _set83.size);
-                                for (int _i84 = 0; _i84 < _set83.size; ++_i84) {
-                                    org.cinchapi.concourse.thrift.TObject _elem85; // required
-                                    _elem85 = new org.cinchapi.concourse.thrift.TObject();
-                                    _elem85.read(iprot);
-                                    _val82.add(_elem85);
+                                _val90 = new LinkedHashSet<org.cinchapi.concourse.thrift.TObject>(
+                                        2 * _set91.size);
+                                for (int _i92 = 0; _i92 < _set91.size; ++_i92) {
+                                    org.cinchapi.concourse.thrift.TObject _elem93; // required
+                                    _elem93 = new org.cinchapi.concourse.thrift.TObject();
+                                    _elem93.read(iprot);
+                                    _val90.add(_elem93);
                                 }
                             }
-                            struct.success.put(_key81, _val82);
+                            struct.success.put(_key89, _val90);
                         }
                     }
                     struct.setSuccessIsSet(true);
@@ -32683,28 +34195,28 @@ public class ConcourseService {
                     case 0: // SUCCESS
                         if(schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                             {
-                                org.apache.thrift.protocol.TMap _map86 = iprot
+                                org.apache.thrift.protocol.TMap _map94 = iprot
                                         .readMapBegin();
                                 struct.success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject, Set<Long>>(
-                                        2 * _map86.size);
-                                for (int _i87 = 0; _i87 < _map86.size; ++_i87) {
-                                    org.cinchapi.concourse.thrift.TObject _key88; // required
-                                    Set<Long> _val89; // required
-                                    _key88 = new org.cinchapi.concourse.thrift.TObject();
-                                    _key88.read(iprot);
+                                        2 * _map94.size);
+                                for (int _i95 = 0; _i95 < _map94.size; ++_i95) {
+                                    org.cinchapi.concourse.thrift.TObject _key96; // optional
+                                    Set<Long> _val97; // required
+                                    _key96 = new org.cinchapi.concourse.thrift.TObject();
+                                    _key96.read(iprot);
                                     {
-                                        org.apache.thrift.protocol.TSet _set90 = iprot
+                                        org.apache.thrift.protocol.TSet _set98 = iprot
                                                 .readSetBegin();
-                                        _val89 = new LinkedHashSet<Long>(
-                                                2 * _set90.size);
-                                        for (int _i91 = 0; _i91 < _set90.size; ++_i91) {
-                                            long _elem92; // required
-                                            _elem92 = iprot.readI64();
-                                            _val89.add(_elem92);
+                                        _val97 = new LinkedHashSet<Long>(
+                                                2 * _set98.size);
+                                        for (int _i99 = 0; _i99 < _set98.size; ++_i99) {
+                                            long _elem100; // required
+                                            _elem100 = iprot.readI64();
+                                            _val97.add(_elem100);
                                         }
                                         iprot.readSetEnd();
                                     }
-                                    struct.success.put(_key88, _val89);
+                                    struct.success.put(_key96, _val97);
                                 }
                                 iprot.readMapEnd();
                             }
@@ -32751,15 +34263,15 @@ public class ConcourseService {
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 org.apache.thrift.protocol.TType.SET,
                                 struct.success.size()));
-                        for (Map.Entry<org.cinchapi.concourse.thrift.TObject, Set<Long>> _iter93 : struct.success
+                        for (Map.Entry<org.cinchapi.concourse.thrift.TObject, Set<Long>> _iter101 : struct.success
                                 .entrySet()) {
-                            _iter93.getKey().write(oprot);
+                            _iter101.getKey().write(oprot);
                             {
                                 oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(
                                         org.apache.thrift.protocol.TType.I64,
-                                        _iter93.getValue().size()));
-                                for (long _iter94 : _iter93.getValue()) {
-                                    oprot.writeI64(_iter94);
+                                        _iter101.getValue().size()));
+                                for (long _iter102 : _iter101.getValue()) {
+                                    oprot.writeI64(_iter102);
                                 }
                                 oprot.writeSetEnd();
                             }
@@ -32804,13 +34316,13 @@ public class ConcourseService {
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
-                        for (Map.Entry<org.cinchapi.concourse.thrift.TObject, Set<Long>> _iter95 : struct.success
+                        for (Map.Entry<org.cinchapi.concourse.thrift.TObject, Set<Long>> _iter103 : struct.success
                                 .entrySet()) {
-                            _iter95.getKey().write(oprot);
+                            _iter103.getKey().write(oprot);
                             {
-                                oprot.writeI32(_iter95.getValue().size());
-                                for (long _iter96 : _iter95.getValue()) {
-                                    oprot.writeI64(_iter96);
+                                oprot.writeI32(_iter103.getValue().size());
+                                for (long _iter104 : _iter103.getValue()) {
+                                    oprot.writeI64(_iter104);
                                 }
                             }
                         }
@@ -32828,30 +34340,30 @@ public class ConcourseService {
                 BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     {
-                        org.apache.thrift.protocol.TMap _map97 = new org.apache.thrift.protocol.TMap(
+                        org.apache.thrift.protocol.TMap _map105 = new org.apache.thrift.protocol.TMap(
                                 org.apache.thrift.protocol.TType.STRUCT,
                                 org.apache.thrift.protocol.TType.SET,
                                 iprot.readI32());
                         struct.success = new LinkedHashMap<org.cinchapi.concourse.thrift.TObject, Set<Long>>(
-                                2 * _map97.size);
-                        for (int _i98 = 0; _i98 < _map97.size; ++_i98) {
-                            org.cinchapi.concourse.thrift.TObject _key99; // required
-                            Set<Long> _val100; // required
-                            _key99 = new org.cinchapi.concourse.thrift.TObject();
-                            _key99.read(iprot);
+                                2 * _map105.size);
+                        for (int _i106 = 0; _i106 < _map105.size; ++_i106) {
+                            org.cinchapi.concourse.thrift.TObject _key107; // optional
+                            Set<Long> _val108; // required
+                            _key107 = new org.cinchapi.concourse.thrift.TObject();
+                            _key107.read(iprot);
                             {
-                                org.apache.thrift.protocol.TSet _set101 = new org.apache.thrift.protocol.TSet(
+                                org.apache.thrift.protocol.TSet _set109 = new org.apache.thrift.protocol.TSet(
                                         org.apache.thrift.protocol.TType.I64,
                                         iprot.readI32());
-                                _val100 = new LinkedHashSet<Long>(
-                                        2 * _set101.size);
-                                for (int _i102 = 0; _i102 < _set101.size; ++_i102) {
-                                    long _elem103; // required
-                                    _elem103 = iprot.readI64();
-                                    _val100.add(_elem103);
+                                _val108 = new LinkedHashSet<Long>(
+                                        2 * _set109.size);
+                                for (int _i110 = 0; _i110 < _set109.size; ++_i110) {
+                                    long _elem111; // required
+                                    _elem111 = iprot.readI64();
+                                    _val108.add(_elem111);
                                 }
                             }
-                            struct.success.put(_key99, _val100);
+                            struct.success.put(_key107, _val108);
                         }
                     }
                     struct.setSuccessIsSet(true);

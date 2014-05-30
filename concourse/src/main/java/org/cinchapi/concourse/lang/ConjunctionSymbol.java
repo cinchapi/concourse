@@ -29,6 +29,6 @@ package org.cinchapi.concourse.lang;
  * 
  * @author jnelson
  */
-enum ConjunctionSymbol implements PostfixNotationSymbol {
+public enum ConjunctionSymbol implements PostfixNotationSymbol {
     AND, OR
 }

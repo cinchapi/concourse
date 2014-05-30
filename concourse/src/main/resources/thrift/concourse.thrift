@@ -133,6 +133,13 @@ service ConcourseService {
 		throws (1: shared.TSecurityException ex);
 
 	/**
+	 * Find the records that match the {@code criteria} at {@code timestamp}.
+	 */
+	set<i64> find1(1: data.TCriteria criteria, 2: i64 timestamp, 3: shared.AccessToken creds,
+		4: shared.TransactionToken transaction)
+		throws (1: shared.TSecurityException ex);
+
+	/**
 	 * Ping {@code record}. This method returns {@code true} if {@code record} has at
 	 * least one populated field.
 	 */
