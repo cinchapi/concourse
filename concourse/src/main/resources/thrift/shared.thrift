@@ -32,7 +32,8 @@ enum Type {
 	INTEGER = 4,
 	LONG = 5,
 	LINK = 6,
-	STRING = 7
+	STRING = 7,
+	CATCHPHRASE = 8
 }
 
 /**
