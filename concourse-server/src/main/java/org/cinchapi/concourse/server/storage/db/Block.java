@@ -51,8 +51,8 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.TreeMultiset;
-import com.google.common.primitives.Longs;
 
 /**
  * <p>
@@ -626,14 +626,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
          * Sorts by locator followed by key followed by version.
          */
         @Override
-        @SuppressWarnings("unchecked")
         public int compare(Revision o1, Revision o2) {
-            int order;
-            return (order = o1.getLocator().compareTo(o2.getLocator())) != 0 ? order
-                    : ((order = o1.getKey().compareTo(o2.getKey())) != 0 ? order
-                            : (order = Longs.compare(o1.getVersion(),
-                                    o2.getVersion())) != 0 ? order : o1
-                                    .getValue().compareTo(o2.getValue()));
+            return ComparisonChain.start()
+                    .compare(o1.getLocator(), o2.getLocator())
+                    .compare(o1.getKey(), o2.getKey())
+                    .compare(o1.getVersion(), o2.getVersion())
+                    .compare(o1.getValue(), o2.getValue()).result();
         }
 
     }
