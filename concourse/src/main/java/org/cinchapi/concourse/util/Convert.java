@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.cinchapi.concourse.Catchphrase;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
@@ -94,6 +95,12 @@ public final class Convert {
             bytes = ByteBuffer.allocate(4);
             bytes.putInt((int) object);
             type = Type.INTEGER;
+        }
+        else if(object instanceof Catchphrase) {
+            bytes = ByteBuffer.wrap(
+                    ((Catchphrase) object).stringValue()
+                        .getBytes(StandardCharsets.UTF_8));
+            type = Type.CATCHPHRASE;
         }
         else {
             bytes = ByteBuffer.wrap(object.toString().getBytes(
