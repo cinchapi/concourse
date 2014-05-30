@@ -41,6 +41,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.lang.BuildableState;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.Translate;
 import org.cinchapi.concourse.security.ClientSecurity;
@@ -540,6 +541,18 @@ public abstract class Concourse {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Criteria criteria, Timestamp timestamp);
+
+    /**
+     * Find and return the set of records that satisfy the {@code criteria}.
+     * This is analogous to the SELECT action in SQL.
+     * 
+     * @param criteria
+     * @return the records that match the {@code criteria}
+     */
+    public abstract Set<Long> find(Object criteria); // this method exists in
+                                                     // case the caller forgets
+                                                     // to called #build() on
+                                                     // the CriteriaBuilder
 
     /**
      * Find {@code key} {@code operator} {@code value} and return the set of
@@ -1558,6 +1571,17 @@ public abstract class Concourse {
                 }
 
             });
+        }
+
+        @Override
+        public Set<Long> find(Object object) {
+            if(object instanceof BuildableState) {
+                return find(((BuildableState) object).build());
+            }
+            else {
+                throw new IllegalArgumentException(object
+                        + " is not a valid argument for the find method");
+            }
         }
 
         @Override

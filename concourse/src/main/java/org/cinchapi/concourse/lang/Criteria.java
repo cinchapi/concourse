@@ -39,7 +39,7 @@ import com.google.common.collect.Lists;
  * <p>
  * This class is the public interface to Criteria construction. It is meant to
  * be used in a chained manner, where the caller initially calls
- * {@link Criteria#builder()} and continues to construct the Criteria using the
+ * {@link Criteria#where()} and continues to construct the Criteria using the
  * options available from each subsequently returned state.
  * </p>
  * 
@@ -52,7 +52,7 @@ public class Criteria implements Symbol {
      * 
      * @return the Criteria builder
      */
-    public static StartState builder() {
+    public static StartState where() {
         return new StartState(new Criteria());
     }
 

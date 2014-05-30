@@ -76,15 +76,29 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testBuildableStateParamSucceeds() {
+        Assert.assertEquals(
+                client.find(Criteria.where().key("graduation_rate")
+                        .operator(Operator.GREATER_THAN).value(90)),
+                client.find(Criteria.where().key("graduation_rate")
+                        .operator(Operator.GREATER_THAN).value(90).build()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNonBuildableStateParamDoesNotSucceed() {
+        client.find(new Object());
+    }
+
+    @Test
     public void testSimple() {
-        Assert.assertTrue(hasSameResults(Criteria.builder()
+        Assert.assertTrue(hasSameResults(Criteria.where()
                 .key("graduation_rate").operator(Operator.GREATER_THAN)
                 .value(90).build()));
     }
 
     @Test
     public void testSimpleAnd() {
-        Assert.assertTrue(hasSameResults(Criteria.builder()
+        Assert.assertTrue(hasSameResults(Criteria.where()
                 .key("graduation_rate").operator(Operator.GREATER_THAN)
                 .value(90).and().key("percent_undergrad_black")
                 .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).build()));
@@ -92,7 +106,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
 
     @Test
     public void testSimpleOr() {
-        Assert.assertTrue(hasSameResults(Criteria.builder()
+        Assert.assertTrue(hasSameResults(Criteria.where()
                 .key("graduation_rate").operator(Operator.GREATER_THAN)
                 .value(90).or().key("percent_undergrad_black")
                 .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).build()));
@@ -100,7 +114,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
 
     @Test
     public void testSimpleAndOr() {
-        Assert.assertTrue(hasSameResults(Criteria.builder()
+        Assert.assertTrue(hasSameResults(Criteria.where()
                 .key("graduation_rate").operator(Operator.GREATER_THAN)
                 .value(90).and().key("percent_undergrad_black")
                 .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).or()
@@ -110,7 +124,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
 
     @Test
     public void testSimpleOrAnd() {
-        Assert.assertTrue(hasSameResults(Criteria.builder()
+        Assert.assertTrue(hasSameResults(Criteria.where()
                 .key("graduation_rate").operator(Operator.GREATER_THAN)
                 .value(90).or().key("percent_undergrad_black")
                 .operator(Operator.GREATER_THAN_OR_EQUALS).value(5).and()
@@ -121,12 +135,12 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     @Test
     public void testAndGroupOr() {
         Assert.assertTrue(hasSameResults(Criteria
-                .builder()
+                .where()
                 .key("graduation_rate")
                 .operator(Operator.GREATER_THAN)
                 .value(90)
                 .and()
-                .group(Criteria.builder().key("percent_undergrad_black")
+                .group(Criteria.where().key("percent_undergrad_black")
                         .operator(Operator.GREATER_THAN_OR_EQUALS).value(5)
                         .or().key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000).build())
@@ -136,12 +150,12 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     @Test
     public void testOrGroupAnd() {
         Assert.assertTrue(hasSameResults(Criteria
-                .builder()
+                .where()
                 .key("graduation_rate")
                 .operator(Operator.GREATER_THAN)
                 .value(90)
                 .or()
-                .group(Criteria.builder().key("percent_undergrad_black")
+                .group(Criteria.where().key("percent_undergrad_black")
                         .operator(Operator.GREATER_THAN_OR_EQUALS).value(5)
                         .and().key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000).build())
@@ -151,13 +165,13 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     @Test
     public void testGroupAndOrGroupAnd() {
         Assert.assertTrue(hasSameResults(Criteria
-                .builder()
-                .group(Criteria.builder().key("graduation_rate")
+                .where()
+                .group(Criteria.where().key("graduation_rate")
                         .operator(Operator.GREATER_THAN).value(90).and()
                         .key("yield_men").operator(Operator.EQUALS).value(20)
                         .build())
                 .or()
-                .group(Criteria.builder().key("percent_undergrad_black")
+                .group(Criteria.where().key("percent_undergrad_black")
                         .operator(Operator.GREATER_THAN_OR_EQUALS).value(5)
                         .and().key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000).build())
@@ -167,13 +181,13 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     @Test
     public void testGroupOrAndGroupOr() {
         Assert.assertTrue(hasSameResults(Criteria
-                .builder()
-                .group(Criteria.builder().key("graduation_rate")
+                .where()
+                .group(Criteria.where().key("graduation_rate")
                         .operator(Operator.GREATER_THAN).value(90).or()
                         .key("yield_men").operator(Operator.EQUALS).value(20)
                         .build())
                 .and()
-                .group(Criteria.builder().key("percent_undergrad_black")
+                .group(Criteria.where().key("percent_undergrad_black")
                         .operator(Operator.GREATER_THAN_OR_EQUALS).value(5)
                         .or().key("total_cost_out_state")
                         .operator(Operator.GREATER_THAN).value(50000).build())
