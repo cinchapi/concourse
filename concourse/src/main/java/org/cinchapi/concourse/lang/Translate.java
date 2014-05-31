@@ -58,8 +58,11 @@ public final class Translate {
         else if(tsymbol.getType() == TSymbolType.PARENTHESIS) {
             return ParenthesisSymbol.parse(tsymbol.getSymbol());
         }
-        else if(tsymbol.getType() == TSymbolType.OPERATOR){
+        else if(tsymbol.getType() == TSymbolType.OPERATOR) {
             return OperatorSymbol.parse(tsymbol.getSymbol());
+        }
+        else if(tsymbol.getType() == TSymbolType.TIMESTAMP) {
+            return TimestampSymbol.parse(tsymbol.getSymbol());
         }
         else {
             throw new IllegalArgumentException("Unrecognized TSymbol "
@@ -100,8 +103,11 @@ public final class Translate {
         else if(symbol.getClass() == ParenthesisSymbol.class) {
             return new TSymbol(TSymbolType.PARENTHESIS, symbol.toString());
         }
-        else if(symbol.getClass() == OperatorSymbol.class){
-            return new TSymbol(TSymbolType.OPERATOR, symbol.toString()); 
+        else if(symbol.getClass() == OperatorSymbol.class) {
+            return new TSymbol(TSymbolType.OPERATOR, symbol.toString());
+        }
+        else if(symbol.getClass() == TimestampSymbol.class) {
+            return new TSymbol(TSymbolType.TIMESTAMP, symbol.toString());
         }
         else {
             throw new IllegalArgumentException(MessageFormat.format(

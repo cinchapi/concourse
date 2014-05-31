@@ -61,6 +61,8 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
     private final KeySymbol key;
     private final OperatorSymbol operator;
     private final List<ValueSymbol> values;
+    private long timestamp = 0; // default timestamp value of 0 indicates
+                                // this is a present state query
 
     /**
      * Construct a new instance.
@@ -123,6 +125,24 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
     }
 
     /**
+     * Add a {@code timestamp} to this {@link Expression}.
+     * 
+     * @param timestamp
+     */
+    public void setTimestamp(TimestampSymbol timestamp) {
+        this.timestamp = timestamp.getTimestamp();
+    }
+
+    /**
+     * Return the raw timestamp associated with this {@link Expression}.
+     * 
+     * @return the timestamp
+     */
+    public long getTimestampRaw() {
+        return timestamp;
+    }
+
+    /**
      * Return the raw values associated with this {@link Expression}.
      * 
      * @return the values
@@ -140,6 +160,9 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
         String string = MessageFormat.format("{0} {1}", key, operator);
         for (ValueSymbol value : values) {
             string += " " + value;
+        }
+        if(timestamp > 0) {
+            string += " at" + timestamp;
         }
         return string;
     }

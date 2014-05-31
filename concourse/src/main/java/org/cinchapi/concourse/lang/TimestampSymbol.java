@@ -26,41 +26,67 @@ package org.cinchapi.concourse.lang;
 import org.cinchapi.concourse.Timestamp;
 
 /**
- * The {@link State} that expects the current token to be the last or the next
- * token to be a value or conjunction specification.
+ * A {@link Symbol} that represents a {@link Timestamp} in a {@link Criteria}.
  * 
  * @author jnelson
  */
-public class ValueState extends BuildableState {
+public class TimestampSymbol extends AbstractSymbol {
+
+    /**
+     * Return the {@link TimestampSymbol} for the specified {@code timestamp}.
+     * 
+     * @param timestamp
+     * @return the Symbol
+     */
+    public static TimestampSymbol create(Timestamp timestamp) {
+        return new TimestampSymbol(timestamp);
+    }
+
+    /**
+     * Return the {@link TimestampSymbol} that is parsed from {@code string}.
+     * 
+     * @param string
+     * @return the Symbol
+     */
+    public static TimestampSymbol parse(String string) {
+        return new TimestampSymbol(Long.parseLong(string.replace("at ", "")));
+    }
+
+    /**
+     * The associated timestamp.
+     */
+    private final long timestamp;
 
     /**
      * Construct a new instance.
      * 
-     * @param criteria
+     * @param timestamp
      */
-    protected ValueState(Criteria criteria) {
-        super(criteria);
+    private TimestampSymbol(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     /**
-     * Add the specified {@code value} to the {@link Criteria} that is building.
+     * Construct a new instance.
      * 
-     * @param value
-     * @return the builder
-     */
-    public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
-        return new ValueState(criteria);
-    }
-    
-    /**
-     * Add the specified {@code timestamp} to the {@link Criteria} that is building.
      * @param timestamp
-     * @return the builder
      */
-    public TimestampState at(Timestamp timestamp){
-        criteria.add(TimestampSymbol.create(timestamp));
-        return new TimestampState(criteria);
+    private TimestampSymbol(Timestamp timestamp) {
+        this(timestamp.getMicros());
+    }
+
+    /**
+     * Return the timestamp (in microseconds) associated with this Symbol.
+     * 
+     * @return the Timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    @Override
+    public String toString() {
+        return "at " + Long.toString(timestamp);
     }
 
 }

@@ -76,6 +76,22 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     }
 
     @Test
+    public void testSimpleWithTime() {
+        Set<Long> results = client.find(Criteria.where().key("graduation_rate")
+                .operator(Operator.GREATER_THAN).value(90));
+        Timestamp t1 = Timestamp.now();
+        System.out.println("Importing college data into Concourse");
+        Importer importer = GeneralCsvImporter.withConnectionInfo(SERVER_HOST,
+                SERVER_PORT, "admin", "admin");
+        importer.importFile(Resources.get("/college.csv").getFile());
+        Assert.assertEquals(
+                results,
+                client.find(Criteria.where().key("graduation_rate")
+                        .operator(Operator.GREATER_THAN).value(90).at(t1)));
+
+    }
+
+    @Test
     public void testBuildableStateParamSucceeds() {
         Assert.assertEquals(
                 client.find(Criteria.where().key("graduation_rate")

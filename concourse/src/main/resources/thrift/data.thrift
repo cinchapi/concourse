@@ -27,7 +27,8 @@ enum TSymbolType {
     KEY = 2,
     VALUE = 3,
     PARENTHESIS = 4,
-    OPERATOR = 5
+    OPERATOR = 5,
+    TIMESTAMP = 6
 }
 
 /**

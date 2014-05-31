@@ -533,16 +533,6 @@ public abstract class Concourse {
     public abstract Set<Long> find(Criteria criteria);
 
     /**
-     * Find and return the set of records that satisfied the {@code criteria} at
-     * {@code timestamp}. This is analogous to the SELECT action in SQL.
-     * 
-     * @param criteria
-     * @param timestamp
-     * @return the records that match the {@code criteria}
-     */
-    public abstract Set<Long> find(Criteria criteria, Timestamp timestamp);
-
-    /**
      * Find and return the set of records that satisfy the {@code criteria}.
      * This is analogous to the SELECT action in SQL.
      * 
@@ -1556,18 +1546,13 @@ public abstract class Concourse {
         }
 
         @Override
-        public Set<Long> find(Criteria criteria) {
-            return find(criteria, now);
-        }
-
-        @Override
-        public Set<Long> find(final Criteria criteria, final Timestamp timestamp) {
+        public Set<Long> find(final Criteria criteria) {
             return execute(new Callable<Set<Long>>() {
 
                 @Override
                 public Set<Long> call() throws Exception {
-                    return client.find1(Translate.toThrift(criteria),
-                            timestamp.getMicros(), creds, transaction);
+                    return client.find1(Translate.toThrift(criteria), creds,
+                            transaction);
                 }
 
             });
