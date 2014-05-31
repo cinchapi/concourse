@@ -71,8 +71,8 @@ echo "Please type your administrative password to allow the installer to make so
 sudo -K # clear the sudo creds cash, so user is forced to type in password
 sudo touch /usr/local/bin/.jeffnelson # dummy command to see if we can escalate permissions
 if [ \$? -ne 0 ]; then
-	echo "[WARN] The installer was unable to place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
-	echo "[WARN] The installer was unable to place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log".
+	echo "[WARN] The installer couldn't place the Concourse scripts on your PATH, but you can run them directly from "\$BASE"/bin".
+	echo "[WARN] The installer couldn't place the Concourse log files in /var/log/concourse, but you can access them directly from "\$BASE"/log".
 else
 	# symlink to log directory
 	sudo rm /var/log/concourse 2>/dev/null
