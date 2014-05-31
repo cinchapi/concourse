@@ -37,7 +37,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public class TListsTest extends ConcourseBaseTest{
+public class TListsTest extends ConcourseBaseTest {
 
     @SuppressWarnings("unchecked")
     @Test
