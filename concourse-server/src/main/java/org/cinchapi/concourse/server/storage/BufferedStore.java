@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.util.Map;
 import java.util.Set;
 
+import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.storage.temp.Limbo;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
@@ -82,14 +83,21 @@ public abstract class BufferedStore extends BaseStore {
     protected final PermanentStore destination;
 
     /**
+     * The {@link LockService} that is used to coordinate concurrent operations.
+     */
+    protected final LockService lockService;
+
+    /**
      * Construct a new instance.
      * 
      * @param transportable
      * @param destination
+     * @param lockService
      */
-    protected BufferedStore(Limbo transportable, PermanentStore destination) {
+    protected BufferedStore(Limbo transportable, PermanentStore destination, LockService lockService) {
         this.buffer = transportable;
         this.destination = destination;
+        this.lockService = lockService;
     }
 
     /**

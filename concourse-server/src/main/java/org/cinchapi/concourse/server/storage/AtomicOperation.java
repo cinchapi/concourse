@@ -180,7 +180,8 @@ public class AtomicOperation extends BufferedStore implements
      * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
-        super(new Queue(INITIAL_CAPACITY), destination);
+        super(new Queue(INITIAL_CAPACITY), destination,
+                ((BufferedStore) destination).lockService);
     }
 
     /**
@@ -431,7 +432,7 @@ public class AtomicOperation extends BufferedStore implements
                 }
                 if(!locks.containsKey(expectation.getToken())) {
                     LockDescription description = LockDescription
-                            .forVersionExpectation(expectation);
+                            .forVersionExpectation(expectation, lockService);
                     if(description.getLock().tryLock()) {
                         locks.put(expectation.getToken(), description);
                     }
@@ -481,10 +482,11 @@ public class AtomicOperation extends BufferedStore implements
          * Return the LockDescription that corresponds to {@code expectation}.
          * 
          * @param expectation
+         * @param lockService
          * @return the LockDescription
          */
         public static LockDescription forVersionExpectation(
-                VersionExpectation expectation) {
+                VersionExpectation expectation, LockService lockService) {
             switch (expectation.getLockType()) {
             case RANGE_READ:
                 return new LockDescription(expectation.getToken(),
@@ -497,12 +499,12 @@ public class AtomicOperation extends BufferedStore implements
 
             case READ:
                 return new LockDescription(expectation.getToken(),
-                        LockService.getReadLock(expectation.getToken()),
+                        lockService.getReadLock(expectation.getToken()),
                         expectation.getLockType());
 
             case WRITE:
                 return new LockDescription(expectation.getToken(),
-                        LockService.getWriteLock(expectation.getToken()),
+                        lockService.getWriteLock(expectation.getToken()),
                         expectation.getLockType());
             default:
                 return null;
@@ -519,9 +521,11 @@ public class AtomicOperation extends BufferedStore implements
          * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
          * 
          * @param bytes
+         * @param lockService
          * @return the LockDescription
          */
-        public static LockDescription fromByteBuffer(ByteBuffer bytes) {
+        public static LockDescription fromByteBuffer(ByteBuffer bytes,
+                LockService lockService) {
             LockType type = LockType.values()[bytes.get()];
             Token token = null;
             Lock lock = null;
@@ -536,11 +540,11 @@ public class AtomicOperation extends BufferedStore implements
                 break;
             case READ:
                 token = Token.fromByteBuffer(bytes);
-                lock = LockService.getReadLock(token);
+                lock = lockService.getReadLock(token);
                 break;
             case WRITE:
                 token = Token.fromByteBuffer(bytes);
-                lock = LockService.getWriteLock(token);
+                lock = lockService.getWriteLock(token);
                 break;
 
             }

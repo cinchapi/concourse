@@ -283,7 +283,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         Iterator<ByteBuffer> it = ByteableCollections.iterator(ByteBuffers
                 .slice(bytes, bytes.getInt()));
         while (it.hasNext()) {
-            LockDescription lock = LockDescription.fromByteBuffer(it.next());
+            LockDescription lock = LockDescription.fromByteBuffer(it.next(), lockService);
             locks.put(lock.getToken(), lock);
         }
         it = ByteableCollections.iterator(bytes);

@@ -51,7 +51,16 @@ import org.cinchapi.concourse.util.Numbers;
  */
 public final class LockService {
 
-    private final static ReentrantLock lock = new ReentrantLock();
+    /**
+     * Return a new {@link LockService} instance.
+     * 
+     * @return the LockService
+     */
+    public static LockService create() {
+        return new LockService();
+    }
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
@@ -61,7 +70,7 @@ public final class LockService {
      * @param objects
      * @return the ReadLock
      */
-    public static ReadLock getReadLock(Object... objects) {
+    public ReadLock getReadLock(Object... objects) {
         return getReadLock(Token.wrap(objects));
     }
 
@@ -73,7 +82,7 @@ public final class LockService {
      * @param token
      * @return the ReadLock
      */
-    public static ReadLock getReadLock(Token token) {
+    public ReadLock getReadLock(Token token) {
         lock.lock();
         try {
             refs.get(token).incrementAndGet();
@@ -92,7 +101,7 @@ public final class LockService {
      * @param objects
      * @return the WriteLock
      */
-    public static WriteLock getWriteLock(Object... objects) {
+    public WriteLock getWriteLock(Object... objects) {
         return getWriteLock(Token.wrap(objects));
     }
 
@@ -104,7 +113,7 @@ public final class LockService {
      * @param token
      * @return the WriteLock
      */
-    public static WriteLock getWriteLock(Token token) {
+    public WriteLock getWriteLock(Token token) {
         lock.lock();
         try {
             refs.get(token).incrementAndGet();
@@ -121,7 +130,7 @@ public final class LockService {
      * instances that are not currently held by any readers or writers.
      */
     @SuppressWarnings("serial")
-    private final static Map<Token, TokenReadWriteLock> cache = new ConcurrentHashMap<Token, TokenReadWriteLock>() {
+    private final Map<Token, TokenReadWriteLock> cache = new ConcurrentHashMap<Token, TokenReadWriteLock>() {
 
         @Override
         public TokenReadWriteLock get(Object key) {
@@ -142,7 +151,7 @@ public final class LockService {
      * given token is requested by a thread.
      */
     @SuppressWarnings("serial")
-    private final static Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
+    private final Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
         @Override
         public AtomicInteger get(Object key) {
             if(!containsKey(key)) {
@@ -161,8 +170,7 @@ public final class LockService {
      * @author jnelson
      */
     @SuppressWarnings("serial")
-    private static final class TokenReadWriteLock extends
-            ReentrantReadWriteLock {
+    private final class TokenReadWriteLock extends ReentrantReadWriteLock {
 
         private final Token token;
 
