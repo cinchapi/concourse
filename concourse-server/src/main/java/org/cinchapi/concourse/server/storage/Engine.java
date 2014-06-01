@@ -57,7 +57,6 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.collect.Sets;
 
-
 import static com.google.common.base.Preconditions.*;
 
 /**
@@ -272,7 +271,7 @@ public final class Engine extends BufferedStore implements
      */
     @Authorized
     private Engine(Buffer buffer, Database database) {
-        super(buffer, database, LockService.create());
+        super(buffer, database, LockService.create(), RangeLockService.create());
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
@@ -325,7 +324,7 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean add(String key, TObject value, long record) {
         lockService.getWriteLock(key, record).lock();
-        RangeLockService.getWriteLock(key, value).lock();
+        rangeLockService.getWriteLock(key, value).lock();
         try {
             if(super.add(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
@@ -337,7 +336,7 @@ public final class Engine extends BufferedStore implements
         }
         finally {
             lockService.getWriteLock(key, record).unlock();
-            RangeLockService.getWriteLock(key, value).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
@@ -483,12 +482,12 @@ public final class Engine extends BufferedStore implements
     @Override
     public Set<Long> find(String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
-        RangeLockService.getReadLock(key, operator, values).lock();
+        rangeLockService.getReadLock(key, operator, values).lock();
         try {
             return super.find(key, operator, values);
         }
         finally {
-            RangeLockService.getReadLock(key, operator, values).unlock();
+            rangeLockService.getReadLock(key, operator, values).unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -541,7 +540,7 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean remove(String key, TObject value, long record) {
         lockService.getWriteLock(key, record).lock();
-        RangeLockService.getWriteLock(key, value).lock();
+        rangeLockService.getWriteLock(key, value).lock();
         try {
             if(super.remove(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
@@ -553,7 +552,7 @@ public final class Engine extends BufferedStore implements
         }
         finally {
             lockService.getWriteLock(key, record).unlock();
-            RangeLockService.getWriteLock(key, value).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 

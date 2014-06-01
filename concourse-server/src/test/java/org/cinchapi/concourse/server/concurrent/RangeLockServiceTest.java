@@ -27,7 +27,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
-import org.cinchapi.concourse.annotate.Experimental;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.testing.Variables;
@@ -38,12 +37,18 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * 
+ * Unit tests for {@link RangeLockService}.
  * 
  * @author jnelson
  */
-@Experimental
 public class RangeLockServiceTest extends ConcourseBaseTest {
+
+    private RangeLockService rangeLockService;
+
+    @Override
+    protected void beforeEachTest() {
+        rangeLockService = RangeLockService.create();
+    }
 
     @Test
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsed()
@@ -57,9 +62,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        RangeLockService.getReadLock("foo", Operator.EQUALS,
+                        rangeLockService.getReadLock("foo", Operator.EQUALS,
                                 Convert.javaToThrift(1)).lock();
-                        RangeLockService.getReadLock("foo", Operator.EQUALS,
+                        rangeLockService.getReadLock("foo", Operator.EQUALS,
                                 Convert.javaToThrift(1)).unlock();
                     }
                     catch (IllegalMonitorStateException e) {
@@ -79,9 +84,9 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        RangeLockService.getWriteLock("foo",
+                        rangeLockService.getWriteLock("foo",
                                 Convert.javaToThrift(1)).lock();
-                        RangeLockService.getWriteLock("foo",
+                        rangeLockService.getWriteLock("foo",
                                 Convert.javaToThrift(1)).unlock();
                     }
                     catch (IllegalMonitorStateException e) {
@@ -131,7 +136,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getReadLock(key, Operator.BETWEEN, value1,
+                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
                         value2).lock();
                 startLatch.countDown();
                 try {
@@ -140,7 +145,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getReadLock(key, Operator.BETWEEN, value1,
+                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
                         value2).unlock();
             }
 
@@ -148,7 +153,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         t.start();
         startLatch.await();
         Value value3 = Variables.register("value3", decrease(value1));
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.WRITE,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forReading(key, null, value3)));
         finishLatch.countDown();
     }
@@ -165,7 +170,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getReadLock(key, Operator.BETWEEN, value1,
+                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
                         value2).lock();
                 startLatch.countDown();
                 try {
@@ -174,7 +179,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getReadLock(key, Operator.BETWEEN, value1,
+                rangeLockService.getReadLock(key, Operator.BETWEEN, value1,
                         value2).unlock();
             }
 
@@ -182,7 +187,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         t.start();
         startLatch.await();
         Value value3 = Variables.register("value3", increase(value2));
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.WRITE,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forWriting(key, value3)));
         finishLatch.countDown();
     }
@@ -198,7 +203,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -206,13 +211,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.EQUALS, value)));
         finishLatch.countDown();
     }
@@ -229,7 +234,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLockService.getWriteLock(key, ltValue).lock();
+                rangeLockService.getWriteLock(key, ltValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -237,13 +242,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltValue).unlock();
+                rangeLockService.getWriteLock(key, ltValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN_OR_EQUALS,
                         value)));
         finishLatch.countDown();
@@ -260,7 +265,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -268,13 +273,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN_OR_EQUALS,
                         value)));
         finishLatch.countDown();
@@ -292,7 +297,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLockService.getWriteLock(key, gtValue).lock();
+                rangeLockService.getWriteLock(key, gtValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -300,13 +305,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, gtValue).unlock();
+                rangeLockService.getWriteLock(key, gtValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN_OR_EQUALS,
                         value)));
         finishLatch.countDown();
@@ -323,7 +328,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -331,13 +336,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -354,7 +359,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLockService.getWriteLock(key, ltValue).lock();
+                rangeLockService.getWriteLock(key, ltValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -362,13 +367,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltValue).unlock();
+                rangeLockService.getWriteLock(key, ltValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -385,7 +390,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLockService.getWriteLock(key, gtValue).lock();
+                rangeLockService.getWriteLock(key, gtValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -393,13 +398,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, gtValue).unlock();
+                rangeLockService.getWriteLock(key, gtValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -416,7 +421,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLockService.getWriteLock(key, gtValue).lock();
+                rangeLockService.getWriteLock(key, gtValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -424,13 +429,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, gtValue).unlock();
+                rangeLockService.getWriteLock(key, gtValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService
+        Assert.assertFalse(rangeLockService
                 .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
                         Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
@@ -447,7 +452,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -455,13 +460,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService
+        Assert.assertTrue(rangeLockService
                 .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
                         Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
@@ -479,7 +484,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLockService.getWriteLock(key, ltValue).lock();
+                rangeLockService.getWriteLock(key, ltValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -487,13 +492,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltValue).unlock();
+                rangeLockService.getWriteLock(key, ltValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService
+        Assert.assertTrue(rangeLockService
                 .isRangeBlocked(LockType.READ, RangeToken.forReading(key,
                         Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
@@ -511,7 +516,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value gtValue = Variables.register("gtValue", increase(value));
-                RangeLockService.getWriteLock(key, gtValue).lock();
+                rangeLockService.getWriteLock(key, gtValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -519,13 +524,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, gtValue).unlock();
+                rangeLockService.getWriteLock(key, gtValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -541,7 +546,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -549,13 +554,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -572,7 +577,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 Value ltValue = Variables.register("ltValue", decrease(value));
-                RangeLockService.getWriteLock(key, ltValue).lock();
+                rangeLockService.getWriteLock(key, ltValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -580,13 +585,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltValue).unlock();
+                rangeLockService.getWriteLock(key, ltValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -605,7 +610,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 Value gtLowerValue = Variables.register("gtLowerValue",
                         increase(value, value1));
-                RangeLockService.getWriteLock(key, gtLowerValue).lock();
+                rangeLockService.getWriteLock(key, gtLowerValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -613,13 +618,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, gtLowerValue).unlock();
+                rangeLockService.getWriteLock(key, gtLowerValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -638,7 +643,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 Value ltLowerValue = Variables.register("ltLowerValue",
                         decrease(value));
-                RangeLockService.getWriteLock(key, ltLowerValue).lock();
+                rangeLockService.getWriteLock(key, ltLowerValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -646,13 +651,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltLowerValue).unlock();
+                rangeLockService.getWriteLock(key, ltLowerValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -669,7 +674,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value).lock();
+                rangeLockService.getWriteLock(key, value).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -677,13 +682,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value).unlock();
+                rangeLockService.getWriteLock(key, value).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -702,7 +707,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 Value ltHigherValue = Variables.register("ltHigherValue",
                         decrease(value1, value));
-                RangeLockService.getWriteLock(key, ltHigherValue).lock();
+                rangeLockService.getWriteLock(key, ltHigherValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -710,13 +715,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, ltHigherValue).unlock();
+                rangeLockService.getWriteLock(key, ltHigherValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -733,7 +738,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getWriteLock(key, value1).lock();
+                rangeLockService.getWriteLock(key, value1).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -741,13 +746,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, value1).unlock();
+                rangeLockService.getWriteLock(key, value1).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -766,7 +771,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 Value getHigherValue = Variables.register("gtHigherValue",
                         increase(value1));
-                RangeLockService.getWriteLock(key, getHigherValue).lock();
+                rangeLockService.getWriteLock(key, getHigherValue).lock();
                 startLatch.countDown();
                 try {
                     finishLatch.await();
@@ -774,13 +779,13 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getWriteLock(key, getHigherValue).unlock();
+                rangeLockService.getWriteLock(key, getHigherValue).unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.READ,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.READ,
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -796,7 +801,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                RangeLockService.getReadLock(key, Operator.EQUALS, value)
+                rangeLockService.getReadLock(key, Operator.EQUALS, value)
                         .lock();
                 startLatch.countDown();
                 try {
@@ -805,14 +810,14 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
                 catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                RangeLockService.getReadLock(key, Operator.EQUALS, value)
+                rangeLockService.getReadLock(key, Operator.EQUALS, value)
                         .unlock();
             }
 
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(RangeLockService.isRangeBlocked(LockType.WRITE,
+        Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forWriting(key, value)));
         finishLatch.countDown();
     }
@@ -821,7 +826,7 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
     public void testWriteNotRangeBlockedIfNoReading() {
         Text key = Variables.register("key", TestData.getText());
         Value value = Variables.register("value", TestData.getValue());
-        Assert.assertFalse(RangeLockService.isRangeBlocked(LockType.WRITE,
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forWriting(key, value)));
     }
 

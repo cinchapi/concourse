@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.concurrent.LockService;
+import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.storage.temp.Limbo;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
@@ -88,16 +89,25 @@ public abstract class BufferedStore extends BaseStore {
     protected final LockService lockService;
 
     /**
+     * The {@link RangeLockService} that is used to coordinate concurrent
+     * operations.
+     */
+    protected final RangeLockService rangeLockService;
+
+    /**
      * Construct a new instance.
      * 
      * @param transportable
      * @param destination
      * @param lockService
+     * @param rangeLockService
      */
-    protected BufferedStore(Limbo transportable, PermanentStore destination, LockService lockService) {
+    protected BufferedStore(Limbo transportable, PermanentStore destination,
+            LockService lockService, RangeLockService rangeLockService) {
         this.buffer = transportable;
         this.destination = destination;
         this.lockService = lockService;
+        this.rangeLockService = rangeLockService;
     }
 
     /**
