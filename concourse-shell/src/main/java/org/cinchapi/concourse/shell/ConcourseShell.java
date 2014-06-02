@@ -44,6 +44,8 @@ import jline.console.completer.StringsCompleter;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.Timestamp;
@@ -123,6 +125,7 @@ public final class ConcourseShell {
                 binding.setVariable("nregex", Operator.NOT_REGEX);
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
+                binding.setVariable("where", WHERE);
                 if(line.equalsIgnoreCase("exit")) {
                     concourse.exit();
                     System.exit(0);
@@ -325,6 +328,20 @@ public final class ConcourseShell {
                 return Timestamp.fromJoda(StringToTime.parseDateTime(arg
                         .toString()));
             }
+        }
+
+    };
+
+    /**
+     * A closure that returns a nwe CriteriaBuilder object.
+     */
+    private static Closure<StartState> WHERE = new Closure<StartState>(null) {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public StartState call() {
+            return Criteria.where();
         }
 
     };

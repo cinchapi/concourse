@@ -180,7 +180,9 @@ public class AtomicOperation extends BufferedStore implements
      * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
-        super(new Queue(INITIAL_CAPACITY), destination);
+        super(new Queue(INITIAL_CAPACITY), destination,
+                ((BufferedStore) destination).lockService,
+                ((BufferedStore) destination).rangeLockService);
     }
 
     /**
@@ -431,7 +433,8 @@ public class AtomicOperation extends BufferedStore implements
                 }
                 if(!locks.containsKey(expectation.getToken())) {
                     LockDescription description = LockDescription
-                            .forVersionExpectation(expectation);
+                            .forVersionExpectation(expectation, lockService,
+                                    rangeLockService);
                     if(description.getLock().tryLock()) {
                         locks.put(expectation.getToken(), description);
                     }
@@ -481,28 +484,31 @@ public class AtomicOperation extends BufferedStore implements
          * Return the LockDescription that corresponds to {@code expectation}.
          * 
          * @param expectation
+         * @param lockService
+         * @param rangeLockService
          * @return the LockDescription
          */
         public static LockDescription forVersionExpectation(
-                VersionExpectation expectation) {
+                VersionExpectation expectation, LockService lockService,
+                RangeLockService rangeLockService) {
             switch (expectation.getLockType()) {
             case RANGE_READ:
                 return new LockDescription(expectation.getToken(),
-                        RangeLockService.getReadLock((RangeToken) expectation
+                        rangeLockService.getReadLock((RangeToken) expectation
                                 .getToken()), expectation.getLockType());
             case RANGE_WRITE:
                 return new LockDescription(expectation.getToken(),
-                        RangeLockService.getWriteLock((RangeToken) expectation
+                        rangeLockService.getWriteLock((RangeToken) expectation
                                 .getToken()), expectation.getLockType());
 
             case READ:
                 return new LockDescription(expectation.getToken(),
-                        LockService.getReadLock(expectation.getToken()),
+                        lockService.getReadLock(expectation.getToken()),
                         expectation.getLockType());
 
             case WRITE:
                 return new LockDescription(expectation.getToken(),
-                        LockService.getWriteLock(expectation.getToken()),
+                        lockService.getWriteLock(expectation.getToken()),
                         expectation.getLockType());
             default:
                 return null;
@@ -519,28 +525,31 @@ public class AtomicOperation extends BufferedStore implements
          * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
          * 
          * @param bytes
+         * @param lockService
+         * @param rangeLockService
          * @return the LockDescription
          */
-        public static LockDescription fromByteBuffer(ByteBuffer bytes) {
+        public static LockDescription fromByteBuffer(ByteBuffer bytes,
+                LockService lockService, RangeLockService rangeLockService) {
             LockType type = LockType.values()[bytes.get()];
             Token token = null;
             Lock lock = null;
             switch (type) {
             case RANGE_READ:
                 token = RangeToken.fromByteBuffer(bytes);
-                lock = RangeLockService.getReadLock((RangeToken) token);
+                lock = rangeLockService.getReadLock((RangeToken) token);
                 break;
             case RANGE_WRITE:
                 token = RangeToken.fromByteBuffer(bytes);
-                lock = RangeLockService.getWriteLock((RangeToken) token);
+                lock = rangeLockService.getWriteLock((RangeToken) token);
                 break;
             case READ:
                 token = Token.fromByteBuffer(bytes);
-                lock = LockService.getReadLock(token);
+                lock = lockService.getReadLock(token);
                 break;
             case WRITE:
                 token = Token.fromByteBuffer(bytes);
-                lock = LockService.getWriteLock(token);
+                lock = lockService.getWriteLock(token);
                 break;
 
             }

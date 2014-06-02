@@ -26,7 +26,7 @@ package org.cinchapi.concourse.util;
 import java.io.File;
 import java.util.Comparator;
 
-import com.google.common.primitives.Longs;
+import com.google.common.collect.ComparisonChain;
 
 /**
  * A {@link Comparator} that sorts files with strictly numerical names between 0
@@ -41,9 +41,9 @@ public enum NaturalSorter implements Comparator<File> {
     public int compare(File f1, File f2) {
         String[] s1 = f1.getName().split("\\.");
         String[] s2 = f2.getName().split("\\.");
-        int result;
-        return (result = Longs.compare(Long.parseLong(s1[0]),
-                Long.parseLong(s2[0]))) == 0 ? s1[1].compareTo(s2[1]) : result;
+        return ComparisonChain.start()
+                .compare(Long.parseLong(s1[0]), Long.parseLong(s2[0]))
+                .compare(s1[1], s2[1]).result();
     }
 
 }

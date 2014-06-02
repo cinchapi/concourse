@@ -47,7 +47,7 @@ public class ParserTest {
         String key = TestData.getString();
         Operator operator = Operator.EQUALS;
         Object value = TestData.getObject();
-        Criteria criteria = Criteria.builder().key(key).operator(operator)
+        Criteria criteria = Criteria.where().key(key).operator(operator)
                 .value(value).build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
         Expression exp = (Expression) symbols.get(0);
@@ -66,7 +66,7 @@ public class ParserTest {
         String key1 = TestData.getString();
         Operator operator1 = Operator.GREATER_THAN;
         Object value1 = TestData.getObject();
-        Criteria criteria = Criteria.builder().key(key0).operator(operator0)
+        Criteria criteria = Criteria.where().key(key0).operator(operator0)
                 .value(value0).and().key(key1).operator(operator1)
                 .value(value1).build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
@@ -93,7 +93,7 @@ public class ParserTest {
         String key1 = TestData.getString();
         Operator operator1 = Operator.GREATER_THAN;
         Object value1 = TestData.getObject();
-        Criteria criteria = Criteria.builder().key(key0).operator(operator0)
+        Criteria criteria = Criteria.where().key(key0).operator(operator0)
                 .value(value0).or().key(key1).operator(operator1).value(value1)
                 .build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
@@ -131,12 +131,12 @@ public class ParserTest {
         Operator operator2 = Operator.LESS_THAN;
         Object value2 = TestData.getObject();
         Criteria criteria = Criteria
-                .builder()
+                .where()
                 .key(key0)
                 .operator(operator0)
                 .value(value0)
                 .and()
-                .group(Criteria.builder().key(key1).operator(operator1)
+                .group(Criteria.where().key(key1).operator(operator1)
                         .value(value1).or().key(key2).operator(operator2)
                         .value(value2).build()).build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
@@ -172,7 +172,7 @@ public class ParserTest {
         Operator operator = Operator.BETWEEN;
         Object value = TestData.getObject();
         Object value1 = TestData.getObject();
-        Criteria criteria = Criteria.builder().key(key).operator(operator)
+        Criteria criteria = Criteria.where().key(key).operator(operator)
                 .value(value).value(value1).build();
         List<Symbol> symbols = Parser.groupExpressions(criteria.getSymbols());
         Expression exp = (Expression) symbols.get(0);
@@ -187,7 +187,7 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationSimple() {
-        Criteria criteria = Criteria.builder().key("foo")
+        Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.EQUALS).value("bar").build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
                 .getSymbols());
@@ -204,7 +204,7 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationSimpleBetween() {
-        Criteria criteria = Criteria.builder().key("foo")
+        Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.BETWEEN).value("bar").value("baz").build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
                 .getSymbols());
@@ -223,9 +223,9 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationSimpleAnd() {
-        Criteria criteria = Criteria.builder().key("a")
-                .operator(Operator.EQUALS).value(1).and().key("b")
-                .operator(Operator.EQUALS).value(2).build();
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).and().key("b").operator(Operator.EQUALS).value(2)
+                .build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
                 .getSymbols());
         Assert.assertEquals(pfn.size(), 3);
@@ -244,9 +244,9 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationSimpleOr() {
-        Criteria criteria = Criteria.builder().key("a")
-                .operator(Operator.EQUALS).value(1).or().key("b")
-                .operator(Operator.EQUALS).value(2).build();
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).or().key("b").operator(Operator.EQUALS).value(2)
+                .build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
                 .getSymbols());
         Assert.assertEquals(pfn.size(), 3);
@@ -265,10 +265,9 @@ public class ParserTest {
 
     @Test
     public void testToPostfixNotationAndOr() {
-        Criteria criteria = Criteria.builder().key("a")
-                .operator(Operator.EQUALS).value("1").and().key("b")
-                .operator(Operator.EQUALS).value(2).or().key("c")
-                .operator(Operator.EQUALS).value(3).build();
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value("1").and().key("b").operator(Operator.EQUALS).value(2)
+                .or().key("c").operator(Operator.EQUALS).value(3).build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
                 .getSymbols());
         Assert.assertEquals(pfn.size(), 5);
@@ -294,12 +293,12 @@ public class ParserTest {
     @Test
     public void testToPostfixNotationAndGroupOr() {
         Criteria criteria = Criteria
-                .builder()
+                .where()
                 .key("a")
                 .operator(Operator.EQUALS)
                 .value(1)
                 .and()
-                .group(Criteria.builder().key("b").operator(Operator.EQUALS)
+                .group(Criteria.where().key("b").operator(Operator.EQUALS)
                         .value(2).or().key("c").operator(Operator.EQUALS)
                         .value(3).build()).build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
@@ -327,12 +326,12 @@ public class ParserTest {
     @Test
     public void testToPostfixNotationGroupOrAndGroupOr() {
         Criteria criteria = Criteria
-                .builder()
-                .group(Criteria.builder().key("a").operator(Operator.EQUALS)
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .and()
-                .group(Criteria.builder().key("c").operator(Operator.EQUALS)
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
                         .value(4).build()).build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
@@ -360,18 +359,18 @@ public class ParserTest {
                         ValueSymbol.create(4)));
         Assert.assertEquals(Iterables.get(pfn, 5), ConjunctionSymbol.OR);
         Assert.assertEquals(Iterables.get(pfn, 6), ConjunctionSymbol.AND);
-        
+
     }
-    
+
     @Test
     public void testToPostfixNotationGroupOrOrGroupOr() {
         Criteria criteria = Criteria
-                .builder()
-                .group(Criteria.builder().key("a").operator(Operator.EQUALS)
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
                         .value(1).or().key("b").operator(Operator.EQUALS)
                         .value(2).build())
                 .or()
-                .group(Criteria.builder().key("c").operator(Operator.EQUALS)
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
                         .value(3).or().key("d").operator(Operator.EQUALS)
                         .value(4).build()).build();
         Queue<PostfixNotationSymbol> pfn = Parser.toPostfixNotation(criteria
@@ -399,7 +398,7 @@ public class ParserTest {
                         ValueSymbol.create(4)));
         Assert.assertEquals(Iterables.get(pfn, 5), ConjunctionSymbol.OR);
         Assert.assertEquals(Iterables.get(pfn, 6), ConjunctionSymbol.OR);
-        
+
     }
 
 }

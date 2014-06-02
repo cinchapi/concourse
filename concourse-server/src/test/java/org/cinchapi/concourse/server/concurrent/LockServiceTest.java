@@ -37,6 +37,13 @@ import org.junit.Test;
  * @author jnelson
  */
 public class LockServiceTest extends ConcourseBaseTest {
+    
+    private LockService lockService;
+    
+    @Override
+    protected void beforeEachTest() {
+        lockService = LockService.create();
+    }
 
     @Test
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsed()
@@ -50,8 +57,8 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        LockService.getReadLock("foo", 1).lock();
-                        LockService.getReadLock("foo", 1).unlock();
+                        lockService.getReadLock("foo", 1).lock();
+                        lockService.getReadLock("foo", 1).unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -70,8 +77,8 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        LockService.getWriteLock("foo", 1).lock();
-                        LockService.getWriteLock("foo", 1).unlock();
+                        lockService.getWriteLock("foo", 1).lock();
+                        lockService.getWriteLock("foo", 1).unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -110,10 +117,10 @@ public class LockServiceTest extends ConcourseBaseTest {
 
     @Test(expected = IllegalMonitorStateException.class)
     public void testLockServiceDoesEvictLocksThatAreNotBeingUsed() {
-        ReadLock a = LockService.getReadLock("foo");
+        ReadLock a = lockService.getReadLock("foo");
         a.lock();
-        LockService.getReadLock("foo").unlock();
-        LockService.getReadLock("foo").lock();
+        lockService.getReadLock("foo").unlock();
+        lockService.getReadLock("foo").lock();
         a.unlock();
     
 

@@ -26,13 +26,14 @@ package org.cinchapi.concourse.lang;
 import java.text.MessageFormat;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Queue;
 
 import org.cinchapi.concourse.thrift.Operator;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -55,7 +56,7 @@ public final class Parser {
                                                                            // testing
         try {
             List<Symbol> grouped = Lists.newArrayList();
-            Iterator<Symbol> it = symbols.iterator();
+            ListIterator<Symbol> it = symbols.listIterator();
             while (it.hasNext()) {
                 Symbol symbol = it.next();
                 if(symbol instanceof KeySymbol) {
@@ -76,6 +77,14 @@ public final class Parser {
                                 operator, value);
                     }
                     grouped.add(expression);
+                }
+                else if(symbol instanceof TimestampSymbol) { // Add the
+                                                             // timestamp to the
+                                                             // previously
+                                                             // generated
+                                                             // Expression
+                    ((Expression) Iterables.getLast(grouped))
+                            .setTimestamp((TimestampSymbol) symbol);
                 }
                 else {
                     grouped.add(symbol);

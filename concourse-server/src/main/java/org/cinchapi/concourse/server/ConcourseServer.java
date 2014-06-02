@@ -451,9 +451,8 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Set<Long> find1(TCriteria tcriteria, long timestamp,
-            AccessToken creds, TransactionToken transaction)
-            throws TSecurityException, TException {
+    public Set<Long> find1(TCriteria tcriteria, AccessToken creds,
+            TransactionToken transaction) throws TSecurityException, TException {
         checkAccess(creds, transaction);
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : tcriteria.getSymbols()) {
@@ -463,7 +462,7 @@ public class ConcourseServer implements
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doFind1(timestamp, queue, stack,
+            operation = doFind1(queue, stack,
                     transaction != null ? transactions.get(transaction)
                             : engine);
         }
@@ -785,15 +784,13 @@ public class ConcourseServer implements
      * {@link #find1(TCriteria, long, AccessToken, TransactionToken)} method as
      * an AtomicOperation.
      * 
-     * @param timestamp
      * @param queue
      * @param stack
      * @param store
      * @return the AtomicOperation
      */
-    private AtomicOperation doFind1(long timestamp,
-            Queue<PostfixNotationSymbol> queue, Deque<Set<Long>> stack,
-            Compoundable store) {
+    private AtomicOperation doFind1(Queue<PostfixNotationSymbol> queue,
+            Deque<Set<Long>> stack, Compoundable store) {
         // TODO there is room to do some query planning/optimization by going
         // through the pfn and plotting an Abstract Syntax Tree and looking for
         // the optimal routes to start with
@@ -808,10 +805,11 @@ public class ConcourseServer implements
             }
             else if(symbol instanceof Expression) {
                 Expression exp = (Expression) symbol;
-                stack.push(timestamp == 0 ? operation.find(exp.getKeyRaw(),
-                        exp.getOperatorRaw(), exp.getValuesRaw()) : operation
-                        .find(timestamp, exp.getKeyRaw(), exp.getOperatorRaw(),
-                                exp.getValuesRaw()));
+                stack.push(exp.getTimestampRaw() == 0 ? operation.find(
+                        exp.getKeyRaw(), exp.getOperatorRaw(),
+                        exp.getValuesRaw()) : operation.find(
+                        exp.getTimestampRaw(), exp.getKeyRaw(),
+                        exp.getOperatorRaw(), exp.getValuesRaw()));
             }
             else {
                 // If we reach here, then the conversion to postfix notation

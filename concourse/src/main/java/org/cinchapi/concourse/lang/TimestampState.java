@@ -23,44 +23,21 @@
  */
 package org.cinchapi.concourse.lang;
 
-import org.cinchapi.concourse.Timestamp;
-
 /**
  * The {@link State} that expects the current token to be the last or the next
- * token to be a value or conjunction specification.
+ * token to be a conjunction specification.
  * 
  * @author jnelson
  */
-public class ValueState extends BuildableState {
+public class TimestampState extends BuildableState {
 
     /**
      * Construct a new instance.
      * 
      * @param criteria
      */
-    protected ValueState(Criteria criteria) {
+    protected TimestampState(Criteria criteria) {
         super(criteria);
-    }
-
-    /**
-     * Add the specified {@code value} to the {@link Criteria} that is building.
-     * 
-     * @param value
-     * @return the builder
-     */
-    public ValueState value(Object value) {
-        criteria.add(ValueSymbol.create(value));
-        return new ValueState(criteria);
-    }
-    
-    /**
-     * Add the specified {@code timestamp} to the {@link Criteria} that is building.
-     * @param timestamp
-     * @return the builder
-     */
-    public TimestampState at(Timestamp timestamp){
-        criteria.add(TimestampSymbol.create(timestamp));
-        return new TimestampState(criteria);
     }
 
 }

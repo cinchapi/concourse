@@ -69,10 +69,30 @@ public abstract class ConcourseBaseTest {
         }
 
         @Override
+        protected void finished(Description description) {
+            afterEachTest();
+        }
+
+        @Override
         protected void starting(Description description) {
             Variables.clear();
+            beforeEachTest();
         }
 
     };
+
+    /**
+     * This method is provided for the subclass to specify additional behaviour
+     * to be run after each test is done. The subclass should define such logic
+     * in this method as opposed to a test watcher.
+     */
+    protected void afterEachTest() {}
+
+    /**
+     * This method is provided for the subclass to specify additional behaviour
+     * to be run before each test begins. The subclass should define such logic
+     * in this method as opposed to a test watcher.
+     */
+    protected void beforeEachTest() {}
 
 }

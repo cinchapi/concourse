@@ -255,17 +255,14 @@ public class ConcourseService {
                 org.apache.thrift.TException;
 
         /**
-         * Find the records that match the {@code criteria} at {@code timestamp}
-         * .
+         * Find the records that match the {@code criteria}.
          * 
          * @param criteria
-         * @param timestamp
          * @param creds
          * @param transaction
          */
         public Set<Long> find1(
                 org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
@@ -557,7 +554,6 @@ public class ConcourseService {
 
         public void find1(
                 org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<AsyncClient.find1_call> resultHandler)
@@ -1114,24 +1110,21 @@ public class ConcourseService {
 
         public Set<Long> find1(
                 org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
                 org.apache.thrift.TException {
-            send_find1(criteria, timestamp, creds, transaction);
+            send_find1(criteria, creds, transaction);
             return recv_find1();
         }
 
         public void send_find1(
                 org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction)
                 throws org.apache.thrift.TException {
             find1_args args = new find1_args();
             args.setCriteria(criteria);
-            args.setTimestamp(timestamp);
             args.setCreds(creds);
             args.setTransaction(transaction);
             sendBase("find1", args);
@@ -2378,13 +2371,12 @@ public class ConcourseService {
 
         public void find1(
                 org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 org.apache.thrift.async.AsyncMethodCallback<find1_call> resultHandler)
                 throws org.apache.thrift.TException {
             checkReady();
-            find1_call method_call = new find1_call(criteria, timestamp, creds,
+            find1_call method_call = new find1_call(criteria, creds,
                     transaction, resultHandler, this, ___protocolFactory,
                     ___transport);
             this.___currentMethod = method_call;
@@ -2394,13 +2386,11 @@ public class ConcourseService {
         public static class find1_call extends
                 org.apache.thrift.async.TAsyncMethodCall {
             private org.cinchapi.concourse.thrift.TCriteria criteria;
-            private long timestamp;
             private org.cinchapi.concourse.thrift.AccessToken creds;
             private org.cinchapi.concourse.thrift.TransactionToken transaction;
 
             public find1_call(
                     org.cinchapi.concourse.thrift.TCriteria criteria,
-                    long timestamp,
                     org.cinchapi.concourse.thrift.AccessToken creds,
                     org.cinchapi.concourse.thrift.TransactionToken transaction,
                     org.apache.thrift.async.AsyncMethodCallback<find1_call> resultHandler,
@@ -2410,7 +2400,6 @@ public class ConcourseService {
                     throws org.apache.thrift.TException {
                 super(client, protocolFactory, transport, resultHandler, false);
                 this.criteria = criteria;
-                this.timestamp = timestamp;
                 this.creds = creds;
                 this.transaction = transaction;
             }
@@ -2422,7 +2411,6 @@ public class ConcourseService {
                         0));
                 find1_args args = new find1_args();
                 args.setCriteria(criteria);
-                args.setTimestamp(timestamp);
                 args.setCreds(creds);
                 args.setTransaction(transaction);
                 args.write(prot);
@@ -3643,8 +3631,8 @@ public class ConcourseService {
                     throws org.apache.thrift.TException {
                 find1_result result = new find1_result();
                 try {
-                    result.success = iface.find1(args.criteria, args.timestamp,
-                            args.creds, args.transaction);
+                    result.success = iface.find1(args.criteria, args.creds,
+                            args.transaction);
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
@@ -18843,13 +18831,11 @@ public class ConcourseService {
 
         private static final org.apache.thrift.protocol.TField CRITERIA_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "criteria", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
-        private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField(
-                "timestamp", org.apache.thrift.protocol.TType.I64, (short) 2);
         private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField(
-                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 3);
+                "creds", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
         private static final org.apache.thrift.protocol.TField TRANSACTION_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "transaction", org.apache.thrift.protocol.TType.STRUCT,
-                (short) 4);
+                (short) 3);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -18859,7 +18845,6 @@ public class ConcourseService {
         }
 
         public org.cinchapi.concourse.thrift.TCriteria criteria; // required
-        public long timestamp; // required
         public org.cinchapi.concourse.thrift.AccessToken creds; // required
         public org.cinchapi.concourse.thrift.TransactionToken transaction; // required
 
@@ -18869,9 +18854,8 @@ public class ConcourseService {
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
             CRITERIA((short) 1, "criteria"),
-            TIMESTAMP((short) 2, "timestamp"),
-            CREDS((short) 3, "creds"),
-            TRANSACTION((short) 4, "transaction");
+            CREDS((short) 2, "creds"),
+            TRANSACTION((short) 3, "transaction");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -18889,11 +18873,9 @@ public class ConcourseService {
                 switch (fieldId) {
                 case 1: // CRITERIA
                     return CRITERIA;
-                case 2: // TIMESTAMP
-                    return TIMESTAMP;
-                case 3: // CREDS
+                case 2: // CREDS
                     return CREDS;
-                case 4: // TRANSACTION
+                case 3: // TRANSACTION
                     return TRANSACTION;
                 default:
                     return null;
@@ -18939,8 +18921,6 @@ public class ConcourseService {
         }
 
         // isset id assignments
-        private static final int __TIMESTAMP_ISSET_ID = 0;
-        private byte __isset_bitfield = 0;
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
@@ -18953,11 +18933,6 @@ public class ConcourseService {
                             new org.apache.thrift.meta_data.StructMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT,
                                     org.cinchapi.concourse.thrift.TCriteria.class)));
-            tmpMap.put(_Fields.TIMESTAMP,
-                    new org.apache.thrift.meta_data.FieldMetaData("timestamp",
-                            org.apache.thrift.TFieldRequirementType.DEFAULT,
-                            new org.apache.thrift.meta_data.FieldValueMetaData(
-                                    org.apache.thrift.protocol.TType.I64)));
             tmpMap.put(
                     _Fields.CREDS,
                     new org.apache.thrift.meta_data.FieldMetaData(
@@ -18982,13 +18957,10 @@ public class ConcourseService {
         public find1_args() {}
 
         public find1_args(org.cinchapi.concourse.thrift.TCriteria criteria,
-                long timestamp,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken transaction) {
             this();
             this.criteria = criteria;
-            this.timestamp = timestamp;
-            setTimestampIsSet(true);
             this.creds = creds;
             this.transaction = transaction;
         }
@@ -18997,12 +18969,10 @@ public class ConcourseService {
          * Performs a deep copy on <i>other</i>.
          */
         public find1_args(find1_args other) {
-            __isset_bitfield = other.__isset_bitfield;
             if(other.isSetCriteria()) {
                 this.criteria = new org.cinchapi.concourse.thrift.TCriteria(
                         other.criteria);
             }
-            this.timestamp = other.timestamp;
             if(other.isSetCreds()) {
                 this.creds = new org.cinchapi.concourse.thrift.AccessToken(
                         other.creds);
@@ -19020,8 +18990,6 @@ public class ConcourseService {
         @Override
         public void clear() {
             this.criteria = null;
-            setTimestampIsSet(false);
-            this.timestamp = 0;
             this.creds = null;
             this.transaction = null;
         }
@@ -19052,35 +19020,6 @@ public class ConcourseService {
             if(!value) {
                 this.criteria = null;
             }
-        }
-
-        public long getTimestamp() {
-            return this.timestamp;
-        }
-
-        public find1_args setTimestamp(long timestamp) {
-            this.timestamp = timestamp;
-            setTimestampIsSet(true);
-            return this;
-        }
-
-        public void unsetTimestamp() {
-            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
-                    __TIMESTAMP_ISSET_ID);
-        }
-
-        /**
-         * Returns true if field timestamp is set (has been assigned a value)
-         * and false otherwise
-         */
-        public boolean isSetTimestamp() {
-            return EncodingUtils
-                    .testBit(__isset_bitfield, __TIMESTAMP_ISSET_ID);
-        }
-
-        public void setTimestampIsSet(boolean value) {
-            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
-                    __TIMESTAMP_ISSET_ID, value);
         }
 
         public org.cinchapi.concourse.thrift.AccessToken getCreds() {
@@ -19150,15 +19089,6 @@ public class ConcourseService {
                 }
                 break;
 
-            case TIMESTAMP:
-                if(value == null) {
-                    unsetTimestamp();
-                }
-                else {
-                    setTimestamp((Long) value);
-                }
-                break;
-
             case CREDS:
                 if(value == null) {
                     unsetCreds();
@@ -19185,9 +19115,6 @@ public class ConcourseService {
             case CRITERIA:
                 return getCriteria();
 
-            case TIMESTAMP:
-                return Long.valueOf(getTimestamp());
-
             case CREDS:
                 return getCreds();
 
@@ -19210,8 +19137,6 @@ public class ConcourseService {
             switch (field) {
             case CRITERIA:
                 return isSetCriteria();
-            case TIMESTAMP:
-                return isSetTimestamp();
             case CREDS:
                 return isSetCreds();
             case TRANSACTION:
@@ -19239,15 +19164,6 @@ public class ConcourseService {
                 if(!(this_present_criteria && that_present_criteria))
                     return false;
                 if(!this.criteria.equals(that.criteria))
-                    return false;
-            }
-
-            boolean this_present_timestamp = true;
-            boolean that_present_timestamp = true;
-            if(this_present_timestamp || that_present_timestamp) {
-                if(!(this_present_timestamp && that_present_timestamp))
-                    return false;
-                if(this.timestamp != that.timestamp)
                     return false;
             }
 
@@ -19294,18 +19210,6 @@ public class ConcourseService {
             if(isSetCriteria()) {
                 lastComparison = org.apache.thrift.TBaseHelper.compareTo(
                         this.criteria, typedOther.criteria);
-                if(lastComparison != 0) {
-                    return lastComparison;
-                }
-            }
-            lastComparison = Boolean.valueOf(isSetTimestamp()).compareTo(
-                    typedOther.isSetTimestamp());
-            if(lastComparison != 0) {
-                return lastComparison;
-            }
-            if(isSetTimestamp()) {
-                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                        this.timestamp, typedOther.timestamp);
                 if(lastComparison != 0) {
                     return lastComparison;
                 }
@@ -19366,11 +19270,6 @@ public class ConcourseService {
             first = false;
             if(!first)
                 sb.append(", ");
-            sb.append("timestamp:");
-            sb.append(this.timestamp);
-            first = false;
-            if(!first)
-                sb.append(", ");
             sb.append("creds:");
             if(this.creds == null) {
                 sb.append("null");
@@ -19421,10 +19320,6 @@ public class ConcourseService {
         private void readObject(java.io.ObjectInputStream in)
                 throws java.io.IOException, ClassNotFoundException {
             try {
-                // it doesn't seem like you should have to do this, but java
-                // serialization is wacky, and doesn't call the default
-                // constructor.
-                __isset_bitfield = 0;
                 read(new org.apache.thrift.protocol.TCompactProtocol(
                         new org.apache.thrift.transport.TIOStreamTransport(in)));
             }
@@ -19464,17 +19359,7 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
-                    case 2: // TIMESTAMP
-                        if(schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                            struct.timestamp = iprot.readI64();
-                            struct.setTimestampIsSet(true);
-                        }
-                        else {
-                            org.apache.thrift.protocol.TProtocolUtil.skip(
-                                    iprot, schemeField.type);
-                        }
-                        break;
-                    case 3: // CREDS
+                    case 2: // CREDS
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                             struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                             struct.creds.read(iprot);
@@ -19485,7 +19370,7 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
-                    case 4: // TRANSACTION
+                    case 3: // TRANSACTION
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                             struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                             struct.transaction.read(iprot);
@@ -19519,9 +19404,6 @@ public class ConcourseService {
                     struct.criteria.write(oprot);
                     oprot.writeFieldEnd();
                 }
-                oprot.writeFieldBegin(TIMESTAMP_FIELD_DESC);
-                oprot.writeI64(struct.timestamp);
-                oprot.writeFieldEnd();
                 if(struct.creds != null) {
                     oprot.writeFieldBegin(CREDS_FIELD_DESC);
                     struct.creds.write(oprot);
@@ -19556,21 +19438,15 @@ public class ConcourseService {
                 if(struct.isSetCriteria()) {
                     optionals.set(0);
                 }
-                if(struct.isSetTimestamp()) {
+                if(struct.isSetCreds()) {
                     optionals.set(1);
                 }
-                if(struct.isSetCreds()) {
+                if(struct.isSetTransaction()) {
                     optionals.set(2);
                 }
-                if(struct.isSetTransaction()) {
-                    optionals.set(3);
-                }
-                oprot.writeBitSet(optionals, 4);
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetCriteria()) {
                     struct.criteria.write(oprot);
-                }
-                if(struct.isSetTimestamp()) {
-                    oprot.writeI64(struct.timestamp);
                 }
                 if(struct.isSetCreds()) {
                     struct.creds.write(oprot);
@@ -19584,22 +19460,18 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     find1_args struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(4);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.criteria = new org.cinchapi.concourse.thrift.TCriteria();
                     struct.criteria.read(iprot);
                     struct.setCriteriaIsSet(true);
                 }
                 if(incoming.get(1)) {
-                    struct.timestamp = iprot.readI64();
-                    struct.setTimestampIsSet(true);
-                }
-                if(incoming.get(2)) {
                     struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
                     struct.creds.read(iprot);
                     struct.setCredsIsSet(true);
                 }
-                if(incoming.get(3)) {
+                if(incoming.get(2)) {
                     struct.transaction = new org.cinchapi.concourse.thrift.TransactionToken();
                     struct.transaction.read(iprot);
                     struct.setTransactionIsSet(true);

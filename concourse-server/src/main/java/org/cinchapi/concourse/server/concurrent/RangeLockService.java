@@ -31,7 +31,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.annotate.Experimental;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -65,8 +64,15 @@ import com.google.common.base.Preconditions;
  * 
  * @author jnelson
  */
-@Experimental
 public final class RangeLockService {
+    
+    /**
+     * Create a new {@link RangeLockService}.
+     * @return the RangeLockService
+     */
+    public static RangeLockService create(){
+        return new RangeLockService();
+    }
 
     /**
      * Return the ReadLock that is identified by {@code token}. Every caller
@@ -76,7 +82,7 @@ public final class RangeLockService {
      * @param token
      * @return the ReadLock
      */
-    public static ReadLock getReadLock(RangeToken token) {
+    public ReadLock getReadLock(RangeToken token) {
         return CACHE.get(token).readLock();
     }
 
@@ -88,7 +94,7 @@ public final class RangeLockService {
      * @param objects
      * @return the ReadLock
      */
-    public static ReadLock getReadLock(String key, Operator operator,
+    public ReadLock getReadLock(String key, Operator operator,
             TObject... values) {
         return getReadLock(Text.wrap(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
@@ -103,7 +109,7 @@ public final class RangeLockService {
      * @param objects
      * @return the ReadLock
      */
-    public static ReadLock getReadLock(Text key, Operator operator,
+    public ReadLock getReadLock(Text key, Operator operator,
             Value... values) {
         return getReadLock(RangeToken.forReading(key, operator, values));
     }
@@ -116,7 +122,7 @@ public final class RangeLockService {
      * @param token
      * @return the WriteLock
      */
-    public static WriteLock getWriteLock(RangeToken token) {
+    public WriteLock getWriteLock(RangeToken token) {
         return CACHE.get(token).writeLock();
 
     }
@@ -129,7 +135,7 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
-    public static WriteLock getWriteLock(String key, TObject value) {
+    public WriteLock getWriteLock(String key, TObject value) {
         return getWriteLock(Text.wrap(key), Value.wrap(value));
     }
 
@@ -141,7 +147,7 @@ public final class RangeLockService {
      * @param objects
      * @return the WriteLock
      */
-    public static WriteLock getWriteLock(Text key, Value value) {
+    public WriteLock getWriteLock(Text key, Value value) {
         return getWriteLock(RangeToken.forWriting(key, value));
     }
 
@@ -156,7 +162,7 @@ public final class RangeLockService {
      * @param token
      * @return {@code true} if range blocked
      */
-    protected static final boolean isRangeBlocked(LockType type,
+    protected final boolean isRangeBlocked(LockType type,
             RangeToken token) {
         Value value = token.getValues()[0];
         Iterator<Entry<RangeToken, RangeReadWriteLock>> it = CACHE.entrySet()
@@ -266,7 +272,7 @@ public final class RangeLockService {
      * not currently held by any readers or writers.
      */
     @SuppressWarnings("serial")
-    private final static Map<RangeToken, RangeReadWriteLock> CACHE = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
+    private final Map<RangeToken, RangeReadWriteLock> CACHE = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
 
         @Override
         public RangeReadWriteLock get(Object key) {
@@ -287,7 +293,7 @@ public final class RangeLockService {
      * @author jnelson
      */
     @SuppressWarnings("serial")
-    private static final class RangeReadWriteLock extends
+    private final class RangeReadWriteLock extends
             ReentrantReadWriteLock {
 
         private final RangeToken token;

@@ -36,25 +36,9 @@ public class CriteriaTest {
 
     @Test(expected = IllegalStateException.class)
     public void testCannotAddSymbolToBuiltCriteria() {
-        Criteria criteria = Criteria.builder().key("foo")
+        Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.EQUALS).value("bar").build();
         criteria.add(KeySymbol.create("baz"));
-    }
-
-    public static void main(String... args) {
-        Criteria criteria = Criteria
-                .builder()
-                .group(Criteria
-                        .builder()
-                        .key("name")
-                        .operator(Operator.EQUALS)
-                        .value("jeff")
-                        .and()
-                        .group(Criteria.builder().key("age")
-                                .operator(Operator.GREATER_THAN).value(2).or()
-                                .key("age").operator(Operator.EQUALS).value(-1)
-                                .build()).build()).build();
-        System.out.println(criteria);
     }
 
 }
