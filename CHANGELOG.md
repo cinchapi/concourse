@@ -16,6 +16,9 @@
 * Improved the usability of the `useradmin` CLI.
 * Added requirement that new passwords must be 3 or more characters long.
 
+#### Version 0.3.6 (TBD)
+* Fixed a bug that caused string values to be sorted inconsitently.
+
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
 
