@@ -190,6 +190,71 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testBrowseKeyAfterRemoveWithTimeReproCON_91() {
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+        data.put(Convert.javaToThrift(-2982699655776463047L),
+                -3332967120782416036L);
+        data.put(Convert.javaToThrift(-2982699655776463047L),
+                -3193024454871429052L);
+        data.put(Convert.javaToThrift(723284932), 2021923430868945807L);
+        data.put(
+                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                -5698094812015896631L);
+        data.put(
+                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                -1784224494277607728L);
+        data.put(
+                Convert.javaToThrift("6y1vg56zfge6n u xpfk88zsteez5klmdmde7mux45hope d2ixtgd"),
+                -1661462551451553081L);
+        data.put(Convert.javaToThrift("7478v4flnf2hy4uq856q5j1u4yu"),
+                -4055175164196245068L);
+        data.put(Convert.javaToThrift("7478v4flnf2hy4uq856q5j1u4yu"),
+                7242075887519601694L);
+        data.put(Convert.javaToThrift(0.18700446070413457),
+                -1455745637934964252L);
+        data.put(Convert.javaToThrift(0.55897903), -4790445645749745356L);
+        data.put(Convert.javaToThrift(1233118838), -3117864874339953135L);
+        data.put(Convert.javaToThrift(1233118838), -3117864874339953135L);
+        data.put(Convert.javaToThrift(1375924251), -5136738009956048263L);
+        data.put(
+                Convert.javaToThrift("kqoc3badp43aryq4kqjy sxp1ywhemli cvtajepz 04oxro0dt3oykn y4pexibpkms0 8uu4ncac2xauc1exc 19ija"),
+                -4997919281599660112L);
+        Iterator<Entry<TObject, Long>> it = data.entries().iterator();
+        String key = "foo";
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            add(key, entry.getKey(), entry.getValue());
+        }
+        it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                it.remove();
+                remove(key, entry.getKey(), entry.getValue());
+            }
+        }
+        long timestamp = Time.now();
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!store.verify(key, value, record)) {
+                    add(key, value, record);
+                }
+            }
+        }
+        it = data.entries().iterator();
+        while (it.hasNext()) {
+            Entry<TObject, Long> entry = it.next();
+            if(TestData.getScaleCount() % 3 == 0) {
+                remove(key, entry.getKey(), entry.getValue());
+            }
+        }
+        Assert.assertEquals(data.asMap(), store.browse(key, timestamp));
+
+    }
+
+    @Test
     public void testBrowseKeyIsSorted() {
         String key = TestData.getString();
         for (TObject value : getValues()) {
@@ -1304,7 +1369,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         String key = "foo";
         Variables.register("data", data);
         for (Entry<TObject, Long> entry : data.entries()) {
-           add(key, entry.getKey(), entry.getValue());
+            add(key, entry.getKey(), entry.getValue());
         }
         Assert.assertEquals(data.asMap(), store.browse(key));
     }
