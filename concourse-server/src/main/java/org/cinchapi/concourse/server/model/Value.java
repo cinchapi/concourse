@@ -283,6 +283,12 @@ public final class Value implements Byteable, Comparable<Value> {
                 if(o1 instanceof Number && o2 instanceof Number) {
                     return Numbers.compare((Number) o1, (Number) o2);
                 }
+                else if(o1 instanceof Number) {
+                    return -1;
+                }
+                else if(o2 instanceof Number) {
+                    return 1;
+                }
                 else {
                     return o1.toString().compareTo(o2.toString());
                 }
