@@ -27,6 +27,8 @@ import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.base.Strings;
+
 /**
  * ETE tests for transaction related workflows.
  * 
@@ -44,6 +46,9 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
     protected void beforeEachTest() {
         String username = TestData.getString();
         String password = TestData.getString();
+        while (Strings.isNullOrEmpty(password) || password.length() < 3) {
+            password = TestData.getString();
+        }
         grantAccess(username, password);
         client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, username,
                 password);
@@ -85,9 +90,9 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         Assert.assertTrue(client2.verify("foo", "bar", 2));
         Assert.assertFalse(client2.verify("foo", "bar", 1));
     }
-    
+
     @Test
-    public void testConcurrentTransactionsForSameUserCanBeCommitted(){
+    public void testConcurrentTransactionsForSameUserCanBeCommitted() {
         client2 = Concourse.connect(SERVER_HOST, SERVER_PORT, "admin", "admin");
         client.stage();
         client2.stage();
