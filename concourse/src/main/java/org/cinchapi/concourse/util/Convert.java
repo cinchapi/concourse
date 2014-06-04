@@ -97,8 +97,7 @@ public final class Convert {
             type = Type.INTEGER;
         }
         else if(object instanceof Catchphrase) {
-            bytes = ByteBuffer.wrap(
-                    ((Catchphrase) object).stringValue()
+            bytes = ByteBuffer.wrap(object.toString()
                         .getBytes(StandardCharsets.UTF_8));
             type = Type.CATCHPHRASE;
         }
@@ -366,6 +365,9 @@ public final class Convert {
             break;
         case LONG:
             java = buffer.getLong();
+            break;
+        case CATCHPHRASE:
+            java = ByteBuffers.getString(buffer);
             break;
         default:
             java = ByteBuffers.getString(buffer);

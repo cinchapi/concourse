@@ -43,7 +43,7 @@ public final class Catchphrase implements Comparable<Catchphrase>{
      * @param value
      * @return the Catchphrase
      */
-    public static Catchphrase to(String value) {
+    public static Catchphrase create(String value) {
         return new Catchphrase(value);
     }
     
@@ -65,19 +65,27 @@ public final class Catchphrase implements Comparable<Catchphrase>{
     @Override
     public int compareTo(Catchphrase other) {
         return ComparisonChain.start()
-                .compare(stringValue(), other.stringValue())
+                .compare(toString(), other.toString())
                 .result();
     }
     
     /**
-     * Return {@code true} if {@code other} equals this
-     * Catchphrase.
+     * Return {@code true} if {@code other} of type String or 
+     * Catchphrase equals this Catchphrase.
      * 
      * @param other
      * @return {@code true} if {@code other} equals this catchphrase
      */
-    public boolean equals(Catchphrase other) {
-        return compareTo(other) == 0 ? true : false;
+    @Override
+    public boolean equals(Object other) {
+        boolean isEqual = false;
+        if (other instanceof Catchphrase) {
+            isEqual = compareTo((Catchphrase) other) == 0;
+        }
+        else if (other instanceof String) {
+            isEqual = value.equals(other.toString());
+        }
+        return isEqual;
     }
     
     /**
@@ -85,7 +93,8 @@ public final class Catchphrase implements Comparable<Catchphrase>{
      * 
      * @return the value
      */
-    public String stringValue() {
+    @Override
+    public String toString() {
         return value;
     }
 

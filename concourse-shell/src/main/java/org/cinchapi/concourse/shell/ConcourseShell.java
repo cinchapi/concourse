@@ -43,6 +43,7 @@ import jline.console.completer.StringsCompleter;
 
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.Catchphrase;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
@@ -126,6 +127,7 @@ public final class ConcourseShell {
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
                 binding.setVariable("where", WHERE);
+                binding.setVariable("catchphrase", STRING_TO_CATCHPHRASE);
                 if(line.equalsIgnoreCase("exit")) {
                     concourse.exit();
                     System.exit(0);
@@ -308,6 +310,21 @@ public final class ConcourseShell {
             e.printStackTrace();
         }
     }
+    
+    /**
+     * A closure that converts a string value to a catchphrase.
+     */
+    private static Closure<Catchphrase> STRING_TO_CATCHPHRASE = new Closure<Catchphrase>(
+            null) {
+        
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public Catchphrase call(Object arg) {
+            return Catchphrase.create(arg.toString());
+        }
+        
+    };
 
     /**
      * A closure that converts a string description to a timestamp.
