@@ -28,28 +28,28 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.collect.ComparisonChain;
 
 /**
- * A {@link Catchphrase} is a wrapper around {@link String} that represents the
+ * A {@link Tag} is a wrapper around {@link String} that represents the
  * string value in key in record and distinguishes from simple String values. A
- * Catchphrase does not get full-text indexed.
+ * Tag does not get full-text indexed.
  * 
  * @author knd
  */
 @Immutable
-public final class Catchphrase implements Comparable<Catchphrase>{
+public final class Tag implements Comparable<Tag>{
 
     /**
-     * Return a Catchphrase that embeds {@code value}.
+     * Return a Tag that embeds {@code value}.
      * 
      * @param value
-     * @return the Catchphrase
+     * @return the Tag
      */
-    public static Catchphrase create(String value) {
-        return new Catchphrase(value);
+    public static Tag create(String value) {
+        return new Tag(value);
     }
     
     /**
      * The String representation for the value in key in record 
-     * that this Catchphrase embeds.
+     * that this Tag embeds.
      */
     private final String value;
     
@@ -58,12 +58,12 @@ public final class Catchphrase implements Comparable<Catchphrase>{
      * 
      * @param value
      */
-    private Catchphrase(String value) {
+    private Tag(String value) {
         this.value = value;
     }
     
     @Override
-    public int compareTo(Catchphrase other) {
+    public int compareTo(Tag other) {
         return ComparisonChain.start()
                 .compare(toString(), other.toString())
                 .result();
@@ -71,16 +71,16 @@ public final class Catchphrase implements Comparable<Catchphrase>{
     
     /**
      * Return {@code true} if {@code other} of type String or 
-     * Catchphrase equals this Catchphrase.
+     * Tag equals this Catchphrase.
      * 
      * @param other
-     * @return {@code true} if {@code other} equals this catchphrase
+     * @return {@code true} if {@code other} equals this tag
      */
     @Override
     public boolean equals(Object other) {
         boolean isEqual = false;
-        if (other instanceof Catchphrase) {
-            isEqual = compareTo((Catchphrase) other) == 0;
+        if (other instanceof Tag) {
+            isEqual = compareTo((Tag) other) == 0;
         }
         else if (other instanceof String) {
             isEqual = value.equals(other.toString());
@@ -89,7 +89,7 @@ public final class Catchphrase implements Comparable<Catchphrase>{
     }
     
     /**
-     * Return the String value that this Catchphrase embeds.
+     * Return the String value that this Tag embeds.
      * 
      * @return the value
      */

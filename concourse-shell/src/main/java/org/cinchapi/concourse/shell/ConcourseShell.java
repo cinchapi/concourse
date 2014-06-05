@@ -43,7 +43,7 @@ import jline.console.completer.StringsCompleter;
 
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.Catchphrase;
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
@@ -127,7 +127,7 @@ public final class ConcourseShell {
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
                 binding.setVariable("where", WHERE);
-                binding.setVariable("catchphrase", STRING_TO_CATCHPHRASE);
+                binding.setVariable("tag", STRING_TO_CATCHPHRASE);
                 if(line.equalsIgnoreCase("exit")) {
                     concourse.exit();
                     System.exit(0);
@@ -312,16 +312,16 @@ public final class ConcourseShell {
     }
     
     /**
-     * A closure that converts a string value to a catchphrase.
+     * A closure that converts a string value to a tag.
      */
-    private static Closure<Catchphrase> STRING_TO_CATCHPHRASE = new Closure<Catchphrase>(
+    private static Closure<Tag> STRING_TO_CATCHPHRASE = new Closure<Tag>(
             null) {
         
         private static final long serialVersionUID = 1L;
 
         @Override
-        public Catchphrase call(Object arg) {
-            return Catchphrase.create(arg.toString());
+        public Tag call(Object arg) {
+            return Tag.create(arg.toString());
         }
         
     };

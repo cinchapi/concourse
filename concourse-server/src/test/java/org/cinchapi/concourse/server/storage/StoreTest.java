@@ -33,10 +33,11 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.cinchapi.concourse.Catchphrase;
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.TObjectSorter;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -832,21 +833,63 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
     
     @Test
-    @Theory
-    public void testFindThatRecordWithValueAsCatchphraseIsIncludedInResultSet() {
+    public void testFindThatRecordWithValueAsTagIsIncludedInResultSet() {
         String key = TestData.getString();
-        Catchphrase value = Catchphrase.create(TestData.getString());
+        Tag value = Tag.create(TestData.getString());
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
-        Long catchphraseRecord = null;
-        while (catchphraseRecord == null 
-                || records.contains(catchphraseRecord)) {
-            catchphraseRecord = TestData.getLong();
+        Long tagRecord = null;
+        while (tagRecord == null 
+                || records.contains(tagRecord)) {
+            tagRecord = TestData.getLong();
         }
         Set<Long> resultRecords = Sets.newHashSet();
-        resultRecords.add(catchphraseRecord);
-        add(key, Convert.javaToThrift(value), catchphraseRecord);
+        resultRecords.add(tagRecord);
+        add(key, Convert.javaToThrift(value), tagRecord);
         Assert.assertEquals(resultRecords,
                 store.find(key, Operator.EQUALS, Convert.javaToThrift(value))); 
+    }
+    
+    @Test
+    public void testFindThatRecordWithValueAsTagAndEqualStringValueInAnotherRecordIsIncludedInResultSet() {
+        String key = TestData.getString();
+        String value = TestData.getString();
+        Set<Long> records = getRecords();
+        for (long record : records) {
+            add(key, Convert.javaToThrift(value), record);
+        }
+        Set<Long> newRecords = Sets.newHashSet();
+        Long newRecord = null;
+        while (newRecord == null 
+                || newRecords.size() < TestData.getScaleCount()) {
+            newRecord = TestData.getLong();
+            if (!records.contains(newRecord)) {
+                newRecords.add(newRecord);
+                records.add(newRecord);
+            }
+        }
+        for (long record : newRecords) {
+            add(key, Convert.javaToThrift(Tag.create(value)),
+                    record);
+        }
+        Assert.assertEquals(records,
+                store.find(key, Operator.EQUALS, Convert.javaToThrift(value)));
+    }
+    
+    @Test
+    public void testCantAddDuplicateTagOrStringValueToTheSameKeyInRecord() {
+        String key = TestData.getString();
+        long record = TestData.getLong();
+        String value = "string1";
+        add(key, Convert.javaToThrift(value), record);
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        value = "string2";
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        add(key, Convert.javaToThrift(value), record);
+        value = "string3";
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        Variables.register("test", store.fetch(key, record));
+        Assert.assertEquals(3, store.fetch(key, record).size());
     }
 
     @Test
@@ -1260,30 +1303,28 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
     
     @Test
-    @Theory
-    public void testSearchThatRecordWithValueAsCatchphraseIsNotIncludedInResultSet() {
+    public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSet() {
         String key = TestData.getString();
-        Catchphrase value = Catchphrase.create(TestData.getString());
+        Tag value = Tag.create(TestData.getString());
         Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
-        Long catchphraseRecord = null;
-        while (catchphraseRecord == null 
-                || records.contains(catchphraseRecord)) {
-            catchphraseRecord = TestData.getLong();
+        Long tagRecord = null;
+        while (tagRecord == null 
+                || records.contains(tagRecord)) {
+            tagRecord = TestData.getLong();
         }
-        add(key, Convert.javaToThrift(value), catchphraseRecord);
+        add(key, Convert.javaToThrift(value), tagRecord);
         Assert.assertTrue(store.search(key, value.toString())
                 .isEmpty());
     }
     
     @Test
-    @Theory
-    public void testSearchSubstringThatRecordWithValueAsCatchphraseIsNotIncludedInResultSet() {
+    public void testSearchSubstringThatRecordWithValueAsTagIsNotIncludedInResultSet() {
         String key = TestData.getString();
         String value = null;
         while (value == null || value.length() == 0) {
             value = TestData.getString();
         }
-        add(key, Convert.javaToThrift(Catchphrase.create(value)), 1);
+        add(key, Convert.javaToThrift(Tag.create(value)), 1);
         Integer startIndex = null;
         Integer endIndex = null;
         while (startIndex == null || endIndex == null 
@@ -1627,21 +1668,10 @@ public abstract class StoreTest extends ConcourseBaseTest {
          * @return -1, 0, or 1 as {@code a} is less than, equal to, or
          *         greater than {@code b}.
          */
-        private static Number compare(Object a, Object b) {
-            Number compareResult = null;
-            if (a instanceof Number && b instanceof Number) {
-                 compareResult = Numbers.compare((Number) a, (Number) b);
-            } 
-            else if (a instanceof Number) {
-                compareResult = -1;
-            }
-            else if (b instanceof Number) {
-                compareResult = 1;
-            }
-            else {
-                compareResult = a.toString().compareTo(b.toString());
-            }
-            return compareResult;
+        private static int compare(Object a, Object b) {
+            return Value.Sorter.INSTANCE
+                    .compare(Value.wrap(Convert.javaToThrift(a)),
+                            Value.wrap(Convert.javaToThrift(b)));
         }
         
         /**

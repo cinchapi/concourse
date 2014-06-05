@@ -14,6 +14,7 @@ import org.apache.thrift.TEnum;
 /**
  * Enumerates the possible TObject types
  */
+@SuppressWarnings({ "unused" })
 public enum Type implements org.apache.thrift.TEnum {
   BOOLEAN(1),
   DOUBLE(2),
@@ -22,7 +23,7 @@ public enum Type implements org.apache.thrift.TEnum {
   LONG(5),
   LINK(6),
   STRING(7),
-  CATCHPHRASE(8);
+  TAG(8);
 
   private final int value;
 
@@ -58,7 +59,7 @@ public enum Type implements org.apache.thrift.TEnum {
       case 7:
         return STRING;
       case 8:
-        return CATCHPHRASE;
+        return TAG;
       default:
         return null;
     }
