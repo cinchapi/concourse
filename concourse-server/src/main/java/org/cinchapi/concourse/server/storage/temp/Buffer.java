@@ -1059,29 +1059,27 @@ public final class Buffer extends Limbo {
         public boolean mightContain(Write write) {
             Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
             try {
-                boolean mightContain;
                 Type valueType = write.getValue().getType();  
                 if (filter.mightContain(write.getRecord(), write.getKey(),
                         write.getValue())) {
-                    mightContain = true;
+                    return true;
                 }
                 else if (valueType == Type.STRING) {
-                    mightContain = filter.mightContain(
+                     return filter.mightContain(
                           write.getRecord(), write.getKey(),
                           Value.wrap(Convert.javaToThrift(Tag
                                   .create((String) write.getValue()
                                           .getObject()))));
                 } 
                 else if (valueType == Type.TAG) {
-                    mightContain = filter.mightContain(
+                    return filter.mightContain(
                           write.getRecord(), write.getKey(),
                           Value.wrap(Convert.javaToThrift(write
                                   .getValue().getObject().toString())));
                 } 
                 else {
-                    mightContain = false;
+                    return false;
                 }
-                return mightContain;
             }
             finally {
                 Locks.unlockIfCondition(pageLock.readLock(),

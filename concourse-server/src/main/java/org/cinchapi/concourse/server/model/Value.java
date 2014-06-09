@@ -78,21 +78,17 @@ public final class Value implements Byteable, Comparable<Value> {
     }
     
     /**
-     * Return the normalized Value of {@code value}.
+     * Return the optimized Value of {@code value}.
      * 
      * @param value
-     * @return the normalized Value
+     * @return the optimized Value
      */
-    public static Value normalize(Value value) {
-        Value normalizedValue = null;
+    public static Value optimize(Value value) {
         if (value.getType() == Type.TAG) {
-            normalizedValue = Value.wrap(Convert
+            return Value.wrap(Convert
                     .javaToThrift(value.getObject().toString()));
         }
-        else {
-            normalizedValue = value;
-        }
-        return normalizedValue;
+        return value;
     }
 
     /**

@@ -60,7 +60,7 @@ final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
     public final PrimaryRevision insert(PrimaryKey locator, Text key,
             Value value, long version, Action type) {
         return (PrimaryRevision) super
-                .insert(locator, key, Value.normalize(value), version, type);
+                .insert(locator, key, Value.optimize(value), version, type);
     }
 
     @Override

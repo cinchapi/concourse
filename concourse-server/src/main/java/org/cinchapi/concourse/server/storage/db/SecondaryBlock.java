@@ -60,7 +60,7 @@ final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
     public final SecondaryRevision insert(Text locator, Value key,
             PrimaryKey value, long version, Action type) {
         return (SecondaryRevision) super
-                .insert(locator, Value.normalize(key), value, version, type);
+                .insert(locator, Value.optimize(key), value, version, type);
     }
 
     @Override
