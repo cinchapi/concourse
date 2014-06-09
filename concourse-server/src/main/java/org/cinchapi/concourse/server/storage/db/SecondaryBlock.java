@@ -31,6 +31,8 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
+import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.Convert;
 
 /**
  * A Block that stores SecondaryRevision data to be used in a SecondaryRecord.
@@ -52,6 +54,13 @@ final class SecondaryBlock extends Block<Text, Value, PrimaryKey> {
     @DoNotInvoke
     SecondaryBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
+    }
+    
+    @Override
+    public final SecondaryRevision insert(Text locator, Value key,
+            PrimaryKey value, long version, Action type) {
+        return (SecondaryRevision) super
+                .insert(locator, Value.normalize(key), value, version, type);
     }
 
     @Override

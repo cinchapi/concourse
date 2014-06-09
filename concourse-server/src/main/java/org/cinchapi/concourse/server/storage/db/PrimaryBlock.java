@@ -31,6 +31,8 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
+import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.Convert;
 
 /**
  * A Block that stores PrimaryRevisions data to be used in a PrimaryRecord.
@@ -52,6 +54,13 @@ final class PrimaryBlock extends Block<PrimaryKey, Text, Value> {
     @DoNotInvoke
     PrimaryBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
+    }
+    
+    @Override
+    public final PrimaryRevision insert(PrimaryKey locator, Text key,
+            Value value, long version, Action type) {
+        return (PrimaryRevision) super
+                .insert(locator, key, Value.normalize(value), version, type);
     }
 
     @Override

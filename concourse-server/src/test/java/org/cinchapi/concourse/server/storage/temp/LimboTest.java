@@ -150,14 +150,16 @@ public abstract class LimboTest extends StoreTest {
 
     @Override
     protected void add(String key, TObject value, long record) {
-        ((Limbo) store).insert(Write.add(key, value, record));
-
+        if (!store.verify(key, value, record)) {
+            ((Limbo) store).insert(Write.add(key, value, record));
+        }
     }
 
     @Override
     protected void remove(String key, TObject value, long record) {
-        ((Limbo) store).insert(Write.remove(key, value, record));
-
+        if (store.verify(key, value, record)) {
+            ((Limbo) store).insert(Write.remove(key, value, record));
+        }
     }
 
 }

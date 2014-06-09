@@ -76,6 +76,24 @@ public final class Value implements Byteable, Comparable<Value> {
         TObject data = extractTObjectAndCache(bytes, type);
         return new Value(data, bytes);
     }
+    
+    /**
+     * Return the normalized Value of {@code value}.
+     * 
+     * @param value
+     * @return the normalized Value
+     */
+    public static Value normalize(Value value) {
+        Value normalizedValue = null;
+        if (value.getType() == Type.TAG) {
+            normalizedValue = Value.wrap(Convert
+                    .javaToThrift(value.getObject().toString()));
+        }
+        else {
+            normalizedValue = value;
+        }
+        return normalizedValue;
+    }
 
     /**
      * Return a Value that is backed by {@code data}.
