@@ -35,7 +35,7 @@ import com.google.common.collect.ComparisonChain;
  * @author knd
  */
 @Immutable
-public final class Tag implements Comparable<Tag>{
+public final class Tag implements Comparable<Tag> {
 
     /**
      * Return a Tag that embeds {@code value}.
@@ -46,13 +46,13 @@ public final class Tag implements Comparable<Tag>{
     public static Tag create(String value) {
         return new Tag(value);
     }
-    
+
     /**
-     * The String representation for the value in key in record 
+     * The String representation for the value in key in record
      * that this Tag embeds.
      */
     private final String value;
-    
+
     /**
      * Construct a new instance.
      * 
@@ -61,17 +61,16 @@ public final class Tag implements Comparable<Tag>{
     private Tag(String value) {
         this.value = value;
     }
-    
+
     @Override
     public int compareTo(Tag other) {
-        return ComparisonChain.start()
-                .compare(toString(), other.toString())
+        return ComparisonChain.start().compare(toString(), other.toString())
                 .result();
     }
-    
+
     /**
-     * Return {@code true} if {@code other} of type String or 
-     * Tag equals this Catchphrase.
+     * Return {@code true} if {@code other} of type String or
+     * Tag equals this Tag.
      * 
      * @param other
      * @return {@code true} if {@code other} equals this tag
@@ -79,15 +78,15 @@ public final class Tag implements Comparable<Tag>{
     @Override
     public boolean equals(Object other) {
         boolean isEqual = false;
-        if (other instanceof Tag) {
+        if(other instanceof Tag) {
             isEqual = compareTo((Tag) other) == 0;
         }
-        else if (other instanceof String) {
+        else if(other instanceof String) {
             isEqual = value.equals(other.toString());
         }
         return isEqual;
     }
-    
+
     /**
      * Return the String value that this Tag embeds.
      * 
