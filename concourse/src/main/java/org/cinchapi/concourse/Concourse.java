@@ -1251,7 +1251,7 @@ public abstract class Concourse {
                 @Override
                 public Map<Object, Set<Long>> call() throws Exception {
                     Map<Object, Set<Long>> data = TLinkedHashMap
-                            .newTLinkedHashMap("Value", "Records");
+                            .newTLinkedHashMap(key, "Records");
                     for (Entry<TObject, Set<Long>> entry : client.browse1(key,
                             timestamp.getMicros(), creds, transaction)
                             .entrySet()) {
