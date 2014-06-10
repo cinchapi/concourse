@@ -82,8 +82,7 @@ public class AccessManagerTest extends ConcourseBaseTest {
     public void testChangeAdminPassword() {
         ByteBuffer username = ByteBuffer.wrap("admin".getBytes());
         ByteBuffer password = ByteBuffer.wrap("admin".getBytes());
-        ByteBuffer newPassword = ByteBuffer.wrap(TestData.getString()
-                .getBytes());
+        ByteBuffer newPassword = getSecurePassword();
         manager.grant(username, newPassword);
         Assert.assertFalse(manager.validate(username, password));
         Assert.assertTrue(manager.validate(username, newPassword));
