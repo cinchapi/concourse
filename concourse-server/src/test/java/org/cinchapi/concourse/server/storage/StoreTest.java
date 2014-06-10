@@ -33,9 +33,11 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.model.TObjectSorter;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -829,6 +831,66 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(records,
                 store.find(timestamp, key, operator, Convert.javaToThrift(min)));
     }
+    
+    @Test
+    public void testFindThatRecordWithValueAsTagIsIncludedInResultSet() {
+        String key = TestData.getString();
+        Tag value = Tag.create(TestData.getString());
+        Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
+        Long tagRecord = null;
+        while (tagRecord == null 
+                || records.contains(tagRecord)) {
+            tagRecord = TestData.getLong();
+        }
+        Set<Long> resultRecords = Sets.newHashSet();
+        resultRecords.add(tagRecord);
+        add(key, Convert.javaToThrift(value), tagRecord);
+        Assert.assertEquals(resultRecords,
+                store.find(key, Operator.EQUALS, Convert.javaToThrift(value))); 
+    }
+    
+    @Test
+    public void testFindThatRecordWithValueAsTagAndEqualStringValueInAnotherRecordIsIncludedInResultSet() {
+        String key = TestData.getString();
+        String value = TestData.getString();
+        Set<Long> records = getRecords();
+        for (long record : records) {
+            add(key, Convert.javaToThrift(value), record);
+        }
+        Set<Long> newRecords = Sets.newHashSet();
+        Long newRecord = null;
+        while (newRecord == null 
+                || newRecords.size() < TestData.getScaleCount()) {
+            newRecord = TestData.getLong();
+            if (!records.contains(newRecord)) {
+                newRecords.add(newRecord);
+                records.add(newRecord);
+            }
+        }
+        for (long record : newRecords) {
+            add(key, Convert.javaToThrift(Tag.create(value)),
+                    record);
+        }
+        Assert.assertEquals(records,
+                store.find(key, Operator.EQUALS, Convert.javaToThrift(value)));
+    }
+    
+    @Test
+    public void testCantAddDuplicateTagOrStringValueToTheSameKeyInRecord() {
+        String key = TestData.getString();
+        long record = TestData.getLong();
+        String value = "string1";
+        add(key, Convert.javaToThrift(value), record);
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        value = "string2";
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        add(key, Convert.javaToThrift(value), record);
+        value = "string3";
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        add(key, Convert.javaToThrift(Tag.create(value)), record);
+        Variables.register("test", store.fetch(key, record));
+        Assert.assertEquals(3, store.fetch(key, record).size());
+    }
 
     @Test
     @Theory
@@ -1239,6 +1301,41 @@ public abstract class StoreTest extends ConcourseBaseTest {
             Assert.assertEquals(it.next(), it2.next());
         }
     }
+    
+    @Test
+    public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSet() {
+        String key = TestData.getString();
+        Tag value = Tag.create(TestData.getString());
+        Set<Long> records = addRecords(key, value, Operator.NOT_EQUALS);
+        Long tagRecord = null;
+        while (tagRecord == null 
+                || records.contains(tagRecord)) {
+            tagRecord = TestData.getLong();
+        }
+        add(key, Convert.javaToThrift(value), tagRecord);
+        Assert.assertTrue(store.search(key, value.toString())
+                .isEmpty());
+    }
+    
+    @Test
+    public void testSearchSubstringThatRecordWithValueAsTagIsNotIncludedInResultSet() {
+        String key = TestData.getString();
+        String value = null;
+        while (value == null || value.length() == 0) {
+            value = TestData.getString();
+        }
+        add(key, Convert.javaToThrift(Tag.create(value)), 1);
+        Integer startIndex = null;
+        Integer endIndex = null;
+        while (startIndex == null || endIndex == null 
+                || startIndex >= endIndex) {
+            startIndex = Math.abs(TestData.getInt()) % value.length();
+            endIndex = Math.abs(TestData.getInt()) % value.length() + 1;
+        }
+        Assert.assertTrue(store.search(key, value
+                .substring(startIndex, endIndex))
+                .isEmpty());
+    }
 
     @Test
     @Theory
@@ -1336,24 +1433,24 @@ public abstract class StoreTest extends ConcourseBaseTest {
      * @param operator
      * @return the records added
      */
-    private Set<Long> addRecords(String key, Number min, Operator operator) {
+    private Set<Long> addRecords(String key, Object min, Operator operator) {
         Set<Long> records = getRecords();
         for (long record : records) {
-            Number n = null;
+            Object n = null;
             while (n == null
-                    || (operator == Operator.GREATER_THAN && Numbers
+                    || (operator == Operator.GREATER_THAN && Objects
                             .isLessThanOrEqualTo(n, min))
-                    || (operator == Operator.GREATER_THAN_OR_EQUALS && Numbers
+                    || (operator == Operator.GREATER_THAN_OR_EQUALS && Objects
                             .isLessThan(n, min))
-                    || (operator == Operator.LESS_THAN && Numbers
+                    || (operator == Operator.LESS_THAN && Objects
                             .isGreaterThanOrEqualTo(n, min))
-                    || (operator == Operator.LESS_THAN_OR_EQUALS && Numbers
+                    || (operator == Operator.LESS_THAN_OR_EQUALS && Objects
                             .isGreaterThan(n, min))
-                    || (operator == Operator.NOT_EQUALS && Numbers.isEqualTo(n,
+                    || (operator == Operator.NOT_EQUALS && Objects.isEqualTo(n,
                             min))
-                    || (operator == Operator.EQUALS && !Numbers.isEqualTo(n,
+                    || (operator == Operator.EQUALS && !Objects.isEqualTo(n,
                             min))) {
-                n = operator == Operator.EQUALS ? min : TestData.getNumber();
+                n = operator == Operator.EQUALS ? min : TestData.getObject();
             }
             add(key, Convert.javaToThrift(n), record);
         }
@@ -1553,6 +1650,89 @@ public abstract class StoreTest extends ConcourseBaseTest {
         }
         return records;
 
+    }
+    
+    /**
+     * This class contains utility methods that provide comparison
+     * for the various types including Number, boolean, and String.
+     * 
+     * @author knd
+     */
+    private static class Objects {
+        
+        /**
+         * Compare {@code a} to {@code b}.
+         * 
+         * @param a
+         * @param b
+         * @return -1, 0, or 1 as {@code a} is less than, equal to, or
+         *         greater than {@code b}.
+         */
+        private static int compare(Object a, Object b) {
+            return Value.Sorter.INSTANCE
+                    .compare(Value.wrap(Convert.javaToThrift(a)),
+                            Value.wrap(Convert.javaToThrift(b)));
+        }
+        
+        /**
+         * Return {@code true} if {@code a} is equal to {@code b}.
+         * 
+         * @param a
+         * @param b
+         * @return {@code true} if {@code a} == {@code b}
+         */
+        public static boolean isEqualTo(Object a, Object b) {
+            Number compareResult = compare(a, b);
+            return Numbers.isEqualTo(compareResult, 0);
+        }
+        
+        /**
+         * Return {@code true} if {@code a} is greater than {@code b}
+         * 
+         * @param a
+         * @param b
+         * @return {@code true} if {@code a} > {@code b}
+         */
+        public static boolean isGreaterThan(Object a, Object b) {
+            Number compareResult = compare(a, b);
+            return Numbers.isGreaterThan(compareResult, 0);
+        }
+        
+        /**
+         * Return {@code true} if {@code a} is greater than or equal
+         * to {@code b}.
+         * 
+         * @param a
+         * @param b
+         * @return {@code true} if {@code a} >= {@code b}
+         */
+        public static boolean isGreaterThanOrEqualTo(Object a, Object b) {
+            return isGreaterThan(a, b) || isEqualTo(a, b);
+        }
+        
+        /**
+         * Return {@code true} if {@code a} is less than {@code b}.
+         * 
+         * @param a
+         * @param b
+         * @return {@code true} if {@code a} < {@code b}
+         */
+        public static boolean isLessThan(Object a, Object b) {
+            Number compareResult = compare(a, b);
+            return Numbers.isLessThan(compareResult, 0);
+        }
+        
+        /**
+         * Return {@code true} if {@code a} is less than or equal to
+         * {@code b}.
+         * 
+         * @param a
+         * @param b
+         * @return {@code true} if {@code a} <= {@code b}
+         */
+        public static boolean isLessThanOrEqualTo(Object a, Object b) {
+            return isLessThan(a, b) || isEqualTo(a, b);
+        }
     }
 
     /**
