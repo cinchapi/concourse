@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
 
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
@@ -94,6 +95,11 @@ public final class Convert {
             bytes = ByteBuffer.allocate(4);
             bytes.putInt((int) object);
             type = Type.INTEGER;
+        }
+        else if(object instanceof Tag) {
+            bytes = ByteBuffer.wrap(object.toString()
+                        .getBytes(StandardCharsets.UTF_8));
+            type = Type.TAG;
         }
         else {
             bytes = ByteBuffer.wrap(object.toString().getBytes(
@@ -359,6 +365,9 @@ public final class Convert {
             break;
         case LONG:
             java = buffer.getLong();
+            break;
+        case TAG:
+            java = ByteBuffers.getString(buffer);
             break;
         default:
             java = ByteBuffers.getString(buffer);

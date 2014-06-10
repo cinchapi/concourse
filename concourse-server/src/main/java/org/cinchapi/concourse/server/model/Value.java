@@ -76,6 +76,20 @@ public final class Value implements Byteable, Comparable<Value> {
         TObject data = extractTObjectAndCache(bytes, type);
         return new Value(data, bytes);
     }
+    
+    /**
+     * Return the optimized Value of {@code value}.
+     * 
+     * @param value
+     * @return the optimized Value
+     */
+    public static Value optimize(Value value) {
+        if (value.getType() == Type.TAG) {
+            return Value.wrap(Convert
+                    .javaToThrift(value.getObject().toString()));
+        }
+        return value;
+    }
 
     /**
      * Return a Value that is backed by {@code data}.

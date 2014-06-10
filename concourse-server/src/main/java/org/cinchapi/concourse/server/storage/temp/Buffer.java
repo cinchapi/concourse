@@ -41,17 +41,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.Type;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
 
@@ -1055,8 +1059,27 @@ public final class Buffer extends Limbo {
         public boolean mightContain(Write write) {
             Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
             try {
-                return filter.mightContain(write.getRecord(), write.getKey(),
-                        write.getValue());
+                Type valueType = write.getValue().getType();  
+                if (filter.mightContain(write.getRecord(), write.getKey(),
+                        write.getValue())) {
+                    return true;
+                }
+                else if (valueType == Type.STRING) {
+                     return filter.mightContain(
+                          write.getRecord(), write.getKey(),
+                          Value.wrap(Convert.javaToThrift(Tag
+                                  .create((String) write.getValue()
+                                          .getObject()))));
+                } 
+                else if (valueType == Type.TAG) {
+                    return filter.mightContain(
+                          write.getRecord(), write.getKey(),
+                          Value.wrap(Convert.javaToThrift(write
+                                  .getValue().getObject().toString())));
+                } 
+                else {
+                    return false;
+                }
             }
             finally {
                 Locks.unlockIfCondition(pageLock.readLock(),

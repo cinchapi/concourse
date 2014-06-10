@@ -70,7 +70,9 @@ public class DatabaseTest extends StoreTest {
 
     @Override
     protected void add(String key, TObject value, long record) {
-        ((Database) store).accept(Write.add(key, value, record));
+        if (!store.verify(key, value, record)) {
+            ((Database) store).accept(Write.add(key, value, record));
+        }
     }
 
     @Override
@@ -86,7 +88,9 @@ public class DatabaseTest extends StoreTest {
 
     @Override
     protected void remove(String key, TObject value, long record) {
-        ((Database) store).accept(Write.remove(key, value, record));
+        if (store.verify(key, value, record)) {
+            ((Database) store).accept(Write.remove(key, value, record));
+        }
     }
 
 }
