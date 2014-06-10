@@ -83,9 +83,8 @@ public final class FileSystem {
      * @param path
      */
     public static void deleteDirectory(String directory) {
-        try {
-            DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
-                    .get(directory));
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
+                .get(directory))) {
             for (Path path : stream) {
                 if(Files.isDirectory(path)) {
                     deleteDirectory(path.toString());
