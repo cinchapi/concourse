@@ -104,7 +104,6 @@ public final class FileSystem {
                         + "{} while trying to perform a deletion. "
                         + "Trying again...", directory);
                 deleteDirectory(directory);
-
             }
             else {
                 throw Throwables.propagate(e);
