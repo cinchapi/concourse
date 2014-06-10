@@ -243,9 +243,9 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             }
         }
     }
-    
+
     @Test(expected = RuntimeException.class)
-    public void testInsertFailsForNonJsonString(){
+    public void testInsertFailsForNonJsonString() {
         client.insert(TestData.getString());
     }
 
@@ -407,7 +407,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         long record = Variables.register("record", TestData.getLong());
         Object replacement = null;
-        while (replacement == null || expected.equals(replacement)) {
+        while (replacement == null || expected.equals(replacement)
+                || actual.equals(replacement)) {
             replacement = Variables.register("replacement",
                     TestData.getObject());
         }
