@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
@@ -93,6 +94,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
+import static org.cinchapi.concourse.server.storage.Engine.DEFAULT_NAMESPACE;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
@@ -216,9 +218,20 @@ public class ConcourseServer implements
     private final TServer server;
 
     /**
-     * The Engine controls all the logic for data storage and retrieval.
+     * A mapping from namespace to the corresponding Engine that controls all
+     * the logic for data storage and retrieval.
      */
-    private final Engine engine;
+    private final Map<String, Engine> engines;
+
+    /**
+     * The base location where the indexed database records are stored.
+     */
+    private final String dbStore;
+
+    /**
+     * The base location where the indexed buffer pages are stored.
+     */
+    private final String bufferStore;
 
     /**
      * The AccessManager controls access to the server.
@@ -271,8 +284,11 @@ public class ConcourseServer implements
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
                         "Server" + "-%d").build()));
         this.server = new TThreadPoolServer(args);
-        this.engine = new Engine(bufferStore, dbStore);
+        this.bufferStore = bufferStore;
+        this.dbStore = dbStore;
+        this.engines = Maps.newConcurrentMap();
         this.manager = AccessManager.create(ACCESS_FILE);
+        engine(); // load the default engine
     }
 
     @Override
@@ -296,7 +312,8 @@ public class ConcourseServer implements
                                 .containsKey(transaction))
                             || transaction == null);
             return transaction != null ? transactions.get(transaction).add(key,
-                    value, record) : engine.add(key, value, record);
+                    value, record) : engine(DEFAULT_NAMESPACE).add(key, value,
+                    record);
         }
         else {
             return false;
@@ -315,8 +332,8 @@ public class ConcourseServer implements
             return Strings.isNullOrEmpty(key) ? t.audit(record) : t.audit(key,
                     record);
         }
-        return Strings.isNullOrEmpty(key) ? engine.audit(record) : engine
-                .audit(key, record);
+        return Strings.isNullOrEmpty(key) ? engine(DEFAULT_NAMESPACE).audit(
+                record) : engine(DEFAULT_NAMESPACE).audit(key, record);
     }
 
     @Override
@@ -324,7 +341,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine;
+                .get(transaction) : engine(DEFAULT_NAMESPACE);
         return timestamp == 0 ? store.browse(record) : store.browse(record,
                 timestamp);
     }
@@ -335,7 +352,7 @@ public class ConcourseServer implements
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine;
+                .get(transaction) : engine(DEFAULT_NAMESPACE);
         return timestamp == 0 ? store.browse(key) : store
                 .browse(key, timestamp);
     }
@@ -345,7 +362,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine;
+                .get(transaction) : engine(DEFAULT_NAMESPACE);
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
         Map<Long, String> history = store.audit(key, record);
         for (Long timestamp : history.keySet()) {
@@ -370,7 +387,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doClear(key, record,
                     transaction != null ? transactions.get(transaction)
-                            : engine);
+                            : engine(DEFAULT_NAMESPACE));
         }
     }
 
@@ -381,7 +398,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doClear(record,
                     transaction != null ? transactions.get(transaction)
-                            : engine);
+                            : engine(DEFAULT_NAMESPACE));
         }
     }
 
@@ -406,14 +423,14 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.describe(record) : t.describe(record,
                     timestamp);
         }
-        return timestamp == 0 ? engine.describe(record) : engine.describe(
-                record, timestamp);
+        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).describe(record)
+                : engine(DEFAULT_NAMESPACE).describe(record, timestamp);
     }
 
     @ManagedOperation
     @Override
     public String dump(String id) {
-        return engine.dump(id);
+        return engine(DEFAULT_NAMESPACE).dump(id);
     }
 
     @Override
@@ -428,8 +445,8 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.fetch(key, record) : t.fetch(key, record,
                     timestamp);
         }
-        return timestamp == 0 ? engine.fetch(key, record) : engine.fetch(key,
-                record, timestamp);
+        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).fetch(key, record)
+                : engine(DEFAULT_NAMESPACE).fetch(key, record, timestamp);
     }
 
     @Override
@@ -446,8 +463,9 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.find(key, operator, tValues) : t.find(
                     timestamp, key, operator, tValues);
         }
-        return timestamp == 0 ? engine.find(key, operator, tValues) : engine
-                .find(timestamp, key, operator, tValues);
+        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).find(key, operator,
+                tValues) : engine(DEFAULT_NAMESPACE).find(timestamp, key,
+                operator, tValues);
     }
 
     @Override
@@ -464,14 +482,14 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doFind1(queue, stack,
                     transaction != null ? transactions.get(transaction)
-                            : engine);
+                            : engine(DEFAULT_NAMESPACE));
         }
         return Sets.newTreeSet(stack.pop());
     }
 
     @Override
     public String getDumpList() {
-        return engine.getDumpList();
+        return engine(DEFAULT_NAMESPACE).getDumpList();
     }
 
     @Override
@@ -500,7 +518,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
-                        : engine);
+                        : engine(DEFAULT_NAMESPACE));
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
@@ -564,8 +582,8 @@ public class ConcourseServer implements
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
         return transaction != null ? !transactions.get(transaction)
-                .describe(record).isEmpty() : !engine.describe(record)
-                .isEmpty();
+                .describe(record).isEmpty() : !engine(DEFAULT_NAMESPACE)
+                .describe(record).isEmpty();
     }
 
     @Override
@@ -580,7 +598,8 @@ public class ConcourseServer implements
                                 .containsKey(transaction))
                             || transaction == null);
             return transaction != null ? transactions.get(transaction).remove(
-                    key, value, record) : engine.remove(key, value, record);
+                    key, value, record) : engine(DEFAULT_NAMESPACE).remove(key,
+                    value, record);
         }
         else {
             return false;
@@ -595,7 +614,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doRevert(key, record, timestamp,
                     transaction != null ? transactions.get(transaction)
-                            : engine);
+                            : engine(DEFAULT_NAMESPACE));
         }
     }
 
@@ -617,7 +636,7 @@ public class ConcourseServer implements
             Transaction t = transactions.get(transaction);
             return t.search(key, query);
         }
-        return engine.search(key, query);
+        return engine(DEFAULT_NAMESPACE).search(key, query);
     }
 
     @Override
@@ -628,7 +647,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doSet(key, value, record,
                     transaction != null ? transactions.get(transaction)
-                            : engine);
+                            : engine(DEFAULT_NAMESPACE));
         }
     }
 
@@ -636,7 +655,7 @@ public class ConcourseServer implements
     public TransactionToken stage(AccessToken creds) throws TException {
         authenticate(creds);
         TransactionToken token = new TransactionToken(creds, Time.now());
-        Transaction transaction = engine.startTransaction();
+        Transaction transaction = engine(DEFAULT_NAMESPACE).startTransaction();
         transactions.put(token, transaction);
         Logger.info("Started Transaction {}", transaction);
         return token;
@@ -648,7 +667,9 @@ public class ConcourseServer implements
      * @throws TTransportException
      */
     public void start() throws TTransportException {
-        engine.start();
+        for (Engine engine : engines.values()) {
+            engine.start();
+        }
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -659,7 +680,9 @@ public class ConcourseServer implements
     public void stop() {
         if(server.isServing()) {
             server.stop();
-            engine.stop();
+            for (Engine engine : engines.values()) {
+                engine.stop();
+            }
             System.out.println("The Concourse server has stopped");
         }
     }
@@ -677,8 +700,9 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.verify(key, value, record) : t.verify(
                     key, value, record, timestamp);
         }
-        return timestamp == 0 ? engine.verify(key, value, record) : engine
-                .verify(key, value, record, timestamp);
+        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).verify(key, value,
+                record) : engine(DEFAULT_NAMESPACE).verify(key, value, record,
+                timestamp);
     }
 
     @Override
@@ -688,7 +712,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
-                        : engine);
+                        : engine(DEFAULT_NAMESPACE));
         try {
             return (operation.verify(key, expected, record)
                     && operation.remove(key, expected, record) && operation
@@ -880,6 +904,34 @@ public class ConcourseServer implements
             return null;
         }
 
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with the
+     * {@link Engine#DEFAULT_NAMESPACE}.
+     * 
+     * @return the Engine
+     */
+    private Engine engine() {
+        return engine(DEFAULT_NAMESPACE);
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code namespace}. If
+     * such an Engine does not exist, create a new one and add it to the
+     * collection.
+     * 
+     * @param namespace
+     * @return the Engine
+     */
+    private Engine engine(String namespace) {
+        Engine engine = engines.get(namespace);
+        if(engine == null) {
+            engine = new Engine(bufferStore + File.separator + namespace,
+                    dbStore + File.separator + namespace, namespace);
+            engines.put(namespace, engine);
+        }
+        return engine;
     }
 
     /**

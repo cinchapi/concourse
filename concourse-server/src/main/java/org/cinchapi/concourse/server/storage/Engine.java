@@ -108,6 +108,12 @@ public final class Engine extends BufferedStore implements
     public static final String BUFFER_DUMP_ID = "BUFFER";
 
     /**
+     * The namespace that is associated with an {@link Engine} if no other is
+     * specified.
+     */
+    public static final String DEFAULT_NAMESPACE = "default";
+
+    /**
      * The number of milliseconds we allow between writes before we pause the
      * {@link BufferTransportThread}. If there amount of time between writes is
      * less than this value then we assume we are streaming writes, which means
@@ -208,6 +214,11 @@ public final class Engine extends BufferedStore implements
     private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
     /**
+     * The namespace that is associated with this {@link Engine}.
+     */
+    private final String namespace;
+
+    /**
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
@@ -247,7 +258,7 @@ public final class Engine extends BufferedStore implements
      * 
      */
     public Engine() {
-        this(new Buffer(), new Database());
+        this(new Buffer(), new Database(), DEFAULT_NAMESPACE);
     }
 
     /**
@@ -259,7 +270,20 @@ public final class Engine extends BufferedStore implements
      * @param dbStore
      */
     public Engine(String bufferStore, String dbStore) {
-        this(new Buffer(bufferStore), new Database(dbStore));
+        this(bufferStore, dbStore, DEFAULT_NAMESPACE);
+    }
+
+    /**
+     * Construct an Engine that is made up of a {@link Buffer} and
+     * {@link Database} that are both backed by {@code bufferStore} and
+     * {@code dbStore} respectively} and are associated with {@code namespace}.
+     * 
+     * @param bufferStore
+     * @param dbStore
+     * @param namespace
+     */
+    public Engine(String bufferStore, String dbStore, String namespace) {
+        this(new Buffer(bufferStore), new Database(dbStore), namespace);
     }
 
     /**
@@ -268,13 +292,15 @@ public final class Engine extends BufferedStore implements
      * 
      * @param buffer
      * @param database
+     * @param namespace
      */
     @Authorized
-    private Engine(Buffer buffer, Database database) {
+    private Engine(Buffer buffer, Database database, String namespace) {
         super(buffer, database, LockService.create(), RangeLockService.create());
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
+        this.namespace = namespace;
     }
 
     /**
@@ -581,7 +607,7 @@ public final class Engine extends BufferedStore implements
     @Override
     public void start() {
         if(!running) {
-            Logger.info("Starting the Engine...");
+            Logger.info("Starting the '{}' Engine...", namespace);
             running = true;
             destination.start();
             buffer.start();
