@@ -30,11 +30,14 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
 
@@ -96,7 +99,16 @@ public final class FileSystem {
             Files.delete(Paths.get(directory));
         }
         catch (IOException e) {
-            throw Throwables.propagate(e);
+            if(e.getClass() == DirectoryNotEmptyException.class) {
+                Logger.warn("It appears that data was added to directory "
+                        + "{} while trying to perform a deletion. "
+                        + "Trying again...", directory);
+                deleteDirectory(directory);
+
+            }
+            else {
+                throw Throwables.propagate(e);
+            }
         }
     }
 
