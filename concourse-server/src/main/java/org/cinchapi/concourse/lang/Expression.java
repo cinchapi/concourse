@@ -162,7 +162,7 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
             string += " " + value;
         }
         if(timestamp > 0) {
-            string += " at" + timestamp;
+            string += " at " + timestamp;
         }
         return string;
     }
