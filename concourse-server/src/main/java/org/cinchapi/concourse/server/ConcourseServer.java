@@ -36,6 +36,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
+import javax.annotation.Nullable;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
@@ -294,9 +295,7 @@ public class ConcourseServer implements
     @Override
     public void abort(AccessToken creds, TransactionToken transaction)
             throws TException {
-        authenticate(creds);
-        Preconditions.checkArgument(transaction.getAccessToken().equals(creds)
-                && transactions.containsKey(transaction));
+        checkAccess(creds, transaction);
         transactions.remove(transaction).abort();
     }
 
@@ -305,12 +304,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            authenticate(creds);
-            Preconditions
-                    .checkArgument((transaction != null
-                            && transaction.getAccessToken().equals(creds) && transactions
-                                .containsKey(transaction))
-                            || transaction == null);
+            checkAccess(creds, transaction);
             return transaction != null ? transactions.get(transaction).add(key,
                     value, record) : engine(Default.ENVIRONMENT).add(key,
                     value, record);
@@ -323,11 +317,8 @@ public class ConcourseServer implements
     @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
             TransactionToken transaction) throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return Strings.isNullOrEmpty(key) ? t.audit(record) : t.audit(key,
                     record);
@@ -405,7 +396,7 @@ public class ConcourseServer implements
     @Override
     public boolean commit(AccessToken creds, TransactionToken transaction)
             throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         Preconditions.checkArgument(transaction.getAccessToken().equals(creds)
                 && transactions.containsKey(transaction));
         return transactions.remove(transaction).commit();
@@ -414,11 +405,8 @@ public class ConcourseServer implements
     @Override
     public Set<String> describe(long record, long timestamp, AccessToken creds,
             TransactionToken transaction) throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return timestamp == 0 ? t.describe(record) : t.describe(record,
                     timestamp);
@@ -436,11 +424,8 @@ public class ConcourseServer implements
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction) throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return timestamp == 0 ? t.fetch(key, record) : t.fetch(key, record,
                     timestamp);
@@ -453,12 +438,9 @@ public class ConcourseServer implements
     public Set<Long> find(String key, Operator operator, List<TObject> values,
             long timestamp, AccessToken creds, TransactionToken transaction)
             throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return timestamp == 0 ? t.find(key, operator, tValues) : t.find(
                     timestamp, key, operator, tValues);
@@ -570,17 +552,14 @@ public class ConcourseServer implements
 
     @Override
     public void logout(AccessToken creds) throws TException {
-        authenticate(creds);
+        checkAccess(creds, null);
         manager.deauthorize(creds);
     }
 
     @Override
     public boolean ping(long record, AccessToken creds,
             TransactionToken transaction) throws TException {
-        authenticate(creds);
-        Preconditions.checkArgument((transaction != null
-                && transaction.getAccessToken().equals(creds) && transactions
-                    .containsKey(transaction)) || transaction == null);
+        checkAccess(creds, transaction);
         return transaction != null ? !transactions.get(transaction)
                 .describe(record).isEmpty() : !engine(Default.ENVIRONMENT)
                 .describe(record).isEmpty();
@@ -591,12 +570,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            authenticate(creds);
-            Preconditions
-                    .checkArgument((transaction != null
-                            && transaction.getAccessToken().equals(creds) && transactions
-                                .containsKey(transaction))
-                            || transaction == null);
+            checkAccess(creds, transaction);
             return transaction != null ? transactions.get(transaction).remove(
                     key, value, record) : engine(Default.ENVIRONMENT).remove(
                     key, value, record);
@@ -628,11 +602,8 @@ public class ConcourseServer implements
     @Override
     public Set<Long> search(String key, String query, AccessToken creds,
             TransactionToken transaction) throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return t.search(key, query);
         }
@@ -653,7 +624,7 @@ public class ConcourseServer implements
 
     @Override
     public TransactionToken stage(AccessToken creds) throws TException {
-        authenticate(creds);
+        checkAccess(creds, null);
         TransactionToken token = new TransactionToken(creds, Time.now());
         Transaction transaction = engine(Default.ENVIRONMENT)
                 .startTransaction();
@@ -692,11 +663,8 @@ public class ConcourseServer implements
     public boolean verify(String key, TObject value, long record,
             long timestamp, AccessToken creds, TransactionToken transaction)
             throws TException {
-        authenticate(creds);
+        checkAccess(creds, transaction);
         if(transaction != null) {
-            Preconditions.checkArgument(transaction.getAccessToken().equals(
-                    creds)
-                    && transactions.containsKey(transaction));
             Transaction t = transactions.get(transaction);
             return timestamp == 0 ? t.verify(key, value, record) : t.verify(
                     key, value, record, timestamp);
@@ -727,18 +695,6 @@ public class ConcourseServer implements
     }
 
     /**
-     * Verify that {@code token} is valid.
-     * 
-     * @param token
-     * @throws TSecurityException
-     */
-    private void authenticate(AccessToken token) throws TSecurityException {
-        if(!manager.validate(token)) {
-            throw new TSecurityException("Invalid access token");
-        }
-    }
-
-    /**
      * Check to make sure that {@code creds} and {@code transaction} are valid
      * and are associated with one another.
      * 
@@ -747,9 +703,12 @@ public class ConcourseServer implements
      * @throws TSecurityException
      * @throws IllegalArgumentException
      */
-    private void checkAccess(AccessToken creds, TransactionToken transaction)
-            throws TSecurityException, IllegalArgumentException {
-        authenticate(creds);
+    private void checkAccess(AccessToken creds,
+            @Nullable TransactionToken transaction) throws TSecurityException,
+            IllegalArgumentException {
+        if(!manager.validate(creds)) {
+            throw new TSecurityException("Invalid access token");
+        }
         Preconditions.checkArgument((transaction != null
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
