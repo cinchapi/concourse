@@ -92,7 +92,7 @@ public final class ConcourseShell {
         }
         try {
             Concourse concourse = Concourse.connect(opts.host, opts.port,
-                    opts.username, opts.password, opts.namespace);
+                    opts.username, opts.password, opts.environment);
 
             CommandLine.displayWelcomeBanner();
             Binding binding = new Binding();
@@ -103,8 +103,8 @@ public final class ConcourseShell {
                     + Version.getVersion(ConcourseShell.class));
             console.println("Server Version " + concourse.getServerVersion());
             console.println("");
-            console.println("Connected to '" + concourse.getServerNamespace()
-                    + "' namespace.");
+            console.println("Connected to the '"
+                    + concourse.getServerEnvironment() + "' environment.");
             console.println("");
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
@@ -173,7 +173,8 @@ public final class ConcourseShell {
                             die(e.getMessage());
                         }
                         else if(e.getCause() instanceof TSecurityException) {
-                            die("A security change has occurred and your session cannot continue");
+                            die("A security change has occurred and your "
+                                    + "session cannot continue");
                         }
                         else {
                             System.err.print("ERROR: " + e.getMessage());
@@ -386,8 +387,8 @@ public final class ConcourseShell {
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
         public String password;
 
-        @Parameter(names = { "-n", "--namespace" }, description = "The namespace of the Concourse Server to use")
-        public String namespace = Default.NAMESPACE;
+        @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
+        public String environment = Default.ENVIRONMENT;
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;

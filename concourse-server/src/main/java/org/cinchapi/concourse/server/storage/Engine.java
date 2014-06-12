@@ -209,9 +209,9 @@ public final class Engine extends BufferedStore implements
     private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
     /**
-     * The namespace that is associated with this {@link Engine}.
+     * The environment that is associated with this {@link Engine}.
      */
-    private final String namespace;
+    private final String environment;
 
     /**
      * A collection of listeners that should be notified of a version change for
@@ -253,7 +253,7 @@ public final class Engine extends BufferedStore implements
      * 
      */
     public Engine() {
-        this(new Buffer(), new Database(), Default.NAMESPACE);
+        this(new Buffer(), new Database(), Default.ENVIRONMENT);
     }
 
     /**
@@ -265,20 +265,21 @@ public final class Engine extends BufferedStore implements
      * @param dbStore
      */
     public Engine(String bufferStore, String dbStore) {
-        this(bufferStore, dbStore, Default.NAMESPACE);
+        this(bufferStore, dbStore, Default.ENVIRONMENT);
     }
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
      * {@link Database} that are both backed by {@code bufferStore} and
-     * {@code dbStore} respectively} and are associated with {@code namespace}.
+     * {@code dbStore} respectively} and are associated with {@code environment}
+     * .
      * 
      * @param bufferStore
      * @param dbStore
-     * @param namespace
+     * @param environment
      */
-    public Engine(String bufferStore, String dbStore, String namespace) {
-        this(new Buffer(bufferStore), new Database(dbStore), namespace);
+    public Engine(String bufferStore, String dbStore, String environment) {
+        this(new Buffer(bufferStore), new Database(dbStore), environment);
     }
 
     /**
@@ -287,15 +288,15 @@ public final class Engine extends BufferedStore implements
      * 
      * @param buffer
      * @param database
-     * @param namespace
+     * @param environment
      */
     @Authorized
-    private Engine(Buffer buffer, Database database, String namespace) {
+    private Engine(Buffer buffer, Database database, String environment) {
         super(buffer, database, LockService.create(), RangeLockService.create());
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
-        this.namespace = namespace;
+        this.environment = environment;
     }
 
     /**
@@ -602,7 +603,7 @@ public final class Engine extends BufferedStore implements
     @Override
     public void start() {
         if(!running) {
-            Logger.info("Starting the '{}' Engine...", namespace);
+            Logger.info("Starting the '{}' Engine...", environment);
             running = true;
             destination.start();
             buffer.start();

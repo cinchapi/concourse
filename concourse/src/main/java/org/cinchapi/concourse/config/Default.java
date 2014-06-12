@@ -32,10 +32,10 @@ package org.cinchapi.concourse.config;
 public final class Default {
 
     /**
-     * The name of the default namspace that is used if an alternative one is
+     * The name of the default environment that is used if an alternative one is
      * not specified.
      */
-    public static final String NAMESPACE = "default";
+    public static final String ENVIRONMENT = "default";
 
     private Default() {/* noop */}
 

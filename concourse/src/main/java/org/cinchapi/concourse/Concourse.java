@@ -122,9 +122,9 @@ import com.google.common.collect.Lists;
 public abstract class Concourse {
 
     /**
-     * Create a new Client connection to the namespace of the Concourse
+     * Create a new Client connection to the environment of the Concourse
      * Server described in {@code concourse_client.prefs} (or the default
-     * namespace and server if the prefs file does not exist) and return a
+     * environment and server if the prefs file does not exist) and return a
      * handler to facilitate database interaction.
      * 
      * @return the database handler
@@ -135,20 +135,20 @@ public abstract class Concourse {
 
     /**
      * /**
-     * Create a new Client connection to the specified {@code namespace} of
+     * Create a new Client connection to the specified {@code environment} of
      * the Concourse Server described in {@code concourse_client.prefs} (or
      * the default server if the prefs file does not exist) and return a
      * handler to facilitate database interaction.
      * 
-     * @param namespace
+     * @param environment
      * @return
      */
-    public static Concourse connect(String namespace) {
-        return new Client(namespace);
+    public static Concourse connect(String environment) {
+        return new Client(environment);
     }
 
     /**
-     * Create a new Client connection to the default namespace of the
+     * Create a new Client connection to the default environment of the
      * specified Concourse Server and return a handler to facilitate
      * database interaction.
      * 
@@ -164,7 +164,7 @@ public abstract class Concourse {
     }
 
     /**
-     * Create a new Client connection to the specified {@code namespace} of
+     * Create a new Client connection to the specified {@code environment} of
      * the specified Concourse Server and return a handler to facilitate
      * database interaction.
      * 
@@ -172,12 +172,12 @@ public abstract class Concourse {
      * @param port
      * @param username
      * @param password
-     * @param namespace
+     * @param environment
      * @return the database handler
      */
     public static Concourse connect(String host, int port, String username,
-            String password, String namespace) {
-        return new Client(host, port, username, password, namespace);
+            String password, String environment) {
+        return new Client(host, port, username, password, environment);
     }
 
     /**
@@ -748,12 +748,12 @@ public abstract class Concourse {
     public abstract String getServerVersion();
 
     /**
-     * Return the namespace of the server that is currently in use by this
+     * Return the environment of the server that is currently in use by this
      * client.
      * 
-     * @return the server namespace
+     * @return the server environment
      */
-    public abstract String getServerNamespace();
+    public abstract String getServerEnvironment();
 
     /**
      * Atomically insert the key/value mappings described in the {@code json}
@@ -1034,7 +1034,7 @@ public abstract class Concourse {
         private static int SERVER_PORT;
         private static String USERNAME;
         private static String PASSWORD;
-        private static String NAMESPACE;
+        private static String ENVIRONMENT;
         static {
             ConcourseConfiguration config;
             try {
@@ -1048,13 +1048,13 @@ public abstract class Concourse {
             SERVER_PORT = 1717;
             USERNAME = "admin";
             PASSWORD = "admin";
-            NAMESPACE = Default.NAMESPACE;
+            ENVIRONMENT = Default.ENVIRONMENT;
             if(config != null) {
                 SERVER_HOST = config.getString("host", SERVER_HOST);
                 SERVER_PORT = config.getInt("port", SERVER_PORT);
                 USERNAME = config.getString("username", USERNAME);
                 PASSWORD = config.getString("password", PASSWORD);
-                NAMESPACE = config.getString("namespace", NAMESPACE);
+                ENVIRONMENT = config.getString("environment", ENVIRONMENT);
             }
         }
 
@@ -1085,9 +1085,9 @@ public abstract class Concourse {
         private final int port;
 
         /**
-         * The namespace to which the client is connected.
+         * The environment to which the client is connected.
          */
-        private final String namespace;
+        private final String environment;
 
         /**
          * The Thrift client that actually handles all RPC communication.
@@ -1112,29 +1112,30 @@ public abstract class Concourse {
         private TransactionToken transaction = null;
 
         /**
-         * Create a new Client connection to the namespace of the Concourse
+         * Create a new Client connection to the environment of the Concourse
          * Server described in {@code concourse_client.prefs} (or the default
-         * namespace and server if the prefs file does not exist) and return a
+         * environment and server if the prefs file does not exist) and return a
          * handler to facilitate database interaction.
          */
         public Client() {
-            this(NAMESPACE);
+            this(ENVIRONMENT);
         }
 
         /**
-         * Create a new Client connection to the specified {@code namespace} of
+         * Create a new Client connection to the specified {@code environment}
+         * of
          * the Concourse Server described in {@code concourse_client.prefs} (or
          * the default server if the prefs file does not exist) and return a
          * handler to facilitate database interaction.
          * 
-         * @param namespace
+         * @param environment
          */
-        public Client(String namespace) {
-            this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD, namespace);
+        public Client(String environment) {
+            this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD, environment);
         }
 
         /**
-         * Create a new Client connection to the default namespace of the
+         * Create a new Client connection to the default environment of the
          * specified Concourse Server and return a handler to facilitate
          * database interaction.
          * 
@@ -1144,11 +1145,12 @@ public abstract class Concourse {
          * @param password
          */
         public Client(String host, int port, String username, String password) {
-            this(host, port, username, password, Default.NAMESPACE);
+            this(host, port, username, password, Default.ENVIRONMENT);
         }
 
         /**
-         * Create a new Client connection to the specified {@code namespace} of
+         * Create a new Client connection to the specified {@code environment}
+         * of
          * the specified Concourse Server and return a handler to facilitate
          * database interaction.
          * 
@@ -1156,15 +1158,15 @@ public abstract class Concourse {
          * @param port
          * @param username
          * @param password
-         * @param namespace
+         * @param environment
          */
         public Client(String host, int port, String username, String password,
-                String namespace) {
+                String environment) {
             this.host = host;
             this.port = port;
             this.username = ClientSecurity.encrypt(username);
             this.password = ClientSecurity.encrypt(password);
-            this.namespace = namespace;
+            this.environment = environment;
             final TTransport transport = new TSocket(host, port);
             try {
                 transport.open();
@@ -1821,8 +1823,8 @@ public abstract class Concourse {
         }
 
         @Override
-        public String getServerNamespace() {
-            return namespace;
+        public String getServerEnvironment() {
+            return environment;
         }
 
         @Override
