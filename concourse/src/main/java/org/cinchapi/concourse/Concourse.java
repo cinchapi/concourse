@@ -148,8 +148,9 @@ public abstract class Concourse {
     }
 
     /**
-     * Create a new Client connection to the default namespace for
-     * {@code username}@{@code host}:{@code port} using {@code password}.
+     * Create a new Client connection to the default namespace of the
+     * specified Concourse Server and return a handler to facilitate
+     * database interaction.
      * 
      * @param host
      * @param port
@@ -163,8 +164,9 @@ public abstract class Concourse {
     }
 
     /**
-     * Create a new Client connection to {@code namespace} for {@code username}@
-     * {@code host}:{@code port} using {@code password}.
+     * Create a new Client connection to the specified {@code namespace} of
+     * the specified Concourse Server and return a handler to facilitate
+     * database interaction.
      * 
      * @param host
      * @param port
@@ -744,6 +746,14 @@ public abstract class Concourse {
      * @return the server version
      */
     public abstract String getServerVersion();
+
+    /**
+     * Return the namespace of the server that is currently in use by this
+     * client.
+     * 
+     * @return the server namespace
+     */
+    public abstract String getServerNamespace();
 
     /**
      * Atomically insert the key/value mappings described in the {@code json}
@@ -1808,6 +1818,11 @@ public abstract class Concourse {
                 }
 
             });
+        }
+
+        @Override
+        public String getServerNamespace() {
+            return namespace;
         }
 
         @Override

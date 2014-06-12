@@ -45,6 +45,7 @@ import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
@@ -91,7 +92,7 @@ public final class ConcourseShell {
         }
         try {
             Concourse concourse = Concourse.connect(opts.host, opts.port,
-                    opts.username, opts.password);
+                    opts.username, opts.password, opts.namespace);
 
             CommandLine.displayWelcomeBanner();
             Binding binding = new Binding();
@@ -102,9 +103,13 @@ public final class ConcourseShell {
                     + Version.getVersion(ConcourseShell.class));
             console.println("Server Version " + concourse.getServerVersion());
             console.println("");
+            console.println("Connected to '" + concourse.getServerNamespace()
+                    + "' namespace.");
+            console.println("");
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
             console.println("Use TAB for completion.");
+            console.println("");
             console.setPrompt("cash$ ");
             console.addCompleter(new StringsCompleter(
                     getAccessibleApiMethodsUsingShortSyntax()));
@@ -310,20 +315,19 @@ public final class ConcourseShell {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * A closure that converts a string value to a tag.
      */
-    private static Closure<Tag> STRING_TO_CATCHPHRASE = new Closure<Tag>(
-            null) {
-        
+    private static Closure<Tag> STRING_TO_CATCHPHRASE = new Closure<Tag>(null) {
+
         private static final long serialVersionUID = 1L;
 
         @Override
         public Tag call(Object arg) {
             return Tag.create(arg.toString());
         }
-        
+
     };
 
     /**
@@ -370,10 +374,10 @@ public final class ConcourseShell {
      */
     private static class Options {
 
-        @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse server is located")
+        @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
         public String host = "localhost";
 
-        @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse server is listening")
+        @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
         public int port = 1717;
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
@@ -381,6 +385,9 @@ public final class ConcourseShell {
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
         public String password;
+
+        @Parameter(names = { "-n", "--namespace" }, description = "The namespace of the Concourse Server to use")
+        public String namespace = Default.NAMESPACE;
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
