@@ -270,11 +270,13 @@ public final class RangeLockService {
 
         @Override
         public RangeReadWriteLock get(Object key) {
-            if(!containsKey(key)) {
+            RangeReadWriteLock lock = super.get(key);
+            if(lock == null) {
                 RangeToken token = (RangeToken) key;
-                put(token, new RangeReadWriteLock(token));
+                lock = new RangeReadWriteLock(token);
+                put(token, lock);
             }
-            return super.get(key);
+            return lock;
         }
 
     };
