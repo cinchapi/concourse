@@ -49,6 +49,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.ConjunctionSymbol;
 import org.cinchapi.concourse.lang.Expression;
 import org.cinchapi.concourse.lang.Parser;
@@ -94,7 +95,6 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
-import static org.cinchapi.concourse.server.storage.Engine.DEFAULT_NAMESPACE;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
@@ -312,7 +312,7 @@ public class ConcourseServer implements
                                 .containsKey(transaction))
                             || transaction == null);
             return transaction != null ? transactions.get(transaction).add(key,
-                    value, record) : engine(DEFAULT_NAMESPACE).add(key, value,
+                    value, record) : engine(Default.NAMESPACE).add(key, value,
                     record);
         }
         else {
@@ -332,8 +332,8 @@ public class ConcourseServer implements
             return Strings.isNullOrEmpty(key) ? t.audit(record) : t.audit(key,
                     record);
         }
-        return Strings.isNullOrEmpty(key) ? engine(DEFAULT_NAMESPACE).audit(
-                record) : engine(DEFAULT_NAMESPACE).audit(key, record);
+        return Strings.isNullOrEmpty(key) ? engine(Default.NAMESPACE).audit(
+                record) : engine(Default.NAMESPACE).audit(key, record);
     }
 
     @Override
@@ -341,7 +341,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine(DEFAULT_NAMESPACE);
+                .get(transaction) : engine(Default.NAMESPACE);
         return timestamp == 0 ? store.browse(record) : store.browse(record,
                 timestamp);
     }
@@ -352,7 +352,7 @@ public class ConcourseServer implements
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine(DEFAULT_NAMESPACE);
+                .get(transaction) : engine(Default.NAMESPACE);
         return timestamp == 0 ? store.browse(key) : store
                 .browse(key, timestamp);
     }
@@ -362,7 +362,7 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction) throws TException {
         checkAccess(creds, transaction);
         Compoundable store = transaction != null ? transactions
-                .get(transaction) : engine(DEFAULT_NAMESPACE);
+                .get(transaction) : engine(Default.NAMESPACE);
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
         Map<Long, String> history = store.audit(key, record);
         for (Long timestamp : history.keySet()) {
@@ -387,7 +387,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doClear(key, record,
                     transaction != null ? transactions.get(transaction)
-                            : engine(DEFAULT_NAMESPACE));
+                            : engine(Default.NAMESPACE));
         }
     }
 
@@ -398,7 +398,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doClear(record,
                     transaction != null ? transactions.get(transaction)
-                            : engine(DEFAULT_NAMESPACE));
+                            : engine(Default.NAMESPACE));
         }
     }
 
@@ -423,14 +423,14 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.describe(record) : t.describe(record,
                     timestamp);
         }
-        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).describe(record)
-                : engine(DEFAULT_NAMESPACE).describe(record, timestamp);
+        return timestamp == 0 ? engine(Default.NAMESPACE).describe(record)
+                : engine(Default.NAMESPACE).describe(record, timestamp);
     }
 
     @ManagedOperation
     @Override
     public String dump(String id) {
-        return engine(DEFAULT_NAMESPACE).dump(id);
+        return engine(Default.NAMESPACE).dump(id);
     }
 
     @Override
@@ -445,8 +445,8 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.fetch(key, record) : t.fetch(key, record,
                     timestamp);
         }
-        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).fetch(key, record)
-                : engine(DEFAULT_NAMESPACE).fetch(key, record, timestamp);
+        return timestamp == 0 ? engine(Default.NAMESPACE).fetch(key, record)
+                : engine(Default.NAMESPACE).fetch(key, record, timestamp);
     }
 
     @Override
@@ -463,8 +463,8 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.find(key, operator, tValues) : t.find(
                     timestamp, key, operator, tValues);
         }
-        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).find(key, operator,
-                tValues) : engine(DEFAULT_NAMESPACE).find(timestamp, key,
+        return timestamp == 0 ? engine(Default.NAMESPACE).find(key, operator,
+                tValues) : engine(Default.NAMESPACE).find(timestamp, key,
                 operator, tValues);
     }
 
@@ -482,14 +482,14 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doFind1(queue, stack,
                     transaction != null ? transactions.get(transaction)
-                            : engine(DEFAULT_NAMESPACE));
+                            : engine(Default.NAMESPACE));
         }
         return Sets.newTreeSet(stack.pop());
     }
 
     @Override
     public String getDumpList() {
-        return engine(DEFAULT_NAMESPACE).getDumpList();
+        return engine(Default.NAMESPACE).getDumpList();
     }
 
     @Override
@@ -518,7 +518,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
-                        : engine(DEFAULT_NAMESPACE));
+                        : engine(Default.NAMESPACE));
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
@@ -582,7 +582,7 @@ public class ConcourseServer implements
                 && transaction.getAccessToken().equals(creds) && transactions
                     .containsKey(transaction)) || transaction == null);
         return transaction != null ? !transactions.get(transaction)
-                .describe(record).isEmpty() : !engine(DEFAULT_NAMESPACE)
+                .describe(record).isEmpty() : !engine(Default.NAMESPACE)
                 .describe(record).isEmpty();
     }
 
@@ -598,8 +598,8 @@ public class ConcourseServer implements
                                 .containsKey(transaction))
                             || transaction == null);
             return transaction != null ? transactions.get(transaction).remove(
-                    key, value, record) : engine(DEFAULT_NAMESPACE).remove(key,
-                    value, record);
+                    key, value, record) : engine(Default.NAMESPACE).remove(
+                    key, value, record);
         }
         else {
             return false;
@@ -614,7 +614,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doRevert(key, record, timestamp,
                     transaction != null ? transactions.get(transaction)
-                            : engine(DEFAULT_NAMESPACE));
+                            : engine(Default.NAMESPACE));
         }
     }
 
@@ -636,7 +636,7 @@ public class ConcourseServer implements
             Transaction t = transactions.get(transaction);
             return t.search(key, query);
         }
-        return engine(DEFAULT_NAMESPACE).search(key, query);
+        return engine(Default.NAMESPACE).search(key, query);
     }
 
     @Override
@@ -647,7 +647,7 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doSet(key, value, record,
                     transaction != null ? transactions.get(transaction)
-                            : engine(DEFAULT_NAMESPACE));
+                            : engine(Default.NAMESPACE));
         }
     }
 
@@ -655,7 +655,7 @@ public class ConcourseServer implements
     public TransactionToken stage(AccessToken creds) throws TException {
         authenticate(creds);
         TransactionToken token = new TransactionToken(creds, Time.now());
-        Transaction transaction = engine(DEFAULT_NAMESPACE).startTransaction();
+        Transaction transaction = engine(Default.NAMESPACE).startTransaction();
         transactions.put(token, transaction);
         Logger.info("Started Transaction {}", transaction);
         return token;
@@ -700,8 +700,8 @@ public class ConcourseServer implements
             return timestamp == 0 ? t.verify(key, value, record) : t.verify(
                     key, value, record, timestamp);
         }
-        return timestamp == 0 ? engine(DEFAULT_NAMESPACE).verify(key, value,
-                record) : engine(DEFAULT_NAMESPACE).verify(key, value, record,
+        return timestamp == 0 ? engine(Default.NAMESPACE).verify(key, value,
+                record) : engine(Default.NAMESPACE).verify(key, value, record,
                 timestamp);
     }
 
@@ -712,7 +712,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         AtomicOperation operation = AtomicOperation
                 .start(transaction != null ? transactions.get(transaction)
-                        : engine(DEFAULT_NAMESPACE));
+                        : engine(Default.NAMESPACE));
         try {
             return (operation.verify(key, expected, record)
                     && operation.remove(key, expected, record) && operation
@@ -908,12 +908,12 @@ public class ConcourseServer implements
 
     /**
      * Return the {@link Engine} that is associated with the
-     * {@link Engine#DEFAULT_NAMESPACE}.
+     * {@link Engine#Defaults.NAMESPACE}.
      * 
      * @return the Engine
      */
     private Engine engine() {
-        return engine(DEFAULT_NAMESPACE);
+        return engine(Default.NAMESPACE);
     }
 
     /**

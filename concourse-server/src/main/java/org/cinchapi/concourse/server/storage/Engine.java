@@ -42,6 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
+import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.Token;
@@ -106,12 +107,6 @@ public final class Engine extends BufferedStore implements
      * The id used to determine that the Buffer should be dumped.
      */
     public static final String BUFFER_DUMP_ID = "BUFFER";
-
-    /**
-     * The namespace that is associated with an {@link Engine} if no other is
-     * specified.
-     */
-    public static final String DEFAULT_NAMESPACE = "default";
 
     /**
      * The number of milliseconds we allow between writes before we pause the
@@ -258,7 +253,7 @@ public final class Engine extends BufferedStore implements
      * 
      */
     public Engine() {
-        this(new Buffer(), new Database(), DEFAULT_NAMESPACE);
+        this(new Buffer(), new Database(), Default.NAMESPACE);
     }
 
     /**
@@ -270,7 +265,7 @@ public final class Engine extends BufferedStore implements
      * @param dbStore
      */
     public Engine(String bufferStore, String dbStore) {
-        this(bufferStore, dbStore, DEFAULT_NAMESPACE);
+        this(bufferStore, dbStore, Default.NAMESPACE);
     }
 
     /**
