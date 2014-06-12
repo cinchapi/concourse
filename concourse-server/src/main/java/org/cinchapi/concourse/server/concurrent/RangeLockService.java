@@ -65,12 +65,13 @@ import com.google.common.base.Preconditions;
  * @author jnelson
  */
 public final class RangeLockService {
-    
+
     /**
      * Create a new {@link RangeLockService}.
+     * 
      * @return the RangeLockService
      */
-    public static RangeLockService create(){
+    public static RangeLockService create() {
         return new RangeLockService();
     }
 
@@ -109,8 +110,7 @@ public final class RangeLockService {
      * @param objects
      * @return the ReadLock
      */
-    public ReadLock getReadLock(Text key, Operator operator,
-            Value... values) {
+    public ReadLock getReadLock(Text key, Operator operator, Value... values) {
         return getReadLock(RangeToken.forReading(key, operator, values));
     }
 
@@ -162,8 +162,7 @@ public final class RangeLockService {
      * @param token
      * @return {@code true} if range blocked
      */
-    protected final boolean isRangeBlocked(LockType type,
-            RangeToken token) {
+    protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
         Iterator<Entry<RangeToken, RangeReadWriteLock>> it = CACHE.entrySet()
                 .iterator();
@@ -276,11 +275,13 @@ public final class RangeLockService {
 
         @Override
         public RangeReadWriteLock get(Object key) {
-            if(!containsKey(key)) {
+            RangeReadWriteLock lock = super.get(key);
+            if(lock == null) {
                 RangeToken token = (RangeToken) key;
-                put(token, new RangeReadWriteLock(token));
+                lock = new RangeReadWriteLock(token);
+                put(token, lock);
             }
-            return super.get(key);
+            return lock;
         }
 
     };
@@ -293,8 +294,7 @@ public final class RangeLockService {
      * @author jnelson
      */
     @SuppressWarnings("serial")
-    private final class RangeReadWriteLock extends
-            ReentrantReadWriteLock {
+    private final class RangeReadWriteLock extends ReentrantReadWriteLock {
 
         private final RangeToken token;
 

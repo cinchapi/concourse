@@ -134,13 +134,13 @@ public final class LockService {
 
         @Override
         public TokenReadWriteLock get(Object key) {
-            if(!containsKey(key)) {
+            TokenReadWriteLock lock = super.get(key);
+            if(lock == null) {
                 Token token = (Token) key;
-                TokenReadWriteLock lock = new TokenReadWriteLock(token);
+                lock = new TokenReadWriteLock(token);
                 put(token, lock);
-                return lock;
             }
-            return super.get(key);
+            return lock;
         }
 
     };
@@ -154,12 +154,12 @@ public final class LockService {
     private final Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
         @Override
         public AtomicInteger get(Object key) {
-            if(!containsKey(key)) {
-                AtomicInteger integer = new AtomicInteger(0);
+            AtomicInteger integer = super.get(key);
+            if(integer == null) {
+                integer = new AtomicInteger(0);
                 put((Token) key, integer);
-                return integer;
             }
-            return super.get(key);
+            return integer;
         }
     };
 
