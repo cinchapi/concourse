@@ -41,6 +41,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.BuildableState;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.Translate;
@@ -121,10 +122,10 @@ import com.google.common.collect.Lists;
 public abstract class Concourse {
 
     /**
-     * Create a new Client connection using the details provided in
-     * {@code concourse_client.prefs}. If the prefs file does not exist or does
-     * not contain connection information, then the default connection details
-     * ({@code admin@localhost:1717}) will be used.
+     * Create a new Client connection to the namespace of the Concourse
+     * Server described in {@code concourse_client.prefs} (or the default
+     * namespace and server if the prefs file does not exist) and return a
+     * handler to facilitate database interaction.
      * 
      * @return the database handler
      */
@@ -133,8 +134,22 @@ public abstract class Concourse {
     }
 
     /**
-     * Create a new Client connection for {@code username}@{@code host}:
-     * {@code port} using {@code password}.
+     * /**
+     * Create a new Client connection to the specified {@code namespace} of
+     * the Concourse Server described in {@code concourse_client.prefs} (or
+     * the default server if the prefs file does not exist) and return a
+     * handler to facilitate database interaction.
+     * 
+     * @param namespace
+     * @return
+     */
+    public static Concourse connect(String namespace) {
+        return new Client(namespace);
+    }
+
+    /**
+     * Create a new Client connection to the default namespace for
+     * {@code username}@{@code host}:{@code port} using {@code password}.
      * 
      * @param host
      * @param port
@@ -145,6 +160,22 @@ public abstract class Concourse {
     public static Concourse connect(String host, int port, String username,
             String password) {
         return new Client(host, port, username, password);
+    }
+
+    /**
+     * Create a new Client connection to {@code namespace} for {@code username}@
+     * {@code host}:{@code port} using {@code password}.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param namespace
+     * @return the database handler
+     */
+    public static Concourse connect(String host, int port, String username,
+            String password, String namespace) {
+        return new Client(host, port, username, password, namespace);
     }
 
     /**
@@ -993,6 +1024,7 @@ public abstract class Concourse {
         private static int SERVER_PORT;
         private static String USERNAME;
         private static String PASSWORD;
+        private static String NAMESPACE;
         static {
             ConcourseConfiguration config;
             try {
@@ -1006,11 +1038,13 @@ public abstract class Concourse {
             SERVER_PORT = 1717;
             USERNAME = "admin";
             PASSWORD = "admin";
+            NAMESPACE = Default.NAMESPACE;
             if(config != null) {
                 SERVER_HOST = config.getString("host", SERVER_HOST);
                 SERVER_PORT = config.getInt("port", SERVER_PORT);
                 USERNAME = config.getString("username", USERNAME);
                 PASSWORD = config.getString("password", PASSWORD);
+                NAMESPACE = config.getString("namespace", NAMESPACE);
             }
         }
 
@@ -1041,6 +1075,11 @@ public abstract class Concourse {
         private final int port;
 
         /**
+         * The namespace to which the client is connected.
+         */
+        private final String namespace;
+
+        /**
          * The Thrift client that actually handles all RPC communication.
          */
         private final ConcourseService.Client client;
@@ -1063,17 +1102,31 @@ public abstract class Concourse {
         private TransactionToken transaction = null;
 
         /**
-         * Create a new Client connection to the Concourse server specified in
-         * {@code concourse.prefs} and return a handler to facilitate database
-         * interaction.
+         * Create a new Client connection to the namespace of the Concourse
+         * Server described in {@code concourse_client.prefs} (or the default
+         * namespace and server if the prefs file does not exist) and return a
+         * handler to facilitate database interaction.
          */
         public Client() {
-            this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD);
+            this(NAMESPACE);
         }
 
         /**
-         * Create a new Client connection to a Concourse server and return a
+         * Create a new Client connection to the specified {@code namespace} of
+         * the Concourse Server described in {@code concourse_client.prefs} (or
+         * the default server if the prefs file does not exist) and return a
          * handler to facilitate database interaction.
+         * 
+         * @param namespace
+         */
+        public Client(String namespace) {
+            this(SERVER_HOST, SERVER_PORT, USERNAME, PASSWORD, namespace);
+        }
+
+        /**
+         * Create a new Client connection to the default namespace of the
+         * specified Concourse Server and return a handler to facilitate
+         * database interaction.
          * 
          * @param host
          * @param port
@@ -1081,10 +1134,27 @@ public abstract class Concourse {
          * @param password
          */
         public Client(String host, int port, String username, String password) {
+            this(host, port, username, password, Default.NAMESPACE);
+        }
+
+        /**
+         * Create a new Client connection to the specified {@code namespace} of
+         * the specified Concourse Server and return a handler to facilitate
+         * database interaction.
+         * 
+         * @param host
+         * @param port
+         * @param username
+         * @param password
+         * @param namespace
+         */
+        public Client(String host, int port, String username, String password,
+                String namespace) {
             this.host = host;
             this.port = port;
             this.username = ClientSecurity.encrypt(username);
             this.password = ClientSecurity.encrypt(password);
+            this.namespace = namespace;
             final TTransport transport = new TSocket(host, port);
             try {
                 transport.open();
