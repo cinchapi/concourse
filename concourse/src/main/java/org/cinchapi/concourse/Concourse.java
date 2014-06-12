@@ -41,7 +41,6 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
-import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.BuildableState;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.Translate;
@@ -1048,7 +1047,7 @@ public abstract class Concourse {
             SERVER_PORT = 1717;
             USERNAME = "admin";
             PASSWORD = "admin";
-            ENVIRONMENT = Default.ENVIRONMENT;
+            ENVIRONMENT = "";
             if(config != null) {
                 SERVER_HOST = config.getString("host", SERVER_HOST);
                 SERVER_PORT = config.getInt("port", SERVER_PORT);
@@ -1145,7 +1144,7 @@ public abstract class Concourse {
          * @param password
          */
         public Client(String host, int port, String username, String password) {
-            this(host, port, username, password, Default.ENVIRONMENT);
+            this(host, port, username, password, "");
         }
 
         /**
@@ -1200,7 +1199,7 @@ public abstract class Concourse {
                     if(transaction != null) {
                         final TransactionToken token = transaction;
                         transaction = null;
-                        client.abort(creds, token);
+                        client.abort(creds, token, environment);
                     }
                     return null;
                 }
@@ -1230,7 +1229,7 @@ public abstract class Concourse {
                     @Override
                     public Boolean call() throws Exception {
                         return client.add(key, Convert.javaToThrift(value),
-                                record, creds, transaction);
+                                record, creds, transaction, environment);
                     }
 
                 });
@@ -1245,7 +1244,7 @@ public abstract class Concourse {
                 @Override
                 public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, null, creds,
-                            transaction);
+                            transaction, environment);
                     return ((TLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     new Function<Long, Timestamp>() {
@@ -1269,7 +1268,7 @@ public abstract class Concourse {
                 @Override
                 public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, key, creds,
-                            transaction);
+                            transaction, environment);
                     return ((TLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     new Function<Long, Timestamp>() {
@@ -1301,8 +1300,8 @@ public abstract class Concourse {
                     Map<String, Set<Object>> data = TLinkedHashMap
                             .newTLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : client.browse0(
-                            record, timestamp.getMicros(), creds, transaction)
-                            .entrySet()) {
+                            record, timestamp.getMicros(), creds, transaction,
+                            environment).entrySet()) {
                         data.put(entry.getKey(), Transformers.transformSet(
                                 entry.getValue(),
                                 new Function<TObject, Object>() {
@@ -1335,8 +1334,8 @@ public abstract class Concourse {
                     Map<Object, Set<Long>> data = TLinkedHashMap
                             .newTLinkedHashMap(key, "Records");
                     for (Entry<TObject, Set<Long>> entry : client.browse1(key,
-                            timestamp.getMicros(), creds, transaction)
-                            .entrySet()) {
+                            timestamp.getMicros(), creds, transaction,
+                            environment).entrySet()) {
                         data.put(Convert.thriftToJava(entry.getKey()),
                                 entry.getValue());
                     }
@@ -1354,7 +1353,7 @@ public abstract class Concourse {
                 @Override
                 public Map<Timestamp, Set<Object>> call() throws Exception {
                     Map<Long, Set<TObject>> chronologize = client.chronologize(
-                            record, key, creds, transaction);
+                            record, key, creds, transaction, environment);
                     Map<Timestamp, Set<Object>> result = TLinkedHashMap
                             .newTLinkedHashMap("DateTime", "Values");
                     for (Entry<Long, Set<TObject>> entry : chronologize
@@ -1437,7 +1436,7 @@ public abstract class Concourse {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clear1(record, creds, transaction);
+                    client.clear1(record, creds, transaction, environment);
                     return null;
                 }
 
@@ -1458,7 +1457,7 @@ public abstract class Concourse {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clear(key, record, creds, transaction);
+                    client.clear(key, record, creds, transaction, environment);
                     return null;
                 }
 
@@ -1473,7 +1472,7 @@ public abstract class Concourse {
                 public Boolean call() throws Exception {
                     final TransactionToken token = transaction;
                     transaction = null;
-                    return client.commit(creds, token);
+                    return client.commit(creds, token, environment);
                 }
 
             });
@@ -1517,7 +1516,7 @@ public abstract class Concourse {
                 @Override
                 public Set<String> call() throws Exception {
                     return client.describe(record, timestamp.getMicros(),
-                            creds, transaction);
+                            creds, transaction, environment);
                 }
 
             });
@@ -1612,7 +1611,8 @@ public abstract class Concourse {
                 @Override
                 public Set<Object> call() throws Exception {
                     Set<TObject> values = client.fetch(key, record,
-                            timestamp.getMicros(), creds, transaction);
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return Transformers.transformSet(values,
                             new Function<TObject, Object>() {
 
@@ -1634,7 +1634,7 @@ public abstract class Concourse {
                 @Override
                 public Set<Long> call() throws Exception {
                     return client.find1(Translate.toThrift(criteria), creds,
-                            transaction);
+                            transaction, environment);
                 }
 
             });
@@ -1679,7 +1679,8 @@ public abstract class Concourse {
                                     return Convert.javaToThrift(input);
                                 }
 
-                            }), timestamp.getMicros(), creds, transaction);
+                            }), timestamp.getMicros(), creds, transaction,
+                            environment);
                 }
 
             });
@@ -1701,7 +1702,8 @@ public abstract class Concourse {
                                     return Convert.javaToThrift(input);
                                 }
 
-                            }), timestamp.getMicros(), creds, transaction);
+                            }), timestamp.getMicros(), creds, transaction,
+                            environment);
                 }
 
             });
@@ -1824,7 +1826,15 @@ public abstract class Concourse {
 
         @Override
         public String getServerEnvironment() {
-            return environment;
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.getServerEnvironment(creds, transaction,
+                            environment);
+                }
+
+            });
         }
 
         @Override
@@ -1860,7 +1870,8 @@ public abstract class Concourse {
 
                 @Override
                 public Boolean call() throws Exception {
-                    return client.insert(json, record, creds, transaction);
+                    return client.insert(json, record, creds, transaction,
+                            environment);
                 }
 
             });
@@ -1898,7 +1909,7 @@ public abstract class Concourse {
 
                 @Override
                 public Boolean call() throws Exception {
-                    return client.ping(record, creds, transaction);
+                    return client.ping(record, creds, transaction, environment);
                 }
 
             });
@@ -1926,7 +1937,7 @@ public abstract class Concourse {
                     @Override
                     public Boolean call() throws Exception {
                         return client.remove(key, Convert.javaToThrift(value),
-                                record, creds, transaction);
+                                record, creds, transaction, environment);
                     }
 
                 });
@@ -1970,7 +1981,7 @@ public abstract class Concourse {
                 @Override
                 public Void call() throws Exception {
                     client.revert(key, record, timestamp.getMicros(), creds,
-                            transaction);
+                            transaction, environment);
                     return null;
                 }
 
@@ -1984,7 +1995,8 @@ public abstract class Concourse {
 
                 @Override
                 public Set<Long> call() throws Exception {
-                    return client.search(key, query, creds, transaction);
+                    return client.search(key, query, creds, transaction,
+                            environment);
                 }
 
             });
@@ -2004,7 +2016,7 @@ public abstract class Concourse {
                 @Override
                 public Void call() throws Exception {
                     client.set0(key, Convert.javaToThrift(value), record,
-                            creds, transaction);
+                            creds, transaction, environment);
                     return null;
                 }
 
@@ -2017,7 +2029,7 @@ public abstract class Concourse {
 
                 @Override
                 public Void call() throws Exception {
-                    transaction = client.stage(creds);
+                    transaction = client.stage(creds, environment);
                     return null;
                 }
 
@@ -2048,7 +2060,8 @@ public abstract class Concourse {
                 @Override
                 public Boolean call() throws Exception {
                     return client.verify(key, Convert.javaToThrift(value),
-                            record, timestamp.getMicros(), creds, transaction);
+                            record, timestamp.getMicros(), creds, transaction,
+                            environment);
                 }
 
             });
@@ -2064,7 +2077,7 @@ public abstract class Concourse {
                     return client.verifyAndSwap(key,
                             Convert.javaToThrift(expected), record,
                             Convert.javaToThrift(replacement), creds,
-                            transaction);
+                            transaction, environment);
                 }
 
             });
@@ -2077,7 +2090,7 @@ public abstract class Concourse {
         private void authenticate() {
             try {
                 creds = client.login(ClientSecurity.decrypt(username),
-                        ClientSecurity.decrypt(password));
+                        ClientSecurity.decrypt(password), environment);
             }
             catch (TException e) {
                 throw Throwables.propagate(e);
