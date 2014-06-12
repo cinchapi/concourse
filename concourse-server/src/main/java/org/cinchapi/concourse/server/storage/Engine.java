@@ -229,13 +229,8 @@ public final class Engine extends BufferedStore implements
 
         @Override
         public Set<VersionChangeListener> get(Object key) {
-            if(containsKey(key)) {
-                return super.get(key);
-            }
-            else {
-                return emptySet;
-            }
-
+            Set<VersionChangeListener> set = super.get(key);
+            return set != null ? set : emptySet;
         }
 
     };
