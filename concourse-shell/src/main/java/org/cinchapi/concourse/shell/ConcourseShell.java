@@ -45,7 +45,6 @@ import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
@@ -94,6 +93,8 @@ public final class ConcourseShell {
             Concourse concourse = Concourse.connect(opts.host, opts.port,
                     opts.username, opts.password, opts.environment);
 
+            final String env = concourse.getServerEnvironment();
+
             CommandLine.displayWelcomeBanner();
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
@@ -103,14 +104,13 @@ public final class ConcourseShell {
                     + Version.getVersion(ConcourseShell.class));
             console.println("Server Version " + concourse.getServerVersion());
             console.println("");
-            console.println("Connected to the '"
-                    + concourse.getServerEnvironment() + "' environment.");
+            console.println("Connected to the '" + env + "' environment.");
             console.println("");
             console.println("Type HELP for help.");
             console.println("Type EXIT to quit.");
             console.println("Use TAB for completion.");
             console.println("");
-            console.setPrompt("cash$ ");
+            console.setPrompt(MessageFormat.format("{0}/cash$ ", env));
             console.addCompleter(new StringsCompleter(
                     getAccessibleApiMethodsUsingShortSyntax()));
 
@@ -388,7 +388,7 @@ public final class ConcourseShell {
         public String password;
 
         @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = Default.ENVIRONMENT;
+        public String environment = "";
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;

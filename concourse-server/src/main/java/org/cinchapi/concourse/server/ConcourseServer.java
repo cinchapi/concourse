@@ -50,7 +50,6 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.cinchapi.concourse.config.Default;
 import org.cinchapi.concourse.lang.ConjunctionSymbol;
 import org.cinchapi.concourse.lang.Expression;
 import org.cinchapi.concourse.lang.Parser;
@@ -220,7 +219,7 @@ public class ConcourseServer implements
     private final TServer server;
 
     /**
-     * A mapping from environment to the corresponding Engine that controls all
+     * A mapping from env to the corresponding Engine that controls all
      * the logic for data storage and retrieval.
      */
     private final Map<String, Engine> engines;
@@ -294,19 +293,20 @@ public class ConcourseServer implements
     }
 
     @Override
-    public void abort(AccessToken creds, TransactionToken transaction)
-            throws TException {
+    public void abort(AccessToken creds, TransactionToken transaction,
+            String env) throws TException {
         checkAccess(creds, transaction);
         transactions.remove(transaction).abort();
     }
 
     @Override
     public boolean add(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction)).add(key, value,
+            return ((BufferedStore) getStore(transaction, env)).add(key, value,
                     record);
         }
         else {
@@ -316,35 +316,37 @@ public class ConcourseServer implements
 
     @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return Strings.isNullOrEmpty(key) ? getStore(transaction).audit(record)
-                : getStore(transaction).audit(key, record);
+        return Strings.isNullOrEmpty(key) ? getStore(transaction, env).audit(
+                record) : getStore(transaction, env).audit(key, record);
 
     }
 
     @Override
     public Map<String, Set<TObject>> browse0(long record, long timestamp,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction).browse(record)
-                : getStore(transaction).browse(record, timestamp);
+        return timestamp == 0 ? getStore(transaction, env).browse(record)
+                : getStore(transaction, env).browse(record, timestamp);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse1(String key, long timestamp,
-            AccessToken creds, TransactionToken transaction)
+            AccessToken creds, TransactionToken transaction, String env)
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction).browse(key) : getStore(
-                transaction).browse(key, timestamp);
+        return timestamp == 0 ? getStore(transaction, env).browse(key)
+                : getStore(transaction, env).browse(key, timestamp);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologize(long record, String key,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction);
+        Compoundable store = getStore(transaction, env);
         Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
         Map<Long, String> history = store.audit(key, record);
         for (Long timestamp : history.keySet()) {
@@ -363,66 +365,68 @@ public class ConcourseServer implements
 
     @Override
     public void clear(String key, long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doClear(key, record, getStore(transaction));
+            operation = doClear(key, record, getStore(transaction, env));
         }
     }
 
     @Override
     public void clear1(long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doClear(record, getStore(transaction));
+            operation = doClear(record, getStore(transaction, env));
         }
     }
 
     @Override
-    public boolean commit(AccessToken creds, TransactionToken transaction)
-            throws TException {
+    public boolean commit(AccessToken creds, TransactionToken transaction,
+            String env) throws TException {
         checkAccess(creds, transaction);
         return transactions.remove(transaction).commit();
     }
 
     @Override
     public Set<String> describe(long record, long timestamp, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction).describe(record)
-                : getStore(transaction).describe(record, timestamp);
+        return timestamp == 0 ? getStore(transaction, env).describe(record)
+                : getStore(transaction, env).describe(record, timestamp);
     }
 
     @ManagedOperation
     @Override
     public String dump(String id) {
-        return getEngine().dump(id);
+        return getEngine().dump(id); // TODO get real env
     }
 
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction).fetch(key, record)
-                : getStore(transaction).fetch(key, record, timestamp);
+        return timestamp == 0 ? getStore(transaction, env).fetch(key, record)
+                : getStore(transaction, env).fetch(key, record, timestamp);
     }
 
     @Override
     public Set<Long> find(String key, Operator operator, List<TObject> values,
-            long timestamp, AccessToken creds, TransactionToken transaction)
-            throws TException {
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String env) throws TException {
         checkAccess(creds, transaction);
         TObject[] tValues = values.toArray(new TObject[values.size()]);
-        return timestamp == 0 ? getStore(transaction).find(key, operator,
-                tValues) : getStore(transaction).find(timestamp, key, operator,
-                tValues);
+        return timestamp == 0 ? getStore(transaction, env).find(key, operator,
+                tValues) : getStore(transaction, env).find(timestamp, key,
+                operator, tValues);
     }
 
     @Override
     public Set<Long> find1(TCriteria tcriteria, AccessToken creds,
-            TransactionToken transaction) throws TSecurityException, TException {
+            TransactionToken transaction, String env)
+            throws TSecurityException, TException {
         checkAccess(creds, transaction);
         List<Symbol> symbols = Lists.newArrayList();
         for (TSymbol tsymbol : tcriteria.getSymbols()) {
@@ -432,14 +436,23 @@ public class ConcourseServer implements
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doFind1(queue, stack, getStore(transaction));
+            operation = doFind1(queue, stack, getStore(transaction, env));
         }
         return Sets.newTreeSet(stack.pop());
     }
 
     @Override
+    @ManagedOperation
     public String getDumpList() {
-        return getEngine().getDumpList();
+        return getEngine().getDumpList(); // TODO get real env
+    }
+
+    @Override
+    public String getServerEnvironment(AccessToken creds,
+            TransactionToken transaction, String env)
+            throws TSecurityException, TException {
+        checkAccess(creds, transaction);
+        return findEnv(env);
     }
 
     @Override
@@ -464,10 +477,10 @@ public class ConcourseServer implements
 
     @Override
     public boolean insert(String json, long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation
-                .start(getStore(transaction));
+        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
+                env));
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
@@ -491,11 +504,12 @@ public class ConcourseServer implements
         // NOTE: Any existing sessions for the user will be invalidated.
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
-                    ByteBuffer.wrap(password));
+                    ByteBuffer.wrap(password), null); // TODO get real
+                                                      // env
             username = null;
             password = null;
             if(token != null) {
-                logout(token);
+                logout(token, null); // TODO get real env
                 return true;
             }
             else {
@@ -511,33 +525,35 @@ public class ConcourseServer implements
     }
 
     @Override
-    public AccessToken login(ByteBuffer username, ByteBuffer password)
-            throws TException {
+    public AccessToken login(ByteBuffer username, ByteBuffer password,
+            String env) throws TException {
         validate(username, password);
+        getEngine(env);
         return manager.authorize(username);
     }
 
     @Override
-    public void logout(AccessToken creds) throws TException {
+    public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
         manager.deauthorize(creds);
     }
 
     @Override
     public boolean ping(long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return !getStore(transaction).describe(record).isEmpty();
+        return !getStore(transaction, env).describe(record).isEmpty();
     }
 
     @Override
     public boolean remove(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
         if(value.getType() != Type.LINK
                 || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction)).remove(key, value,
-                    record);
+            return ((BufferedStore) getStore(transaction, env)).remove(key,
+                    value, record);
         }
         else {
             return false;
@@ -546,11 +562,13 @@ public class ConcourseServer implements
 
     @Override
     public void revert(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction) throws TException {
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doRevert(key, record, timestamp, getStore(transaction));
+            operation = doRevert(key, record, timestamp,
+                    getStore(transaction, env));
         }
     }
 
@@ -563,26 +581,27 @@ public class ConcourseServer implements
 
     @Override
     public Set<Long> search(String key, String query, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return getStore(transaction).search(key, query);
+        return getStore(transaction, env).search(key, query);
     }
 
     @Override
     public void set0(String key, TObject value, long record, AccessToken creds,
-            TransactionToken transaction) throws TException {
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
-            operation = doSet(key, value, record, getStore(transaction));
+            operation = doSet(key, value, record, getStore(transaction, env));
         }
     }
 
     @Override
-    public TransactionToken stage(AccessToken creds) throws TException {
+    public TransactionToken stage(AccessToken creds, String env)
+            throws TException {
         checkAccess(creds, null);
         TransactionToken token = new TransactionToken(creds, Time.now());
-        Transaction transaction = getEngine().startTransaction();
+        Transaction transaction = getEngine(env).startTransaction();
         transactions.put(token, transaction);
         Logger.info("Started Transaction {}", transaction);
         return token;
@@ -616,21 +635,21 @@ public class ConcourseServer implements
 
     @Override
     public boolean verify(String key, TObject value, long record,
-            long timestamp, AccessToken creds, TransactionToken transaction)
-            throws TException {
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String env) throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction)
-                .verify(key, value, record) : getStore(transaction).verify(key,
-                value, record, timestamp);
+        return timestamp == 0 ? getStore(transaction, env).verify(key, value,
+                record) : getStore(transaction, env).verify(key, value, record,
+                timestamp);
     }
 
     @Override
     public boolean verifyAndSwap(String key, TObject expected, long record,
-            TObject replacement, AccessToken creds, TransactionToken transaction)
-            throws TException {
+            TObject replacement, AccessToken creds,
+            TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation
-                .start(getStore(transaction));
+        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
+                env));
         try {
             return (operation.verify(key, expected, record)
                     && operation.remove(key, expected, record) && operation
@@ -816,43 +835,59 @@ public class ConcourseServer implements
     }
 
     /**
+     * Ensure that we return the correct environment for the specified
+     * {@code env}. (e.g. if {@code env} is null or empty then return the
+     * {@link GlobalState#DEFAULT_ENVIRONMENT}.
+     * 
+     * @param env
+     * @return the environment name
+     */
+    private String findEnv(String env) {
+        return Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
+    }
+
+    /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
      * 
      * @return the Engine
      */
     private Engine getEngine() {
-        return getEngine(Default.ENVIRONMENT);
+        return getEngine(DEFAULT_ENVIRONMENT);
     }
 
     /**
-     * Return the {@link Engine} that is associated with {@code environment}. If
+     * Return the {@link Engine} that is associated with {@code env}. If
      * such an Engine does not exist, create a new one and add it to the
      * collection.
      * 
-     * @param environment
+     * @param env
      * @return the Engine
      */
-    private Engine getEngine(String environment) {
-        Engine engine = engines.get(environment);
+    private Engine getEngine(String env) {
+        env = findEnv(env);
+        Engine engine = engines.get(env);
         if(engine == null) {
-            engine = new Engine(bufferStore + File.separator + environment,
-                    dbStore + File.separator + environment, environment);
-            engines.put(environment, engine);
+            engine = new Engine(bufferStore + File.separator + env, dbStore
+                    + File.separator + env, env);
+            engine.start();
+            engines.put(env, engine);
         }
         return engine;
     }
 
     /**
      * Return the correct store to use for a read/write operation depending upon
-     * whether the client has submitted a transaction token.
+     * the {@code env} whether the client has submitted a {@code transaction}
+     * token.
      * 
      * @param transaction
+     * @param env
      * @return the store to use
      */
-    private Compoundable getStore(TransactionToken transaction) {
+    private Compoundable getStore(TransactionToken transaction, String env) {
         return transaction != null ? transactions.get(transaction)
-                : getEngine();
+                : getEngine(env);
     }
 
     /**

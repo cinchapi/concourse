@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+
 import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;
@@ -116,6 +117,13 @@ public final class GlobalState {
     public static int JMX_PORT = 9010;
 
     /**
+     * The default environment that is automatically loaded when the server
+     * starts and is used whenever a client does not specify an environment for
+     * its connection.
+     */
+    public static String DEFAULT_ENVIRONMENT = "default";
+
+    /**
      * <p>
      * The amount of runtime information logged by the system. The options below
      * are listed from least to most verbose. In addition to the indicated types
@@ -180,6 +188,9 @@ public final class GlobalState {
 
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+
+            DEFAULT_ENVIRONMENT = config.getString("default_environment",
+                    DEFAULT_ENVIRONMENT);
             // =================== PREF READING BLOCK ====================
         }
     }

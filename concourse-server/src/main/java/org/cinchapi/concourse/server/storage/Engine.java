@@ -42,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
-import org.cinchapi.concourse.config.Default;
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.Token;
@@ -229,13 +229,8 @@ public final class Engine extends BufferedStore implements
 
         @Override
         public Set<VersionChangeListener> get(Object key) {
-            if(containsKey(key)) {
-                return super.get(key);
-            }
-            else {
-                return emptySet;
-            }
-
+            Set<VersionChangeListener> set = super.get(key);
+            return set != null ? set : emptySet;
         }
 
     };
@@ -253,7 +248,7 @@ public final class Engine extends BufferedStore implements
      * 
      */
     public Engine() {
-        this(new Buffer(), new Database(), Default.ENVIRONMENT);
+        this(new Buffer(), new Database(), GlobalState.DEFAULT_ENVIRONMENT);
     }
 
     /**
@@ -265,7 +260,7 @@ public final class Engine extends BufferedStore implements
      * @param dbStore
      */
     public Engine(String bufferStore, String dbStore) {
-        this(bufferStore, dbStore, Default.ENVIRONMENT);
+        this(bufferStore, dbStore, GlobalState.DEFAULT_ENVIRONMENT);
     }
 
     /**
