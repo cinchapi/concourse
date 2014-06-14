@@ -105,6 +105,11 @@ public abstract class BaseStore implements Store {
     	return value;
     }
     
+    /**
+     * If Operator is LINKS_TO normalize it to EQUALS
+     * @param operator
+     * @return
+     */
     protected static Operator normalize(Operator operator){
     	if(operator == Operator.LINKS_TO){
     		operator = Operator.EQUALS;
