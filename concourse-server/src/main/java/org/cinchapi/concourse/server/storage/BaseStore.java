@@ -78,17 +78,17 @@ public abstract class BaseStore implements Store {
     @Override
     public final Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values){
-    	operator = normalize(operator);
-    	for(TObject value: values){
-    		normalize(operator,value);
+    	for(int i=0;i<values.length;i++){
+    		values[i] = normalize(operator,values[i]);
     	}
+    	operator = normalize(operator);
     	return doFind(timestamp, key, operator, values);
     }
     
     @Override
     public final Set<Long> find(String key, Operator operator, TObject... values){
-    	for(TObject value: values){
-    		value = normalize(operator,value);
+    	for(int i=0;i<values.length;i++){
+    		values[i] = normalize(operator,values[i]);
     	}
     	operator = normalize(operator);
     	return doFind(key,operator,values);
