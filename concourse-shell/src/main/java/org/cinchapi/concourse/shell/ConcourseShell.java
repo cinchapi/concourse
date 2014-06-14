@@ -124,6 +124,7 @@ public final class ConcourseShell {
                 binding.setVariable("bw", Operator.BETWEEN);
                 binding.setVariable("regex", Operator.REGEX);
                 binding.setVariable("nregex", Operator.NOT_REGEX);
+                binding.setVariable("links2", Operator.LINKS_TO);
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
                 binding.setVariable("where", WHERE);

@@ -399,11 +399,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         transportLock.readLock().lock();
         try {
-            return super.find(timestamp, key, operator, values);
+            return super.doFind(timestamp, key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();
@@ -423,10 +423,10 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
-            return super.find(key, operator, values);
+            return super.doFind(key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();

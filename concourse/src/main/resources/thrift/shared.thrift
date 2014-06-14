@@ -20,6 +20,7 @@ enum Operator {
 	LESS_THAN = 7,
 	LESS_THAN_OR_EQUALS = 8, 
 	BETWEEN = 9
+	LINKS_TO = 10
 }
 
 /**
