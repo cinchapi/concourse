@@ -847,15 +847,17 @@ public class ConcourseServer implements
     }
 
     /**
-     * Ensure that we return the correct environment for the specified
-     * {@code env}. (e.g. if {@code env} is null or empty then return the
+     * Ensure that we return the correct environment with 
+     * alphanumeric-char name for the specified {@code env}. 
+     * e.g. if {@code env} is null or empty then return the
      * {@link GlobalState#DEFAULT_ENVIRONMENT}.
      * 
      * @param env
      * @return the environment name
      */
     private String findEnv(String env) {
-        return Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
+        return Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : 
+            env.replaceAll("[^A-Za-z0-9]", "");
     }
 
     /**
