@@ -231,6 +231,30 @@ public abstract class Concourse {
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
+     * Browse the {@code records} and return a mapping from each record to all
+     * the data that is contained as a mapping from key name to value set.
+     * 
+     * @param records
+     * @return a mapping of all the contained keys and their mapped values in
+     *         each record
+     */
+    public abstract Map<Long, Map<String, Set<Object>>> browse(
+            Collection<Long> records);
+
+    /**
+     * Browse the {@code records} at {@code timestamp} and return a mapping from
+     * each record to all the data that was contained as a mapping from key name
+     * to value set.
+     * 
+     * @param records
+     * @param timestamp
+     * @return a mapping of all the contained keys and their mapped values in
+     *         each record
+     */
+    public abstract Map<Long, Map<String, Set<Object>>> browse(
+            Collection<Long> records, Timestamp timestamp);
+
+    /**
      * Browse {@code record} and return all the data that is presently contained
      * as a mapping from key name to value set.
      * <p>
@@ -739,20 +763,20 @@ public abstract class Concourse {
     public abstract <T> T get(String key, long record, Timestamp timestamp);
 
     /**
-     * Return the version of the server to which this client is currently
-     * connected.
-     * 
-     * @return the server version
-     */
-    public abstract String getServerVersion();
-
-    /**
      * Return the environment of the server that is currently in use by this
      * client.
      * 
      * @return the server environment
      */
     public abstract String getServerEnvironment();
+
+    /**
+     * Return the version of the server to which this client is currently
+     * connected.
+     * 
+     * @return the server version
+     */
+    public abstract String getServerVersion();
 
     /**
      * Atomically insert the key/value mappings described in the {@code json}
@@ -1285,6 +1309,30 @@ public abstract class Concourse {
             });
         }
 
+        @CompoundOperation
+        @Override
+        public Map<Long, Map<String, Set<Object>>> browse(
+                Collection<Long> records) {
+            Map<Long, Map<String, Set<Object>>> data = TLinkedTableMap
+                    .newTLinkedTableMap("Record");
+            for (long record : records) {
+                data.put(record, browse(record, now));
+            }
+            return data;
+        }
+
+        @CompoundOperation
+        @Override
+        public Map<Long, Map<String, Set<Object>>> browse(
+                Collection<Long> records, Timestamp timestamp) {
+            Map<Long, Map<String, Set<Object>>> data = TLinkedTableMap
+                    .newTLinkedTableMap("Record");
+            for (long record : records) {
+                data.put(record, browse(record, timestamp));
+            }
+            return data;
+        }
+
         @Override
         public Map<String, Set<Object>> browse(long record) {
             return browse(record, now);
@@ -1813,18 +1861,6 @@ public abstract class Concourse {
         }
 
         @Override
-        public String getServerVersion() {
-            return execute(new Callable<String>() {
-
-                @Override
-                public String call() throws Exception {
-                    return client.getServerVersion();
-                }
-
-            });
-        }
-
-        @Override
         public String getServerEnvironment() {
             return execute(new Callable<String>() {
 
@@ -1832,6 +1868,18 @@ public abstract class Concourse {
                 public String call() throws Exception {
                     return client.getServerEnvironment(creds, transaction,
                             environment);
+                }
+
+            });
+        }
+
+        @Override
+        public String getServerVersion() {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.getServerVersion();
                 }
 
             });

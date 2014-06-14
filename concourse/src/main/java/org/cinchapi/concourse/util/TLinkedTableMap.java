@@ -107,6 +107,20 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
     }
 
     /**
+     * <p>
+     * THIS METHOD ALWAYS RETURNS {@code NULL}.
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<C, V> put(R key, Map<C, V> value) {
+        for (Map.Entry<C, V> entry : value.entrySet()) {
+            put(key, entry.getKey(), entry.getValue());
+        }
+        return null;
+    }
+
+    /**
      * Set the rowName to {@code name}.
      * 
      * @param name
