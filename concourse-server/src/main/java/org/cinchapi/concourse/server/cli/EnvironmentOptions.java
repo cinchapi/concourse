@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,18 @@
  */
 package org.cinchapi.concourse.server.cli;
 
+import org.cinchapi.concourse.server.GlobalState;
+
 import com.beust.jcommander.Parameter;
 
 /**
- * Each member variable represents the options that can be passed to the main
- * method of a CLI. Each CLI should subclass this and specify the appropriate
- * parameters.
- * 
- * <p>
- * See http://jcommander.org/ for more information.
- * <p>
+ * A set of Options for a CLI that interact with a server environment.
  * 
  * @author jnelson
  */
-public abstract class Options {
+public class EnvironmentOptions extends Options {
 
-    @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
-    public boolean help;
-    
-    @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-    public String username = "admin";
+    @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
+    public String environment = GlobalState.DEFAULT_ENVIRONMENT;
 
-    @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password;
-    
 }

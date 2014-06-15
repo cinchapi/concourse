@@ -45,19 +45,48 @@ public interface ConcourseServerMXBean {
      * Return a string that contains the dumps for all the storage units (i.e.
      * buffer, primary, secondary, search) identified by {@code id}.
      * 
+     * @param id
+     * @return the dump string
+     * @deprecated As of version 0.4.0. Replaced by
+     *             {@link #dump(String, String)}
+     */
+    @ManagedOperation
+    @Deprecated
+    public String dump(String id);
+
+    /**
+     * Return a string that contains the dumps for all the storage units (i.e.
+     * buffer, primary, secondary, search) in {@code environment} identified by
+     * {@code id}.
+     * 
+     * @param id
+     * @param environment
      * @return the dump string
      */
     @ManagedOperation
-    public String dump(String id);
+    public String dump(String id, String environment);
 
     /**
      * Return a string that contains a list of the ids for all the blocks that
      * can be dumped using {@link #dump(String)}.
      * 
      * @return the dump list
+     * @deprecated As of version 0.4.0. Replaced by {@link #getDumpList(String)}
      */
     @ManagedOperation
+    @Deprecated
     public String getDumpList();
+
+    /**
+     * Return a string that contains a list of the ids in the
+     * {@code environment} for all the blocks that can be dumped using
+     * {@link #dump(String, String)}.
+     * 
+     * @param environment
+     * @return the dump list
+     */
+    @ManagedOperation
+    public String getDumpList(String environment);
 
     /**
      * Return the release version of the server.
@@ -75,9 +104,9 @@ public interface ConcourseServerMXBean {
      * @param password
      */
     public void grant(byte[] username, byte[] password);
-    
+
     /**
-     * Return {@code true} if the server can be accessed 
+     * Return {@code true} if the server can be accessed
      * by a user identified by {@code username}.
      * 
      * @param username

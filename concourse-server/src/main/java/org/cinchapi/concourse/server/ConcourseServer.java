@@ -399,8 +399,14 @@ public class ConcourseServer implements
 
     @ManagedOperation
     @Override
+    @Deprecated
     public String dump(String id) {
-        return getEngine().dump(id); // TODO get real env
+        return dump(DEFAULT_ENVIRONMENT);
+    }
+
+    @Override
+    public String dump(String id, String env) {
+        return getEngine(env).dump(id);
     }
 
     @Override
@@ -443,8 +449,14 @@ public class ConcourseServer implements
 
     @Override
     @ManagedOperation
+    @Deprecated
     public String getDumpList() {
-        return getEngine().getDumpList(); // TODO get real env
+        return getDumpList(DEFAULT_ENVIRONMENT);
+    }
+
+    @Override
+    public String getDumpList(String env) {
+        return getEngine(env).getDumpList();
     }
 
     @Override
