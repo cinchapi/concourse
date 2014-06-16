@@ -93,7 +93,8 @@ public final class Database extends BaseStore implements
      * @return the cache
      */
     private static <T> Cache<Composite, T> buildCache() {
-        return CacheBuilder.newBuilder().maximumSize(100000).build();
+        return CacheBuilder.newBuilder()
+                .maximumSize(100000).softValues().build();
     }
 
     /**

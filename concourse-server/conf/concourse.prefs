@@ -34,7 +34,7 @@
 # The default environment that is automatically loaded when the server
 # starts and is used whenever a client does not specify an environment 
 # for a connection.
-#default_environment = default
+default_environment = default
 
 # Determine whether log messages should also be printed to the console (STDOUT)
 # in addition to the log files.
