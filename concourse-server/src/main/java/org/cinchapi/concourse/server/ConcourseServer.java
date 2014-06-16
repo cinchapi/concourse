@@ -198,6 +198,21 @@ public class ConcourseServer implements
         });
     }
 
+    /**
+     * Ensure that we return the correct environment with
+     * alphanumeric-char name for the specified {@code env}.
+     * e.g. if {@code env} is null or empty then return the
+     * {@link GlobalState#DEFAULT_ENVIRONMENT}.
+     * 
+     * @param env
+     * @return the environment name
+     */
+    protected static String findEnv(String env) { // visible for testing
+        env = Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
+        env = env.replaceAll("[^A-Za-z0-9]", "");
+        return env;
+    }
+
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -844,20 +859,6 @@ public class ConcourseServer implements
             return null;
         }
 
-    }
-
-    /**
-     * Ensure that we return the correct environment with 
-     * alphanumeric-char name for the specified {@code env}. 
-     * e.g. if {@code env} is null or empty then return the
-     * {@link GlobalState#DEFAULT_ENVIRONMENT}.
-     * 
-     * @param env
-     * @return the environment name
-     */
-    private String findEnv(String env) {
-        return Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : 
-            env.replaceAll("[^A-Za-z0-9]", "");
     }
 
     /**

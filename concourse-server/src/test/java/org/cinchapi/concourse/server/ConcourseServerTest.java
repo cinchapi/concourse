@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server;
 
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.ConcourseBaseTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -39,6 +40,26 @@ public class ConcourseServerTest extends ConcourseBaseTest {
             throws TTransportException {
         new ConcourseServer(1, System.getProperty("user.home"),
                 System.getProperty("user.home"));
+    }
+
+    @Test
+    public void testFindEnvReturnsDefaultForEmptyString() {
+        Assert.assertEquals(GlobalState.DEFAULT_ENVIRONMENT,
+                ConcourseServer.findEnv(""));
+    }
+
+    @Test
+    public void testFindEnvStripsNonAlphaNumChars() {
+        String env = "$%&foo@3**";
+        Assert.assertEquals("foo3", ConcourseServer.findEnv(env));
+    }
+
+    @Test
+    public void testFindEnvStripsNonAlphaNumCharsInDefaultEnv() {
+        String oldDefault = GlobalState.DEFAULT_ENVIRONMENT;
+        GlobalState.DEFAULT_ENVIRONMENT = "%$#9blah@@3foo1#$";
+        Assert.assertEquals("9blah3foo1", ConcourseServer.findEnv(""));
+        GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
     }
 
 }
