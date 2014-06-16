@@ -1,7 +1,19 @@
 ## Changelog
 
 #### Version 0.4.0 (TBD)
-* Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups.
+* Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server instance. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
+	* using the new `Concourse#connect(host, port, username, password, namespace)` or `Concourse#connect(namespace)` login methods,
+	* adding `environment = <name>` to the `concourse_client.prefs` file and using the `Concourse#connect()` or ``Concourse#connect(host, port, username, password)` login methods, or
+	* specifying an environment name using the `-e` flag when launching CaSH like: 
+		
+			$ ./cash -e production
+		
+* Added support for specifying environments using the `-e` flag to applicable server-side management CLIs (i.e. `dumptool`) and the `import` CLI.
+* Improved the CaSH prompt to display the current environment like: 
+
+		production/cash$
+			
+* Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups. This is particular helpful when programming in an IDE that offers code completion.
 * Added a method to the `Convert` utility class to transform a JSON formatted string into a multimapping of keys to appropriate Java primitives.
 * Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
 * Added the optional installation of the `concourse` and `cash` scripts to the `$PATH` via `/usr/local/bin` during installation or upgrade so that they can be invoked from any location.
@@ -13,11 +25,13 @@
 	* `clear` now has an option to atomically remove all the data contained in an entire record.
 	* `find` now has an option to process a complex `Criteria` using a single network call.
 	* `insert` writes serveral key/value mappings from a JSON encoded string into one or more records with a single network call.
-* Improved the usability of the `useradmin` CLI.
-* Added requirement that new passwords must be 3 or more characters long.
+* Improved the usability of the `useradmin` CLI and deprecated the `--grant` and `--revoke` options.
+* Added requirement that new passwords be 3 or more characters long.
+* Improved the `dumptool` CLI to list dumpable storage units by default if no `-i` or `--id` argument is specified. As a result the `--list` flag is now deprecated since it is unnecessary.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
+* Fixed an infinite loop that caused Concourse Server to stack overflow when used with JRE 8.
 
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
