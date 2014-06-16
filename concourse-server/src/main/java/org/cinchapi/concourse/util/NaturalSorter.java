@@ -26,7 +26,7 @@ package org.cinchapi.concourse.util;
 import java.io.File;
 import java.util.Comparator;
 
-import com.davekoelle.AlphanumSorter;
+import org.cinchapi.vendor.com.davekoelle.AlphanumSorter;
 
 /**
  * A {@link Comparator} that sorts files with strictly numerical names between 0
@@ -36,14 +36,12 @@ import com.davekoelle.AlphanumSorter;
  */
 public enum NaturalSorter implements Comparator<File> {
     INSTANCE;
-    private static AlphanumSorter alphanumSorter = new AlphanumSorter();
+
+    private static AlphanumSorter COMPARATOR = new AlphanumSorter();
 
     @Override
     public int compare(File f1, File f2) {
-
-        String s1 = f1.getName();
-        String s2 = f2.getName();
-        return alphanumSorter.compare(s1, s2);
+        return COMPARATOR.compare(f1.getName(), f2.getName());
     }
 
 }
