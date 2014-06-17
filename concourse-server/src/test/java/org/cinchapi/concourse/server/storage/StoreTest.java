@@ -791,15 +791,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFindLinksTo() {
-        String key = TestData.getString();
-        long source = TestData.getLong();
-        long destination = TestData.getLong();
+        String key = Variables.register("key", TestData.getString());
+        long source = Variables.register("source", TestData.getLong());
+        long destination = Variables
+                .register("destination", TestData.getLong());
         while (source == destination) {
-            destination = TestData.getLong();
+            destination = Variables.register("destination", TestData.getLong());
         }
         add(key, Convert.javaToThrift(Link.to(destination)), source);
-        Assert.assertTrue(store.find(key, Operator.LINKS_TO,
-                Convert.javaToThrift(destination)).contains(source));
+        Set<Long> results = Variables.register(
+                "results",
+                store.find(key, Operator.LINKS_TO,
+                        Convert.javaToThrift(destination)));
+        Assert.assertTrue(results.contains(source));
     }
 
     @Test
