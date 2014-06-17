@@ -377,7 +377,7 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         return find(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
                 key, operator, values);
@@ -432,7 +432,7 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
         return find(Time.now(), key, operator, values);
     }
 

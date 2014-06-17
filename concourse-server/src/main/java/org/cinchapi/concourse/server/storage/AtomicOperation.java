@@ -304,20 +304,20 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) throws AtomicStateException {
         checkState();
-        return super.find(timestamp, key, operator, values);
+        return super.doFind(timestamp, key, operator, values);
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values)
+    public Set<Long> doFind(String key, Operator operator, TObject... values)
             throws AtomicStateException {
         checkState();
         expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class)));
-        return super.find(key, operator, values);
+        return super.doFind(key, operator, values);
     }
 
     @Override

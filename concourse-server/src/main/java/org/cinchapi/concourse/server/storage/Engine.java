@@ -485,11 +485,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         transportLock.readLock().lock();
         try {
-            return super.find(timestamp, key, operator, values);
+            return super.doFind(timestamp, key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();
@@ -497,11 +497,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         rangeLockService.getReadLock(key, operator, values).lock();
         try {
-            return super.find(key, operator, values);
+            return super.doFind(key, operator, values);
         }
         finally {
             rangeLockService.getReadLock(key, operator, values).unlock();

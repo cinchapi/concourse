@@ -186,7 +186,7 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(timestamp, key, operator, values);
@@ -197,7 +197,7 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(key, operator, values);
         for (long record : records) {
