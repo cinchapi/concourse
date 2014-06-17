@@ -28,6 +28,10 @@
 * Improved the usability of the `useradmin` CLI and deprecated the `--grant` and `--revoke` options.
 * Added requirement that new passwords be 3 or more characters long.
 * Improved the `dumptool` CLI to list dumpable storage units by default if no `-i` or `--id` argument is specified. As a result the `--list` flag is now deprecated since it is unnecessary.
+* Added `LINKS_TO` Operator (aliased as `lnk2` in CaSH) to make it easy to include links in find criteria. For example, the following statements are equivalent:
+
+		concourse.find("foo", Operator.LINKS_TO, 1);
+		concourse.find("foo", Operator.EQUALS, Links.to(1));
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
