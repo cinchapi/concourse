@@ -25,10 +25,8 @@ package org.cinchapi.concourse.server.storage;
 
 import java.util.Set;
 
-import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.util.Convert;
 
 /**
  * The {@link Store} that provides basic functionality to all of its children.
@@ -36,44 +34,6 @@ import org.cinchapi.concourse.util.Convert;
  * @author jnelson
  */
 public abstract class BaseStore implements Store {
-
-    /**
-     * Perform any necessary normalization on {@code operator} so that it can be
-     * properly utilized in {@link Store} methods (i.e. convert a utility
-     * operator to a functional one).
-     * 
-     * @param operator
-     * @return the normalized Operator
-     */
-    protected static Operator normalizeOperator(Operator operator) { // visible
-                                                                     // for
-                                                                     // testing
-        if(operator == Operator.LINKS_TO) {
-            return Operator.EQUALS;
-        }
-        else {
-            return operator;
-        }
-    }
-
-    /**
-     * Perform any necessary normalization on the {@code value} based on the
-     * {@code operator}.
-     * 
-     * @param operator
-     * @param values
-     */
-    protected static TObject normalizeValue(Operator operator, TObject value) { // visible
-                                                                                // for
-                                                                                // testing
-        if(operator == Operator.LINKS_TO) {
-            return Convert.javaToThrift(Link.to(((Number) Convert
-                    .thriftToJava(value)).longValue()));
-        }
-        else {
-            return value;
-        }
-    }
 
     @Override
     public final Set<String> describe(long record) {
@@ -88,9 +48,9 @@ public abstract class BaseStore implements Store {
     @Override
     public final Set<Long> find(long timestamp, String key, Operator operator,
             TObject... values) {
-        operator = normalizeOperator(operator);
-        for (TObject value : values) {
-            normalizeValue(operator, value);
+        operator = Stores.normalizeOperator(operator);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = Stores.normalizeValue(operator, values[i]);
         }
         return doFind(timestamp, key, operator, values);
     }
@@ -98,10 +58,10 @@ public abstract class BaseStore implements Store {
     @Override
     public final Set<Long> find(String key, Operator operator,
             TObject... values) {
-        for (TObject value : values) {
-            value = normalizeValue(operator, value);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = Stores.normalizeValue(operator, values[i]);
         }
-        operator = normalizeOperator(operator);
+        operator = Stores.normalizeOperator(operator);
         return doFind(key, operator, values);
     }
 

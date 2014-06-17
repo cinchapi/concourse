@@ -38,7 +38,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
         EngineAtomicOperationTest.class, DatabaseTest.class,
-        TransactionTest.class, TransactionAtomicOperationTest.class })
+        TransactionTest.class, TransactionAtomicOperationTest.class,
+        StoresTest.class })
 public class StoreSuite {
 
 }

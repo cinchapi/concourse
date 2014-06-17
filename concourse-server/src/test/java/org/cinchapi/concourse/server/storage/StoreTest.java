@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.GlobalState;
@@ -786,6 +787,19 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testFetchEmpty() {
         Assert.assertTrue(store.fetch(TestData.getString(), TestData.getLong())
                 .isEmpty());
+    }
+
+    @Test
+    public void testFindLinksTo() {
+        String key = TestData.getString();
+        long source = TestData.getLong();
+        long destination = TestData.getLong();
+        while (source == destination) {
+            destination = TestData.getLong();
+        }
+        add(key, Convert.javaToThrift(Link.to(destination)), source);
+        Assert.assertTrue(store.find(key, Operator.LINKS_TO,
+                Convert.javaToThrift(destination)).contains(source));
     }
 
     @Test
