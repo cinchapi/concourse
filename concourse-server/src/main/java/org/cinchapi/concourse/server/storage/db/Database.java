@@ -322,7 +322,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Set<Long> find(long timestamp, String key, Operator operator,
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         return Transformers.transformSet(
                 getSecondaryRecord(Text.wrap(key)).find(
@@ -334,7 +334,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Set<Long> find(String key, Operator operator, TObject... values) {
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
         return Transformers.transformSet(
                 getSecondaryRecord(Text.wrap(key)).find(
                         operator,

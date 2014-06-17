@@ -25,6 +25,11 @@ package org.cinchapi.concourse.server.storage;
 
 import java.util.Set;
 
+import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.Convert;
+
 /**
  * The {@link Store} that provides basic functionality to all of its children.
  * 
@@ -32,8 +37,34 @@ import java.util.Set;
  */
 public abstract class BaseStore implements Store {
 
-
-    @Override
+	
+	/**
+	 * doFind {@code key} {@code operator} {@code values} at {@code timestamp}
+	 * <p>
+	 * Subclasses can implement find {@code key} {@code operator} {@code values } {@code timestamp} 
+	 * without doing any normalization
+	 * <p>
+	 *  @param timestamp
+	 * @param key
+	 * @param operator
+	 * @param values
+	 */
+	protected abstract Set<Long> doFind(long timestamp, String key, Operator operator, TObject...values);
+	
+	/**
+	 * doFind {@code key} {@code operator} {@code values} 
+	 * <p>
+	 * Subclasses can implement find {@code key} {@code operator} {@code values }  
+	 * without doing any normalization
+	 * <p>
+	 * @param key
+	 * @param operator
+	 * @param values
+	 */
+	protected abstract Set<Long> doFind(String key, Operator operator, TObject...values);
+	
+	
+	@Override
     public final Set<String> describe(long record) {
         return browse(record).keySet();
     }
@@ -44,6 +75,46 @@ public abstract class BaseStore implements Store {
         return browse(record, timestamp).keySet();
     }
     
+    @Override
+    public final Set<Long> find(long timestamp, String key, Operator operator,
+            TObject... values){
+    	for(int i=0;i<values.length;i++){
+    		values[i] = normalize(operator,values[i]);
+    	}
+    	operator = normalize(operator);
+    	return doFind(timestamp, key, operator, values);
+    }
     
+    @Override
+    public final Set<Long> find(String key, Operator operator, TObject... values){
+    	for(int i=0;i<values.length;i++){
+    		values[i] = normalize(operator,values[i]);
+    	}
+    	operator = normalize(operator);
+    	return doFind(key,operator,values);
+    }
+    /**
+     * Perform any necessary normalization on all the parameters IN PLACE (e.g. convert a utility operator to a functional one, etc)
+     * @param operator
+     * @param values
+     */
+    protected static TObject normalize(Operator operator, TObject value){//viisible for testing
+    	if(operator == Operator.LINKS_TO){
+    		return Convert.javaToThrift(Link.to(((Number)Convert.thriftToJava(value)).longValue()));
+    	}
+    	return value;
+    }
+    
+    /**
+     * If Operator is LINKS_TO normalize it to EQUALS
+     * @param operator
+     * @return
+     */
+    protected static Operator normalize(Operator operator){
+    	if(operator == Operator.LINKS_TO){
+    		operator = Operator.EQUALS;
+    	}
+    	return operator;
+    }
 
 }
