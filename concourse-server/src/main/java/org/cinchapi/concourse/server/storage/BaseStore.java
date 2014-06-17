@@ -37,79 +37,104 @@ import org.cinchapi.concourse.util.Convert;
  */
 public abstract class BaseStore implements Store {
 
-	
-	/**
-	 * doFind {@code key} {@code operator} {@code values} at {@code timestamp}
-	 * <p>
-	 * Subclasses can implement find {@code key} {@code operator} {@code values } {@code timestamp} 
-	 * without doing any normalization
-	 * <p>
-	 *  @param timestamp
-	 * @param key
-	 * @param operator
-	 * @param values
-	 */
-	protected abstract Set<Long> doFind(long timestamp, String key, Operator operator, TObject...values);
-	
-	/**
-	 * doFind {@code key} {@code operator} {@code values} 
-	 * <p>
-	 * Subclasses can implement find {@code key} {@code operator} {@code values }  
-	 * without doing any normalization
-	 * <p>
-	 * @param key
-	 * @param operator
-	 * @param values
-	 */
-	protected abstract Set<Long> doFind(String key, Operator operator, TObject...values);
-	
-	
-	@Override
+    /**
+     * Perform any necessary normalization on {@code operator} so that it can be
+     * properly utilized in {@link Store} methods (i.e. convert a utility
+     * operator to a functional one).
+     * 
+     * @param operator
+     * @return the normalized Operator
+     */
+    protected static Operator normalizeOperator(Operator operator) { // visible
+                                                                     // for
+                                                                     // testing
+        if(operator == Operator.LINKS_TO) {
+            return Operator.EQUALS;
+        }
+        else {
+            return operator;
+        }
+    }
+
+    /**
+     * Perform any necessary normalization on the {@code value} based on the
+     * {@code operator}.
+     * 
+     * @param operator
+     * @param values
+     */
+    protected static TObject normalizeValue(Operator operator, TObject value) { // visible
+                                                                                // for
+                                                                                // testing
+        if(operator == Operator.LINKS_TO) {
+            return Convert.javaToThrift(Link.to(((Number) Convert
+                    .thriftToJava(value)).longValue()));
+        }
+        else {
+            return value;
+        }
+    }
+
+    @Override
     public final Set<String> describe(long record) {
         return browse(record).keySet();
     }
-
 
     @Override
     public final Set<String> describe(long record, long timestamp) {
         return browse(record, timestamp).keySet();
     }
-    
+
     @Override
     public final Set<Long> find(long timestamp, String key, Operator operator,
-            TObject... values){
-    	operator = normalize(operator);
-    	for(TObject value: values){
-    		normalize(operator,value);
-    	}
-    	return doFind(timestamp, key, operator, values);
+            TObject... values) {
+        operator = normalizeOperator(operator);
+        for (TObject value : values) {
+            normalizeValue(operator, value);
+        }
+        return doFind(timestamp, key, operator, values);
     }
-    
+
     @Override
-    public final Set<Long> find(String key, Operator operator, TObject... values){
-    	for(TObject value: values){
-    		value = normalize(operator,value);
-    	}
-    	operator = normalize(operator);
-    	return doFind(key,operator,values);
+    public final Set<Long> find(String key, Operator operator,
+            TObject... values) {
+        for (TObject value : values) {
+            value = normalizeValue(operator, value);
+        }
+        operator = normalizeOperator(operator);
+        return doFind(key, operator, values);
     }
+
     /**
-     * Perform any necessary normalization on all the parameters IN PLACE (e.g. convert a utility operator to a functional one, etc)
+     * Do the work to find {@code key} {@code operator} {@code values} at
+     * {@code timestamp}
+     * <p>
+     * Subclasses can implement find {@code key} {@code operator}
+     * {@code values } {@code timestamp} without doing any normalization
+     * <p>
+     * 
+     * @param timestamp
+     * @param key
      * @param operator
      * @param values
+     * @return a possibly empty Set of primary keys
      */
-    protected static TObject normalize(Operator operator, TObject value){//viisible for testing
-    	if(operator == Operator.LINKS_TO){
-    		return Convert.javaToThrift(Link.to(((Number)Convert.thriftToJava(value)).longValue()));
-    	}
-    	return value;
-    }
-    
-    protected static Operator normalize(Operator operator){
-    	if(operator == Operator.LINKS_TO){
-    		operator = Operator.EQUALS;
-    	}
-    	return operator;
-    }
+    protected abstract Set<Long> doFind(long timestamp, String key,
+            Operator operator, TObject... values);
+
+    /**
+     * Do the work to find {@code key} {@code operator} {@code values}
+     * <p>
+     * Subclasses can implement find {@code key} {@code operator}
+     * {@code values } without doing any normalization
+     * <p>
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return a possibly empty Set of primary keys
+     */
+    protected abstract Set<Long> doFind(String key, Operator operator,
+            TObject... values);
 
 }
