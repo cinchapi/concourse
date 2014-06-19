@@ -15,8 +15,8 @@
 # maximize lock granularity with the risks of having too many open buffer files
 # which may lead to more frequent and less efficient disk I/O.
 #
-# DEFAULT: 8M
-#buffer_page_size = 8M
+# DEFAULT: 8KB
+#buffer_page_size = 8KB
 
 # The listener port (1-65535) for client connections. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
