@@ -34,33 +34,46 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Preconditions;
 
 /**
- * A simple file backed collection of "bits" that are either on or off.
+ * A simple file based and memory mapped collection of "bits" that are either
+ * "true" or "false".
+ * <p>
+ * Since this class is memory mapped, the collection is a fixed length. Each
+ * component of the bit set has a "{@code boolean}" value and each bit is
+ * indexed by nonnegative integers.
+ * </p>
+ * <p>
+ * By default, all the bits in the set initially have a value of {@code false}
+ * if the backing file does not exist prior to the creation of the bit set.
+ * Otherwise, the default behaviour is undefined.
+ * </p>
  * 
  * @author jnelson
  */
 @ThreadSafe
-public class FileBitSet {
+public class MappedBitSet {
+
+    // TODO unit tests
 
     /**
-     * Create a new {@link FileBitSet} that is stored at {@code file} and
+     * Create a new {@link MappedBitSet} that is stored at {@code file} and
      * contains {@code numBits}.
      * 
      * @param file
      * @param numBits
-     * @return the new FileBitSet
+     * @return the new MappedBitSet
      */
-    public static FileBitSet create(String file, int numBits) {
-        return new FileBitSet(file, numBits);
+    public static MappedBitSet create(String file, int numBits) {
+        return new MappedBitSet(file, numBits);
     }
 
     /**
-     * Load the {@link FileBitSet} that is stored in {@code file}.
+     * Load the {@link MappedBitSet} that is stored in {@code file}.
      * 
      * @param file
-     * @return the FileBitSet
+     * @return the MappedBitSet
      */
-    public static FileBitSet load(String file) {
-        return new FileBitSet(file, (int) FileSystem.getFileSize(file)
+    public static MappedBitSet load(String file) {
+        return new MappedBitSet(file, (int) FileSystem.getFileSize(file)
                 * NUM_BITS_PER_BYTE);
     }
 
@@ -85,9 +98,34 @@ public class FileBitSet {
      * @param file
      * @param numBits
      */
-    private FileBitSet(String file, int numBits) {
+    private MappedBitSet(String file, int numBits) {
         this.bitSet = FileSystem.map(file, MapMode.READ_WRITE, 0, numBits
                 / NUM_BITS_PER_BYTE);
+    }
+
+    /**
+     * Atomically check the bit at {@code index} and flip it the complement of
+     * its current value if its current value is equal to {@code expected}.
+     * 
+     * @param index
+     * @param expected
+     * @return {@code true} if the comparison and flip succeeds, {@code false}
+     *         otherwise
+     */
+    public boolean compareAndFlip(long index, boolean expected) {
+        masterLock.writeLock().lock();
+        try {
+            if(get(index) == expected) {
+                flip(index);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -96,7 +134,7 @@ public class FileBitSet {
      * 
      * @param index
      */
-    public void flip(int index) {
+    public void flip(long index) {
         masterLock.writeLock().lock();
         try {
             Position position = getPosition(index);
@@ -104,7 +142,7 @@ public class FileBitSet {
             byte content = bitSet.get();
             bitSet.position(position.getByteIndex());
             bitSet.put(Bits.flip(position.getBitIndex(), content));
-            bitSet.force();
+            bitSet.force(); //TODO ugh this is so fucking slow
         }
         finally {
             masterLock.writeLock().unlock();
@@ -117,7 +155,7 @@ public class FileBitSet {
      * @param index
      * @return the bit value
      */
-    public boolean get(int index) {
+    public boolean get(long index) {
         masterLock.readLock().lock();
         try {
             Position position = getPosition(index);
@@ -131,18 +169,27 @@ public class FileBitSet {
     }
 
     /**
+     * Return the size of this bit set.
+     * 
+     * @return the size
+     */
+    public long size() {
+        return bitSet.capacity() * NUM_BITS_PER_BYTE;
+    }
+
+    /**
      * Return the {@link Position} where the bit {@code index} is contained.
      * 
      * @param index
      * @return the index Position
      */
-    private Position getPosition(int index) {
-        return new Position(index / NUM_BITS_PER_BYTE,
+    private Position getPosition(long index) {
+        return new Position((int) index / NUM_BITS_PER_BYTE,
                 (byte) (index % NUM_BITS_PER_BYTE));
     }
 
     /**
-     * Encapsulates the position of a bit in the {@link FileBitSet} by
+     * Encapsulates the position of a bit in the {@link MappedBitSet} by
      * referencing a global byte position and a relative bit position within
      * that byte.
      * 
