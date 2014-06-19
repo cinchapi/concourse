@@ -712,6 +712,7 @@ public final class Engine extends BufferedStore implements
         public BufferTransportThread() {
             super("BufferTransport");
             setDaemon(true);
+            setPriority(MIN_PRIORITY);
         }
 
         @Override
