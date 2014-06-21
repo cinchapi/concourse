@@ -74,6 +74,7 @@ public final class ConcourseShell {
      */
     public static void main(String... args) throws IOException {
         ConsoleReader console = new ConsoleReader();
+        console.setExpandEvents(false);
         Options opts = new Options();
         JCommander parser = new JCommander(opts, args);
         parser.setProgramName("concourse-shell");
