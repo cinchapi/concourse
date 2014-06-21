@@ -41,7 +41,6 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.completer.StringsCompleter;
 
-import org.apache.thrift.TApplicationException;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
@@ -192,9 +191,7 @@ public final class ConcourseShell {
                 die("Unable to connect to " + opts.username + "@" + opts.host
                         + ":" + opts.port + " with the specified password");
             }
-            else if(e.getCause() instanceof TApplicationException
-                    && e.getMessage().contains(
-                            "Internal error processing login")) {
+            else if(e.getCause() instanceof TSecurityException) {
                 die("Invalid username/password combination.");
             }
             else {
