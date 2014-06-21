@@ -81,6 +81,7 @@ public abstract class ManagedOperationCli {
                 System.exit(1);
             }
             this.console = new ConsoleReader();
+            console.setExpandEvents(false);
         }
         catch (ParameterException e) {
             die(e.getMessage());
