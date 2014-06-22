@@ -23,8 +23,14 @@
  */
 package org.cinchapi.concourse.server;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.ConcourseBaseTest;
+import org.cinchapi.concourse.util.Environments;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,23 +48,38 @@ public class ConcourseServerTest extends ConcourseBaseTest {
                 System.getProperty("user.home"));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testCannotStartServerWhenDefaultEnvironmentIsEmptyString()
+            throws TTransportException, MalformedObjectNameException,
+            InstanceAlreadyExistsException, MBeanRegistrationException,
+            NotCompliantMBeanException {
+        String oldDefault = GlobalState.DEFAULT_ENVIRONMENT;
+        try {
+            GlobalState.DEFAULT_ENVIRONMENT = "$$";
+            new ConcourseServer(1, "buffer", "db");
+        }
+        finally {
+            GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
+        }
+    }
+
     @Test
     public void testFindEnvReturnsDefaultForEmptyString() {
         Assert.assertEquals(GlobalState.DEFAULT_ENVIRONMENT,
-                ConcourseServer.findEnv(""));
+                Environments.sanitize(""));
     }
 
     @Test
     public void testFindEnvStripsNonAlphaNumChars() {
         String env = "$%&foo@3**";
-        Assert.assertEquals("foo3", ConcourseServer.findEnv(env));
+        Assert.assertEquals("foo3", Environments.sanitize(env));
     }
 
     @Test
     public void testFindEnvStripsNonAlphaNumCharsInDefaultEnv() {
         String oldDefault = GlobalState.DEFAULT_ENVIRONMENT;
         GlobalState.DEFAULT_ENVIRONMENT = "%$#9blah@@3foo1#$";
-        Assert.assertEquals("9blah3foo1", ConcourseServer.findEnv(""));
+        Assert.assertEquals("9blah3foo1", Environments.sanitize(""));
         GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
     }
 

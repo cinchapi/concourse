@@ -78,6 +78,7 @@ import org.cinchapi.concourse.thrift.TSymbol;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
@@ -198,21 +199,6 @@ public class ConcourseServer implements
         });
     }
 
-    /**
-     * Ensure that we return the correct environment with
-     * alphanumeric-char name for the specified {@code env}.
-     * e.g. if {@code env} is null or empty then return the
-     * {@link GlobalState#DEFAULT_ENVIRONMENT}.
-     * 
-     * @param env
-     * @return the environment name
-     */
-    protected static String findEnv(String env) { // visible for testing
-        env = Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
-        env = env.replaceAll("[^A-Za-z0-9]", "");
-        return env;
-    }
-
     private static final int NUM_WORKER_THREADS = 100; // This may become
                                                        // configurable in a
                                                        // prefs file in a
@@ -288,6 +274,13 @@ public class ConcourseServer implements
         Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
                 "Cannot store buffer and database files in the same directory. "
                         + "Please check concourse.prefs.");
+        Preconditions
+                .checkState(!Strings.isNullOrEmpty(Environments
+                        .sanitize(DEFAULT_ENVIRONMENT)), "Cannot initialize "
+                        + "Concourse Server with a default environment of "
+                        + "'%s'. Please use a default environment name that "
+                        + "contains only alphanumeric characters.",
+                        DEFAULT_ENVIRONMENT);
         FileSystem.mkdirs(bufferStore);
         FileSystem.mkdirs(dbStore);
         TServerSocket socket = new TServerSocket(port);
@@ -479,7 +472,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String env)
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
-        return findEnv(env);
+        return Environments.sanitize(env);
     }
 
     @Override
@@ -880,7 +873,7 @@ public class ConcourseServer implements
      * @return the Engine
      */
     private Engine getEngine(String env) {
-        env = findEnv(env);
+        env = Environments.sanitize(env);
         Engine engine = engines.get(env);
         if(engine == null) {
             engine = new Engine(bufferStore + File.separator + env, dbStore
