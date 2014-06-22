@@ -51,6 +51,21 @@ class FixedConnectionPool extends ConnectionPool {
         super(host, port, username, password, poolSize);
     }
 
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @param poolSize
+     */
+    protected FixedConnectionPool(String host, int port, String username,
+            String password, String environment, int poolSize) {
+        super(host, port, username, password, environment, poolSize);
+    }
+
     @Override
     protected Cache<Concourse, AtomicBoolean> buildCache(int size) {
         return CacheBuilder.newBuilder().initialCapacity(size).build();

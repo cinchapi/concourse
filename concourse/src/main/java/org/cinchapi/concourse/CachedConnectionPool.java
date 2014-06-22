@@ -51,6 +51,7 @@ class CachedConnectionPool extends ConnectionPool {
     private final int port;
     private String username;
     private final String password;
+    private final String environment;
 
     /**
      * Construct a new instance.
@@ -63,11 +64,27 @@ class CachedConnectionPool extends ConnectionPool {
      */
     protected CachedConnectionPool(String host, int port, String username,
             String password, int poolSize) {
-        super(host, port, username, password, poolSize);
+        this(host, port, username, password, "", poolSize);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @param poolSize
+     */
+    protected CachedConnectionPool(String host, int port, String username,
+            String password, String environment, int poolSize) {
+        super(host, port, username, password, environment, poolSize);
         this.host = host;
         this.port = port;
         this.username = username;
         this.password = password;
+        this.environment = environment;
     }
 
     @Override
@@ -82,7 +99,7 @@ class CachedConnectionPool extends ConnectionPool {
         }
         catch (IllegalStateException e) {
             Concourse connection = Concourse.connect(host, port, username,
-                    password);
+                    password, environment);
             connections.put(connection, new AtomicBoolean(true));
             return connection;
         }

@@ -79,7 +79,7 @@ public abstract class ConnectionPool implements AutoCloseable {
         ConcourseClientPreferences cp = ConcourseClientPreferences.load(prefs);
         return new CachedConnectionPool(cp.getHost(), cp.getPort(),
                 cp.getUsername(), new String(cp.getPassword()),
-                DEFAULT_POOL_SIZE);
+                cp.getEnvironment(), DEFAULT_POOL_SIZE);
     }
 
     /**
@@ -102,13 +102,34 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
+     * Return a {@link ConnectionPool} that has no limit on the number of
+     * connections it can manage to the Concourse instance defined in the client
+     * {@code prefs} on behalf of the user defined in the client {@code prefs},
+     * but will try to use previously created connections before establishing
+     * new ones for any request.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newCachedConnectionPool(String host, int port,
+            String username, String password, String environment) {
+        return new CachedConnectionPool(host, port, username, password,
+                environment, DEFAULT_POOL_SIZE);
+    }
+
+    /**
      * Return a new {@link ConnectionPool} that provides connections to the
      * Concourse instance defined in the client {@code prefs} on behalf of the
      * user defined in the client {@code prefs}.
      * 
      * @param prefs
      * @return the ConnectionPool
-     * @deprecated As of version 0.3.2, replaced by {@link #newFixedConnectionPool(String, int)}.
+     * @deprecated As of version 0.3.2, replaced by
+     *             {@link #newFixedConnectionPool(String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String prefs) {
@@ -123,7 +144,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param prefs
      * @param poolSize
      * @return the ConnectionPool
-     * @deprecated As of version 0.3.2, replaced by {@link #newFixedConnectionPool(String, int)}.
+     * @deprecated As of version 0.3.2, replaced by
+     *             {@link #newFixedConnectionPool(String, int)}.
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String prefs, int poolSize) {
@@ -140,8 +162,9 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param username
      * @param password
      * @return the ConnectionPool
-     * @deprecated As of version 0.3.2, replaced by 
-     *             {@link #newFixedConnectionPool(String, int, String, String, int)}.
+     * @deprecated As of version 0.3.2, replaced by
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
+     *             .
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
@@ -161,8 +184,9 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param password
      * @param poolSize
      * @return the ConnectionPool
-     * @deprecated As of version 0.3.2, replaced by 
-     *             {@link #newFixedConnectionPool(String, int, String, String, int)}.
+     * @deprecated As of version 0.3.2, replaced by
+     *             {@link #newFixedConnectionPool(String, int, String, String, int)}
+     *             .
      */
     @Deprecated
     public static ConnectionPool newConnectionPool(String host, int port,
@@ -187,7 +211,8 @@ public abstract class ConnectionPool implements AutoCloseable {
             int poolSize) {
         ConcourseClientPreferences cp = ConcourseClientPreferences.load(prefs);
         return new FixedConnectionPool(cp.getHost(), cp.getPort(),
-                cp.getUsername(), new String(cp.getPassword()), poolSize);
+                cp.getUsername(), new String(cp.getPassword()),
+                cp.getEnvironment(), poolSize);
     }
 
     /**
@@ -204,11 +229,36 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param port
      * @param username
      * @param password
+     * @param poolSize
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(String host, int port,
             String username, String password, int poolSize) {
         return new FixedConnectionPool(host, port, username, password, poolSize);
+    }
+
+    /**
+     * Return a new {@link ConnectionPool} with a fixed number of connections to
+     * the Concourse instance at {@code host}:{@code port} on behalf of the user
+     * identified by {@code username} and {@code password}.
+     * 
+     * <p>
+     * If all the connections from the pool are active, subsequent request
+     * attempts will block until a connection is returned.
+     * </p>
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @param poolSize
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newFixedConnectionPool(String host, int port,
+            String username, String password, String environment, int poolSize) {
+        return new FixedConnectionPool(host, port, username, password,
+                environment, poolSize);
     }
 
     /**
@@ -243,11 +293,27 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     protected ConnectionPool(String host, int port, String username,
             String password, int poolSize) {
+        this(host, port, username, password, "", poolSize);
+
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @param poolSize
+     */
+    protected ConnectionPool(String host, int port, String username,
+            String password, String environment, int poolSize) {
         this.connections = buildCache(poolSize);
         this.numAvailableConnections = new AtomicInteger(poolSize);
         for (int i = 0; i < poolSize; i++) {
-            connections.put(Concourse.connect(host, port, username, password),
-                    new AtomicBoolean(false));
+            connections.put(Concourse.connect(host, port, username, password,
+                    environment), new AtomicBoolean(false));
         }
         // Ensure that the client connections are forced closed when the JVM is
         // shutdown in case the user does not properly shutdown the pool
@@ -261,7 +327,6 @@ public abstract class ConnectionPool implements AutoCloseable {
             }
 
         }));
-
     }
 
     @Override

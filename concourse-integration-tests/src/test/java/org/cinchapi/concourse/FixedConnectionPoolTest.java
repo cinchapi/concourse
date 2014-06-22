@@ -39,26 +39,6 @@ import com.google.common.collect.Lists;
  */
 public class FixedConnectionPoolTest extends ConnectionPoolTest {
 
-    @Override
-    protected ConnectionPool getConnectionPool() {
-        return ConnectionPool.newFixedConnectionPool(SERVER_HOST, SERVER_PORT,
-                USERNAME, PASSWORD, POOL_SIZE);
-    }
-    
-    @Test
-    public void testNotHasAvailableConnectionWhenAllInUse() {
-        List<Concourse> toReturn = Lists.newArrayList();
-        for (int i = 0; i < POOL_SIZE; i++) {
-            toReturn.add(connections.request());
-        }
-        Assert.assertFalse(connections.hasAvailableConnection());
-        for (Concourse concourse : toReturn) {
-            // must return all the connections so the pool can shutdown after
-            // the test
-            connections.release(concourse);
-        }
-    }
-
     @Test
     public void testBlockUnitlConnectionAvailable() {
         List<Concourse> toReturn = Lists.newArrayList();
@@ -83,6 +63,32 @@ public class FixedConnectionPoolTest extends ConnectionPoolTest {
             // the test
             connections.release(concourse);
         }
+    }
+
+    @Test
+    public void testNotHasAvailableConnectionWhenAllInUse() {
+        List<Concourse> toReturn = Lists.newArrayList();
+        for (int i = 0; i < POOL_SIZE; i++) {
+            toReturn.add(connections.request());
+        }
+        Assert.assertFalse(connections.hasAvailableConnection());
+        for (Concourse concourse : toReturn) {
+            // must return all the connections so the pool can shutdown after
+            // the test
+            connections.release(concourse);
+        }
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool() {
+        return ConnectionPool.newFixedConnectionPool(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, POOL_SIZE);
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool(String env) {
+        return ConnectionPool.newFixedConnectionPool(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, env, POOL_SIZE);
     }
 
 }
