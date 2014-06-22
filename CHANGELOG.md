@@ -9,6 +9,7 @@
 			$ ./cash -e production
 		
 * Added support for specifying environments using the `-e` flag to applicable server-side management CLIs (i.e. `dumptool`) and the `import` CLI.
+* Added support for specifying environments with the `ConnectionPool` API.
 * Improved the CaSH prompt to display the current environment like: 
 
 		production/cash$
@@ -32,10 +33,13 @@
 
 		concourse.find("foo", Operator.LINKS_TO, 1);
 		concourse.find("foo", Operator.EQUALS, Links.to(1));
+* Added logic to terminate a CaSH session if a relevant security change occurs.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
 * Fixed an infinite loop that caused Concourse Server to stack overflow when used with JRE 8.
+* Fixed an issue where the stock `concourse.prefs` documentation referred to the default `buffer_page_size` as 8MB when its actually 8KB.
+* Changed the daemon Concourse Server process name to display as `ConcourseServer` instead of `WrapperSimpleApp`.
 
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
