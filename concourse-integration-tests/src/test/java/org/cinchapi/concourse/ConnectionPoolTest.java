@@ -25,8 +25,12 @@ package org.cinchapi.concourse;
 
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.ConnectionPool;
+import org.cinchapi.concourse.util.Environments;
+import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.base.Strings;
 
 /**
  * Unit tests for {@link ConnectionPool}.
@@ -72,11 +76,30 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
                 USERNAME, PASSWORD));
     }
 
+    @Test
+    public void testConnectionPoolIsConnectedToCorrectEnvironment() {
+        String env = null;
+        while (Strings.isNullOrEmpty(env)) {
+            env = Environments.sanitize(TestData.getString());
+        }
+        ConnectionPool pool = getConnectionPool(env);
+        Assert.assertEquals(env, pool.request().getServerEnvironment());
+    }
+
     /**
      * Return a {@link ConnectionPool} to use in a unit test.
      * 
      * @return the ConnectionPool
      */
     protected abstract ConnectionPool getConnectionPool();
+
+    /**
+     * Return a {@link ConnectionPool} connected to {@code env} to use in a unit
+     * test.
+     * 
+     * @param env
+     * @return the ConnectionPool
+     */
+    protected abstract ConnectionPool getConnectionPool(String env);
 
 }

@@ -37,12 +37,6 @@ import com.beust.jcommander.internal.Lists;
  */
 public class CachedConnectionPoolTest extends ConnectionPoolTest {
 
-    @Override
-    protected ConnectionPool getConnectionPool() {
-        return ConnectionPool.newCachedConnectionPool(SERVER_HOST, SERVER_PORT,
-                USERNAME, PASSWORD);
-    }
-    
     @Test
     public void testNoLimitToNumberOfConnectionsInPool(){
         List<Concourse> toReturn = Lists.newArrayList();
@@ -56,6 +50,19 @@ public class CachedConnectionPoolTest extends ConnectionPoolTest {
             // the test
             connections.release(concourse);
         }
+    }
+    
+    @Override
+    protected ConnectionPool getConnectionPool() {
+        return ConnectionPool.newCachedConnectionPool(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD);
+    }
+
+
+    @Override
+    protected ConnectionPool getConnectionPool(String env) {
+        return ConnectionPool.newCachedConnectionPool(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, env);
     }
 
 }
