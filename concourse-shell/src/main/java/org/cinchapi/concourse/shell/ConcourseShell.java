@@ -133,7 +133,7 @@ public final class ConcourseShell {
                 binding.setVariable("date", STRING_TO_TIME);
                 binding.setVariable("time", STRING_TO_TIME);
                 binding.setVariable("where", WHERE);
-                binding.setVariable("tag", STRING_TO_CATCHPHRASE);
+                binding.setVariable("tag", STRING_TO_TAG);
                 if(line.equalsIgnoreCase("exit")) {
                     concourse.exit();
                     System.exit(0);
@@ -319,7 +319,7 @@ public final class ConcourseShell {
     /**
      * A closure that converts a string value to a tag.
      */
-    private static Closure<Tag> STRING_TO_CATCHPHRASE = new Closure<Tag>(null) {
+    private static Closure<Tag> STRING_TO_TAG = new Closure<Tag>(null) {
 
         private static final long serialVersionUID = 1L;
 
