@@ -4,16 +4,16 @@
 * Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server instance. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
 	* using the new `Concourse#connect(host, port, username, password, namespace)` or `Concourse#connect(namespace)` login methods,
 	* adding `environment = <name>` to the `concourse_client.prefs` file and using the `Concourse#connect()` or ``Concourse#connect(host, port, username, password)` login methods, or
-	* specifying an environment name using the `-e` flag when launching CaSH like: 
-		
+	* specifying an environment name using the `-e` flag when launching CaSH like:
+
 			$ ./cash -e production
-		
+
 * Added support for specifying environments using the `-e` flag to applicable server-side management CLIs (i.e. `dumptool`) and the `import` CLI.
 * Added support for specifying environments with the `ConnectionPool` API.
-* Improved the CaSH prompt to display the current environment like: 
+* Improved the CaSH prompt to display the current environment like:
 
 		production/cash$
-			
+
 * Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups. This is particular helpful when programming in an IDE that offers code completion.
 * Added a method to the `Convert` utility class to transform a JSON formatted string into a multimapping of keys to appropriate Java primitives.
 * Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
@@ -34,6 +34,7 @@
 		concourse.find("foo", Operator.LINKS_TO, 1);
 		concourse.find("foo", Operator.EQUALS, Links.to(1));
 * Added logic to terminate a CaSH session if a relevant security change occurs.
+* Added a new `Tag` datatype for the purpose of storing a string value without performing full text search indexing. A `Tag` can be created programatically using the `Tag#create` method and in CaSH using the `tag()` alias.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
