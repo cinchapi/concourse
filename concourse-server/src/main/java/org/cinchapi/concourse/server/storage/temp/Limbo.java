@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.storage.temp;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.server.model.Text;
@@ -193,8 +195,16 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
-        return browse(record, timestamp,
-                Maps.<String, Set<TObject>> newLinkedHashMap());
+        Map<String, Set<TObject>> context = Maps
+                .newTreeMap(new Comparator<String>() {
+
+                    @Override
+                    public int compare(String s1, String s2) {
+                        return s1.compareToIgnoreCase(s2);
+                    }
+                    
+                });
+        return browse(record, timestamp, context);
     }
 
     /**
@@ -233,7 +243,9 @@ public abstract class Limbo extends BaseStore implements
                 continue;
             }
         }
-        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(
+                (SortedMap<String, Set<TObject>>) Maps.filterValues(
+                        context, emptySetFilter));
     }
 
     @Override
@@ -259,12 +271,6 @@ public abstract class Limbo extends BaseStore implements
      */
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        if(!(context instanceof SortedMap)) {
-            Map<TObject, Set<Long>> sorted = Maps
-                    .newTreeMap(TObjectSorter.INSTANCE);
-            sorted.putAll(context);
-            context = sorted;
-        }
         Iterator<Write> it = iterator();
         while (it.hasNext()) {
             Write write = it.next();
@@ -289,7 +295,9 @@ public abstract class Limbo extends BaseStore implements
                 continue;
             }
         }
-        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter));
+        return Maps.newTreeMap(
+                (SortedMap<TObject, Set<Long>>) Maps.filterValues(
+                        context, emptySetFilter));
     }
 
     /**

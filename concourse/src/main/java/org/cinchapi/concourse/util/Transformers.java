@@ -24,12 +24,14 @@
 package org.cinchapi.concourse.util;
 
 import java.lang.reflect.Array;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -85,7 +87,7 @@ public final class Transformers {
     }
 
     /**
-     * Transform they keys in {@code original} with the {@code keys} function
+     * Transform the keys in {@code original} with the {@code keys} function
      * and each of the values with the {@code values} function and return the
      * result.
      * <p>
@@ -128,6 +130,33 @@ public final class Transformers {
         Set<V> transformed = Sets.newLinkedHashSet();
         for (F item : original) {
             transformed.add(function.apply(item));
+        }
+        return transformed;
+    }
+    
+    /**
+     * Transform the keys in {@code original} with the {@code keys} function
+     * and each of the values with the {@code values} function and return the
+     * map result that is sorted according to the {@code sorter}.
+     * <p>
+     * <strong>WARNING:</strong> There is the potential for data loss in the
+     * event that {@code function} returns duplicate transformed results for
+     * items in {@code original}.
+     * </p>
+     * 
+     * @param original
+     * @param keys
+     * @param values
+     * @param sorter
+     * @return the transformed TreeMap
+     */
+    public static <K, K2, V, V2> Map<K2, Set<V2>> transformTreeMapSet(
+            Map<K, Set<V>> original, Function<? super K,? extends K2> keys,
+            Function<? super V, ? extends V2> values, final Comparator<K2> sorter) {
+        Map<K2, Set<V2>> transformed = Maps.newTreeMap(sorter);
+        for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
+            transformed.put(keys.apply(entry.getKey()),
+                    transformSet(entry.getValue(), values));
         }
         return transformed;
     }

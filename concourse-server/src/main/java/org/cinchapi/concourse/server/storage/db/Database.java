@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
 import org.cinchapi.concourse.server.model.PrimaryKey;
+import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
@@ -256,30 +258,46 @@ public final class Database extends BaseStore implements
 
     @Override
     public Map<String, Set<TObject>> browse(long record) {
-        return Transformers.transformMapSet(
+        return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT);
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                new Comparator<String>() {
+
+                    @Override
+                    public int compare(String s1, String s2) {
+                        return s1.compareToIgnoreCase(s2);
+                    }
+                    
+                });
     }
 
     @Override
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
-        return Transformers.transformMapSet(
+        return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT);
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                new Comparator<String>() {
+
+                    @Override
+                    public int compare(String s1, String s2) {
+                        return s1.compareToIgnoreCase(s2);
+                    }
+                    
+                });
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return Transformers.transformMapSet(getSecondaryRecord(Text.wrap(key))
+        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
                 .browse(), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG);
+                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        return Transformers.transformMapSet(getSecondaryRecord(Text.wrap(key))
+        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
                 .browse(timestamp), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG);
+                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
     }
 
     /**
