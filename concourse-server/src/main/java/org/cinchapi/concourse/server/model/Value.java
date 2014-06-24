@@ -304,7 +304,7 @@ public final class Value implements Byteable, Comparable<Value> {
                     return 1;
                 }
                 else {
-                    return o1.toString().compareTo(o2.toString());
+                    return o1.toString().compareToIgnoreCase(o2.toString());
                 }
             }
 
