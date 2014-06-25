@@ -458,6 +458,34 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
 
     }
+    
+    @Test
+    public void testBrowseRecordIsSorted() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+        Map<String, Set<TObject>> result = Variables.register("data",
+                store.browse(record));
+        String previous = null;
+        for (String current : result.keySet()) {
+            if(previous != null) {
+                Variables.register("previous", previous);
+                Variables.register("current", current);
+                Assert.assertTrue(previous.compareToIgnoreCase(current)
+                        < 0);
+            }
+            previous = current;
+        }
+    }
 
     @Test
     public void testBrowseRecordWithTime() {
