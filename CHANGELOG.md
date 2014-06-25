@@ -35,6 +35,7 @@
 		concourse.find("foo", Operator.EQUALS, Links.to(1));
 * Added logic to terminate a CaSH session if a relevant security change occurs.
 * Added a new `Tag` datatype for the purpose of storing a string value without performing full text search indexing. A `Tag` can be created programatically using the `Tag#create` method and in CaSH using the `tag()` alias.
+* Fixed an issue that prevented strings from being sorted in a case insensitive manner.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
