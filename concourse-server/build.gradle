@@ -11,6 +11,10 @@ dependencies {
     	exclude group: 'org.cinchapi'
     }
     compile fileTree(dir: 'wrapperlib', include: 'wrapper.jar')
+    compile ('org.reflections:reflections:0.9.9-RC2'){
+    	exclude group: 'org.javassist', module:'javassist'
+    }
+    compile 'org.javassist:javassist:3.18.2-GA'
     
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
