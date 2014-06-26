@@ -117,7 +117,7 @@ public final class Logger {
                 .getILoggerFactory();
         // Configure Pattern
         PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-        encoder.setPattern("%date [%thread] %level %class{36} - %msg%n");
+        encoder.setPattern("%date [%thread] %level - %msg%n");
         encoder.setContext(context);
         encoder.start();
 
