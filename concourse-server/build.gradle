@@ -4,10 +4,10 @@ dependencies {
     compile 'com.google.guava:guava:15.0'
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
-    compile ('org.cinchapi:concourse-import:1.0.2'){
+    compile ('org.cinchapi:concourse-import:1.1.0'){
     	exclude group: 'org.cinchapi'
     }
-    compile ('org.cinchapi:concourse-cli:1.0.3'){
+    compile ('org.cinchapi:concourse-cli:1.1.0'){
     	exclude group: 'org.cinchapi'
     }
     compile fileTree(dir: 'wrapperlib', include: 'wrapper.jar')
