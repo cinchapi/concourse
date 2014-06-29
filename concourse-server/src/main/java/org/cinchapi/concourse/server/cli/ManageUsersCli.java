@@ -120,7 +120,7 @@ public class ManageUsersCli extends ManagedOperationCli {
                 }
             }
             else {
-                die("Action not found.\nTry `./useradmin --help` for more information.");
+                parser.usage();
             }
         }
         catch (Exception e) {
