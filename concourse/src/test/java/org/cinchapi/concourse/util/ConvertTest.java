@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.junit.Assert;
 import org.junit.Test;
@@ -302,6 +303,16 @@ public class ConvertTest {
                 .stringToResolvableLinkSpecification(key, value));
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, Convert.stringToJava(value));
+    }
+    
+    @Test
+    public void testConvertTag() {
+        String string = Random.getString();
+        while (string.contains("`")) {
+            string = Random.getString();
+        }
+        String value = MessageFormat.format("{0}{1}{0}", "`", string);
+        Assert.assertTrue(Convert.stringToJava(value) instanceof Tag);
     }
     
     @Test
