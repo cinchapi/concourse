@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='{{ generator }}'>
+  <title>{{ title }}</title>
+  {{{ stylesheet_tags }}}
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    {{#section_heads}}
+    <a href="#{{id}}">{{text}}</a>
+    {{/section_heads}}
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>{{ page_name }}</li>
+    <li class='tc'>{{ manual }}</li>
+    <li class='tr'>{{ page_name }}</li>
+  </ol>
+
+  {{{ html }}}
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'>{{ organization }}</li>
+    <li class='tc'>{{ date }}</li>
+    <li class='tr'>{{ page_name }}</li>
+  </ol>
+
+  </div>
+</body>
+</html>
