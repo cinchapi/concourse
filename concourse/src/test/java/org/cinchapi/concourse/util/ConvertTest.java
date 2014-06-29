@@ -29,6 +29,7 @@ import static org.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_PRE
 import java.text.MessageFormat;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.junit.Assert;
@@ -93,6 +94,9 @@ public class ConvertTest {
     @Test
     public void testCannotConvertLinkFromStringValue() {
         String number = Random.getString();
+        while (StringUtils.isNumeric(number)) {
+            number = Random.getString();
+        }
         String value = MessageFormat
                 .format("{0}{1}{0}", "@", number.toString());
         Assert.assertFalse(Convert.stringToJava(value) instanceof Link);
