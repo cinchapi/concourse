@@ -1,0 +1,2 @@
+# To generate CaSH documentation, execute
+$ ronn/bin/ronn --man cash.ronn > ../src/main/resources/man

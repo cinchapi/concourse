@@ -1,0 +1,8 @@
+/man/*.html
+/pkg
+/test/*.wrong
+ronn.1
+ronn.5
+ronn.7
+ronn*.markdown
+ronn*.html

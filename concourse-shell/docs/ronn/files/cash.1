@@ -1,0 +1,92 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "CASH" "1" "December 2013" "" ""
+.
+.SH "NAME"
+cash \- Concourse Action SHell
+.
+.SH "DESCRIPTION"
+\fBCash\fR is an interpreter that executes commands against Concourse using the standard API\. Since \fBCash\fR is backed by the full power of the Groovy scripting language, it is possible to write powerful routines that read and write data on the fly\.
+.
+.SH "USAGE"
+\fBcommand\fR [arg1][, arg2][\.\.\.][, argN]
+.
+.SH "COMMANDS"
+\fBconcourse\.add\fR key, value, record \-> \fIboolean\fR
+.
+.P
+Add \fIkey\fR (string) AS \fIvalue\fR (object) TO \fIrecord\fR (long) if it does not exist\.
+.
+.SH "DATETIME"
+Use the \fBdate\fR function to convert a valid English expression or a number of \fImicroseconds\fR since the unix epoch to a Timestamp object\.
+.
+.IP "" 4
+.
+.nf
+
+concourse\.verify key, value, record, date("expression")
+.
+.fi
+.
+.IP "" 0
+.
+.P
+\fIRecognized Expressions\fR
+.
+.IP "\(bu" 4
+4:49
+.
+.IP "\(bu" 4
+4:49:30
+.
+.IP "\(bu" 4
+4:49:30\.2
+.
+.IP "\(bu" 4
+yesterday
+.
+.IP "\(bu" 4
+yesterday {time}
+.
+.IP "\(bu" 4
+last week
+.
+.IP "\(bu" 4
+last month
+.
+.IP "\(bu" 4
+last year
+.
+.IP "\(bu" 4
+October 26, 1981 or Oct 26, 1981
+.
+.IP "\(bu" 4
+October 26 or Oct 26
+.
+.IP "\(bu" 4
+26 October 1981
+.
+.IP "\(bu" 4
+26 Oct 1981
+.
+.IP "\(bu" 4
+26 Oct 81
+.
+.IP "\(bu" 4
+10/26/1981 or 10\-26\-1981
+.
+.IP "\(bu" 4
+10/26/81 or 10\-26\-81
+.
+.IP "\(bu" 4
+1981/10/26 or 1981\-10\-26
+.
+.IP "\(bu" 4
+10/26 or 10\-26
+.
+.IP "\(bu" 4
+{any explicit date} {time}
+.
+.IP "" 0
+
