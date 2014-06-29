@@ -248,6 +248,8 @@ public final class Convert {
      * <li><strong>Double</strong> - the value is converted to a double if and
      * only if it is a decimal number that is immediately followed by a single
      * capital "D" (e.g. 3.14D)</li>
+     * <li><strong>Tag</strong> - the value is converted to a Tag if it starts
+     * and ends with matching (`) quotes</li>
      * <li><strong>Integer, Long, Float</strong> - the value is converted to a
      * non double number depending upon whether it is a standard integer (e.g.
      * less than {@value Integer#MAX_VALUE}), a long, or a floating point
@@ -288,6 +290,9 @@ public final class Convert {
                                                        // of string in order to
                                                        // force a double
             return Double.valueOf(value.substring(0, value.length() - 1));
+        }
+        else if(value.matches("`([^`]+)`")) {
+            return Tag.create(value.replace("`", ""));
         }
         else {
             Class<?>[] classes = { Integer.class, Long.class, Float.class,
