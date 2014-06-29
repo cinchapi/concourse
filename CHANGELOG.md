@@ -1,8 +1,10 @@
 ## Changelog
 
 #### Version 0.4.0 (TBD)
+
+##### Environments
 * Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server instance. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
-	* using the new `Concourse#connect(host, port, username, password, namespace)` or `Concourse#connect(namespace)` login methods,
+	* using the new `Concourse#connect(host, port, username, password, environment)` or `Concourse#connect(environment)` login methods,
 	* adding `environment = <name>` to the `concourse_client.prefs` file and using the `Concourse#connect()` or ``Concourse#connect(host, port, username, password)` login methods, or
 	* specifying an environment name using the `-e` flag when launching CaSH like:
 
@@ -14,30 +16,38 @@
 
 		production/cash$
 
+##### API
+
 * Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups. This is particular helpful when programming in an IDE that offers code completion.
 * Added a method to the `Convert` utility class to transform a JSON formatted string into a multimapping of keys to appropriate Java primitives.
-* Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
-* Added the optional installation of the `concourse` and `cash` scripts to the `$PATH` via `/usr/local/bin` during installation or upgrade so that they can be invoked from any location.
-* Added the optional symlinking of the server log files to `/var/log/concourse` during installation or upgrade.
-* Improved the CPU efficiency of the background indexing process.
 * Added new core API methods:
 	* `browse` returns a complete view of all the data presently or historically associated with a either a *record* or a *key*.
 	* `chronologize` returns a chronological series of all the values for a *key* in a *record* over time.
 	* `clear` now has an option to atomically remove all the data contained in an entire record.
 	* `find` now has an option to process a complex `Criteria` using a single network call.
 	* `insert` writes serveral key/value mappings from a JSON encoded string into one or more records with a single network call.
-* Improved the usability of the `useradmin` CLI and deprecated the `--grant` and `--revoke` options.
-* Added requirement that new passwords be 3 or more characters long.
-* Improved the `dumptool` CLI to list dumpable storage units by default if no `-i` or `--id` argument is specified. As a result the `--list` flag is now deprecated since it is unnecessary.
 * Added `LINKS_TO` Operator (aliased as `lnk2` in CaSH) to make it easy to include links in find criteria. For example, the following statements are equivalent:
 
 		concourse.find("foo", Operator.LINKS_TO, 1);
 		concourse.find("foo", Operator.EQUALS, Links.to(1));
-* Added logic to terminate a CaSH session if a relevant security change occurs.
 * Added a new `Tag` datatype for the purpose of storing a string value without performing full text search indexing. A `Tag` can be created programatically using the `Tag#create` method and in CaSH using the `tag()` alias.
-* Fixed an issue that prevented strings from being sorted in a case insensitive manner.
+
+##### Usability
+* Improved the usability of the `useradmin` CLI and deprecated the `--grant` and `--revoke` options.
+* Added requirement that new passwords be 3 or more characters long.
+* Improved the `dumptool` CLI to list dumpable storage units by default if no `-i` or `--id` argument is specified. As a result the `--list` flag is now deprecated since it is unnecessary.
+* Added logic to terminate a CaSH session if a relevant security change occurs.
 * Improved readability of log files by removing redundant information from log messages.
+* Added the optional installation of the `concourse` and `cash` scripts to the `$PATH` via `/usr/local/bin` during installation or upgrade so that they can be invoked from any location.
+* Added the optional symlinking of the server log files to `/var/log/concourse` during installation or upgrade.
+
+##### Bug Fixes
+* Fixed an issue that prevented strings from being sorted in a case insensitive manner.
+
+##### Miscellaneous
 * Added a framework to securely migrate stored data to new formats when upgrading Concourse Server.
+* Improved the CPU efficiency of the background indexing process.
+* Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
