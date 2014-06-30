@@ -21,23 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.testsuite;
+package org.cinchapi.concourse.bugrepro;
 
-import org.cinchapi.concourse.bugrepro.CON108;
-import org.cinchapi.concourse.bugrepro.CON52;
-import org.cinchapi.concourse.bugrepro.CON55;
-import org.cinchapi.concourse.bugrepro.CON72;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Set;
+
+import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.Timestamp;
+import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.thrift.Operator;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
- * 
+ * Unit test that attempts to reproduce the issue described in CON-108.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ CON52.class, CON55.class, CON72.class, CON108.class })
-public class BugReproSuite {
+public class CON108 extends ConcourseIntegrationTest {
+
+    @Test
+    public void repro() {
+        client.add("name", "Jeff", 1);
+        Set<Long> expected = Sets.newHashSet(1L);
+        Timestamp ts = Timestamp.now();
+        client.remove("name", "Jeff", 1);
+        Assert.assertEquals(
+                expected,
+                client.find(Criteria.where().key("name")
+                        .operator(Operator.EQUALS).value("Jeff").at(ts)));
+    }
 
 }

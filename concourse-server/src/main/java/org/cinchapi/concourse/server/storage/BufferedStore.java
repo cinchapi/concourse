@@ -191,7 +191,7 @@ public abstract class BufferedStore extends BaseStore {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
         Set<Long> records = destination.find(timestamp, key, operator, values);
         for (long record : records) {
-            context.put(record, destination.fetch(key, record));
+            context.put(record, destination.fetch(key, record, timestamp));
         }
         return buffer.find(context, timestamp, key, operator, values);
     }
