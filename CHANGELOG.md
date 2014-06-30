@@ -3,7 +3,7 @@
 #### Version 0.4.0 (TBD)
 
 ##### Environments
-* Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server instance. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
+* Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
 	* using the new `Concourse#connect(host, port, username, password, environment)` or `Concourse#connect(environment)` login methods,
 	* adding `environment = <name>` to the `concourse_client.prefs` file and using the `Concourse#connect()` or ``Concourse#connect(host, port, username, password)` login methods, or
 	* specifying an environment name using the `-e` flag when launching CaSH like:
@@ -18,7 +18,7 @@
 
 ##### API
 
-* Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups. This is particular helpful when programming in an IDE that offers code completion.
+* Added a `Criteria` building feature that allows users to programatically create complex queries with multiple clauses and groups. This is particularly helpful when programming in an IDE that offers code completion.
 * Added a method to the `Convert` utility class to transform a JSON formatted string into a multimapping of keys to appropriate Java primitives.
 * Added new core API methods:
 	* `browse` returns a complete view of all the data presently or historically associated with a either a *record* or a *key*.
@@ -48,12 +48,14 @@
 * Added a framework to securely migrate stored data to new formats when upgrading Concourse Server.
 * Improved the CPU efficiency of the background indexing process.
 * Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
+* Updated CaSH documentation.
 
 #### Version 0.3.6 (TBD)
 * Fixed a bug that caused string values to be sorted inconsitently.
 * Fixed an infinite loop that caused Concourse Server to stack overflow when used with JRE 8.
 * Fixed an issue where the stock `concourse.prefs` documentation referred to the default `buffer_page_size` as 8MB when its actually 8KB.
 * Changed the daemon Concourse Server process name to display as `ConcourseServer` instead of `WrapperSimpleApp`.
+* Updated the `concourse-config` dependency to version 1.0.5 which fixes and issue that caused passwords to be incorrecctly read from `concourse_client.prefs` files.
 
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
