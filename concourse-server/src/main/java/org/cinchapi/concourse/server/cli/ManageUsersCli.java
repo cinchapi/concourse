@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.cli;
 
-import java.util.Arrays;
-
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 
 import com.beust.jcommander.Parameter;
@@ -71,16 +69,8 @@ public class ManageUsersCli extends ManagedOperationCli {
                 byte[] username = console.readLine("").getBytes();
                 System.out.println("What is the new password for this user?");
                 byte[] password = console.readLine('*').getBytes();
-                System.out.println("Re-enter password");
-                byte[] reEnteredPassword = console.readLine('*').getBytes();
-                if (Arrays.equals(password, reEnteredPassword)) {
-                    bean.grant(username, password);
-                    System.out.println("Consider it done.");
-                }
-                else {
-                    throw new SecurityException("Not the same password. This" +
-                    		" user has not been added or modified.");
-                }
+                bean.grant(username, password);
+                System.out.println("Consider it done.");
             }
             else if(opts.revoke) {
                 System.out
@@ -102,9 +92,10 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + opts.addingUsername + " : ", '*');
                     String reEnteredPassword = console.readLine(
                             "Re-enter password : ", '*');
-                    if (!opts.newPassword.equals(reEnteredPassword)) {
-                        throw new SecurityException("Not the same password. This" +
-                                " user has not been added.");
+                    if(!opts.newPassword.equals(reEnteredPassword)) {
+                        throw new SecurityException(
+                                "Not the same password. This"
+                                        + " user has not been added.");
                     }
                 }
                 bean.grant(opts.addingUsername.getBytes(),
@@ -122,10 +113,11 @@ public class ManageUsersCli extends ManagedOperationCli {
                             + opts.editingUsername + " : ", '*');
                     String reEnteredPassword = console.readLine(
                             "Re-enter password : ", '*');
-                    if (!opts.newPassword.equals(reEnteredPassword)) {
-                        throw new SecurityException("Not the same password. This" +
-                                " user has not been edited.");
-                    }     
+                    if(!opts.newPassword.equals(reEnteredPassword)) {
+                        throw new SecurityException(
+                                "Not the same password. This"
+                                        + " user has not been edited.");
+                    }
                 }
                 bean.grant(opts.editingUsername.getBytes(),
                         opts.newPassword.getBytes());
