@@ -1357,25 +1357,52 @@ public abstract class StoreTest extends ConcourseBaseTest {
             tagRecord = Variables.register("tagRecord", TestData.getLong());
         }
         add(key, Convert.javaToThrift(value), tagRecord);
-        Assert.assertTrue(store.search(key, value.toString()).isEmpty());
+        Assert.assertFalse(store.search(key, value.toString()).contains(tagRecord));
+    }
+    
+    @Test
+    public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSetReproCON_129() {
+        String key = "yy2mf7yveeprn5u1znljub dmld8r2w";
+        Tag value = Tag.create("1");
+        Long tagRecord = -2641333647249146582L;
+        add(key, Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"), 285009080280006567L);
+        add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"), -7352212869558049531L);
+        add(key, Convert.javaToThrift(false), 388620935878197713L);
+        add(key, Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"), 1548639509905032340L);
+        add(key, Convert.javaToThrift("e ysho"), -765676142204325002L);
+        add(key, Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"), 2679248400003802470L);
+        add(key, Convert.javaToThrift("s4i0ite7fep"), -2412570382637653495L);
+        add(key, Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"), -1087503013401908104L);
+        add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"), -9186255645112595336L);
+        add(key, Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"), 8074263650552255137L);
+        add(key, Convert.javaToThrift(false), -1122802924122720425L);
+        add(key, Convert.javaToThrift(0.6491074), 8257322177342234041L);
+        add(key, Convert.javaToThrift(false), 2670863628024031952L);
+        add(key, Convert.javaToThrift(0.7184745217075929), 6804414020539721485L);
+        add(key, Convert.javaToThrift(value), tagRecord);
+        Set<Long> searchResult = store.search(key, value.toString());
+        Variables.register("searchResult", searchResult);
+        Assert.assertFalse(searchResult.isEmpty()); // "1" does get indexed
+                                                    // from other values
     }
 
     @Test
     public void testSearchSubstringThatRecordWithValueAsTagIsNotIncludedInResultSet() {
         String key = TestData.getString();
         String value = null;
+        Long tagRecord = TestData.getLong();
         while (value == null || value.length() == 0) {
             value = TestData.getString();
         }
-        add(key, Convert.javaToThrift(Tag.create(value)), 1);
+        add(key, Convert.javaToThrift(Tag.create(value)), tagRecord);
         Integer startIndex = null;
         Integer endIndex = null;
         while (startIndex == null || endIndex == null || startIndex >= endIndex) {
             startIndex = Math.abs(TestData.getInt()) % value.length();
             endIndex = Math.abs(TestData.getInt()) % value.length() + 1;
         }
-        Assert.assertTrue(store.search(key,
-                value.substring(startIndex, endIndex)).isEmpty());
+        Assert.assertFalse(store.search(key,
+                value.substring(startIndex, endIndex)).contains(tagRecord));
     }
 
     @Test
