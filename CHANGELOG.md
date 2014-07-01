@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.4.0 (TBD)
+#### Version 0.4.0 (June 30, 2014)
 
 ##### Environments
 * Added support for multiple environments, which allows users to store data for different purposes (i.e. staging vs production) separately while managing them with the same Concourse Server. Users are automatically connected to a configurable `default_environment` (concourse.prefs) if none is specified at login. Alternatively, users can connect to or dynamically create a new environment by
@@ -51,7 +51,7 @@
 * Changed the startup script to use `.concourse.conf` instead of `concourse.conf` for configuration.
 * Updated CaSH documentation.
 
-#### Version 0.3.6 (TBD)
+#### Version 0.3.6 (June 30, 2014)
 * Fixed a bug that caused string values to be sorted inconsitently.
 * Fixed an infinite loop that caused Concourse Server to stack overflow when used with JRE 8.
 * Fixed an issue where the stock `concourse.prefs` documentation referred to the default `buffer_page_size` as 8MB when its actually 8KB.
