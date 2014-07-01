@@ -458,7 +458,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
 
     }
-    
+
     @Test
     public void testBrowseRecordIsSorted() {
         Multimap<String, TObject> data = Variables.register("data",
@@ -480,8 +480,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             if(previous != null) {
                 Variables.register("previous", previous);
                 Variables.register("current", current);
-                Assert.assertTrue(previous.compareToIgnoreCase(current)
-                        < 0);
+                Assert.assertTrue(previous.compareToIgnoreCase(current) < 0);
             }
             previous = current;
         }
@@ -522,7 +521,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 || GlobalState.STOPWORDS.contains(value.toString()
                         .toUpperCase())
                 || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase()) || Strings.isNullOrEmpty(TStrings.stripStopWords(value.toString()))) {
+                        .toLowerCase())
+                || Strings.isNullOrEmpty(TStrings.stripStopWords(value
+                        .toString()))) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
