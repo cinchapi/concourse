@@ -43,6 +43,7 @@
 
 ##### Bug Fixes
 * Fixed an issue that prevented strings from being sorted in a case insensitive manner.
+* Fixed a bug that causes some historical queries to return incorrect results.
 
 ##### Miscellaneous
 * Added a framework to securely migrate stored data to new formats when upgrading Concourse Server.
