@@ -522,7 +522,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 || GlobalState.STOPWORDS.contains(value.toString()
                         .toUpperCase())
                 || GlobalState.STOPWORDS.contains(value.toString()
-                        .toLowerCase())) {
+                        .toLowerCase()) || Strings.isNullOrEmpty(TStrings.stripStopWords(value.toString()))) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
