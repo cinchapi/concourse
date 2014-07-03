@@ -3,7 +3,7 @@
 #### Version 0.5.0 (TBD)
 
 #### Version 0.4.1 (TBD)
-* Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in improved performance.
+* Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
 
 #### Version 0.3.7 (TBD)
 
