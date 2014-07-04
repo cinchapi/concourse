@@ -180,32 +180,32 @@ public abstract class BufferedStoreTest extends StoreTest {
         doTestFindBuffered(data, d, operator);
     }
 
-//    @Test
-//    @Theory
-//    public void testFindBufferedReproA(Operator operator) {
-//        String order = "ADD A AS five IN 5, ADD C AS three "
-//                + "IN 3, ADD D AS four IN 4, ADD B AS four IN "
-//                + "7, ADD A AS three IN 6, ADD B AS two IN 2, "
-//                + "ADD A AS nine IN 2, REMOVE B AS two IN 2, ADD "
-//                + "C AS seven IN 7, REMOVE A AS five IN 5, ADD "
-//                + "C AS one IN 4, REMOVE D AS four IN 4, ADD A "
-//                + "AS one IN 1, REMOVE A AS nine IN 2, ADD D AS "
-//                + "eight IN 1, ADD B AS six IN 6, REMOVE C AS one "
-//                + "IN 4, ADD D AS two IN 5, REMOVE A AS one IN 1, "
-//                + "ADD B AS ten IN 3, REMOVE B AS ten IN 3, REMOVE "
-//                + "C AS seven IN 7, REMOVE D AS eight IN 1, REMOVE C "
-//                + "AS three IN 3, REMOVE B AS six IN 6";
-//        String[] parts = order.split(",");
-//        List<Data> data = Lists.newArrayList();
-//        for(String part : parts){
-//            part = part.trim();
-//            data.add(Data.fromString(part));
-//        }
-//        Data d = Data.fromString("REMOVE A AS one IN 1");
-//        Variables.register("operator", operator);
-//        insertData(data);
-//        doTestFindBuffered(data, d, operator);
-//    }
+    @Test
+    @Theory
+    public void testFindBufferedReproA(Operator operator) {
+        String order = "ADD A AS five IN 5, ADD C AS three "
+                + "IN 3, ADD D AS four IN 4, ADD B AS four IN "
+                + "7, ADD A AS three IN 6, ADD B AS two IN 2, "
+                + "ADD A AS nine IN 2, REMOVE B AS two IN 2, ADD "
+                + "C AS seven IN 7, REMOVE A AS five IN 5, ADD "
+                + "C AS one IN 4, REMOVE D AS four IN 4, ADD A "
+                + "AS one IN 1, REMOVE A AS nine IN 2, ADD D AS "
+                + "eight IN 1, ADD B AS six IN 6, REMOVE C AS one "
+                + "IN 4, ADD D AS two IN 5, REMOVE A AS one IN 1, "
+                + "ADD B AS ten IN 3, REMOVE B AS ten IN 3, REMOVE "
+                + "C AS seven IN 7, REMOVE D AS eight IN 1, REMOVE C "
+                + "AS three IN 3, REMOVE B AS six IN 6";
+        String[] parts = order.split(",");
+        List<Data> data = Lists.newArrayList();
+        for(String part : parts){
+            part = part.trim();
+            data.add(Data.fromString(part));
+        }
+        Data d = Data.fromString("REMOVE A AS one IN 1");
+        Variables.register("operator", operator);
+        insertData(data);
+        doTestFindBuffered(data, d, operator);
+    }
 
     @Test
     public void testVerifyBuffered() {
