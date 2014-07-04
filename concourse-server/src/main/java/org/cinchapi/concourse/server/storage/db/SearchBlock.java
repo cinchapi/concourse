@@ -27,6 +27,7 @@ import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -95,8 +96,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
      * @param version
      * @param type
      */
-    public final void insert(Text key, Value value,
-            PrimaryKey record, long version, Action type) {
+    public final void insert(Text key, Value value, PrimaryKey record,
+            long version, Action type) {
         Preconditions.checkState(mutable,
                 "Cannot modify a block that is not mutable");
         if(value.getType() == Type.STRING) {
@@ -112,9 +113,12 @@ final class SearchBlock extends Block<Text, Text, Position> {
                 pos++;
             }
             executor.shutdown();
-            while (!executor.isTerminated()) {
-                continue; // block until all tasks have completed
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
+                                                                                 // wait
+                                                                                 // forever...
             }
+            catch (InterruptedException e) {/* noop */}
         }
     }
 
