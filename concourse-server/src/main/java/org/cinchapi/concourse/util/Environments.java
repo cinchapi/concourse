@@ -47,7 +47,7 @@ public final class Environments {
      */
     public static String sanitize(String env) {
         env = Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
-        env = env.replaceAll("[^A-Za-z0-9]", ""); // ConcourseServer checks to
+        env = env.replaceAll("[^A-Za-z0-9_]", ""); // ConcourseServer checks to
                                                   // make sure sanitizing the
                                                   // default environment won't
                                                   // turn it into the empty

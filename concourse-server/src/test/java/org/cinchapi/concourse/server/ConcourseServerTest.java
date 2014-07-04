@@ -82,5 +82,12 @@ public class ConcourseServerTest extends ConcourseBaseTest {
         Assert.assertEquals("9blah3foo1", Environments.sanitize(""));
         GlobalState.DEFAULT_ENVIRONMENT = oldDefault;
     }
+    
+    @Test
+    public void testFindEnvKeepsUnderScore() {
+    	String env = "$_%&test_@envir==--onment*_*";
+    	Assert.assertEquals("_test_environment_", 
+    			Environments.sanitize(env));
+    }
 
 }
