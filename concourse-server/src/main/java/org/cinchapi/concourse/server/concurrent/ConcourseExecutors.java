@@ -27,6 +27,7 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.util.Logger;
@@ -121,9 +122,12 @@ public final class ConcourseExecutors {
             executor.execute(command);
         }
         executor.shutdown();
-        while (!executor.isTerminated()) {
-            continue; // block until all tasks have completed
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
+                                                                             // wait
+                                                                             // forever...
         }
+        catch (InterruptedException e) {/* noop */}
     }
 
     private ConcourseExecutors() {/* utility-class */}
