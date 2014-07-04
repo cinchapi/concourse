@@ -189,21 +189,9 @@ public abstract class BufferedStore extends BaseStore {
     public Set<Long> doFind(long timestamp, String key, Operator operator,
             TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
-        Map<TObject, Set<Long>> data = destination.browse(key, timestamp);
         Set<Long> records = destination.find(timestamp, key, operator, values);
-        for (TObject object : data.keySet()) {
-            for (long record : data.get(object)) {
-                if(records.contains(record)) {
-                    if(!context.containsKey(record)) {
-                        Set<TObject> objects = Sets.newHashSet();
-                        context.put(record, objects);
-                        objects.add(object);
-                    }
-                    else {
-                        context.get(record).add(object);
-                    }
-                }
-            }
+        for (long record : records) {
+            context.put(record, destination.fetch(key, record, timestamp));
         }
         return buffer.find(context, timestamp, key, operator, values);
     }
@@ -211,21 +199,9 @@ public abstract class BufferedStore extends BaseStore {
     @Override
     public Set<Long> doFind(String key, Operator operator, TObject... values) {
         Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
-        Map<TObject, Set<Long>> data = destination.browse(key);
         Set<Long> records = destination.find(key, operator, values);
-        for (TObject object : data.keySet()) {
-            for (long record : data.get(object)) {
-                if(records.contains(record)) {
-                    if(!context.containsKey(record)) {
-                        Set<TObject> objects = Sets.newHashSet();
-                        context.put(record, objects);
-                        objects.add(object);
-                    }
-                    else {
-                        context.get(record).add(object);
-                    }
-                }
-            }
+        for (long record : records) {
+            context.put(record, destination.fetch(key, record));
         }
         return buffer.find(context, Time.now(), key, operator, values);
     }
