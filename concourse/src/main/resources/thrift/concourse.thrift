@@ -200,6 +200,15 @@ service ConcourseService {
 		throws (1: shared.TSecurityException ex);
 
 	/**
+	 * Atomically verify {@code key} as {@code value} in {@code record} and set
+	 * {@code key} to {@code value} if it is not set.
+ 	 */
+	bool verifyOrSet(1: string key, 2: data.TObject value, 3: i64 record,
+		4: shared.AccessToken creds, 5: shared.TransactionToken token,
+		 6: string environment)
+		throws (1: shared.TSecurityException ex);
+
+	/**
 	 * Return the release version of the server.
 	 */
 	string getServerVersion() throws (1: shared.TSecurityException ex);

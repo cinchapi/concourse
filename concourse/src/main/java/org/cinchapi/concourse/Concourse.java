@@ -1037,6 +1037,16 @@ public abstract class Concourse {
      */
     public abstract boolean verifyAndSwap(String key, Object expected,
             long record, Object replacement);
+    
+    /**
+     * Atomically verify {@code key} equal {@code value} in {@code record};
+     * or map the the {@code expected} to the {@code key}
+     * 
+     * @param key
+     * @param value
+     * @param record 
+     */
+    public abstract boolean verifyOrSet(String key, Object value, long record);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -2129,6 +2139,19 @@ public abstract class Concourse {
                 }
 
             });
+        }
+        
+        @Override
+        public boolean verifyOrSet(final String key, final Object value, final long record){
+        	return execute(new Callable<Boolean>(){
+        		
+        		@Override
+        		public Boolean call() throws Exception{
+        			return client.verifyOrSet(key, 
+        					Convert.javaToThrift(value),
+        					record, creds,transaction, environment);
+        		}
+        	});
         }
 
         /**
