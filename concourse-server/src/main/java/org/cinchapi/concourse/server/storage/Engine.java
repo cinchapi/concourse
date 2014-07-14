@@ -644,6 +644,7 @@ public final class Engine extends BufferedStore implements
     public void stop() {
         if(running) {
             running = false;
+            bufferTransportThread.interrupt();
             scheduler.cancel();
             buffer.stop();
             destination.stop();
@@ -730,6 +731,11 @@ public final class Engine extends BufferedStore implements
                                     + "it has been inactive for at least {} milliseconds",
                             BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS);
                     buffer.waitUntilTransportable();
+                    if(Thread.interrupted()) { // the thread has been
+                                               // interrupted from the Engine
+                                               // stopping
+                        break;
+                    }
                 }
                 doTransport();
                 try {

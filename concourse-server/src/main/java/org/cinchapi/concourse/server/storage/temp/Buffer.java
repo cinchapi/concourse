@@ -646,6 +646,10 @@ public final class Buffer extends Limbo {
     public void stop() {
         if(running) {
             running = false;
+            synchronized (transportable) {
+                transportable.notifyAll(); // notify to allow any waiting
+                                           // threads to terminate
+            }
         }
     }
 
@@ -1059,24 +1063,23 @@ public final class Buffer extends Limbo {
         public boolean mightContain(Write write) {
             Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
             try {
-                Type valueType = write.getValue().getType();  
-                if (filter.mightContain(write.getRecord(), write.getKey(),
+                Type valueType = write.getValue().getType();
+                if(filter.mightContain(write.getRecord(), write.getKey(),
                         write.getValue())) {
                     return true;
                 }
-                else if (valueType == Type.STRING) {
-                     return filter.mightContain(
-                          write.getRecord(), write.getKey(),
-                          Value.wrap(Convert.javaToThrift(Tag
-                                  .create((String) write.getValue()
-                                          .getObject()))));
-                } 
-                else if (valueType == Type.TAG) {
+                else if(valueType == Type.STRING) {
+                    return filter.mightContain(write.getRecord(), write
+                            .getKey(), Value.wrap(Convert.javaToThrift(Tag
+                            .create((String) write.getValue().getObject()))));
+                }
+                else if(valueType == Type.TAG) {
                     return filter.mightContain(
-                          write.getRecord(), write.getKey(),
-                          Value.wrap(Convert.javaToThrift(write
-                                  .getValue().getObject().toString())));
-                } 
+                            write.getRecord(),
+                            write.getKey(),
+                            Value.wrap(Convert.javaToThrift(write.getValue()
+                                    .getObject().toString())));
+                }
                 else {
                     return false;
                 }
