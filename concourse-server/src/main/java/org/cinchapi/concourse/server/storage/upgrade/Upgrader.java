@@ -32,7 +32,9 @@ import com.google.common.collect.Sets;
 import static org.cinchapi.concourse.server.storage.upgrade.UpgradeTask.getCurrentSchemaVersion;
 
 /**
- * 
+ * The {@link Upgrader} is responsible for running the latest upgrade tasks on
+ * the storage directories. This script is typically called when a user upgrades
+ * ConcourseServer from one version to the next.
  * 
  * @author jnelson
  */
@@ -42,8 +44,17 @@ public class Upgrader {
         Reflections.log = null; // turn off logging
     }
 
+    /**
+     * The package that contains all upgrade tasks.
+     */
     private static final String[] pkgs = { "org.cinchapi.concourse.server.storage.upgrade.task" };
 
+    /**
+     * Run the program...
+     * 
+     * @param args
+     * @throws ReflectiveOperationException
+     */
     public static void main(String... args) throws ReflectiveOperationException {
         // Temporarily turn on console logging so the user can see the log
         // messages while the upgrades happen. Although we revert the setting

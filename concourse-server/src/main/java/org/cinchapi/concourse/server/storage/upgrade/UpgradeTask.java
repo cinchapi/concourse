@@ -36,8 +36,8 @@ import org.cinchapi.concourse.util.Logger;
  * An {@link UpgradeTask} performs an operation that "upgrades" previously
  * stored data. All tasks that are defined in the
  * {@code org.cinchapi.concourse.server.storage.upgrade.task} package and are
- * higher than the current version are automatically run by the {@link Upgrader}
- * whenever the user upgrades the ConcourseServer.
+ * higher than the current schema version are automatically run by the
+ * {@link Upgrader} whenever the user upgrades the ConcourseServer.
  * 
  * @author jnelson
  */
