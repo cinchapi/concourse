@@ -644,9 +644,9 @@ public final class Engine extends BufferedStore implements
     public void stop() {
         if(running) {
             running = false;
-            bufferTransportThread.interrupt();
             scheduler.cancel();
             buffer.stop();
+            bufferTransportThread.interrupt();
             destination.stop();
         }
     }
