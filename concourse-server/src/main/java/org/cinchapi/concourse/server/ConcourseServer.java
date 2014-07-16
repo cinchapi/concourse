@@ -681,6 +681,23 @@ public class ConcourseServer implements
             return false;
         }
     }
+    
+    @Override
+    public boolean verifyOrSet(String key, TObject value, long record,
+    		AccessToken creds, TransactionToken transaction, 
+    		String env) throws TException {
+    	checkAccess(creds, transaction);
+    	AtomicOperation operation = AtomicOperation.start(getStore(transaction,
+                env));
+    	try {
+    		return ((!operation.verify(key,value,record) && operation.add(key, value, record)) 
+    				? operation.commit() : false);
+    	}
+    	catch (AtomicStateException e){
+    		return false;
+    	}
+    }
+    
 
     /**
      * Check to make sure that {@code creds} and {@code transaction} are valid
