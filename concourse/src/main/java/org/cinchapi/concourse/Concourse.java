@@ -1039,6 +1039,18 @@ public abstract class Concourse {
             long record, Object replacement);
 
     /**
+     * Atomically verify {@code key} equals {@code expected} in {@code record} or 
+     * Set {@code key} equals {@code expected} in {@code record}.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if verify and/or set is successful
+     */
+    public abstract boolean verifyOrSet(String key, Object value,
+            long record);    
+    
+    /**
      * The implementation of the {@link Concourse} interface that establishes a
      * connection with the remote server and handles communication. This class
      * is a more user friendly wrapper around a Thrift
@@ -2131,6 +2143,21 @@ public abstract class Concourse {
             });
         }
 
+        @Override
+        public boolean verifyOrSet(final String key, final Object value,
+                final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.verifyOrSet(key,
+                            Convert.javaToThrift(value), record,
+                            creds,transaction, environment);
+                }
+
+            });
+        }        
+        
         /**
          * Authenticate the {@link #username} and {@link #password} and populate
          * {@link #creds} with the appropriate AccessToken.

@@ -86,7 +86,7 @@ The `Operator` class defines the operators that can be used to build a query cri
 * [unlink](#unlink) - Remove a link from one record to another
 * [verify](#verify) - Verify that a value exists for a key in a record
 * [verifyAndSwap](#verifyandswap) - Atomically set a new value if the existing value matches
-
+* [verifyOrSet](#verifyorset) - Atomically set a value if the existing value is not present
 ---
 
 
@@ -845,5 +845,22 @@ Atomically verify *key* as *expected* in *record* and swap with *replacement*.
 ###### Example
 	int count = concourse.get("count", 1);
 	concourse.verifyAndSwap("count", count, 1, count++);
+
+---
+
+---
+### verifyOrSet
+##### `boolean verifyOrSet(String key, Object value, long record)`
+Atomically verify *key* as *value* in *record* or set *key* as *value* in *record*.
+###### Parameters
+* key
+* value
+* record
+
+###### Returns
+*true* if both the verification and swap are successful
+###### Example
+	int count = concourse.get("count", 1);
+	concourse.verifyOrSet("count", count, 1, count++);
 
 ---
