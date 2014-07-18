@@ -203,7 +203,7 @@ service ConcourseService {
 	 * Atomically verify {@code key} as {@code expected} in {@code record} or 
 	 * set {@code key} as {@code expected} in {@code record}.
  	 */
-	bool verifyOrSet(1: string key, 2: data.TObject value, 3: i64 record,
+	void verifyOrSet(1: string key, 2: data.TObject value, 3: i64 record,
 		4: shared.AccessToken creds, 7: shared.TransactionToken token, 
 		8: string environment)
 		throws (1: shared.TSecurityException ex);

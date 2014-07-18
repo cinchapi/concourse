@@ -1045,7 +1045,7 @@ public abstract class Concourse {
 	 * @param record
 	 * @return {@code true} if verify and/or set is successful
 	 */
-	public abstract boolean verifyOrSet(String key, Object value, long record);
+	public abstract void verifyOrSet(String key, Object value, long record);
 
 	/**
 	 * The implementation of the {@link Concourse} interface that establishes a
@@ -2133,14 +2133,15 @@ public abstract class Concourse {
 		}
 
 		@Override
-		public boolean verifyOrSet(final String key, final Object value,
+		public void verifyOrSet(final String key, final Object value,
 				final long record) {
-			return execute(new Callable<Boolean>() {
+			execute(new Callable<Void>() {
 
 				@Override
-				public Boolean call() throws Exception {
-					return client.verifyOrSet(key, Convert.javaToThrift(value),
+				public Void call() throws Exception {
+					client.verifyOrSet(key, Convert.javaToThrift(value),
 							record, creds, transaction, environment);
+					return null;
 				}
 
 			});
