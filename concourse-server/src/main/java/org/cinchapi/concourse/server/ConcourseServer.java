@@ -680,7 +680,7 @@ public class ConcourseServer implements ConcourseService.Iface,
 		AtomicOperation operation = null;
 
 		while (operation == null || !operation.commit()) {
-			operation = doverifyOrSet(key, value, record,
+			operation = doVerifyOrSet(key, value, record,
 					getStore(transaction, env));
 		}
 	}
@@ -860,7 +860,7 @@ public class ConcourseServer implements ConcourseService.Iface,
 	 * @param store
 	 * @return
 	 */
-	private AtomicOperation doverifyOrSet(String key, TObject value,
+	private AtomicOperation doVerifyOrSet(String key, TObject value,
 			long record, Compoundable store) {
 		AtomicOperation operation = AtomicOperation.start(store);
 		try {
