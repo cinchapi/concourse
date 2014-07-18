@@ -36,8 +36,8 @@ public class ConcourseService {
 
     /**
      * The RPC protocol that forms the basis of cross-language client/server
-     * communication in Concourse. This is considered a public API; however it
-     * is intended to be wrapped in a more expressive APIs in the target
+     * communication in Concourse. This is considered a public API; however
+     * it is intended to be wrapped in a more expressive APIs in the target
      * implementation language.
      */
     public interface Iface {
@@ -69,11 +69,14 @@ public class ConcourseService {
 
         /**
          * Turn on {@code staging} mode so that all subsequent changes are
-         * collected in a staging area before possibly being committed to the
-         * database. Staged operations are guaranteed to be reliable, all or
-         * nothing units of work that allow correct recovery from failures and
-         * provide isolation between clients so the database is always in a
-         * consistent state.
+         * collected
+         * in a staging area before possibly being committed to the database.
+         * Staged
+         * operations are guaranteed to be reliable, all or nothing units of
+         * work that
+         * allow correct recovery from failures and provide isolation between
+         * clients
+         * so the database is always in a consistent state.
          * <p>
          * After this method returns, all subsequent operations will be done in
          * {@code staging} mode until either {@link #abort(AccessToken)} or
@@ -110,10 +113,11 @@ public class ConcourseService {
 
         /**
          * Attempt to permanently commit all the changes that are currently
-         * sitting in the staging area to the database. This function only
-         * returns {@code true} if all the changes can be successfully applied
-         * to the database. Otherwise, this function returns {@code false} and
-         * all the changes are aborted.
+         * sitting in
+         * the staging area to the database. This function only returns
+         * {@code true} if all the changes can be successfully applied to the
+         * database. Otherwise,
+         * this function returns {@code false} and all the changes are aborted.
          * <p>
          * After this function returns, all subsequent operations will commit to
          * the database immediately until {@link #stage(AccessToken)} is
@@ -172,8 +176,8 @@ public class ConcourseService {
 
         /**
          * Audit {@code record} or {@code key} in {@code record}. This method
-         * returns a map from timestamp to a string describing the revision that
-         * occurred.
+         * returns a
+         * map from timestamp to a string describing the revision that occurred.
          * 
          * @param record
          * @param key
@@ -190,9 +194,10 @@ public class ConcourseService {
 
         /**
          * Chronologize non-empty sets of values in {@code key} from
-         * {@code record}. This method returns a chronological mapping from each
-         * timestamp to the set of values that were contained for the key in
-         * record.
+         * {@code record}.
+         * This method returns a chronological mapping from each timestamp to
+         * the set
+         * of values that were contained for the key in record.
          * 
          * @param record
          * @param key
@@ -210,7 +215,8 @@ public class ConcourseService {
 
         /**
          * Describe {@code record} at {@code timestamp}. This method returns
-         * keys for fields in {@code record} that contain at least one value at
+         * keys for
+         * fields in {@code record} that contain at least one value at
          * {@code timestamp}.
          * 
          * @param record
@@ -228,8 +234,9 @@ public class ConcourseService {
 
         /**
          * Fetch {@code key} from {@code record} at {@code timestamp}. This
-         * method returns the values that exist in the field mapped from
-         * {@code key} at {@code timestamp}.
+         * method returns
+         * the values that exist in the field mapped from {@code key} at
+         * {@code timestamp}.
          * 
          * @param key
          * @param record
@@ -248,7 +255,8 @@ public class ConcourseService {
 
         /**
          * Find {@code key} {@code operator} {@code values} at {@code timestamp}
-         * . This method returns the records that match the criteria at
+         * . This
+         * method returns the records that match the criteria at
          * {@code timestamp}.
          * 
          * @param key
@@ -287,7 +295,8 @@ public class ConcourseService {
 
         /**
          * Ping {@code record}. This method returns {@code true} if
-         * {@code record} has at least one populated field.
+         * {@code record} has at
+         * least one populated field.
          * 
          * @param record
          * @param creds
@@ -303,8 +312,8 @@ public class ConcourseService {
 
         /**
          * Search {@code key} for {@code query}. This method returns the records
-         * that have a value matching {@code query} in the field mapped from
-         * {@code key}.
+         * that have
+         * a value matching {@code query} in the field mapped from {@code key}.
          * 
          * @param key
          * @param query
@@ -321,8 +330,9 @@ public class ConcourseService {
 
         /**
          * Verify {@code key} as {@code value} in {@code record} at
-         * {@code timestamp}. This method returns {@code true} if the field
-         * contains {@code value} at {@code timestamp}.
+         * {@code timestamp}. This
+         * method returns {@code true} if the field contains {@code value} at
+         * {@code timestamp}.
          * 
          * @param key
          * @param value
@@ -360,7 +370,8 @@ public class ConcourseService {
 
         /**
          * Atomically clear {@code key} in {@code record} by removing every
-         * value that currently exists.
+         * value that
+         * currently exists.
          * 
          * @param key
          * @param record
@@ -377,7 +388,8 @@ public class ConcourseService {
 
         /**
          * Atomically set {@code key} as {@code value} in {@code record} by
-         * removing any values that currently exist and adding {@code value}.
+         * removing any
+         * values that currently exist and adding {@code value}.
          * 
          * @param key
          * @param value
@@ -396,7 +408,8 @@ public class ConcourseService {
 
         /**
          * Atomically verify {@code key} as {@code expected} in {@code record}
-         * and swap with {@code replacement} if it exists.
+         * and swap
+         * with {@code replacement} if it exists.
          * 
          * @param key
          * @param expected
@@ -417,7 +430,8 @@ public class ConcourseService {
 
         /**
          * Atomically verify {@code key} as {@code expected} in {@code record}
-         * and set {@code key} as {@code expected} in {@code record} if not set.
+         * or
+         * set {@code key} as {@code expected} in {@code record}.
          * 
          * @param key
          * @param value
@@ -426,7 +440,7 @@ public class ConcourseService {
          * @param token
          * @param environment
          */
-        public boolean verifyOrSet(String key,
+        public void verifyOrSet(String key,
                 org.cinchapi.concourse.thrift.TObject value, long record,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken token,
@@ -443,7 +457,8 @@ public class ConcourseService {
 
         /**
          * Atomically add the key-value mappings defined in the {@code json}
-         * formatted string to {@code record}.
+         * formatted
+         * string to {@code record}.
          * 
          * @param json
          * @param record
@@ -477,7 +492,8 @@ public class ConcourseService {
 
         /**
          * Return an ordered mapping from each value associated with {@code key}
-         * to the set of records which contain the value.
+         * to the
+         * set of records which contain the value.
          * 
          * @param key
          * @param timestamp
@@ -495,7 +511,8 @@ public class ConcourseService {
 
         /**
          * Atomically clear all the keys in {@code record} by removing every
-         * value that currently exists for each key.
+         * value that
+         * currently exists for each key.
          * 
          * @param record
          * @param creds
@@ -1553,7 +1570,7 @@ public class ConcourseService {
                     "verifyAndSwap failed: unknown result");
         }
 
-        public boolean verifyOrSet(String key,
+        public void verifyOrSet(String key,
                 org.cinchapi.concourse.thrift.TObject value, long record,
                 org.cinchapi.concourse.thrift.AccessToken creds,
                 org.cinchapi.concourse.thrift.TransactionToken token,
@@ -1561,7 +1578,7 @@ public class ConcourseService {
                 throws org.cinchapi.concourse.thrift.TSecurityException,
                 org.apache.thrift.TException {
             send_verifyOrSet(key, value, record, creds, token, environment);
-            return recv_verifyOrSet();
+            recv_verifyOrSet();
         }
 
         public void send_verifyOrSet(String key,
@@ -1579,20 +1596,15 @@ public class ConcourseService {
             sendBase("verifyOrSet", args);
         }
 
-        public boolean recv_verifyOrSet()
+        public void recv_verifyOrSet()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
                 org.apache.thrift.TException {
             verifyOrSet_result result = new verifyOrSet_result();
             receiveBase(result, "verifyOrSet");
-            if(result.isSetSuccess()) {
-                return result.success;
-            }
             if(result.ex != null) {
                 throw result.ex;
             }
-            throw new org.apache.thrift.TApplicationException(
-                    org.apache.thrift.TApplicationException.MISSING_RESULT,
-                    "verifyOrSet failed: unknown result");
+            return;
         }
 
         public String getServerVersion()
@@ -3324,7 +3336,7 @@ public class ConcourseService {
                 prot.writeMessageEnd();
             }
 
-            public boolean getResult()
+            public void getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
@@ -3334,7 +3346,7 @@ public class ConcourseService {
                         getFrameBuffer().array());
                 org.apache.thrift.protocol.TProtocol prot = client
                         .getProtocolFactory().getProtocol(memoryTransport);
-                return (new Client(prot)).recv_verifyOrSet();
+                (new Client(prot)).recv_verifyOrSet();
             }
         }
 
@@ -4369,10 +4381,8 @@ public class ConcourseService {
                     throws org.apache.thrift.TException {
                 verifyOrSet_result result = new verifyOrSet_result();
                 try {
-                    result.success = iface.verifyOrSet(args.key, args.value,
-                            args.record, args.creds, args.token,
-                            args.environment);
-                    result.setSuccessIsSet(true);
+                    iface.verifyOrSet(args.key, args.value, args.record,
+                            args.creds, args.token, args.environment);
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
@@ -4615,7 +4625,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -5261,7 +5272,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -5788,7 +5800,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -6307,7 +6320,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -6716,7 +6730,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -7239,7 +7254,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -7775,7 +7791,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -8411,7 +8428,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -8828,7 +8846,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -9470,7 +9489,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -10016,7 +10036,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -10988,7 +11009,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -11534,7 +11556,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -12509,7 +12532,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -13049,7 +13073,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -13906,7 +13931,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -14520,7 +14546,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -15382,7 +15409,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -16051,7 +16079,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -16905,7 +16934,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -17506,7 +17536,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -18466,7 +18497,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -19087,7 +19119,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -20240,7 +20273,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -20829,7 +20863,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -21588,7 +21623,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -22177,7 +22213,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -22927,7 +22964,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -23467,7 +23505,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -24324,7 +24363,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -24931,7 +24971,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -26010,7 +26051,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -26555,7 +26597,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -27511,7 +27554,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -27939,7 +27983,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -28791,7 +28836,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -29225,7 +29271,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -30194,7 +30241,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -30636,7 +30684,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -31734,7 +31783,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -32284,7 +32334,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -33216,8 +33267,6 @@ public class ConcourseService {
         private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
                 "verifyOrSet_result");
 
-        private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField(
-                "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
 
@@ -33229,7 +33278,6 @@ public class ConcourseService {
                     new verifyOrSet_resultTupleSchemeFactory());
         }
 
-        public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
 
         /**
@@ -33237,7 +33285,7 @@ public class ConcourseService {
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            EX((short) 1, "ex");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -33253,8 +33301,6 @@ public class ConcourseService {
              */
             public static _Fields findByThriftId(int fieldId) {
                 switch (fieldId) {
-                case 0: // SUCCESS
-                    return SUCCESS;
                 case 1: // EX
                     return EX;
                 default:
@@ -33264,7 +33310,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -33300,17 +33347,10 @@ public class ConcourseService {
         }
 
         // isset id assignments
-        private static final int __SUCCESS_ISSET_ID = 0;
-        private byte __isset_bitfield = 0;
         public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
         static {
             Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                     _Fields.class);
-            tmpMap.put(_Fields.SUCCESS,
-                    new org.apache.thrift.meta_data.FieldMetaData("success",
-                            org.apache.thrift.TFieldRequirementType.DEFAULT,
-                            new org.apache.thrift.meta_data.FieldValueMetaData(
-                                    org.apache.thrift.protocol.TType.BOOL)));
             tmpMap.put(_Fields.EX,
                     new org.apache.thrift.meta_data.FieldMetaData("ex",
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
@@ -33323,11 +33363,9 @@ public class ConcourseService {
 
         public verifyOrSet_result() {}
 
-        public verifyOrSet_result(boolean success,
+        public verifyOrSet_result(
                 org.cinchapi.concourse.thrift.TSecurityException ex) {
             this();
-            this.success = success;
-            setSuccessIsSet(true);
             this.ex = ex;
         }
 
@@ -33335,8 +33373,6 @@ public class ConcourseService {
          * Performs a deep copy on <i>other</i>.
          */
         public verifyOrSet_result(verifyOrSet_result other) {
-            __isset_bitfield = other.__isset_bitfield;
-            this.success = other.success;
             if(other.isSetEx()) {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
@@ -33349,37 +33385,7 @@ public class ConcourseService {
 
         @Override
         public void clear() {
-            setSuccessIsSet(false);
-            this.success = false;
             this.ex = null;
-        }
-
-        public boolean isSuccess() {
-            return this.success;
-        }
-
-        public verifyOrSet_result setSuccess(boolean success) {
-            this.success = success;
-            setSuccessIsSet(true);
-            return this;
-        }
-
-        public void unsetSuccess() {
-            __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield,
-                    __SUCCESS_ISSET_ID);
-        }
-
-        /**
-         * Returns true if field success is set (has been assigned a value) and
-         * false otherwise
-         */
-        public boolean isSetSuccess() {
-            return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-        }
-
-        public void setSuccessIsSet(boolean value) {
-            __isset_bitfield = EncodingUtils.setBit(__isset_bitfield,
-                    __SUCCESS_ISSET_ID, value);
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException getEx() {
@@ -33412,15 +33418,6 @@ public class ConcourseService {
 
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
-            case SUCCESS:
-                if(value == null) {
-                    unsetSuccess();
-                }
-                else {
-                    setSuccess((Boolean) value);
-                }
-                break;
-
             case EX:
                 if(value == null) {
                     unsetEx();
@@ -33435,9 +33432,6 @@ public class ConcourseService {
 
         public Object getFieldValue(_Fields field) {
             switch (field) {
-            case SUCCESS:
-                return Boolean.valueOf(isSuccess());
-
             case EX:
                 return getEx();
 
@@ -33455,8 +33449,6 @@ public class ConcourseService {
             }
 
             switch (field) {
-            case SUCCESS:
-                return isSetSuccess();
             case EX:
                 return isSetEx();
             }
@@ -33475,15 +33467,6 @@ public class ConcourseService {
         public boolean equals(verifyOrSet_result that) {
             if(that == null)
                 return false;
-
-            boolean this_present_success = true;
-            boolean that_present_success = true;
-            if(this_present_success || that_present_success) {
-                if(!(this_present_success && that_present_success))
-                    return false;
-                if(this.success != that.success)
-                    return false;
-            }
 
             boolean this_present_ex = true && this.isSetEx();
             boolean that_present_ex = true && that.isSetEx();
@@ -33511,18 +33494,6 @@ public class ConcourseService {
             int lastComparison = 0;
             verifyOrSet_result typedOther = (verifyOrSet_result) other;
 
-            lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(
-                    typedOther.isSetSuccess());
-            if(lastComparison != 0) {
-                return lastComparison;
-            }
-            if(isSetSuccess()) {
-                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
-                        this.success, typedOther.success);
-                if(lastComparison != 0) {
-                    return lastComparison;
-                }
-            }
             lastComparison = Boolean.valueOf(isSetEx()).compareTo(
                     typedOther.isSetEx());
             if(lastComparison != 0) {
@@ -33557,11 +33528,6 @@ public class ConcourseService {
             StringBuilder sb = new StringBuilder("verifyOrSet_result(");
             boolean first = true;
 
-            sb.append("success:");
-            sb.append(this.success);
-            first = false;
-            if(!first)
-                sb.append(", ");
             sb.append("ex:");
             if(this.ex == null) {
                 sb.append("null");
@@ -33593,10 +33559,6 @@ public class ConcourseService {
         private void readObject(java.io.ObjectInputStream in)
                 throws java.io.IOException, ClassNotFoundException {
             try {
-                // it doesn't seem like you should have to do this, but java
-                // serialization is wacky, and doesn't call the default
-                // constructor.
-                __isset_bitfield = 0;
                 read(new org.apache.thrift.protocol.TCompactProtocol(
                         new org.apache.thrift.transport.TIOStreamTransport(in)));
             }
@@ -33626,16 +33588,6 @@ public class ConcourseService {
                         break;
                     }
                     switch (schemeField.id) {
-                    case 0: // SUCCESS
-                        if(schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                            struct.success = iprot.readBool();
-                            struct.setSuccessIsSet(true);
-                        }
-                        else {
-                            org.apache.thrift.protocol.TProtocolUtil.skip(
-                                    iprot, schemeField.type);
-                        }
-                        break;
                     case 1: // EX
                         if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                             struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
@@ -33666,11 +33618,6 @@ public class ConcourseService {
                 struct.validate();
 
                 oprot.writeStructBegin(STRUCT_DESC);
-                if(struct.isSetSuccess()) {
-                    oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-                    oprot.writeBool(struct.success);
-                    oprot.writeFieldEnd();
-                }
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
@@ -33698,16 +33645,10 @@ public class ConcourseService {
                     throws org.apache.thrift.TException {
                 TTupleProtocol oprot = (TTupleProtocol) prot;
                 BitSet optionals = new BitSet();
-                if(struct.isSetSuccess()) {
+                if(struct.isSetEx()) {
                     optionals.set(0);
                 }
-                if(struct.isSetEx()) {
-                    optionals.set(1);
-                }
-                oprot.writeBitSet(optionals, 2);
-                if(struct.isSetSuccess()) {
-                    oprot.writeBool(struct.success);
-                }
+                oprot.writeBitSet(optionals, 1);
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
@@ -33718,12 +33659,8 @@ public class ConcourseService {
                     verifyOrSet_result struct)
                     throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(1);
                 if(incoming.get(0)) {
-                    struct.success = iprot.readBool();
-                    struct.setSuccessIsSet(true);
-                }
-                if(incoming.get(1)) {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
@@ -33776,7 +33713,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -34070,7 +34008,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -34610,7 +34549,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -35468,7 +35408,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -36007,7 +35948,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -36861,7 +36803,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -37524,7 +37467,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -38383,7 +38327,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -39038,7 +38983,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -39784,7 +39730,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -40201,7 +40148,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);
@@ -40848,7 +40796,8 @@ public class ConcourseService {
 
             /**
              * Find the _Fields constant that matches fieldId, throwing an
-             * exception if it is not found.
+             * exception
+             * if it is not found.
              */
             public static _Fields findByThriftIdOrThrow(int fieldId) {
                 _Fields fields = findByThriftId(fieldId);

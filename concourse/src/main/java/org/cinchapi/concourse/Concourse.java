@@ -1037,15 +1037,36 @@ public abstract class Concourse {
             long record, Object replacement);
 
     /**
-     * Atomically verify {@code key} equals {@code expected} in {@code record}
-     * or Set {@code key} equals {@code expected} in {@code record}.
+     * Atomically verify that {@code key} equals {@code expected} in
+     * {@code record} or set it as such.
+     * <p>
+     * Please note that after returning, this method guarantees that {@code key}
+     * in {@code record} will only contain {@code value}, even if {@code value}
+     * already existed alongside other values [e.g. calling verifyOrSet("foo",
+     * "bar", 1) will mean that "foo" in 1 only has "bar" as a value after
+     * returning, even if "foo" in 1 already had "bar", "baz", and "apple" as
+     * values].
+     * </p>
+     * <p>
+     * <em>So, basically, this function has the same guarantee as the
+     * {@link #set(String, Object, long)} method, except it will not create any
+     * new revisions unless it is necessary to do so.</em> The {@code set}
+     * method, on the other hand, would indiscriminately clears all the values
+     * for {@code key} in {@code record} before adding {@code value}, even in
+     * {@code value} already existed.
+     * </p>
+     * <p>
+     * If you want to add a new value if it does not exist while also preserving
+     * other values, you should use the {@link #add(String, Object, long)}
+     * method instead.
+     * </p>
      * 
      * @param key
      * @param value
      * @param record
      * @return {@code true} if verify and/or set is successful
      */
-    public abstract boolean verifyOrSet(String key, Object value, long record);
+    public abstract void verifyOrSet(String key, Object value, long record);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -2137,14 +2158,15 @@ public abstract class Concourse {
         }
 
         @Override
-        public boolean verifyOrSet(final String key, final Object value,
+        public void verifyOrSet(final String key, final Object value,
                 final long record) {
-            return execute(new Callable<Boolean>() {
+            execute(new Callable<Void>() {
 
                 @Override
-                public Boolean call() throws Exception {
-                    return client.verifyOrSet(key, Convert.javaToThrift(value),
+                public Void call() throws Exception {
+                    client.verifyOrSet(key, Convert.javaToThrift(value),
                             record, creds, transaction, environment);
+                    return null;
                 }
 
             });

@@ -220,8 +220,8 @@ public class ConcourseServer implements
     private final TServer server;
 
     /**
-     * A mapping from env to the corresponding Engine that controls all
-     * the logic for data storage and retrieval.
+     * A mapping from env to the corresponding Engine that controls all the
+     * logic for data storage and retrieval.
      */
     private final Map<String, Engine> engines;
 
@@ -683,19 +683,14 @@ public class ConcourseServer implements
     }
 
     @Override
-    public boolean verifyOrSet(String key, TObject value, long record,
+    public void verifyOrSet(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
-                env));
-        try {
-            return (operation.verify(key, value, record) ? true : (operation
-                    .add(key, value, record) ? operation.commit() : false));
-
-        }
-        catch (AtomicStateException e) {
-            return false;
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            operation = doVerifyOrSet(key, value, record,
+                    getStore(transaction, env));
         }
     }
 
@@ -872,6 +867,38 @@ public class ConcourseServer implements
     }
 
     /**
+     * Start an {@link AtomicOperation} with {@code store} as the destination
+     * and do the work to verify {@code key} as {@code value} in {@code record}
+     * and set {@code key} as {@code value} in {@code record} if not set.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param store
+     * @return
+     */
+    private AtomicOperation doVerifyOrSet(String key, TObject value,
+            long record, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        try {
+            Set<TObject> values = operation.fetch(key, record);
+            for (TObject val : values) {
+                if(!val.equals(value)) {
+                    operation.remove(key, val, record);
+                }
+            }
+            if(!operation.verify(key, value, record)) {
+                operation.add(key, value, record);
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+
+    }
+
+    /**
      * Return the {@link Engine} that is associated with the
      * {@link Default#ENVIRONMENT}.
      * 
@@ -882,9 +909,8 @@ public class ConcourseServer implements
     }
 
     /**
-     * Return the {@link Engine} that is associated with {@code env}. If
-     * such an Engine does not exist, create a new one and add it to the
-     * collection.
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
      * 
      * @param env
      * @return the Engine
@@ -976,5 +1002,4 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
-
 }
