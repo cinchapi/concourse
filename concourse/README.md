@@ -850,7 +850,7 @@ Atomically verify *key* as *expected* in *record* and swap with *replacement*.
 ---
 	
 ### verifyOrSet
-##### `boolean verifyOrSet(String key, Object value, long record)`
+##### `void verifyOrSet(String key, Object value, long record)`
 Atomically verify *key* as *value* in *record* or set *key* as *value* in *record*.
 ###### Parameters
 * key
