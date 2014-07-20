@@ -1,6 +1,7 @@
 ## Changelog
 
 #### Version 0.5.0 (TBD)
+* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 
 #### Version 0.4.1 (TBD)
 * Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
