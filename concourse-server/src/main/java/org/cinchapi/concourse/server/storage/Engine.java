@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
@@ -711,7 +712,7 @@ public final class Engine extends BufferedStore implements
          * Construct a new instance.
          */
         public BufferTransportThread() {
-            super("BufferTransport");
+            super(MessageFormat.format("BufferTransport [{0}]", environment));
             setDaemon(true);
         }
 
