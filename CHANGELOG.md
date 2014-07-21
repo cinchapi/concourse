@@ -7,7 +7,7 @@
 * Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
 * Fixed a bug that accidentally stripped underscore *_* characters from environment names.
 * Further improved the CPU efficiency of the background indexing processes.
-* Fixed a bug that made it possible for Concourse Server to experience thread leaks.
+* Fixed a bug that made it possible for Concourse Server to experience thread leaks. 
 
 #### Version 0.3.7 (TBD)
 
