@@ -321,7 +321,31 @@ public class ConcourseServer implements
             return false;
         }
     }
-
+    
+    @Override
+    public long add1(String key, TObject value, AccessToken creds, TransactionToken transaction,
+    		String env) throws TSecurityException{
+    	long record = 0 ;
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            record = Time.now();
+            operation = addToEmptyRecord(key, value, record, getStore(transaction, env));
+        }
+        return record;
+    }
+     
+    private  AtomicOperation addToEmptyRecord(String key, TObject value, long record, Compoundable store){
+    	 AtomicOperation operation = AtomicOperation.start(store);
+    	 if(operation.describe(record).isEmpty()){
+    		    operation.add(key, value, record);
+    		    return operation;
+    		}
+    		else {
+    		    return null;
+    		}
+    }
+    
     @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
             TransactionToken transaction, String env) throws TException {

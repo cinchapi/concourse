@@ -1,0 +1,18 @@
+package org.cinchapi.concourse;
+
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.cinchapi.concourse.util.TestData;
+
+public class AddTest extends ConcourseIntegrationTest{
+	
+
+	@Test
+	public void testAdd(){
+		long value = TestData.getLong();
+		long record = client.add("foo",value);
+		Assert.assertEquals(value, client.get("foo", record));
+	}
+
+}
