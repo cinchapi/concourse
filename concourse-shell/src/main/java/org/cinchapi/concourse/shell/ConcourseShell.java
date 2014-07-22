@@ -39,6 +39,7 @@ import groovy.lang.GroovyShell;
 
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
+import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
 
 import org.apache.thrift.transport.TTransportException;
@@ -78,6 +79,7 @@ public final class ConcourseShell {
     public static void main(String... args) throws IOException {
         ConsoleReader console = new ConsoleReader();
         console.setExpandEvents(false);
+        console.setHandleUserInterrupt(true);
         Options opts = new Options();
         JCommander parser = new JCommander(opts, args);
         parser.setProgramName("concourse-shell");
@@ -116,74 +118,84 @@ public final class ConcourseShell {
 
             final List<String> methods = Lists
                     .newArrayList(getAccessibleApiMethods());
-            String line;
-            while ((line = console.readLine().trim()) != null) {
-                line = SyntaxTools.handleShortSyntax(line, methods);
-                binding.setVariable("concourse", concourse);
-                binding.setVariable("eq", Operator.EQUALS);
-                binding.setVariable("ne", Operator.NOT_EQUALS);
-                binding.setVariable("gt", Operator.GREATER_THAN);
-                binding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
-                binding.setVariable("lt", Operator.LESS_THAN);
-                binding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
-                binding.setVariable("bw", Operator.BETWEEN);
-                binding.setVariable("regex", Operator.REGEX);
-                binding.setVariable("nregex", Operator.NOT_REGEX);
-                binding.setVariable("lnk2", Operator.LINKS_TO);
-                binding.setVariable("date", STRING_TO_TIME);
-                binding.setVariable("time", STRING_TO_TIME);
-                binding.setVariable("where", WHERE);
-                binding.setVariable("tag", STRING_TO_TAG);
-                if(line.equalsIgnoreCase("exit")) {
-                    concourse.exit();
-                    System.exit(0);
-                }
-                else if(line.equalsIgnoreCase("help")
-                        || line.equalsIgnoreCase("man")) {
-                    Process p = Runtime.getRuntime().exec(
-                            new String[] {
-                                    "sh",
-                                    "-c",
-                                    "echo \"" + HELP_TEXT
-                                            + "\" | less > /dev/tty" });
-                    p.waitFor();
-                }
-                else if(containsBannedCharSequence(line)) {
-                    System.err.println("Cannot complete command because "
-                            + "it contains an illegal character sequence.");
-                }
-                else {
-                    watch.reset().start();
-                    Object value = null;
-                    try {
-                        value = shell.evaluate(line, "ConcourseShell");
-                        watch.stop();
-                        if(value != null) {
-                            System.out.println("Returned '" + value + "' in "
-                                    + watch.elapsed(TimeUnit.MILLISECONDS)
-                                    + " ms");
-                        }
-                        else {
-                            System.out.println("Completed in "
-                                    + watch.elapsed(TimeUnit.MILLISECONDS)
-                                    + " ms");
-                        }
+            boolean running = true;
+            while (running) {
+                try {
+                    String line = console.readLine().trim();
+                    line = SyntaxTools.handleShortSyntax(line, methods);
+                    binding.setVariable("concourse", concourse);
+                    binding.setVariable("eq", Operator.EQUALS);
+                    binding.setVariable("ne", Operator.NOT_EQUALS);
+                    binding.setVariable("gt", Operator.GREATER_THAN);
+                    binding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
+                    binding.setVariable("lt", Operator.LESS_THAN);
+                    binding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
+                    binding.setVariable("bw", Operator.BETWEEN);
+                    binding.setVariable("regex", Operator.REGEX);
+                    binding.setVariable("nregex", Operator.NOT_REGEX);
+                    binding.setVariable("lnk2", Operator.LINKS_TO);
+                    binding.setVariable("date", STRING_TO_TIME);
+                    binding.setVariable("time", STRING_TO_TIME);
+                    binding.setVariable("where", WHERE);
+                    binding.setVariable("tag", STRING_TO_TAG);
+                    if(line.equalsIgnoreCase("exit")) {
+                        running = false;
+                        concourse.exit();
+                        System.exit(0);
                     }
-                    catch (Exception e) {
-                        if(e.getCause() instanceof TTransportException) {
-                            die(e.getMessage());
-                        }
-                        else if(e.getCause() instanceof TSecurityException) {
-                            die("A security change has occurred and your "
-                                    + "session cannot continue");
-                        }
-                        else {
-                            System.err.print("ERROR: " + e.getMessage());
-                        }
+                    else if(line.equalsIgnoreCase("help")
+                            || line.equalsIgnoreCase("man")) {
+                        Process p = Runtime.getRuntime().exec(
+                                new String[] {
+                                        "sh",
+                                        "-c",
+                                        "echo \"" + HELP_TEXT
+                                                + "\" | less > /dev/tty" });
+                        p.waitFor();
                     }
+                    else if(containsBannedCharSequence(line)) {
+                        System.err.println("Cannot complete command because "
+                                + "it contains an illegal character sequence.");
+                    }
+                    else {
+                        watch.reset().start();
+                        Object value = null;
+                        try {
+                            value = shell.evaluate(line, "ConcourseShell");
+                            watch.stop();
+                            if(value != null) {
+                                System.out.println("Returned '" + value
+                                        + "' in "
+                                        + watch.elapsed(TimeUnit.MILLISECONDS)
+                                        + " ms");
+                            }
+                            else {
+                                System.out.println("Completed in "
+                                        + watch.elapsed(TimeUnit.MILLISECONDS)
+                                        + " ms");
+                            }
+                        }
+                        catch (Exception e) {
+                            if(e.getCause() instanceof TTransportException) {
+                                die(e.getMessage());
+                            }
+                            else if(e.getCause() instanceof TSecurityException) {
+                                die("A security change has occurred and your "
+                                        + "session cannot continue");
+                            }
+                            else {
+                                System.err.print("ERROR: " + e.getMessage());
+                            }
+                        }
 
+                    }
+                    console.print("\n");
                 }
-                System.out.print("\n");
+                catch (UserInterruptException e) {
+                    console.println("Type EXIT to quit.");
+                    console.print("\n");
+                    continue;
+                }
             }
         }
         catch (Exception e) {
