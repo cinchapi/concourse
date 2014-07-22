@@ -41,4 +41,17 @@ public class CriteriaTest {
         criteria.add(KeySymbol.create("baz"));
     }
 
+    @Test
+    public void testNotNeccessaryToBuildSubCriteriaInGroup() {
+        Criteria.where()
+                .key("foo")
+                .operator(Operator.EQUALS)
+                .value("bar")
+                .or()
+                .group(Criteria.where().key("baz")
+                        .operator(Operator.GREATER_THAN).value(0).and()
+                        .key("name").operator(Operator.NOT_EQUALS)
+                        .value("John Doe")).build();
+    }
+
 }
