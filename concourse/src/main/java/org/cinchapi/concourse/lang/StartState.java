@@ -52,6 +52,25 @@ public class StartState extends State {
     }
 
     /**
+     * Add a sub {@code criteria} to the Criteria that is building. A sub
+     * criteria is one that is wrapped in parenthesis.
+     * 
+     * @param criteria
+     * @return the builder
+     */
+    // CON-131: account for cases when the caller forgets to "build" the
+    // sub criteria
+    public BuildableStartState group(Object criteria) {
+        if(criteria instanceof BuildableState) {
+            return group(((BuildableState) criteria).build());
+        }
+        else {
+            throw new IllegalArgumentException(criteria
+                    + " is not a valid argument for the group method");
+        }
+    }
+
+    /**
      * Add a {@code key} to the Criteria that is building.
      * 
      * @param key
