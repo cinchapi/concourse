@@ -119,9 +119,10 @@ public final class ConcourseShell {
             final List<String> methods = Lists
                     .newArrayList(getAccessibleApiMethods());
             boolean running = true;
+            String line = "";
             while (running) {
                 try {
-                    String line = console.readLine().trim();
+                    line = console.readLine().trim();
                     line = SyntaxTools.handleShortSyntax(line, methods);
                     binding.setVariable("concourse", concourse);
                     binding.setVariable("eq", Operator.EQUALS);
