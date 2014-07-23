@@ -193,8 +193,10 @@ public final class ConcourseShell {
                     console.print("\n");
                 }
                 catch (UserInterruptException e) {
-                    console.println("Type EXIT to quit.");
-                    console.print("\n");
+                    if(Strings.isNullOrEmpty(e.getPartialLine())) {
+                        console.println("Type EXIT to quit.");
+                        console.print("\n");
+                    }
                     continue;
                 }
             }
