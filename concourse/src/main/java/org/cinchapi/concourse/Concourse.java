@@ -56,7 +56,6 @@ import org.cinchapi.concourse.util.TLinkedTableMap;
 import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.TLinkedHashMap;
-import org.cinchapi.concourse.Concourse;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -215,14 +214,15 @@ public abstract class Concourse {
     public abstract <T> boolean add(String key, T value, long record);
     
     /**
-     * Add {@code key} as {@code value} to {@code record} if it is not already
-     * contained.
+     *Add {@code key} as {@code value} in a new record and return the primary key.
+	 *and for the @return part, you can say
      * 
      * @param key
      * @param value
-     * @return {@code long} if {@code value} is added
+     * @return the primary key of the record in which the data was added
      */
     public abstract <T> long add(String key, T value);
+    
     /**
      * Audit {@code record} and return a log of revisions.
      * 

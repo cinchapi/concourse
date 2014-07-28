@@ -5,6 +5,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.cinchapi.concourse.util.TestData;
 
+import com.google.common.collect.Iterables;
+
 public class AddTest extends ConcourseIntegrationTest{
 	
 
@@ -13,6 +15,7 @@ public class AddTest extends ConcourseIntegrationTest{
 		long value = TestData.getLong();
 		long record = client.add("foo",value);
 		Assert.assertEquals(value, client.get("foo", record));
+		Assert.assertEquals("foo", Iterables.getOnlyElement(client.describe(record)));
 	}
 
 }
