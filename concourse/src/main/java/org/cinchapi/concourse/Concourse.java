@@ -215,7 +215,6 @@ public abstract class Concourse {
     
     /**
      *Add {@code key} as {@code value} in a new record and return the primary key.
-	 *and for the @return part, you can say
      * 
      * @param key
      * @param value

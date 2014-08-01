@@ -321,6 +321,14 @@ public class ConcourseServer implements
             return false;
         }
     }
+    /**
+     * Take {@code key} and {@code value} and returns a unique record value
+     * @param key
+     * @param value
+     * @param creds
+     * @param transaction
+     * @param env
+     */
     
     @Override
     public long add1(String key, TObject value, AccessToken creds, TransactionToken transaction,
