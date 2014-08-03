@@ -51,8 +51,8 @@ public final class Bits {
      * 
      * @return the positioned bit
      */
-    public static byte get(byte pos, byte b) {
-        return (byte) ((b >> pos) & 1);
+    public static boolean get(byte pos, byte b) {
+        return ((b >> pos) & 1) == 0 ? false : true;
     }
 
     /**
@@ -64,7 +64,7 @@ public final class Bits {
      * @return {@code true} if the bit is on
      */
     public static boolean isOn(byte pos, byte b) {
-        return get(pos, b) == 1;
+        return get(pos, b);
     }
 
     private Bits() {/* noop */}
