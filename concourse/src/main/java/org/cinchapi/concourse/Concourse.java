@@ -211,7 +211,16 @@ public abstract class Concourse {
      * @return {@code true} if {@code value} is added
      */
     public abstract <T> boolean add(String key, T value, long record);
-
+    
+    /**
+     *Add {@code key} as {@code value} in a new record and return the primary key.
+     * 
+     * @param key
+     * @param value
+     * @return the primary key of the record in which the data was added
+     */
+    public abstract <T> long add(String key, T value);
+    
     /**
      * Audit {@code record} and return a log of revisions.
      * 
@@ -1286,7 +1295,27 @@ public abstract class Concourse {
             }
             return false;
         }
+        
+        public <T> long add(final String key, final T value){
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Long>() {
 
+                    @Override
+                    public Long call() throws Exception {
+                        return client.add1(key, Convert.javaToThrift(value), creds, transaction, environment);
+                    }
+
+                });
+            }
+            else{
+            	throw new IllegalArgumentException("Either your key is blank or value");
+            }
+            
+        }
+        
+        
         @Override
         public Map<Timestamp, String> audit(final long record) {
             return execute(new Callable<Map<Timestamp, String>>() {

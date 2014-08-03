@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.testsuite;
 
+import org.cinchapi.concourse.AddTest;
 import org.cinchapi.concourse.AtomicOperationWofkflowTest;
 import org.cinchapi.concourse.BrowseTest;
 import org.cinchapi.concourse.CachedConnectionPoolTest;
@@ -42,7 +43,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 /**
- * 
+ * A collection of integrations tests that deal with the client and server.
  * 
  * @author jnelson
  */
@@ -53,7 +54,7 @@ import org.junit.runners.Suite.SuiteClasses;
         FixedConnectionPoolTest.class, ChronologizeTest.class, ClearTest.class,
         ReferentialIntegrityTest.class, BrowseTest.class,
         SecurityExceptionTest.class, ThriftComplianceTest.class,
-        FindCriteriaTest.class, VerifyOrSetTest.class })
+        FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class })
 public class IntegrationTestSuite {
 
 }

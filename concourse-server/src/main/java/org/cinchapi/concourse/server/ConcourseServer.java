@@ -323,6 +323,20 @@ public class ConcourseServer implements
     }
 
     @Override
+    public long add1(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String env) throws TSecurityException {
+        long record = 0;
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            record = Time.now();
+            operation = addToEmptyRecord(key, value, record,
+                    getStore(transaction, env));
+        }
+        return record;
+    }
+
+    @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
@@ -691,6 +705,28 @@ public class ConcourseServer implements
         while (operation == null || !operation.commit()) {
             operation = doVerifyOrSet(key, value, record,
                     getStore(transaction, env));
+        }
+    }
+
+    /**
+     * Atomically add {@code key} as {@code value} to {@code record} as long as
+     * {@code record} is currently empty.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation addToEmptyRecord(String key, TObject value,
+            long record, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        if(operation.describe(record).isEmpty()) {
+            operation.add(key, value, record);
+            return operation;
+        }
+        else {
+            return null;
         }
     }
 
