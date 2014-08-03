@@ -23,48 +23,57 @@
  */
 package org.cinchapi.concourse.server.storage.cache;
 
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
-import org.cinchapi.concourse.server.io.MappedBitSet;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.TBitSet;
 
 import com.google.common.hash.Hashing;
 
 /**
- * A memory mapped implementation of a Bloom Filter, which is a space efficient
- * probabilistic data structure that is used to test whether an element is a
- * member of a set. False positive matches are possible, but false negatives are
- * not.
+ * A {@link LoggingBloomFilter} is one that uses append-only logging for
+ * serialization.
  * <p>
- * The memory mapped implementation is intended for cases where it is necessary
- * to have a persistent bloom filter that is consistently updated. The fact that
- * the bloom filter is memory mapped ensures that updates to the filter happen
- * in an efficient manner and are guaranteed to be stored to disk immediately.
+ * In this Bloom Filter, all changes to the internal bit set are periodically
+ * synced to a file on disk. This allows the filter to serialize its state in a
+ * dynamic fashion that affords optimal performance and high throughput. Disk
+ * writes only happen when an external caller invokes the {@link #diskSync()}
+ * method and there are relevant changes to record.
+ * </p>
+ * <p>
+ * A LoggingBloomFilter should be used instead of a regular {@link BloomFilter}
+ * when writes will continue to occur after the filter has been synced to disk.
  * </p>
  * 
  * @author jnelson
  */
 @ThreadSafe
-public class MappedBloomFilter {
+public class LoggingBloomFilter {
 
     /**
-     * Create a new {@link MappedBloomFilter} that is backed by {@code file} and
-     * has enough capacity to handle the number of {@code expectedInsertions}
-     * with the specified false positive probability ({@code fpp}).
+     * Create a new {@link LoggingBloomFilter} that is backed by {@code file}
+     * and has enough capacity to handle the number of
+     * {@code expectedInsertions} with the specified false positive probability
+     * ({@code fpp}).
      * 
      * @param file
      * @param expectedInsertions
      * @param fpp
-     * @return the MappedBloomFilter
+     * @return the LoggingBloomFilter
      */
-    public static MappedBloomFilter create(String file, int expectedInsertions,
-            double fpp) {
+    public static LoggingBloomFilter create(String file,
+            int expectedInsertions, double fpp) {
         int numBits = getNumBits(expectedInsertions, fpp);
-        return new MappedBloomFilter(file, numBits, getNumHashFunctions(
+        return new LoggingBloomFilter(file, numBits, getNumHashFunctions(
                 expectedInsertions, numBits));
     }
 
@@ -108,27 +117,104 @@ public class MappedBloomFilter {
     }
 
     /**
-     * The backing bit set that contains the data in the bloom filter.
+     * The internal bit set that holds the boom filter's state.
      */
-    private final MappedBitSet bitSet;
+    private final TBitSet bits;
+
+    /**
+     * The buffer that records recent changes to the state of the {@link #bits}
+     * set.
+     */
+    private ByteBuffer buffer;
+
+    /**
+     * The backing file. We write to this periodically in an append-only
+     * fashion.
+     */
+    private final String file;
 
     /**
      * The ideal number of hash functions to use in the bloom filter.
      */
     private final int numHashFunctions;
 
+    /**
+     * A lock for concurrency control.
+     */
     private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+
+    /**
+     * The position where we should begin appending data in the backing
+     * {@link #file}.
+     */
+    private int position;
+
+    /**
+     * Since {@link #buffer} is intentionally oversized, we record the actual
+     * length of the recent changes so we know how much data to append to disk
+     * when {@link #diskSync()} is invoked.
+     */
+    private int lengthOfRecentChanges;
+
+    private int numBits;
 
     /**
      * Construct a new instance.
      * 
-     * @param file
+     * @param directory
      * @param numBits
      * @param numHashFunctions
      */
-    public MappedBloomFilter(String file, int numBits, int numHashFunctions) {
-        this.bitSet = MappedBitSet.create(file, numBits);
+    private LoggingBloomFilter(String file, int numBits, int numHashFunctions) {
+        this.bits = TBitSet.create();
+        this.numBits = numBits;
         this.numHashFunctions = numHashFunctions;
+        this.file = file;
+        diskSyncCleanup();
+        if(position > 0) { // load the existing changes into memory
+            ByteBuffer bytes = FileSystem.readBytes(file);
+            while (bytes.position() < position) {
+                bits.set(bytes.getInt(), true);
+            }
+        }
+    }
+
+    /**
+     * Force a sync of the recent changes to this bloom filter to disk. This
+     * method should be called in conjunction with the page turning
+     * functionality in the {@link Buffer}.
+     */
+    public void diskSync() {
+        MappedByteBuffer data = FileSystem.map(file, MapMode.READ_WRITE,
+                position, lengthOfRecentChanges);
+        data.put(ByteBuffers.slice(buffer, 0, lengthOfRecentChanges));
+        data.force();
+        diskSyncCleanup();
+    }
+
+    /**
+     * Return {@code true} if it is possible that the {@code byteables} have
+     * been placed in this bloom filter. Return {@code false} if they have
+     * definitely not been placed in this bloom filter.
+     * 
+     * @param byteables
+     * @return {@code true} if the filter <em>might</em> contain the
+     *         {@code byteables}
+     */
+    public boolean mightContain(Byteable... byteables) {
+        masterLock.readLock().lock();
+        try {
+            int[] hashes = hash(Composite.create(byteables));
+            for (int hash : hashes) {
+                if(!bits.get(hash)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
     }
 
     /**
@@ -148,11 +234,14 @@ public class MappedBloomFilter {
     public boolean put(Byteable... byteables) {
         masterLock.writeLock().lock();
         try {
-            long[] hashes = hash(Composite.create(byteables));
+            int[] hashes = hash(Composite.create(byteables));
             boolean bitsChanged = true;
-            for (long hash : hashes) {
-                bitsChanged = bitSet.compareAndFlip(hash, false) ? true
-                        : bitsChanged;
+            for (int hash : hashes) {
+                if(bits.compareAndFlip(hash, false)) {
+                    bitsChanged = true;
+                    buffer.putInt(hash);
+                    lengthOfRecentChanges += 4;
+                }
             }
             return bitsChanged;
         }
@@ -162,28 +251,17 @@ public class MappedBloomFilter {
     }
 
     /**
-     * Return {@code true} if it is possible that the {@code byteables} have
-     * been placed in this bloom filter. Return {@code false} if they have
-     * definitely not been placed in this bloom filter.
-     * 
-     * @param byteables
-     * @return {@code true} if the filter <em>might</em> contain the
-     *         {@code byteables}
+     * Cleanup the in-memory meta data during initialization or after a call to
+     * {@link #diskSync()}.
      */
-    public boolean mightContain(Byteable... byteables) {
-        masterLock.readLock().lock();
-        try {
-            long[] hashes = hash(Composite.create(byteables));
-            for (long hash : hashes) {
-                if(!bitSet.get(hash)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
+    private void diskSyncCleanup() {
+        // We allocate a ByteBuffer that is equal to the BUFFER_PAGE_SIZE so
+        // that we can be sure that we'll have enough space to store all the
+        // possible changes before the Buffer calls #diskSync() in conjunction
+        // with adding a new page.
+        buffer = ByteBuffer.allocate(GlobalState.BUFFER_PAGE_SIZE);
+        lengthOfRecentChanges = 0;
+        position = (int) FileSystem.getFileSize(file);
     }
 
     /**
@@ -193,15 +271,15 @@ public class MappedBloomFilter {
      * @param composite
      * @return the hashes for {@code composite}.
      */
-    private long[] hash(Composite composite) {
+    private int[] hash(Composite composite) {
         long hash64 = Hashing.murmur3_128()
                 .hashBytes(ByteBuffers.toByteArray(composite.getBytes()))
                 .asLong();
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);
-        long[] hashes = new long[numHashFunctions];
+        int[] hashes = new int[numHashFunctions];
         for (int i = 1; i <= numHashFunctions; i++) {
-            hashes[i - 1] = Math.abs((hash1 + i * hash2) % bitSet.size());
+            hashes[i - 1] = Math.abs((hash1 + i * hash2) % numBits);
         }
         return hashes;
     }

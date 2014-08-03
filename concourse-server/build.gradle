@@ -15,6 +15,7 @@ dependencies {
     	exclude group: 'org.javassist', module:'javassist'
     }
     compile 'org.javassist:javassist:3.18.2-GA'
+    compile 'net.sf.trove4j:trove4j:3.0.3'
     
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
