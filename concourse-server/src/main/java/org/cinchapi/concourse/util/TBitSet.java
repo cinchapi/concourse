@@ -66,6 +66,18 @@ public class TBitSet {
     }
 
     /**
+     * Check to see if the position is valid, if not throw an
+     * IllegalArgumentException.
+     * 
+     * @param position
+     * @throws IllegalArgumentException
+     */
+    private static void checkPosition(int position)
+            throws IllegalArgumentException {
+        Preconditions.checkArgument(position >= 0);
+    }
+
+    /**
      * Return the "relative" index that indicates the appropriate bit position
      * in the word that is identified by {@link #getWordIndex(int)}.
      * 
@@ -131,7 +143,7 @@ public class TBitSet {
      *         otherwise
      */
     public boolean compareAndFlip(int position, boolean expected) {
-        Preconditions.checkArgument(position > 0);
+        checkPosition(position);
         master.writeLock().lock();
         try {
             if(get(position) == expected) {
@@ -153,7 +165,7 @@ public class TBitSet {
      * @param index
      */
     public void flip(int position) {
-        Preconditions.checkArgument(position > 0);
+        checkPosition(position);
         master.writeLock().lock();
         try {
             set(position, !get(position));
@@ -170,7 +182,7 @@ public class TBitSet {
      * @return the bit value
      */
     public boolean get(int position) {
-        Preconditions.checkArgument(position > 0);
+        checkPosition(position);
         master.readLock().lock();
         try {
             int global = getWordIndex(position);
@@ -194,7 +206,7 @@ public class TBitSet {
      * @param value
      */
     public void set(int position, boolean value) {
-        Preconditions.checkArgument(position > 0);
+        checkPosition(position);
         master.writeLock().lock();
         try {
             int global = getWordIndex(position);
