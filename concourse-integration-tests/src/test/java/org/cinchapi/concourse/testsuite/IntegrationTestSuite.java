@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.testsuite;
 
+import org.cinchapi.concourse.AddTest;
 import org.cinchapi.concourse.AtomicOperationWofkflowTest;
 import org.cinchapi.concourse.BrowseTest;
 import org.cinchapi.concourse.CachedConnectionPoolTest;
@@ -52,7 +53,7 @@ import org.junit.runners.Suite.SuiteClasses;
         FixedConnectionPoolTest.class, ChronologizeTest.class, ClearTest.class,
         ReferentialIntegrityTest.class, BrowseTest.class,
         SecurityExceptionTest.class, ThriftComplianceTest.class,
-        FindCriteriaTest.class })
+        FindCriteriaTest.class, AddTest.class })
 public class IntegrationTestSuite {
 
 }

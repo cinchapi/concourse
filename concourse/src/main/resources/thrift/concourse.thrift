@@ -85,16 +85,16 @@ service ConcourseService {
 	bool add(1: string key, 2: data.TObject value, 3: i64 record, 4: shared.AccessToken creds,
 		5: shared.TransactionToken transaction, 6: string environment)
 		throws (1: shared.TSecurityException ex);
-		
+
 	/**
 	 * Add {@code  key} as {@code value} to a unique record. This method returns
-	 *{@code true} if there is no mapping from {@code key} to {@code value}
+	 * {@code true} if there is no mapping from {@code key} to {@code value}
 	 * for unique record prior to invocation.
 	 */
 	i64 add1(1: string key, 2: data.TObject value, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
 		throws (1: shared.TSecurityException ex);
-	
+
 	/**
 	 * Remove {@code key} as {@code value} from {@code record}. This method returns
 	 * {@code true} if there is a mapping from {@code key} to {@code value} in
@@ -111,7 +111,7 @@ service ConcourseService {
 	map<i64,string> audit(1: i64 record, 2: string key, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
 		throws (1: shared.TSecurityException ex);
-	
+
 	/**
 	 * Chronologize non-empty sets of values in {@code key} from {@code record}.
 	 * This method returns a chronological mapping from each timestamp to the set

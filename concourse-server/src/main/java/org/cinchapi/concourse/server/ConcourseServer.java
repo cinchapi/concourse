@@ -321,39 +321,21 @@ public class ConcourseServer implements
             return false;
         }
     }
-    /**
-     * Take {@code key} and {@code value} and returns a unique record value
-     * @param key
-     * @param value
-     * @param creds
-     * @param transaction
-     * @param env
-     */
-    
+
     @Override
-    public long add1(String key, TObject value, AccessToken creds, TransactionToken transaction,
-    		String env) throws TSecurityException{
-    	long record = 0 ;
+    public long add1(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String env) throws TSecurityException {
+        long record = 0;
         checkAccess(creds, transaction);
         AtomicOperation operation = null;
         while (operation == null || !operation.commit()) {
             record = Time.now();
-            operation = addToEmptyRecord(key, value, record, getStore(transaction, env));
+            operation = addToEmptyRecord(key, value, record,
+                    getStore(transaction, env));
         }
         return record;
     }
-     
-    private  AtomicOperation addToEmptyRecord(String key, TObject value, long record, Compoundable store){
-    	 AtomicOperation operation = AtomicOperation.start(store);
-    	 if(operation.describe(record).isEmpty()){
-    		    operation.add(key, value, record);
-    		    return operation;
-    		}
-    		else {
-    		    return null;
-    		}
-    }
-    
+
     @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
@@ -711,6 +693,28 @@ public class ConcourseServer implements
         }
         catch (AtomicStateException e) {
             return false;
+        }
+    }
+
+    /**
+     * Atomically add {@code key} as {@code value} to {@code record} as long as
+     * {@code record} is currently empty.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation addToEmptyRecord(String key, TObject value,
+            long record, Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        if(operation.describe(record).isEmpty()) {
+            operation.add(key, value, record);
+            return operation;
+        }
+        else {
+            return null;
         }
     }
 
