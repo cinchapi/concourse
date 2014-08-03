@@ -34,6 +34,7 @@ import org.cinchapi.concourse.server.storage.cache.LoggingBloomFilter;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.base.Stopwatch;
@@ -122,7 +123,8 @@ public class LoggingBloomFilterTest extends ConcourseBaseTest {
                 watch.elapsed(TimeUnit.MILLISECONDS));
 
         long diff = loggingMs - guavaMs;
-        if(diff > 0 && diff / guavaMs >= 0.1) { //TODO watch out for division by zero if guavaMs is 0
+        if(diff > 0 && diff / guavaMs >= 0.1) { // TODO watch out for division
+                                                // by zero if guavaMs is 0
             Assert.fail("Inserting into the logging bloom filter saw a more than 10% slowdown");
         }
         else {
