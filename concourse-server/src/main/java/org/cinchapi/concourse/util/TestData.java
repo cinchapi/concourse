@@ -54,6 +54,24 @@ public final class TestData extends Random {
 
     public static final String DATA_DIR = "test.out";
 
+    /**
+     * Return a temporary file to use for testing.
+     * 
+     * @return the file path
+     */
+    public static String getTemporaryTestFile() {
+        return DATA_DIR + File.separator + Time.now() + ".tmp";
+    }
+
+    /**
+     * Return a temporary directory to use for testing files.
+     * 
+     * @return the directory path
+     */
+    public static String getTemporaryTestDir() {
+        return DATA_DIR + File.separator + Time.now();
+    }
+
     public static PrimaryRevision getPrimaryRevision() {
         return Revision.createPrimaryRevision(getPrimaryKey(), getText(),
                 getValue(), Time.now(), Action.ADD);
