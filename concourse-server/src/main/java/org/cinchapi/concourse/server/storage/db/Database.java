@@ -267,7 +267,7 @@ public final class Database extends BaseStore implements
                     public int compare(String s1, String s2) {
                         return s1.compareToIgnoreCase(s2);
                     }
-                    
+
                 });
     }
 
@@ -282,22 +282,24 @@ public final class Database extends BaseStore implements
                     public int compare(String s1, String s2) {
                         return s1.compareToIgnoreCase(s2);
                     }
-                    
+
                 });
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
-                .browse(), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
+        return Transformers.transformTreeMapSet(
+                getSecondaryRecord(Text.wrap(key)).browse(),
+                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
-                .browse(timestamp), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
+        return Transformers.transformTreeMapSet(
+                getSecondaryRecord(Text.wrap(key)).browse(timestamp),
+                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                TObjectSorter.INSTANCE);
     }
 
     /**
