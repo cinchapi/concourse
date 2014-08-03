@@ -273,10 +273,10 @@ public final class Engine extends BufferedStore implements
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
         super(buffer, database, LockService.create(), RangeLockService.create());
+        this.environment = environment;
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
-        this.environment = environment;
     }
 
     /**
