@@ -216,6 +216,17 @@ public abstract class BufferedStoreTest extends StoreTest {
         boolean verify = Numbers.isOdd(count(data, d));
         Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
     }
+    
+    @Test
+    public void testSetBuffered(){
+        List<Data> data = generateTestData();
+        insertData(data);
+        Data d = Variables.register("d",
+                data.get(TestData.getScaleCount() % data.size()));
+        ((BufferedStore) store).set(d.key, d.value, d.record);
+        Assert.assertTrue(store.verify(d.key, d.value, d.record));
+        Assert.assertEquals(1, store.fetch(d.key, d.record).size());
+    }
 
     /**
      * Count the number of times that {@code element} appears in the list of

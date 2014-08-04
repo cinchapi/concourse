@@ -624,10 +624,7 @@ public class ConcourseServer implements
     public void set0(String key, TObject value, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doSet(key, value, record, getStore(transaction, env));
-        }
+        ((BufferedStore) getStore(transaction, env)).set(key, value, record);
     }
 
     @Override
@@ -871,35 +868,6 @@ public class ConcourseServer implements
         catch (AtomicStateException e) {
             return null;
         }
-    }
-
-    /**
-     * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to set {@code key} as {@code value} in {@code record}.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @param store
-     * @return
-     */
-    private AtomicOperation doSet(String key, TObject value, long record,
-            Compoundable store) {
-        // NOTE: We cannot use the #clear() method because our removes must be
-        // defined in terms of the AtomicOperation for true atomic safety.
-        AtomicOperation operation = AtomicOperation.start(store);
-        try {
-            Set<TObject> values = operation.fetch(key, record);
-            for (TObject oldValue : values) {
-                operation.remove(key, oldValue, record);
-            }
-            operation.add(key, value, record);
-            return operation;
-        }
-        catch (AtomicStateException e) {
-            return null;
-        }
-
     }
 
     /**

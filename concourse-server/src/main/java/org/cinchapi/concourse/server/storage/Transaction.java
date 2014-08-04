@@ -181,6 +181,14 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
+    public void set(String key, TObject value, long record)
+            throws AtomicStateException {
+        super.set(key, value, record);
+        notifyVersionChange(Token.wrap(key, record));
+        notifyVersionChange(Token.wrap(record));
+    }
+
+    @Override
     public boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         if(super.remove(key, value, record)) {

@@ -286,6 +286,23 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
+            TObject... values) throws AtomicStateException {
+        checkState();
+        return super.doFind(timestamp, key, operator, values);
+    }
+
+    @Override
+    public Set<Long> doFind(String key, Operator operator, TObject... values)
+            throws AtomicStateException {
+        checkState();
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class)));
+        return super.doFind(key, operator, values);
+    }
+
+    @Override
     public Set<TObject> fetch(String key, long record)
             throws AtomicStateException {
         checkState();
@@ -301,23 +318,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         return super.fetch(key, record, timestamp);
-    }
-
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) throws AtomicStateException {
-        checkState();
-        return super.doFind(timestamp, key, operator, values);
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values)
-            throws AtomicStateException {
-        checkState();
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class)));
-        return super.doFind(key, operator, values);
     }
 
     @Override
@@ -344,6 +344,19 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         return super.search(key, query);
+    }
+
+    @Override
+    public void set(String key, TObject value, long record)
+            throws AtomicStateException {
+        checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        expectations.add(new KeyInRecordVersionExpectation(key, record,
+                LockType.WRITE));
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
+                .wrap(value)));
+        super.set(key, value, record);
     }
 
     @Override

@@ -149,18 +149,6 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Map<TObject, Set<Long>> browse(String key) {
-        Map<TObject, Set<Long>> context = destination.browse(key);
-        return buffer.browse(key, Time.now(), context);
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
-        return buffer.browse(key, timestamp, context);
-    }
-
-    @Override
     public Map<String, Set<TObject>> browse(long record) {
         Map<String, Set<TObject>> context = destination.browse(record);
         return buffer.browse(record, Time.now(), context);
@@ -174,15 +162,15 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
-        Set<TObject> context = destination.fetch(key, record);
-        return buffer.fetch(key, record, Time.now(), context);
+    public Map<TObject, Set<Long>> browse(String key) {
+        Map<TObject, Set<Long>> context = destination.browse(key);
+        return buffer.browse(key, Time.now(), context);
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
-        Set<TObject> context = destination.fetch(key, record, timestamp);
-        return buffer.fetch(key, record, timestamp, context);
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
+        return buffer.browse(key, timestamp, context);
     }
 
     @Override
@@ -230,6 +218,18 @@ public abstract class BufferedStore extends BaseStore {
         return buffer.find(context, Time.now(), key, operator, values);
     }
 
+    @Override
+    public Set<TObject> fetch(String key, long record) {
+        Set<TObject> context = destination.fetch(key, record);
+        return buffer.fetch(key, record, Time.now(), context);
+    }
+
+    @Override
+    public Set<TObject> fetch(String key, long record, long timestamp) {
+        Set<TObject> context = destination.fetch(key, record, timestamp);
+        return buffer.fetch(key, record, timestamp, context);
+    }
+
     /**
      * Remove {@code key} as {@code value} from {@code record}.
      * <p>
@@ -257,6 +257,26 @@ public abstract class BufferedStore extends BaseStore {
         // FIXME: should this be implemented using a context instead?
         return Sets.symmetricDifference(buffer.search(key, query),
                 destination.search(key, query));
+    }
+
+    /**
+     * Set {@code key} as {@code value} in {@code record}.
+     * <p>
+     * This method will remove all the values currently mapped from {@code key}
+     * in {@code record} and add {@code value} without performing any validity
+     * checks.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     */
+    public void set(String key, TObject value, long record) {
+        Set<TObject> values = fetch(key, record);
+        for (TObject val : values) {
+            buffer.insert(Write.remove(key, val, record)); /* Authorized */
+        }
+        buffer.insert(Write.add(key, value, record)); /* Authorized */
     }
 
     @Override

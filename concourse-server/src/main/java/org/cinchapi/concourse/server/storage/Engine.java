@@ -447,6 +447,31 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    public Set<Long> doFind(long timestamp, String key, Operator operator,
+            TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doFind(timestamp, key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<Long> doFind(String key, Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        rangeLockService.getReadLock(key, operator, values).lock();
+        try {
+            return super.doFind(key, operator, values);
+        }
+        finally {
+            rangeLockService.getReadLock(key, operator, values).unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
     /**
      * Public interface for the {@link Database#dump(String)} method.
      * 
@@ -481,31 +506,6 @@ public final class Engine extends BufferedStore implements
             return super.fetch(key, record, timestamp);
         }
         finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doFind(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        rangeLockService.getReadLock(key, operator, values).lock();
-        try {
-            return super.doFind(key, operator, values);
-        }
-        finally {
-            rangeLockService.getReadLock(key, operator, values).unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -593,6 +593,22 @@ public final class Engine extends BufferedStore implements
         }
         finally {
             transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public void set(String key, TObject value, long record) {
+        lockService.getWriteLock(key, record).lock();
+        rangeLockService.getWriteLock(key, value).lock();
+        try {
+            super.set(key, value, record);
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+        }
+        finally {
+            lockService.getWriteLock(key, record).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
