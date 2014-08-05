@@ -107,6 +107,16 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
         return Integer.compare(getSchemaVersion(), o.getSchemaVersion());
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof UpgradeTask) {
+            return getSchemaVersion() == ((UpgradeTask) obj).getSchemaVersion();
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * Return a description of the upgrade task that informs the user about the
      * operation.
@@ -123,6 +133,11 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the storage version of this task
      */
     public abstract int getSchemaVersion();
+
+    @Override
+    public int hashCode() {
+        return getSchemaVersion();
+    }
 
     /**
      * Run the upgrade task.
@@ -155,6 +170,14 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * cause the task to fail.
      */
     protected abstract void doTask();
+
+    /**
+     * Return the path to the server installation directory, from which other
+     * aspects of the Concourse Server deployment are accessible.
+     */
+    protected String getServerInstallDirectory() {
+        return System.getProperty("user.home");
+    }
 
     /**
      * Print a DEBUG log message.
@@ -204,8 +227,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the formatted log message
      */
     private String decorateLogMessage(String message) {
-        return MessageFormat.format("Upgrade({0}): ", getSchemaVersion())
-                + message;
+        return "Upgrade(" + getSchemaVersion() + "): " + message;
     }
 
 }
