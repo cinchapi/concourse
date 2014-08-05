@@ -73,6 +73,8 @@ public class Upgrader {
                 Reflections reflections = new Reflections(pkg);
                 Set<Class<? extends UpgradeTask>> classes = reflections
                         .getSubTypesOf(UpgradeTask.class);
+                classes.addAll(reflections
+                        .getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = clazz.newInstance();
                     if(task.getSchemaVersion() > currentSchemaVersion) {
@@ -83,6 +85,7 @@ public class Upgrader {
 
             // Run the new upgrade tasks
             for (UpgradeTask task : tasks) {
+                System.out.println(task);
                 try {
                     task.run();
                 }
