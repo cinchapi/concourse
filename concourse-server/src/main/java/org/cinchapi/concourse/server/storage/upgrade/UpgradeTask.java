@@ -26,7 +26,6 @@ package org.cinchapi.concourse.server.storage.upgrade;
 import java.io.File;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.text.MessageFormat;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.FileSystem;
