@@ -21,9 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.upgrade.task;
+package org.cinchapi.concourse.server.upgrade.task;
 
-import org.cinchapi.concourse.server.storage.upgrade.UpgradeTask;
+import org.cinchapi.concourse.server.upgrade.UpgradeTask;
 
 /**
  * "Bootstrap" the framework by adding the schema metadata in the appropriate
