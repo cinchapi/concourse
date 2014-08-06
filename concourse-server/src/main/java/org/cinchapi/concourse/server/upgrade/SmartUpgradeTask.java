@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.upgrade;
+package org.cinchapi.concourse.server.upgrade;
 
 import org.cinchapi.concourse.util.Versions;
 
