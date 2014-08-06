@@ -175,7 +175,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * aspects of the Concourse Server deployment are accessible.
      */
     protected String getServerInstallDirectory() {
-        return System.getProperty("user.home");
+        return System.getProperty("user.dir");
     }
 
     /**
