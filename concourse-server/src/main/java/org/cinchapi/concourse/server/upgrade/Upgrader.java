@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.upgrade;
+package org.cinchapi.concourse.server.upgrade;
 
 import java.util.Set;
 
@@ -29,7 +29,8 @@ import org.cinchapi.concourse.server.GlobalState;
 import org.reflections.Reflections;
 
 import com.google.common.collect.Sets;
-import static org.cinchapi.concourse.server.storage.upgrade.UpgradeTask.getCurrentSchemaVersion;
+
+import static org.cinchapi.concourse.server.upgrade.UpgradeTask.getCurrentSchemaVersion;
 
 /**
  * The {@link Upgrader} is responsible for running the latest upgrade tasks on
@@ -47,7 +48,7 @@ public class Upgrader {
     /**
      * The package that contains all upgrade tasks.
      */
-    private static final String[] pkgs = { "org.cinchapi.concourse.server.storage.upgrade.task" };
+    private static final String[] pkgs = { "org.cinchapi.concourse.server.upgrade.task" };
 
     /**
      * Run the program...

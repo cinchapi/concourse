@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.upgrade;
+package org.cinchapi.concourse.server.upgrade;
 
 import java.io.File;
 import java.nio.MappedByteBuffer;
@@ -34,7 +34,7 @@ import org.cinchapi.concourse.util.Logger;
 /**
  * An {@link UpgradeTask} performs an operation that "upgrades" previously
  * stored data. All tasks that are defined in the
- * {@code org.cinchapi.concourse.server.storage.upgrade.task} package and are
+ * {@code org.cinchapi.concourse.server.upgrade.task} package and are
  * higher than the current schema version are automatically run by the
  * {@link Upgrader} whenever the user upgrades the ConcourseServer.
  * 

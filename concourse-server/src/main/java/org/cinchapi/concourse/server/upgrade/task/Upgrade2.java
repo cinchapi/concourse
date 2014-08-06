@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage.upgrade.task;
+package org.cinchapi.concourse.server.upgrade.task;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.nio.file.Paths;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.storage.upgrade.UpgradeTask;
+import org.cinchapi.concourse.server.upgrade.UpgradeTask;
 import org.cinchapi.concourse.util.Environments;
 
 import com.google.common.base.Preconditions;
