@@ -31,6 +31,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Queue;
 
+import org.cinchapi.concourse.lang.ast.AST;
+import org.cinchapi.concourse.lang.ast.AndTree;
+import org.cinchapi.concourse.lang.ast.ExpressionTree;
+import org.cinchapi.concourse.lang.ast.OrTree;
 import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.collect.Iterables;
@@ -45,56 +49,48 @@ import com.google.common.collect.Lists;
 public final class Parser {
 
     /**
-     * Go through a list of symbols and group the expressions together in a
-     * {@link Expression} object.
+     * Convert a valid and well-formed list of {@link Symbol} objects into a
+     * an {@link AST}.
+     * <p>
+     * NOTE: This method will group non-conjunctive symbols into
+     * {@link Expression} objects.
+     * </p>
      * 
      * @param symbols
-     * @return the expression
+     * @return the symbols in an AST
      */
-    protected static List<Symbol> groupExpressions(List<Symbol> symbols) { // visible
-                                                                           // for
-                                                                           // testing
-        try {
-            List<Symbol> grouped = Lists.newArrayList();
-            ListIterator<Symbol> it = symbols.listIterator();
-            while (it.hasNext()) {
-                Symbol symbol = it.next();
-                if(symbol instanceof KeySymbol) {
-                    // NOTE: We are assuming that the list of symbols is well
-                    // formed, and, as such, the next elements will be an
-                    // operator and one or more symbols. If this is not the
-                    // case, this method will throw a ClassCastException
-                    OperatorSymbol operator = (OperatorSymbol) it.next();
-                    ValueSymbol value = (ValueSymbol) it.next();
-                    Expression expression;
-                    if(operator.getOperator() == Operator.BETWEEN) {
-                        ValueSymbol value2 = (ValueSymbol) it.next();
-                        expression = Expression.create((KeySymbol) symbol,
-                                operator, value, value2);
+    public static AST toAbstractSyntaxTree(List<Symbol> symbols) {
+        Deque<Symbol> operatorStack = new ArrayDeque<Symbol>();
+        Deque<AST> operandStack = new ArrayDeque<AST>();
+        symbols = groupExpressions(symbols);
+        main: for (Symbol symbol : symbols) {
+            if(symbol == ParenthesisSymbol.LEFT) {
+                operatorStack.push(symbol);
+            }
+            else if(symbol == ParenthesisSymbol.RIGHT) {
+                while (!operatorStack.isEmpty()) {
+                    Symbol popped = operatorStack.pop();
+                    if(popped == ParenthesisSymbol.LEFT) {
+                        continue main;
                     }
                     else {
-                        expression = Expression.create((KeySymbol) symbol,
-                                operator, value);
+                        addASTNode(operandStack, popped);
                     }
-                    grouped.add(expression);
                 }
-                else if(symbol instanceof TimestampSymbol) { // Add the
-                                                             // timestamp to the
-                                                             // previously
-                                                             // generated
-                                                             // Expression
-                    ((Expression) Iterables.getLast(grouped))
-                            .setTimestamp((TimestampSymbol) symbol);
-                }
-                else {
-                    grouped.add(symbol);
-                }
+                throw new SyntaxException(MessageFormat.format(
+                        "Syntax error in {0}: Mismatched parenthesis", symbols));
             }
-            return grouped;
+            else if(symbol instanceof Expression) {
+                operandStack.add(ExpressionTree.create((Expression) symbol));
+            }
+            else {
+                operatorStack.push(symbol);
+            }
         }
-        catch (ClassCastException e) {
-            throw new SyntaxException(e.getMessage());
+        while (!operatorStack.isEmpty()) {
+            addASTNode(operandStack, operatorStack.pop());
         }
+        return operandStack.pop();
     }
 
     /**
@@ -166,6 +162,77 @@ public final class Parser {
             }
         }
         return queue;
+    }
+
+    /**
+     * Go through a list of symbols and group the expressions together in a
+     * {@link Expression} object.
+     * 
+     * @param symbols
+     * @return the expression
+     */
+    protected static List<Symbol> groupExpressions(List<Symbol> symbols) { // visible
+                                                                           // for
+                                                                           // testing
+        try {
+            List<Symbol> grouped = Lists.newArrayList();
+            ListIterator<Symbol> it = symbols.listIterator();
+            while (it.hasNext()) {
+                Symbol symbol = it.next();
+                if(symbol instanceof KeySymbol) {
+                    // NOTE: We are assuming that the list of symbols is well
+                    // formed, and, as such, the next elements will be an
+                    // operator and one or more symbols. If this is not the
+                    // case, this method will throw a ClassCastException
+                    OperatorSymbol operator = (OperatorSymbol) it.next();
+                    ValueSymbol value = (ValueSymbol) it.next();
+                    Expression expression;
+                    if(operator.getOperator() == Operator.BETWEEN) {
+                        ValueSymbol value2 = (ValueSymbol) it.next();
+                        expression = Expression.create((KeySymbol) symbol,
+                                operator, value, value2);
+                    }
+                    else {
+                        expression = Expression.create((KeySymbol) symbol,
+                                operator, value);
+                    }
+                    grouped.add(expression);
+                }
+                else if(symbol instanceof TimestampSymbol) { // Add the
+                                                             // timestamp to the
+                                                             // previously
+                                                             // generated
+                                                             // Expression
+                    ((Expression) Iterables.getLast(grouped))
+                            .setTimestamp((TimestampSymbol) symbol);
+                }
+                else {
+                    grouped.add(symbol);
+                }
+            }
+            return grouped;
+        }
+        catch (ClassCastException e) {
+            throw new SyntaxException(e.getMessage());
+        }
+    }
+
+    /**
+     * An the appropriate {@link AST} node to the {@code stack} based on
+     * {@code operator}.
+     * 
+     * @param stack
+     * @param operator
+     */
+    private static void addASTNode(Deque<AST> stack, Symbol operator) {
+        AST right = stack.pop();
+        AST left = stack.pop();
+        if(operator == ConjunctionSymbol.AND) {
+            stack.push(AndTree.create(left, right));
+        }
+        else {
+            stack.push(OrTree.create(left, right));
+        }
     }
 
     private Parser() {/* noop */}
