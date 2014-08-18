@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.io.BaseEncoding;
 
 /**
  * Additional utility methods for ByteBuffers that are not found in the
@@ -83,6 +84,28 @@ public abstract class ByteBuffers {
         buffer.limit(limit);
         clone.limit(limit);
         return clone;
+    }
+    
+    /**
+     * Decode the {@code hex}adeciaml string and return the resulting binary
+     * data.
+     * 
+     * @param hex
+     * @return the binary data
+     */
+    public static ByteBuffer decodeFromHex(String hex) {
+        return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
+    }
+    
+    /**
+     * Encode the {@code bytes} as a hexadecimal string.
+     * 
+     * @param bytes
+     * @return the hex string
+     */
+    public static String encodeAsHex(ByteBuffer bytes) {
+        bytes.rewind();
+        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
 
     /**

@@ -498,7 +498,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
-        manager.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
+        manager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
         username = null;
         password = null;
     }
@@ -563,13 +563,13 @@ public class ConcourseServer implements
             String env) throws TException {
         validate(username, password);
         getEngine(env);
-        return manager.authorize(username);
+        return manager.login(username);
     }
 
     @Override
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
-        manager.deauthorize(creds);
+        manager.logout(creds);
     }
 
     @Override
@@ -609,7 +609,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void revoke(byte[] username) {
-        manager.revoke(ByteBuffer.wrap(username));
+        manager.deleteUser(ByteBuffer.wrap(username));
         username = null;
     }
 
@@ -1001,7 +1001,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws TSecurityException {
-        if(!manager.validate(username, password)) {
+        if(!manager.isValidUserNamePasswordCombo(username, password)) {
             throw new TSecurityException(
                     "Invalid username/password combination.");
         }
