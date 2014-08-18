@@ -39,9 +39,9 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
- * The {@link LegacyAccessManager} controls access to the pre-0.5.0 
- * Concourse server by keeping tracking of valid credentials and 
- * handling authentication requests. This LegacyAccessManager is used 
+ * The {@link LegacyAccessManager} controls access to the pre-0.5.0
+ * Concourse server by keeping tracking of valid credentials and
+ * handling authentication requests. This LegacyAccessManager is used
  * to upgrade pre-0.5.0 user credentials to work with {@link AccessManager}.
  * 
  * @author knd
@@ -58,29 +58,30 @@ public class LegacyAccessManager {
     public static LegacyAccessManager create(String backingStore) {
         return new LegacyAccessManager(backingStore);
     }
-    
+
     // The legacy credentials are stored in memory
-    private final Map<String, Credentials> credentials = Maps.newLinkedHashMap();
-    
+    private final Map<String, Credentials> credentials = Maps
+            .newLinkedHashMap();
+
     /**
      * Construct a new instance.
      * 
      * @param backingStore
      */
     private LegacyAccessManager(String backingStore) {
-        Iterator<ByteBuffer> it = ByteableCollections
-                .iterator(FileSystem.readBytes(backingStore));
+        Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
+                .readBytes(backingStore));
         while (it.hasNext()) {
-            LegacyAccessManager.Credentials creds = 
-                    Credentials.fromByteBuffer(it.next());
+            LegacyAccessManager.Credentials creds = Credentials
+                    .fromByteBuffer(it.next());
             credentials.put(creds.getUsername(), creds);
         }
     }
 
     /**
-     * Transfer the legacy {@link #credentials} managed by 
-     * this LegacyAccessManager to the specified {@code AccessManager}
-     * so that they are now working with and managed by {@code AccessManager}.
+     * Transfer the legacy {@link #credentials} managed by
+     * this LegacyAccessManager to the specified {@code AccessManager} so that
+     * they are now working with and managed by {@code AccessManager}.
      * 
      * @param manager
      */
@@ -91,7 +92,7 @@ public class LegacyAccessManager {
                     creds.getSalt());
         }
     }
-    
+
     /**
      * Create a user with {@code username} and {@code password} as
      * a legacy {@link Credentials} managed by this LegacyAccessManager.
@@ -101,30 +102,29 @@ public class LegacyAccessManager {
      * @param password
      */
     @Restricted
-    protected void createUser(ByteBuffer username,
-            ByteBuffer password) {                            // visible
-                                                              // for
-                                                              // testing
+    protected void createUser(ByteBuffer username, ByteBuffer password) { // visible
+                                                                          // for
+                                                                          // testing
         ByteBuffer salt = Passwords.getSalt();
         password = Passwords.hash(password, salt);
-        Credentials creds = LegacyAccessManager.Credentials
-                .create(ByteBuffers.encodeAsHex(username),
-                        ByteBuffers.encodeAsHex(password), 
-                        ByteBuffers.encodeAsHex(salt));
+        Credentials creds = LegacyAccessManager.Credentials.create(
+                ByteBuffers.encodeAsHex(username),
+                ByteBuffers.encodeAsHex(password),
+                ByteBuffers.encodeAsHex(salt));
         credentials.put(creds.getUsername(), creds);
     }
-    
+
     /**
-     * Sync the memory store {@link #credentials} to disk 
+     * Sync the memory store {@link #credentials} to disk
      * at {@code backingStore}. This method should only be used
      * for testing.
      * 
      * @param backingStore
      */
     @Restricted
-    protected void diskSync(String backingStore) {            // visible
-                                                              // for
-                                                              // testing
+    protected void diskSync(String backingStore) { // visible
+                                                   // for
+                                                   // testing
         FileChannel channel = FileSystem.getFileChannel(backingStore);
         ByteBuffer bytes = ByteableCollections.toByteBuffer(credentials
                 .values());
@@ -138,7 +138,7 @@ public class LegacyAccessManager {
             FileSystem.closeFileChannel(channel);
         }
     }
-        
+
     /**
      * A grouping of a username, password and salt that together identify a
      * valid authentication scheme for a user.
@@ -146,7 +146,7 @@ public class LegacyAccessManager {
      * @author knd
      */
     private static final class Credentials implements Byteable {
-        
+
         /**
          * Create a new set of Credentials for {@code username},
          * {@code password} hashed with {@code salt}.
@@ -215,7 +215,7 @@ public class LegacyAccessManager {
         public String getPassword() {
             return password;
         }
-        
+
         /**
          * Return the salt as a ByteBuffer.
          * 
