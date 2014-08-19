@@ -76,7 +76,7 @@ public abstract class ManagedOperationCli {
             this.options = options;
             parser.setProgramName(CaseFormat.UPPER_CAMEL.to(
                     CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName()));
-            if(options.help) {
+            if(!isReadyToRun()) {
                 parser.usage();
                 System.exit(1);
             }
@@ -134,6 +134,17 @@ public abstract class ManagedOperationCli {
     protected void die(String message) {
         System.err.println("ERROR: " + message);
         System.exit(2);
+    }
+    
+    /**
+     * Return {@code true} if the managed task has sufficient conditions
+     * to run.
+     * 
+     * @return {@code true} if the managed task has sufficient conditions
+     * to run
+     */
+    protected boolean isReadyToRun() {
+        return !options.help;
     }
 
     /**
