@@ -108,6 +108,11 @@ public class AccessManagerTest extends ConcourseBaseTest {
                     entry.getKey(), entry.getValue()));
         }
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testAddReservedUsername() {
+        manager.createUser(toByteBuffer("UnKnOwN"), getSecurePassword());
+    }
 
     @Test
     public void testAllUsersHaveUniqueUids() {
@@ -437,7 +442,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
     protected static ByteBuffer getAcceptableUsername() {
         ByteBuffer username = null;
         while (username == null
-                || !AccessManager.isAcceptableUsername(username)) {
+                || !AccessManager.isAcceptableUsername(username)
+                || AccessManager.isReservedUsername(username)) {
             username = toByteBuffer(TestData.getString());
         }
         return username;
@@ -450,7 +456,8 @@ public class AccessManagerTest extends ConcourseBaseTest {
      */
     protected static ByteBuffer getSecurePassword() {
         ByteBuffer password = null;
-        while (password == null || !AccessManager.isSecuredPassword(password)) {
+        while (password == null 
+                || !AccessManager.isSecuredPassword(password)) {
             password = toByteBuffer(TestData.getString());
         }
         return password;

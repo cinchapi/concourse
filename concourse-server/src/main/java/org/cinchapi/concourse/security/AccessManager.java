@@ -103,6 +103,20 @@ public class AccessManager {
                 && !usernameStr
                         .contains(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
     }
+    
+    /**
+     * Return {@code true} if {@code username} is reserved.
+     * 
+     * @param username
+     * @return {@code true} if ({@code username} is reserved
+     */
+    protected static boolean isReservedUsername(ByteBuffer username) {  // visible
+                                                                        // for
+                                                                        // testing
+        String usernameStr = new String(username.array());
+        return usernameStr
+                .equalsIgnoreCase(DELETED_USERNAME);
+    }
 
     /**
      * Return {@code true} if {@code password} is in valid format,
@@ -133,8 +147,12 @@ public class AccessManager {
             .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
     private final HashBasedTable<Short, String, Object> credentials;
     private final String backingStore;
+    
+    // Reserved username that is used to display deleted user 
+    // in history output.
+    private static final String DELETED_USERNAME = "Unknown";
 
-    // Column keys in table of credentials
+    // Column keys in table of credentials.
     private static final String USERNAME_KEY = "username"; // table value as hex
     private static final String PASSWORD_KEY = "password"; // table value as hex
     private static final String SALT_KEY = "salt"; // table value as hex
@@ -143,7 +161,7 @@ public class AccessManager {
     // in the credentials mapping in memory.
     private short maxUid = 0;
 
-    // Concurrency controls
+    // Concurrency controls.
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
     private final ReadLock read = master.readLock();
     private final WriteLock write = master.writeLock();
@@ -192,6 +210,8 @@ public class AccessManager {
     public void createUser(ByteBuffer username, ByteBuffer password) {
         Preconditions.checkArgument(isAcceptableUsername(username),
                 "Username must not be empty, or contain any whitespace.");
+        Preconditions.checkArgument(!isReservedUsername(username),
+                "This username is reserved.");
         Preconditions.checkArgument(isSecuredPassword(password),
                 "Password must not be empty, or have fewer than 3 characters.");
         write.lock();
