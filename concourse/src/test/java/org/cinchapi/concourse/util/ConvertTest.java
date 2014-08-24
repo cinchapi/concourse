@@ -49,12 +49,12 @@ import com.google.gson.JsonParseException;
 public class ConvertTest {
 
     @Test(expected = JsonParseException.class)
-    public void testCannConvertJsonArrayWithNonPrimitives(){
+    public void testCannConvertJsonArrayWithNonPrimitives() {
         Convert.jsonToJava("{\"key\": [1, [2, 3]]}");
     }
 
     @Test(expected = JsonParseException.class)
-    public void testCannontConvertInvalidJsonString(){
+    public void testCannontConvertInvalidJsonString() {
         Convert.jsonToJava(Random.getString());
     }
 
@@ -64,7 +64,7 @@ public class ConvertTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testCannotConvertJsonStringWithEmbeddedObject(){
+    public void testCannotConvertJsonStringWithEmbeddedObject() {
         Convert.jsonToJava("{\"key\": {\"a\": 1}}");
     }
 
@@ -171,7 +171,7 @@ public class ConvertTest {
     }
 
     @Test
-    public void testConvertJsonArrayDupesAreFilteredOut(){
+    public void testConvertJsonArrayDupesAreFilteredOut() {
         String json = "{\"key\": [3, 3]}";
         Multimap<String, Object> data = Convert.jsonToJava(json);
         Assert.assertEquals(1, data.size());
@@ -294,7 +294,7 @@ public class ConvertTest {
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, Convert.stringToJava(value));
     }
-    
+
     @Test
     public void testConvertResolvableLinkWithNumbers() {
         String key = Random.getNumber().toString();
@@ -304,7 +304,7 @@ public class ConvertTest {
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, Convert.stringToJava(value));
     }
-    
+
     @Test
     public void testConvertTag() {
         String string = Random.getString();
@@ -314,7 +314,7 @@ public class ConvertTest {
         String value = MessageFormat.format("{0}{1}{0}", "`", string);
         Assert.assertTrue(Convert.stringToJava(value) instanceof Tag);
     }
-    
+
     @Test
     public void testResolvableLinkKeyAndValueRegexWithNumbers() {
         String key = RAW_RESOLVABLE_LINK_SYMBOL_PREPEND
@@ -326,7 +326,7 @@ public class ConvertTest {
                         RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
                         RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+")));
     }
-    
+
     @Test
     public void testResolvableLinkKeyRegexWithNumbers() {
         String string = RAW_RESOLVABLE_LINK_SYMBOL_PREPEND
@@ -336,7 +336,7 @@ public class ConvertTest {
                 RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND)));
     }
-    
+
     @Test
     public void testTransformValueToResolvableLink() {
         String key = Random.getString();
