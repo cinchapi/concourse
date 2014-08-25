@@ -154,7 +154,7 @@ public final class Convert {
                 while (it.hasNext()) {
                     JsonElement elt = it.next();
                     if(elt.isJsonPrimitive()) {
-                        Object value = stringToJava(elt.getAsString());
+                        Object value = jsonElementToJava(elt);
                         data.put(key, value);
                     }
                     else {
@@ -165,11 +165,31 @@ public final class Convert {
                 }
             }
             else {
-                Object value = stringToJava(val.getAsString());
+                Object value = jsonElementToJava(val);
                 data.put(key, value);
             }
         }
         return data;
+    }
+
+    /**
+     * Convert a {@link JsonElement} to a a Java object and respect the desire
+     * to force a numeric string to a double.
+     * 
+     * @param element
+     * @return the java object
+     */
+    private static Object jsonElementToJava(JsonElement element) {
+        if(element.getAsString().matches("-?[0-9]+\\.[0-9]+D")) {
+            return stringToJava(element.getAsString()); // respect desire
+                                                        // to force double
+        }
+        else if(element.getAsString().matches("`([^`]+)`")) {
+            return stringToJava(element.getAsString()); // CON-137
+        }
+        else {
+            return stringToJava(element.toString());
+        }
     }
 
     /**
