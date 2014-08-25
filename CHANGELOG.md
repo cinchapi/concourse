@@ -8,6 +8,7 @@
 * Fixed a bug that accidentally stripped underscore *_* characters from environment names.
 * Further improved the CPU efficiency of the background indexing processes.
 * Fixed a bug that made it possible for Concourse Server to experience thread leaks. 
+* Fixed a bug that prevented backticks from being stripped in JSON encoded Tag values.
 
 #### Version 0.3.7 (TBD)
 
