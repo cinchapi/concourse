@@ -67,6 +67,20 @@ public abstract class ConnectionPool implements AutoCloseable {
 
     /**
      * Return a {@link ConnectionPool} that has no limit on the number of
+     * connections it can manage to the Concourse instance described in the
+     * {@code concourse_client.prefs} file located in the working directory or
+     * the default connection info if no such file exists, but will try to use
+     * previously created connections before establishing new ones for any
+     * request.
+     * 
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newCachedConnectionPool() {
+        return newCachedConnectionPool(DEFAULT_PREFS_FILE);
+    }
+
+    /**
+     * Return a {@link ConnectionPool} that has no limit on the number of
      * connections it can manage to the Concourse instance at {@code host}:
      * {@code port} on behalf of the user identified by {@code username} and
      * {@code password}, but will try to use previously created connections
@@ -195,6 +209,23 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
+     * Return a new {@link ConnectionPool} with a fixed number of connections to
+     * the Concourse instance defined in the {@code concourse_client.prefs} file
+     * located in the working directory or using the default connection info if
+     * no such file exists.
+     * <p>
+     * If all the connections from the pool are active, subsequent request
+     * attempts will block until a connection is returned.
+     * </p>
+     * 
+     * @param poolSize
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newFixedConnectionPool(int poolSize) {
+        return newFixedConnectionPool(DEFAULT_PREFS_FILE, poolSize);
+    }
+
+    /**
      * Return a new {@link ConnectionPool} with a fixed number of
      * connections to the Concourse instance defined in the client {@code prefs}
      * on behalf of the user defined in the client {@code prefs}.
@@ -265,6 +296,11 @@ public abstract class ConnectionPool implements AutoCloseable {
      * The default connection pool size.
      */
     protected static final int DEFAULT_POOL_SIZE = 10;
+
+    /**
+     * The default preferences file to use if none is specified.
+     */
+    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
 
     /**
      * A mapping from connection to a flag indicating if the connection is
