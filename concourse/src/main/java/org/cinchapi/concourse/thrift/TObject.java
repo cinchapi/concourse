@@ -161,7 +161,7 @@ public class TObject implements
         if(obj instanceof TObject) {
             TObject other = (TObject) obj;
             return bufferForData().equals(other.bufferForData())
-                    && type == other.type;
+                    && getInternalType() == other.getInternalType();
         }
         return false;
     }
@@ -197,7 +197,7 @@ public class TObject implements
 
     @Override
     public int hashCode() {
-        return Objects.hash(data, type);
+        return Objects.hash(data, getInternalType());
     }
 
     /**
@@ -232,6 +232,17 @@ public class TObject implements
      */
     public boolean isSetType() {
         return this.type != null;
+    }
+
+    /**
+     * Return {@code true} if this TObject and {@code other} have the same
+     * {@code type} and are equal.
+     * 
+     * @param other
+     * @return {@code true} if this matches {@code other}.
+     */
+    public boolean matches(TObject other) {
+        return type == other.type && equals(other);
     }
 
     public void read(org.apache.thrift.protocol.TProtocol iprot)
@@ -324,6 +335,20 @@ public class TObject implements
     public void write(org.apache.thrift.protocol.TProtocol oprot)
             throws org.apache.thrift.TException {
         schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    /**
+     * Return the {@link Type} that is used for internal operations.
+     * 
+     * @return the internal type
+     */
+    private Type getInternalType() {
+        if(type == Type.TAG) {
+            return Type.STRING;
+        }
+        else {
+            return getType();
+        }
     }
 
     private void readObject(java.io.ObjectInputStream in)
