@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,14 +62,14 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
 
     @Test
     public void testVerifyOrSetClearsOtherValues() {
-        String key = TestData.getString();
-        long record = TestData.getLong();
-        int count = TestData.getScaleCount();
+        String key = Variables.register("key", TestData.getString());
+        long record = Variables.register("record", TestData.getLong());
+        int count = Variables.register("count", TestData.getScaleCount());
         Object value = null;
         for (int i = 0; i < count; i++) {
             Object obj = null;
             while (obj == null || client.verify(key, obj, record)) {
-                obj = TestData.getObject();
+                obj = Variables.register("obj_" + i, TestData.getObject());
             }
             client.add(key, obj, record);
             if(i == 0 || TestData.getScaleCount() % 3 == 0) {
@@ -79,9 +80,9 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
         Assert.assertEquals(value, client.get(key, record));
         Assert.assertEquals(1, client.fetch(key, record).size());
     }
-    
+
     @Test
-    public void testVerifyOrSetInEmptyRecord(){
+    public void testVerifyOrSetInEmptyRecord() {
         String key = TestData.getString();
         Object value = TestData.getObject();
         long record = TestData.getLong();
