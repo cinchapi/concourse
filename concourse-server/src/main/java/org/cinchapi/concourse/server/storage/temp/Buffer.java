@@ -55,6 +55,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
@@ -801,7 +802,7 @@ public final class Buffer extends Limbo {
          * Data is never deleted from the buffer, until the entire Page is
          * removed.
          */
-        private final MappedByteBuffer content;
+        private MappedByteBuffer content;
 
         /**
          * The file that contains the content of the Page.
@@ -908,6 +909,7 @@ public final class Buffer extends Limbo {
          */
         public void delete() {
             FileSystem.deleteFile(filename);
+            ByteBuffers.unmap(content); // CON-163 (authorized)
             Logger.info("Deleting Buffer page {}", filename);
         }
 
