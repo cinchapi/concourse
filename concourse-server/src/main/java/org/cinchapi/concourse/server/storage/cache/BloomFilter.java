@@ -24,21 +24,19 @@
 package org.cinchapi.concourse.server.storage.cache;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.io.Serializables;
 import org.cinchapi.concourse.server.io.Syncable;
 
 import com.google.common.base.Preconditions;
@@ -179,20 +177,14 @@ public class BloomFilter implements Syncable {
     @Override
     public void sync() {
         masterLock.readLock().lock();
+        FileChannel channel = FileSystem.getFileChannel(file);
         try {
             Preconditions.checkState(file != null, "Cannot sync a "
                     + "BloomFilter that does not have an associated file");
-            ObjectOutput output = new ObjectOutputStream(
-                    new BufferedOutputStream(new FileOutputStream(
-                            FileSystem.openFile(file))));
-            output.writeObject(source);
-            output.flush();
-            output.close();
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
+            Serializables.write(source, channel); // CON-164
         }
         finally {
+            FileSystem.closeFileChannel(channel);
             masterLock.readLock().unlock();
         }
     }
