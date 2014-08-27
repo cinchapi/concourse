@@ -92,4 +92,20 @@ public class BlockIndexTest extends ConcourseBaseTest {
         }
     }
 
+    @Test
+    public void testBlockWorksAfterBeingSynced() {
+        // basically check that we can sync to disk and the block index still
+        // works fine
+        int count = TestData.getScaleCount() * 2;
+        BlockIndex index = BlockIndex.create(file, count);
+        PrimaryKey key = PrimaryKey.wrap(count);
+        index.putStart(count, key);
+        index.putEnd(count * 2, key);
+        Assert.assertEquals(count, index.getStart(key));
+        Assert.assertEquals(count * 2, index.getEnd(key));
+        index.sync();
+        Assert.assertEquals(count, index.getStart(key));
+        Assert.assertEquals(count * 2, index.getEnd(key));
+    }
+
 }

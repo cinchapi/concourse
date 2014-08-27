@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage.db;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.Map;
@@ -267,8 +268,9 @@ public class BlockIndex implements Byteable, Syncable {
     public void sync() {
         Preconditions.checkState(mutable);
         masterLock.readLock().lock();
+        FileChannel channel = FileSystem.getFileChannel(file);
         try {
-            FileSystem.getFileChannel(file).write(getBytes());
+            channel.write(getBytes());
             softEntries = new SoftReference<Map<Composite, Entry>>(entries);
             mutable = false;
             entries = null;
@@ -277,6 +279,7 @@ public class BlockIndex implements Byteable, Syncable {
             throw Throwables.propagate(e);
         }
         finally {
+            FileSystem.closeFileChannel(channel); // CON-162
             masterLock.readLock().unlock();
         }
     }
