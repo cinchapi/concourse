@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.testing.Variables;
@@ -197,7 +198,7 @@ public abstract class BufferedStoreTest extends StoreTest {
                 + "AS three IN 3, REMOVE B AS six IN 6";
         String[] parts = order.split(",");
         List<Data> data = Lists.newArrayList();
-        for(String part : parts){
+        for (String part : parts) {
             part = part.trim();
             data.add(Data.fromString(part));
         }
@@ -216,9 +217,9 @@ public abstract class BufferedStoreTest extends StoreTest {
         boolean verify = Numbers.isOdd(count(data, d));
         Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
     }
-    
+
     @Test
-    public void testSetBuffered(){
+    public void testSetBuffered() {
         List<Data> data = generateTestData();
         insertData(data);
         Data d = Variables.register("d",
@@ -226,6 +227,21 @@ public abstract class BufferedStoreTest extends StoreTest {
         ((BufferedStore) store).set(d.key, d.value, d.record);
         Assert.assertTrue(store.verify(d.key, d.value, d.record));
         Assert.assertEquals(1, store.fetch(d.key, d.record).size());
+    }
+
+    @Test
+    public void testFetchTagWhereRemovalIsInBuffer() {
+        List<Data> data = Lists.newArrayList();
+        Data d;
+        TObject tag = Convert.javaToThrift(Tag.create("A"));
+        TObject string = Convert.javaToThrift("A");
+        data.add(d = (Data.positive("foo", tag, 1)));
+        data.add(Data.positive("foo", Convert.javaToThrift(Tag.create("B")), 1));
+        data.add(Data.negative(d));
+        insertData(data, 2);
+        Assert.assertFalse(store.fetch("foo", 1).contains(string));
+        Assert.assertFalse(store.fetch("foo", 1).contains(tag));
+
     }
 
     /**
