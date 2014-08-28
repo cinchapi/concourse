@@ -98,7 +98,7 @@ public final class Translate {
             return new TSymbol(TSymbolType.KEY, symbol.toString());
         }
         else if(symbol.getClass() == ValueSymbol.class) {
-            return new TSymbol(TSymbolType.VALUE, symbol.toString());
+            return new TSymbol(TSymbolType.VALUE, escape(symbol.toString()));
         }
         else if(symbol.getClass() == ParenthesisSymbol.class) {
             return new TSymbol(TSymbolType.PARENTHESIS, symbol.toString());
@@ -112,6 +112,28 @@ public final class Translate {
         else {
             throw new IllegalArgumentException(MessageFormat.format(
                     "Cannot translate {0} to Thrift", symbol));
+        }
+    }
+
+    /**
+     * Do any escaping of the {@code value} in order to preserve it during the
+     * translation.
+     * 
+     * @param value
+     * @return the escaped value
+     */
+    private static String escape(String value) {
+        if(value.matches("`([^`]+)`")) { // CON-167: surround by quotes so the
+                                         // backticks are not interpreted as
+                                         // indicators of an encoded Tag. This
+                                         // case would happen if the user
+                                         // manually placed text wrapped in
+                                         // backticks in the Criteria instead of
+                                         // using the #Tag.create() method.
+            return "\"" + value + "\"";
+        }
+        else {
+            return value;
         }
     }
 
