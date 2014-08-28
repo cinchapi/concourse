@@ -21,25 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.testsuite;
+package org.cinchapi.concourse.bugrepro;
 
-import org.cinchapi.concourse.bugrepro.CON108;
-import org.cinchapi.concourse.bugrepro.CON167;
-import org.cinchapi.concourse.bugrepro.CON52;
-import org.cinchapi.concourse.bugrepro.CON55;
-import org.cinchapi.concourse.bugrepro.CON72;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Set;
+
+import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.Tag;
+import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.thrift.Operator;
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
- * 
+ * Unit tests that reproduces the issue found in CON-167.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ CON52.class, CON55.class, CON72.class, CON108.class,
-        CON167.class })
-public class BugReproSuite {
+public class CON167 extends ConcourseIntegrationTest {
+
+    @Test
+    public void repro() {
+        String value = "`bar`";
+        client.set("foo", value, 1);
+        client.set("foo", Tag.create(value), 2);
+        Set<Long> expected = Sets.newHashSet(1L, 2L);
+        Assert.assertEquals(expected,
+                client.find("foo", Operator.EQUALS, value));
+        Assert.assertEquals(
+                expected,
+                client.find(Criteria.where().key("foo")
+                        .operator(Operator.EQUALS).value(value)));
+    }
 
 }
