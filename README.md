@@ -23,8 +23,6 @@ concourse.remove("name", "Jeff Nelson", 1)
 
 ### Reading Data
 ```java
-import org.cinchapi.concourse
-
 // Get the oldest value for the "name" key in record 1
 concourse.get("name", 1);
 
@@ -37,8 +35,6 @@ concourse.find("name", Operator.EQUALS, "Jeff Nelson");
 
 ### Transactions
 ```java
-import org.cinchapi.concourse
-
 // Transfer $50 from acct1 to acct2
 concourse.stage(); //start transaction
 try {
@@ -54,14 +50,13 @@ catch (Throwable t) {
 For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Overview
-* [End User Installation Guide](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started#GettingStarted-InstallConcourse)
-* [End User Upgrade Guide](https://cinchapi.atlassian.net/wiki/display/CON/Upgrade+Guide)
-* [Hello World Tutorial](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started)
+* [Installation Guide](http://concoursedb.com/guide/installation)
+* [Tutorial](http://concoursedb.com/guide/tutorial)
 * [API Documentation](concourse/README.md)
 * [Developer Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup)
-* [Understanding the codebase](https://cinchapi.atlassian.net/wiki/display/CON/Understanding+the+codebase)
-* [Data Model](https://cinchapi.atlassian.net/wiki/display/CON/Data+Model)
-* [Storage Model](https://cinchapi.atlassian.net/wiki/display/CON/Storage+Model)
+* [Codebase Overview](http://concoursedb.com/guide/the-codebase)
+* [Data Model](http://concoursedb.com/guide/data-model/)
+* [Storage Model](http://concoursedb.com/guide/storage-model/)
 
 ### System Requirements
 
