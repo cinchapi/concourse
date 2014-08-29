@@ -25,9 +25,6 @@ concourse.remove("name", "Jeff Nelson", 1)
 ```java
 import org.cinchapi.concourse
 
-// Establish connection to Concourse Server
-Concourse concourse = Concourse.connect();
-
 // Get the oldest value for the "name" key in record 1
 concourse.get("name", 1);
 
@@ -41,9 +38,6 @@ concourse.find("name", Operator.EQUALS, "Jeff Nelson");
 ### Transactions
 ```java
 import org.cinchapi.concourse
-
-// Establish connection to Concourse Server
-Concourse concourse = Concourse.connect();
 
 // Transfer $50 from acct1 to acct2
 concourse.stage(); //start transaction
