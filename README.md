@@ -3,16 +3,61 @@
 [Concourse](http://concoursedb.com) is a schemaless and distributed version control database with automatic indexing, acid transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
 
 ## Usage
+The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
+### Writing Data
 ```java
 import org.cinchapi.concourse
 
 // Establish connection to Concourse Server
 Concourse concourse = Concourse.connect();
 
-// Perform a simple write and return the primary key for the new record
-long record = concourse.set("name", "Jeff Nelson");
+// Insert a value for the "name" key in record 1
+concourse.set("name", "Jeff Nelson", 1);
 
+// Append an additional value for the "name" key in record 1
+concourse.add("name", "John Doe", 1);
+
+// Remove a value for the "name" key in record 1
+concourse.remove("name", "Jeff Nelson", 1)
 ```
+
+### Reading Data
+```java
+import org.cinchapi.concourse
+
+// Establish connection to Concourse Server
+Concourse concourse = Concourse.connect();
+
+// Get the oldest value for the "name" key in record 1
+concourse.get("name", 1);
+
+// Fetch all the values for the "name" key in record 1
+concourse.fetch("name", 1);
+
+// Find all the records that have a value of "Jeff Nelson" for the "name" key
+concourse.find("name", Operator.EQUALS, "Jeff Nelson");
+```
+
+### Transactions
+```java
+import org.cinchapi.concourse
+
+// Establish connection to Concourse Server
+Concourse concourse = Concourse.connect();
+
+// Transfer $50 from acct1 to acct2
+concourse.stage(); //start transaction
+try {
+  concourse.set("balance", concourse.get("balance", acct1) - 50), acct1);
+  concourse.set("balance", concourse.get("balance", acct2) + 50), acct2);
+  concourse.commit();
+}
+catch (Throwable t) {
+  concourse.abort();
+}
+```
+
+For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Overview
 * [End User Installation Guide](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started#GettingStarted-InstallConcourse)
