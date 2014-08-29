@@ -50,11 +50,11 @@ catch (Throwable t) {
 For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Overview
-* [Installation Guide](http://concoursedb.com/guide/installation)
+* [Installation](http://concoursedb.com/guide/installation)
 * [Tutorial](http://concoursedb.com/guide/tutorial)
-* [API Documentation](concourse/README.md)
+* [API](concourse/README.md)
 * [Developer Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup)
-* [Codebase Overview](http://concoursedb.com/guide/the-codebase)
+* [Codebase](http://concoursedb.com/guide/the-codebase)
 * [Data Model](http://concoursedb.com/guide/data-model/)
 * [Storage Model](http://concoursedb.com/guide/storage-model/)
 
