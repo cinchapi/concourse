@@ -430,7 +430,7 @@ public class AtomicOperation extends BufferedStore implements
             search: for (VersionExpectation expectation : expectations) {
                 prepareLockForPossibleUpgrade(expectation, locks);
                 if(expectation.getLockType() == LockType.RANGE_READ) {
-                    // CON-72: Check to see if we already have a RANE_WRITE that
+                    // CON-72: Check to see if we already have a RANGE_WRITE that
                     // covers one of the values in this RANGE_READ. If so skip
                     // this lock since the write will adequately block any
                     // conflicting reads
