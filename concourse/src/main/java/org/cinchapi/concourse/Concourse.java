@@ -118,7 +118,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public abstract class Concourse {
+public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new Client connection to the environment of the Concourse
@@ -406,6 +406,11 @@ public abstract class Concourse {
      * @param record
      */
     public abstract void clear(String key, long record);
+
+    @Override
+    public final void close() throws Exception {
+        exit();
+    }
 
     /**
      * Attempt to permanently commit all the currently staged changes. This
