@@ -118,7 +118,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
-public abstract class Concourse {
+public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new Client connection to the environment of the Concourse Server
@@ -177,7 +177,7 @@ public abstract class Concourse {
             String password, String environment) {
         return new Client(host, port, username, password, environment);
     }
-
+    
     /**
      * Discard any changes that are currently staged for commit.
      * <p>
@@ -202,6 +202,15 @@ public abstract class Concourse {
             Collection<Long> records);
 
     /**
+     *Add {@code key} as {@code value} in a new record and return the primary key.
+     * 
+     * @param key
+     * @param value
+     * @return the primary key of the record in which the data was added
+     */
+    public abstract <T> long add(String key, T value);
+
+    /**
      * Add {@code key} as {@code value} to {@code record} if it is not already
      * contained.
      * 
@@ -213,22 +222,13 @@ public abstract class Concourse {
     public abstract <T> boolean add(String key, T value, long record);
     
     /**
-     *Add {@code key} as {@code value} in a new record and return the primary key.
-     * 
-     * @param key
-     * @param value
-     * @return the primary key of the record in which the data was added
-     */
-    public abstract <T> long add(String key, T value);
-    
-    /**
      * Audit {@code record} and return a log of revisions.
      * 
      * @param record
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(long record);
-
+    
     /**
      * Audit {@code key} in {@code record} and return a log of revisions.
      * 
@@ -413,6 +413,11 @@ public abstract class Concourse {
      * @param record
      */
     public abstract void clear(String key, long record);
+
+    @Override
+    public final void close() throws Exception {
+        exit();
+    }
 
     /**
      * Attempt to permanently commit all the currently staged changes. This
@@ -1277,25 +1282,6 @@ public abstract class Concourse {
             return result;
         }
 
-        @Override
-        public <T> boolean add(final String key, final T value,
-                final long record) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Boolean>() {
-
-                    @Override
-                    public Boolean call() throws Exception {
-                        return client.add(key, Convert.javaToThrift(value),
-                                record, creds, transaction, environment);
-                    }
-
-                });
-            }
-            return false;
-        }
-        
         public <T> long add(final String key, final T value){
             if(!StringUtils.isBlank(key)
                     && (!(value instanceof String) || (value instanceof String && !StringUtils
@@ -1313,6 +1299,25 @@ public abstract class Concourse {
             	throw new IllegalArgumentException("Either your key is blank or value");
             }
             
+        }
+        
+        @Override
+        public <T> boolean add(final String key, final T value,
+                final long record) {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Boolean>() {
+
+                    @Override
+                    public Boolean call() throws Exception {
+                        return client.add(key, Convert.javaToThrift(value),
+                                record, creds, transaction, environment);
+                    }
+
+                });
+            }
+            return false;
         }
         
         
