@@ -131,7 +131,12 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
         logInfoMessage("STARTING {}", this);
         try {
             doTask();
-            updateSystemSchemaVersion();
+            ((MappedByteBuffer) FileSystem.map(BUFFER_VERSION_FILE,
+                    MapMode.READ_WRITE, 0, 4).putInt(getSchemaVersion()))
+                    .force();
+            ((MappedByteBuffer) FileSystem.map(DB_VERSION_FILE,
+                    MapMode.READ_WRITE, 0, 4).putInt(getSchemaVersion()))
+                    .force();
             logInfoMessage("FINISHED {}", this);
         }
         catch (Exception e) {
@@ -189,17 +194,6 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      */
     protected final void logWarnMessage(String message, Object... params) {
         Logger.warn(decorateLogMessage(message), params);
-    }
-
-    /**
-     * Update the schema version of the Concourse Server installation to that of
-     * this upgrade task.
-     */
-    void updateSystemSchemaVersion() {
-        ((MappedByteBuffer) FileSystem.map(BUFFER_VERSION_FILE,
-                MapMode.READ_WRITE, 0, 4).putInt(getSchemaVersion())).force();
-        ((MappedByteBuffer) FileSystem.map(DB_VERSION_FILE, MapMode.READ_WRITE,
-                0, 4).putInt(getSchemaVersion())).force();
     }
 
     /**

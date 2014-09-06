@@ -55,13 +55,6 @@ if [ \$files -gt 0 ]; then
 	echo
 
 	cd - >> /dev/null
-else
-	# run initializer tasks
-	echo
-	. "bin/.env" # NOTE: The .env script cd's into the parent directory (which is the parent directory of the install directory)
-	cd - >> /dev/null
-	\$JAVACMD -cp "lib/*" org.cinchapi.concourse.server.upgrade.Initializer
-	echo
 fi
 
 # -- delete the update file and installer
