@@ -1,5 +1,17 @@
 ## Changelog
 
+#### Version 0.4.1 (September 7, 2014)
+* Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
+* Fixed a bug that accidentally stripped underscore *_* characters from environment names.
+* Further improved the CPU efficiency of the background indexing processes.
+* Fixed a bug that made it possible for Concourse Server to experience thread leaks.
+* Fixed a bug that prevented backticks from being stripped in JSON encoded Tag values.
+* Added cached and fixed `ConnecitionPool` factory methods that use the default connection info when creating new instances.
+* Fixed a bug that caused some management CLIs to unnecssarily prompt for authentication instead of immediately displaying the `usage` message when an insufficent number of arguments were presented.
+* Fixed a bug that caused the Criteria builder to improperly handle values with leading and trailing backticks.
+* Made `Concourse` implement the `java.lang.AutoCloseable` interface.
+* Fixed an issue where upgrades failed because the system version was not set for new installations.
+
 #### Version 0.4.0 (June 30, 2014)
 
 ##### Environments
