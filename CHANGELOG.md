@@ -1,5 +1,9 @@
 ## Changelog
 
+#### Version 0.3.7 (September 7, 2014)
+* Fixed an issue that caused Concourse Server to unnecessarily keep file descriptors open after data was indexed and synced to disk.
+* Fixed an issue that made it possible for Concourse to lose some storage metadata in the event of a premature server crash or power loss.
+
 #### Version 0.3.6 (June 30, 2014)
 * Fixed a bug that caused string values to be sorted inconsitently.
 * Fixed an infinite loop that caused Concourse Server to stack overflow when used with JRE 8.
