@@ -35,7 +35,7 @@ import org.cinchapi.concourse.util.Logger;
  * An {@link UpgradeTask} performs an operation that "upgrades" previously
  * stored data. All tasks that are defined in the
  * {@code org.cinchapi.concourse.server.upgrade.task} package and are
- * higher than the current schema version are automatically run by the
+ * higher than the current system version are automatically run by the
  * {@link Upgrader} whenever the user upgrades the ConcourseServer.
  * 
  * @author jnelson
@@ -43,20 +43,20 @@ import org.cinchapi.concourse.util.Logger;
 public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     /**
-     * Return the current schema version.
+     * Return the current system version.
      * 
      * @return the current storage version
      */
-    public static int getCurrentSchemaVersion() {
-        return Math.min(getBufferSchemaVersion(), getDbSchemaVersion());
+    public static int getCurrentSystemVersion() {
+        return Math.min(getBufferSystemVersion(), getDbSystemVersion());
     }
 
     /**
-     * Return the current buffer schema version.
+     * Return the current buffer system version.
      * 
-     * @return the buffer schema
+     * @return the buffer system
      */
-    private static int getBufferSchemaVersion() {
+    private static int getBufferSystemVersion() {
         if(FileSystem.hasFile(BUFFER_VERSION_FILE)) {
             return FileSystem.map(BUFFER_VERSION_FILE, MapMode.READ_ONLY, 0, 4)
                     .getInt();
@@ -67,11 +67,11 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * Return the current database schema version.
+     * Return the current database system version.
      * 
-     * @return the db schema
+     * @return the db system
      */
-    private static int getDbSchemaVersion() {
+    private static int getDbSystemVersion() {
         if(FileSystem.hasFile(DB_VERSION_FILE)) {
             return FileSystem.map(DB_VERSION_FILE, MapMode.READ_ONLY, 0, 4)
                     .getInt();
@@ -82,20 +82,20 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * The name of the file we use to hold the internal schema version of the
+     * The name of the file we use to hold the internal system version of the
      * most recently run upgrade task.
      */
     private static String VERSION_FILE_NAME = ".schema";
 
     /**
-     * The name of the file we use to hold the internal schema version of the
+     * The name of the file we use to hold the internal system version of the
      * most recently run upgrade task in the Database.
      */
     private static final String DB_VERSION_FILE = GlobalState.DATABASE_DIRECTORY
             + File.separator + VERSION_FILE_NAME;
 
     /**
-     * The name of the file we use to hold the the internal schema version of
+     * The name of the file we use to hold the the internal system version of
      * the most recently run upgrade task in the Buffer.
      */
     private static final String BUFFER_VERSION_FILE = GlobalState.BUFFER_DIRECTORY
@@ -103,13 +103,13 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     @Override
     public int compareTo(UpgradeTask o) {
-        return Integer.compare(getSchemaVersion(), o.getSchemaVersion());
+        return Integer.compare(getSystemVersion(), o.getSystemVersion());
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof UpgradeTask) {
-            return getSchemaVersion() == ((UpgradeTask) obj).getSchemaVersion();
+            return getSystemVersion() == ((UpgradeTask) obj).getSystemVersion();
         }
         else {
             return false;
@@ -125,17 +125,17 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     public abstract String getDescription();
 
     /**
-     * Return the numerical schema version of this task. Each upgrade task
-     * should have a unique schema version that is higher than any other task on
+     * Return the numerical system version of this task. Each upgrade task
+     * should have a unique system version that is higher than any other task on
      * which it depends.
      * 
      * @return the storage version of this task
      */
-    public abstract int getSchemaVersion();
+    public abstract int getSystemVersion();
 
     @Override
     public int hashCode() {
-        return getSchemaVersion();
+        return getSystemVersion();
     }
 
     /**
@@ -145,7 +145,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
         logInfoMessage("STARTING {}", this);
         try {
             doTask();
-            updateSystemSchemaVersion();
+            propagateSystemVersionUpdate();
             logInfoMessage("FINISHED {}", this);
         }
         catch (Exception e) {
@@ -156,7 +156,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     @Override
     public String toString() {
-        return "Upgrade Task " + getSchemaVersion() + ": " + getDescription();
+        return "Upgrade Task " + getSystemVersion() + ": " + getDescription();
     }
 
     /**
@@ -214,14 +214,14 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * Update the schema version of the Concourse Server installation to that of
+     * Update the system version of the Concourse Server installation to that of
      * this upgrade task.
      */
-    void updateSystemSchemaVersion() {
+    void propagateSystemVersionUpdate() {
         ((MappedByteBuffer) FileSystem.map(BUFFER_VERSION_FILE,
-                MapMode.READ_WRITE, 0, 4).putInt(getSchemaVersion())).force();
+                MapMode.READ_WRITE, 0, 4).putInt(getSystemVersion())).force();
         ((MappedByteBuffer) FileSystem.map(DB_VERSION_FILE, MapMode.READ_WRITE,
-                0, 4).putInt(getSchemaVersion())).force();
+                0, 4).putInt(getSystemVersion())).force();
     }
 
     /**
@@ -232,7 +232,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the formatted log message
      */
     private String decorateLogMessage(String message) {
-        return "Upgrade(" + getSchemaVersion() + "): " + message;
+        return "Upgrade(" + getSystemVersion() + "): " + message;
     }
 
 }
