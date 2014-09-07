@@ -87,9 +87,8 @@ service ConcourseService {
 		throws (1: shared.TSecurityException ex);
 
 	/**
-	 * Add {@code  key} as {@code value} to a unique record. This method returns
-	 * {@code true} if there is no mapping from {@code key} to {@code value}
-	 * for unique record prior to invocation.
+	 * Add {@code  key} as {@code value} to a unique record and return the primary
+	 * key.
 	 */
 	i64 add1(1: string key, 2: data.TObject value, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
