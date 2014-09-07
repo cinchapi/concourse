@@ -75,16 +75,16 @@ public class Initializer {
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = clazz.newInstance();
                     if(theTask == null
-                            || task.getSchemaVersion() > theTask
-                                    .getSchemaVersion()) {
+                            || task.getSystemVersion() > theTask
+                                    .getSystemVersion()) {
                         theTask = task;
                     }
                 }
             }
 
-            theTask.updateSystemSchemaVersion();
+            theTask.propagateSystemVersionUpdate();
             Logger.info("The system version has been set to {}",
-                    theTask.getSchemaVersion());
+                    theTask.getSystemVersion());
             System.exit(0);
 
         }

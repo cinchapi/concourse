@@ -30,7 +30,7 @@ import org.reflections.Reflections;
 
 import com.google.common.collect.Sets;
 
-import static org.cinchapi.concourse.server.upgrade.UpgradeTask.getCurrentSchemaVersion;
+import static org.cinchapi.concourse.server.upgrade.UpgradeTask.getCurrentSystemVersion;
 
 /**
  * The {@link Upgrader} is responsible for running the latest upgrade tasks on
@@ -66,7 +66,7 @@ public class Upgrader {
         boolean enableConsoleLogging = GlobalState.ENABLE_CONSOLE_LOGGING;
         GlobalState.ENABLE_CONSOLE_LOGGING = true;
         try {
-            int currentSchemaVersion = getCurrentSchemaVersion();
+            int currentSystemVersion = getCurrentSystemVersion();
 
             // Find the new upgrade tasks
             Set<UpgradeTask> tasks = Sets.newTreeSet();
@@ -78,7 +78,7 @@ public class Upgrader {
                         .getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = clazz.newInstance();
-                    if(task.getSchemaVersion() > currentSchemaVersion) {
+                    if(task.getSystemVersion() > currentSystemVersion) {
                         tasks.add(task);
                     }
                 }

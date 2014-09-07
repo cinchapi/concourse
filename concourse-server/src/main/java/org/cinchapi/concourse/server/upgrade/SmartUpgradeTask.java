@@ -37,7 +37,7 @@ import org.cinchapi.concourse.util.Versions;
 public abstract class SmartUpgradeTask extends UpgradeTask {
 
     @Override
-    public int getSchemaVersion() {
+    public int getSystemVersion() {
         String version = getClass().getSimpleName().split("Upgrade")[1]
                 .replace("_", ".");
         return (int) Versions.toLongRepresentation(version, 2);
