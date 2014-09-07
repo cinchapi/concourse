@@ -12,6 +12,10 @@
 * Made `Concourse` implement the `java.lang.AutoCloseable` interface.
 * Fixed an issue where upgrades failed because the system version was not set for new installations.
 
+#### Version 0.3.7 (September 7, 2014)
+* Fixed an issue that caused Concourse Server to unnecessarily keep file descriptors open after data was indexed and synced to disk.
+* Fixed an issue that made it possible for Concourse to lose some storage metadata in the event of a premature server crash or power loss.
+
 #### Version 0.4.0 (June 30, 2014)
 
 ##### Environments
