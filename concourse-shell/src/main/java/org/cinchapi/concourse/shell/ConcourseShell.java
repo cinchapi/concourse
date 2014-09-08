@@ -141,6 +141,9 @@ public final class ConcourseShell {
                     System.err.println("Cannot complete command because "
                             + "it contains an illegal character sequence.");
                 }
+                else if(Strings.isNullOrEmpty(line)) { // CON-170
+                    continue;
+                }
                 else {
                     watch.reset().start();
                     Object value = null;
