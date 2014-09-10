@@ -84,7 +84,7 @@ public final class RangeLockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(RangeToken token) {
-        return CACHE.get(token).readLock();
+        return cache.get(token).readLock();
     }
 
     /**
@@ -123,7 +123,7 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(RangeToken token) {
-        return CACHE.get(token).writeLock();
+        return cache.get(token).writeLock();
 
     }
 
@@ -164,7 +164,7 @@ public final class RangeLockService {
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = CACHE.entrySet()
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = cache.entrySet()
                 .iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
@@ -271,7 +271,7 @@ public final class RangeLockService {
      * not currently held by any readers or writers.
      */
     @SuppressWarnings("serial")
-    private final Map<RangeToken, RangeReadWriteLock> CACHE = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
+    private final Map<RangeToken, RangeReadWriteLock> cache = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
 
         @Override
         public RangeReadWriteLock get(Object key) {
@@ -324,7 +324,7 @@ public final class RangeLockService {
                     super.unlock();
                     if(!RangeReadWriteLock.this.isWriteLocked()
                             && RangeReadWriteLock.this.getReadLockCount() == 0) {
-                        CACHE.remove(token);
+                        cache.remove(token);
                     }
                 }
 
@@ -348,7 +348,7 @@ public final class RangeLockService {
                     super.unlock();
                     if(!RangeReadWriteLock.this.isWriteLocked()
                             && RangeReadWriteLock.this.getReadLockCount() == 0) {
-                        CACHE.remove(token);
+                        cache.remove(token);
                     }
                 }
 
