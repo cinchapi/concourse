@@ -24,13 +24,23 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for an {@link AtomicOperation} that commits to the {@link Engine}
@@ -49,6 +59,72 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
                           // the middle of a test.
         }
     };
+
+    @Test
+    public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey() {
+        String key = "ipeds_id";
+        TObject value = Convert.javaToThrift(1);
+        long record = Time.now();
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.find(key, Operator.NOT_REGEX, value);
+        operation.add(key, value, record);
+        Assert.assertTrue(operation.commit());
+    }
+
+    @Test
+    public void testEngineDoesNotMissAnyVersionChangeNotifications() {
+        final String key = "foo";
+        final long record = 1;
+        final AtomicBoolean aRunning = new AtomicBoolean(true);
+        final AtomicBoolean bRunning = new AtomicBoolean(true);
+
+        // A thread that continuously modifies the version for key/record
+        Thread a = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                int count = 0;
+                while (aRunning.get()) {
+                    destination.accept(Write.add(key,
+                            Convert.javaToThrift(count), record));
+                    count++;
+                }
+
+            }
+
+        });
+
+        // A thread that continuously creates atomic operations and registers
+        // them as version change listeners for key/record
+        final List<AtomicOperation> operations = Lists.newArrayList();
+        Thread b = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (bRunning.get()) {
+                    AtomicOperation operation = AtomicOperation
+                            .start(destination);
+                    operations.add(operation);
+                    operation.fetch(key, record);
+                }
+
+            }
+
+        });
+
+        a.start();
+        b.start();
+        TestData.sleep();
+        bRunning.set(false);
+        aRunning.set(false);
+        for (AtomicOperation operation : operations) {
+            Assert.assertFalse(operation.open); // ensure that all the atomic
+                                                // operations were notified
+                                                // about the version change
+        }
+        destination.stop();
+
+    }
 
     @Override
     protected void cleanup(Store store) {
