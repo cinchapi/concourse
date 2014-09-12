@@ -23,7 +23,6 @@
  */
 package org.cinchapi.common.util;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -38,6 +37,7 @@ import org.cliffc.high_scale_lib.NonBlockingHashMap;
 import org.cliffc.high_scale_lib.NonBlockingHashSet;
 
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -46,6 +46,13 @@ import com.google.common.collect.Multiset;
 
 /**
  * A thread-safe lock-free alternate implementation of a {@link HashMultimap}.
+ * <p>
+ * This structure differs from the {@link Multimap} interface in some ways. For
+ * example, views returned from methods such as {@link #keys()},
+ * {@link #entries()}, etc do not "read through" to the underlying collection.
+ * That means changes made to those views do not update the Multimap instance
+ * and vice-versa.
+ * </p>
  * 
  * @author jnelson
  */
@@ -101,6 +108,7 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
     @Override
     public void clear() {
         map.clear();
+        totalSize = 0;
 
     }
 
@@ -130,17 +138,31 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> This method deviates from the original
+     * {@link Multimap} interface in that changes to the returned collection
+     * WILL NOT update the underlying multimap and vice-versa.
+     */
     @Override
     public Collection<Entry<K, V>> entries() {
         Set<Entry<K, V>> entries = new NonBlockingHashSet<Entry<K, V>>();
         for (K key : keySet()) {
             for (V value : get(key)) {
-                entries.add(new AbstractMap.SimpleEntry<K, V>(key, value));
+                entries.add(Maps.immutableEntry(key, value));
             }
         }
         return entries;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> This method deviates from the original
+     * {@link Multimap} interface in that changes to the returned collection
+     * WILL NOT update the underlying multimap and vice-versa.
+     */
     @Override
     public Set<V> get(K key) {
         if(map.containsKey(key)) {
@@ -156,6 +178,14 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
         return totalSize == 0;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> This method deviates from the original
+     * {@link Multimap} interface in that changes to the returned coll ection
+     * WILL NOT update the underlying multimap and vice-versa.
+     * </p>
+     */
     @Override
     public Multiset<K> keys() {
         Set<K> keys = keySet();
@@ -189,16 +219,21 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
 
     @Override
     public boolean putAll(K key, Iterable<? extends V> values) {
-        Set<V> set = get(key);
-        if(set == emptySet) {
-            set = new NonBlockingHashSet<V>();
-            map.put(key, set);
-        }
-        int currentSize = set.size();
-        Iterators.addAll(set, values.iterator());
-        if(set.size() - currentSize > 0) {
-            totalSize += (set.size() - currentSize);
-            return true;
+        if(!Iterables.isEmpty(values)) {
+            Set<V> set = get(key);
+            if(set == emptySet) {
+                set = new NonBlockingHashSet<V>();
+                map.put(key, set);
+            }
+            int currentSize = set.size();
+            Iterators.addAll(set, values.iterator());
+            if(set.size() - currentSize > 0) {
+                totalSize += (set.size() - currentSize);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         else {
             return false;
@@ -217,13 +252,12 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
     @Override
     public boolean remove(Object key, Object value) {
         Set<V> values = map.get(key);
-        if(values != null) {
-            boolean result = values.remove(value);
+        if(values != null && values.remove(value)) {
             totalSize--;
             if(values.isEmpty()) {
-                map.remove(values);
+                map.remove(key);
             }
-            return result;
+            return true;
         }
         else {
             return false;
@@ -233,8 +267,13 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
     @Override
     public Collection<V> removeAll(Object key) {
         Set<V> old = map.remove(key);
-        totalSize -= old.size();
-        return old;
+        if(old != null) {
+            totalSize -= old.size();
+            return old;
+        }
+        else {
+            return emptySet;
+        }
     }
 
     @Override
@@ -249,6 +288,13 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
         return totalSize;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> This method deviates from the original
+     * {@link Multimap} interface in that changes to the returned collection
+     * WILL NOT update the underlying multimap and vice-versa.
+     */
     @Override
     public Collection<V> values() {
         List<V> values = Lists.newArrayList();
