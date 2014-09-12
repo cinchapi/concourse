@@ -1891,19 +1891,16 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public long insert(String json) {
-            long record = create();
-            if(insert(json, record)) {
-                return record;
-            }
-            else {
-                // We include retry logic here because this function should
-                // never "fail" since we are inserting the data into a new
-                // record. On the off chance, that some other process decides to
-                // use the primary key we just got, then we should just retry
-                // the function to get a new primary key.
-                return insert(json);
-            }
+        public long insert(final String json) {
+            return execute(new Callable<Long>() {
+
+                @Override
+                public Long call() throws Exception {
+                    return client
+                            .insert1(json, creds, transaction, environment);
+                }
+
+            });
 
         }
 

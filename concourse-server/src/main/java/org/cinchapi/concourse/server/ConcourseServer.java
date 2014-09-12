@@ -199,13 +199,6 @@ public class ConcourseServer implements
         });
     }
 
-    private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
-                                                       // future release.
-
-    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
-
     /**
      * Contains the credentials used by the {@link #manager}. This file is
      * typically located in the root of the server installation.
@@ -239,16 +232,13 @@ public class ConcourseServer implements
      * The AccessManager controls access to the server.
      */
     private final AccessManager manager;
+    
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
-    /**
-     * The server maintains a collection of {@link Transaction} objects to
-     * ensure that client requests are properly routed. When the client makes a
-     * call to {@link #stage(AccessToken)}, a Transaction is started on the
-     * server and a {@link TransactionToken} is used for the client to reference
-     * that Transaction in future calls.
-     */
-    private final Map<TransactionToken, Transaction> transactions = Maps
-            .newHashMap();
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
 
     /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
@@ -299,6 +289,16 @@ public class ConcourseServer implements
         this.manager = AccessManager.create(ACCESS_FILE);
         getEngine(); // load the default engine
     }
+
+    /**
+     * The server maintains a collection of {@link Transaction} objects to
+     * ensure that client requests are properly routed. When the client makes a
+     * call to {@link #stage(AccessToken)}, a Transaction is started on the
+     * server and a {@link TransactionToken} is used for the client to reference
+     * that Transaction in future calls.
+     */
+    private final Map<TransactionToken, Transaction> transactions = Maps
+            .newHashMap();
 
     @Override
     public void abort(AccessToken creds, TransactionToken transaction,
@@ -516,6 +516,21 @@ public class ConcourseServer implements
             return false;
         }
 
+    }
+
+    @Override
+    public long insert1(String json, AccessToken creds,
+            TransactionToken transaction, String env)
+            throws TSecurityException, TException {
+        long record = 0;
+        checkAccess(creds, transaction);
+        AtomicOperation operation = null;
+        while (operation == null || !operation.commit()) {
+            record = Time.now();
+            operation = insertIntoEmptyRecord(json, record,
+                    getStore(transaction, env));
+        }
+        return record;
     }
 
     @Override
@@ -896,6 +911,32 @@ public class ConcourseServer implements
     private Compoundable getStore(TransactionToken transaction, String env) {
         return transaction != null ? transactions.get(transaction)
                 : getEngine(env);
+    }
+
+    /**
+     * Atomically insert all the data in the {@code json} string in
+     * {@code record} as long as {@code record} is currently empty.
+     * 
+     * @param json
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation insertIntoEmptyRecord(String json, long record,
+            Compoundable store) {
+        AtomicOperation operation = AtomicOperation.start(store);
+        if(operation.describe(record).isEmpty()) {
+            Multimap<String, Object> data = Convert.jsonToJava(json);
+            for (String key : data.keySet()) {
+                for (Object value : data.get(key)) {
+                    operation.add(key, Convert.javaToThrift(value), record);
+                }
+            }
+            return operation;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
