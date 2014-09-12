@@ -257,4 +257,12 @@ service ConcourseService {
 	string getServerEnvironment(1: shared.AccessToken creds, 2: shared.TransactionToken token,
 		3: string environment) throws (1: shared.TSecurityException ex);
 
+	/**
+	 * Atomically add the key-value mappings defined in the {@code json} formatted
+	 * string to a new record.
+	 */
+	i64 insert1(1: string json, 2: shared.AccessToken creds,
+		3: shared.TransactionToken token, 4: string environment)
+		throws (1: shared.TSecurityException ex);
+
 }

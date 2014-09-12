@@ -177,7 +177,7 @@ public abstract class Concourse implements AutoCloseable {
             String password, String environment) {
         return new Client(host, port, username, password, environment);
     }
-    
+
     /**
      * Discard any changes that are currently staged for commit.
      * <p>
@@ -202,7 +202,8 @@ public abstract class Concourse implements AutoCloseable {
             Collection<Long> records);
 
     /**
-     *Add {@code key} as {@code value} in a new record and return the primary key.
+     * Add {@code key} as {@code value} in a new record and return the primary
+     * key.
      * 
      * @param key
      * @param value
@@ -220,7 +221,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code true} if {@code value} is added
      */
     public abstract <T> boolean add(String key, T value, long record);
-    
+
     /**
      * Audit {@code record} and return a log of revisions.
      * 
@@ -228,7 +229,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(long record);
-    
+
     /**
      * Audit {@code key} in {@code record} and return a log of revisions.
      * 
@@ -1282,7 +1283,7 @@ public abstract class Concourse implements AutoCloseable {
             return result;
         }
 
-        public <T> long add(final String key, final T value){
+        public <T> long add(final String key, final T value) {
             if(!StringUtils.isBlank(key)
                     && (!(value instanceof String) || (value instanceof String && !StringUtils
                             .isBlank((String) value)))) { // CON-21
@@ -1290,17 +1291,19 @@ public abstract class Concourse implements AutoCloseable {
 
                     @Override
                     public Long call() throws Exception {
-                        return client.add1(key, Convert.javaToThrift(value), creds, transaction, environment);
+                        return client.add1(key, Convert.javaToThrift(value),
+                                creds, transaction, environment);
                     }
 
                 });
             }
-            else{
-            	throw new IllegalArgumentException("Either your key is blank or value");
+            else {
+                throw new IllegalArgumentException(
+                        "Either your key is blank or value");
             }
-            
+
         }
-        
+
         @Override
         public <T> boolean add(final String key, final T value,
                 final long record) {
@@ -1319,8 +1322,7 @@ public abstract class Concourse implements AutoCloseable {
             }
             return false;
         }
-        
-        
+
         @Override
         public Map<Timestamp, String> audit(final long record) {
             return execute(new Callable<Map<Timestamp, String>>() {
@@ -1946,19 +1948,16 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public long insert(String json) {
-            long record = create();
-            if(insert(json, record)) {
-                return record;
-            }
-            else {
-                // We include retry logic here because this function should
-                // never "fail" since we are inserting the data into a new
-                // record. On the off chance, that some other process decides to
-                // use the primary key we just got, then we should just retry
-                // the function to get a new primary key.
-                return insert(json);
-            }
+        public long insert(final String json) {
+            return execute(new Callable<Long>() {
+
+                @Override
+                public Long call() throws Exception {
+                    return client
+                            .insert1(json, creds, transaction, environment);
+                }
+
+            });
 
         }
 
