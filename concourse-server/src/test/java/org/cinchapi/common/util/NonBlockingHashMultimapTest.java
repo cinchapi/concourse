@@ -26,11 +26,12 @@ package org.cinchapi.common.util;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.AbstractMultimapTest;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -38,7 +39,17 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class NonBlockingHashMultimapTest extends ConcourseBaseTest {
+public class NonBlockingHashMultimapTest extends AbstractMultimapTest {
+
+    @Override
+    protected String nullKey() {
+        return "null";
+    }
+
+    @Override
+    protected Integer nullValue() {
+        return Integer.MIN_VALUE;
+    }
 
     private NonBlockingHashMultimap<String, Object> map;
 
@@ -50,6 +61,7 @@ public class NonBlockingHashMultimapTest extends ConcourseBaseTest {
     @Override
     protected void beforeEachTest() {
         map = NonBlockingHashMultimap.create();
+        super.beforeEachTest();
     }
 
     @Test
@@ -128,10 +140,10 @@ public class NonBlockingHashMultimapTest extends ConcourseBaseTest {
         Assert.assertEquals(expected, map.size());
 
     }
-    
+
     @Test
-    public void testSizeAfterRemoves(){
-        //TODO
+    public void testSizeAfterRemoves() {
+        // TODO
     }
 
     /**
@@ -151,6 +163,11 @@ public class NonBlockingHashMultimapTest extends ConcourseBaseTest {
             }
             map.put(key, value);
         }
+    }
+
+    @Override
+    protected Multimap<String, Integer> create() {
+        return NonBlockingHashMultimap.create();
     }
 
 }
