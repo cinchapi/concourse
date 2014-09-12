@@ -50,6 +50,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.annotate.Atomic;
 import org.cinchapi.concourse.lang.ConjunctionSymbol;
 import org.cinchapi.concourse.lang.Expression;
 import org.cinchapi.concourse.lang.Parser;
@@ -323,15 +324,20 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Atomic
     public long add1(String key, TObject value, AccessToken creds,
             TransactionToken transaction, String env) throws TSecurityException {
         long record = 0;
         checkAccess(creds, transaction);
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
             record = Time.now();
-            operation = addToEmptyRecord(key, value, record,
-                    getStore(transaction, env));
+            operation = addToEmptyRecord(key, value, record, store);
         }
         return record;
     }
@@ -364,6 +370,7 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Atomic
     public Map<Long, Set<TObject>> chronologize(long record, String key,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
@@ -377,30 +384,47 @@ public class ConcourseServer implements
                 result.put(timestamp, values);
             }
         }
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
             operation = updateChronologizeResultSet(key, record, result,
                     history, store);
         }
         return result;
     }
 
+    @Atomic
     @Override
     public void clear(String key, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doClear(key, record, getStore(transaction, env));
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
+            operation = doClear(key, record, store);
         }
     }
 
+    @Atomic
     @Override
     public void clear1(long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
+        checkAccess(creds, transaction);
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doClear(record, getStore(transaction, env));
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
+            operation = doClear(record, store);
         }
     }
 
@@ -451,6 +475,7 @@ public class ConcourseServer implements
                 operator, tValues);
     }
 
+    @Atomic
     @Override
     public Set<Long> find1(TCriteria tcriteria, AccessToken creds,
             TransactionToken transaction, String env)
@@ -462,9 +487,14 @@ public class ConcourseServer implements
         }
         Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
         Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doFind1(queue, stack, getStore(transaction, env));
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
+            operation = doFind1(queue, stack, store);
         }
         return Sets.newTreeSet(stack.pop());
     }
@@ -509,6 +539,7 @@ public class ConcourseServer implements
         return manager.isValidUsername(ByteBuffer.wrap(username));
     }
 
+    @Atomic
     @Override
     public boolean insert(String json, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
@@ -532,6 +563,7 @@ public class ConcourseServer implements
 
     }
 
+    @Atomic
     @Override
     public long insert1(String json, AccessToken creds,
             TransactionToken transaction, String env)
@@ -609,15 +641,20 @@ public class ConcourseServer implements
         }
     }
 
+    @Atomic
     @Override
     public void revert(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doRevert(key, record, timestamp,
-                    getStore(transaction, env));
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
+            operation = doRevert(key, record, timestamp, store);
         }
     }
 
@@ -689,6 +726,7 @@ public class ConcourseServer implements
                 timestamp);
     }
 
+    @Atomic
     @Override
     public boolean verifyAndSwap(String key, TObject expected, long record,
             TObject replacement, AccessToken creds,
@@ -708,15 +746,20 @@ public class ConcourseServer implements
         }
     }
 
+    @Atomic
     @Override
     public void verifyOrSet(String key, TObject value, long record,
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
+        Compoundable store = getStore(transaction, env);
+        boolean nullOk = true;
+        boolean retryable = store instanceof Engine;
         AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            operation = doVerifyOrSet(key, value, record,
-                    getStore(transaction, env));
+        while ((operation == null && nullOk)
+                || (!operation.commit() && retryable)) {
+            nullOk = false;
+            operation = doVerifyOrSet(key, value, record, store);
         }
     }
 
