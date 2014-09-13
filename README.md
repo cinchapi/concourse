@@ -42,7 +42,7 @@ try {
   concourse.set("balance", concourse.get("balance", acct2) + 50), acct2);
   concourse.commit();
 }
-catch (Throwable t) {
+catch (TransactionException e) {
   concourse.abort();
 }
 ```
