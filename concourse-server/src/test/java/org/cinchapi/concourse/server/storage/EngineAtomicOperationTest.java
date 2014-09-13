@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
@@ -97,7 +98,8 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
 
         // A thread that continuously creates atomic operations and registers
         // them as version change listeners for key/record
-        final List<AtomicOperation> operations = Lists.newArrayList();
+        final List<AtomicOperation> operations = Variables.register(
+                "operations", Lists.<AtomicOperation> newArrayList());
         Thread b = new Thread(new Runnable() {
 
             @Override
@@ -118,13 +120,17 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         TestData.sleep();
         bRunning.set(false);
         aRunning.set(false);
-        while(!aDone.get()){
+        while (!aDone.get()) {
             continue;
         }
+        int i = 0 ;
+        Variables.register("size", operations.size());
         for (AtomicOperation operation : operations) {
+            Variables.register("operation_"+i, operation);
             Assert.assertFalse(operation.open); // ensure that all the atomic
                                                 // operations were notified
                                                 // about the version change
+            i++;
         }
         destination.stop();
 
