@@ -43,15 +43,15 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public class CompoundOperationTest extends ConcourseIntegrationTest {
-    
+
     @Test
-    public void testPingMultiRecords(){
+    public void testPingMultiRecords() {
         Set<Long> records = getRecords();
-        for(Boolean bool : client.ping(records).values()){
+        for (Boolean bool : client.ping(records).values()) {
             Assert.assertFalse(bool);
         }
         populateKeyInRecords(TestData.getString(), records);
-        for(Boolean bool : client.ping(records).values()){
+        for (Boolean bool : client.ping(records).values()) {
             Assert.assertTrue(bool);
         }
     }
@@ -69,8 +69,8 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
 
     @Test
     public void testClearMultiKeysMultiRecords() {
-        Set<String> keys = getKeys();
-        Set<Long> records = getRecords();
+        Set<String> keys = Variables.register("keys", getKeys());
+        Set<Long> records = Variables.register("records", getRecords());
         populateKeysInRecords(keys, records);
         client.clear(keys, records);
         for (String key : keys) {
@@ -101,7 +101,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
             Assert.assertTrue(client.fetch(key, record).isEmpty());
         }
     }
-    
+
     @Test
     public void testDescribeMultiRecords() {
         Set<Long> records = getRecords();
@@ -112,7 +112,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
             Assert.assertEquals(keys, result.get(record));
         }
     }
-    
+
     @Test
     public void testDescribeMultiRecordsWithTime() {
         Set<Long> records = getRecords();
@@ -135,9 +135,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
                 records);
         Assert.assertEquals(data, client.fetch(keys, records));
     }
-    
+
     @Test
-    public void testRevertMultiKeysMultiRecords(){
+    public void testRevertMultiKeysMultiRecords() {
         Set<String> keys = getKeys();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeysInRecords(keys,
@@ -178,9 +178,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         Assert.assertEquals(data.get(record),
                 client.fetch(keys, record, timestamp));
     }
-    
+
     @Test
-    public void testRevertMultiKeysSingleRecord(){
+    public void testRevertMultiKeysSingleRecord() {
         Set<String> keys = getKeys();
         long record = TestData.getLong();
         Map<Long, Map<String, Set<Object>>> data = populateKeysInRecord(keys,
@@ -217,9 +217,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
             Assert.assertEquals(data.get(record).get(key), result.get(record));
         }
     }
-    
+
     @Test
-    public void testRevertSingleKeyMultiRecords(){
+    public void testRevertSingleKeyMultiRecords() {
         String key = TestData.getString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
@@ -248,7 +248,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
             }
         }
     }
-    
+
     @Test
     public void testGetMultiKeysMultiRecordsWithTime() {
         Set<String> keys = getKeys();
@@ -306,7 +306,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testGetSingleKeyMultiRecords(){
+    public void testGetSingleKeyMultiRecords() {
         String key = TestData.getString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
@@ -319,7 +319,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testGetSingleKeyMultiRecordsWithTime(){
+    public void testGetSingleKeyMultiRecordsWithTime() {
         String key = TestData.getString();
         Set<Long> records = getRecords();
         Map<Long, Map<String, Set<Object>>> data = populateKeyInRecords(key,
@@ -337,7 +337,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testRemoveMultiRecords(){
+    public void testRemoveMultiRecords() {
         Set<Long> records = Variables.register("records", getRecords());
         String key = Variables.register("key", TestData.getString());
         Object value = Variables.register("value", TestData.getObject());
@@ -347,15 +347,15 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
             Assert.assertFalse(client.verify(key, value, record));
         }
     }
-    
+
     @Test
-    public void testSetMultiRecords(){
+    public void testSetMultiRecords() {
         Set<Long> records = Variables.register("records", getRecords());
         String key = Variables.register("key", TestData.getString());
         Object value = Variables.register("value", TestData.getObject());
         client.add(key, value, records);
         Object newValue = null;
-        while(newValue == null || value.equals(newValue)){
+        while (newValue == null || value.equals(newValue)) {
             newValue = Variables.register("newValue", TestData.getObject());
         }
         client.set(key, newValue, records);
