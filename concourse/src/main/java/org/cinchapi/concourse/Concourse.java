@@ -49,6 +49,7 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
@@ -997,8 +998,26 @@ public abstract class Concourse implements AutoCloseable {
      * {@code staging} mode until either {@link #abort()} or {@link #commit()}
      * is invoked.
      * </p>
+     * <p>
+     * All operations that occur within a transaction should be wrapped in a
+     * try-catch block so that transaction exceptions can be caught and the
+     * transaction can be properly aborted.
+     * 
+     * <pre>
+     * try {
+     *     concourse.stage();
+     *     concourse.get(&quot;foo&quot;, 1);
+     *     concourse.add(&quot;foo&quot;, &quot;bar&quot;, 1);
+     *     concourse.commit();
+     * }
+     * catch (TransactionException e) {
+     *     concourse.abort();
+     * }
+     * </pre>
+     * 
+     * </p>
      */
-    public abstract void stage();
+    public abstract void stage() throws TransactionException;
 
     /**
      * Remove link from {@code key} in {@code source} to {@code destination}.
@@ -2131,7 +2150,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public void stage() {
+        public void stage() throws TransactionException {
             execute(new Callable<Void>() {
 
                 @Override
@@ -2234,6 +2253,9 @@ public abstract class Concourse implements AutoCloseable {
             catch (SecurityException e) {
                 authenticate();
                 return execute(callable);
+            }
+            catch (TTransactionException e) {
+                throw new TransactionException();
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);

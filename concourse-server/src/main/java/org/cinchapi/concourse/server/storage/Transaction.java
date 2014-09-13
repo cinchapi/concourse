@@ -99,6 +99,28 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     */
+    private Transaction(Engine destination) {
+        super(destination);
+        this.id = Long.toString(Time.now());
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     * @param bytes
+     */
+    private Transaction(Engine destination, ByteBuffer bytes) {
+        this(destination);
+        deserialize(bytes);
+        open = false;
+    }
+
+    /**
      * The unique Transaction id.
      */
     private final String id;
@@ -129,28 +151,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     };
 
-    /**
-     * Construct a new instance.
-     * 
-     * @param destination
-     */
-    private Transaction(Engine destination) {
-        super(destination);
-        this.id = Long.toString(Time.now());
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param destination
-     * @param bytes
-     */
-    private Transaction(Engine destination, ByteBuffer bytes) {
-        this(destination);
-        deserialize(bytes);
-        open = false;
-    }
-
     @Override
     public void accept(Write write) {
         // Accept writes from an AtomicOperation and put them in this
@@ -171,27 +171,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     public boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         if(super.add(key, value, record)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
-    public void set(String key, TObject value, long record)
-            throws AtomicStateException {
-        super.set(key, value, record);
-        notifyVersionChange(Token.wrap(key, record));
-        notifyVersionChange(Token.wrap(record));
-    }
-
-    @Override
-    public boolean remove(String key, TObject value, long record)
-            throws AtomicStateException {
-        if(super.remove(key, value, record)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             return true;
@@ -244,11 +223,32 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
+    public boolean remove(String key, TObject value, long record)
+            throws AtomicStateException {
+        if(super.remove(key, value, record)) {
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
         versionChangeListeners.get(token).remove(listener);
         ((Engine) destination).removeVersionChangeListener(token, listener);
+    }
+
+    @Override
+    public void set(String key, TObject value, long record)
+            throws AtomicStateException {
+        super.set(key, value, record);
+        notifyVersionChange(Token.wrap(key, record));
+        notifyVersionChange(Token.wrap(record));
     }
 
     @Override
@@ -259,6 +259,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    protected void checkState() throws AtomicStateException {
+        try {
+            super.checkState();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
     }
 
     @Override

@@ -67,6 +67,7 @@ import org.cinchapi.concourse.server.storage.BufferedStore;
 import org.cinchapi.concourse.server.storage.Compoundable;
 import org.cinchapi.concourse.server.storage.Engine;
 import org.cinchapi.concourse.server.storage.Transaction;
+import org.cinchapi.concourse.server.storage.TransactionStateException;
 import org.cinchapi.concourse.shell.CommandLine;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -76,6 +77,7 @@ import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TSymbol;
+import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
@@ -313,41 +315,57 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, env)).add(key, value,
-                    record);
+        try {
+            if(value.getType() != Type.LINK
+                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
+                return ((BufferedStore) getStore(transaction, env)).add(key,
+                        value, record);
+            }
+            else {
+                return false;
+            }
         }
-        else {
-            return false;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 
     @Override
     @Atomic
     public long add1(String key, TObject value, AccessToken creds,
-            TransactionToken transaction, String env) throws TSecurityException {
+            TransactionToken transaction, String env) throws TException {
         long record = 0;
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            record = Time.now();
-            operation = addToEmptyRecord(key, value, record, store);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                record = Time.now();
+                operation = addToEmptyRecord(key, value, record, store);
+            }
+            return record;
         }
-        return record;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
     public Map<Long, String> audit(long record, String key, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return Strings.isNullOrEmpty(key) ? getStore(transaction, env).audit(
-                record) : getStore(transaction, env).audit(key, record);
+        try {
+            return Strings.isNullOrEmpty(key) ? getStore(transaction, env)
+                    .audit(record) : getStore(transaction, env).audit(key,
+                    record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
 
     }
 
@@ -356,8 +374,13 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction, env).browse(record)
-                : getStore(transaction, env).browse(record, timestamp);
+        try {
+            return timestamp == 0 ? getStore(transaction, env).browse(record)
+                    : getStore(transaction, env).browse(record, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -365,8 +388,13 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction, env).browse(key)
-                : getStore(transaction, env).browse(key, timestamp);
+        try {
+            return timestamp == 0 ? getStore(transaction, env).browse(key)
+                    : getStore(transaction, env).browse(key, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -375,25 +403,30 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
-        Map<Long, String> history = store.audit(key, record);
-        for (Long timestamp : history.keySet()) {
-            Set<TObject> values = store.fetch(key, record, timestamp);
-            if(!values.isEmpty()) {
-                result.put(timestamp, values);
+        try {
+            Compoundable store = getStore(transaction, env);
+            Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
+            Map<Long, String> history = store.audit(key, record);
+            for (Long timestamp : history.keySet()) {
+                Set<TObject> values = store.fetch(key, record, timestamp);
+                if(!values.isEmpty()) {
+                    result.put(timestamp, values);
+                }
             }
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = updateChronologizeResultSet(key, record, result,
+                        history, store);
+            }
+            return result;
         }
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = updateChronologizeResultSet(key, record, result,
-                    history, store);
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
-        return result;
     }
 
     @Atomic
@@ -401,14 +434,22 @@ public class ConcourseServer implements
     public void clear(String key, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = doClear(key, record, store);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doClear(key, record, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 
@@ -417,14 +458,22 @@ public class ConcourseServer implements
     public void clear1(long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = doClear(record, store);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doClear(record, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 
@@ -432,15 +481,25 @@ public class ConcourseServer implements
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
-        return transactions.remove(transaction).commit();
+        try {
+            return transactions.remove(transaction).commit();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
     public Set<String> describe(long record, long timestamp, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction, env).describe(record)
-                : getStore(transaction, env).describe(record, timestamp);
+        try {
+            return timestamp == 0 ? getStore(transaction, env).describe(record)
+                    : getStore(transaction, env).describe(record, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @ManagedOperation
@@ -460,8 +519,14 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction, env).fetch(key, record)
-                : getStore(transaction, env).fetch(key, record, timestamp);
+        try {
+            return timestamp == 0 ? getStore(transaction, env).fetch(key,
+                    record) : getStore(transaction, env).fetch(key, record,
+                    timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -469,10 +534,15 @@ public class ConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
-        TObject[] tValues = values.toArray(new TObject[values.size()]);
-        return timestamp == 0 ? getStore(transaction, env).find(key, operator,
-                tValues) : getStore(transaction, env).find(timestamp, key,
-                operator, tValues);
+        try {
+            TObject[] tValues = values.toArray(new TObject[values.size()]);
+            return timestamp == 0 ? getStore(transaction, env).find(key,
+                    operator, tValues) : getStore(transaction, env).find(
+                    timestamp, key, operator, tValues);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Atomic
@@ -481,22 +551,28 @@ public class ConcourseServer implements
             TransactionToken transaction, String env)
             throws TSecurityException, TException {
         checkAccess(creds, transaction);
-        List<Symbol> symbols = Lists.newArrayList();
-        for (TSymbol tsymbol : tcriteria.getSymbols()) {
-            symbols.add(Translate.fromThrift(tsymbol));
+        try {
+            List<Symbol> symbols = Lists.newArrayList();
+            for (TSymbol tsymbol : tcriteria.getSymbols()) {
+                symbols.add(Translate.fromThrift(tsymbol));
+            }
+            Queue<PostfixNotationSymbol> queue = Parser
+                    .toPostfixNotation(symbols);
+            Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doFind1(queue, stack, store);
+            }
+            return Sets.newTreeSet(stack.pop());
         }
-        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
-        Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = doFind1(queue, stack, store);
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
-        return Sets.newTreeSet(stack.pop());
     }
 
     @Override
@@ -557,10 +633,12 @@ public class ConcourseServer implements
             }
             return operation.commit();
         }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
         catch (AtomicStateException e) {
             return false;
         }
-
     }
 
     @Atomic
@@ -570,13 +648,19 @@ public class ConcourseServer implements
             throws TSecurityException, TException {
         long record = 0;
         checkAccess(creds, transaction);
-        AtomicOperation operation = null;
-        while (operation == null || !operation.commit()) {
-            record = Time.now();
-            operation = insertIntoEmptyRecord(json, record,
-                    getStore(transaction, env));
+        try {
+            AtomicOperation operation = null;
+            while (operation == null || operation != null
+                    && !operation.commit()) {
+                record = Time.now();
+                operation = insertIntoEmptyRecord(json, record,
+                        getStore(transaction, env));
+            }
+            return record;
         }
-        return record;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -623,7 +707,12 @@ public class ConcourseServer implements
     public boolean ping(long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return !getStore(transaction, env).describe(record).isEmpty();
+        try {
+            return !getStore(transaction, env).describe(record).isEmpty();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -631,13 +720,18 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        if(value.getType() != Type.LINK
-                || isValidLink((Link) Convert.thriftToJava(value), record)) {
-            return ((BufferedStore) getStore(transaction, env)).remove(key,
-                    value, record);
+        try {
+            if(value.getType() != Type.LINK
+                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
+                return ((BufferedStore) getStore(transaction, env)).remove(key,
+                        value, record);
+            }
+            else {
+                return false;
+            }
         }
-        else {
-            return false;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 
@@ -647,14 +741,23 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = doRevert(key, record, timestamp, store);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && operation != null
+                            && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doRevert(key, record, timestamp, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 
@@ -669,14 +772,25 @@ public class ConcourseServer implements
     public Set<Long> search(String key, String query, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        return getStore(transaction, env).search(key, query);
+        try {
+            return getStore(transaction, env).search(key, query);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
     public void set0(String key, TObject value, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        ((BufferedStore) getStore(transaction, env)).set(key, value, record);
+        try {
+            ((BufferedStore) getStore(transaction, env))
+                    .set(key, value, record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
@@ -721,9 +835,14 @@ public class ConcourseServer implements
             long timestamp, AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
-        return timestamp == 0 ? getStore(transaction, env).verify(key, value,
-                record) : getStore(transaction, env).verify(key, value, record,
-                timestamp);
+        try {
+            return timestamp == 0 ? getStore(transaction, env).verify(key,
+                    value, record) : getStore(transaction, env).verify(key,
+                    value, record, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Atomic
@@ -739,7 +858,9 @@ public class ConcourseServer implements
                     && operation.remove(key, expected, record) && operation
                         .add(key, replacement, record)) ? operation.commit()
                     : false;
-
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
         catch (AtomicStateException e) {
             return false;
@@ -752,14 +873,22 @@ public class ConcourseServer implements
             AccessToken creds, TransactionToken transaction, String env)
             throws TException {
         checkAccess(creds, transaction);
-        Compoundable store = getStore(transaction, env);
-        boolean nullOk = true;
-        boolean retryable = store instanceof Engine;
-        AtomicOperation operation = null;
-        while ((operation == null && nullOk)
-                || (!operation.commit() && retryable)) {
-            nullOk = false;
-            operation = doVerifyOrSet(key, value, record, store);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doVerifyOrSet(key, value, record, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
         }
     }
 

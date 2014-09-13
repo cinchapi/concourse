@@ -139,11 +139,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * The initial capacity
-     */
-    private static final int INITIAL_CAPACITY = 10;
-
-    /**
      * A flag to distinguish the case where we should ignore the version when
      * checking that expectations are met (i.e when performing a historical
      * read).
@@ -156,11 +151,20 @@ public class AtomicOperation extends BufferedStore implements
     private static final long IGNORE_VERSION = Versioned.NO_VERSION - 1;
 
     /**
-     * The sequence of VersionExpectations that were generated from the sequence
-     * of operations.
+     * The initial capacity
      */
-    private final List<VersionExpectation> expectations = Lists
-            .newArrayListWithExpectedSize(INITIAL_CAPACITY);
+    private static final int INITIAL_CAPACITY = 10;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination - must be a {@link Compoundable}
+     */
+    protected AtomicOperation(Compoundable destination) {
+        super(new Queue(INITIAL_CAPACITY), destination,
+                ((BufferedStore) destination).lockService,
+                ((BufferedStore) destination).rangeLockService);
+    }
 
     /**
      * The collection of {@link LockDescription} objects that are grabbed in the
@@ -175,15 +179,11 @@ public class AtomicOperation extends BufferedStore implements
     protected boolean open = true;
 
     /**
-     * Construct a new instance.
-     * 
-     * @param destination - must be a {@link Compoundable}
+     * The sequence of VersionExpectations that were generated from the sequence
+     * of operations.
      */
-    protected AtomicOperation(Compoundable destination) {
-        super(new Queue(INITIAL_CAPACITY), destination,
-                ((BufferedStore) destination).lockService,
-                ((BufferedStore) destination).rangeLockService);
-    }
+    private final List<VersionExpectation> expectations = Lists
+            .newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
     /**
      * Close this operation and release all of the held locks without applying
@@ -384,6 +384,18 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Check that this AtomicOperation is open and throw an
+     * AtomicStateException if it is not.
+     * 
+     * @throws AtomicStateException
+     */
+    protected void checkState() throws AtomicStateException {
+        if(!open) {
+            throw new AtomicStateException();
+        }
+    }
+
+    /**
      * Transport the written data to the {@link #destination} store. The
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
@@ -403,18 +415,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Check that this AtomicOperation is open and throw an
-     * AtomicStateException if it is not.
-     * 
-     * @throws AtomicStateException
-     */
-    private void checkState() throws AtomicStateException {
-        if(!open) {
-            throw new AtomicStateException();
-        }
-    }
-
-    /**
      * Check each one of the {@link #expectations} against the
      * {@link #destination} and grab the appropriate locks along the way. This
      * method will return {@code true} if all expectations are met and all
@@ -430,7 +430,8 @@ public class AtomicOperation extends BufferedStore implements
             search: for (VersionExpectation expectation : expectations) {
                 prepareLockForPossibleUpgrade(expectation, locks);
                 if(expectation.getLockType() == LockType.RANGE_READ) {
-                    // CON-72: Check to see if we already have a RANGE_WRITE that
+                    // CON-72: Check to see if we already have a RANGE_WRITE
+                    // that
                     // covers one of the values in this RANGE_READ. If so skip
                     // this lock since the write will adequately block any
                     // conflicting reads
@@ -569,10 +570,6 @@ public class AtomicOperation extends BufferedStore implements
             return new LockDescription(token, lock, type);
         }
 
-        private final Token token;
-        private final Lock lock;
-        private final LockType type;
-
         /**
          * Construct a new instance.
          * 
@@ -585,6 +582,10 @@ public class AtomicOperation extends BufferedStore implements
             this.type = type;
             this.token = token;
         }
+        private final Lock lock;
+        private final Token token;
+
+        private final LockType type;
 
         @Override
         public boolean equals(Object obj) {
@@ -659,10 +660,6 @@ public class AtomicOperation extends BufferedStore implements
     private final class KeyInRecordVersionExpectation extends
             VersionExpectation {
 
-        private final long record;
-        private final String key;
-        private final LockType lockType;
-
         /**
          * Construct a new instance.
          * 
@@ -678,6 +675,10 @@ public class AtomicOperation extends BufferedStore implements
             this.record = record;
             this.lockType = lockType;
         }
+        private final String key;
+        private final LockType lockType;
+
+        private final long record;
 
         @Override
         public String getKey() throws UnsupportedOperationException {
@@ -704,8 +705,6 @@ public class AtomicOperation extends BufferedStore implements
      */
     private final class KeyVersionExcpectation extends VersionExpectation {
 
-        private final String key;
-
         /**
          * Construct a new instance.
          * 
@@ -716,6 +715,8 @@ public class AtomicOperation extends BufferedStore implements
             super(Token.wrap(key), ((Compoundable) destination).getVersion(key));
             this.key = key;
         }
+
+        private final String key;
 
         @Override
         public String getKey() throws UnsupportedOperationException {
@@ -743,9 +744,6 @@ public class AtomicOperation extends BufferedStore implements
      */
     private final class RangeVersionExpectation extends VersionExpectation {
 
-        private final Text key;
-        private final Operator operator;
-
         /**
          * Construct a new instance.
          * 
@@ -761,7 +759,6 @@ public class AtomicOperation extends BufferedStore implements
             this.key = key;
             this.operator = operator;
         }
-
         /**
          * Construct a new instance.
          * 
@@ -771,6 +768,10 @@ public class AtomicOperation extends BufferedStore implements
         protected RangeVersionExpectation(Text key, Value value) {
             this(key, null, value);
         }
+
+        private final Text key;
+
+        private final Operator operator;
 
         @Override
         public String getKey() throws UnsupportedOperationException {
@@ -797,8 +798,6 @@ public class AtomicOperation extends BufferedStore implements
      */
     private final class RecordVersionExpectation extends VersionExpectation {
 
-        private final long record;
-
         /**
          * Construct a new instance.
          * 
@@ -809,6 +808,8 @@ public class AtomicOperation extends BufferedStore implements
                     .getVersion(record));
             this.record = record;
         }
+
+        private final long record;
 
         @Override
         public String getKey() throws UnsupportedOperationException {
@@ -841,19 +842,6 @@ public class AtomicOperation extends BufferedStore implements
         // defaults are the desired behaviour.
 
         /**
-         * The Token that corresponds to the data components that were used to
-         * generate this VersionExpectation.
-         */
-        private final Token token;
-
-        /**
-         * OPTINAL parameter that exists iff {@link #timestamp} ==
-         * {@link Versioned#NO_VERSION} since since data returned from a
-         * historical read won't change with additional writes.
-         */
-        private final long expectedVersion;
-
-        /**
          * Construct a new instance.
          * 
          * @param token
@@ -863,6 +851,19 @@ public class AtomicOperation extends BufferedStore implements
             this.token = token;
             this.expectedVersion = expectedVersion;
         }
+
+        /**
+         * OPTINAL parameter that exists iff {@link #timestamp} ==
+         * {@link Versioned#NO_VERSION} since since data returned from a
+         * historical read won't change with additional writes.
+         */
+        private final long expectedVersion;
+
+        /**
+         * The Token that corresponds to the data components that were used to
+         * generate this VersionExpectation.
+         */
+        private final Token token;
 
         /**
          * Return the key, if it exists.
