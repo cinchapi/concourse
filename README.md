@@ -35,9 +35,9 @@ concourse.find("name", Operator.EQUALS, "Jeff Nelson");
 
 ### Transactions
 ```java
-// Transfer $50 from acct1 to acct2
-concourse.stage(); //start transaction
 try {
+  // Transfer $50 from acct1 to acct2
+  concourse.stage(); //start transaction
   concourse.set("balance", concourse.get("balance", acct1) - 50), acct1);
   concourse.set("balance", concourse.get("balance", acct2) + 50), acct2);
   concourse.commit();
