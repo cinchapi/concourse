@@ -74,15 +74,12 @@ public class Initializer {
                         .getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = clazz.newInstance();
-                    if(theTask == null
-                            || task.version() > theTask
-                                    .version()) {
+                    if(theTask == null || task.version() > theTask.version()) {
                         theTask = task;
                     }
                 }
             }
-
-            theTask.propagateSystemVersionUpdate();
+            UpgradeTask.setCurrentSystemVersion(theTask.version());
             Logger.info("The system version has been set to {}",
                     theTask.version());
             System.exit(0);
