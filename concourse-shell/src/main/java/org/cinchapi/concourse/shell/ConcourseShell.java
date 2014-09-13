@@ -110,7 +110,7 @@ public final class ConcourseShell {
             console.println("Type EXIT to quit.");
             console.println("Use TAB for completion.");
             console.println("");
-            console.setPrompt(MessageFormat.format("{0}/cash$ ", env));
+            console.setPrompt(MessageFormat.format("[{0}/cash]$ ", env));
             console.addCompleter(new StringsCompleter(
                     getAccessibleApiMethodsUsingShortSyntax()));
 
