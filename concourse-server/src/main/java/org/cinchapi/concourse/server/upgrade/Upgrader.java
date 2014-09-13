@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.upgrade.task.Upgrade2;
+import org.cinchapi.concourse.util.Logger;
 import org.reflections.Reflections;
 
 import com.google.common.collect.Sets;
@@ -97,6 +98,10 @@ public class Upgrader {
                         // data, still set the system version so we aren't
                         // blocked on this task in the future.
                         UpgradeTask.setCurrentSystemVersion(task.version());
+                        Logger.info("Due to a bug in a previous "
+                                + "release, the system version has "
+                                + "been force upgraded " + "to {}",
+                                task.version());
                     }
                     else {
                         System.exit(1); // fail fast because we assume
