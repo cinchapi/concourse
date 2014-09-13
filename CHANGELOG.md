@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.4.1 (September 7, 2014)
+#### Version 0.4.1 (September 13, 2014)
 * Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
 * Fixed a bug that accidentally stripped underscore *_* characters from environment names.
 * Further improved the CPU efficiency of the background indexing processes.
@@ -11,10 +11,13 @@
 * Fixed a bug that caused the Criteria builder to improperly handle values with leading and trailing backticks.
 * Made `Concourse` implement the `java.lang.AutoCloseable` interface.
 * Fixed an issue where upgrades failed because the system version was not set for new installations.
+* Fixed bugs that made it possible for atomic operations started from a Transaction to spin in an infinite loop if the Transaction failed prior to being committed.
+* Added a `TransactionException` with a clear error message that is thrown when (staged) operations in a Transaction fail prior to being committed because of a data change.
 
-#### Version 0.3.7 (September 7, 2014)
+#### Version 0.3.7 (September 13, 2014)
 * Fixed an issue that caused Concourse Server to unnecessarily keep file descriptors open after data was indexed and synced to disk.
 * Fixed an issue that made it possible for Concourse to lose some storage metadata in the event of a premature server crash or power loss.
+* Improved CaSH by removing the display of meaningless performance logging when a user merely presses the `enter` key at the prompt.
 
 #### Version 0.4.0 (June 30, 2014)
 
