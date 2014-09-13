@@ -39,7 +39,7 @@ public class Upgrade1 extends UpgradeTask {
     }
 
     @Override
-    public int getSystemVersion() {
+    public int version() {
         return 1;
     }
 
