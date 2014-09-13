@@ -25,14 +25,12 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
@@ -57,7 +56,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -218,23 +217,8 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    @SuppressWarnings("serial")
-    private final Map<Token, Set<VersionChangeListener>> versionChangeListeners = new ConcurrentHashMap<Token, Set<VersionChangeListener>>() {
-
-        /**
-         * An empty set that is returned on calls to {@link #get(Object)} when
-         * there key does not exist.
-         */
-        private final Set<VersionChangeListener> emptySet = Collections
-                .unmodifiableSet(Sets.<VersionChangeListener> newHashSet());
-
-        @Override
-        public Set<VersionChangeListener> get(Object key) {
-            Set<VersionChangeListener> set = super.get(key);
-            return set != null ? set : emptySet;
-        }
-
-    };
+    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
+            .create();
 
     /**
      * A flag to indicate that the {@link BufferTransportThread} has gone into
@@ -362,15 +346,7 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        Set<VersionChangeListener> listeners = null;
-        if(!versionChangeListeners.containsKey(token)) {
-            listeners = Sets.newHashSet();
-            versionChangeListeners.put(token, listeners);
-        }
-        else {
-            listeners = versionChangeListeners.get(token);
-        }
-        listeners.add(listener);
+        versionChangeListeners.put(token, listener);
     }
 
     @Override
@@ -578,7 +554,7 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        versionChangeListeners.get(token).remove(listener);
+        versionChangeListeners.remove(token, listener);
     }
 
     @Override
