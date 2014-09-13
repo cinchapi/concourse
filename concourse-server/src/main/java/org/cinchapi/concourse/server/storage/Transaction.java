@@ -99,28 +99,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     /**
-     * Construct a new instance.
-     * 
-     * @param destination
-     */
-    private Transaction(Engine destination) {
-        super(destination);
-        this.id = Long.toString(Time.now());
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param destination
-     * @param bytes
-     */
-    private Transaction(Engine destination, ByteBuffer bytes) {
-        this(destination);
-        deserialize(bytes);
-        open = false;
-    }
-
-    /**
      * The unique Transaction id.
      */
     private final String id;
@@ -150,6 +128,28 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         }
 
     };
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     */
+    private Transaction(Engine destination) {
+        super(destination);
+        this.id = Long.toString(Time.now());
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     * @param bytes
+     */
+    private Transaction(Engine destination, ByteBuffer bytes) {
+        this(destination);
+        deserialize(bytes);
+        open = false;
+    }
 
     @Override
     public void accept(Write write) {

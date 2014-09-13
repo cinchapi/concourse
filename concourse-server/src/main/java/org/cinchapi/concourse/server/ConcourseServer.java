@@ -216,6 +216,44 @@ public class ConcourseServer implements
                                                        // future release.
 
     /**
+     * The base location where the indexed buffer pages are stored.
+     */
+    private final String bufferStore;
+
+    /**
+     * The base location where the indexed database records are stored.
+     */
+    private final String dbStore;
+
+    /**
+     * A mapping from env to the corresponding Engine that controls all the
+     * logic for data storage and retrieval.
+     */
+    private final Map<String, Engine> engines;
+
+    /**
+     * The AccessManager controls access to the server.
+     */
+    private final AccessManager manager;
+
+    /**
+     * The Thrift server controls the RPC protocol. Use
+     * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
+     * a reference.
+     */
+    private final TServer server;
+
+    /**
+     * The server maintains a collection of {@link Transaction} objects to
+     * ensure that client requests are properly routed. When the client makes a
+     * call to {@link #stage(AccessToken)}, a Transaction is started on the
+     * server and a {@link TransactionToken} is used for the client to reference
+     * that Transaction in future calls.
+     */
+    private final Map<TransactionToken, Transaction> transactions = Maps
+            .newHashMap();
+
+    /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
      * stores data in {@link Properties#DATA_HOME}.
      * 
@@ -264,44 +302,6 @@ public class ConcourseServer implements
         this.manager = AccessManager.create(ACCESS_FILE);
         getEngine(); // load the default engine
     }
-
-    /**
-     * The base location where the indexed buffer pages are stored.
-     */
-    private final String bufferStore;
-
-    /**
-     * The base location where the indexed database records are stored.
-     */
-    private final String dbStore;
-
-    /**
-     * A mapping from env to the corresponding Engine that controls all the
-     * logic for data storage and retrieval.
-     */
-    private final Map<String, Engine> engines;
-
-    /**
-     * The AccessManager controls access to the server.
-     */
-    private final AccessManager manager;
-
-    /**
-     * The Thrift server controls the RPC protocol. Use
-     * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
-     * a reference.
-     */
-    private final TServer server;
-
-    /**
-     * The server maintains a collection of {@link Transaction} objects to
-     * ensure that client requests are properly routed. When the client makes a
-     * call to {@link #stage(AccessToken)}, a Transaction is started on the
-     * server and a {@link TransactionToken} is used for the client to reference
-     * that Transaction in future calls.
-     */
-    private final Map<TransactionToken, Transaction> transactions = Maps
-            .newHashMap();
 
     @Override
     public void abort(AccessToken creds, TransactionToken transaction,
