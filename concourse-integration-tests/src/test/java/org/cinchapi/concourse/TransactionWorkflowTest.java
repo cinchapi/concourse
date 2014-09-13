@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.lang.Criteria;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -100,6 +102,307 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         client2.add("foo", "bar", 2);
         Assert.assertTrue(client.commit());
         Assert.assertTrue(client2.commit());
+    }
+
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionGet() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.get("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionRevert() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            Timestamp ts = Timestamp.now();
+            client.set("foo", "bar", 1);
+            client2.set("foo", "baz", 1);
+            client.revert("foo", 1, ts);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAdd() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.add("foo", "grow", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAudit() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.audit("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionAuditRecord() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.audit(1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionBrowseRecord() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.browse(1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionBrowseKey() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.browse("foo");
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionChronologize() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.chronologize("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionClear() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.clear("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionClearRecord() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.clear(1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionCommit() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.commit();
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionDescribeRecord() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.describe(1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionDescribeKeyFetch() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.fetch("foo", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionFind() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.find("foo", Operator.EQUALS, "bar");
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionFindCriteria() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.find(Criteria.where().key("foo").operator(Operator.EQUALS).value("bar"));
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionInsert() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.insert("{\"foo\": \"bar\"}", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionInsertNewRecord() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.insert("{\"foo\": \"bar\"}");
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionPing() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.ping(1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionRemove() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.remove("foo", "baz", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionSearch() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.search("foo", "bar");
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionSet() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.set("foo", "bar", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerify() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.verify("foo", "bar", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerifyAndSwap() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.verifyAndSwap("foo", "bar", 1, "baz");
+        }
+        finally {
+            client.abort();
+        }
     }
 
 }

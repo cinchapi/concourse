@@ -132,6 +132,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -152,6 +153,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -172,6 +174,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -190,6 +193,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -211,6 +215,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -230,6 +235,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -251,6 +257,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -275,6 +282,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -291,6 +299,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -308,6 +317,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -326,6 +336,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -349,6 +360,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -366,6 +378,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -384,6 +397,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -404,6 +418,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -426,6 +441,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -433,6 +449,7 @@ public class ConcourseService {
          */
         public String getServerVersion()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -451,6 +468,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -468,6 +486,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -487,6 +506,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -504,6 +524,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -518,6 +539,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
         /**
@@ -535,6 +557,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException;
 
     }
@@ -927,6 +950,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_commit(creds, transaction, environment);
             return recv_commit();
@@ -945,6 +969,7 @@ public class ConcourseService {
 
         public boolean recv_commit()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             commit_result result = new commit_result();
             receiveBase(result, "commit");
@@ -953,6 +978,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -965,6 +993,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_add(key, value, record, creds, transaction, environment);
             return recv_add();
@@ -987,6 +1016,7 @@ public class ConcourseService {
 
         public boolean recv_add()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             add_result result = new add_result();
             receiveBase(result, "add");
@@ -995,6 +1025,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1007,6 +1040,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_remove(key, value, record, creds, transaction, environment);
             return recv_remove();
@@ -1029,6 +1063,7 @@ public class ConcourseService {
 
         public boolean recv_remove()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             remove_result result = new remove_result();
             receiveBase(result, "remove");
@@ -1037,6 +1072,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1048,6 +1086,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_audit(record, key, creds, transaction, environment);
             return recv_audit();
@@ -1068,6 +1107,7 @@ public class ConcourseService {
 
         public Map<Long, String> recv_audit()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             audit_result result = new audit_result();
             receiveBase(result, "audit");
@@ -1076,6 +1116,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1088,6 +1131,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_chronologize(record, key, creds, transaction, environment);
             return recv_chronologize();
@@ -1108,6 +1152,7 @@ public class ConcourseService {
 
         public Map<Long, Set<org.cinchapi.concourse.thrift.TObject>> recv_chronologize()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             chronologize_result result = new chronologize_result();
             receiveBase(result, "chronologize");
@@ -1116,6 +1161,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1127,6 +1175,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_describe(record, timestamp, creds, transaction, environment);
             return recv_describe();
@@ -1147,6 +1196,7 @@ public class ConcourseService {
 
         public Set<String> recv_describe()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             describe_result result = new describe_result();
             receiveBase(result, "describe");
@@ -1155,6 +1205,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1167,6 +1220,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_fetch(key, record, timestamp, creds, transaction, environment);
             return recv_fetch();
@@ -1188,6 +1242,7 @@ public class ConcourseService {
 
         public Set<org.cinchapi.concourse.thrift.TObject> recv_fetch()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             fetch_result result = new fetch_result();
             receiveBase(result, "fetch");
@@ -1196,6 +1251,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1210,6 +1268,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_find(key, operator, values, timestamp, creds, transaction,
                     environment);
@@ -1236,6 +1295,7 @@ public class ConcourseService {
 
         public Set<Long> recv_find()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             find_result result = new find_result();
             receiveBase(result, "find");
@@ -1244,6 +1304,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1256,6 +1319,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_find1(criteria, creds, transaction, environment);
             return recv_find1();
@@ -1276,6 +1340,7 @@ public class ConcourseService {
 
         public Set<Long> recv_find1()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             find1_result result = new find1_result();
             receiveBase(result, "find1");
@@ -1284,6 +1349,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1295,6 +1363,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_ping(record, creds, transaction, environment);
             return recv_ping();
@@ -1314,6 +1383,7 @@ public class ConcourseService {
 
         public boolean recv_ping()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             ping_result result = new ping_result();
             receiveBase(result, "ping");
@@ -1322,6 +1392,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1333,6 +1406,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_search(key, query, creds, transaction, environment);
             return recv_search();
@@ -1353,6 +1427,7 @@ public class ConcourseService {
 
         public Set<Long> recv_search()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             search_result result = new search_result();
             receiveBase(result, "search");
@@ -1361,6 +1436,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1374,6 +1452,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken transaction,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_verify(key, value, record, timestamp, creds, transaction,
                     environment);
@@ -1399,6 +1478,7 @@ public class ConcourseService {
 
         public boolean recv_verify()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             verify_result result = new verify_result();
             receiveBase(result, "verify");
@@ -1407,6 +1487,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1418,6 +1501,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_revert(key, record, timestamp, creds, token, environment);
             recv_revert();
@@ -1439,11 +1523,15 @@ public class ConcourseService {
 
         public void recv_revert()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             revert_result result = new revert_result();
             receiveBase(result, "revert");
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             return;
         }
@@ -1453,6 +1541,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_clear(key, record, creds, token, environment);
             recv_clear();
@@ -1473,11 +1562,15 @@ public class ConcourseService {
 
         public void recv_clear()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             clear_result result = new clear_result();
             receiveBase(result, "clear");
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             return;
         }
@@ -1488,6 +1581,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_set0(key, value, record, creds, token, environment);
             recv_set0();
@@ -1510,11 +1604,15 @@ public class ConcourseService {
 
         public void recv_set0()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             set0_result result = new set0_result();
             receiveBase(result, "set0");
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             return;
         }
@@ -1526,6 +1624,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_verifyAndSwap(key, expected, record, replacement, creds,
                     token, environment);
@@ -1551,6 +1650,7 @@ public class ConcourseService {
 
         public boolean recv_verifyAndSwap()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             verifyAndSwap_result result = new verifyAndSwap_result();
             receiveBase(result, "verifyAndSwap");
@@ -1560,6 +1660,9 @@ public class ConcourseService {
             if(result.ex != null) {
                 throw result.ex;
             }
+            if(result.ex2 != null) {
+                throw result.ex2;
+            }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
                     "verifyAndSwap failed: unknown result");
@@ -1567,6 +1670,7 @@ public class ConcourseService {
 
         public String getServerVersion()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_getServerVersion();
             return recv_getServerVersion();
@@ -1579,6 +1683,7 @@ public class ConcourseService {
 
         public String recv_getServerVersion()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             getServerVersion_result result = new getServerVersion_result();
             receiveBase(result, "getServerVersion");
@@ -1587,6 +1692,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1598,6 +1706,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_insert(json, record, creds, token, environment);
             return recv_insert();
@@ -1618,6 +1727,7 @@ public class ConcourseService {
 
         public boolean recv_insert()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             insert_result result = new insert_result();
             receiveBase(result, "insert");
@@ -1626,6 +1736,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1638,6 +1751,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_browse0(record, timestamp, creds, token, environment);
             return recv_browse0();
@@ -1658,6 +1772,7 @@ public class ConcourseService {
 
         public Map<String, Set<org.cinchapi.concourse.thrift.TObject>> recv_browse0()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             browse0_result result = new browse0_result();
             receiveBase(result, "browse0");
@@ -1666,6 +1781,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1678,6 +1796,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_browse1(key, timestamp, creds, token, environment);
             return recv_browse1();
@@ -1698,6 +1817,7 @@ public class ConcourseService {
 
         public Map<org.cinchapi.concourse.thrift.TObject, Set<Long>> recv_browse1()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             browse1_result result = new browse1_result();
             receiveBase(result, "browse1");
@@ -1706,6 +1826,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1717,6 +1840,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_clear1(record, creds, token, environment);
             recv_clear1();
@@ -1736,11 +1860,15 @@ public class ConcourseService {
 
         public void recv_clear1()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             clear1_result result = new clear1_result();
             receiveBase(result, "clear1");
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             return;
         }
@@ -1750,6 +1878,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_getServerEnvironment(creds, token, environment);
             return recv_getServerEnvironment();
@@ -1768,6 +1897,7 @@ public class ConcourseService {
 
         public String recv_getServerEnvironment()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             getServerEnvironment_result result = new getServerEnvironment_result();
             receiveBase(result, "getServerEnvironment");
@@ -1776,6 +1906,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -1787,6 +1920,7 @@ public class ConcourseService {
                 org.cinchapi.concourse.thrift.TransactionToken token,
                 String environment)
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             send_insert1(json, creds, token, environment);
             return recv_insert1();
@@ -1806,6 +1940,7 @@ public class ConcourseService {
 
         public long recv_insert1()
                 throws org.cinchapi.concourse.thrift.TSecurityException,
+                org.cinchapi.concourse.thrift.TTransactionException,
                 org.apache.thrift.TException {
             insert1_result result = new insert1_result();
             receiveBase(result, "insert1");
@@ -1814,6 +1949,9 @@ public class ConcourseService {
             }
             if(result.ex != null) {
                 throw result.ex;
+            }
+            if(result.ex2 != null) {
+                throw result.ex2;
             }
             throw new org.apache.thrift.TApplicationException(
                     org.apache.thrift.TApplicationException.MISSING_RESULT,
@@ -2136,6 +2274,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2212,6 +2351,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2289,6 +2429,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2361,6 +2502,7 @@ public class ConcourseService {
 
             public Map<Long, String> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2433,6 +2575,7 @@ public class ConcourseService {
 
             public Map<Long, Set<org.cinchapi.concourse.thrift.TObject>> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2505,6 +2648,7 @@ public class ConcourseService {
 
             public Set<String> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2582,6 +2726,7 @@ public class ConcourseService {
 
             public Set<org.cinchapi.concourse.thrift.TObject> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2663,6 +2808,7 @@ public class ConcourseService {
 
             public Set<Long> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2730,6 +2876,7 @@ public class ConcourseService {
 
             public Set<Long> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2796,6 +2943,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2868,6 +3016,7 @@ public class ConcourseService {
 
             public Set<Long> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -2950,6 +3099,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3027,6 +3177,7 @@ public class ConcourseService {
 
             public void getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3099,6 +3250,7 @@ public class ConcourseService {
 
             public void getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3175,6 +3327,7 @@ public class ConcourseService {
 
             public void getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3257,6 +3410,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3302,6 +3456,7 @@ public class ConcourseService {
 
             public String getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3374,6 +3529,7 @@ public class ConcourseService {
 
             public boolean getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3446,6 +3602,7 @@ public class ConcourseService {
 
             public Map<String, Set<org.cinchapi.concourse.thrift.TObject>> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3518,6 +3675,7 @@ public class ConcourseService {
 
             public Map<org.cinchapi.concourse.thrift.TObject, Set<Long>> getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3585,6 +3743,7 @@ public class ConcourseService {
 
             public void getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3647,6 +3806,7 @@ public class ConcourseService {
 
             public String getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3714,6 +3874,7 @@ public class ConcourseService {
 
             public long getResult()
                     throws org.cinchapi.concourse.thrift.TSecurityException,
+                    org.cinchapi.concourse.thrift.TTransactionException,
                     org.apache.thrift.TException {
                 if(getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
                     throw new IllegalStateException("Method call not finished!");
@@ -3912,6 +4073,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -3941,6 +4105,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -3972,6 +4139,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4000,6 +4170,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4027,6 +4200,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4057,6 +4233,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4085,6 +4264,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4115,6 +4297,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4142,6 +4327,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4172,6 +4360,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4199,6 +4390,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4230,6 +4424,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4257,6 +4454,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4286,6 +4486,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4313,6 +4516,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4345,6 +4551,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4372,6 +4581,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4402,6 +4614,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4429,6 +4644,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4458,6 +4676,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4485,6 +4706,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -4515,6 +4739,9 @@ public class ConcourseService {
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
                 }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
+                }
                 return result;
             }
         }
@@ -4543,6 +4770,9 @@ public class ConcourseService {
                 }
                 catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
                     result.ex = ex;
+                }
+                catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
+                    result.ex2 = ex2;
                 }
                 return result;
             }
@@ -9432,6 +9662,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -9443,13 +9675,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -9469,6 +9704,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -9529,6 +9766,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     commit_result.class, metaDataMap);
@@ -9537,11 +9779,13 @@ public class ConcourseService {
         public commit_result() {}
 
         public commit_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -9554,6 +9798,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public commit_result deepCopy() {
@@ -9565,6 +9813,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -9623,6 +9872,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public commit_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -9643,6 +9920,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -9653,6 +9939,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -9672,6 +9961,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -9704,6 +9995,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -9748,6 +10048,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -9781,6 +10093,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -9859,6 +10181,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -9885,6 +10218,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -9914,12 +10252,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -9927,7 +10271,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     commit_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -9936,6 +10280,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -10953,6 +11302,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -10963,13 +11314,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -10989,6 +11343,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -11049,6 +11405,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     add_result.class, metaDataMap);
@@ -11057,11 +11418,13 @@ public class ConcourseService {
         public add_result() {}
 
         public add_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -11074,6 +11437,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public add_result deepCopy() {
@@ -11085,6 +11452,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -11143,6 +11511,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public add_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -11163,6 +11559,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -11173,6 +11578,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -11192,6 +11600,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -11224,6 +11634,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -11268,6 +11687,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -11301,6 +11732,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -11379,6 +11820,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -11405,6 +11857,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -11434,12 +11891,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -11447,7 +11910,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     add_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -11456,6 +11919,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -12475,6 +12943,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -12486,13 +12956,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -12512,6 +12985,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -12572,6 +13047,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     remove_result.class, metaDataMap);
@@ -12580,11 +13060,13 @@ public class ConcourseService {
         public remove_result() {}
 
         public remove_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -12597,6 +13079,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public remove_result deepCopy() {
@@ -12608,6 +13094,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -12666,6 +13153,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public remove_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -12686,6 +13201,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -12696,6 +13220,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -12715,6 +13242,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -12747,6 +13276,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -12791,6 +13329,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -12824,6 +13374,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -12902,6 +13462,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -12928,6 +13499,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -12957,12 +13533,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -12970,7 +13552,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     remove_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -12979,6 +13561,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -13875,6 +14462,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.MAP, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -13885,13 +14474,16 @@ public class ConcourseService {
 
         public Map<Long, String> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -13911,6 +14503,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -13975,6 +14569,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     audit_result.class, metaDataMap);
@@ -13983,10 +14582,12 @@ public class ConcourseService {
         public audit_result() {}
 
         public audit_result(Map<Long, String> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -14014,6 +14615,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public audit_result deepCopy() {
@@ -14024,6 +14629,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -14092,6 +14698,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public audit_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -14112,6 +14746,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -14122,6 +14765,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -14141,6 +14787,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -14173,6 +14821,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -14217,6 +14874,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -14255,6 +14924,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -14342,6 +15021,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -14381,6 +15071,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -14408,7 +15103,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -14422,13 +15120,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     audit_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TMap _map6 = new org.apache.thrift.protocol.TMap(
@@ -14451,6 +15152,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -15352,6 +16058,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.MAP, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -15363,13 +16071,16 @@ public class ConcourseService {
 
         public Map<Long, Set<org.cinchapi.concourse.thrift.TObject>> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -15389,6 +16100,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -15456,6 +16169,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     chronologize_result.class, metaDataMap);
@@ -15465,10 +16183,12 @@ public class ConcourseService {
 
         public chronologize_result(
                 Map<Long, Set<org.cinchapi.concourse.thrift.TObject>> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -15502,6 +16222,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public chronologize_result deepCopy() {
@@ -15512,6 +16236,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -15582,6 +16307,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public chronologize_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -15602,6 +16355,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -15612,6 +16374,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -15631,6 +16396,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -15663,6 +16430,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -15707,6 +16483,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -15745,6 +16533,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -15845,6 +16643,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -15894,6 +16703,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -15922,7 +16736,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -15942,6 +16759,9 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
@@ -15949,7 +16769,7 @@ public class ConcourseService {
                     chronologize_result struct)
                     throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TMap _map21 = new org.apache.thrift.protocol.TMap(
@@ -15984,6 +16804,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -16877,6 +17702,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.SET, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -16888,13 +17715,16 @@ public class ConcourseService {
 
         public Set<String> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -16914,6 +17744,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -16976,6 +17808,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     describe_result.class, metaDataMap);
@@ -16984,10 +17821,12 @@ public class ConcourseService {
         public describe_result() {}
 
         public describe_result(Set<String> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -17005,6 +17844,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public describe_result deepCopy() {
@@ -17015,6 +17858,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -17087,6 +17931,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public describe_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -17107,6 +17979,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -17117,6 +17998,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -17136,6 +18020,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -17168,6 +18054,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -17212,6 +18107,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -17250,6 +18157,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -17335,6 +18252,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -17371,6 +18299,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -17398,7 +18331,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -17410,13 +18346,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     describe_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TSet _set33 = new org.apache.thrift.protocol.TSet(
@@ -17436,6 +18375,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -18441,6 +19385,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.SET, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -18451,13 +19397,16 @@ public class ConcourseService {
 
         public Set<org.cinchapi.concourse.thrift.TObject> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -18477,6 +19426,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -18540,6 +19491,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     fetch_result.class, metaDataMap);
@@ -18548,10 +19504,12 @@ public class ConcourseService {
         public fetch_result() {}
 
         public fetch_result(Set<org.cinchapi.concourse.thrift.TObject> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -18571,6 +19529,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public fetch_result deepCopy() {
@@ -18581,6 +19543,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -18654,6 +19617,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public fetch_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -18674,6 +19665,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -18684,6 +19684,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -18703,6 +19706,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -18735,6 +19740,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -18779,6 +19793,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -18817,6 +19843,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -18903,6 +19939,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -18939,6 +19986,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -18966,7 +20018,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -18978,13 +20033,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     fetch_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TSet _set41 = new org.apache.thrift.protocol.TSet(
@@ -19005,6 +20063,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -20217,6 +21280,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.SET, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -20227,13 +21292,16 @@ public class ConcourseService {
 
         public Set<Long> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -20253,6 +21321,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -20315,6 +21385,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     find_result.class, metaDataMap);
@@ -20323,10 +21398,12 @@ public class ConcourseService {
         public find_result() {}
 
         public find_result(Set<Long> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -20344,6 +21421,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public find_result deepCopy() {
@@ -20354,6 +21435,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -20426,6 +21508,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public find_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -20446,6 +21556,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -20456,6 +21575,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -20475,6 +21597,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -20507,6 +21631,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -20551,6 +21684,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -20589,6 +21734,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -20674,6 +21829,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -20710,6 +21876,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -20737,7 +21908,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -20749,13 +21923,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     find_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TSet _set57 = new org.apache.thrift.protocol.TSet(
@@ -20775,6 +21952,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -21567,6 +22749,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.SET, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -21577,13 +22761,16 @@ public class ConcourseService {
 
         public Set<Long> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -21603,6 +22790,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -21665,6 +22854,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     find1_result.class, metaDataMap);
@@ -21673,10 +22867,12 @@ public class ConcourseService {
         public find1_result() {}
 
         public find1_result(Set<Long> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -21694,6 +22890,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public find1_result deepCopy() {
@@ -21704,6 +22904,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -21776,6 +22977,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public find1_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -21796,6 +23025,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -21806,6 +23044,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -21825,6 +23066,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -21857,6 +23100,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -21901,6 +23153,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -21939,6 +23203,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -22024,6 +23298,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -22060,6 +23345,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -22087,7 +23377,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -22099,13 +23392,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     find1_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TSet _set65 = new org.apache.thrift.protocol.TSet(
@@ -22125,6 +23421,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -22908,6 +24209,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -22918,13 +24221,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -22944,6 +24250,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -23004,6 +24312,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     ping_result.class, metaDataMap);
@@ -23012,11 +24325,13 @@ public class ConcourseService {
         public ping_result() {}
 
         public ping_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -23029,6 +24344,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public ping_result deepCopy() {
@@ -23040,6 +24359,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -23098,6 +24418,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public ping_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -23118,6 +24466,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -23128,6 +24485,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -23147,6 +24507,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -23179,6 +24541,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -23223,6 +24594,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -23256,6 +24639,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -23334,6 +24727,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -23360,6 +24764,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -23389,12 +24798,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -23402,7 +24817,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     ping_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -23411,6 +24826,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -24306,6 +25726,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.SET, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -24317,13 +25739,16 @@ public class ConcourseService {
 
         public Set<Long> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -24343,6 +25768,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -24405,6 +25832,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     search_result.class, metaDataMap);
@@ -24413,10 +25845,12 @@ public class ConcourseService {
         public search_result() {}
 
         public search_result(Set<Long> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -24434,6 +25868,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public search_result deepCopy() {
@@ -24444,6 +25882,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -24516,6 +25955,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public search_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -24536,6 +26003,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -24546,6 +26022,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -24565,6 +26044,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -24597,6 +26078,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -24641,6 +26131,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -24679,6 +26181,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -24764,6 +26276,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -24800,6 +26323,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -24827,7 +26355,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -24839,13 +26370,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     search_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TSet _set73 = new org.apache.thrift.protocol.TSet(
@@ -24865,6 +26399,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -25994,6 +27533,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -26005,13 +27546,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -26031,6 +27575,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -26091,6 +27637,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     verify_result.class, metaDataMap);
@@ -26099,11 +27650,13 @@ public class ConcourseService {
         public verify_result() {}
 
         public verify_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -26116,6 +27669,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public verify_result deepCopy() {
@@ -26127,6 +27684,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -26185,6 +27743,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public verify_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -26205,6 +27791,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -26215,6 +27810,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -26234,6 +27832,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -26266,6 +27866,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -26310,6 +27919,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -26343,6 +27964,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -26421,6 +28052,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -26447,6 +28089,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -26476,12 +28123,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -26489,7 +28142,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     verify_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -26498,6 +28151,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -27500,6 +29158,8 @@ public class ConcourseService {
 
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -27510,13 +29170,14 @@ public class ConcourseService {
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            EX((short) 1, "ex");
+            EX((short) 1, "ex"), EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -27534,6 +29195,8 @@ public class ConcourseService {
                 switch (fieldId) {
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -27587,6 +29250,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     revert_result.class, metaDataMap);
@@ -27594,9 +29262,12 @@ public class ConcourseService {
 
         public revert_result() {}
 
-        public revert_result(org.cinchapi.concourse.thrift.TSecurityException ex) {
+        public revert_result(
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -27607,6 +29278,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public revert_result deepCopy() {
@@ -27616,6 +29291,7 @@ public class ConcourseService {
         @Override
         public void clear() {
             this.ex = null;
+            this.ex2 = null;
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException getEx() {
@@ -27646,6 +29322,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public revert_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case EX:
@@ -27657,6 +29361,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -27664,6 +29377,9 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -27681,6 +29397,8 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -27704,6 +29422,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -27736,6 +29463,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -27764,6 +29503,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -27828,6 +29577,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -27849,6 +29609,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -27875,9 +29640,15 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(0);
                 }
-                oprot.writeBitSet(optionals, 1);
+                if(struct.isSetEx2()) {
+                    optionals.set(1);
+                }
+                oprot.writeBitSet(optionals, 2);
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -27885,11 +29656,16 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     revert_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(1);
+                BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -28783,6 +30559,8 @@ public class ConcourseService {
 
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -28792,13 +30570,14 @@ public class ConcourseService {
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            EX((short) 1, "ex");
+            EX((short) 1, "ex"), EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -28816,6 +30595,8 @@ public class ConcourseService {
                 switch (fieldId) {
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -28869,6 +30650,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     clear_result.class, metaDataMap);
@@ -28876,9 +30662,12 @@ public class ConcourseService {
 
         public clear_result() {}
 
-        public clear_result(org.cinchapi.concourse.thrift.TSecurityException ex) {
+        public clear_result(
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -28889,6 +30678,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public clear_result deepCopy() {
@@ -28898,6 +30691,7 @@ public class ConcourseService {
         @Override
         public void clear() {
             this.ex = null;
+            this.ex2 = null;
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException getEx() {
@@ -28928,6 +30722,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public clear_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case EX:
@@ -28939,6 +30761,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -28946,6 +30777,9 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -28963,6 +30797,8 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -28986,6 +30822,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -29018,6 +30863,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -29046,6 +30903,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -29110,6 +30977,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -29131,6 +31009,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -29157,9 +31040,15 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(0);
                 }
-                oprot.writeBitSet(optionals, 1);
+                if(struct.isSetEx2()) {
+                    optionals.set(1);
+                }
+                oprot.writeBitSet(optionals, 2);
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -29167,11 +31056,16 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     clear_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(1);
+                BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -30188,6 +32082,8 @@ public class ConcourseService {
 
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -30197,13 +32093,14 @@ public class ConcourseService {
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            EX((short) 1, "ex");
+            EX((short) 1, "ex"), EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -30221,6 +32118,8 @@ public class ConcourseService {
                 switch (fieldId) {
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -30274,6 +32173,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     set0_result.class, metaDataMap);
@@ -30281,9 +32185,11 @@ public class ConcourseService {
 
         public set0_result() {}
 
-        public set0_result(org.cinchapi.concourse.thrift.TSecurityException ex) {
+        public set0_result(org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -30294,6 +32200,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public set0_result deepCopy() {
@@ -30303,6 +32213,7 @@ public class ConcourseService {
         @Override
         public void clear() {
             this.ex = null;
+            this.ex2 = null;
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException getEx() {
@@ -30333,6 +32244,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public set0_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case EX:
@@ -30344,6 +32283,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -30351,6 +32299,9 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -30368,6 +32319,8 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -30391,6 +32344,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -30423,6 +32385,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -30451,6 +32425,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -30515,6 +32499,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -30536,6 +32531,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -30562,9 +32562,15 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(0);
                 }
-                oprot.writeBitSet(optionals, 1);
+                if(struct.isSetEx2()) {
+                    optionals.set(1);
+                }
+                oprot.writeBitSet(optionals, 2);
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -30572,11 +32578,16 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     set0_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(1);
+                BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -31726,6 +33737,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -31737,13 +33750,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -31763,6 +33779,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -31823,6 +33841,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     verifyAndSwap_result.class, metaDataMap);
@@ -31831,11 +33854,13 @@ public class ConcourseService {
         public verifyAndSwap_result() {}
 
         public verifyAndSwap_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -31848,6 +33873,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public verifyAndSwap_result deepCopy() {
@@ -31859,6 +33888,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -31917,6 +33947,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public verifyAndSwap_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -31937,6 +33995,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -31947,6 +34014,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -31966,6 +34036,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -31998,6 +34070,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -32042,6 +34123,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -32075,6 +34168,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -32154,6 +34257,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -32181,6 +34295,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -32211,12 +34330,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -32225,7 +34350,7 @@ public class ConcourseService {
                     verifyAndSwap_result struct)
                     throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -32234,6 +34359,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -32534,6 +34664,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.STRING, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -32545,13 +34677,16 @@ public class ConcourseService {
 
         public String success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -32571,6 +34706,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -32629,6 +34766,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     getServerVersion_result.class, metaDataMap);
@@ -32637,10 +34779,12 @@ public class ConcourseService {
         public getServerVersion_result() {}
 
         public getServerVersion_result(String success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -32654,6 +34798,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public getServerVersion_result deepCopy() {
@@ -32664,6 +34812,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public String getSuccess() {
@@ -32721,6 +34870,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public getServerVersion_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -32741,6 +34918,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -32751,6 +34937,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -32770,6 +34959,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -32802,6 +34993,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -32846,6 +35046,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -32884,6 +35096,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -32959,6 +35181,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -32986,6 +35219,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -33016,12 +35254,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeString(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -33030,7 +35274,7 @@ public class ConcourseService {
                     getServerVersion_result struct)
                     throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readString();
                     struct.setSuccessIsSet(true);
@@ -33039,6 +35283,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -33934,6 +36183,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.BOOL, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -33945,13 +36196,16 @@ public class ConcourseService {
 
         public boolean success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -33971,6 +36225,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -34031,6 +36287,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     insert_result.class, metaDataMap);
@@ -34039,11 +36300,13 @@ public class ConcourseService {
         public insert_result() {}
 
         public insert_result(boolean success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -34056,6 +36319,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public insert_result deepCopy() {
@@ -34067,6 +36334,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = false;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public boolean isSuccess() {
@@ -34125,6 +36393,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public insert_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -34145,6 +36441,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -34155,6 +36460,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -34174,6 +36482,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -34206,6 +36516,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -34250,6 +36569,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -34283,6 +36614,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -34361,6 +36702,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -34387,6 +36739,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -34416,12 +36773,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeBool(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -34429,7 +36792,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     insert_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readBool();
                     struct.setSuccessIsSet(true);
@@ -34438,6 +36801,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -35329,6 +37697,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.MAP, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -35340,13 +37710,16 @@ public class ConcourseService {
 
         public Map<String, Set<org.cinchapi.concourse.thrift.TObject>> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -35366,6 +37739,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -35433,6 +37808,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     browse0_result.class, metaDataMap);
@@ -35442,10 +37822,12 @@ public class ConcourseService {
 
         public browse0_result(
                 Map<String, Set<org.cinchapi.concourse.thrift.TObject>> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -35479,6 +37861,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public browse0_result deepCopy() {
@@ -35489,6 +37875,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -35559,6 +37946,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public browse0_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -35579,6 +37994,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -35589,6 +38013,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -35608,6 +38035,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -35640,6 +38069,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -35684,6 +38122,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -35722,6 +38172,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -35821,6 +38281,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -35869,6 +38340,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -35896,7 +38372,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -35916,13 +38395,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     browse0_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TMap _map87 = new org.apache.thrift.protocol.TMap(
@@ -35957,6 +38439,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -36853,6 +39340,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.MAP, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -36864,13 +39353,16 @@ public class ConcourseService {
 
         public Map<org.cinchapi.concourse.thrift.TObject, Set<Long>> success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -36890,6 +39382,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -36957,6 +39451,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     browse1_result.class, metaDataMap);
@@ -36966,10 +39465,12 @@ public class ConcourseService {
 
         public browse1_result(
                 Map<org.cinchapi.concourse.thrift.TObject, Set<Long>> success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -37003,6 +39504,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public browse1_result deepCopy() {
@@ -37013,6 +39518,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public int getSuccessSize() {
@@ -37083,6 +39589,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public browse1_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -37103,6 +39637,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -37113,6 +39656,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -37132,6 +39678,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -37164,6 +39712,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -37208,6 +39765,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -37246,6 +39815,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -37345,6 +39924,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -37392,6 +39982,11 @@ public class ConcourseService {
                     struct.ex.write(oprot);
                     oprot.writeFieldEnd();
                 }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
+                    oprot.writeFieldEnd();
+                }
                 oprot.writeFieldStop();
                 oprot.writeStructEnd();
             }
@@ -37419,7 +40014,10 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     {
                         oprot.writeI32(struct.success.size());
@@ -37438,13 +40036,16 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
                 }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
+                }
             }
 
             @Override
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     browse1_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     {
                         org.apache.thrift.protocol.TMap _map105 = new org.apache.thrift.protocol.TMap(
@@ -37479,6 +40080,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -38259,6 +40865,8 @@ public class ConcourseService {
 
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -38269,13 +40877,14 @@ public class ConcourseService {
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            EX((short) 1, "ex");
+            EX((short) 1, "ex"), EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -38293,6 +40902,8 @@ public class ConcourseService {
                 switch (fieldId) {
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -38346,6 +40957,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     clear1_result.class, metaDataMap);
@@ -38353,9 +40969,12 @@ public class ConcourseService {
 
         public clear1_result() {}
 
-        public clear1_result(org.cinchapi.concourse.thrift.TSecurityException ex) {
+        public clear1_result(
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -38366,6 +40985,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public clear1_result deepCopy() {
@@ -38375,6 +40998,7 @@ public class ConcourseService {
         @Override
         public void clear() {
             this.ex = null;
+            this.ex2 = null;
         }
 
         public org.cinchapi.concourse.thrift.TSecurityException getEx() {
@@ -38405,6 +41029,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public clear1_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case EX:
@@ -38416,6 +41068,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -38423,6 +41084,9 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -38440,6 +41104,8 @@ public class ConcourseService {
             switch (field) {
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -38463,6 +41129,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -38495,6 +41170,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -38523,6 +41210,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -38587,6 +41284,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -38608,6 +41316,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -38634,9 +41347,15 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(0);
                 }
-                oprot.writeBitSet(optionals, 1);
+                if(struct.isSetEx2()) {
+                    optionals.set(1);
+                }
+                oprot.writeBitSet(optionals, 2);
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -38644,11 +41363,16 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     clear1_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(1);
+                BitSet incoming = iprot.readBitSet(2);
                 if(incoming.get(0)) {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(1)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -39322,6 +42046,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.STRING, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -39333,13 +42059,16 @@ public class ConcourseService {
 
         public String success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -39359,6 +42088,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -39417,6 +42148,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     getServerEnvironment_result.class, metaDataMap);
@@ -39425,10 +42161,12 @@ public class ConcourseService {
         public getServerEnvironment_result() {}
 
         public getServerEnvironment_result(String success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -39442,6 +42180,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public getServerEnvironment_result deepCopy() {
@@ -39452,6 +42194,7 @@ public class ConcourseService {
         public void clear() {
             this.success = null;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public String getSuccess() {
@@ -39509,6 +42252,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public getServerEnvironment_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -39529,6 +42300,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -39539,6 +42319,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -39558,6 +42341,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -39590,6 +42375,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -39634,6 +42428,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -39672,6 +42478,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -39747,6 +42563,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -39774,6 +42601,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -39804,12 +42636,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeString(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -39818,7 +42656,7 @@ public class ConcourseService {
                     getServerEnvironment_result struct)
                     throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readString();
                     struct.setSuccessIsSet(true);
@@ -39827,6 +42665,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }
@@ -40608,6 +43451,8 @@ public class ConcourseService {
                 "success", org.apache.thrift.protocol.TType.I64, (short) 0);
         private static final org.apache.thrift.protocol.TField EX_FIELD_DESC = new org.apache.thrift.protocol.TField(
                 "ex", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField EX2_FIELD_DESC = new org.apache.thrift.protocol.TField(
+                "ex2", org.apache.thrift.protocol.TType.STRUCT, (short) 2);
 
         private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new LinkedHashMap<Class<? extends IScheme>, SchemeFactory>();
         static {
@@ -40619,13 +43464,16 @@ public class ConcourseService {
 
         public long success; // required
         public org.cinchapi.concourse.thrift.TSecurityException ex; // required
+        public org.cinchapi.concourse.thrift.TTransactionException ex2; // required
 
         /**
          * The set of fields this struct contains, along with convenience
          * methods for finding and manipulating them.
          */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success"), EX((short) 1, "ex");
+            SUCCESS((short) 0, "success"),
+            EX((short) 1, "ex"),
+            EX2((short) 2, "ex2");
 
             private static final Map<String, _Fields> byName = new LinkedHashMap<String, _Fields>();
 
@@ -40645,6 +43493,8 @@ public class ConcourseService {
                     return SUCCESS;
                 case 1: // EX
                     return EX;
+                case 2: // EX2
+                    return EX2;
                 default:
                     return null;
                 }
@@ -40705,6 +43555,11 @@ public class ConcourseService {
                             org.apache.thrift.TFieldRequirementType.DEFAULT,
                             new org.apache.thrift.meta_data.FieldValueMetaData(
                                     org.apache.thrift.protocol.TType.STRUCT)));
+            tmpMap.put(_Fields.EX2,
+                    new org.apache.thrift.meta_data.FieldMetaData("ex2",
+                            org.apache.thrift.TFieldRequirementType.DEFAULT,
+                            new org.apache.thrift.meta_data.FieldValueMetaData(
+                                    org.apache.thrift.protocol.TType.STRUCT)));
             metaDataMap = Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                     insert1_result.class, metaDataMap);
@@ -40713,11 +43568,13 @@ public class ConcourseService {
         public insert1_result() {}
 
         public insert1_result(long success,
-                org.cinchapi.concourse.thrift.TSecurityException ex) {
+                org.cinchapi.concourse.thrift.TSecurityException ex,
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
             this();
             this.success = success;
             setSuccessIsSet(true);
             this.ex = ex;
+            this.ex2 = ex2;
         }
 
         /**
@@ -40730,6 +43587,10 @@ public class ConcourseService {
                 this.ex = new org.cinchapi.concourse.thrift.TSecurityException(
                         other.ex);
             }
+            if(other.isSetEx2()) {
+                this.ex2 = new org.cinchapi.concourse.thrift.TTransactionException(
+                        other.ex2);
+            }
         }
 
         public insert1_result deepCopy() {
@@ -40741,6 +43602,7 @@ public class ConcourseService {
             setSuccessIsSet(false);
             this.success = 0;
             this.ex = null;
+            this.ex2 = null;
         }
 
         public long getSuccess() {
@@ -40799,6 +43661,34 @@ public class ConcourseService {
             }
         }
 
+        public org.cinchapi.concourse.thrift.TTransactionException getEx2() {
+            return this.ex2;
+        }
+
+        public insert1_result setEx2(
+                org.cinchapi.concourse.thrift.TTransactionException ex2) {
+            this.ex2 = ex2;
+            return this;
+        }
+
+        public void unsetEx2() {
+            this.ex2 = null;
+        }
+
+        /**
+         * Returns true if field ex2 is set (has been assigned a value) and
+         * false otherwise
+         */
+        public boolean isSetEx2() {
+            return this.ex2 != null;
+        }
+
+        public void setEx2IsSet(boolean value) {
+            if(!value) {
+                this.ex2 = null;
+            }
+        }
+
         public void setFieldValue(_Fields field, Object value) {
             switch (field) {
             case SUCCESS:
@@ -40819,6 +43709,15 @@ public class ConcourseService {
                 }
                 break;
 
+            case EX2:
+                if(value == null) {
+                    unsetEx2();
+                }
+                else {
+                    setEx2((org.cinchapi.concourse.thrift.TTransactionException) value);
+                }
+                break;
+
             }
         }
 
@@ -40829,6 +43728,9 @@ public class ConcourseService {
 
             case EX:
                 return getEx();
+
+            case EX2:
+                return getEx2();
 
             }
             throw new IllegalStateException();
@@ -40848,6 +43750,8 @@ public class ConcourseService {
                 return isSetSuccess();
             case EX:
                 return isSetEx();
+            case EX2:
+                return isSetEx2();
             }
             throw new IllegalStateException();
         }
@@ -40880,6 +43784,15 @@ public class ConcourseService {
                 if(!(this_present_ex && that_present_ex))
                     return false;
                 if(!this.ex.equals(that.ex))
+                    return false;
+            }
+
+            boolean this_present_ex2 = true && this.isSetEx2();
+            boolean that_present_ex2 = true && that.isSetEx2();
+            if(this_present_ex2 || that_present_ex2) {
+                if(!(this_present_ex2 && that_present_ex2))
+                    return false;
+                if(!this.ex2.equals(that.ex2))
                     return false;
             }
 
@@ -40924,6 +43837,18 @@ public class ConcourseService {
                     return lastComparison;
                 }
             }
+            lastComparison = Boolean.valueOf(isSetEx2()).compareTo(
+                    typedOther.isSetEx2());
+            if(lastComparison != 0) {
+                return lastComparison;
+            }
+            if(isSetEx2()) {
+                lastComparison = org.apache.thrift.TBaseHelper.compareTo(
+                        this.ex2, typedOther.ex2);
+                if(lastComparison != 0) {
+                    return lastComparison;
+                }
+            }
             return 0;
         }
 
@@ -40957,6 +43882,16 @@ public class ConcourseService {
             }
             else {
                 sb.append(this.ex);
+            }
+            first = false;
+            if(!first)
+                sb.append(", ");
+            sb.append("ex2:");
+            if(this.ex2 == null) {
+                sb.append("null");
+            }
+            else {
+                sb.append(this.ex2);
             }
             first = false;
             sb.append(")");
@@ -41035,6 +43970,17 @@ public class ConcourseService {
                                     iprot, schemeField.type);
                         }
                         break;
+                    case 2: // EX2
+                        if(schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                            struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                            struct.ex2.read(iprot);
+                            struct.setEx2IsSet(true);
+                        }
+                        else {
+                            org.apache.thrift.protocol.TProtocolUtil.skip(
+                                    iprot, schemeField.type);
+                        }
+                        break;
                     default:
                         org.apache.thrift.protocol.TProtocolUtil.skip(iprot,
                                 schemeField.type);
@@ -41061,6 +44007,11 @@ public class ConcourseService {
                 if(struct.ex != null) {
                     oprot.writeFieldBegin(EX_FIELD_DESC);
                     struct.ex.write(oprot);
+                    oprot.writeFieldEnd();
+                }
+                if(struct.ex2 != null) {
+                    oprot.writeFieldBegin(EX2_FIELD_DESC);
+                    struct.ex2.write(oprot);
                     oprot.writeFieldEnd();
                 }
                 oprot.writeFieldStop();
@@ -41090,12 +44041,18 @@ public class ConcourseService {
                 if(struct.isSetEx()) {
                     optionals.set(1);
                 }
-                oprot.writeBitSet(optionals, 2);
+                if(struct.isSetEx2()) {
+                    optionals.set(2);
+                }
+                oprot.writeBitSet(optionals, 3);
                 if(struct.isSetSuccess()) {
                     oprot.writeI64(struct.success);
                 }
                 if(struct.isSetEx()) {
                     struct.ex.write(oprot);
+                }
+                if(struct.isSetEx2()) {
+                    struct.ex2.write(oprot);
                 }
             }
 
@@ -41103,7 +44060,7 @@ public class ConcourseService {
             public void read(org.apache.thrift.protocol.TProtocol prot,
                     insert1_result struct) throws org.apache.thrift.TException {
                 TTupleProtocol iprot = (TTupleProtocol) prot;
-                BitSet incoming = iprot.readBitSet(2);
+                BitSet incoming = iprot.readBitSet(3);
                 if(incoming.get(0)) {
                     struct.success = iprot.readI64();
                     struct.setSuccessIsSet(true);
@@ -41112,6 +44069,11 @@ public class ConcourseService {
                     struct.ex = new org.cinchapi.concourse.thrift.TSecurityException();
                     struct.ex.read(iprot);
                     struct.setExIsSet(true);
+                }
+                if(incoming.get(2)) {
+                    struct.ex2 = new org.cinchapi.concourse.thrift.TTransactionException();
+                    struct.ex2.read(iprot);
+                    struct.setEx2IsSet(true);
                 }
             }
         }

@@ -61,3 +61,9 @@ struct TransactionToken {
 exception TSecurityException {
 	1: string message
 }
+
+/**
+ * The exception that is thrown from the server when a
+ * transaction related exception occurs.
+ */
+exception TTransactionException {}

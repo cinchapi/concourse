@@ -75,7 +75,8 @@ service ConcourseService {
 	 * </p>
 	 */
 	bool commit(1: shared.AccessToken creds, 2: shared.TransactionToken transaction,
-	 	3: string environment) throws (1: shared.TSecurityException ex);
+	 	3: string environment) throws (1: shared.TSecurityException ex,
+	 	2: shared.TTransactionException ex2);
 
 	/**
 	 * Add {@code key} as {@code value} to {@code record}. This method returns
@@ -84,7 +85,7 @@ service ConcourseService {
 	 */
 	bool add(1: string key, 2: data.TObject value, 3: i64 record, 4: shared.AccessToken creds,
 		5: shared.TransactionToken transaction, 6: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Remove {@code key} as {@code value} from {@code record}. This method returns
@@ -93,7 +94,7 @@ service ConcourseService {
 	 */
 	bool remove(1: string key, 2: data.TObject value, 3: i64 record, 4: shared.AccessToken creds,
 		5: shared.TransactionToken transaction, 6: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Audit {@code record} or {@code key} in {@code record}. This method returns a
@@ -101,8 +102,8 @@ service ConcourseService {
 	 */
 	map<i64,string> audit(1: i64 record, 2: string key, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
-		throws (1: shared.TSecurityException ex);
-	
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
 	/**
 	 * Chronologize non-empty sets of values in {@code key} from {@code record}.
 	 * This method returns a chronological mapping from each timestamp to the set
@@ -110,7 +111,8 @@ service ConcourseService {
 	 */
 	map<i64, set<data.TObject>> chronologize(1: i64 record, 2: string key,
 		3: shared.AccessToken creds, 4: shared.TransactionToken transaction,
-		5: string environment) throws (1: shared.TSecurityException ex);
+		5: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Describe {@code record} at {@code timestamp}. This method returns keys for
@@ -118,7 +120,7 @@ service ConcourseService {
 	 */
 	set<string> describe(1: i64 record, 2: i64 timestamp, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Fetch {@code key} from {@code record} at {@code timestamp}. This method returns
@@ -126,7 +128,8 @@ service ConcourseService {
 	 */
 	set<data.TObject> fetch(1: string key, 2: i64 record, 3: i64 timestamp,
 		4: shared.AccessToken creds, 5: shared.TransactionToken transaction,
-		6: string environment) throws (1: shared.TSecurityException ex);
+		6: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Find {@code key} {@code operator} {@code values} at {@code timestamp}. This
@@ -134,21 +137,23 @@ service ConcourseService {
 	 */
 	set<i64> find(1: string key, 2: shared.Operator operator, 3: list<data.TObject> values,
 		4: i64 timestamp, 5: shared.AccessToken creds, 6: shared.TransactionToken transaction,
-		7: string environment) throws (1: shared.TSecurityException ex);
+		7: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Find the records that match the {@code criteria}.
 	 */
 	set<i64> find1(1: data.TCriteria criteria, 2: shared.AccessToken creds,
 		3: shared.TransactionToken transaction, 4: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Ping {@code record}. This method returns {@code true} if {@code record} has at
 	 * least one populated field.
 	 */
 	bool ping(1: i64 record, 2: shared.AccessToken creds, 3: shared.TransactionToken transaction,
-	 	4: string environment) throws (1: shared.TSecurityException ex);
+	 	4: string environment) throws (1: shared.TSecurityException ex, 
+	 	2: shared.TTransactionException ex2);
 
 	/**
 	 * Search {@code key} for {@code query}. This method returns the records that have
@@ -156,7 +161,7 @@ service ConcourseService {
 	 */
 	set<i64> search(1: string key, 2: string query, 3: shared.AccessToken creds,
 		4: shared.TransactionToken transaction, 5: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Verify {@code key} as {@code value} in {@code record} at {@code timestamp}. This
@@ -165,14 +170,15 @@ service ConcourseService {
 	 */
 	bool verify(1: string key, 2: data.TObject value, 3: i64 record, 4: i64 timestamp,
 		5: shared.AccessToken creds, 6: shared.TransactionToken transaction,
-		7: string environment) throws (1: shared.TSecurityException ex);
+		7: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically revert {@code key} in {@code record} to {@code timestamp}.
 	 */
 	void revert(1: string key, 2: i64 record, 3: i64 timestamp, 4: shared.AccessToken creds,
 		5: shared.TransactionToken token, 6: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically clear {@code key} in {@code record} by removing every value that
@@ -180,7 +186,7 @@ service ConcourseService {
 	 */
 	void clear(1: string key, 2: i64 record, 3: shared.AccessToken creds,
 		4: shared.TransactionToken token, 5: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically set {@code key} as {@code value} in {@code record} by removing any
@@ -188,7 +194,7 @@ service ConcourseService {
 	 */
 	void set0(1: string key, 2: data.TObject value, 3: i64 record, 4: shared.AccessToken creds,
 		5: shared.TransactionToken token, 6: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically verify {@code key} as {@code expected} in {@code record} and swap
@@ -197,12 +203,13 @@ service ConcourseService {
 	bool verifyAndSwap(1: string key, 2: data.TObject expected, 3: i64 record,
 		4: data.TObject replacement, 5: shared.AccessToken creds,
 		6: shared.TransactionToken token, 7: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Return the release version of the server.
 	 */
-	string getServerVersion() throws (1: shared.TSecurityException ex);
+	string getServerVersion() throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically add the key-value mappings defined in the {@code json} formatted
@@ -210,14 +217,15 @@ service ConcourseService {
 	 */
 	bool insert(1: string json, 2: i64 record, 3: shared.AccessToken creds,
 		4: shared.TransactionToken token, 5: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 	/**
 	 * Return all the data that is presently contained in {@code record}.
 	 */
 	map<string, set<data.TObject>> browse0(1: i64 record, 2: i64 timestamp,
 		3: shared.AccessToken creds, 4: shared.TransactionToken token,
-		5: string environment) throws (1: shared.TSecurityException ex);
+		5: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Return an ordered mapping from each value associated with {@code key} to the
@@ -225,20 +233,23 @@ service ConcourseService {
 	 */
 	map<data.TObject, set<i64>> browse1(1: string key, 2: i64 timestamp,
 		3: shared.AccessToken creds, 4: shared.TransactionToken token,
-		5: string environment) throws (1: shared.TSecurityException ex);
+		5: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	* Atomically clear all the keys in {@code record} by removing every value that
 	* currently exists for each key.
 	*/
 	void clear1(1: i64 record, 2: shared.AccessToken creds, 3: shared.TransactionToken token,
-		4: string environment) throws (1: shared.TSecurityException ex);
+		4: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Return the environment of the server to client is using.
 	 */
 	string getServerEnvironment(1: shared.AccessToken creds, 2: shared.TransactionToken token,
-		3: string environment) throws (1: shared.TSecurityException ex);
+		3: string environment) throws (1: shared.TSecurityException ex, 
+		2: shared.TTransactionException ex2);
 
 	/**
 	 * Atomically add the key-value mappings defined in the {@code json} formatted
@@ -246,6 +257,6 @@ service ConcourseService {
 	 */
 	i64 insert1(1: string json, 2: shared.AccessToken creds,
 		3: shared.TransactionToken token, 4: string environment)
-		throws (1: shared.TSecurityException ex);
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
 }

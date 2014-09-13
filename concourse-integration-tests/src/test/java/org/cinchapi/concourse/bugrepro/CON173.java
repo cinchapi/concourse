@@ -175,24 +175,6 @@ public class CON173 extends ConcourseIntegrationTest {
     }
 
     @Test(timeout = 1000)
-    public void reproVerifyOrSet() {
-        try {
-            client.stage();
-            client.get("foo", 1);
-            client2.set("foo", "baz", 1);
-            client.verifyOrSet("foo", "grow", 1);
-            Assert.assertTrue(true); // this means we did not timeout
-        }
-        catch (Exception e) {
-            Assert.assertTrue(true); // An exception means we passed because the
-                                     // transaction failure has propagated up.
-        }
-        finally {
-            client.abort();
-        }
-    }
-
-    @Test(timeout = 1000)
     public void reproRevert() {
         try {
             client.stage();
