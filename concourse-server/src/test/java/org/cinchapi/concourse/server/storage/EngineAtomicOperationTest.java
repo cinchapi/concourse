@@ -77,6 +77,7 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         final long record = 1;
         final AtomicBoolean aRunning = new AtomicBoolean(true);
         final AtomicBoolean bRunning = new AtomicBoolean(true);
+        final AtomicBoolean aDone = new AtomicBoolean(false);
 
         // A thread that continuously modifies the version for key/record
         Thread a = new Thread(new Runnable() {
@@ -89,7 +90,7 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
                             Convert.javaToThrift(count), record));
                     count++;
                 }
-
+                aDone.set(true);
             }
 
         });
@@ -117,6 +118,9 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         TestData.sleep();
         bRunning.set(false);
         aRunning.set(false);
+        while(!aDone.get()){
+            continue;
+        }
         for (AtomicOperation operation : operations) {
             Assert.assertFalse(operation.open); // ensure that all the atomic
                                                 // operations were notified
