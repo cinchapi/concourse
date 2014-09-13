@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.util.Logger;
@@ -49,6 +50,20 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      */
     public static int getCurrentSystemVersion() {
         return Math.min(getBufferSystemVersion(), getDbSystemVersion());
+    }
+
+    /**
+     * Update the system version of the Concourse Server installation to
+     * {@code version}.
+     * 
+     * @param version
+     */
+    @Restricted
+    public static void setCurrentSystemVersion(int version) {
+        ((MappedByteBuffer) FileSystem.map(BUFFER_VERSION_FILE,
+                MapMode.READ_WRITE, 0, 4).putInt(version)).force();
+        ((MappedByteBuffer) FileSystem.map(DB_VERSION_FILE, MapMode.READ_WRITE,
+                0, 4).putInt(version)).force();
     }
 
     /**
@@ -103,13 +118,13 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     @Override
     public int compareTo(UpgradeTask o) {
-        return Integer.compare(getSystemVersion(), o.getSystemVersion());
+        return Integer.compare(version(), o.version());
     }
 
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof UpgradeTask) {
-            return getSystemVersion() == ((UpgradeTask) obj).getSystemVersion();
+            return version() == ((UpgradeTask) obj).version();
         }
         else {
             return false;
@@ -124,18 +139,9 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      */
     public abstract String getDescription();
 
-    /**
-     * Return the numerical system version of this task. Each upgrade task
-     * should have a unique system version that is higher than any other task on
-     * which it depends.
-     * 
-     * @return the storage version of this task
-     */
-    public abstract int getSystemVersion();
-
     @Override
     public int hashCode() {
-        return getSystemVersion();
+        return version();
     }
 
     /**
@@ -145,7 +151,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
         logInfoMessage("STARTING {}", this);
         try {
             doTask();
-            propagateSystemVersionUpdate();
+            setCurrentSystemVersion(version());
             logInfoMessage("FINISHED {}", this);
         }
         catch (Exception e) {
@@ -156,8 +162,17 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     @Override
     public String toString() {
-        return "Upgrade Task " + getSystemVersion() + ": " + getDescription();
+        return "Upgrade Task " + version() + ": " + getDescription();
     }
+
+    /**
+     * Return the numerical system version of this task. Each upgrade task
+     * should have a unique system version that is higher than any other task on
+     * which it depends.
+     * 
+     * @return the storage version of this task
+     */
+    public abstract int version();
 
     /**
      * Implement the logic for the upgrade task. Any thrown exceptions will
@@ -214,17 +229,6 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
     }
 
     /**
-     * Update the system version of the Concourse Server installation to that of
-     * this upgrade task.
-     */
-    void propagateSystemVersionUpdate() {
-        ((MappedByteBuffer) FileSystem.map(BUFFER_VERSION_FILE,
-                MapMode.READ_WRITE, 0, 4).putInt(getSystemVersion())).force();
-        ((MappedByteBuffer) FileSystem.map(DB_VERSION_FILE, MapMode.READ_WRITE,
-                0, 4).putInt(getSystemVersion())).force();
-    }
-
-    /**
      * Decorate the log {@code message} to conform the upgrade task
      * identification standards.
      * 
@@ -232,7 +236,7 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
      * @return the formatted log message
      */
     private String decorateLogMessage(String message) {
-        return "Upgrade(" + getSystemVersion() + "): " + message;
+        return "Upgrade(" + version() + "): " + message;
     }
 
 }

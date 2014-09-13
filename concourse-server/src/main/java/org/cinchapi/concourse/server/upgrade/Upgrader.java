@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.upgrade;
 import java.util.Set;
 
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.upgrade.task.Upgrade2;
 import org.reflections.Reflections;
 
 import com.google.common.collect.Sets;
@@ -78,7 +79,7 @@ public class Upgrader {
                         .getSubTypesOf(SmartUpgradeTask.class));
                 for (Class<? extends UpgradeTask> clazz : classes) {
                     UpgradeTask task = clazz.newInstance();
-                    if(task.getSystemVersion() > currentSystemVersion) {
+                    if(task.version() > currentSystemVersion) {
                         tasks.add(task);
                     }
                 }
@@ -91,8 +92,17 @@ public class Upgrader {
                     task.run();
                 }
                 catch (Exception e) {
-                    System.exit(1); // fail fast because we assume subsequent
-                                    // tasks depend on the one that failed
+                    if(task instanceof Upgrade2) {
+                        // CON-137: Even if Upgrade2 fails and we can't migrate
+                        // data, still set the system version so we aren't
+                        // blocked on this task in the future.
+                        UpgradeTask.setCurrentSystemVersion(task.version());
+                    }
+                    else {
+                        System.exit(1); // fail fast because we assume
+                                        // subsequent tasks depend on the one
+                                        // that failed
+                    }
                 }
             }
             System.exit(0);
