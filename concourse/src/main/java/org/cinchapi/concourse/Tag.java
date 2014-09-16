@@ -28,9 +28,15 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.collect.ComparisonChain;
 
 /**
- * A {@link Tag} is a wrapper around {@link String} that represents the
- * string value in key in record and distinguishes from simple String values. A
- * Tag does not get full-text indexed.
+ * A {@link Tag} is a {@link String} data type that does not get full-text
+ * indexed.
+ * <p>
+ * Each Tag is equivalent to its String counterpart (e.g.
+ * {@code Tag.create("foo").equals(new String("foo")} is {@code true}. Tags
+ * merely exist for the client to instruct Concourse not to full text index the
+ * data. Tags are stored as strings within Concourse. And any value that is written
+ * as a Tag is always returned as a String when reading from Concourse.
+ * </p>
  * 
  * @author knd
  */
