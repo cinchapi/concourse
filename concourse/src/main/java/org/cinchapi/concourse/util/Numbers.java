@@ -153,6 +153,20 @@ public abstract class Numbers {
     }
 
     /**
+     * Return the min from a list of {@code numbers}.
+     * 
+     * @param numbers
+     * @return the smallest number
+     */
+    public static Number min(Number... numbers) {
+        Number min = numbers[0];
+        for (Number number : numbers) {
+            min = isLessThan(min, number) ? min : number;
+        }
+        return min;
+    }
+
+    /**
      * Scale {@code number}, which is between {@code rawMin} and {@code rawMax}
      * to a value between {@code scaledMin} and {@code scaleMax}.
      * 

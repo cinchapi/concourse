@@ -37,5 +37,10 @@ public class NumbersTest {
     public void testMax() {
         Assert.assertEquals(10, Numbers.max(1, 8, 2.4, 3.789, 10, -11));
     }
+    
+    @Test
+    public void testMin() {
+        Assert.assertEquals(-11, Numbers.min(1, 8, 2.4, 3.789, 10, -11));
+    }
 
 }
