@@ -147,7 +147,7 @@ public abstract class Numbers {
     public static Number max(Number... numbers) {
         Number max = numbers[0];
         for (Number number : numbers) {
-            max = isGreaterThan(max, number) ? number : max;
+            max = isGreaterThan(max, number) ? max : number;
         }
         return max;
     }
