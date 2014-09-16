@@ -4,6 +4,13 @@
 * Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Improved the performance of the `set` operation by over 25 percent.
 
+#### Version 0.4.2 (TBD)
+* Improved the javadoc for the `Tag` datatype.
+* Add a `min` method to the `Numbers` utility class.
+
+#### Version 0.3.8 (TBD)
+* Fixed a bug where the `Numbers#max` method actually returned the minimum value.
+
 #### Version 0.4.1 (September 13, 2014)
 * Reduced the number of primary record lookups required to perform a `find` query which yields up to an order of magnitude in increased speed.
 * Fixed a bug that accidentally stripped underscore *_* characters from environment names.
