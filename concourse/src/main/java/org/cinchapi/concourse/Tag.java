@@ -25,6 +25,7 @@ package org.cinchapi.concourse;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 
 /**
@@ -34,8 +35,8 @@ import com.google.common.collect.ComparisonChain;
  * Each Tag is equivalent to its String counterpart (e.g.
  * {@code Tag.create("foo").equals(new String("foo")} is {@code true}. Tags
  * merely exist for the client to instruct Concourse not to full text index the
- * data. Tags are stored as strings within Concourse. And any value that is written
- * as a Tag is always returned as a String when reading from Concourse.
+ * data. Tags are stored as strings within Concourse. And any value that is
+ * written as a Tag is always returned as a String when reading from Concourse.
  * </p>
  * 
  * @author knd
@@ -44,13 +45,23 @@ import com.google.common.collect.ComparisonChain;
 public final class Tag implements Comparable<Tag> {
 
     /**
+     * A singleton {@link Tag} that represents the empty string.
+     */
+    public static final Tag EMPTY_TAG = new Tag("");
+
+    /**
      * Return a Tag that embeds {@code value}.
      * 
      * @param value
      * @return the Tag
      */
     public static Tag create(String value) {
-        return new Tag(value);
+        if(Strings.isNullOrEmpty(value)) {
+            return EMPTY_TAG;
+        }
+        else {
+            return new Tag(value);
+        }
     }
 
     /**
