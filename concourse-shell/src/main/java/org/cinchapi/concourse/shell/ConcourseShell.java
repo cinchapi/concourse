@@ -24,19 +24,22 @@
 package org.cinchapi.concourse.shell;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.GroovyShell;
-
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
@@ -45,6 +48,7 @@ import jline.console.completer.StringsCompleter;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.config.ConcourseClientPreferences;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.lang.StartState;
 import org.cinchapi.concourse.thrift.Operator;
@@ -392,20 +396,38 @@ public final class ConcourseShell {
      */
     private static class Options {
 
+        /**
+         * A handler for the client preferences that <em>may</em> exist in the
+         * user's home directory.
+         */
+        private ConcourseClientPreferences prefs = null;
+
+        {
+            String file = System.getProperty("user.home") + File.separator
+                    + "concourse_client.prefs";
+            if(Files.exists(Paths.get(file))) { // check to make sure that the
+                                                // file exists first, so we
+                                                // don't create a blank one if
+                                                // it doesn't
+                prefs = ConcourseClientPreferences.load(file);
+            }
+        }
+
         @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
-        public String host = "localhost";
+        public String host = prefs != null ? prefs.getHost() : "localhost";
 
         @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
-        public int port = 1717;
+        public int port = prefs != null ? prefs.getPort() : 1717;
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-        public String username = "admin";
+        public String username = prefs != null ? prefs.getUsername() : "admin";
 
         @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-        public String password;
+        public String password = prefs != null ? new String(prefs.getPassword())
+                : null;
 
         @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = "";
+        public String environment = prefs != null ? prefs.getEnvironment() : "";
 
         @Parameter(names = "--help", help = true, hidden = true)
         public boolean help;
