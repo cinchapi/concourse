@@ -3,10 +3,14 @@
 #### Version 0.5.0 (TBD)
 * Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Improved the performance of the `set` operation by over 25 percent.
+* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This allows users to invoke CLIs without having to specify any connection based arguments.
+* Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
 
 #### Version 0.4.2 (TBD)
 * Improved the javadoc for the `Tag` datatype.
+* Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was creating using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
+* Fixed a bug that caused the `insert` methods to store values encoded as *resolvable link specifications* as strings instead of links to resolved records.
 
 #### Version 0.3.8 (TBD)
 * Fixed a bug where the `Numbers#max` method actually returned the minimum value.
