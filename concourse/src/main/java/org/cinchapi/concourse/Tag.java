@@ -33,7 +33,7 @@ import com.google.common.collect.ComparisonChain;
  * indexed.
  * <p>
  * Each Tag is equivalent to its String counterpart (e.g.
- * {@code Tag.create("foo").equals(new String("foo")} is {@code true}. Tags
+ * {@code Tag.create("foo").equals(new String("foo"))} is {@code true}. Tags
  * merely exist for the client to instruct Concourse not to full text index the
  * data. Tags are stored as strings within Concourse. And any value that is
  * written as a Tag is always returned as a String when reading from Concourse.
