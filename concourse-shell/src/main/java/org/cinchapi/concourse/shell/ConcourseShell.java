@@ -46,6 +46,7 @@ import jline.TerminalFactory;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
+import jline.console.history.FileHistory;
 
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.Tag;
@@ -75,165 +76,6 @@ import com.google.common.primitives.Longs;
  * @author jnelson
  */
 public final class ConcourseShell {
-
-    /**
-     * A list which contains all of the accessible API methods. This list is
-     * used to expand short syntax that is used in any evaluatable line.
-     */
-    private static final List<String> methods = Lists
-            .newArrayList(getAccessibleApiMethods());
-
-    /**
-     * The console handles all I/O.
-     */
-    private ConsoleReader console;
-
-    /**
-     * The client connection to Concourse.
-     */
-    private Concourse concourse;
-
-    /**
-     * The binding that contains all the variables that are in scope for the
-     * groovy environment.
-     */
-    private Binding groovyBinding;
-
-    /**
-     * The groovy environment that actually evaluates the user input.
-     */
-    private GroovyShell groovy;
-
-    /**
-     * The stopwatch that is used to time the duration of all evaluations.
-     */
-    private Stopwatch watch = Stopwatch.createUnstarted();
-
-    /**
-     * Construct a new instance. Be sure to call {@link #setClient(Concourse)}
-     * before performing any
-     * evaluations.
-     * 
-     * @throws Exception
-     */
-    protected ConcourseShell() throws Exception {
-        this.console = new ConsoleReader();
-        this.groovyBinding = new Binding();
-        this.groovy = new GroovyShell(groovyBinding);
-    }
-
-    /**
-     * Set the {@link Concourse} client to use in the program. This is typically
-     * called after command line args with connection information has been
-     * parsed.
-     * 
-     * @param concourse
-     */
-    protected void setClient(Concourse concourse) {
-        this.concourse = concourse;
-    }
-
-    /**
-     * Turn on the settings necessary to make the application "interactive"
-     * (e.g. a REPL). By default, these settings are turned off.
-     */
-    private void enableInteractiveSettings() throws Exception {
-        console.setExpandEvents(false);
-        console.setHandleUserInterrupt(true);
-        // TODO history
-        CommandLine.displayWelcomeBanner();
-        String env = concourse.getServerEnvironment();
-        console.println("Client Version "
-                + Version.getVersion(ConcourseShell.class));
-        console.println("Server Version " + concourse.getServerVersion());
-        console.println("");
-        console.println("Connected to the '" + env + "' environment.");
-        console.println("");
-        console.println("Type HELP for help.");
-        console.println("Type EXIT to quit.");
-        console.println("Use TAB for completion.");
-        console.println("");
-        console.setPrompt(format("[{0}/cash]$ ", env));
-        console.addCompleter(new StringsCompleter(
-                getAccessibleApiMethodsUsingShortSyntax()));
-    }
-
-    /**
-     * Evaluate the given {@code input} and return the result that should be
-     * displayed to the user. If, for some reason, the evaluation of the input
-     * does not yield a displayable response, a subclass of
-     * {@link IrregularEvaluationResult} will be thrown to give the caller and
-     * indication of how to proceed.
-     * 
-     * @param input
-     * @return the result of the evaluation
-     * @throws IrregularEvaluationResult
-     */
-    public String evaluate(String input) throws IrregularEvaluationResult {
-        input = SyntaxTools.handleShortSyntax(input, methods);
-
-        // NOTE: These must always be set before evaluating a line just in case
-        // an attempt was made to bind the variables to different values in a
-        // previous evaluation.
-        groovyBinding.setVariable("concourse", concourse);
-        groovyBinding.setVariable("eq", Operator.EQUALS);
-        groovyBinding.setVariable("ne", Operator.NOT_EQUALS);
-        groovyBinding.setVariable("gt", Operator.GREATER_THAN);
-        groovyBinding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
-        groovyBinding.setVariable("lt", Operator.LESS_THAN);
-        groovyBinding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
-        groovyBinding.setVariable("bw", Operator.BETWEEN);
-        groovyBinding.setVariable("regex", Operator.REGEX);
-        groovyBinding.setVariable("nregex", Operator.NOT_REGEX);
-        groovyBinding.setVariable("lnk2", Operator.LINKS_TO);
-        groovyBinding.setVariable("date", STRING_TO_TIME);
-        groovyBinding.setVariable("time", STRING_TO_TIME);
-        groovyBinding.setVariable("where", WHERE);
-        groovyBinding.setVariable("tag", STRING_TO_TAG);
-        if(input.equalsIgnoreCase("exit")) {
-            throw new ExitRequest();
-        }
-        else if(input.equalsIgnoreCase("help") || input.equalsIgnoreCase("man")) {
-            throw new HelpRequest();
-        }
-        else if(containsBannedCharSequence(input)) {
-            throw new EvaluationException("Cannot evaluate input because "
-                    + "it contains an illegal character sequence");
-        }
-        else if(Strings.isNullOrEmpty(input)) { // CON-170
-            throw new NewLineRequest();
-        }
-        else {
-            StringBuilder result = new StringBuilder();
-            try {
-                watch.reset().start();
-                Object value = groovy.evaluate(input, "ConcourseShell");
-                watch.stop();
-                long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
-                if(value != null) {
-                    result.append("Returned '" + value + "' in " + elapsed
-                            + " ms");
-                }
-                else {
-                    result.append(format("Completed in {0} ms", elapsed));
-                }
-                return result.toString();
-            }
-            catch (Exception e) {
-                if(e.getCause() instanceof TTransportException) {
-                    throw new ProgramCrash(e.getMessage());
-                }
-                else if(e.getCause() instanceof TSecurityException) {
-                    throw new ProgramCrash(
-                            "A security change has occurred and your "
-                                    + "session cannot continue");
-                }
-                else {
-                    throw new EvaluationException("ERROR: " + e.getMessage());
-                }
-            }
-        }
-    }
 
     /**
      * Run the program...
@@ -296,9 +138,11 @@ public final class ConcourseShell {
                                     "echo \"" + HELP_TEXT
                                             + "\" | less > /dev/tty" });
                     p.waitFor();
+                    cash.console.getHistory().removeLast();
                 }
                 catch (ExitRequest e) {
                     running = false;
+                    cash.console.getHistory().removeLast();
                 }
                 catch (NewLineRequest e) {
                     extraLineBreak = false;
@@ -392,6 +236,11 @@ public final class ConcourseShell {
     }
 
     /**
+     * A cache of the API methods that are accessible in CaSH.
+     */
+    private static String[] ACCESSIBLE_API_METHODS = null;
+
+    /**
      * A list of char sequences that we must ban for security and other
      * miscellaneous purposes.
      */
@@ -400,34 +249,16 @@ public final class ConcourseShell {
             "concourse.client");
 
     /**
-     * A cache of the API methods that are accessible in CaSH.
-     */
-    private static String[] ACCESSIBLE_API_METHODS = null;
-
-    /**
      * The text that is displayed when the user requests HELP.
      */
     private static String HELP_TEXT = "";
 
-    static {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    ConcourseShell.class.getResourceAsStream("/man")));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.replaceAll("\"", "\\\\\"");
-                HELP_TEXT += line + System.getProperty("line.separator");
-            }
-            HELP_TEXT = HELP_TEXT.trim();
-            reader.close();
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    /**
+     * A list which contains all of the accessible API methods. This list is
+     * used to expand short syntax that is used in any evaluatable line.
+     */
+    private static final List<String> methods = Lists
+            .newArrayList(getAccessibleApiMethods());
 
     /**
      * A closure that converts a string value to a tag.
@@ -480,6 +311,199 @@ public final class ConcourseShell {
 
     };
 
+    static {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(
+                    ConcourseShell.class.getResourceAsStream("/man")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.replaceAll("\"", "\\\\\"");
+                HELP_TEXT += line + System.getProperty("line.separator");
+            }
+            HELP_TEXT = HELP_TEXT.trim();
+            reader.close();
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * The client connection to Concourse.
+     */
+    private Concourse concourse;
+
+    /**
+     * The console handles all I/O.
+     */
+    private ConsoleReader console;
+
+    /**
+     * The groovy environment that actually evaluates the user input.
+     */
+    private GroovyShell groovy;
+
+    /**
+     * The binding that contains all the variables that are in scope for the
+     * groovy environment.
+     */
+    private Binding groovyBinding;
+
+    /**
+     * The stopwatch that is used to time the duration of all evaluations.
+     */
+    private Stopwatch watch = Stopwatch.createUnstarted();
+
+    /**
+     * The file where the user's CASH history is stored.
+     */
+    protected String historyStore = System.getProperty("user.home")
+            + File.separator + ".cash_history";
+
+    /**
+     * Construct a new instance. Be sure to call {@link #setClient(Concourse)}
+     * before performing any
+     * evaluations.
+     * 
+     * @throws Exception
+     */
+    protected ConcourseShell() throws Exception {
+        this.console = new ConsoleReader();
+        this.groovyBinding = new Binding();
+        this.groovy = new GroovyShell(groovyBinding);
+    }
+
+    /**
+     * Evaluate the given {@code input} and return the result that should be
+     * displayed to the user. If, for some reason, the evaluation of the input
+     * does not yield a displayable response, a subclass of
+     * {@link IrregularEvaluationResult} will be thrown to give the caller and
+     * indication of how to proceed.
+     * 
+     * @param input
+     * @return the result of the evaluation
+     * @throws IrregularEvaluationResult
+     */
+    public String evaluate(String input) throws IrregularEvaluationResult {
+        input = SyntaxTools.handleShortSyntax(input, methods);
+
+        // NOTE: These must always be set before evaluating a line just in case
+        // an attempt was made to bind the variables to different values in a
+        // previous evaluation.
+        groovyBinding.setVariable("concourse", concourse);
+        groovyBinding.setVariable("eq", Operator.EQUALS);
+        groovyBinding.setVariable("ne", Operator.NOT_EQUALS);
+        groovyBinding.setVariable("gt", Operator.GREATER_THAN);
+        groovyBinding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
+        groovyBinding.setVariable("lt", Operator.LESS_THAN);
+        groovyBinding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
+        groovyBinding.setVariable("bw", Operator.BETWEEN);
+        groovyBinding.setVariable("regex", Operator.REGEX);
+        groovyBinding.setVariable("nregex", Operator.NOT_REGEX);
+        groovyBinding.setVariable("lnk2", Operator.LINKS_TO);
+        groovyBinding.setVariable("date", STRING_TO_TIME);
+        groovyBinding.setVariable("time", STRING_TO_TIME);
+        groovyBinding.setVariable("where", WHERE);
+        groovyBinding.setVariable("tag", STRING_TO_TAG);
+        if(input.equalsIgnoreCase("exit")) {
+            throw new ExitRequest();
+        }
+        else if(input.equalsIgnoreCase("help") || input.equalsIgnoreCase("man")) {
+            throw new HelpRequest();
+        }
+        else if(containsBannedCharSequence(input)) {
+            throw new EvaluationException("Cannot evaluate input because "
+                    + "it contains an illegal character sequence");
+        }
+        else if(Strings.isNullOrEmpty(input)) { // CON-170
+            throw new NewLineRequest();
+        }
+        else {
+            StringBuilder result = new StringBuilder();
+            try {
+                watch.reset().start();
+                Object value = groovy.evaluate(input, "ConcourseShell");
+                watch.stop();
+                long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+                if(value != null) {
+                    result.append("Returned '" + value + "' in " + elapsed
+                            + " ms");
+                }
+                else {
+                    result.append(format("Completed in {0} ms", elapsed));
+                }
+                return result.toString();
+            }
+            catch (Exception e) {
+                if(e.getCause() instanceof TTransportException) {
+                    throw new ProgramCrash(e.getMessage());
+                }
+                else if(e.getCause() instanceof TSecurityException) {
+                    throw new ProgramCrash(
+                            "A security change has occurred and your "
+                                    + "session cannot continue");
+                }
+                else {
+                    throw new EvaluationException("ERROR: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Set the {@link Concourse} client to use in the program. This is typically
+     * called after command line args with connection information has been
+     * parsed.
+     * 
+     * @param concourse
+     */
+    protected void setClient(Concourse concourse) {
+        this.concourse = concourse;
+    }
+
+    /**
+     * Turn on the settings necessary to make the application "interactive"
+     * (e.g. a REPL). By default, these settings are turned off.
+     */
+    private void enableInteractiveSettings() throws Exception {
+        console.setExpandEvents(false);
+        console.setHandleUserInterrupt(true);
+        File file = new File(historyStore);
+        file.createNewFile();
+        console.setHistory(new FileHistory(file));
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    ((FileHistory) console.getHistory()).flush();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }));
+        CommandLine.displayWelcomeBanner();
+        String env = concourse.getServerEnvironment();
+        console.println("Client Version "
+                + Version.getVersion(ConcourseShell.class));
+        console.println("Server Version " + concourse.getServerVersion());
+        console.println("");
+        console.println("Connected to the '" + env + "' environment.");
+        console.println("");
+        console.println("Type HELP for help.");
+        console.println("Type EXIT to quit.");
+        console.println("Use TAB for completion.");
+        console.println("");
+        console.setPrompt(format("[{0}/cash]$ ", env));
+        console.addCompleter(new StringsCompleter(
+                getAccessibleApiMethodsUsingShortSyntax()));
+    }
+
     /**
      * The options that can be passed to the main method of this script.
      * 
@@ -504,24 +528,24 @@ public final class ConcourseShell {
             }
         }
 
+        @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
+        public String environment = prefs != null ? prefs.getEnvironment() : "";
+
+        @Parameter(names = "--help", help = true, hidden = true)
+        public boolean help;
+
         @Parameter(names = { "-h", "--host" }, description = "The hostname where the Concourse Server is located")
         public String host = prefs != null ? prefs.getHost() : "localhost";
+
+        @Parameter(names = "--password", description = "The password", password = false, hidden = true)
+        public String password = prefs != null ? new String(prefs.getPassword())
+                : null;
 
         @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
         public int port = prefs != null ? prefs.getPort() : 1717;
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
         public String username = prefs != null ? prefs.getUsername() : "admin";
-
-        @Parameter(names = "--password", description = "The password", password = false, hidden = true)
-        public String password = prefs != null ? new String(prefs.getPassword())
-                : null;
-
-        @Parameter(names = { "-e", "--environment" }, description = "The environment of the Concourse Server to use")
-        public String environment = prefs != null ? prefs.getEnvironment() : "";
-
-        @Parameter(names = "--help", help = true, hidden = true)
-        public boolean help;
 
     }
 
