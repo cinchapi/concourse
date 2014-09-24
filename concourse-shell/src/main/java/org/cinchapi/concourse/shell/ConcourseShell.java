@@ -105,9 +105,8 @@ public final class ConcourseShell {
             }
             catch (Exception e) {
                 if(e.getCause() instanceof TTransportException) {
-                    die("Unable to connect to " + opts.username + "@"
-                            + opts.host + ":" + opts.port
-                            + " with the specified password");
+                    die("Unable to connect to the Concourse Server at "
+                            + opts.host + ":" + opts.port);
                 }
                 else if(e.getCause() instanceof TSecurityException) {
                     die("Invalid username/password combination.");
