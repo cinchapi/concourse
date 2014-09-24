@@ -10,12 +10,11 @@
 * Added `-r` and `--run` options to the `cash` CLI that allow the execution of commands inline without launching the entire CaSH application.
 * Added a `whoami` variable to CaSH that displays the current Concourse user.
 * Added support for multi-line input in CaSH. For example, you can now write complex routines that span several lines like:
-```
-[default/cash]$ for(long record : find("attending", eq, "Y")){
-> count+= fetch("name", record).size();
-> println fetch("name", record);
-> }
-```
+
+		[default/cash]$ for(long record : find("attending", eq, "Y")){
+		> count+= fetch("name", record).size();
+		> println fetch("name", record);
+		> }
 
 #### Version 0.4.2 (TBD)
 * Improved the javadoc for the `Tag` datatype.
