@@ -5,6 +5,8 @@
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
 * Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
+* Added a feature to automatically preserve CaSH command history between sessions.
+* Changed CaSH error exit status from `127` to `1`.
 
 #### Version 0.4.2 (TBD)
 * Improved the javadoc for the `Tag` datatype.
@@ -62,8 +64,8 @@
 	* `insert` writes serveral key/value mappings from a JSON encoded string into one or more records with a single network call.
 * Added `LINKS_TO` Operator (aliased as `lnk2` in CaSH) to make it easy to include links in find criteria. For example, the following statements are equivalent:
 
-		concourse.find("foo", Operator.LINKS_TO, 1);
-		concourse.find("foo", Operator.EQUALS, Links.to(1));
+		concourse.find(\"foo\", Operator.LINKS_TO, 1);
+		concourse.find(\"foo\", Operator.EQUALS, Links.to(1));
 * Added a new `Tag` datatype for the purpose of storing a string value without performing full text search indexing. A `Tag` can be created programatically using the `Tag#create` method and in CaSH using the `tag()` alias.
 
 ##### Usability
@@ -95,8 +97,8 @@
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
 
-		cash$ get(describe(1), find("name", eq, 1))
-		cash$ concourse.get(concourse.describe(1), concourse.find("name", eq, 1))
+		cash$ get(describe(1), find(\"name\", eq, 1))
+		cash$ concourse.get(concourse.describe(1), concourse.find(\"name\", eq, 1))
 
 * Fixed a bug that caused a deadlock when committing a transaction that wrote a value to a key and then subsequently performed a query against the key that included the value directly.
 * Fixed a bug that made it possible for the server to hang after reaching an inconsistent state caused by the Buffer expanding to accommodate new data written by one client while simultaneously servicing a read request for another client.
@@ -115,10 +117,10 @@
 #### Version 0.3.4 (April 13, 2014)
 * Added support for issuing commands in CaSH using short syntax. Short syntax allows the user to make Concourse API calls by invoking the desired method directly by name instead of prepending the invocation with `concourse.`. For example, the following commands are all equivalent and can now be used interchangably in stand-alone statements:
 
-		cash$ add("name", "jeff", 1)
-		cash$ concourse.add("name", "jeff", 1)
-		cash$ add "name", "jeff", 1
-		cash$ concourse.add "name", "jeff", 1
+		cash$ add(\"name\", \"jeff\", 1)
+		cash$ concourse.add(\"name\", \"jeff\", 1)
+		cash$ add \"name\", \"jeff\", 1
+		cash$ concourse.add \"name\", \"jeff\", 1
 
 * Improved the `toString()` output of `Timestamp` objects so that they match the following format: `Thu Apr 03, 2014 @ 1:32:42:54 PM PDT`.
 * Fixed an issue that caused the server to incorrectly lock resources when processing lots of concurrent reads/writes to a record or key in record.
