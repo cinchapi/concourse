@@ -218,7 +218,7 @@ public final class ConcourseShell {
      */
     private static void die(String message) {
         System.err.println("ERROR: " + message);
-        System.exit(127);
+        System.exit(1);
     }
 
     /**
