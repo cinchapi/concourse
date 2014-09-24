@@ -115,52 +115,65 @@ public final class ConcourseShell {
                     die(e.getMessage());
                 }
             }
-            cash.enableInteractiveSettings();
-            boolean running = true;
-            String input = "";
-            while (running) {
-                boolean extraLineBreak = true;
+            if(!Strings.isNullOrEmpty(opts.run)) {
                 try {
-                    input = cash.console.readLine().trim();
-                    String result = cash.evaluate(input);
+                    String result = cash.evaluate(opts.run);
                     System.out.println(result);
-                }
-                catch (UserInterruptException e) {
-                    if(Strings.isNullOrEmpty(e.getPartialLine())) {
-                        cash.console.println("Type EXIT to quit.");
-                    }
-                }
-                catch (HelpRequest e) {
-                    Process p = Runtime.getRuntime().exec(
-                            new String[] {
-                                    "sh",
-                                    "-c",
-                                    "echo \"" + HELP_TEXT
-                                            + "\" | less > /dev/tty" });
-                    p.waitFor();
-                    cash.console.getHistory().removeLast();
-                }
-                catch (ExitRequest e) {
-                    running = false;
-                    cash.console.getHistory().removeLast();
-                }
-                catch (NewLineRequest e) {
-                    extraLineBreak = false;
-                }
-                catch (ProgramCrash e) {
-                    die(e.getMessage());
+                    cash.concourse.exit();
+                    System.exit(0);
                 }
                 catch (IrregularEvaluationResult e) {
-                    System.err.println(e.getMessage());
-                }
-                finally {
-                    if(extraLineBreak) {
-                        cash.console.print("\n");
-                    }
+                    die(e.getMessage());
                 }
             }
-            cash.concourse.exit();
-            System.exit(0);
+            else {
+                cash.enableInteractiveSettings();
+                boolean running = true;
+                String input = "";
+                while (running) {
+                    boolean extraLineBreak = true;
+                    try {
+                        input = cash.console.readLine().trim();
+                        String result = cash.evaluate(input);
+                        System.out.println(result);
+                    }
+                    catch (UserInterruptException e) {
+                        if(Strings.isNullOrEmpty(e.getPartialLine())) {
+                            cash.console.println("Type EXIT to quit.");
+                        }
+                    }
+                    catch (HelpRequest e) {
+                        Process p = Runtime.getRuntime().exec(
+                                new String[] {
+                                        "sh",
+                                        "-c",
+                                        "echo \"" + HELP_TEXT
+                                                + "\" | less > /dev/tty" });
+                        p.waitFor();
+                        cash.console.getHistory().removeLast();
+                    }
+                    catch (ExitRequest e) {
+                        running = false;
+                        cash.console.getHistory().removeLast();
+                    }
+                    catch (NewLineRequest e) {
+                        extraLineBreak = false;
+                    }
+                    catch (ProgramCrash e) {
+                        die(e.getMessage());
+                    }
+                    catch (IrregularEvaluationResult e) {
+                        System.err.println(e.getMessage());
+                    }
+                    finally {
+                        if(extraLineBreak) {
+                            cash.console.print("\n");
+                        }
+                    }
+                }
+                cash.concourse.exit();
+                System.exit(0);
+            }
         }
         finally {
             TerminalFactory.get().restore();
@@ -546,6 +559,9 @@ public final class ConcourseShell {
 
         @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
         public String username = prefs != null ? prefs.getUsername() : "admin";
+
+        @Parameter(names = { "-r", "--run" }, description = "The command to run non-interactively")
+        public String run = "";
 
     }
 
