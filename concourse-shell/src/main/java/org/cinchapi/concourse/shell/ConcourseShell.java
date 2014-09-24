@@ -32,7 +32,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
+
+import static java.text.MessageFormat.format;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -75,160 +77,250 @@ import com.google.common.primitives.Longs;
 public final class ConcourseShell {
 
     /**
-     * Run the program...
-     * 
-     * @param args - see {@link Options}
-     * @throws IOException
+     * A list which contains all of the accessible API methods. This list is
+     * used to expand short syntax that is used in any evaluatable line.
      */
-    public static void main(String... args) throws IOException {
-        ConsoleReader console = new ConsoleReader();
+    private static final List<String> methods = Lists
+            .newArrayList(getAccessibleApiMethods());
+
+    /**
+     * The console handles all I/O.
+     */
+    private ConsoleReader console;
+
+    /**
+     * The client connection to Concourse.
+     */
+    private Concourse concourse;
+
+    /**
+     * The binding that contains all the variables that are in scope for the
+     * groovy environment.
+     */
+    private Binding groovyBinding;
+
+    /**
+     * The groovy environment that actually evaluates the user input.
+     */
+    private GroovyShell groovy;
+
+    /**
+     * The stopwatch that is used to time the duration of all evaluations.
+     */
+    private Stopwatch watch = Stopwatch.createUnstarted();
+
+    /**
+     * Construct a new instance. Be sure to call {@link #setClient(Concourse)}
+     * before performing any
+     * evaluations.
+     * 
+     * @throws Exception
+     */
+    protected ConcourseShell() throws Exception {
+        this.console = new ConsoleReader();
+        this.groovyBinding = new Binding();
+        this.groovy = new GroovyShell(groovyBinding);
+    }
+
+    /**
+     * Set the {@link Concourse} client to use in the program. This is typically
+     * called after command line args with connection information has been
+     * parsed.
+     * 
+     * @param concourse
+     */
+    protected void setClient(Concourse concourse) {
+        this.concourse = concourse;
+    }
+
+    /**
+     * Turn on the settings necessary to make the application "interactive"
+     * (e.g. a REPL). By default, these settings are turned off.
+     */
+    private void enableInteractiveSettings() throws Exception {
         console.setExpandEvents(false);
         console.setHandleUserInterrupt(true);
-        Options opts = new Options();
-        JCommander parser = new JCommander(opts, args);
-        parser.setProgramName("concourse-shell");
-        if(opts.help) {
-            parser.usage();
-            System.exit(1);
+        // TODO history
+        CommandLine.displayWelcomeBanner();
+        String env = concourse.getServerEnvironment();
+        console.println("Client Version "
+                + Version.getVersion(ConcourseShell.class));
+        console.println("Server Version " + concourse.getServerVersion());
+        console.println("");
+        console.println("Connected to the '" + env + "' environment.");
+        console.println("");
+        console.println("Type HELP for help.");
+        console.println("Type EXIT to quit.");
+        console.println("Use TAB for completion.");
+        console.println("");
+        console.setPrompt(format("[{0}/cash]$ ", env));
+        console.addCompleter(new StringsCompleter(
+                getAccessibleApiMethodsUsingShortSyntax()));
+    }
+
+    /**
+     * Evaluate the given {@code input} and return the result that should be
+     * displayed to the user. If, for some reason, the evaluation of the input
+     * does not yield a displayable response, a subclass of
+     * {@link IrregularEvaluationResult} will be thrown to give the caller and
+     * indication of how to proceed.
+     * 
+     * @param input
+     * @return the result of the evaluation
+     * @throws IrregularEvaluationResult
+     */
+    public String evaluate(String input) throws IrregularEvaluationResult {
+        input = SyntaxTools.handleShortSyntax(input, methods);
+
+        // NOTE: These must always be set before evaluating a line just in case
+        // an attempt was made to bind the variables to different values in a
+        // previous evaluation.
+        groovyBinding.setVariable("concourse", concourse);
+        groovyBinding.setVariable("eq", Operator.EQUALS);
+        groovyBinding.setVariable("ne", Operator.NOT_EQUALS);
+        groovyBinding.setVariable("gt", Operator.GREATER_THAN);
+        groovyBinding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
+        groovyBinding.setVariable("lt", Operator.LESS_THAN);
+        groovyBinding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
+        groovyBinding.setVariable("bw", Operator.BETWEEN);
+        groovyBinding.setVariable("regex", Operator.REGEX);
+        groovyBinding.setVariable("nregex", Operator.NOT_REGEX);
+        groovyBinding.setVariable("lnk2", Operator.LINKS_TO);
+        groovyBinding.setVariable("date", STRING_TO_TIME);
+        groovyBinding.setVariable("time", STRING_TO_TIME);
+        groovyBinding.setVariable("where", WHERE);
+        groovyBinding.setVariable("tag", STRING_TO_TAG);
+        if(input.equalsIgnoreCase("exit")) {
+            throw new ExitRequest();
         }
-        if(Strings.isNullOrEmpty(opts.password)) {
-            opts.password = console.readLine("Password [" + opts.username
-                    + "]: ", '*');
+        else if(input.equalsIgnoreCase("help") || input.equalsIgnoreCase("man")) {
+            throw new HelpRequest();
         }
+        else if(containsBannedCharSequence(input)) {
+            throw new EvaluationException("Cannot evaluate input because "
+                    + "it contains an illegal character sequence");
+        }
+        else if(Strings.isNullOrEmpty(input)) { // CON-170
+            throw new NewLineRequest();
+        }
+        else {
+            StringBuilder result = new StringBuilder();
+            try {
+                watch.reset().start();
+                Object value = groovy.evaluate(input, "ConcourseShell");
+                watch.stop();
+                long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+                if(value != null) {
+                    result.append("Returned '" + value + "' in " + elapsed
+                            + " ms");
+                }
+                else {
+                    result.append(format("Completed in {0} ms", elapsed));
+                }
+                return result.toString();
+            }
+            catch (Exception e) {
+                if(e.getCause() instanceof TTransportException) {
+                    throw new ProgramCrash(e.getMessage());
+                }
+                else if(e.getCause() instanceof TSecurityException) {
+                    throw new ProgramCrash(
+                            "A security change has occurred and your "
+                                    + "session cannot continue");
+                }
+                else {
+                    throw new EvaluationException("ERROR: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Run the program...
+     * 
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String... args) throws Exception {
         try {
-            Concourse concourse = Concourse.connect(opts.host, opts.port,
-                    opts.username, opts.password, opts.environment);
-
-            final String env = concourse.getServerEnvironment();
-
-            CommandLine.displayWelcomeBanner();
-            Binding binding = new Binding();
-            GroovyShell shell = new GroovyShell(binding);
-
-            Stopwatch watch = Stopwatch.createUnstarted();
-            console.println("Client Version "
-                    + Version.getVersion(ConcourseShell.class));
-            console.println("Server Version " + concourse.getServerVersion());
-            console.println("");
-            console.println("Connected to the '" + env + "' environment.");
-            console.println("");
-            console.println("Type HELP for help.");
-            console.println("Type EXIT to quit.");
-            console.println("Use TAB for completion.");
-            console.println("");
-            console.setPrompt(MessageFormat.format("[{0}/cash]$ ", env));
-            console.addCompleter(new StringsCompleter(
-                    getAccessibleApiMethodsUsingShortSyntax()));
-
-            final List<String> methods = Lists
-                    .newArrayList(getAccessibleApiMethods());
+            ConcourseShell cash = new ConcourseShell();
+            Options opts = new Options();
+            JCommander parser = new JCommander(opts, args);
+            parser.setProgramName("concourse-shell");
+            if(opts.help) {
+                parser.usage();
+                System.exit(1);
+            }
+            if(Strings.isNullOrEmpty(opts.password)) {
+                opts.password = cash.console.readLine("Password ["
+                        + opts.username + "]: ", '*');
+            }
+            try {
+                Concourse concourse = Concourse.connect(opts.host, opts.port,
+                        opts.username, opts.password, opts.environment);
+                cash.setClient(concourse);
+            }
+            catch (Exception e) {
+                if(e.getCause() instanceof TTransportException) {
+                    die("Unable to connect to " + opts.username + "@"
+                            + opts.host + ":" + opts.port
+                            + " with the specified password");
+                }
+                else if(e.getCause() instanceof TSecurityException) {
+                    die("Invalid username/password combination.");
+                }
+                else {
+                    die(e.getMessage());
+                }
+            }
+            cash.enableInteractiveSettings();
             boolean running = true;
-            String line = "";
+            String input = "";
             while (running) {
+                boolean extraLineBreak = true;
                 try {
-                    line = console.readLine().trim();
-                    line = SyntaxTools.handleShortSyntax(line, methods);
-                    binding.setVariable("concourse", concourse);
-                    binding.setVariable("eq", Operator.EQUALS);
-                    binding.setVariable("ne", Operator.NOT_EQUALS);
-                    binding.setVariable("gt", Operator.GREATER_THAN);
-                    binding.setVariable("gte", Operator.GREATER_THAN_OR_EQUALS);
-                    binding.setVariable("lt", Operator.LESS_THAN);
-                    binding.setVariable("lte", Operator.LESS_THAN_OR_EQUALS);
-                    binding.setVariable("bw", Operator.BETWEEN);
-                    binding.setVariable("regex", Operator.REGEX);
-                    binding.setVariable("nregex", Operator.NOT_REGEX);
-                    binding.setVariable("lnk2", Operator.LINKS_TO);
-                    binding.setVariable("date", STRING_TO_TIME);
-                    binding.setVariable("time", STRING_TO_TIME);
-                    binding.setVariable("where", WHERE);
-                    binding.setVariable("tag", STRING_TO_TAG);
-                    if(line.equalsIgnoreCase("exit")) {
-                        running = false;
-                        concourse.exit();
-                        System.exit(0);
-                    }
-                    else if(line.equalsIgnoreCase("help")
-                            || line.equalsIgnoreCase("man")) {
-                        Process p = Runtime.getRuntime().exec(
-                                new String[] {
-                                        "sh",
-                                        "-c",
-                                        "echo \"" + HELP_TEXT
-                                                + "\" | less > /dev/tty" });
-                        p.waitFor();
-                    }
-                    else if(containsBannedCharSequence(line)) {
-                        System.err.println("Cannot complete command because "
-                                + "it contains an illegal character sequence.");
-                    }
-                    else if(Strings.isNullOrEmpty(line)) { // CON-170
-                        continue;
-                    }
-                    else {
-                        watch.reset().start();
-                        Object value = null;
-                        try {
-                            value = shell.evaluate(line, "ConcourseShell");
-                            watch.stop();
-                            if(value != null) {
-                                System.out.println("Returned '" + value
-                                        + "' in "
-                                        + watch.elapsed(TimeUnit.MILLISECONDS)
-                                        + " ms");
-                            }
-                            else {
-                                System.out.println("Completed in "
-                                        + watch.elapsed(TimeUnit.MILLISECONDS)
-                                        + " ms");
-                            }
-                        }
-                        catch (Exception e) {
-                            if(e.getCause() instanceof TTransportException) {
-                                die(e.getMessage());
-                            }
-                            else if(e.getCause() instanceof TSecurityException) {
-                                die("A security change has occurred and your "
-                                        + "session cannot continue");
-                            }
-                            else {
-                                System.err.print("ERROR: " + e.getMessage());
-                            }
-                        }
-
-                    }
-                    console.print("\n");
+                    input = cash.console.readLine().trim();
+                    String result = cash.evaluate(input);
+                    System.out.println(result);
                 }
                 catch (UserInterruptException e) {
                     if(Strings.isNullOrEmpty(e.getPartialLine())) {
-                        console.println("Type EXIT to quit.");
-                        console.print("\n");
+                        cash.console.println("Type EXIT to quit.");
                     }
-                    continue;
+                }
+                catch (HelpRequest e) {
+                    Process p = Runtime.getRuntime().exec(
+                            new String[] {
+                                    "sh",
+                                    "-c",
+                                    "echo \"" + HELP_TEXT
+                                            + "\" | less > /dev/tty" });
+                    p.waitFor();
+                }
+                catch (ExitRequest e) {
+                    running = false;
+                }
+                catch (NewLineRequest e) {
+                    extraLineBreak = false;
+                }
+                catch (ProgramCrash e) {
+                    die(e.getMessage());
+                }
+                catch (IrregularEvaluationResult e) {
+                    System.err.println(e.getMessage());
+                }
+                finally {
+                    if(extraLineBreak) {
+                        cash.console.print("\n");
+                    }
                 }
             }
-        }
-        catch (Exception e) {
-            if(e.getCause() instanceof TTransportException) {
-                die("Unable to connect to " + opts.username + "@" + opts.host
-                        + ":" + opts.port + " with the specified password");
-            }
-            else if(e.getCause() instanceof TSecurityException) {
-                die("Invalid username/password combination.");
-            }
-            else {
-                die(e.getMessage());
-            }
+            cash.concourse.exit();
+            System.exit(0);
         }
         finally {
-            try {
-                TerminalFactory.get().restore();
-            }
-            catch (Exception e) {
-                die(e.getMessage());
-            }
+            TerminalFactory.get().restore();
         }
-
     }
 
     /**
@@ -249,8 +341,7 @@ public final class ConcourseShell {
                     // "concourse." from these method names, we must add it here
                     // so that we can properly handle short syntax in
                     // SyntaxTools#handleShortSyntax
-                    methods.add(MessageFormat.format("concourse.{0}",
-                            method.getName()));
+                    methods.add(format("concourse.{0}", method.getName()));
                 }
             }
             ACCESSIBLE_API_METHODS = methods
