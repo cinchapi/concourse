@@ -490,7 +490,7 @@ public final class ConcourseShell {
                                     + "session cannot continue");
                 }
                 else if(e instanceof CompilationFailedException) {
-                    throw new MultiLineRequest();
+                    throw new MultiLineRequest(e.getMessage());
                 }
                 else {
                     throw new EvaluationException("ERROR: " + e.getMessage());

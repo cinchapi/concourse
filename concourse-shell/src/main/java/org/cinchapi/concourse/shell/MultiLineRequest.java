@@ -32,8 +32,8 @@ package org.cinchapi.concourse.shell;
 @SuppressWarnings("serial")
 public class MultiLineRequest extends IrregularEvaluationResult {
 
-    public MultiLineRequest() {
-        super("");
+    public MultiLineRequest(String message) {
+        super(message);
     }
 
 }
