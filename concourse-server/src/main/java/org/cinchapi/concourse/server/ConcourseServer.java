@@ -81,6 +81,7 @@ import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TLinkedHashMap;
@@ -626,7 +627,20 @@ public class ConcourseServer implements
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {
-                    if(!operation.add(key, Convert.javaToThrift(value), record)) {
+                    if(value instanceof ResolvableLink) {
+                        ResolvableLink rl = (ResolvableLink) value;
+                        Set<Long> links = operation.find(rl.getKey(),
+                                Operator.EQUALS,
+                                Convert.javaToThrift(rl.getValue()));
+                        for (long link : links) {
+                            TObject t = Convert.javaToThrift(Link.to(link));
+                            if(!operation.add(key, t, record)) {
+                                return false;
+                            }
+                        }
+                    }
+                    else if(!operation.add(key, Convert.javaToThrift(value),
+                            record)) {
                         return false;
                     }
                 }
@@ -1148,7 +1162,20 @@ public class ConcourseServer implements
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {
-                    operation.add(key, Convert.javaToThrift(value), record);
+                    if(value instanceof ResolvableLink) {
+                        ResolvableLink rl = (ResolvableLink) value;
+                        Set<Long> links = operation.find(rl.getKey(),
+                                Operator.EQUALS,
+                                Convert.javaToThrift(rl.getValue()));
+                        for (long link : links) {
+                            TObject t = Convert.javaToThrift(Link.to(link));
+                            operation.add(key, t, record);
+                        }
+                    }
+                    else {
+                        operation.add(key, Convert.javaToThrift(value), record);
+                    }
+
                 }
             }
             return operation;
