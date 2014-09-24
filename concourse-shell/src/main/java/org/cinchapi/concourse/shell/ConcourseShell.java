@@ -58,6 +58,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.util.Version;
+import org.codehaus.groovy.control.CompilationFailedException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -132,13 +133,16 @@ public final class ConcourseShell {
                 String input = "";
                 while (running) {
                     boolean extraLineBreak = true;
+                    boolean clearInput = true;
+                    boolean clearPrompt = false;
                     try {
-                        input = cash.console.readLine().trim();
+                        input = input + cash.console.readLine().trim();
                         String result = cash.evaluate(input);
                         System.out.println(result);
                     }
                     catch (UserInterruptException e) {
-                        if(Strings.isNullOrEmpty(e.getPartialLine())) {
+                        if(Strings.isNullOrEmpty(e.getPartialLine())
+                                && Strings.isNullOrEmpty(input)) {
                             cash.console.println("Type EXIT to quit.");
                         }
                     }
@@ -162,12 +166,27 @@ public final class ConcourseShell {
                     catch (ProgramCrash e) {
                         die(e.getMessage());
                     }
+                    catch (MultiLineRequest e) {
+                        extraLineBreak = false;
+                        clearInput = false;
+                        clearPrompt = true;
+                    }
                     catch (IrregularEvaluationResult e) {
                         System.err.println(e.getMessage());
                     }
                     finally {
                         if(extraLineBreak) {
                             cash.console.print("\n");
+                        }
+                        if(clearInput) {
+                            input = "";
+                        }
+                        if(clearPrompt) {
+                            cash.console.setPrompt("> ");
+                        }
+                        else {
+                            cash.console.setPrompt(format("[{0}/cash]$ ",
+                                    cash.env));
                         }
                     }
                 }
@@ -361,6 +380,11 @@ public final class ConcourseShell {
     protected String whoami;
 
     /**
+     * The env that the client is connected to.
+     */
+    protected String env;
+
+    /**
      * The console handles all I/O.
      */
     private ConsoleReader console;
@@ -465,6 +489,9 @@ public final class ConcourseShell {
                             "A security change has occurred and your "
                                     + "session cannot continue");
                 }
+                else if(e instanceof CompilationFailedException) {
+                    throw new MultiLineRequest();
+                }
                 else {
                     throw new EvaluationException("ERROR: " + e.getMessage());
                 }
@@ -496,7 +523,7 @@ public final class ConcourseShell {
 
         }));
         CommandLine.displayWelcomeBanner();
-        String env = concourse.getServerEnvironment();
+        env = concourse.getServerEnvironment();
         console.println("Client Version "
                 + Version.getVersion(ConcourseShell.class));
         console.println("Server Version " + concourse.getServerVersion());
@@ -518,7 +545,7 @@ public final class ConcourseShell {
      * @author jnelson
      */
     private static class Options {
-        
+
         /**
          * A handler for the client preferences that <em>may</em> exist in the
          * user's home directory.
