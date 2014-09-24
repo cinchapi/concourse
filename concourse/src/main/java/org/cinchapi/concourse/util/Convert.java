@@ -187,6 +187,14 @@ public final class Convert {
         else if(element.getAsString().matches("`([^`]+)`")) {
             return stringToJava(element.getAsString()); // CON-137
         }
+        else if(element.getAsString().matches(
+                MessageFormat.format("{0}{1}{0}", MessageFormat.format(
+                        "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
+            return stringToJava(element.getAsString()); // respect resolvable
+                                                        // link specification
+
+        }
         else {
             return stringToJava(element.toString());
         }
