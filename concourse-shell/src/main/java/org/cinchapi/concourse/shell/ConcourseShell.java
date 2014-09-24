@@ -98,9 +98,9 @@ public final class ConcourseShell {
                         + opts.username + "]: ", '*');
             }
             try {
-                Concourse concourse = Concourse.connect(opts.host, opts.port,
+                cash.concourse = Concourse.connect(opts.host, opts.port,
                         opts.username, opts.password, opts.environment);
-                cash.setClient(concourse);
+                cash.whoami = opts.username;
             }
             catch (Exception e) {
                 if(e.getCause() instanceof TTransportException) {
@@ -347,7 +347,18 @@ public final class ConcourseShell {
     /**
      * The client connection to Concourse.
      */
-    private Concourse concourse;
+    protected Concourse concourse;
+
+    /**
+     * The file where the user's CASH history is stored.
+     */
+    protected String historyStore = System.getProperty("user.home")
+            + File.separator + ".cash_history";
+
+    /**
+     * The Concourse user that is currently connected to the shell.
+     */
+    protected String whoami;
 
     /**
      * The console handles all I/O.
@@ -369,12 +380,6 @@ public final class ConcourseShell {
      * The stopwatch that is used to time the duration of all evaluations.
      */
     private Stopwatch watch = Stopwatch.createUnstarted();
-
-    /**
-     * The file where the user's CASH history is stored.
-     */
-    protected String historyStore = System.getProperty("user.home")
-            + File.separator + ".cash_history";
 
     /**
      * Construct a new instance. Be sure to call {@link #setClient(Concourse)}
@@ -421,6 +426,7 @@ public final class ConcourseShell {
         groovyBinding.setVariable("time", STRING_TO_TIME);
         groovyBinding.setVariable("where", WHERE);
         groovyBinding.setVariable("tag", STRING_TO_TAG);
+        groovyBinding.setVariable("whoami", whoami);
         if(input.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }
@@ -464,17 +470,6 @@ public final class ConcourseShell {
                 }
             }
         }
-    }
-
-    /**
-     * Set the {@link Concourse} client to use in the program. This is typically
-     * called after command line args with connection information has been
-     * parsed.
-     * 
-     * @param concourse
-     */
-    protected void setClient(Concourse concourse) {
-        this.concourse = concourse;
     }
 
     /**
@@ -523,7 +518,7 @@ public final class ConcourseShell {
      * @author jnelson
      */
     private static class Options {
-
+        
         /**
          * A handler for the client preferences that <em>may</em> exist in the
          * user's home directory.
@@ -557,11 +552,11 @@ public final class ConcourseShell {
         @Parameter(names = { "-p", "--port" }, description = "The port on which the Concourse Server is listening")
         public int port = prefs != null ? prefs.getPort() : 1717;
 
-        @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-        public String username = prefs != null ? prefs.getUsername() : "admin";
-
         @Parameter(names = { "-r", "--run" }, description = "The command to run non-interactively")
         public String run = "";
+
+        @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
+        public String username = prefs != null ? prefs.getUsername() : "admin";
 
     }
 
