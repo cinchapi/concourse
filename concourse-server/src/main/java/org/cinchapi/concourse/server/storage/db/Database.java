@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +57,7 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Comparators;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TLists;
@@ -120,8 +120,6 @@ public final class Database extends BaseStore implements
         return null;
     }
 
-    private static final String threadNamePrefix = "database-write-thread";
-
     /*
      * BLOCK DIRECTORIES
      * -----------------
@@ -134,57 +132,10 @@ public final class Database extends BaseStore implements
      * another is by the directory in which they are stored.
      */
     private static final String PRIMARY_BLOCK_DIRECTORY = "cpb";
-    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
+
     private static final String SEARCH_BLOCK_DIRECTORY = "ctb";
-
-    /*
-     * RECORD CACHES
-     * -------------
-     * Records are cached in memory to reduce the number of seeks required. When
-     * writing new revisions, we check the appropriate caches for relevant
-     * records and append the new revision so that the cached data doesn't grow
-     * stale.
-     */
-    private final Cache<Composite, PrimaryRecord> cpc = buildCache();
-    private final Cache<Composite, PrimaryRecord> cppc = buildCache();
-    private final Cache<Composite, SecondaryRecord> csc = buildCache();
-
-    /*
-     * CURRENT BLOCK POINTERS
-     * ----------------------
-     * We hold direct references to the current blocks. These pointers change
-     * whenever the database triggers a sync operation.
-     */
-    private transient PrimaryBlock cpb0;
-    private transient SecondaryBlock csb0;
-    private transient SearchBlock ctb0;
-
-    /*
-     * BLOCK COLLECTIONS
-     * -----------------
-     * We maintain a collection to all the blocks, in chronological order, so
-     * that we can seek for the necessary revisions to populate a requested
-     * record.
-     */
-    private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-
-    /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
-     */
-    private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
-
-    /**
-     * The location where the Database stores data.
-     */
-    private final transient String backingStore;
-
-    /**
-     * A flag to indicate if the Buffer is running or not.
-     */
-    private transient boolean running = false;
+    private static final String SECONDARY_BLOCK_DIRECTORY = "csb";
+    private static final String threadNamePrefix = "database-write-thread";
 
     /**
      * A flag to indicate if the Database has verified the data it is seeing is
@@ -196,6 +147,55 @@ public final class Database extends BaseStore implements
      * subsequent Writes are acceptable.
      */
     private transient boolean acceptable = false;
+    /**
+     * The location where the Database stores data.
+     */
+    private final transient String backingStore;
+    /*
+     * BLOCK COLLECTIONS
+     * -----------------
+     * We maintain a collection to all the blocks, in chronological order, so
+     * that we can seek for the necessary revisions to populate a requested
+     * record.
+     */
+    private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
+
+    /*
+     * CURRENT BLOCK POINTERS
+     * ----------------------
+     * We hold direct references to the current blocks. These pointers change
+     * whenever the database triggers a sync operation.
+     */
+    private transient PrimaryBlock cpb0;
+    /*
+     * RECORD CACHES
+     * -------------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     */
+    private final Cache<Composite, PrimaryRecord> cpc = buildCache();
+    private final Cache<Composite, PrimaryRecord> cppc = buildCache();
+
+    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+    private transient SecondaryBlock csb0;
+    private final Cache<Composite, SecondaryRecord> csc = buildCache();
+
+    private final transient List<SearchBlock> ctb = Lists.newArrayList();
+
+    private transient SearchBlock ctb0;
+
+    /**
+     * Lock used to ensure the object is ThreadSafe. This lock provides access
+     * to a masterLock.readLock()() and masterLock.writeLock()().
+     */
+    private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+
+    /**
+     * A flag to indicate if the Buffer is running or not.
+     */
+    private transient boolean running = false;
 
     /**
      * Construct a Database that is backed by the default location which is in
@@ -261,14 +261,7 @@ public final class Database extends BaseStore implements
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
                 Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                new Comparator<String>() {
-
-                    @Override
-                    public int compare(String s1, String s2) {
-                        return s1.compareToIgnoreCase(s2);
-                    }
-                    
-                });
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
@@ -276,28 +269,47 @@ public final class Database extends BaseStore implements
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
                 Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                new Comparator<String>() {
-
-                    @Override
-                    public int compare(String s1, String s2) {
-                        return s1.compareToIgnoreCase(s2);
-                    }
-                    
-                });
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
-                .browse(), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
+        return Transformers.transformTreeMapSet(
+                getSecondaryRecord(Text.wrap(key)).browse(),
+                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                TObjectSorter.INSTANCE);
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        return Transformers.transformTreeMapSet(getSecondaryRecord(Text.wrap(key))
-                .browse(timestamp), Functions.VALUE_TO_TOBJECT,
-                Functions.PRIMARY_KEY_TO_LONG, TObjectSorter.INSTANCE);
+        return Transformers.transformTreeMapSet(
+                getSecondaryRecord(Text.wrap(key)).browse(timestamp),
+                Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
+                TObjectSorter.INSTANCE);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        SecondaryRecord record = getSecondaryRecord(Text.wrap(key));
+        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class));
+        return Transformers.transformTreeMapSet(map,
+                Functions.PRIMARY_KEY_TO_LONG, Functions.VALUE_TO_TOBJECT,
+                Comparators.LONG_COMPARATOR);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        SecondaryRecord record = getSecondaryRecord(Text.wrap(key));
+        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class));
+        return Transformers.transformTreeMapSet(map,
+                Functions.PRIMARY_KEY_TO_LONG, Functions.VALUE_TO_TOBJECT,
+                Comparators.LONG_COMPARATOR);
     }
 
     /**
@@ -337,28 +349,6 @@ public final class Database extends BaseStore implements
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
                         timestamp), Functions.VALUE_TO_TOBJECT);
-    }
-
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
-        return Transformers.transformSet(
-                getSecondaryRecord(Text.wrap(key)).find(
-                        timestamp,
-                        operator,
-                        Transformers.transformArray(values,
-                                Functions.TOBJECT_TO_VALUE, Value.class)),
-                Functions.PRIMARY_KEY_TO_LONG);
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        return Transformers.transformSet(
-                getSecondaryRecord(Text.wrap(key)).find(
-                        operator,
-                        Transformers.transformArray(values,
-                                Functions.TOBJECT_TO_VALUE, Value.class)),
-                Functions.PRIMARY_KEY_TO_LONG);
     }
 
     /**
@@ -613,9 +603,9 @@ public final class Database extends BaseStore implements
     private final class BlockLoader<T extends Block<?, ?, ?>> implements
             Runnable {
 
+        private final List<T> blocks;
         private final Class<T> clazz;
         private final String directory;
-        private final List<T> blocks;
 
         /**
          * Construct a new instance.

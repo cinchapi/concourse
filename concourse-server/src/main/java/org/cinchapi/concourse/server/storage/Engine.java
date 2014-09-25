@@ -120,6 +120,14 @@ public final class Engine extends BufferedStore implements
                                                                                                               // testing
 
     /**
+     * The frequency with which we check to see if the
+     * {@link BufferTransportThread} has hung/stalled.
+     */
+    protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 10000; // visible
+                                                                                                   // for
+                                                                                                   // testing
+
+    /**
      * The number of milliseconds we allow the {@link BufferTransportThread} to
      * sleep without waking up (e.g. being in the TIMED_WAITING) state before we
      * assume that the thread has hung/stalled and we try to rescue it.
@@ -127,14 +135,6 @@ public final class Engine extends BufferedStore implements
     protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 5000; // visible
                                                                                                  // for
                                                                                                  // testing
-
-    /**
-     * The frequency with which we check to see if the
-     * {@link BufferTransportThread} has hung/stalled.
-     */
-    protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 10000; // visible
-                                                                                                   // for
-                                                                                                   // testing
 
     /**
      * The number of milliseconds that the {@link BufferTransportThread} sleeps
@@ -160,6 +160,13 @@ public final class Engine extends BufferedStore implements
             false); // visible for testing
 
     /**
+     * A flag to indicate that the {@link BufferTransportThread} has gone into
+     * block mode instead of busy waiting at least once.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
      * The location where transaction backups are stored.
      */
     protected final String transactionStore; // exposed for Transaction backup
@@ -174,9 +181,11 @@ public final class Engine extends BufferedStore implements
                                                 // ExecutorService.
 
     /**
-     * A {@link Timer} that is used to schedule some regular tasks.
+     * A flag that indicates that the {@link BufferTransportThread} is currently
+     * paused due to inactivity (e.g. no writes).
      */
-    private final Timer scheduler = new Timer(true);
+    private final AtomicBoolean bufferTransportThreadIsPaused = new AtomicBoolean(
+            false);
 
     /**
      * The timestamp when the {@link BufferTransportThread} last awoke from
@@ -187,16 +196,19 @@ public final class Engine extends BufferedStore implements
             Time.now());
 
     /**
-     * A flag that indicates that the {@link BufferTransportThread} is currently
-     * paused due to inactivity (e.g. no writes).
+     * The environment that is associated with this {@link Engine}.
      */
-    private final AtomicBoolean bufferTransportThreadIsPaused = new AtomicBoolean(
-            false);
+    private final String environment;
 
     /**
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
+
+    /**
+     * A {@link Timer} that is used to schedule some regular tasks.
+     */
+    private final Timer scheduler = new Timer(true);
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
@@ -209,23 +221,11 @@ public final class Engine extends BufferedStore implements
     private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
 
     /**
-     * The environment that is associated with this {@link Engine}.
-     */
-    private final String environment;
-
-    /**
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
     private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
             .create();
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThread} has gone into
-     * block mode instead of busy waiting at least once.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
-            false); // visible for testing
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -461,31 +461,6 @@ public final class Engine extends BufferedStore implements
         }
     }
 
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doFind(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        rangeLockService.getReadLock(key, operator, values).lock();
-        try {
-            return super.doFind(key, operator, values);
-        }
-        finally {
-            rangeLockService.getReadLock(key, operator, values).unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * Public interface for the {@link Database#getDumpList()} method.
      * 
@@ -648,6 +623,32 @@ public final class Engine extends BufferedStore implements
             return super.verify(key, value, record, timestamp);
         }
         finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(timestamp, key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        transportLock.readLock().lock();
+        rangeLockService.getReadLock(key, operator, values).lock();
+        try {
+            return super.doExplore(key, operator, values);
+        }
+        finally {
+            rangeLockService.getReadLock(key, operator, values).unlock();
             transportLock.readLock().unlock();
         }
     }

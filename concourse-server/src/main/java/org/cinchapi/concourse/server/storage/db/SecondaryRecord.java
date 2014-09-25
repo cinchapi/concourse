@@ -23,10 +23,9 @@
  */
 package org.cinchapi.concourse.server.storage.db;
 
-import java.util.Iterator;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +41,9 @@ import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.TreeMultimap;
 
 /**
  * A grouping of data for efficient indirect queries.
@@ -81,7 +82,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      */
     public Set<PrimaryKey> find(long timestamp, Operator operator,
             Value... values) {
-        return find(true, timestamp, operator, values);
+        return explore(true, timestamp, operator, values).keySet();
     }
 
     /**
@@ -93,7 +94,38 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
      * @return they Set of PrimaryKeys that match the query
      */
     public Set<PrimaryKey> find(Operator operator, Value... values) {
-        return find(false, 0, operator, values);
+        return explore(false, 0, operator, values).keySet();
+    }
+
+    /**
+     * Explore this record and return a mapping from PrimaryKey to the Values
+     * that cause the corresponding records to satisfy {@code operator} in
+     * relation to the specified {@code values} at {@code timestamp}.
+     * 
+     * @param timestamp
+     * @param operator
+     * @param values
+     * @return the relevant data that causes the matching records to satisfy the
+     *         criteria
+     */
+    public Map<PrimaryKey, Set<Value>> explore(long timestamp,
+            Operator operator, Value... values) {
+        return explore(true, timestamp, operator, values);
+    }
+
+    /**
+     * Explore this record and return a mapping from PrimaryKey to the
+     * Values that cause the corresponding records to satisfy {@code operator}
+     * in relation to the specified {@code values}.
+     * 
+     * @param operator
+     * @param values
+     * @return the relevant data that causes the matching records to satisfy the
+     *         criteria
+     */
+    public Map<PrimaryKey, Set<Value>> explore(Operator operator,
+            Value... values) {
+        return explore(false, 0, operator, values);
     }
 
     @Override
@@ -102,120 +134,138 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
     }
 
     /**
-     * Return the Set of PrimaryKeys that currently satisfy {@code operator} in
-     * relation to the specified {@code values} or at the specified
-     * {@code timestamp} if {@code historical} is {@code true}
+     * Explore this record and return a mapping from PrimaryKey to the Values
+     * that cause the corresponding records to satisfy {@code operator} in
+     * relation to the specified {@code values} (and at the specified
+     * {@code timestamp} if {@code historical} is {@code true}).
      * 
-     * @param historical - if {@code true} query the history for each field,
-     *            otherwise query the current state
+     * @param historical - if {@code true} query the history, otherwise query
+     *            the current state
      * @param timestamp - this value is ignored if {@code historical} is
      *            {@code false}, otherwise this value is the historical
      *            timestamp at which to query the field
      * @param operator
      * @param values
-     * @return the Set of PrimaryKeys that match the query
+     * @return the relevant data that causes the matching records to satisfy the
+     *         criteria
      */
-    private Set<PrimaryKey> find(boolean historical, long timestamp,
-            Operator operator, Value... values) { /* Authorized */
+    private Map<PrimaryKey, Set<Value>> explore(boolean historical,
+            long timestamp, Operator operator, Value... values) { /* Authorized */
         read.lock();
         try {
-            Set<PrimaryKey> keys = Sets.newTreeSet();
+            SetMultimap<PrimaryKey, Value> data = TreeMultimap.create();
             Value value = values[0];
             if(operator == Operator.EQUALS) {
-                keys.addAll(historical ? get(value, timestamp) : get(value));
+                for (PrimaryKey record : historical ? get(value, timestamp)
+                        : get(value)) {
+                    data.put(record, value);
+                }
             }
             else if(operator == Operator.NOT_EQUALS) {
-                Iterator<Value> it = history.keySet().iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    if(!value.equals(v)) {
-                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet() : present
+                        .keySet()) {
+                    if(!value.equals(stored)) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
                     }
                 }
             }
             else if(operator == Operator.GREATER_THAN) {
-                TreeSet<Value> sortedValues = Sets
-                        .newTreeSet(Value.Sorter.INSTANCE);
-                sortedValues.addAll(history.keySet());
-                Iterator<Value> it = sortedValues.tailSet(value, false)
-                        .iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet()
+                        : ((NavigableSet<Value>) present.keySet()).tailSet(
+                                value, false)) {
+                    if(!historical || stored.compareTo(value) > 0) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
+                    }
                 }
             }
             else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
-                TreeSet<Value> sortedValues = Sets
-                        .newTreeSet(Value.Sorter.INSTANCE);
-                sortedValues.addAll(history.keySet());
-                Iterator<Value> it = sortedValues.tailSet(value, true)
-                        .iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet()
+                        : ((NavigableSet<Value>) present.keySet()).tailSet(
+                                value, true)) {
+                    if(!historical || stored.compareTo(value) >= 0) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
+                    }
                 }
             }
             else if(operator == Operator.LESS_THAN) {
-                TreeSet<Value> sortedValues = Sets
-                        .newTreeSet(Value.Sorter.INSTANCE);
-                sortedValues.addAll(history.keySet());
-                Iterator<Value> it = sortedValues.headSet(value, false)
-                        .iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet()
+                        : ((NavigableSet<Value>) present.keySet()).headSet(
+                                value, false)) {
+                    if(!historical || stored.compareTo(value) < 0) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
+                    }
                 }
             }
             else if(operator == Operator.LESS_THAN_OR_EQUALS) {
-                TreeSet<Value> sortedValues = Sets
-                        .newTreeSet(Value.Sorter.INSTANCE);
-                sortedValues.addAll(history.keySet());
-                Iterator<Value> it = sortedValues.headSet(value, true)
-                        .iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet()
+                        : ((NavigableSet<Value>) present.keySet()).headSet(
+                                value, true)) {
+                    if(!historical || stored.compareTo(value) <= 0) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
+                    }
                 }
             }
             else if(operator == Operator.BETWEEN) {
                 Preconditions.checkArgument(values.length > 1);
                 Value value2 = values[1];
-                TreeSet<Value> sortedValues = Sets
-                        .newTreeSet(Value.Sorter.INSTANCE);
-                sortedValues.addAll(history.keySet());
-                Iterator<Value> it = sortedValues.subSet(value, true, value2,
-                        false).iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    keys.addAll(historical ? get(v, timestamp) : get(v));
+                for (Value stored : historical ? history.keySet()
+                        : ((NavigableSet<Value>) present.keySet()).subSet(
+                                value, true, value2, false)) {
+                    if(!historical
+                            || (stored.compareTo(value) >= 0 && stored
+                                    .compareTo(value2) < 0)) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
+                    }
                 }
             }
             else if(operator == Operator.REGEX) {
-                Iterator<Value> it = history.keySet().iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    Pattern p = Pattern.compile(value.getObject().toString());
-                    Matcher m = p.matcher(v.getObject().toString());
+                Pattern p = Pattern.compile(value.getObject().toString());
+                for (Value stored : historical ? history.keySet() : present
+                        .keySet()) {
+                    Matcher m = p.matcher(stored.getObject().toString());
                     if(m.matches()) {
-                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
                     }
                 }
             }
             else if(operator == Operator.NOT_REGEX) {
-                Iterator<Value> it = history.keySet().iterator();
-                while (it.hasNext()) {
-                    Value v = it.next();
-                    Pattern p = Pattern.compile(value.getObject().toString());
-                    Matcher m = p.matcher(v.getObject().toString());
-                    if(m.matches()) {
-                        keys.addAll(historical ? get(v, timestamp) : get(v));
+                Pattern p = Pattern.compile(value.getObject().toString());
+                for (Value stored : historical ? history.keySet() : present
+                        .keySet()) {
+                    Matcher m = p.matcher(stored.getObject().toString());
+                    if(!m.matches()) {
+                        for (PrimaryKey record : historical ? get(stored,
+                                timestamp) : get(stored)) {
+                            data.put(record, stored);
+                        }
                     }
                 }
             }
             else {
                 throw new UnsupportedOperationException();
             }
-            return keys;
+            return Multimaps.asMap(data);
         }
         finally {
             read.unlock();

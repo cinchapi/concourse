@@ -34,7 +34,6 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -185,51 +184,6 @@ public abstract class BufferedStore extends BaseStore {
         return buffer.fetch(key, record, timestamp, context);
     }
 
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
-        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
-        Map<TObject, Set<Long>> data = destination.browse(key, timestamp);
-        Set<Long> records = destination.find(timestamp, key, operator, values);
-        for (TObject object : data.keySet()) {
-            for (long record : data.get(object)) {
-                if(records.contains(record)) {
-                    if(!context.containsKey(record)) {
-                        Set<TObject> objects = Sets.newHashSet();
-                        context.put(record, objects);
-                        objects.add(object);
-                    }
-                    else {
-                        context.get(record).add(object);
-                    }
-                }
-            }
-        }
-        return buffer.find(context, timestamp, key, operator, values);
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = Maps.newLinkedHashMap();
-        Map<TObject, Set<Long>> data = destination.browse(key);
-        Set<Long> records = destination.find(key, operator, values);
-        for (TObject object : data.keySet()) {
-            for (long record : data.get(object)) {
-                if(records.contains(record)) {
-                    if(!context.containsKey(record)) {
-                        Set<TObject> objects = Sets.newHashSet();
-                        context.put(record, objects);
-                        objects.add(object);
-                    }
-                    else {
-                        context.get(record).add(object);
-                    }
-                }
-            }
-        }
-        return buffer.find(context, Time.now(), key, operator, values);
-    }
-
     /**
      * Remove {@code key} as {@code value} from {@code record}.
      * <p>
@@ -269,6 +223,21 @@ public abstract class BufferedStore extends BaseStore {
     public boolean verify(String key, TObject value, long record, long timestamp) {
         return buffer.verify(Write.notStorable(key, value, record), timestamp,
                 destination.verify(key, value, record, timestamp));
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
+                operator, values);
+        return buffer.explore(context, timestamp, key, operator, values);
+    }
+
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        Map<Long, Set<TObject>> context = destination.explore(key, operator,
+                values);
+        return buffer.explore(context, Time.now(), key, operator, values);
     }
 
     /**
