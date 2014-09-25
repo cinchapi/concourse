@@ -53,6 +53,7 @@ public final class Stores {
      * 
      * @param operator
      * @param values
+     * @return the normalized value
      */
     public static TObject normalizeValue(Operator operator, TObject value) {
         try {
