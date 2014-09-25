@@ -399,34 +399,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
+    public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
+            long timestamp, String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
-            return super.doFind(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<Long> find(Map<Long, Set<TObject>> context, long timestamp,
-            String key, Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.find(context, timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doFind(key, operator, values);
+            return super.explore(context, timestamp, key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();
@@ -733,6 +710,30 @@ public final class Buffer extends Limbo {
      */
     protected boolean canTransport() { // visible for testing
         return pages.size() > 1 && pages.get(0).hasNext();
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(timestamp, key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**

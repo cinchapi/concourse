@@ -286,23 +286,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) throws AtomicStateException {
-        checkState();
-        return super.doFind(timestamp, key, operator, values);
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values)
-            throws AtomicStateException {
-        checkState();
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class)));
-        return super.doFind(key, operator, values);
-    }
-
-    @Override
     public Set<TObject> fetch(String key, long record)
             throws AtomicStateException {
         checkState();
@@ -412,6 +395,23 @@ public class AtomicOperation extends BufferedStore implements
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
         buffer.transport(destination);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        checkState();
+        return super.doExplore(timestamp, key, operator, values);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        checkState();
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class)));
+        return super.doExplore(key, operator, values);
     }
 
     /**

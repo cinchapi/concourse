@@ -90,6 +90,32 @@ public interface Store {
     public Map<Long, String> audit(String key, long record);
 
     /**
+     * Browse {@code record}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} to a Set of associated values. If there are no such keys,
+     * an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> browse(long record);
+
+    /**
+     * Browse {@code record} at {@code timestamp}.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} at {@code timestamp} to a Set of associated values. If
+     * there were no such keys, an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @return a possibly empty Map of data.
+     */
+    public Map<String, Set<TObject>> browse(long record, long timestamp);
+
+    /**
      * Browse {@code key}.
      * <p>
      * This method returns a mapping from each of the values that is currently
@@ -119,32 +145,6 @@ public interface Store {
     public Map<TObject, Set<Long>> browse(String key, long timestamp);
 
     /**
-     * Browse {@code record}.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} to a Set of associated values. If there are no such keys,
-     * an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @return a possibly empty Map of data.
-     */
-    public Map<String, Set<TObject>> browse(long record);
-
-    /**
-     * Browse {@code record} at {@code timestamp}.
-     * <p>
-     * This method returns a mapping from each of the nonempty keys in
-     * {@code record} at {@code timestamp} to a Set of associated values. If
-     * there were no such keys, an empty Map is returned.
-     * </p>
-     * 
-     * @param record
-     * @return a possibly empty Map of data.
-     */
-    public Map<String, Set<TObject>> browse(long record, long timestamp);
-
-    /**
      * Describe {@code record}.
      * <p>
      * This method returns the keys for fields that currently have at least one
@@ -172,6 +172,38 @@ public interface Store {
      * @return a possibly empty Set of keys
      */
     public Set<String> describe(long record, long timestamp);
+
+    /**
+     * Explore {@code key} {@code operator} {@code values}.
+     * <p>
+     * This method returns a mapping from the primary key of each record that
+     * meets the criteria to the values that cause the record to meet the
+     * criteria.
+     * </p>
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return the relevant data for all matching records
+     */
+    public Map<Long, Set<TObject>> explore(String key, Operator operator,
+            TObject... values);
+
+    /**
+     * Explore {@code key} {@code operator} {@code values} at {@code timestamp}.
+     * <p>
+     * This method returns a mapping from the primary key of each record that
+     * meets the criteria at the specified timestamp to the values that caused
+     * the record to meet the criteria.
+     * </p>
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return the relevant data for all matching records
+     */
+    public Map<Long, Set<TObject>> explore(long timestamp, String key,
+            Operator operator, TObject... values);
 
     /**
      * Fetch {@code key} from {@code record}.
