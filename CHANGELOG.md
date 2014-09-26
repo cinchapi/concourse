@@ -17,6 +17,7 @@
 		> }
 
 #### Version 0.4.2 (TBD)
+* Further improved the speed of `find` queries by over 35 percent.
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was creating using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
