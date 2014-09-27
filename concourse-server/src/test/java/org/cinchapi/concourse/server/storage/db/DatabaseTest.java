@@ -31,8 +31,10 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.StoreTest;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,9 +70,43 @@ public class DatabaseTest extends StoreTest {
         Assert.assertEquals(1, ((List<?>) cpb.get(db)).size());
     }
 
+    @Test
+    public void testDatabaseAppendsToCachedPartialPrimaryRecords() {
+        Database db = (Database) store;
+        String key = TestData.getString();
+        long record = TestData.getLong();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            db.accept(Write.add(key, Convert.javaToThrift(i), record));
+        }
+        db.fetch(key, record);
+        int increase = TestData.getScaleCount();
+        db.accept(Write.add(key, Convert.javaToThrift(count * increase), record));
+        Assert.assertTrue(db.fetch(key, record).contains(
+                Convert.javaToThrift(count * increase)));
+    }
+
+    @Test
+    public void testDatabaseAppendsToCachedSecondaryRecords() {
+        Database db = (Database) store;
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            db.accept(Write.add(key, value, i));
+        }
+        db.find(key, Operator.EQUALS, value);
+        int increase = TestData.getScaleCount();
+        db.accept(Write.add(key, value, count * increase));
+        Assert.assertTrue(db.find(key, Operator.EQUALS, value).contains(
+                (long) count * increase));
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
-        ((Database) store).accept(Write.add(key, value, record));
+        if(!store.verify(key, value, record)) {
+            ((Database) store).accept(Write.add(key, value, record));
+        }
     }
 
     @Override
@@ -86,7 +122,8 @@ public class DatabaseTest extends StoreTest {
 
     @Override
     protected void remove(String key, TObject value, long record) {
-        ((Database) store).accept(Write.remove(key, value, record));
+        if(store.verify(key, value, record)) {
+            ((Database) store).accept(Write.remove(key, value, record));
+        }
     }
-
 }
