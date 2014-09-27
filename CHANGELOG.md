@@ -17,13 +17,14 @@
 		> }
 
 #### Version 0.4.2 (TBD)
-* Further improved the speed of `find` queries by over 35 percent.
+* Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement by over 35 percent.
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was creating using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
 * Fixed a bug that caused the `insert` methods to incorrectly store values encoded as *resolvable link specifications* as strings instead of links to resolved records.
 
 #### Version 0.3.8 (TBD)
+* Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
 * Fixed a bug where the `Numbers#max` method actually returned the minimum value.
 
 #### Version 0.4.1 (September 13, 2014)
