@@ -1,9 +1,8 @@
 ## Changelog
 
 #### Version 0.5.0 (TBD)
-* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
-* Improved the performance of the `set` operation by over 25 percent.
-* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+
+##### CaSH
 * Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
 * Added a feature to automatically preserve CaSH command history between sessions.
 * Changed CaSH error exit status from `127` to `1`.
@@ -16,8 +15,14 @@
 		> println fetch("name", record);
 		> }
 
+##### Miscellaneous		
+* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
+* Improved the performance of the `set` operation by over 25 percent.
+* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+
+
 #### Version 0.4.2 (TBD)
-* Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement by over 35 percent.
+* Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was creating using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
