@@ -443,12 +443,14 @@ public final class Database implements PermanentStore, VersionGetter {
     private PrimaryRecord getPrimaryRecord(PrimaryKey pkey) {
         masterLock.readLock().lock();
         try {
-            PrimaryRecord record = cpc.getIfPresent(Composite.create(pkey));
+            Composite composite = Composite.create(pkey);
+            PrimaryRecord record = cpc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createPrimaryRecord(pkey);
                 for (PrimaryBlock block : cpb) {
                     block.seek(pkey, record);
                 }
+                cpc.put(composite, record);
             }
             return record;
         }
@@ -468,13 +470,14 @@ public final class Database implements PermanentStore, VersionGetter {
     private PrimaryRecord getPrimaryRecord(PrimaryKey pkey, Text key) {
         masterLock.readLock().lock();
         try {
-            PrimaryRecord record = cppc.getIfPresent(Composite
-                    .create(pkey, key));
+            Composite composite = Composite.create(pkey, key);
+            PrimaryRecord record = cppc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createPrimaryRecordPartial(pkey, key);
                 for (PrimaryBlock block : cpb) {
                     block.seek(pkey, key, record);
                 }
+                cppc.put(composite, record);
             }
             return record;
         }
@@ -524,12 +527,14 @@ public final class Database implements PermanentStore, VersionGetter {
     private SecondaryRecord getSecondaryRecord(Text key) {
         masterLock.readLock().lock();
         try {
-            SecondaryRecord record = csc.getIfPresent(Composite.create(key));
+            Composite composite = Composite.create(key);
+            SecondaryRecord record = csc.getIfPresent(composite);
             if(record == null) {
                 record = Record.createSecondaryRecord(key);
                 for (SecondaryBlock block : csb) {
                     block.seek(key, record);
                 }
+                csc.put(composite, record);
             }
             return record;
         }
