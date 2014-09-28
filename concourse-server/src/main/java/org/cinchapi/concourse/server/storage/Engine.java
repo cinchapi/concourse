@@ -39,15 +39,22 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.common.util.NonBlockingHashMultimap;
+import org.cinchapi.common.util.NonBlockingRangeMap;
+import org.cinchapi.common.util.Range;
+import org.cinchapi.common.util.RangeMap;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
+import org.cinchapi.concourse.server.concurrent.RangeToken;
+import org.cinchapi.concourse.server.concurrent.RangeTokens;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Write;
@@ -228,6 +235,13 @@ public final class Engine extends BufferedStore implements
             .create();
 
     /**
+     * A collection of listeners that should be notified of a version change for
+     * a given range token.
+     */
+    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
+            .create();
+
+    /**
      * Construct an Engine that is made up of a {@link Buffer} and
      * {@link Database} in the default locations.
      * 
@@ -332,6 +346,8 @@ public final class Engine extends BufferedStore implements
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
                 notifyVersionChange(Token.wrap(key));
+                notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                        Value.wrap(value)));
                 return true;
             }
             return false;
@@ -346,7 +362,16 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        versionChangeListeners.put(token, listener);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                rangeVersionChangeListeners.put(range, listener);
+            }
+        }
+        else {
+            versionChangeListeners.put(token, listener);
+        }
     }
 
     @Override
@@ -501,8 +526,21 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void notifyVersionChange(Token token) {
-        for (VersionChangeListener listener : versionChangeListeners.get(token)) {
-            listener.onVersionChange(token);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                for (VersionChangeListener listener : rangeVersionChangeListeners
+                        .get(range)) {
+                    listener.onVersionChange(token);
+                }
+            }
+        }
+        else {
+            for (VersionChangeListener listener : versionChangeListeners
+                    .get(token)) {
+                listener.onVersionChange(token);
+            }
         }
     }
 
@@ -515,6 +553,8 @@ public final class Engine extends BufferedStore implements
                 notifyVersionChange(Token.wrap(key, record));
                 notifyVersionChange(Token.wrap(record));
                 notifyVersionChange(Token.wrap(key));
+                notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                        Value.wrap(value)));
                 return true;
             }
             return false;
@@ -529,7 +569,16 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        versionChangeListeners.remove(token, listener);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                rangeVersionChangeListeners.remove(range, listener);
+            }
+        }
+        else {
+            versionChangeListeners.remove(token, listener);
+        }
     }
 
     @Override

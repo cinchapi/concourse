@@ -30,16 +30,21 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
+import org.cinchapi.common.util.NonBlockingHashMultimap;
+import org.cinchapi.common.util.NonBlockingRangeMap;
+import org.cinchapi.common.util.Range;
+import org.cinchapi.common.util.RangeMap;
 import org.cinchapi.concourse.annotate.Restricted;
+import org.cinchapi.concourse.server.concurrent.RangeToken;
+import org.cinchapi.concourse.server.concurrent.RangeTokens;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.model.Text;
+import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.TObject;
@@ -49,7 +54,7 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -107,27 +112,15 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    @SuppressWarnings("serial")
-    private final Map<Token, Set<VersionChangeListener>> versionChangeListeners = new HashMap<Token, Set<VersionChangeListener>>() {
+    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
+            .create();
 
-        /**
-         * An empty set that is returned on calls to {@link #get(Object)} when
-         * there key does not exist.
-         */
-        private final Set<VersionChangeListener> emptySet = Collections
-                .unmodifiableSet(Sets.<VersionChangeListener> newHashSet());
-
-        @Override
-        public Set<VersionChangeListener> get(Object key) {
-            if(containsKey(key)) {
-                return super.get(key);
-            }
-            else {
-                return emptySet;
-            }
-        }
-
-    };
+    /**
+     * A collection of listeners that should be notified of a version change for
+     * a given range token.
+     */
+    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
+            .create();
 
     /**
      * Construct a new instance.
@@ -173,6 +166,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         if(super.add(key, value, record)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                    Value.wrap(value)));
             return true;
         }
         else {
@@ -184,15 +180,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        Set<VersionChangeListener> listeners = null;
-        if(!versionChangeListeners.containsKey(token)) {
-            listeners = Sets.newHashSet();
-            versionChangeListeners.put(token, listeners);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                rangeVersionChangeListeners.put(range, listener);
+            }
         }
         else {
-            listeners = versionChangeListeners.get(token);
+            versionChangeListeners.put(token, listener);
         }
-        listeners.add(listener);
         ((Engine) destination).addVersionChangeListener(token, listener);
     }
 
@@ -217,8 +214,21 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     @Restricted
     public void notifyVersionChange(Token token) {
-        for (VersionChangeListener listener : versionChangeListeners.get(token)) {
-            listener.onVersionChange(token);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                for (VersionChangeListener listener : rangeVersionChangeListeners
+                        .get(range)) {
+                    listener.onVersionChange(token);
+                }
+            }
+        }
+        else {
+            for (VersionChangeListener listener : versionChangeListeners
+                    .get(token)) {
+                listener.onVersionChange(token);
+            }
         }
     }
 
@@ -228,6 +238,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         if(super.remove(key, value, record)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                    Value.wrap(value)));
             return true;
         }
         else {
@@ -239,7 +252,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        versionChangeListeners.get(token).remove(listener);
+        if(token instanceof RangeToken) {
+            Set<Range<Value>> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                rangeVersionChangeListeners.remove(range, listener);
+            }
+        }
+        else {
+            versionChangeListeners.remove(token, listener);
+        }
         ((Engine) destination).removeVersionChangeListener(token, listener);
     }
 

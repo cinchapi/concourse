@@ -395,6 +395,10 @@ public class AtomicOperation extends BufferedStore implements
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
         checkState();
+        ((Compoundable) destination).addVersionChangeListener(RangeToken
+                .forReading(Text.wrap(key), operator, Transformers
+                        .transformArray(values, Functions.TOBJECT_TO_VALUE,
+                                Value.class)), this);
         expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class)));
