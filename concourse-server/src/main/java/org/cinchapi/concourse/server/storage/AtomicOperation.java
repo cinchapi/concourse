@@ -396,9 +396,9 @@ public class AtomicOperation extends BufferedStore implements
             search: for (VersionExpectation expectation : expectations) {
                 prepareLockForPossibleUpgrade(expectation, locks);
                 if(expectation.getLockType() == LockType.RANGE_READ) {
-                    // CON-72: Check to see if we already have a RANE_WRITE that
-                    // covers one of the values in this RANGE_READ. If so skip
-                    // this lock since the write will adequately block any
+                    // CON-72: Check to see if we already have a RANGE_WRITE
+                    // that covers one of the values in this RANGE_READ. If so
+                    // skip this lock since the write will adequately block any
                     // conflicting reads
                     for (Value value : ((RangeToken) expectation.getToken())
                             .getValues()) {
@@ -439,14 +439,20 @@ public class AtomicOperation extends BufferedStore implements
      */
     private void releaseLocks() {
         if(locks != null) {
-            for (LockDescription lock : locks.values()) {
+            Map<Token, LockDescription> _locks = locks;
+            locks = null; // CON-172: Set the reference of the locks to null
+                          // immediately to prevent a race condition where the
+                          // #grabLocks method isn't notified of version change
+                          // failure in time
+            for (LockDescription lock : _locks.values()) {
+                ((Compoundable) destination).removeVersionChangeListener(
+                        lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
                                          // #locks once it has been locked.
             }
         }
-        locks = null;
     }
 
     /**
