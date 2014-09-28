@@ -465,7 +465,12 @@ public class AtomicOperation extends BufferedStore implements
      */
     private void releaseLocks() {
         if(locks != null) {
-            for (LockDescription lock : locks.values()) {
+            Map<Token, LockDescription> _locks = locks;
+            locks = null; // CON-172: Set the reference of the locks to null
+                          // immediately to prevent a race condition where the
+                          // #grabLocks method isn't notified of version change
+                          // failure in time
+            for (LockDescription lock : _locks.values()) {
                 ((Compoundable) destination).removeVersionChangeListener(
                         lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
@@ -474,7 +479,6 @@ public class AtomicOperation extends BufferedStore implements
                                          // #locks once it has been locked.
             }
         }
-        locks = null;
     }
 
     /**
