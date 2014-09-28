@@ -37,6 +37,7 @@ import org.cinchapi.concourse.SecurityExceptionTest;
 import org.cinchapi.concourse.SmokeTest;
 import org.cinchapi.concourse.FixedConnectionPoolTest;
 import org.cinchapi.concourse.ThriftComplianceTest;
+import org.cinchapi.concourse.TransactionIsolationTest;
 import org.cinchapi.concourse.TransactionWorkflowTest;
 import org.cinchapi.concourse.VerifyOrSetTest;
 import org.junit.runner.RunWith;
@@ -56,7 +57,7 @@ import org.junit.runners.Suite.SuiteClasses;
         ReferentialIntegrityTest.class, BrowseTest.class,
         SecurityExceptionTest.class, ThriftComplianceTest.class,
         FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
-        InsertTest.class })
+        InsertTest.class, TransactionIsolationTest.class })
 public class IntegrationTestSuite {
 
 }
