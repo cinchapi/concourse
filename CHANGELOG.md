@@ -23,7 +23,7 @@
 
 #### Version 0.4.2 (TBD)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
-* Fixed a bug with the real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
+* Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was creating using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
@@ -31,6 +31,7 @@
 
 #### Version 0.3.8 (TBD)
 * Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
+* Fixed a potential race-condition bug with real-time transaction failure detection that made it possible for a failed transaction to errneously commit.
 * Fixed a bug where the `Numbers#max` method actually returned the minimum value.
 
 #### Version 0.4.1 (September 13, 2014)
