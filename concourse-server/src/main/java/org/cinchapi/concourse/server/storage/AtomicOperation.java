@@ -466,6 +466,8 @@ public class AtomicOperation extends BufferedStore implements
     private void releaseLocks() {
         if(locks != null) {
             for (LockDescription lock : locks.values()) {
+                ((Compoundable) destination).removeVersionChangeListener(
+                        lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
