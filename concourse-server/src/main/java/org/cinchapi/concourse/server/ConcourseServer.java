@@ -89,6 +89,7 @@ import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
+import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -243,6 +244,14 @@ public class ConcourseServer implements
                                                        // configurable in a
                                                        // prefs file in a
                                                        // future release.
+    /**
+     * The server maintains a collection of {@link Transaction} objects to
+     * ensure that client requests are properly routed. When the client makes a
+     * call to {@link #stage(AccessToken)}, a Transaction is started on the
+     * server and a {@link TransactionToken} is used for the client to reference
+     * that Transaction in future calls.
+     */
+    private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
 
     /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
@@ -293,16 +302,6 @@ public class ConcourseServer implements
         this.manager = AccessManager.create(ACCESS_FILE);
         getEngine(); // load the default engine
     }
-
-    /**
-     * The server maintains a collection of {@link Transaction} objects to
-     * ensure that client requests are properly routed. When the client makes a
-     * call to {@link #stage(AccessToken)}, a Transaction is started on the
-     * server and a {@link TransactionToken} is used for the client to reference
-     * that Transaction in future calls.
-     */
-    private final Map<TransactionToken, Transaction> transactions = Maps
-            .newHashMap();
 
     @Override
     public void abort(AccessToken creds, TransactionToken transaction,
