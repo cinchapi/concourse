@@ -31,7 +31,7 @@
 
 #### Version 0.3.8 (TBD)
 * Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
-* Fixed a potential race-condition bug with real-time transaction failure detection that made it possible for a failed transaction to errneously commit.
+* Fixed a potential race-condition bug with real-time transaction failure detection that made it possible for an inconsistent transaction to errneously commit.
 * Fixed a bug where the `Numbers#max` method actually returned the minimum value.
 
 #### Version 0.4.1 (September 13, 2014)
