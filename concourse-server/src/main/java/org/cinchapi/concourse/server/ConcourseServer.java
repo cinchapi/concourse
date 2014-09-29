@@ -89,7 +89,6 @@ import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
-import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -252,7 +251,8 @@ public class ConcourseServer implements
      * server and a {@link TransactionToken} is used for the client to reference
      * that Transaction in future calls.
      */
-    private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
+    private final Map<TransactionToken, Transaction> transactions = Maps
+            .newHashMap();
 
     /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
