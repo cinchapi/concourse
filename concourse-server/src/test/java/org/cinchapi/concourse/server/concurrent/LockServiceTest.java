@@ -29,7 +29,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -38,9 +37,9 @@ import org.junit.Test;
  * @author jnelson
  */
 public class LockServiceTest extends ConcourseBaseTest {
-
+    
     private LockService lockService;
-
+    
     @Override
     protected void beforeEachTest() {
         lockService = LockService.create();
@@ -117,15 +116,13 @@ public class LockServiceTest extends ConcourseBaseTest {
     }
 
     @Test(expected = IllegalMonitorStateException.class)
-    @Ignore
     public void testLockServiceDoesEvictLocksThatAreNotBeingUsed() {
-        // (9/28/2014) - This test should be ignored since lock eviction is
-        // handled by the Guava cache based on memory pressure.
         ReadLock a = lockService.getReadLock("foo");
         a.lock();
         lockService.getReadLock("foo").unlock();
         lockService.getReadLock("foo").lock();
         a.unlock();
+    
 
     }
 
