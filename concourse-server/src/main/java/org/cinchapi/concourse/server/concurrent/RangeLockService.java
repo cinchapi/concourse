@@ -24,8 +24,9 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -38,10 +39,6 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -87,12 +84,7 @@ public final class RangeLockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(RangeToken token) {
-        try {
-            return cache.get(token).readLock();
-        }
-        catch (ExecutionException e) {
-            throw Throwables.propagate(e);
-        }
+        return cache.get(token).readLock();
     }
 
     /**
@@ -131,12 +123,7 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(RangeToken token) {
-        try {
-            return cache.get(token).writeLock();
-        }
-        catch (ExecutionException e) {
-            throw Throwables.propagate(e);
-        }
+        return cache.get(token).writeLock();
 
     }
 
@@ -177,13 +164,14 @@ public final class RangeLockService {
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, ReentrantReadWriteLock>> it = cache.asMap().entrySet().iterator();
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = cache.entrySet()
+                .iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             while (it.hasNext()) {
-                Entry<RangeToken, ReentrantReadWriteLock> entry = it.next();
+                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
                 RangeToken myToken = entry.getKey();
-                ReentrantReadWriteLock myLock = entry.getValue();
+                RangeReadWriteLock myLock = entry.getValue();
                 if(myToken.getKey().equals(token.getKey())
                         && myLock.isWriteLocked()
                         && !myLock.isWriteLockedByCurrentThread()) {
@@ -255,9 +243,9 @@ public final class RangeLockService {
             boolean foundSmaller = false;
             boolean foundLarger = false;
             while (it.hasNext() && (!foundSmaller || !foundLarger)) {
-                Entry<RangeToken, ReentrantReadWriteLock> entry = it.next();
+                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
                 RangeToken myToken = entry.getKey();
-                ReentrantReadWriteLock myLock = entry.getValue();
+                RangeReadWriteLock myLock = entry.getValue();
                 if(myToken.getKey().equals(token.getKey())
                         && myLock.getReadLockCount() > 0) {
                     for (Value myValue : myToken.getValues()) {
@@ -282,16 +270,91 @@ public final class RangeLockService {
      * instance for a given token. This cache will evict lock instances that are
      * not currently held by any readers or writers.
      */
-    private final LoadingCache<RangeToken, ReentrantReadWriteLock> cache = CacheBuilder
-            .newBuilder().weakValues()
-            .build(new CacheLoader<RangeToken, ReentrantReadWriteLock>() {
+    @SuppressWarnings("serial")
+    private final Map<RangeToken, RangeReadWriteLock> cache = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
+
+        @Override
+        public RangeReadWriteLock get(Object key) {
+            RangeReadWriteLock lock = super.get(key);
+            if(lock == null) {
+                RangeToken token = (RangeToken) key;
+                lock = new RangeReadWriteLock(token);
+                put(token, lock);
+            }
+            return lock;
+        }
+
+    };
+
+    /**
+     * A custom {@link ReentrantReadWriteLock} that is defined by a
+     * {@link RangeToken} and checks to see if it is "range" blocked before
+     * grabbing a read of write lock.
+     * 
+     * @author jnelson
+     */
+    @SuppressWarnings("serial")
+    private final class RangeReadWriteLock extends ReentrantReadWriteLock {
+
+        private final RangeToken token;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param token
+         */
+        public RangeReadWriteLock(RangeToken token) {
+            this.token = token;
+        }
+
+        @Override
+        public ReadLock readLock() {
+            return new ReadLock(this) {
 
                 @Override
-                public ReentrantReadWriteLock load(RangeToken key) throws Exception {
-                    return new ReentrantReadWriteLock();
+                public void lock() {
+                    while (isRangeBlocked(LockType.READ, token)) {
+                        continue;
+                    }
+                    super.lock();
                 }
 
-            });
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    if(!RangeReadWriteLock.this.isWriteLocked()
+                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
+                        cache.remove(token);
+                    }
+                }
 
+            };
+        }
+
+        @Override
+        public WriteLock writeLock() {
+            return new WriteLock(this) {
+
+                @Override
+                public void lock() {
+                    while (isRangeBlocked(LockType.WRITE, token)) {
+                        continue;
+                    }
+                    super.lock();
+                }
+
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    if(!RangeReadWriteLock.this.isWriteLocked()
+                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
+                        cache.remove(token);
+                    }
+                }
+
+            };
+        }
+
+    }
 
 }

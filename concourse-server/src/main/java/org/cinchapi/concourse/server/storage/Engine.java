@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -341,10 +339,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        WriteLock segment = lockService.getWriteLock(key, value);
-        WriteLock range = rangeLockService.getWriteLock(key, value);
-        segment.lock();
-        range.lock();
+        lockService.getWriteLock(key, record).lock();
+        rangeLockService.getWriteLock(key, value).lock();
         try {
             if(super.add(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
@@ -357,8 +353,8 @@ public final class Engine extends BufferedStore implements
             return false;
         }
         finally {
-            segment.unlock();
-            range.unlock();
+            lockService.getWriteLock(key, record).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
@@ -380,85 +376,75 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Map<Long, String> audit(long record) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock segment = lockService.getReadLock(record);
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(record).lock();
         try {
             return super.audit(record);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(record).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock segment = lockService.getReadLock(key, record);
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(key, record).lock();
         try {
             return super.audit(key, record);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(key, record).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Map<String, Set<TObject>> browse(long record) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock segment = lockService.getReadLock(record);
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(record).lock();
         try {
             return super.browse(record);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(record).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.browse(record, timestamp);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock segment = lockService.getReadLock(key);
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(key).lock();
         try {
             return super.browse(key);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(key).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.browse(key, timestamp);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
@@ -478,28 +464,25 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        ReadLock segment = lockService.getReadLock(key);
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(key, record).lock();
         try {
             return super.fetch(key, record);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(key, record).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.fetch(key, record, timestamp);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
@@ -563,10 +546,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        WriteLock segment = lockService.getWriteLock(key, value);
-        WriteLock range = rangeLockService.getWriteLock(key, value);
-        segment.lock();
-        range.lock();
+        lockService.getWriteLock(key, record).lock();
+        rangeLockService.getWriteLock(key, value).lock();
         try {
             if(super.remove(key, value, record)) {
                 notifyVersionChange(Token.wrap(key, record));
@@ -579,8 +560,8 @@ public final class Engine extends BufferedStore implements
             return false;
         }
         finally {
-            segment.unlock();
-            range.unlock();
+            lockService.getWriteLock(key, record).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
@@ -606,22 +587,19 @@ public final class Engine extends BufferedStore implements
         // we must be willing to live with the fact that a search query may
         // provide inconsistent results if a match is added while the read is
         // processing.
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.search(key, query);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public void set(String key, TObject value, long record) {
-        WriteLock segment = lockService.getWriteLock(key, value);
-        WriteLock range = rangeLockService.getWriteLock(key, value);
-        segment.lock();
-        range.lock();
+        lockService.getWriteLock(key, record).lock();
+        rangeLockService.getWriteLock(key, value).lock();
         try {
             super.set(key, value, record);
             notifyVersionChange(Token.wrap(key, record));
@@ -631,8 +609,8 @@ public final class Engine extends BufferedStore implements
                     Value.wrap(value)));
         }
         finally {
-            segment.unlock();
-            range.unlock();
+            lockService.getWriteLock(key, record).unlock();
+            rangeLockService.getWriteLock(key, value).unlock();
         }
     }
 
@@ -694,57 +672,51 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock segment = lockService.getReadLock(key, record);
-        transport.lock();
-        segment.lock();
+        transportLock.readLock().lock();
+        lockService.getReadLock(key, record).lock();
         try {
             return super.verify(key, value, record);
         }
         finally {
-            segment.unlock();
-            transport.unlock();
+            lockService.getReadLock(key, record).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.verify(key, value, record, timestamp);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        ReadLock transport = transportLock.readLock();
-        transport.lock();
+        transportLock.readLock().lock();
         try {
             return super.doExplore(timestamp, key, operator, values);
         }
         finally {
-            transport.unlock();
+            transportLock.readLock().unlock();
         }
     }
 
     @Override
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        ReadLock transport = transportLock.readLock();
-        ReadLock range = rangeLockService.getReadLock(key, operator, values);
-        transport.lock();
-        range.lock();
+        transportLock.readLock().lock();
+        rangeLockService.getReadLock(key, operator, values).lock();
         try {
             return super.doExplore(key, operator, values);
         }
         finally {
-            range.unlock();
-            transport.unlock();
+            rangeLockService.getReadLock(key, operator, values).unlock();
+            transportLock.readLock().unlock();
         }
     }
 
