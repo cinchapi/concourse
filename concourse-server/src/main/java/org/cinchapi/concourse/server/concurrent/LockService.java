@@ -23,15 +23,15 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.util.Numbers;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -60,8 +60,6 @@ public final class LockService {
         return new LockService();
     }
 
-    private final ReentrantLock lock = new ReentrantLock();
-
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
@@ -83,13 +81,11 @@ public final class LockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(Token token) {
-        lock.lock();
         try {
-            refs.get(token).incrementAndGet();
             return cache.get(token).readLock();
         }
-        finally {
-            lock.unlock();
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
         }
     }
 
@@ -114,13 +110,11 @@ public final class LockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(Token token) {
-        lock.lock();
         try {
-            refs.get(token).incrementAndGet();
             return cache.get(token).writeLock();
         }
-        finally {
-            lock.unlock();
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
         }
     }
 
@@ -129,110 +123,17 @@ public final class LockService {
      * instance for a given token. This cache will periodically evict lock
      * instances that are not currently held by any readers or writers.
      */
-    @SuppressWarnings("serial")
-    private final Map<Token, TokenReadWriteLock> cache = new ConcurrentHashMap<Token, TokenReadWriteLock>() {
-
-        @Override
-        public TokenReadWriteLock get(Object key) {
-            TokenReadWriteLock lock = super.get(key);
-            if(lock == null) {
-                Token token = (Token) key;
-                lock = new TokenReadWriteLock(token);
-                put(token, lock);
-            }
-            return lock;
-        }
-
-    };
-
-    /**
-     * The running number of references to a lock instance associated with a
-     * given {@link Token}. We use reference counting to track when a lock for a
-     * given token is requested by a thread.
-     */
-    @SuppressWarnings("serial")
-    private final Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
-        @Override
-        public AtomicInteger get(Object key) {
-            AtomicInteger integer = super.get(key);
-            if(integer == null) {
-                integer = new AtomicInteger(0);
-                put((Token) key, integer);
-            }
-            return integer;
-        }
-    };
-
-    /**
-     * A custom {@link ReentrantReadWriteLock} that is defined by a
-     * {@link Token}.
-     * 
-     * @author jnelson
-     */
-    @SuppressWarnings("serial")
-    private final class TokenReadWriteLock extends ReentrantReadWriteLock {
-
-        private final Token token;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param token
-         */
-        public TokenReadWriteLock(Token token) {
-            this.token = token;
-        }
-
-        @Override
-        public ReadLock readLock() {
-            return new ReadLock(this) {
+    private final LoadingCache<Token, ReentrantReadWriteLock> cache = CacheBuilder
+            .newBuilder().weakValues()
+            .build(new CacheLoader<Token, ReentrantReadWriteLock>() {
 
                 @Override
-                public void unlock() {
-                    super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
+                public ReentrantReadWriteLock load(Token key) throws Exception {
+                    return new ReentrantReadWriteLock();
                 }
 
-            };
-        }
+            });
 
-        @Override
-        public WriteLock writeLock() {
-            return new WriteLock(this) {
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
-                }
-
-            };
-        }
-
-    }
-
-    private LockService() {}
+    private LockService() {/* noop */}
 
 }
