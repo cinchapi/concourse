@@ -1,5 +1,10 @@
 ## Changelog
 
+#### Version 0.3.8 (September 30, 2014)
+* Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
+* Removed a potential race-condition between real-time failure detection and just-in-time locking that made it possible for an failed transaction to errneously commit and violate ACID consistency.
+* Fixed a bug where the `Numbers#max` method actually returned the minimum value.
+
 #### Version 0.3.7 (September 13, 2014)
 * Fixed an issue that caused Concourse Server to unnecessarily keep file descriptors open after data was indexed and synced to disk.
 * Fixed an issue that made it possible for Concourse to lose some storage metadata in the event of a premature server crash or power loss.
