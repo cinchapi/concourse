@@ -3,11 +3,13 @@
 #### Version 0.4.2 (September 30, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
+* Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
+* Fixed and bug in the just-in-time locking protocol that prematurely removed references to active locks.
+* Fixed a bug where transactions that started to commit but failed before completing did not release locks, resulting in deadlocks. 
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was created using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
 * Fixed a bug that caused the `insert` methods to incorrectly store values encoded as *resolvable link specifications* as strings instead of links to resolved records.
-* Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
 
 #### Version 0.3.8 (September 30, 2014)
 * Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
