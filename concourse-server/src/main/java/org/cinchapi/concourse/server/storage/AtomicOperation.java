@@ -190,8 +190,8 @@ public class AtomicOperation extends BufferedStore implements
      * any of the changes to the {@link #destination} store.
      */
     public void abort() {
-        if(open) {
-            open = false;
+        open = false;
+        if(locks != null && !locks.isEmpty()) {
             releaseLocks();
         }
     }

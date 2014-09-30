@@ -23,15 +23,17 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.util.Numbers;
+import org.cinchapi.common.util.NonBlockingHashMultimap;
+import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -60,7 +62,29 @@ public final class LockService {
         return new LockService();
     }
 
-    private final ReentrantLock lock = new ReentrantLock();
+    /**
+     * A cache of locks that have been requested. Each Lock is stored as a
+     * WeakReference so they are eagerly GCed unless that are active, in which
+     * case there is a strong reference to the lock in {@link #refs}.
+     */
+    private final LoadingCache<Token, TokenReadWriteLock> locks = CacheBuilder
+            .newBuilder().weakValues()
+            .build(new CacheLoader<Token, TokenReadWriteLock>() {
+
+                @Override
+                public TokenReadWriteLock load(Token key) throws Exception {
+                    return new TokenReadWriteLock(key);
+                }
+
+            });
+
+    /**
+     * This map holds strong references to TokenReadWriteLocks that are grabbed
+     * (e.g. in use). We must keep these strong references while the locks are
+     * active so that they are not GCed and we run into monitor state issues.
+     */
+    private final NonBlockingHashMultimap<Token, TokenReadWriteLockReference> refs = NonBlockingHashMultimap
+            .create();
 
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
@@ -83,13 +107,11 @@ public final class LockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(Token token) {
-        lock.lock();
         try {
-            refs.get(token).incrementAndGet();
-            return cache.get(token).readLock();
+            return locks.get(token).readLock();
         }
-        finally {
-            lock.unlock();
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
         }
     }
 
@@ -114,54 +136,13 @@ public final class LockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(Token token) {
-        lock.lock();
         try {
-            refs.get(token).incrementAndGet();
-            return cache.get(token).writeLock();
+            return locks.get(token).writeLock();
         }
-        finally {
-            lock.unlock();
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
         }
     }
-
-    /**
-     * This is cache that is responsible for returning the same lock
-     * instance for a given token. This cache will periodically evict lock
-     * instances that are not currently held by any readers or writers.
-     */
-    @SuppressWarnings("serial")
-    private final Map<Token, TokenReadWriteLock> cache = new ConcurrentHashMap<Token, TokenReadWriteLock>() {
-
-        @Override
-        public TokenReadWriteLock get(Object key) {
-            TokenReadWriteLock lock = super.get(key);
-            if(lock == null) {
-                Token token = (Token) key;
-                lock = new TokenReadWriteLock(token);
-                put(token, lock);
-            }
-            return lock;
-        }
-
-    };
-
-    /**
-     * The running number of references to a lock instance associated with a
-     * given {@link Token}. We use reference counting to track when a lock for a
-     * given token is requested by a thread.
-     */
-    @SuppressWarnings("serial")
-    private final Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
-        @Override
-        public AtomicInteger get(Object key) {
-            AtomicInteger integer = super.get(key);
-            if(integer == null) {
-                integer = new AtomicInteger(0);
-                put((Token) key, integer);
-            }
-            return integer;
-        }
-    };
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
@@ -184,27 +165,48 @@ public final class LockService {
         }
 
         @Override
+        public boolean equals(Object object) {
+            if(object instanceof TokenReadWriteLock) {
+                TokenReadWriteLock other = (TokenReadWriteLock) object;
+                return token.equals(other.token)
+                        && getReadLockCount() == other.getReadLockCount()
+                        && isWriteLocked() == other.isWriteLocked();
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(token, getReadLockCount(), isWriteLocked());
+        }
+
+        @Override
         public ReadLock readLock() {
             return new ReadLock(this) {
 
                 @Override
+                public void lock() {
+                    super.lock();
+                    refs.put(token, new TokenReadWriteLockReference(
+                            TokenReadWriteLock.this, Thread.currentThread()));
+                }
+
+                @Override
                 public void unlock() {
                     super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
+                    refs.remove(token, new TokenReadWriteLockReference(
+                            TokenReadWriteLock.this, Thread.currentThread()));
                 }
 
             };
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + "[id = " + System.identityHashCode(this)
+                    + "]";
         }
 
         @Override
@@ -212,20 +214,17 @@ public final class LockService {
             return new WriteLock(this) {
 
                 @Override
+                public void lock() {
+                    super.lock();
+                    refs.put(token, new TokenReadWriteLockReference(
+                            TokenReadWriteLock.this, Thread.currentThread()));
+                }
+
+                @Override
                 public void unlock() {
                     super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
+                    refs.remove(token, new TokenReadWriteLockReference(
+                            TokenReadWriteLock.this, Thread.currentThread()));
                 }
 
             };
@@ -233,6 +232,62 @@ public final class LockService {
 
     }
 
-    private LockService() {}
+    /**
+     * Holds a reference to a {@link TokenReadWriteLock} that has been grabbed
+     * and the thread that grabbed it. This establishes a strong reference to
+     * the TokenReadWriteLock, which prevents it from being automatically GCed.
+     * 
+     * <p>
+     * We must associate the locking thread with the lock in order to
+     * differentiate the lock event in the {@link #refs} collection.
+     * </p>
+     * 
+     * @author jnelson
+     */
+    private class TokenReadWriteLockReference {
+
+        /**
+         * A strong reference to a TokenReadWriteLock that has been grabbed.
+         * This prevents the lock from being GCed and evicted from
+         * {@link #locks}.
+         */
+        private final TokenReadWriteLock lock;
+
+        /**
+         * The thread where the {@link #lock} was grabbed.
+         */
+        private final Thread thread;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param lock
+         * @param thread
+         */
+        public TokenReadWriteLockReference(TokenReadWriteLock lock,
+                Thread thread) {
+            this.lock = lock;
+            this.thread = thread;
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if(object instanceof TokenReadWriteLockReference) {
+                return lock.equals(((TokenReadWriteLockReference) object).lock)
+                        && thread
+                                .equals(((TokenReadWriteLockReference) object).thread);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(System.identityHashCode(lock), thread);
+        }
+    }
+
+    private LockService() {/* noop */}
 
 }
