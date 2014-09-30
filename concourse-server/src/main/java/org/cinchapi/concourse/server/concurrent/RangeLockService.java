@@ -24,13 +24,13 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -38,7 +38,12 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -84,7 +89,12 @@ public final class RangeLockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(RangeToken token) {
-        return cache.get(token).readLock();
+        try {
+            return locks.get(token).readLock();
+        }
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -123,7 +133,12 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(RangeToken token) {
-        return cache.get(token).writeLock();
+        try {
+            return locks.get(token).writeLock();
+        }
+        catch (ExecutionException e) {
+            throw Throwables.propagate(e);
+        }
 
     }
 
@@ -164,8 +179,8 @@ public final class RangeLockService {
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = cache.entrySet()
-                .iterator();
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = locks.asMap()
+                .entrySet().iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             while (it.hasNext()) {
@@ -266,25 +281,84 @@ public final class RangeLockService {
     }
 
     /**
-     * This is a global cache that is responsible for returning the same lock
-     * instance for a given token. This cache will evict lock instances that are
-     * not currently held by any readers or writers.
+     * A cache of locks that have been requested. Each Lock is stored as a
+     * WeakReference so they are eagerly GCed unless that are active, in which
+     * case there is a strong reference to the lock in {@link #refs}.
      */
-    @SuppressWarnings("serial")
-    private final Map<RangeToken, RangeReadWriteLock> cache = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>() {
+    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
+            .newBuilder().weakValues()
+            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
 
-        @Override
-        public RangeReadWriteLock get(Object key) {
-            RangeReadWriteLock lock = super.get(key);
-            if(lock == null) {
-                RangeToken token = (RangeToken) key;
-                lock = new RangeReadWriteLock(token);
-                put(token, lock);
-            }
-            return lock;
+                @Override
+                public RangeReadWriteLock load(RangeToken key) throws Exception {
+                    return new RangeReadWriteLock(key);
+                }
+
+            });
+
+    /**
+     * This map holds strong references to RangeReadWriteLocks that are grabbed
+     * (e.g. in use). We must keep these strong references while the locks are
+     * active so that they are not GCed and we run into monitor state issues.
+     */
+    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
+            .create();
+
+    /**
+     * Holds a reference to a {@link RangeReadWriteLock} that has been grabbed
+     * and the thread that grabbed it. This establishes a strong reference to
+     * the RangeReadWriteLock, which prevents it from being automatically GCed.
+     * 
+     * <p>
+     * We must associate the locking thread with the lock in order to
+     * differentiate the lock event in the {@link #refs} collection.
+     * </p>
+     * 
+     * @author jnelson
+     */
+    private class RangeReadWriteLockReference {
+
+        /**
+         * A strong reference to a TokenReadWriteLock that has been grabbed.
+         * This prevents the lock from being GCed and evicted from
+         * {@link #locks}.
+         */
+        private final RangeReadWriteLock lock;
+
+        /**
+         * The thread where the {@link #lock} was grabbed.
+         */
+        private final Thread thread;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param lock
+         * @param thread
+         */
+        public RangeReadWriteLockReference(RangeReadWriteLock lock,
+                Thread thread) {
+            this.lock = lock;
+            this.thread = thread;
         }
 
-    };
+        @Override
+        public boolean equals(Object object) {
+            if(object instanceof RangeReadWriteLockReference) {
+                return lock.equals(((RangeReadWriteLockReference) object).lock)
+                        && thread
+                                .equals(((RangeReadWriteLockReference) object).thread);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(System.identityHashCode(lock), thread);
+        }
+    }
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
@@ -317,18 +391,24 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
+                    refs.put(token, new RangeReadWriteLockReference(
+                            RangeReadWriteLock.this, Thread.currentThread()));
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    if(!RangeReadWriteLock.this.isWriteLocked()
-                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
-                        cache.remove(token);
-                    }
+                    refs.remove(token, new RangeReadWriteLockReference(
+                            RangeReadWriteLock.this, Thread.currentThread()));
                 }
 
             };
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + "[id = " + System.identityHashCode(this)
+                    + "]";
         }
 
         @Override
@@ -341,15 +421,15 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
+                    refs.put(token, new RangeReadWriteLockReference(
+                            RangeReadWriteLock.this, Thread.currentThread()));
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    if(!RangeReadWriteLock.this.isWriteLocked()
-                            && RangeReadWriteLock.this.getReadLockCount() == 0) {
-                        cache.remove(token);
-                    }
+                    refs.remove(token, new RangeReadWriteLockReference(
+                            RangeReadWriteLock.this, Thread.currentThread()));
                 }
 
             };

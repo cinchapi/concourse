@@ -25,6 +25,8 @@ package org.cinchapi.concourse.util;
 
 import java.util.Collection;
 
+import com.google.common.collect.Iterables;
+
 /**
  * A collection of {@link Collection} related utility functions.
  * 
@@ -56,6 +58,17 @@ public final class TCollections {
      */
     public static Collection<?> largerBetween(Collection<?> a, Collection<?> b) {
         return a.size() == b.size() || b.size() > a.size() ? b : a;
+    }
+
+    /**
+     * Return a random element from the {@code collection}.
+     * 
+     * @param collection
+     * @return a random element
+     */
+    public static <T> T getRandomElement(Collection<T> collection) {
+        int size = collection.size();
+        return Iterables.get(collection, Math.abs(Random.getInt()) % size);
     }
 
     private TCollections() {/* noop */}
