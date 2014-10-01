@@ -81,6 +81,30 @@ public final class RangeLockService {
     }
 
     /**
+     * A cache of locks that have been requested. Each Lock is stored as a
+     * WeakReference so they are eagerly GCed unless that are active, in which
+     * case there is a strong reference to the lock in {@link #refs}.
+     */
+    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
+            .newBuilder().softValues()
+            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
+
+                @Override
+                public RangeReadWriteLock load(RangeToken key) throws Exception {
+                    return new RangeReadWriteLock(key);
+                }
+
+            });
+
+    /**
+     * This map holds strong references to RangeReadWriteLocks that are grabbed
+     * (e.g. in use). We must keep these strong references while the locks are
+     * active so that they are not GCed and we run into monitor state issues.
+     */
+    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
+            .create();
+
+    /**
      * Return the ReadLock that is identified by {@code token}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
@@ -281,86 +305,6 @@ public final class RangeLockService {
     }
 
     /**
-     * A cache of locks that have been requested. Each Lock is stored as a
-     * WeakReference so they are eagerly GCed unless that are active, in which
-     * case there is a strong reference to the lock in {@link #refs}.
-     */
-    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
-            .newBuilder().softValues()
-            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
-
-                @Override
-                public RangeReadWriteLock load(RangeToken key) throws Exception {
-                    return new RangeReadWriteLock(key);
-                }
-
-            });
-
-    /**
-     * This map holds strong references to RangeReadWriteLocks that are grabbed
-     * (e.g. in use). We must keep these strong references while the locks are
-     * active so that they are not GCed and we run into monitor state issues.
-     */
-    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
-            .create();
-
-    /**
-     * Holds a reference to a {@link RangeReadWriteLock} that has been grabbed
-     * and the thread that grabbed it. This establishes a strong reference to
-     * the RangeReadWriteLock, which prevents it from being automatically GCed.
-     * 
-     * <p>
-     * We must associate the locking thread with the lock in order to
-     * differentiate the lock event in the {@link #refs} collection.
-     * </p>
-     * 
-     * @author jnelson
-     */
-    private class RangeReadWriteLockReference {
-
-        /**
-         * A strong reference to a TokenReadWriteLock that has been grabbed.
-         * This prevents the lock from being GCed and evicted from
-         * {@link #locks}.
-         */
-        private final RangeReadWriteLock lock;
-
-        /**
-         * The thread where the {@link #lock} was grabbed.
-         */
-        private final Thread thread;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param lock
-         * @param thread
-         */
-        public RangeReadWriteLockReference(RangeReadWriteLock lock,
-                Thread thread) {
-            this.lock = lock;
-            this.thread = thread;
-        }
-
-        @Override
-        public boolean equals(Object object) {
-            if(object instanceof RangeReadWriteLockReference) {
-                return lock.equals(((RangeReadWriteLockReference) object).lock)
-                        && thread
-                                .equals(((RangeReadWriteLockReference) object).thread);
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(System.identityHashCode(lock), thread);
-        }
-    }
-
-    /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
      * {@link RangeToken} and checks to see if it is "range" blocked before
      * grabbing a read of write lock.
@@ -435,6 +379,62 @@ public final class RangeLockService {
             };
         }
 
+    }
+
+    /**
+     * Holds a reference to a {@link RangeReadWriteLock} that has been grabbed
+     * and the thread that grabbed it. This establishes a strong reference to
+     * the RangeReadWriteLock, which prevents it from being automatically GCed.
+     * 
+     * <p>
+     * We must associate the locking thread with the lock in order to
+     * differentiate the lock event in the {@link #refs} collection.
+     * </p>
+     * 
+     * @author jnelson
+     */
+    private class RangeReadWriteLockReference {
+
+        /**
+         * A strong reference to a TokenReadWriteLock that has been grabbed.
+         * This prevents the lock from being GCed and evicted from
+         * {@link #locks}.
+         */
+        private final RangeReadWriteLock lock;
+
+        /**
+         * The thread where the {@link #lock} was grabbed.
+         */
+        private final Thread thread;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param lock
+         * @param thread
+         */
+        public RangeReadWriteLockReference(RangeReadWriteLock lock,
+                Thread thread) {
+            this.lock = lock;
+            this.thread = thread;
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if(object instanceof RangeReadWriteLockReference) {
+                return lock.equals(((RangeReadWriteLockReference) object).lock)
+                        && thread
+                                .equals(((RangeReadWriteLockReference) object).thread);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(System.identityHashCode(lock), thread);
+        }
     }
 
 }
