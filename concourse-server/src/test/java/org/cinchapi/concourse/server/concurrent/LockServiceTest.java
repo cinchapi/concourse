@@ -30,6 +30,7 @@ import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.base.Throwables;
@@ -50,6 +51,7 @@ public class LockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrencyAndDifferentActions()
             throws InterruptedException {
         if(!System.getProperty("jenkins").equals("true")) {
@@ -96,6 +98,7 @@ public class LockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrency()
             throws InterruptedException {
         if(!System.getProperty("jenkins").equals("true")) {
