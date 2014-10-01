@@ -180,6 +180,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
+        // This implementation is unnecessary since Transactions are assumed to
+        // be isolated (e.g. single-threaded), but is kept here for consistency.
         if(token instanceof RangeToken) {
             Set<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
@@ -190,7 +192,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         else {
             versionChangeListeners.put(token, listener);
         }
-        ((Engine) destination).addVersionChangeListener(token, listener);
     }
 
     @Override
@@ -252,6 +253,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
+        // This implementation is unnecessary since Transactions are assumed to
+        // be isolated (e.g. single-threaded), but is kept here for consistency.
         if(token instanceof RangeToken) {
             Set<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
@@ -262,7 +265,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         else {
             versionChangeListeners.remove(token, listener);
         }
-        ((Engine) destination).removeVersionChangeListener(token, listener);
     }
 
     @Override
