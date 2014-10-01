@@ -330,6 +330,16 @@ public final class RangeLockService {
         @Override
         public ReadLock readLock() {
             return new ReadLock(this) {
+                
+                @Override
+                public boolean tryLock() {
+                    if(super.tryLock()){
+                        return strongRefs.add(RangeReadWriteLock.this);
+                    }
+                    else{
+                        return false;
+                    }
+                }
 
                 @Override
                 public void lock() {
@@ -358,6 +368,16 @@ public final class RangeLockService {
         @Override
         public WriteLock writeLock() {
             return new WriteLock(this) {
+                
+                @Override
+                public boolean tryLock() {
+                    if(super.tryLock()){
+                        return strongRefs.add(RangeReadWriteLock.this);
+                    }
+                    else{
+                        return false;
+                    }
+                }
 
                 @Override
                 public void lock() {
