@@ -30,6 +30,7 @@ import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.base.Throwables;
@@ -50,6 +51,7 @@ public class LockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrencyAndDifferentActions()
             throws InterruptedException {
         int clients = TestData.getScaleCount();
@@ -93,6 +95,7 @@ public class LockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrency()
             throws InterruptedException {
         int clients = TestData.getScaleCount();
@@ -110,7 +113,7 @@ public class LockServiceTest extends ConcourseBaseTest {
                     catch (IllegalMonitorStateException e) {
                         done.set(true);
                         failed.set(true);
-                        e.printStackTrace();                        
+                        e.printStackTrace();
                     }
                 }
 
@@ -190,7 +193,7 @@ public class LockServiceTest extends ConcourseBaseTest {
 
             @Override
             public void run() {
-                while (!done.get()) {  
+                while (!done.get()) {
                     try {
                         lockService.getReadLock("foo", 1).lock();
                         lockService.getReadLock("foo", 1).unlock();
@@ -212,7 +215,7 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getWriteLock("foo", 1).lock(); 
+                        lockService.getWriteLock("foo", 1).lock();
                         lockService.getWriteLock("foo", 1).unlock();
                     }
                     catch (IllegalMonitorStateException e) {
