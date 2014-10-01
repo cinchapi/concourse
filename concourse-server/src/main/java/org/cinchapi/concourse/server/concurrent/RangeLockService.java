@@ -286,7 +286,7 @@ public final class RangeLockService {
      * case there is a strong reference to the lock in {@link #refs}.
      */
     private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
-            .newBuilder().weakValues()
+            .newBuilder().softValues()
             .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
 
                 @Override

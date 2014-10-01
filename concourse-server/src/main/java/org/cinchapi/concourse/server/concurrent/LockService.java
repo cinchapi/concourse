@@ -68,7 +68,7 @@ public final class LockService {
      * case there is a strong reference to the lock in {@link #refs}.
      */
     private final LoadingCache<Token, TokenReadWriteLock> locks = CacheBuilder
-            .newBuilder().weakValues()
+            .newBuilder().softValues()
             .build(new CacheLoader<Token, TokenReadWriteLock>() {
 
                 @Override
