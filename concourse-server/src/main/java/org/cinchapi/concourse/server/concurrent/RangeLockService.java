@@ -113,7 +113,9 @@ public final class RangeLockService {
      */
     public ReadLock getReadLock(RangeToken token) {
         try {
-            return locks.get(token).readLock();
+            RangeReadWriteLock lock = locks.get(token);
+            strongRefs.add(lock);
+            return lock.readLock();
         }
         catch (ExecutionException e) {
             throw Throwables.propagate(e);
@@ -157,7 +159,9 @@ public final class RangeLockService {
      */
     public WriteLock getWriteLock(RangeToken token) {
         try {
-            return locks.get(token).writeLock();
+            RangeReadWriteLock lock = locks.get(token);
+            strongRefs.add(lock);
+            return lock.writeLock();
         }
         catch (ExecutionException e) {
             throw Throwables.propagate(e);
@@ -339,7 +343,7 @@ public final class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.remove(RangeReadWriteLock.this);
+                    strongRefs.removeExactly(RangeReadWriteLock.this, 2);
                 }
 
             };
@@ -367,7 +371,7 @@ public final class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.remove(RangeReadWriteLock.this);
+                    strongRefs.removeExactly(RangeReadWriteLock.this, 2);
                 }
 
             };

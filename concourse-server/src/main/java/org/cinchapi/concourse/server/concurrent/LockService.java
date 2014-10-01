@@ -108,7 +108,9 @@ public final class LockService {
      */
     public ReadLock getReadLock(Token token) {
         try {
-            return locks.get(token).readLock();
+            TokenReadWriteLock lock = locks.get(token);
+            strongRefs.add(lock);
+            return lock.readLock();
         }
         catch (ExecutionException e) {
             throw Throwables.propagate(e);
@@ -137,7 +139,9 @@ public final class LockService {
      */
     public WriteLock getWriteLock(Token token) {
         try {
-            return locks.get(token).writeLock();
+            TokenReadWriteLock lock = locks.get(token);
+            strongRefs.add(lock);
+            return lock.writeLock();
         }
         catch (ExecutionException e) {
             throw Throwables.propagate(e);
@@ -195,7 +199,7 @@ public final class LockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.remove(TokenReadWriteLock.this);
+                    strongRefs.removeExactly(TokenReadWriteLock.this, 2);
                 }
 
             };
@@ -220,7 +224,7 @@ public final class LockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.remove(TokenReadWriteLock.this);
+                    strongRefs.removeExactly(TokenReadWriteLock.this, 2);
                 }
 
             };
