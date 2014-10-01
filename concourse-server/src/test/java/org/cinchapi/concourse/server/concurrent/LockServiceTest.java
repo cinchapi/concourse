@@ -54,83 +54,78 @@ public class LockServiceTest extends ConcourseBaseTest {
     @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrencyAndDifferentActions()
             throws InterruptedException {
-        if(!System.getProperty("jenkins").equals("true")) {
-            int clients = TestData.getScaleCount();
-            final AtomicBoolean done = new AtomicBoolean(false);
-            final AtomicBoolean failed = new AtomicBoolean(false);
-            final Set<String> keys = Sets.newHashSet();
-            while (keys.size() < clients) {
-                keys.add(TestData.getString());
-            }
-            final Set<Long> records = Sets.newHashSet();
-            while (records.size() < clients) {
-                records.add(TestData.getLong());
-            }
-            Runnable r = new Runnable() {
+        int clients = TestData.getScaleCount();
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean failed = new AtomicBoolean(false);
+        final Set<String> keys = Sets.newHashSet();
+        while (keys.size() < clients) {
+            keys.add(TestData.getString());
+        }
+        final Set<Long> records = Sets.newHashSet();
+        while (records.size() < clients) {
+            records.add(TestData.getLong());
+        }
+        Runnable r = new Runnable() {
 
-                @Override
-                public void run() {
-                    while (!done.get()) {
-                        try {
-                            String key = TCollections.getRandomElement(keys);
-                            long record = TCollections
-                                    .getRandomElement(records);
-                            lockService.getReadLock(key, record).lock();
-                            lockService.getReadLock(key, record).unlock();
-                        }
-                        catch (IllegalMonitorStateException e) {
-                            e.printStackTrace();
-                            done.set(true);
-                            failed.set(true);
-                        }
+            @Override
+            public void run() {
+                while (!done.get()) {
+                    try {
+                        String key = TCollections.getRandomElement(keys);
+                        long record = TCollections.getRandomElement(records);
+                        lockService.getReadLock(key, record).lock();
+                        lockService.getReadLock(key, record).unlock();
                     }
-
+                    catch (IllegalMonitorStateException e) {
+                        e.printStackTrace();
+                        done.set(true);
+                        failed.set(true);
+                    }
                 }
 
-            };
-            for (int i = 0; i < clients; i++) {
-                new Thread(r).start();
             }
-            Thread.sleep(TestData.getScaleCount() * 10);
-            done.set(true);
-            Assert.assertFalse(failed.get());
+
+        };
+        for (int i = 0; i < clients; i++) {
+            new Thread(r).start();
         }
+        Thread.sleep(TestData.getScaleCount() * 10);
+        done.set(true);
+        Assert.assertFalse(failed.get());
     }
 
     @Test
     @Ignore
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsedWithHighConcurrency()
             throws InterruptedException {
-        if(!System.getProperty("jenkins").equals("true")) {
-            int clients = TestData.getScaleCount();
-            final AtomicBoolean done = new AtomicBoolean(false);
-            final AtomicBoolean failed = new AtomicBoolean(false);
-            Runnable r = new Runnable() {
+        int clients = TestData.getScaleCount();
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean failed = new AtomicBoolean(false);
+        Runnable r = new Runnable() {
 
-                @Override
-                public void run() {
-                    while (!done.get()) {
-                        try {
-                            lockService.getReadLock("bar", 1).lock();
-                            lockService.getReadLock("bar", 1).unlock();
-                        }
-                        catch (IllegalMonitorStateException e) {
-                            done.set(true);
-                            failed.set(true);
-                            e.printStackTrace();
-                        }
+            @Override
+            public void run() {
+                while (!done.get()) {
+                    try {
+                        lockService.getReadLock("bar", 1).lock();
+                        lockService.getReadLock("bar", 1).unlock();
                     }
-
+                    catch (IllegalMonitorStateException e) {
+                        done.set(true);
+                        failed.set(true);
+                        e.printStackTrace();
+                    }
                 }
 
-            };
-            for (int i = 0; i < clients; i++) {
-                new Thread(r).start();
             }
-            Thread.sleep(TestData.getScaleCount() * 10);
-            done.set(true);
-            Assert.assertFalse(failed.get());
+
+        };
+        for (int i = 0; i < clients; i++) {
+            new Thread(r).start();
         }
+        Thread.sleep(TestData.getScaleCount() * 10);
+        done.set(true);
+        Assert.assertFalse(failed.get());
     }
 
     @Test
