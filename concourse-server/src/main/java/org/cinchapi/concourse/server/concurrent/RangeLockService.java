@@ -30,7 +30,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -38,12 +37,12 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ConcurrentHashMultiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -79,6 +78,30 @@ public final class RangeLockService {
     public static RangeLockService create() {
         return new RangeLockService();
     }
+
+    /**
+     * A cache of locks that have been requested. Each Lock is stored as a
+     * WeakReference so they are eagerly GCed unless that are active, in which
+     * case there is a strong reference to the lock in {@link #refs}.
+     */
+    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
+            .newBuilder().weakValues()
+            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
+
+                @Override
+                public RangeReadWriteLock load(RangeToken key) throws Exception {
+                    return new RangeReadWriteLock(key);
+                }
+
+            });
+
+    /**
+     * This set holds strong references to RangeReadWriteLocks that are grabbed
+     * (e.g. in use). We must keep these strong references while the locks are
+     * active so that they are not GCed and we run into monitor state issues.
+     */
+    private final ConcurrentHashMultiset<RangeReadWriteLock> strongRefs = ConcurrentHashMultiset
+            .create();
 
     /**
      * Return the ReadLock that is identified by {@code token}. Every caller
@@ -280,31 +303,6 @@ public final class RangeLockService {
     }
 
     /**
-
-     * A cache of locks that have been requested. Each Lock is stored as a
-     * WeakReference so they are eagerly GCed unless that are active, in which
-     * case there is a strong reference to the lock in {@link #refs}.
-     */
-    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
-            .newBuilder().softValues()
-            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
-
-                @Override
-                public RangeReadWriteLock load(RangeToken key) throws Exception {
-                    return new RangeReadWriteLock(key);
-                }
-
-            });
-
-    /**
-     * This map holds strong references to RangeReadWriteLocks that are grabbed
-     * (e.g. in use). We must keep these strong references while the locks are
-     * active so that they are not GCed and we run into monitor state issues.
-     */
-    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
-            .create();
-
-    /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
      * {@link RangeToken} and checks to see if it is "range" blocked before
      * grabbing a read of write lock.
@@ -335,15 +333,13 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
-                    refs.put(token, new RangeReadWriteLockReference(
-                            RangeReadWriteLock.this, Thread.currentThread()));
+                    strongRefs.add(RangeReadWriteLock.this);
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    refs.remove(token, new RangeReadWriteLockReference(
-                            RangeReadWriteLock.this, Thread.currentThread()));
+                    strongRefs.remove(RangeReadWriteLock.this);
                 }
 
             };
@@ -365,76 +361,18 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
-                    refs.put(token, new RangeReadWriteLockReference(
-                            RangeReadWriteLock.this, Thread.currentThread()));
+                    strongRefs.add(RangeReadWriteLock.this);
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    refs.remove(token, new RangeReadWriteLockReference(
-                            RangeReadWriteLock.this, Thread.currentThread()));
+                    strongRefs.remove(RangeReadWriteLock.this);
                 }
 
             };
         }
 
-    }
-
-    /**
-     * Holds a reference to a {@link RangeReadWriteLock} that has been grabbed
-     * and the thread that grabbed it. This establishes a strong reference to
-     * the RangeReadWriteLock, which prevents it from being automatically GCed.
-     * 
-     * <p>
-     * We must associate the locking thread with the lock in order to
-     * differentiate the lock event in the {@link #refs} collection.
-     * </p>
-     * 
-     * @author jnelson
-     */
-    private class RangeReadWriteLockReference {
-
-        /**
-         * A strong reference to a TokenReadWriteLock that has been grabbed.
-         * This prevents the lock from being GCed and evicted from
-         * {@link #locks}.
-         */
-        private final RangeReadWriteLock lock;
-
-        /**
-         * The thread where the {@link #lock} was grabbed.
-         */
-        private final Thread thread;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param lock
-         * @param thread
-         */
-        public RangeReadWriteLockReference(RangeReadWriteLock lock,
-                Thread thread) {
-            this.lock = lock;
-            this.thread = thread;
-        }
-
-        @Override
-        public boolean equals(Object object) {
-            if(object instanceof RangeReadWriteLockReference) {
-                return lock.equals(((RangeReadWriteLockReference) object).lock)
-                        && thread
-                                .equals(((RangeReadWriteLockReference) object).thread);
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(System.identityHashCode(lock), thread);
-        }
     }
 
 }
