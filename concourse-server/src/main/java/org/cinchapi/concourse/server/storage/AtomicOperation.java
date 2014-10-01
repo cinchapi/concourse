@@ -156,6 +156,15 @@ public class AtomicOperation extends BufferedStore implements
     private static final int INITIAL_CAPACITY = 10;
 
     /**
+     * A flag that indicates this atomic operation has successfully grabbed all
+     * required locks and is in the process of committing. We use this flag to
+     * protect the atomic operation from version change notifications that
+     * happen while its committing (because the version change notifications
+     * come from the transaction itself).
+     */
+    protected boolean committing = false;
+
+    /**
      * The collection of {@link LockDescription} objects that are grabbed in the
      * {@link #grabLocks()} method at commit time.
      */
@@ -275,6 +284,7 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         open = false;
         if(grabLocks()) {
+            committing = true;
             doCommit();
             releaseLocks();
             return true;
@@ -306,7 +316,9 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     @Restricted
     public void onVersionChange(Token token) {
-        abort();
+        if(!committing) {
+            abort();
+        }
     }
 
     @Override
