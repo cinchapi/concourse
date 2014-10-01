@@ -191,6 +191,16 @@ public final class LockService {
             return new ReadLock(this) {
 
                 @Override
+                public boolean tryLock() {
+                    if(super.tryLock()){
+                        return strongRefs.add(TokenReadWriteLock.this);
+                    }
+                    else{
+                        return false;
+                    }
+                }
+
+                @Override
                 public void lock() {
                     super.lock();
                     strongRefs.add(TokenReadWriteLock.this);
@@ -214,6 +224,16 @@ public final class LockService {
         @Override
         public WriteLock writeLock() {
             return new WriteLock(this) {
+                
+                @Override
+                public boolean tryLock() {
+                    if(super.tryLock()){
+                        return strongRefs.add(TokenReadWriteLock.this);
+                    }
+                    else{
+                        return false;
+                    }
+                }
 
                 @Override
                 public void lock() {
