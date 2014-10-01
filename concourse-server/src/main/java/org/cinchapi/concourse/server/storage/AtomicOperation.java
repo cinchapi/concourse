@@ -281,20 +281,16 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if the atomic operation is completely applied
      */
     public final boolean commit() throws AtomicStateException {
-        if(open) {
-            open = false;
-            if(grabLocks()) {
-                committing = true;
-                doCommit();
-                releaseLocks();
-                return true;
-            }
-            else {
-                abort();
-                return false;
-            }
+        checkState();
+        open = false;
+        if(grabLocks()) {
+            committing = true;
+            doCommit();
+            releaseLocks();
+            return true;
         }
         else {
+            abort();
             return false;
         }
     }
