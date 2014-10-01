@@ -81,30 +81,6 @@ public final class RangeLockService {
     }
 
     /**
-     * A cache of locks that have been requested. Each Lock is stored as a
-     * WeakReference so they are eagerly GCed unless that are active, in which
-     * case there is a strong reference to the lock in {@link #refs}.
-     */
-    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
-            .newBuilder().weakValues()
-            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
-
-                @Override
-                public RangeReadWriteLock load(RangeToken key) throws Exception {
-                    return new RangeReadWriteLock(key);
-                }
-
-            });
-
-    /**
-     * This map holds strong references to RangeReadWriteLocks that are grabbed
-     * (e.g. in use). We must keep these strong references while the locks are
-     * active so that they are not GCed and we run into monitor state issues.
-     */
-    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
-            .create();
-
-    /**
      * Return the ReadLock that is identified by {@code token}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
@@ -302,6 +278,31 @@ public final class RangeLockService {
             return foundSmaller && foundLarger;
         }
     }
+
+    /**
+
+     * A cache of locks that have been requested. Each Lock is stored as a
+     * WeakReference so they are eagerly GCed unless that are active, in which
+     * case there is a strong reference to the lock in {@link #refs}.
+     */
+    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
+            .newBuilder().softValues()
+            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
+
+                @Override
+                public RangeReadWriteLock load(RangeToken key) throws Exception {
+                    return new RangeReadWriteLock(key);
+                }
+
+            });
+
+    /**
+     * This map holds strong references to RangeReadWriteLocks that are grabbed
+     * (e.g. in use). We must keep these strong references while the locks are
+     * active so that they are not GCed and we run into monitor state issues.
+     */
+    private final NonBlockingHashMultimap<Token, RangeReadWriteLockReference> refs = NonBlockingHashMultimap
+            .create();
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
