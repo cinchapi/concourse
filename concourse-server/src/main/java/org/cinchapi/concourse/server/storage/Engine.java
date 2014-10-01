@@ -208,6 +208,13 @@ public final class Engine extends BufferedStore implements
     private final String environment;
 
     /**
+     * A collection of listeners that should be notified of a version change for
+     * a given range token.
+     */
+    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
+            .create();
+
+    /**
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
@@ -232,13 +239,6 @@ public final class Engine extends BufferedStore implements
      * a given token.
      */
     private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
-            .create();
-
-    /**
-     * A collection of listeners that should be notified of a version change for
-     * a given range token.
-     */
-    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
             .create();
 
     /**
@@ -322,8 +322,8 @@ public final class Engine extends BufferedStore implements
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
-        boolean accepted = write.getType() == Action.ADD ? add(key, value,
-                record) : remove(key, value, record);
+        boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
+                value, record) : removeUnsafe(key, value, record);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -342,15 +342,7 @@ public final class Engine extends BufferedStore implements
         lockService.getWriteLock(key, record).lock();
         rangeLockService.getWriteLock(key, value).lock();
         try {
-            if(super.add(key, value, record)) {
-                notifyVersionChange(Token.wrap(key, record));
-                notifyVersionChange(Token.wrap(record));
-                notifyVersionChange(Token.wrap(key));
-                notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                        Value.wrap(value)));
-                return true;
-            }
-            return false;
+            return addUnsafe(key, value, record);
         }
         finally {
             lockService.getWriteLock(key, record).unlock();
@@ -549,15 +541,7 @@ public final class Engine extends BufferedStore implements
         lockService.getWriteLock(key, record).lock();
         rangeLockService.getWriteLock(key, value).lock();
         try {
-            if(super.remove(key, value, record)) {
-                notifyVersionChange(Token.wrap(key, record));
-                notifyVersionChange(Token.wrap(record));
-                notifyVersionChange(Token.wrap(key));
-                notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                        Value.wrap(value)));
-                return true;
-            }
-            return false;
+            return removeUnsafe(key, value, record);
         }
         finally {
             lockService.getWriteLock(key, record).unlock();
@@ -703,6 +687,29 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
+     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
+     * locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the add was successful
+     */
+    private boolean addUnsafe(String key, TObject value, long record) {
+        if(super.add(key, value, record)) {
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                    Value.wrap(value)));
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Restore any transactions that did not finish committing prior to the
      * previous shutdown.
      */
@@ -724,6 +731,29 @@ public final class Engine extends BufferedStore implements
         return TimeUnit.MILLISECONDS.convert(
                 Time.now() - ((Buffer) buffer).getTimeOfLastTransport(),
                 TimeUnit.MICROSECONDS);
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
+     * any locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the add was successful
+     */
+    private boolean removeUnsafe(String key, TObject value, long record) {
+        if(super.remove(key, value, record)) {
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                    Value.wrap(value)));
+            return true;
+        }
+        return false;
     }
 
     /**
