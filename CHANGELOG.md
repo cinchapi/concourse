@@ -5,7 +5,8 @@
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
 * Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
 * Fixed and bug in the just-in-time locking protocol that prematurely removed references to active locks.
-* Fixed a bug where transactions that started to commit but failed before completing did not release locks, resulting in deadlocks. 
+* Fixed a bug where transactions that started to commit but failed before completing did not release locks, resulting in deadlocks.
+* Fixed an issue where transactions unnecessarily grabbed locks twice while committing.
 * Improved the javadoc for the `Tag` datatype.
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was created using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
