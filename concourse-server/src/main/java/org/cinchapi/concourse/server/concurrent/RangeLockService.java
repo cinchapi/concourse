@@ -25,7 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -37,11 +37,8 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ConcurrentHashMultiset;
 
 /**
@@ -80,28 +77,9 @@ public final class RangeLockService {
     }
 
     /**
-     * A cache of locks that have been requested. Each Lock is stored as a
-     * WeakReference so they are eagerly GCed unless that are active, in which
-     * case there is a strong reference to the lock in {@link #refs}.
+     * A cache of locks that have been requested.
      */
-    private final LoadingCache<RangeToken, RangeReadWriteLock> locks = CacheBuilder
-            .newBuilder().weakValues()
-            .build(new CacheLoader<RangeToken, RangeReadWriteLock>() {
-
-                @Override
-                public RangeReadWriteLock load(RangeToken key) throws Exception {
-                    return new RangeReadWriteLock(key);
-                }
-
-            });
-
-    /**
-     * This set holds strong references to RangeReadWriteLocks that are grabbed
-     * (e.g. in use). We must keep these strong references while the locks are
-     * active so that they are not GCed and we run into monitor state issues.
-     */
-    private final ConcurrentHashMultiset<RangeReadWriteLock> strongRefs = ConcurrentHashMultiset
-            .create();
+    private final ConcurrentHashMap<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>();
 
     /**
      * Return the ReadLock that is identified by {@code token}. Every caller
@@ -112,14 +90,17 @@ public final class RangeLockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(RangeToken token) {
-        try {
-            RangeReadWriteLock lock = locks.get(token);
-            strongRefs.add(lock);
-            return lock.readLock();
+        RangeReadWriteLock existing = locks.get(token);
+        if(existing == null) {
+            RangeReadWriteLock created = new RangeReadWriteLock(token);
+            existing = locks.putIfAbsent(token, created);
+            existing = Objects.firstNonNull(existing, created);
         }
-        catch (ExecutionException e) {
-            throw Throwables.propagate(e);
+        Thread thread = Thread.currentThread();
+        if(existing.threads.count(thread) < 2) {
+            existing.threads.add(thread);
         }
+        return existing.readLock();
     }
 
     /**
@@ -158,15 +139,17 @@ public final class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(RangeToken token) {
-        try {
-            RangeReadWriteLock lock = locks.get(token);
-            strongRefs.add(lock);
-            return lock.writeLock();
+        RangeReadWriteLock existing = locks.get(token);
+        if(existing == null) {
+            RangeReadWriteLock created = new RangeReadWriteLock(token);
+            existing = locks.putIfAbsent(token, created);
+            existing = Objects.firstNonNull(existing, created);
         }
-        catch (ExecutionException e) {
-            throw Throwables.propagate(e);
+        Thread thread = Thread.currentThread();
+        if(existing.threads.count(thread) < 2) {
+            existing.threads.add(thread);
         }
-
+        return existing.writeLock();
     }
 
     /**
@@ -206,8 +189,8 @@ public final class RangeLockService {
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = locks.asMap()
-                .entrySet().iterator();
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = locks.entrySet()
+                .iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             while (it.hasNext()) {
@@ -317,7 +300,19 @@ public final class RangeLockService {
     @SuppressWarnings("serial")
     private final class RangeReadWriteLock extends ReentrantReadWriteLock {
 
+        /**
+         * The token that represents the notion this lock controls
+         */
         private final RangeToken token;
+
+        /**
+         * We keep track of all the threads that have requested (but not
+         * necessarily locked) the read or write lock. If a lock is not
+         * associated with any threads then it can be safely removed from the
+         * cache.
+         */
+        private final ConcurrentHashMultiset<Thread> threads = ConcurrentHashMultiset
+                .create();
 
         /**
          * Construct a new instance.
@@ -331,13 +326,14 @@ public final class RangeLockService {
         @Override
         public ReadLock readLock() {
             return new ReadLock(this) {
-                
+
                 @Override
                 public boolean tryLock() {
-                    if(super.tryLock()){
-                        return strongRefs.add(RangeReadWriteLock.this);
+                    if(!isRangeBlocked(LockType.READ, token) && super.tryLock()) {
+                        threads.add(Thread.currentThread());
+                        return true;
                     }
-                    else{
+                    else {
                         return false;
                     }
                 }
@@ -348,13 +344,14 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
-                    strongRefs.add(RangeReadWriteLock.this);
+                    threads.add(Thread.currentThread());
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.removeExactly(RangeReadWriteLock.this, 2);
+                    threads.removeExactly(Thread.currentThread(), 2);
+                    locks.remove(token, new RangeReadWriteLock(token));
                 }
 
             };
@@ -369,13 +366,14 @@ public final class RangeLockService {
         @Override
         public WriteLock writeLock() {
             return new WriteLock(this) {
-                
+
                 @Override
                 public boolean tryLock() {
-                    if(super.tryLock()){
-                        return strongRefs.add(RangeReadWriteLock.this);
+                    if(!isRangeBlocked(LockType.WRITE, token)
+                            && super.tryLock()) {
+                        return true;
                     }
-                    else{
+                    else {
                         return false;
                     }
                 }
@@ -386,16 +384,33 @@ public final class RangeLockService {
                         continue;
                     }
                     super.lock();
-                    strongRefs.add(RangeReadWriteLock.this);
                 }
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    strongRefs.removeExactly(RangeReadWriteLock.this, 2);
+                    threads.removeExactly(Thread.currentThread(), 2);
+                    locks.remove(token, new RangeReadWriteLock(token));
                 }
 
             };
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            if(object instanceof RangeReadWriteLock) {
+                RangeReadWriteLock other = (RangeReadWriteLock) object;
+                return token.equals(other.token)
+                        && threads.equals(other.threads);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(token, threads);
         }
 
     }
