@@ -26,9 +26,15 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.testing.Variables;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
@@ -69,6 +75,28 @@ public class TransactionTest extends AtomicOperationTest {
     protected Transaction getStore() {
         destination = getDestination();
         return Transaction.start((Engine) destination);
+    }
+
+    @Test(expected = TransactionStateException.class)
+    public void testNoChangesPersistOnFailure() {
+        super.testNoChangesPersistOnFailure();
+    }
+
+    @Test(expected = TransactionStateException.class)
+    public void testCommitFailsIfVersionChanges() {
+        super.testCommitFailsIfVersionChanges();
+    }
+
+    @Test(expected = TransactionStateException.class)
+    public void testFailureIfWriteToRecordThatIsRead()
+            throws InterruptedException {
+        super.testFailureIfWriteToRecordThatIsRead();
+    }
+
+    @Test(expected = TransactionStateException.class)
+    public void testFailureIfWriteToKeyInRecordThatIsRead()
+            throws InterruptedException {
+        super.testFailureIfWriteToKeyInRecordThatIsRead();
     }
 
 }
