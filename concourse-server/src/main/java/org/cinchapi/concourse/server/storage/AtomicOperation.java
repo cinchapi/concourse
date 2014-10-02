@@ -301,9 +301,18 @@ public class AtomicOperation extends BufferedStore implements
             }
         }
         else {
-            checkState();// the Transaction subclass overrides this method to
-                         // throw a more specific TransactionStateException
-            throw new AtomicStateException(); // unreachable
+            try {
+                checkState();
+            }
+            catch (TransactionStateException e) { // the Transaction subclass
+                                                  // overrides #checkState() to
+                                                  // throw this exception to
+                                                  // distinguish transaction
+                                                  // failures
+                throw e;
+            }
+            catch (AtomicStateException e) {/* ignore */}
+            return false;
         }
     }
 
