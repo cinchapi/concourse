@@ -85,13 +85,13 @@ public abstract class BufferedStore extends BaseStore {
     /**
      * The {@link LockService} that is used to coordinate concurrent operations.
      */
-    protected final LockService lockService;
+    protected LockService lockService;
 
     /**
      * The {@link RangeLockService} that is used to coordinate concurrent
      * operations.
      */
-    protected final RangeLockService rangeLockService;
+    protected RangeLockService rangeLockService;
 
     /**
      * Construct a new instance.

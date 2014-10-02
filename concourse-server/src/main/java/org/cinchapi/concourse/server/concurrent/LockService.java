@@ -47,7 +47,7 @@ import com.google.common.collect.ConcurrentHashMultiset;
  * 
  * @author jnelson
  */
-public final class LockService {
+public class LockService {
 
     /**
      * Return a new {@link LockService} instance.
@@ -59,9 +59,43 @@ public final class LockService {
     }
 
     /**
+     * Return a {@link LockService} that does not actually provide any locks.
+     * This is
+     * used in situations where access is guaranteed (or at least assumed) to be
+     * isolated (e.g. a Transaction) and we need to simulate locking for
+     * polymorphic consistency.
+     * 
+     * @return the LockService
+     */
+    public static LockService noOp() {
+        return NOOP_INSTANCE;
+    }
+
+    /**
+     * A {@link LockService} that does not actually provide any locks. This is
+     * used in situations where access is guaranteed (or at least assumed) to be
+     * isolated (e.g. a Transaction) and we need to simulate locking for
+     * polymorphic consistency.
+     */
+    private static final LockService NOOP_INSTANCE = new LockService() {
+
+        @Override
+        public ReadLock getReadLock(Token token) {
+            return Locks.noOpReadLock();
+        }
+
+        @Override
+        public WriteLock getWriteLock(Token token) {
+            return Locks.noOpWriteLock();
+        }
+    };
+
+    /**
      * A cache of locks that have been requested.
      */
     private final ConcurrentHashMap<Token, TokenReadWriteLock> locks = new ConcurrentHashMap<Token, TokenReadWriteLock>();
+
+    private LockService() {/* noop */}
 
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
@@ -141,11 +175,6 @@ public final class LockService {
     private final class TokenReadWriteLock extends ReentrantReadWriteLock {
 
         /**
-         * The token that represents the notion this lock controls
-         */
-        private final Token token;
-
-        /**
          * We keep track of all the threads that have requested (but not
          * necessarily locked) the read or write lock. If a lock is not
          * associated with any threads then it can be safely removed from the
@@ -153,6 +182,11 @@ public final class LockService {
          */
         private final ConcurrentHashMultiset<Thread> threads = ConcurrentHashMultiset
                 .create();
+
+        /**
+         * The token that represents the notion this lock controls
+         */
+        private final Token token;
 
         /**
          * Construct a new instance.
@@ -225,7 +259,5 @@ public final class LockService {
         }
 
     }
-
-    private LockService() {/* noop */}
 
 }

@@ -596,8 +596,8 @@ public class ConcourseServer implements
     public boolean insert(String json, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
-                env));
+        AtomicOperation operation = getStore(transaction, env)
+                .startAtomicOperation();
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
@@ -851,8 +851,8 @@ public class ConcourseServer implements
             TObject replacement, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
-                env));
+        AtomicOperation operation = getStore(transaction, env)
+                .startAtomicOperation();
         try {
             return (operation.verify(key, expected, record)
                     && operation.remove(key, expected, record) && operation
@@ -896,7 +896,7 @@ public class ConcourseServer implements
      * @return the AtomicOperation
      */
     private AtomicOperation doClear(long record, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Map<String, Set<TObject>> values = operation.browse(record);
             for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
@@ -923,7 +923,7 @@ public class ConcourseServer implements
      * @return the AtomicOperation
      */
     private AtomicOperation doClear(String key, long record, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject value : values) {
@@ -990,7 +990,7 @@ public class ConcourseServer implements
      */
     private AtomicOperation doRevert(String key, long record, long timestamp,
             Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> past = operation.fetch(key, record, timestamp);
             Set<TObject> present = operation.fetch(key, record);
@@ -1024,7 +1024,7 @@ public class ConcourseServer implements
             Compoundable store) {
         // NOTE: We cannot use the #clear() method because our removes must be
         // defined in terms of the AtomicOperation for true atomic safety.
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject oldValue : values) {
@@ -1094,7 +1094,7 @@ public class ConcourseServer implements
      */
     private AtomicOperation insertIntoEmptyRecord(String json, long record,
             Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         if(operation.describe(record).isEmpty()) {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
@@ -1148,7 +1148,7 @@ public class ConcourseServer implements
     private AtomicOperation updateChronologizeResultSet(String key,
             long record, Map<Long, Set<TObject>> result,
             Map<Long, String> history, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Map<Long, String> newResult = operation.audit(key, record);
             if(newResult.size() > history.size()) {
