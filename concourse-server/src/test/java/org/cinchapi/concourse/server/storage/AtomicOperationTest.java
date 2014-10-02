@@ -104,7 +104,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         TObject value = Variables.register("value", TestData.getTObject());
         long record = Variables.register("record", TestData.getLong());
         add(key, value, record);
-        AtomicOperation other = AtomicOperation.start(destination);
+        AtomicOperation other = destination.startAtomicOperation();
         other.add(key, value, record);
         Assert.assertTrue(other.commit());
         Assert.assertFalse(((AtomicOperation) store).commit());
@@ -119,7 +119,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         String keyB = "keyB";
         TObject valueB = Convert.javaToThrift("valueB");
         add(keyA, valueA, 1);
-        AtomicOperation other = AtomicOperation.start(destination);
+        AtomicOperation other = destination.startAtomicOperation();
         other.add(keyB, valueB, record);
         Assert.assertTrue(other.commit());
         Assert.assertTrue(((AtomicOperation) store).commit());
@@ -187,8 +187,8 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testIsolation() {
-        AtomicOperation a = AtomicOperation.start(destination);
-        AtomicOperation b = AtomicOperation.start(destination);
+        AtomicOperation a = destination.startAtomicOperation();
+        AtomicOperation b = destination.startAtomicOperation();
         String key = TestData.getString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
@@ -406,7 +406,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Override
     protected AtomicOperation getStore() {
         destination = getDestination();
-        return AtomicOperation.start(destination);
+        return destination.startAtomicOperation();
     }
 
     @Override
@@ -416,7 +416,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     }
 
     private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
-        AtomicOperation operation = AtomicOperation.start(destination);
+        AtomicOperation operation = destination.startAtomicOperation();
         for (int i = 0; i < 1; i++) {
             operation.add(TestData.getString(), TestData.getTObject(), i);
         }

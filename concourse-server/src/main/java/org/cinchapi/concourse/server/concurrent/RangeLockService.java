@@ -65,7 +65,7 @@ import com.google.common.collect.ConcurrentHashMultiset;
  * 
  * @author jnelson
  */
-public final class RangeLockService {
+public class RangeLockService {
 
     /**
      * Create a new {@link RangeLockService}.
@@ -75,6 +75,37 @@ public final class RangeLockService {
     public static RangeLockService create() {
         return new RangeLockService();
     }
+
+    /**
+     * Return a {@link RangeLockService} that does not actually provide any
+     * locks. This is used in situations where access is guaranteed (or at least
+     * assumed) to be isolated (e.g. a Transaction) and we need to simulate
+     * locking for polymorphic consistency.
+     * 
+     * @return the LockService
+     */
+    public static RangeLockService noOp() {
+        return NOOP_INSTANCE;
+    }
+
+    /**
+     * A {@link RangeLockService} that does not actually provide any locks. This
+     * is used in situations where access is guaranteed (or at least assumed) to
+     * be isolated (e.g. a Transaction) and we need to simulate locking for
+     * polymorphic consistency.
+     */
+    private static final RangeLockService NOOP_INSTANCE = new RangeLockService() {
+
+        @Override
+        public ReadLock getReadLock(RangeToken token) {
+            return Locks.noOpReadLock();
+        }
+
+        @Override
+        public WriteLock getWriteLock(RangeToken token) {
+            return Locks.noOpWriteLock();
+        }
+    };
 
     /**
      * A cache of locks that have been requested.
@@ -301,11 +332,6 @@ public final class RangeLockService {
     private final class RangeReadWriteLock extends ReentrantReadWriteLock {
 
         /**
-         * The token that represents the notion this lock controls
-         */
-        private final RangeToken token;
-
-        /**
          * We keep track of all the threads that have requested (but not
          * necessarily locked) the read or write lock. If a lock is not
          * associated with any threads then it can be safely removed from the
@@ -313,6 +339,11 @@ public final class RangeLockService {
          */
         private final ConcurrentHashMultiset<Thread> threads = ConcurrentHashMultiset
                 .create();
+
+        /**
+         * The token that represents the notion this lock controls
+         */
+        private final RangeToken token;
 
         /**
          * Construct a new instance.
@@ -324,8 +355,34 @@ public final class RangeLockService {
         }
 
         @Override
+        public boolean equals(Object object) {
+            if(object instanceof RangeReadWriteLock) {
+                RangeReadWriteLock other = (RangeReadWriteLock) object;
+                return token.equals(other.token)
+                        && threads.equals(other.threads);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(token, threads);
+        }
+
+        @Override
         public ReadLock readLock() {
             return new ReadLock(this) {
+
+                @Override
+                public void lock() {
+                    while (isRangeBlocked(LockType.READ, token)) {
+                        continue;
+                    }
+                    super.lock();
+                    threads.add(Thread.currentThread());
+                }
 
                 @Override
                 public boolean tryLock() {
@@ -336,15 +393,6 @@ public final class RangeLockService {
                     else {
                         return false;
                     }
-                }
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.READ, token)) {
-                        continue;
-                    }
-                    super.lock();
-                    threads.add(Thread.currentThread());
                 }
 
                 @Override
@@ -368,6 +416,14 @@ public final class RangeLockService {
             return new WriteLock(this) {
 
                 @Override
+                public void lock() {
+                    while (isRangeBlocked(LockType.WRITE, token)) {
+                        continue;
+                    }
+                    super.lock();
+                }
+
+                @Override
                 public boolean tryLock() {
                     if(!isRangeBlocked(LockType.WRITE, token)
                             && super.tryLock()) {
@@ -376,14 +432,6 @@ public final class RangeLockService {
                     else {
                         return false;
                     }
-                }
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.WRITE, token)) {
-                        continue;
-                    }
-                    super.lock();
                 }
 
                 @Override
@@ -396,23 +444,5 @@ public final class RangeLockService {
             };
         }
 
-        @Override
-        public boolean equals(Object object) {
-            if(object instanceof RangeReadWriteLock) {
-                RangeReadWriteLock other = (RangeReadWriteLock) object;
-                return token.equals(other.token)
-                        && threads.equals(other.threads);
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(token, threads);
-        }
-
     }
-
 }

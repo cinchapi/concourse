@@ -24,18 +24,20 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
-
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
- * Unit tests for an {@link AtomicOperation} that commits to a {@link Transaction}
+ * Unit tests for an {@link AtomicOperation} that commits to a
+ * {@link Transaction}
  * 
  * @author jnelson
  */
-public class TransactionAtomicOperationTest extends AtomicOperationTest{
-    
+public class TransactionAtomicOperationTest extends AtomicOperationTest {
+
     private String directory;
 
     @Override
@@ -50,7 +52,45 @@ public class TransactionAtomicOperationTest extends AtomicOperationTest{
 
     @Override
     protected void cleanup(Store store) {
-        FileSystem.deleteDirectory(directory);   
+        FileSystem.deleteDirectory(directory);
+    }
+
+    @Test
+    @Ignore
+    public void testNoChangesPersistOnFailure() {
+        // This test does not make sense since Transactions and their spawned
+        // atomic operations are isolated
+    }
+
+    @Test
+    @Ignore
+    public void testCommitFailsIfVersionChanges() {
+        // This test does not make sense since Transactions and their spawned
+        // atomic operations are isolated
+    }
+
+    @Test
+    @Ignore
+    public void testFailureIfWriteToRecordThatIsRead()
+            throws InterruptedException {
+        // This test does not make sense since Transactions and their spawned
+        // atomic operations are isolated
+    }
+
+    @Test
+    @Ignore
+    public void testOnlyOneSuccessDuringRaceConditionWithConflict()
+            throws InterruptedException {
+        // This test does not make sense since Transactions and their spawned
+        // atomic operations are isolated
+    }
+
+    @Test
+    @Ignore
+    public void testFailureIfWriteToKeyInRecordThatIsRead()
+            throws InterruptedException {
+        // This test does not make sense since Transactions and their spawned
+        // atomic operations are isolated
     }
 
 }

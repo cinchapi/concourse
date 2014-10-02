@@ -71,11 +71,16 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * Start a new AtomicOperation that will commit to {@code store}.
+     * <p>
+     * Always use the {@link Compoundable#startAtomicOperation()} method over
+     * this one because each store <em>may</em> may do some customization to the
+     * AtomicOperation before it is returned to the caller.
+     * </p>
      * 
      * @param store
      * @return the AtomicOperation
      */
-    public static AtomicOperation start(Compoundable store) {
+    protected static AtomicOperation start(Compoundable store) {
         return new AtomicOperation(store);
     }
 

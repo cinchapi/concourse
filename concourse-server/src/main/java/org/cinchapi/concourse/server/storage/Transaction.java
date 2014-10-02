@@ -38,12 +38,13 @@ import org.cinchapi.common.util.NonBlockingRangeMap;
 import org.cinchapi.common.util.Range;
 import org.cinchapi.common.util.RangeMap;
 import org.cinchapi.concourse.annotate.Restricted;
+import org.cinchapi.concourse.server.concurrent.LockService;
+import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.RangeTokens;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.server.storage.temp.Write;
@@ -161,27 +162,12 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public boolean add(String key, TObject value, long record)
-            throws AtomicStateException {
-        if(super.add(key, value, record)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                    Value.wrap(value)));
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
     @Restricted
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        // This implementation is unnecessary since Transactions are assumed to
-        // be isolated (e.g. single-threaded), but is kept here for consistency.
+        ((Compoundable) destination).addVersionChangeListener(token, this);
+        // This rest of this implementation is unnecessary since Transactions are assumed to
+        // be isolated (e.g. single-threaded), but is kept here for unit test consistency.
         if(token instanceof RangeToken) {
             Set<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
@@ -234,22 +220,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public boolean remove(String key, TObject value, long record)
-            throws AtomicStateException {
-        if(super.remove(key, value, record)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                    Value.wrap(value)));
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
@@ -268,19 +238,11 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public void set(String key, TObject value, long record)
-            throws AtomicStateException {
-        super.set(key, value, record);
-        notifyVersionChange(Token.wrap(key, record));
-        notifyVersionChange(Token.wrap(record));
-        notifyVersionChange(Token.wrap(key));
-        notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
-                Value.wrap(value)));
-    }
-
-    @Override
     public AtomicOperation startAtomicOperation() {
-        return AtomicOperation.start(this);
+        AtomicOperation operation = AtomicOperation.start(this);
+        operation.lockService = LockService.noOp();
+        operation.rangeLockService = RangeLockService.noOp();
+        return operation;
     }
 
     @Override

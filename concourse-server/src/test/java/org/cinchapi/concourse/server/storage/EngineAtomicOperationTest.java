@@ -106,8 +106,8 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
             @Override
             public void run() {
                 while (bRunning.get()) {
-                    AtomicOperation operation = AtomicOperation
-                            .start(destination);
+                    AtomicOperation operation = destination
+                            .startAtomicOperation();
                     operations.add(operation);
                     operation.fetch(key, record);
                 }
