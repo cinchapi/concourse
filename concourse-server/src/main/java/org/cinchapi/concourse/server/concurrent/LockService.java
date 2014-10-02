@@ -118,17 +118,16 @@ public class LockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(Token token) {
+        Thread thread = Thread.currentThread();
         TokenReadWriteLock existing = locks.get(token);
         if(existing == null) {
             TokenReadWriteLock created = new TokenReadWriteLock(token);
             existing = locks.putIfAbsent(token, created);
             existing = Objects.firstNonNull(existing, created);
         }
-        Thread thread = Thread.currentThread();
-        if(existing.threads.count(thread) < 2) {
-            existing.threads.add(thread);
-        }
-        return existing.readLock();
+        existing.readers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .readLock() : getReadLock(token);
     }
 
     /**
@@ -152,17 +151,16 @@ public class LockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(Token token) {
+        Thread thread = Thread.currentThread();
         TokenReadWriteLock existing = locks.get(token);
         if(existing == null) {
             TokenReadWriteLock created = new TokenReadWriteLock(token);
             existing = locks.putIfAbsent(token, created);
             existing = Objects.firstNonNull(existing, created);
         }
-        Thread thread = Thread.currentThread();
-        if(existing.threads.count(thread) < 2) {
-            existing.threads.add(thread);
-        }
-        return existing.writeLock();
+        existing.writers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .writeLock() : getWriteLock(token);
     }
 
     /**
@@ -180,7 +178,16 @@ public class LockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> threads = ConcurrentHashMultiset
+        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
+                .create();
+
+        /**
+         * We keep track of all the threads that have requested (but not
+         * necessarily locked) the read or write lock. If a lock is not
+         * associated with any threads then it can be safely removed from the
+         * cache.
+         */
+        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
                 .create();
 
         /**
@@ -202,7 +209,8 @@ public class LockService {
             if(object instanceof TokenReadWriteLock) {
                 TokenReadWriteLock other = (TokenReadWriteLock) object;
                 return token.equals(other.token)
-                        && threads.equals(other.threads);
+                        && readers.equals(other.readers)
+                        && writers.equals(other.writers);
             }
             else {
                 return false;
@@ -211,7 +219,7 @@ public class LockService {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(token, threads);
+            return Objects.hashCode(token, readers, writers);
         }
 
         @Override
@@ -219,14 +227,9 @@ public class LockService {
             return new ReadLock(this) {
 
                 @Override
-                public void lock() {
-                    super.lock();
-                }
-
-                @Override
                 public void unlock() {
                     super.unlock();
-                    threads.removeExactly(Thread.currentThread(), 1);
+                    readers.removeExactly(Thread.currentThread(), 1);
                     locks.remove(token, new TokenReadWriteLock(token));
                 }
 
@@ -244,14 +247,9 @@ public class LockService {
             return new WriteLock(this) {
 
                 @Override
-                public void lock() {
-                    super.lock();
-                }
-
-                @Override
                 public void unlock() {
                     super.unlock();
-                    threads.removeExactly(Thread.currentThread(), 1);
+                    writers.removeExactly(Thread.currentThread(), 1);
                     locks.remove(token, new TokenReadWriteLock(token));
                 }
 

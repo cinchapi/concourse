@@ -121,17 +121,16 @@ public class RangeLockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(RangeToken token) {
+        Thread thread = Thread.currentThread();
         RangeReadWriteLock existing = locks.get(token);
         if(existing == null) {
             RangeReadWriteLock created = new RangeReadWriteLock(token);
             existing = locks.putIfAbsent(token, created);
             existing = Objects.firstNonNull(existing, created);
         }
-        Thread thread = Thread.currentThread();
-        if(existing.threads.count(thread) < 2) {
-            existing.threads.add(thread);
-        }
-        return existing.readLock();
+        existing.readers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .readLock() : getReadLock(token);
     }
 
     /**
@@ -170,17 +169,16 @@ public class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(RangeToken token) {
+        Thread thread = Thread.currentThread();
         RangeReadWriteLock existing = locks.get(token);
         if(existing == null) {
             RangeReadWriteLock created = new RangeReadWriteLock(token);
             existing = locks.putIfAbsent(token, created);
             existing = Objects.firstNonNull(existing, created);
         }
-        Thread thread = Thread.currentThread();
-        if(existing.threads.count(thread) < 2) {
-            existing.threads.add(thread);
-        }
-        return existing.writeLock();
+        existing.writers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .writeLock() : getWriteLock(token);
     }
 
     /**
@@ -337,7 +335,16 @@ public class RangeLockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> threads = ConcurrentHashMultiset
+        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
+                .create();
+
+        /**
+         * We keep track of all the threads that have requested (but not
+         * necessarily locked) the read or write lock. If a lock is not
+         * associated with any threads then it can be safely removed from the
+         * cache.
+         */
+        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
                 .create();
 
         /**
@@ -359,7 +366,8 @@ public class RangeLockService {
             if(object instanceof RangeReadWriteLock) {
                 RangeReadWriteLock other = (RangeReadWriteLock) object;
                 return token.equals(other.token)
-                        && threads.equals(other.threads);
+                        && readers.equals(other.readers)
+                        && writers.equals(other.writers);
             }
             else {
                 return false;
@@ -368,7 +376,7 @@ public class RangeLockService {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(token, threads);
+            return Objects.hashCode(token, readers, writers);
         }
 
         @Override
@@ -381,13 +389,11 @@ public class RangeLockService {
                         continue;
                     }
                     super.lock();
-                    threads.add(Thread.currentThread());
                 }
 
                 @Override
                 public boolean tryLock() {
                     if(!isRangeBlocked(LockType.READ, token) && super.tryLock()) {
-                        threads.add(Thread.currentThread());
                         return true;
                     }
                     else {
@@ -398,7 +404,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    threads.removeExactly(Thread.currentThread(), 2);
+                    readers.removeExactly(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 
@@ -437,7 +443,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    threads.removeExactly(Thread.currentThread(), 2);
+                    writers.removeExactly(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 
