@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -157,12 +158,13 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * A flag that indicates this atomic operation has successfully grabbed all
-     * required locks and is in the process of committing. We use this flag to
-     * protect the atomic operation from version change notifications that
+     * required locks and is in the process of committing or has been notified
+     * of a version change and is in the process of aborting. We use this flag
+     * to protect the atomic operation from version change notifications that
      * happen while its committing (because the version change notifications
      * come from the transaction itself).
      */
-    protected boolean committing = false;
+    protected AtomicBoolean finalizing = new AtomicBoolean(false);
 
     /**
      * The collection of {@link LockDescription} objects that are grabbed in the
@@ -174,7 +176,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * The AtomicOperation is open until it is committed or aborted.
      */
-    protected boolean open = true;
+    protected AtomicBoolean open = new AtomicBoolean(true);
 
     /**
      * The sequence of VersionExpectations that were generated from the sequence
@@ -199,7 +201,8 @@ public class AtomicOperation extends BufferedStore implements
      * any of the changes to the {@link #destination} store.
      */
     public void abort() {
-        open = false;
+        open.set(false);
+        finalizing.set(true);
         if(locks != null && !locks.isEmpty()) {
             releaseLocks();
         }
@@ -281,17 +284,21 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if the atomic operation is completely applied
      */
     public final boolean commit() throws AtomicStateException {
-        checkState();
-        open = false;
-        if(grabLocks()) {
-            committing = true;
-            doCommit();
-            releaseLocks();
-            return true;
+        if(open.compareAndSet(true, false)) {
+            if(grabLocks() && finalizing.compareAndSet(false, true)) {
+                doCommit();
+                releaseLocks();
+                return true;
+            }
+            else {
+                abort();
+                return false;
+            }
         }
         else {
-            abort();
-            return false;
+            checkState();// the Transaction subclass overrides this method to
+                         // throw a more specific TransactionStateException
+            throw new AtomicStateException(); // unreachable
         }
     }
 
@@ -316,7 +323,7 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     @Restricted
     public void onVersionChange(Token token) {
-        if(!committing) {
+        if(finalizing.compareAndSet(false, true)) {
             abort();
         }
     }
@@ -372,7 +379,7 @@ public class AtomicOperation extends BufferedStore implements
      * @throws AtomicStateException
      */
     protected void checkState() throws AtomicStateException {
-        if(!open) {
+        if(!open.get()) {
             throw new AtomicStateException();
         }
     }

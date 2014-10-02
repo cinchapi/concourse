@@ -141,7 +141,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        open = false;
+        open.set(false);
     }
 
     @Override
