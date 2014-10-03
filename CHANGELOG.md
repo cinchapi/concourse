@@ -32,6 +32,7 @@
 * Fixed a bug where the `Tag#toString` method threw a `NullPointerException` if the Tag was created using a `null` value.
 * Add a `min` method to the `Numbers` utility class.
 * Fixed a bug that caused the `insert` methods to incorrectly store values encoded as *resolvable link specifications* as strings instead of links to resolved records.
+* Added a `heap_size` preference in `concourse.prefs` that configures the initial and max heap for the Concourse Server JVM.
 
 #### Version 0.3.8 (October 3, 2014)
 * Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
