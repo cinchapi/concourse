@@ -124,8 +124,9 @@ public final class GlobalState {
      * the initial and maximum heap sizes to the specified value, so there
      * must be enough system memory available for Concourse Server to start.
      */
-    public static int HEAP_SIZE = 1024; // NOTE: This is handled by Tanuki
-                                        // before the server starts
+    public static long HEAP_SIZE = 1024 * 1024 * 1024; // NOTE: This is handled
+                                                       // by Tanuki before the
+                                                       // server starts
 
     /**
      * The default environment that is automatically loaded when the server
@@ -194,7 +195,7 @@ public final class GlobalState {
 
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
-            HEAP_SIZE = config.getInt("heap_size", HEAP_SIZE);
+            HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));
