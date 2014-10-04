@@ -20,7 +20,7 @@
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
 
-#### Version 0.4.2 (October 3, 2014)
+#### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
 * Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
@@ -34,7 +34,7 @@
 * Fixed a bug that caused the `insert` methods to incorrectly store values encoded as *resolvable link specifications* as strings instead of links to resolved records.
 * Added a `heap_size` preference in `concourse.prefs` that configures the initial and max heap for the Concourse Server JVM.
 
-#### Version 0.3.8 (October 3, 2014)
+#### Version 0.3.8 (October 4, 2014)
 * Fixed a bug where database records and indexes were not properly cached. Now, reads are over 87 percent faster.
 * Removed a potential race-condition between real-time failure detection and just-in-time locking that made it possible for an failed transaction to errneously commit and violate ACID consistency.
 * Fixed a bug where the `Numbers#max` method actually returned the minimum value.
