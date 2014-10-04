@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,33 +26,50 @@ package org.cinchapi.concourse.perf;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
-import org.cinchapi.concourse.util.StandardActions;
+import org.cinchapi.concourse.thrift.Operator;
 import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
 
 import com.google.common.base.Stopwatch;
 
 /**
- * 
+ * Test the speed of find queries
  * 
  * @author jnelson
+ * 
  */
-@RunWith(Theories.class)
-public class WritePerformanceTest extends ConcourseIntegrationTest {
-    
-    public static @DataPoints int[] runs = {0, 1, 2};
-    
+public class FindThroughputTest extends ConcourseIntegrationTest {
+
     @Test
-    @Theory
-    public void testWriteWordsDotTxt(int run){
-        System.out.println("Doing the WritePerformanceTest with words.txt");
+    public void testFindPerformance1() {
+        System.out.println("Doing the testFindPerformance1 test");
+        int count = 20000;
+        for (int i = 0; i < count; i++) {
+            client.add("foo", i, i);
+        }
         Stopwatch watch = Stopwatch.createStarted();
-        StandardActions.importWordsDotText(client);
+        client.find("foo", Operator.GREATER_THAN_OR_EQUALS, 0);
         watch.stop();
-        System.out.println(watch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds");
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+        System.out.println(watch.elapsed(unit) + " " + unit);
+        System.gc();
+    }
+
+    @Test
+    public void testFindPerformance2() {
+        System.out.println("Doing the testFindPerformance2 test");
+        int count = 500;
+        for (int i = 0; i < count; i++) {
+            for (int j = 0; j <= i; j++) {
+                client.add("foo", j, i);
+            }
+        }
+        Stopwatch watch = Stopwatch.createStarted();
+        client.find("foo", Operator.BETWEEN, 5, 100);
+        watch.stop();
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+        System.out.println(watch.elapsed(unit) + " " + unit);
+        System.gc();
+
     }
 
 }
