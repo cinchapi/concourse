@@ -23,15 +23,13 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.util.Numbers;
+import com.google.common.base.Objects;
+import com.google.common.collect.ConcurrentHashMultiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -49,7 +47,7 @@ import org.cinchapi.concourse.util.Numbers;
  * 
  * @author jnelson
  */
-public final class LockService {
+public class LockService {
 
     /**
      * Return a new {@link LockService} instance.
@@ -60,7 +58,44 @@ public final class LockService {
         return new LockService();
     }
 
-    private final ReentrantLock lock = new ReentrantLock();
+    /**
+     * Return a {@link LockService} that does not actually provide any locks.
+     * This is
+     * used in situations where access is guaranteed (or at least assumed) to be
+     * isolated (e.g. a Transaction) and we need to simulate locking for
+     * polymorphic consistency.
+     * 
+     * @return the LockService
+     */
+    public static LockService noOp() {
+        return NOOP_INSTANCE;
+    }
+
+    /**
+     * A {@link LockService} that does not actually provide any locks. This is
+     * used in situations where access is guaranteed (or at least assumed) to be
+     * isolated (e.g. a Transaction) and we need to simulate locking for
+     * polymorphic consistency.
+     */
+    private static final LockService NOOP_INSTANCE = new LockService() {
+
+        @Override
+        public ReadLock getReadLock(Token token) {
+            return Locks.noOpReadLock();
+        }
+
+        @Override
+        public WriteLock getWriteLock(Token token) {
+            return Locks.noOpWriteLock();
+        }
+    };
+
+    /**
+     * A cache of locks that have been requested.
+     */
+    private final ConcurrentHashMap<Token, TokenReadWriteLock> locks = new ConcurrentHashMap<Token, TokenReadWriteLock>();
+
+    private LockService() {/* noop */}
 
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
@@ -83,14 +118,16 @@ public final class LockService {
      * @return the ReadLock
      */
     public ReadLock getReadLock(Token token) {
-        lock.lock();
-        try {
-            refs.get(token).incrementAndGet();
-            return cache.get(token).readLock();
+        Thread thread = Thread.currentThread();
+        TokenReadWriteLock existing = locks.get(token);
+        if(existing == null) {
+            TokenReadWriteLock created = new TokenReadWriteLock(token);
+            existing = locks.putIfAbsent(token, created);
+            existing = Objects.firstNonNull(existing, created);
         }
-        finally {
-            lock.unlock();
-        }
+        existing.readers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .readLock() : getReadLock(token);
     }
 
     /**
@@ -114,54 +151,17 @@ public final class LockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(Token token) {
-        lock.lock();
-        try {
-            refs.get(token).incrementAndGet();
-            return cache.get(token).writeLock();
+        Thread thread = Thread.currentThread();
+        TokenReadWriteLock existing = locks.get(token);
+        if(existing == null) {
+            TokenReadWriteLock created = new TokenReadWriteLock(token);
+            existing = locks.putIfAbsent(token, created);
+            existing = Objects.firstNonNull(existing, created);
         }
-        finally {
-            lock.unlock();
-        }
+        existing.writers.setCount(thread, 1);
+        return locks.putIfAbsent(token, existing) == existing ? existing
+                .writeLock() : getWriteLock(token);
     }
-
-    /**
-     * This is cache that is responsible for returning the same lock
-     * instance for a given token. This cache will periodically evict lock
-     * instances that are not currently held by any readers or writers.
-     */
-    @SuppressWarnings("serial")
-    private final Map<Token, TokenReadWriteLock> cache = new ConcurrentHashMap<Token, TokenReadWriteLock>() {
-
-        @Override
-        public TokenReadWriteLock get(Object key) {
-            TokenReadWriteLock lock = super.get(key);
-            if(lock == null) {
-                Token token = (Token) key;
-                lock = new TokenReadWriteLock(token);
-                put(token, lock);
-            }
-            return lock;
-        }
-
-    };
-
-    /**
-     * The running number of references to a lock instance associated with a
-     * given {@link Token}. We use reference counting to track when a lock for a
-     * given token is requested by a thread.
-     */
-    @SuppressWarnings("serial")
-    private final Map<Token, AtomicInteger> refs = new ConcurrentHashMap<Token, AtomicInteger>() {
-        @Override
-        public AtomicInteger get(Object key) {
-            AtomicInteger integer = super.get(key);
-            if(integer == null) {
-                integer = new AtomicInteger(0);
-                put((Token) key, integer);
-            }
-            return integer;
-        }
-    };
 
     /**
      * A custom {@link ReentrantReadWriteLock} that is defined by a
@@ -172,6 +172,27 @@ public final class LockService {
     @SuppressWarnings("serial")
     private final class TokenReadWriteLock extends ReentrantReadWriteLock {
 
+        /**
+         * We keep track of all the threads that have requested (but not
+         * necessarily locked) the read or write lock. If a lock is not
+         * associated with any threads then it can be safely removed from the
+         * cache.
+         */
+        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
+                .create();
+
+        /**
+         * We keep track of all the threads that have requested (but not
+         * necessarily locked) the read or write lock. If a lock is not
+         * associated with any threads then it can be safely removed from the
+         * cache.
+         */
+        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
+                .create();
+
+        /**
+         * The token that represents the notion this lock controls
+         */
         private final Token token;
 
         /**
@@ -184,27 +205,41 @@ public final class LockService {
         }
 
         @Override
+        public boolean equals(Object object) {
+            if(object instanceof TokenReadWriteLock) {
+                TokenReadWriteLock other = (TokenReadWriteLock) object;
+                return token.equals(other.token)
+                        && readers.equals(other.readers)
+                        && writers.equals(other.writers);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(token, readers, writers);
+        }
+
+        @Override
         public ReadLock readLock() {
             return new ReadLock(this) {
 
                 @Override
                 public void unlock() {
                     super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
+                    readers.removeExactly(Thread.currentThread(), 1);
+                    locks.remove(token, new TokenReadWriteLock(token));
                 }
 
             };
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + "[id = " + System.identityHashCode(this)
+                    + "]";
         }
 
         @Override
@@ -214,25 +249,13 @@ public final class LockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    lock.lock();
-                    try {
-                        if(Numbers.isEven(refs.get(token).get())
-                                && !TokenReadWriteLock.this.isWriteLocked()
-                                && TokenReadWriteLock.this.getReadLockCount() == 0) {
-                            cache.remove(token);
-                            refs.remove(token);
-                        }
-                    }
-                    finally {
-                        lock.unlock();
-                    }
+                    writers.removeExactly(Thread.currentThread(), 1);
+                    locks.remove(token, new TokenReadWriteLock(token));
                 }
 
             };
         }
 
     }
-
-    private LockService() {}
 
 }

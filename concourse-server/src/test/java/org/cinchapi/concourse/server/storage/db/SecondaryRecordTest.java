@@ -23,6 +23,9 @@
  */
 package org.cinchapi.concourse.server.storage.db;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
@@ -30,8 +33,12 @@ import org.cinchapi.concourse.server.storage.db.Record;
 import org.cinchapi.concourse.server.storage.db.Revision;
 import org.cinchapi.concourse.server.storage.db.SecondaryRecord;
 import org.cinchapi.concourse.server.storage.db.SecondaryRevision;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link SecondaryRecord}.
@@ -73,4 +80,32 @@ public class SecondaryRecordTest extends
         return TestData.getPrimaryKey();
     }
 
+    @Test
+    public void testFindBrowseOnlyReturnsRelevantData() {
+        Text locator = TestData.getText();
+        record = getRecord(locator);
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j <= i; j++) {
+                record.append(getRevision(locator,
+                        Value.wrap(Convert.javaToThrift(j)), PrimaryKey.wrap(i)));
+            }
+        }
+        Map<PrimaryKey, Set<Value>> data = ((SecondaryRecord) record).explore(
+                Operator.GREATER_THAN, Value.wrap(Convert.javaToThrift(50)));
+        for (int i = 0; i < 100; i++) {
+            PrimaryKey pk = PrimaryKey.wrap(i);
+            if(i > 50) {
+                Assert.assertTrue(data.containsKey(pk));
+                Assert.assertEquals(i - 50, data.get(pk).size());
+                for (Value value : data.get(pk)) {
+                    Assert.assertTrue(value.compareTo(Value.wrap(Convert
+                            .javaToThrift(50))) > 0);
+                }
+            }
+            else {
+                Assert.assertFalse(data.containsKey(pk));
+            }
+
+        }
+    }
 }

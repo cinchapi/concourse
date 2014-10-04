@@ -147,9 +147,23 @@ public abstract class Numbers {
     public static Number max(Number... numbers) {
         Number max = numbers[0];
         for (Number number : numbers) {
-            max = isGreaterThan(max, number) ? number : max;
+            max = isGreaterThan(max, number) ? max : number;
         }
         return max;
+    }
+
+    /**
+     * Return the min from a list of {@code numbers}.
+     * 
+     * @param numbers
+     * @return the smallest number
+     */
+    public static Number min(Number... numbers) {
+        Number min = numbers[0];
+        for (Number number : numbers) {
+            min = isLessThan(min, number) ? min : number;
+        }
+        return min;
     }
 
     /**

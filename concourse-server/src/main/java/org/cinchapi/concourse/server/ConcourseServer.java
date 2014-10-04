@@ -81,6 +81,7 @@ import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TLinkedHashMap;
@@ -88,6 +89,7 @@ import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
+import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -242,6 +244,14 @@ public class ConcourseServer implements
                                                        // configurable in a
                                                        // prefs file in a
                                                        // future release.
+    /**
+     * The server maintains a collection of {@link Transaction} objects to
+     * ensure that client requests are properly routed. When the client makes a
+     * call to {@link #stage(AccessToken)}, a Transaction is started on the
+     * server and a {@link TransactionToken} is used for the client to reference
+     * that Transaction in future calls.
+     */
+    private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
 
     /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
@@ -292,16 +302,6 @@ public class ConcourseServer implements
         this.manager = AccessManager.create(ACCESS_FILE);
         getEngine(); // load the default engine
     }
-
-    /**
-     * The server maintains a collection of {@link Transaction} objects to
-     * ensure that client requests are properly routed. When the client makes a
-     * call to {@link #stage(AccessToken)}, a Transaction is started on the
-     * server and a {@link TransactionToken} is used for the client to reference
-     * that Transaction in future calls.
-     */
-    private final Map<TransactionToken, Transaction> transactions = Maps
-            .newHashMap();
 
     @Override
     public void abort(AccessToken creds, TransactionToken transaction,
@@ -596,13 +596,26 @@ public class ConcourseServer implements
     public boolean insert(String json, long record, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
-                env));
+        AtomicOperation operation = getStore(transaction, env)
+                .startAtomicOperation();
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {
-                    if(!operation.add(key, Convert.javaToThrift(value), record)) {
+                    if(value instanceof ResolvableLink) {
+                        ResolvableLink rl = (ResolvableLink) value;
+                        Set<Long> links = operation.find(rl.getKey(),
+                                Operator.EQUALS,
+                                Convert.javaToThrift(rl.getValue()));
+                        for (long link : links) {
+                            TObject t = Convert.javaToThrift(Link.to(link));
+                            if(!operation.add(key, t, record)) {
+                                return false;
+                            }
+                        }
+                    }
+                    else if(!operation.add(key, Convert.javaToThrift(value),
+                            record)) {
                         return false;
                     }
                 }
@@ -838,8 +851,8 @@ public class ConcourseServer implements
             TObject replacement, AccessToken creds,
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
-        AtomicOperation operation = AtomicOperation.start(getStore(transaction,
-                env));
+        AtomicOperation operation = getStore(transaction, env)
+                .startAtomicOperation();
         try {
             return (operation.verify(key, expected, record)
                     && operation.remove(key, expected, record) && operation
@@ -883,7 +896,7 @@ public class ConcourseServer implements
      * @return the AtomicOperation
      */
     private AtomicOperation doClear(long record, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Map<String, Set<TObject>> values = operation.browse(record);
             for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
@@ -910,7 +923,7 @@ public class ConcourseServer implements
      * @return the AtomicOperation
      */
     private AtomicOperation doClear(String key, long record, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject value : values) {
@@ -977,7 +990,7 @@ public class ConcourseServer implements
      */
     private AtomicOperation doRevert(String key, long record, long timestamp,
             Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> past = operation.fetch(key, record, timestamp);
             Set<TObject> present = operation.fetch(key, record);
@@ -1011,7 +1024,7 @@ public class ConcourseServer implements
             Compoundable store) {
         // NOTE: We cannot use the #clear() method because our removes must be
         // defined in terms of the AtomicOperation for true atomic safety.
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> values = operation.fetch(key, record);
             for (TObject oldValue : values) {
@@ -1081,12 +1094,25 @@ public class ConcourseServer implements
      */
     private AtomicOperation insertIntoEmptyRecord(String json, long record,
             Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         if(operation.describe(record).isEmpty()) {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {
-                    operation.add(key, Convert.javaToThrift(value), record);
+                    if(value instanceof ResolvableLink) {
+                        ResolvableLink rl = (ResolvableLink) value;
+                        Set<Long> links = operation.find(rl.getKey(),
+                                Operator.EQUALS,
+                                Convert.javaToThrift(rl.getValue()));
+                        for (long link : links) {
+                            TObject t = Convert.javaToThrift(Link.to(link));
+                            operation.add(key, t, record);
+                        }
+                    }
+                    else {
+                        operation.add(key, Convert.javaToThrift(value), record);
+                    }
+
                 }
             }
             return operation;
@@ -1122,7 +1148,7 @@ public class ConcourseServer implements
     private AtomicOperation updateChronologizeResultSet(String key,
             long record, Map<Long, Set<TObject>> result,
             Map<Long, String> history, Compoundable store) {
-        AtomicOperation operation = AtomicOperation.start(store);
+        AtomicOperation operation = store.startAtomicOperation();
         try {
             Map<Long, String> newResult = operation.audit(key, record);
             if(newResult.size() > history.size()) {

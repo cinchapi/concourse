@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.perf;
+package org.cinchapi.concourse;
 
-import java.util.concurrent.TimeUnit;
-
-import org.cinchapi.concourse.ConcourseIntegrationTest;
-import org.cinchapi.concourse.util.StandardActions;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
-
-import com.google.common.base.Stopwatch;
 
 /**
- * 
+ * A unit tests for the contraints of the {@link Tag} data type.
  * 
  * @author jnelson
  */
-@RunWith(Theories.class)
-public class WritePerformanceTest extends ConcourseIntegrationTest {
-    
-    public static @DataPoints int[] runs = {0, 1, 2};
+public class TagTest {
     
     @Test
-    @Theory
-    public void testWriteWordsDotTxt(int run){
-        System.out.println("Doing the WritePerformanceTest with words.txt");
-        Stopwatch watch = Stopwatch.createStarted();
-        StandardActions.importWordsDotText(client);
-        watch.stop();
-        System.out.println(watch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds");
+    public void testCreatingTagForNullValueReturnsEmptyTag(){
+        Assert.assertEquals(Tag.EMPTY_TAG, Tag.create(null));
+    }
+    
+    @Test
+    public void testTagCreatedFromNullValueDoesNotHaveNullToStringValue(){
+        Tag tag = Tag.create(null);
+        Assert.assertNotNull(tag.toString());
     }
 
 }

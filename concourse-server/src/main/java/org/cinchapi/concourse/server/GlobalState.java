@@ -117,6 +117,18 @@ public final class GlobalState {
     public static int JMX_PORT = 9010;
 
     /**
+     * The amount of memory that is allocated to the Concourse Server JVM.
+     * Concourse requires a minimum heap size of 256MB to start, but much
+     * more is recommended to ensure that read and write operations avoid
+     * expensive disk seeks where possible. Concourse generally sets both
+     * the initial and maximum heap sizes to the specified value, so there
+     * must be enough system memory available for Concourse Server to start.
+     */
+    public static long HEAP_SIZE = 1024 * 1024 * 1024; // NOTE: This is handled
+                                                       // by Tanuki before the
+                                                       // server starts
+
+    /**
      * The default environment that is automatically loaded when the server
      * starts and is used whenever a client does not specify an environment for
      * its connection.
@@ -183,6 +195,8 @@ public final class GlobalState {
 
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
+            HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
+
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));
 
@@ -215,6 +229,7 @@ public final class GlobalState {
             throw Throwables.propagate(e);
         }
     }
+
     // ========================================================================
 
 }

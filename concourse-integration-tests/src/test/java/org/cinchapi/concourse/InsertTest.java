@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Convert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -77,6 +79,28 @@ public class InsertTest extends ConcourseIntegrationTest {
         String json = object.toString();
         long record = client.insert(json);
         Assert.assertEquals(Boolean.toString(value), client.get(key, record));
+    }
+    
+    @Test
+    public void testInsertResolvableLink(){
+        client.set("name", "Jeff", 1);
+        JsonObject object = new JsonObject();
+        object.addProperty("name", "Ashleah");
+        object.addProperty("spouse", Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        String json = object.toString();
+        client.insert(json, 2);
+        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(2L));      
+    }
+    
+    @Test
+    public void testInsertResolvableLinkIntoNewRecord(){
+        client.set("name", "Jeff", 1);
+        JsonObject object = new JsonObject();
+        object.addProperty("name", "Ashleah");
+        object.addProperty("spouse", Convert.stringToResolvableLinkSpecification("name", "Jeff"));
+        String json = object.toString();
+        long record = client.insert(json);
+        Assert.assertTrue(client.find("spouse", Operator.LINKS_TO, 1).contains(record));
     }
 
 }

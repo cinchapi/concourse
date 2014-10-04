@@ -24,13 +24,16 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 /**
  * Lock related utility methods.
  * 
  * @author jnelson
  */
-public class Locks {
+public final class Locks {
 
     /**
      * Call {@link Lock#lock()} if and only if {@code condition} is {@code true}
@@ -42,6 +45,28 @@ public class Locks {
         if(condition) {
             lock.lock();
         }
+    }
+
+    /**
+     * Return a {@link ReadLock} that is non-operational and always returns
+     * immediately without actually acquiring any shared or exclusive holds on
+     * any monitor.
+     * 
+     * @return the noop ReadLock
+     */
+    public static ReadLock noOpReadLock() {
+        return NOOP_READ_LOCK;
+    }
+
+    /**
+     * Return a {@link WriteLock} that is non-operational and always returns
+     * immediately without actually acquiring any shared or exclusive holds on
+     * any monitor.
+     * 
+     * @return the noop WriteLock
+     */
+    public static WriteLock noOpWriteLock() {
+        return NOOP_WRITE_LOCK;
     }
 
     /**
@@ -57,5 +82,41 @@ public class Locks {
             lock.unlock();
         }
     }
+
+    /**
+     * The lock that is returned by the {@link #noOpReadLock()} method.
+     */
+    @SuppressWarnings("serial")
+    private static final ReadLock NOOP_READ_LOCK = new ReadLock(
+            new ReentrantReadWriteLock()) {
+        @Override
+        public void lock() {}
+
+        @Override
+        public boolean tryLock() {
+            return true;
+        }
+
+        @Override
+        public void unlock() {}
+    };
+
+    /**
+     * The lock that is returned by the {@link #noOpWriteLock()} method.
+     */
+    @SuppressWarnings("serial")
+    private static final WriteLock NOOP_WRITE_LOCK = new WriteLock(
+            new ReentrantReadWriteLock()) {
+        @Override
+        public void lock() {}
+
+        @Override
+        public boolean tryLock() {
+            return true;
+        }
+
+        @Override
+        public void unlock() {}
+    };
 
 }

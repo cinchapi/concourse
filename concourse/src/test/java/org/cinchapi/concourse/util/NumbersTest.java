@@ -21,38 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.perf;
+package org.cinchapi.concourse.util;
 
-import java.util.concurrent.TimeUnit;
-
-import org.cinchapi.concourse.ConcourseIntegrationTest;
-import org.cinchapi.concourse.util.StandardActions;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
-
-import com.google.common.base.Stopwatch;
 
 /**
- * 
+ * Unit tests for {@link Numbers}.
  * 
  * @author jnelson
  */
-@RunWith(Theories.class)
-public class WritePerformanceTest extends ConcourseIntegrationTest {
-    
-    public static @DataPoints int[] runs = {0, 1, 2};
+public class NumbersTest {
+
+    @Test
+    public void testMax() {
+        Assert.assertEquals(10, Numbers.max(1, 8, 2.4, 3.789, 10, -11));
+    }
     
     @Test
-    @Theory
-    public void testWriteWordsDotTxt(int run){
-        System.out.println("Doing the WritePerformanceTest with words.txt");
-        Stopwatch watch = Stopwatch.createStarted();
-        StandardActions.importWordsDotText(client);
-        watch.stop();
-        System.out.println(watch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds");
+    public void testMin() {
+        Assert.assertEquals(-11, Numbers.min(1, 8, 2.4, 3.789, 10, -11));
     }
 
 }

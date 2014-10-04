@@ -123,31 +123,6 @@ public abstract class Limbo extends BaseStore implements
     }
 
     /**
-     * Iterate through {@code set} and remove any elements that violate
-     * {@code operator} in relation to {@code values}.
-     * 
-     * @param set
-     * @param operator
-     * @param values
-     */
-    private static void removeOperatorViolatingValues(Set<TObject> set,
-            Operator operator, TObject... values) {
-        Iterator<TObject> it = set.iterator();
-        while (it.hasNext()) {
-            if(!matches(Value.wrap(it.next()), operator, values)) {
-                it.remove();
-            }
-        }
-    }
-
-    /**
-     * The writeLock ensures that only a single writer can modify the state of
-     * the store, without affecting any readers. The subclass should, at a
-     * minimum, use this lock in the {@link #insert(Write)} method.
-     */
-    protected final ReentrantLock writeLock = new ReentrantLock();
-
-    /**
      * A Predicate that is used to filter out empty sets.
      */
     private static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
@@ -158,6 +133,13 @@ public abstract class Limbo extends BaseStore implements
         }
 
     };
+
+    /**
+     * The writeLock ensures that only a single writer can modify the state of
+     * the store, without affecting any readers. The subclass should, at a
+     * minimum, use this lock in the {@link #insert(Write)} method.
+     */
+    protected final ReentrantLock writeLock = new ReentrantLock();
 
     @Override
     public Map<Long, String> audit(long record) {
@@ -202,7 +184,7 @@ public abstract class Limbo extends BaseStore implements
                     public int compare(String s1, String s2) {
                         return s1.compareToIgnoreCase(s2);
                     }
-                    
+
                 });
         return browse(record, timestamp, context);
     }
@@ -243,9 +225,8 @@ public abstract class Limbo extends BaseStore implements
                 continue;
             }
         }
-        return Maps.newTreeMap(
-                (SortedMap<String, Set<TObject>>) Maps.filterValues(
-                        context, emptySetFilter));
+        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
+                .filterValues(context, emptySetFilter));
     }
 
     @Override
@@ -295,9 +276,8 @@ public abstract class Limbo extends BaseStore implements
                 continue;
             }
         }
-        return Maps.newTreeMap(
-                (SortedMap<TObject, Set<Long>>) Maps.filterValues(
-                        context, emptySetFilter));
+        return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
+                .filterValues(context, emptySetFilter));
     }
 
     /**
@@ -338,6 +318,52 @@ public abstract class Limbo extends BaseStore implements
         }
         return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
                 .keySet();
+    }
+
+    /**
+     * This is an implementation of the {@code findAndBrowse} routine that takes
+     * in a prior {@code context}. Find and browse will return a mapping from
+     * records that match a criteria (expressed as {@code key} filtered by
+     * {@code operator} in relation to one or more {@code values}) to the set of
+     * values that cause that record to match the criteria.
+     * 
+     * @param context
+     * @param timestamp
+     * @param key
+     * @param operator
+     * @param values
+     * @return the relevant data for the records that satisfy the find query
+     */
+    public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
+            long timestamp, String key, Operator operator, TObject... values) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            long record = write.getRecord().longValue();
+            if(write.getVersion() <= timestamp) {
+                if(write.getKey().toString().equals(key)
+                        && matches(write.getValue(), operator, values)) {
+                    Set<TObject> v = context.get(record);
+                    if(v == null) {
+                        v = Sets.newHashSet();
+                        context.put(record, v);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        v.add(write.getValue().getTObject());
+                    }
+                    else {
+                        v.remove(write.getValue().getTObject());
+                        if(v.isEmpty()) {
+                            context.remove(record);
+                        }
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return context;
     }
 
     @Override
@@ -382,66 +408,6 @@ public abstract class Limbo extends BaseStore implements
             }
         }
         return context;
-    }
-
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) {
-        return find(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
-                key, operator, values);
-    }
-
-    /**
-     * Find {@code key} {@code operator} {@code values} at {@code timestamp}
-     * using {@code context} as if it were also a part of the Buffer.
-     * 
-     * @param context
-     * @param timestamp
-     * @param key
-     * @param operator
-     * @param values
-     * @return a possibly empty Set of primary key
-     */
-    public Set<Long> find(Map<Long, Set<TObject>> context, long timestamp,
-            String key, Operator operator, TObject... values) {
-        // NOTE: We have to pre-process the context by removing any values that
-        // don't actually satisfy #operator in relation to #values because the
-        // BufferedStore fetches all the data from the #destination without
-        // doing this processing.
-        for (Set<TObject> set : context.values()) {
-            removeOperatorViolatingValues(set, operator, values);
-        }
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            long record = write.getRecord().longValue();
-            if(write.getVersion() <= timestamp) {
-                if(write.getKey().toString().equals(key)
-                        && matches(write.getValue(), operator, values)) {
-                    Set<TObject> v = context.get(record);
-                    if(v == null) {
-                        v = Sets.newHashSet();
-                        context.put(record, v);
-                    }
-                    if(write.getType() == Action.ADD) {
-                        v.add(write.getValue().getTObject());
-                    }
-                    else {
-                        v.remove(write.getValue().getTObject());
-                    }
-                }
-            }
-            else {
-                break;
-            }
-        }
-        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
-                .keySet();
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values) {
-        return find(Time.now(), key, operator, values);
     }
 
     @Override
@@ -651,6 +617,19 @@ public abstract class Limbo extends BaseStore implements
         return; // do nothing because Limbo is assumed to always be
                 // transportable. But the Buffer will override this method with
                 // the appropriate conditions.
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        return explore(Maps.<Long, Set<TObject>> newLinkedHashMap(), timestamp,
+                key, operator, values);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        return explore(Time.now(), key, operator, values);
     }
 
 }

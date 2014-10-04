@@ -415,8 +415,23 @@ JMX_CONF=`cat $WRAPPER_CONF | grep -e '-Dcom.sun.management.jmxremote.port\s*=\s
 if [ -z "$JMX_PREF" ]; then
     JMX_PREF="9010"
 fi
-#sed -i -E "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
 perl -p -i -e "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
+
+# Pull heap_size from concourse.prefs
+HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
+HEAP=${HEAP_PREF//[!0-9]/}
+if [[ $HEAP_PREF == *g* ]]
+    then
+        HEAP=$(($HEAP * 1024))
+fi
+if [ -z "$HEAP" ]; then
+    HEAP="1024"
+fi
+MIN_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.initmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
+MAX_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.maxmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
+perl -p -i -e "s/wrapper.java.initmemory=$MIN_HEAP/wrapper.java.initmemory=$HEAP/g" $WRAPPER_CONF
+perl -p -i -e "s/wrapper.java.maxmemory=$MAX_HEAP/wrapper.java.maxmemory=$HEAP/g" $WRAPPER_CONF
 
 gettext() {
     "$WRAPPER_CMD" --translate "$1" "$WRAPPER_CONF" 2>/dev/null

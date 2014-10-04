@@ -21,38 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.perf;
+package org.cinchapi.concourse.util;
 
-import java.util.concurrent.TimeUnit;
-
-import org.cinchapi.concourse.ConcourseIntegrationTest;
-import org.cinchapi.concourse.util.StandardActions;
-import org.junit.Test;
-import org.junit.experimental.theories.DataPoints;
-import org.junit.experimental.theories.Theories;
-import org.junit.experimental.theories.Theory;
-import org.junit.runner.RunWith;
-
-import com.google.common.base.Stopwatch;
+import java.util.Comparator;
 
 /**
- * 
+ * A collection of commonly used comparator instances. These comparator
+ * instances are easy enough to make, but this class provides them so that there
+ * is a canonical set, which allows us to avoid creating lots of temporary
+ * objects just to do sorting.
  * 
  * @author jnelson
  */
-@RunWith(Theories.class)
-public class WritePerformanceTest extends ConcourseIntegrationTest {
-    
-    public static @DataPoints int[] runs = {0, 1, 2};
-    
-    @Test
-    @Theory
-    public void testWriteWordsDotTxt(int run){
-        System.out.println("Doing the WritePerformanceTest with words.txt");
-        Stopwatch watch = Stopwatch.createStarted();
-        StandardActions.importWordsDotText(client);
-        watch.stop();
-        System.out.println(watch.elapsed(TimeUnit.MILLISECONDS) + " milliseconds");
-    }
+public final class Comparators {
+
+    /**
+     * A comparator that sorts strings lexicographically without regards to
+     * case.
+     */
+    public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = new Comparator<String>() {
+
+        @Override
+        public int compare(String s1, String s2) {
+            return s1.compareToIgnoreCase(s2);
+        }
+
+    };
+
+    /**
+     * A comparator that sorts longs in numerical order.
+     */
+    public final static Comparator<Long> LONG_COMPARATOR = new Comparator<Long>() {
+
+        @Override
+        public int compare(Long o1, Long o2) {
+            return Long.compare(o1, o2);
+        }
+
+    };
+
+    private Comparators() {/* noop */}
 
 }

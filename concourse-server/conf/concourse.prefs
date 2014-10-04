@@ -42,9 +42,21 @@
 # DEFAULT: FALSE
 #enable_console_logging = FALSE
 
+# The amount of memory that is allocated to the Concourse Server JVM.
+# Concourse requires a minimum heap size of 256MB to start, but much
+# more is recommended to ensure that read and write operations avoid
+# expensive disk seeks where possible. Concourse generally sets both
+# the initial and maximum heap sizes to the specified value, so there
+# must be enough system memory available for Concourse Server to start.
+#
+# DEFAULT: 1GB
+#heap_size = 1GB
+
 # The listener port (1-65535) for management commands via JMX. Choose a port
 # between 49152 and 65535 to minimize the possibility of conflicts with other
 # services on this host.
+#
+# DEFAULT: 9010
 #jmx_port = 9010
 
 # The amount of runtime information logged by the system. The options below

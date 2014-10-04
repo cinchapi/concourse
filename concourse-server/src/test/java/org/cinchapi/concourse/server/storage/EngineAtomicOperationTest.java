@@ -106,8 +106,8 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
             @Override
             public void run() {
                 while (bRunning.get()) {
-                    AtomicOperation operation = AtomicOperation
-                            .start(destination);
+                    AtomicOperation operation = destination
+                            .startAtomicOperation();
                     operations.add(operation);
                     operation.fetch(key, record);
                 }
@@ -120,20 +120,21 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         b.start();
         TestData.sleep();
         bRunning.set(false);
-        while(!bDone.get()){
+        while (!bDone.get()) {
             continue;
         }
         aRunning.set(false);
         while (!aDone.get()) {
             continue;
         }
-        int i = 0 ;
+        int i = 0;
         Variables.register("size", operations.size());
         for (AtomicOperation operation : operations) {
-            Variables.register("operation_"+i, operation);
-            Assert.assertFalse(operation.open); // ensure that all the atomic
-                                                // operations were notified
-                                                // about the version change
+            Variables.register("operation_" + i, operation);
+            Assert.assertFalse(operation.open.get()); // ensure that all the
+                                                      // atomic operations were
+                                                      // notified about the
+                                                      // version change
             i++;
         }
         destination.stop();

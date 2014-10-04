@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
@@ -70,11 +71,16 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * Start a new AtomicOperation that will commit to {@code store}.
+     * <p>
+     * Always use the {@link Compoundable#startAtomicOperation()} method over
+     * this one because each store <em>may</em> may do some customization to the
+     * AtomicOperation before it is returned to the caller.
+     * </p>
      * 
      * @param store
      * @return the AtomicOperation
      */
-    public static AtomicOperation start(Compoundable store) {
+    protected static AtomicOperation start(Compoundable store) {
         return new AtomicOperation(store);
     }
 
@@ -156,6 +162,16 @@ public class AtomicOperation extends BufferedStore implements
     private static final int INITIAL_CAPACITY = 10;
 
     /**
+     * A flag that indicates this atomic operation has successfully grabbed all
+     * required locks and is in the process of committing or has been notified
+     * of a version change and is in the process of aborting. We use this flag
+     * to protect the atomic operation from version change notifications that
+     * happen while its committing (because the version change notifications
+     * come from the transaction itself).
+     */
+    protected AtomicBoolean finalizing = new AtomicBoolean(false);
+
+    /**
      * The collection of {@link LockDescription} objects that are grabbed in the
      * {@link #grabLocks()} method at commit time.
      */
@@ -165,7 +181,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * The AtomicOperation is open until it is committed or aborted.
      */
-    protected boolean open = true;
+    protected AtomicBoolean open = new AtomicBoolean(true);
 
     /**
      * The sequence of VersionExpectations that were generated from the sequence
@@ -190,8 +206,9 @@ public class AtomicOperation extends BufferedStore implements
      * any of the changes to the {@link #destination} store.
      */
     public void abort() {
-        if(open) {
-            open = false;
+        open.set(false);
+        finalizing.set(true);
+        if(locks != null && !locks.isEmpty()) {
             releaseLocks();
         }
     }
@@ -272,34 +289,31 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if the atomic operation is completely applied
      */
     public final boolean commit() throws AtomicStateException {
-        checkState();
-        open = false;
-        if(grabLocks()) {
-            doCommit();
-            releaseLocks();
-            return true;
+        if(open.compareAndSet(true, false)) {
+            if(grabLocks() && finalizing.compareAndSet(false, true)) {
+                doCommit();
+                releaseLocks();
+                return true;
+            }
+            else {
+                abort();
+                return false;
+            }
         }
         else {
-            abort();
+            try {
+                checkState();
+            }
+            catch (TransactionStateException e) { // the Transaction subclass
+                                                  // overrides #checkState() to
+                                                  // throw this exception to
+                                                  // distinguish transaction
+                                                  // failures
+                throw e;
+            }
+            catch (AtomicStateException e) {/* ignore */}
             return false;
         }
-    }
-
-    @Override
-    public Set<Long> doFind(long timestamp, String key, Operator operator,
-            TObject... values) throws AtomicStateException {
-        checkState();
-        return super.doFind(timestamp, key, operator, values);
-    }
-
-    @Override
-    public Set<Long> doFind(String key, Operator operator, TObject... values)
-            throws AtomicStateException {
-        checkState();
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
-                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
-                        Value.class)));
-        return super.doFind(key, operator, values);
     }
 
     @Override
@@ -323,7 +337,9 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     @Restricted
     public void onVersionChange(Token token) {
-        abort();
+        if(finalizing.compareAndSet(false, true)) {
+            abort();
+        }
     }
 
     @Override
@@ -377,7 +393,7 @@ public class AtomicOperation extends BufferedStore implements
      * @throws AtomicStateException
      */
     protected void checkState() throws AtomicStateException {
-        if(!open) {
+        if(!open.get()) {
             throw new AtomicStateException();
         }
     }
@@ -399,6 +415,27 @@ public class AtomicOperation extends BufferedStore implements
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
         buffer.transport(destination);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        checkState();
+        return super.doExplore(timestamp, key, operator, values);
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        checkState();
+        ((Compoundable) destination).addVersionChangeListener(RangeToken
+                .forReading(Text.wrap(key), operator, Transformers
+                        .transformArray(values, Functions.TOBJECT_TO_VALUE,
+                                Value.class)), this);
+        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class)));
+        return super.doExplore(key, operator, values);
     }
 
     /**
@@ -461,14 +498,20 @@ public class AtomicOperation extends BufferedStore implements
      */
     private void releaseLocks() {
         if(locks != null) {
-            for (LockDescription lock : locks.values()) {
+            Map<Token, LockDescription> _locks = locks;
+            locks = null; // CON-172: Set the reference of the locks to null
+                          // immediately to prevent a race condition where the
+                          // #grabLocks method isn't notified of version change
+                          // failure in time
+            for (LockDescription lock : _locks.values()) {
+                ((Compoundable) destination).removeVersionChangeListener(
+                        lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
                                          // #locks once it has been locked.
             }
         }
-        locks = null;
     }
 
     /**

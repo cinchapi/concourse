@@ -46,9 +46,9 @@ import com.google.common.collect.Sets;
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     protected Compoundable destination;
-    
+
     @Test
-    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingEqKeyAndValue(){
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingEqKeyAndValue() {
         long record = TestData.getLong();
         String key = "foo";
         TObject value = Convert.javaToThrift("bar");
@@ -56,9 +56,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         store.find(key, Operator.EQUALS, value);
         Assert.assertTrue(((AtomicOperation) store).commit());
     }
-    
+
     @Test
-    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingGttKeyAndValue(){
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingGttKeyAndValue() {
         long record = TestData.getLong();
         String key = "foo";
         TObject value = Convert.javaToThrift("bar");
@@ -66,9 +66,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         store.find(key, Operator.GREATER_THAN, value);
         Assert.assertTrue(((AtomicOperation) store).commit());
     }
-    
+
     @Test
-    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingBwtKeyAndValue(){
+    public void testNoDeadlockIfAddToKeyAsValueBeforeFindingBwtKeyAndValue() {
         long record = TestData.getLong();
         String key = "foo";
         TObject value = Convert.javaToThrift("bar");
@@ -98,13 +98,13 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertTrue(destination.verify(key, value, record));
     }
 
-    @Test(expected = AtomicStateException.class)
+    @Test
     public void testCommitFailsIfVersionChanges() {
         String key = Variables.register("key", TestData.getString());
         TObject value = Variables.register("value", TestData.getTObject());
         long record = Variables.register("record", TestData.getLong());
         add(key, value, record);
-        AtomicOperation other = AtomicOperation.start(destination);
+        AtomicOperation other = destination.startAtomicOperation();
         other.add(key, value, record);
         Assert.assertTrue(other.commit());
         Assert.assertFalse(((AtomicOperation) store).commit());
@@ -119,13 +119,13 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         String keyB = "keyB";
         TObject valueB = Convert.javaToThrift("valueB");
         add(keyA, valueA, 1);
-        AtomicOperation other = AtomicOperation.start(destination);
+        AtomicOperation other = destination.startAtomicOperation();
         other.add(keyB, valueB, record);
         Assert.assertTrue(other.commit());
         Assert.assertTrue(((AtomicOperation) store).commit());
     }
 
-    @Test(expected = AtomicStateException.class)
+    @Test
     public void testFailureIfWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
         final String key = TestData.getString();
@@ -146,7 +146,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertFalse(operation.commit());
     }
 
-    @Test(expected = AtomicStateException.class)
+    @Test
     public void testFailureIfWriteToRecordThatIsRead()
             throws InterruptedException {
         final long record = TestData.getLong();
@@ -187,8 +187,8 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
 
     @Test
     public void testIsolation() {
-        AtomicOperation a = AtomicOperation.start(destination);
-        AtomicOperation b = AtomicOperation.start(destination);
+        AtomicOperation a = destination.startAtomicOperation();
+        AtomicOperation b = destination.startAtomicOperation();
         String key = TestData.getString();
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
@@ -197,7 +197,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertFalse(destination.verify(key, value, record));
     }
 
-    @Test(expected = AtomicStateException.class)
+    @Test
     public void testNoChangesPersistOnFailure() {
         int count = TestData.getScaleCount();
         String key0 = "";
@@ -210,8 +210,8 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             ((AtomicOperation) store).add(key, value, i);
         }
         destination.accept(Write.add(key0, Convert.javaToThrift("foo"), 0));
-        ((AtomicOperation) store).commit(); // throws AtomicStateException
-        for (int i = 0; i < count; i++) {
+        ((AtomicOperation) store).commit();
+        for (int i = 1; i < count; i++) {
             Assert.assertTrue(destination.audit(i).isEmpty());
         }
     }
@@ -396,6 +396,13 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         Assert.assertTrue(operation.commit());
     }
 
+    @Test(expected = AtomicStateException.class)
+    public void testCannotOperateOnClosedAtomicOperation() {
+        AtomicOperation operation = (AtomicOperation) store;
+        operation.commit();
+        operation.audit(1);
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         ((AtomicOperation) store).add(key, value, record);
@@ -406,7 +413,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Override
     protected AtomicOperation getStore() {
         destination = getDestination();
-        return AtomicOperation.start(destination);
+        return destination.startAtomicOperation();
     }
 
     @Override
@@ -416,7 +423,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     }
 
     private AtomicOperation doTestOnlyOneSuccessDuringRaceCondition() {
-        AtomicOperation operation = AtomicOperation.start(destination);
+        AtomicOperation operation = destination.startAtomicOperation();
         for (int i = 0; i < 1; i++) {
             operation.add(TestData.getString(), TestData.getTObject(), i);
         }
