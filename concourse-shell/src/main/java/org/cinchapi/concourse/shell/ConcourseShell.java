@@ -95,6 +95,7 @@ public final class ConcourseShell {
                 System.exit(1);
             }
             if(Strings.isNullOrEmpty(opts.password)) {
+                cash.setExpandEvents(false);
                 opts.password = cash.console.readLine("Password ["
                         + opts.username + "]: ", '*');
             }
@@ -496,6 +497,16 @@ public final class ConcourseShell {
                 }
             }
         }
+    }
+
+    /**
+     * This method calls {@link ConsoleReader#setExpandEvents(boolean)} with the
+     * specified value.
+     * 
+     * @param bool
+     */
+    public void setExpandEvents(boolean bool) {
+        console.setExpandEvents(bool);
     }
 
     /**
