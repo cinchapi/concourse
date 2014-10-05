@@ -30,6 +30,7 @@ import org.cinchapi.concourse.CachedConnectionPoolTest;
 import org.cinchapi.concourse.ChronologizeTest;
 import org.cinchapi.concourse.ClearTest;
 import org.cinchapi.concourse.CompoundOperationTest;
+import org.cinchapi.concourse.CounterTest;
 import org.cinchapi.concourse.FindCriteriaTest;
 import org.cinchapi.concourse.InsertTest;
 import org.cinchapi.concourse.ReferentialIntegrityTest;
@@ -57,7 +58,7 @@ import org.junit.runners.Suite.SuiteClasses;
         ReferentialIntegrityTest.class, BrowseTest.class,
         SecurityExceptionTest.class, ThriftComplianceTest.class,
         FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
-        InsertTest.class, TransactionIsolationTest.class })
+        InsertTest.class, TransactionIsolationTest.class, CounterTest.class })
 public class IntegrationTestSuite {
 
 }
