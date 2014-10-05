@@ -24,7 +24,7 @@
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
 * Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
-* Fixed and bug in the just-in-time locking protocol that prematurely removed references to active locks.
+* Fixed a bug in the just-in-time locking protocol that prematurely removed references to active locks.
 * Fixed a bug where transactions that started to commit but failed before completing did not release locks, resulting in deadlocks.
 * Fixed an issue where transactions unnecessarily grabbed locks twice while committing.
 * Fixed an issues that made it possible for deadlocks to occur with many concurrent Transactions performing atomic operations (i.e. `set`).
