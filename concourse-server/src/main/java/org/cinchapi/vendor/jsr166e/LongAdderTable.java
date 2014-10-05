@@ -7,7 +7,7 @@
 package org.cinchapi.vendor.jsr166e;
 
 import org.cinchapi.vendor.jsr166e.LongAdder;
-import org.cinchapi.vendor.org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import java.util.Map;
 import java.util.Set;
