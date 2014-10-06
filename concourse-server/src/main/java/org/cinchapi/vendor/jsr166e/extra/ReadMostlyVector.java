@@ -8,6 +8,7 @@
  */
 package org.cinchapi.vendor.jsr166e.extra;
 import org.cinchapi.vendor.jsr166e.StampedLock;
+
 import java.util.*;
 
 /**
@@ -622,6 +623,7 @@ public class ReadMostlyVector<E>
         return idx;
     }
 
+    @SuppressWarnings("unused")
     public boolean isEmpty() {
         final StampedLock lock = this.lock;
         long stamp = lock.tryOptimisticRead();
@@ -711,12 +713,14 @@ public class ReadMostlyVector<E>
         return oldValue;
     }
 
+    @SuppressWarnings("unused")
     public int size() {
         final StampedLock lock = this.lock;
         long stamp = lock.tryOptimisticRead();
         return count; // no need for validation
     }
 
+    @SuppressWarnings("unused")
     private int lockedSize() {
         int n;
         final StampedLock lock = this.lock;
@@ -1262,6 +1266,7 @@ public class ReadMostlyVector<E>
             this.size = size;
         }
 
+        @SuppressWarnings("unused")
         private void rangeCheck(int index) {
             if (index < 0 || index >= size)
                 throw new ArrayIndexOutOfBoundsException(index);
