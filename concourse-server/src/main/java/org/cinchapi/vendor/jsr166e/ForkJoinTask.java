@@ -538,6 +538,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
      * 
      * @return the exception, or null if none
      */
+    @SuppressWarnings("unused")
     private Throwable getThrowableException() {
         if((status & DONE_MASK) != EXCEPTIONAL)
             return null;
@@ -805,7 +806,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
             invokeAll(tasks.toArray(new ForkJoinTask<?>[tasks.size()]));
             return tasks;
         }
-        @SuppressWarnings("unchecked") List<? extends ForkJoinTask<?>> ts = (List<? extends ForkJoinTask<?>>) tasks;
+        List<? extends ForkJoinTask<?>> ts = (List<? extends ForkJoinTask<?>>) tasks;
         Throwable ex = null;
         int last = ts.size() - 1;
         for (int i = last; i >= 0; --i) {

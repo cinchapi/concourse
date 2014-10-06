@@ -1877,6 +1877,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * @return 0 if no progress can be made, negative if task
      *         known complete, else positive
      */
+    @SuppressWarnings("rawtypes")
     private int tryHelpStealer(WorkQueue joiner, ForkJoinTask<?> task) {
         int stat = 0, steps = 0; // bound to avoid cycles
         if(task != null && joiner != null && joiner.base - joiner.top >= 0) { // hoist
@@ -2372,6 +2373,7 @@ public class ForkJoinPool extends AbstractExecutorService {
      * Returns common pool queue for a thread that has submitted at
      * least one task.
      */
+    @SuppressWarnings("unused")
     static WorkQueue commonSubmitterQueue() {
         Submitter z;
         ForkJoinPool p;
