@@ -60,12 +60,12 @@ public class Token implements Byteable {
      * @return the Token
      */
     public static Token wrap(Object... objects) {
-        return new Token(ByteBuffer.wrap(Hashing.md5()
+        return new Token(ByteBuffer.wrap(Hashing.murmur3_128()
                 .hashUnencodedChars(Arrays.toString(objects)).asBytes()));
     }
 
     /**
-     * The sequence of bytes is a MD5 hash.
+     * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
 
