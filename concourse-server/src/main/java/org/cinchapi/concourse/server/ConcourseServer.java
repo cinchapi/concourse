@@ -1187,6 +1187,8 @@ public class ConcourseServer implements
 
     /**
      * Return {@code true} if adding {@code link} to {@code record} is valid.
+     * This method is used to enforce referential integrity (i.e. record cannot
+     * link to itself) before the data makes it way to the Engine.
      * 
      * @param link
      * @param record

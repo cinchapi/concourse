@@ -37,7 +37,7 @@ import org.cinchapi.concourse.time.Time;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link BufferedStore} holds data in a {@link ProxyStore} buffer before
+ * A {@link BufferedStore} holds data in {@link Limbo} buffer before
  * making batch commits to some other {@link PermanentStore}.
  * <p>
  * Data is written to the buffer until the buffer is full, at which point the
@@ -248,15 +248,15 @@ public abstract class BufferedStore extends BaseStore {
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(timestamp,
-                key, operator, values);
+        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
+                operator, values);
         return buffer.explore(context, timestamp, key, operator, values);
     }
 
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(key,
-                operator, values);
+        Map<Long, Set<TObject>> context = destination.explore(key, operator,
+                values);
         return buffer.explore(context, Time.now(), key, operator, values);
     }
 
