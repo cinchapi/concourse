@@ -23,13 +23,12 @@ package org.cinchapi.concourse.server.concurrent;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import java.util.Set;
-
+import java.util.List;
 import org.cinchapi.common.util.Range;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * A collection of utility functions for dealing with {@link RangeToken}
@@ -45,8 +44,8 @@ public final class RangeTokens {
      * @param rangeToken
      * @return the Range
      */
-    public static Set<Range<Value>> convertToRange(RangeToken rangeToken) {
-        Set<Range<Value>> ranges = Sets.newHashSet();
+    public static Iterable<Range<Value>> convertToRange(RangeToken rangeToken) {
+        List<Range<Value>> ranges = Lists.newArrayListWithCapacity(2);
         if(rangeToken.getOperator() == Operator.EQUALS
                 || rangeToken.getOperator() == Operator.REGEX
                 || rangeToken.getOperator() == null) { // null operator means
