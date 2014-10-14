@@ -25,7 +25,7 @@ package org.cinchapi.common.util;
 
 import java.util.Set;
 
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Sets;
 
 /**
  * A {@link NonBlockingRangeMap} is one that focuses on high throughput in the
