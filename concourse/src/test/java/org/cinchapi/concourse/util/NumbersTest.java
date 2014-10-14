@@ -42,5 +42,12 @@ public class NumbersTest {
     public void testMin() {
         Assert.assertEquals(-11, Numbers.min(1, 8, 2.4, 3.789, 10, -11));
     }
+    
+    @Test
+    public void testCompareNumbers(){
+       Number a = Random.getNegativeNumber();
+       Number b = Random.getPositiveNumber();
+       Assert.assertTrue(Numbers.compare(a, b) < 0);
+    }
 
 }
