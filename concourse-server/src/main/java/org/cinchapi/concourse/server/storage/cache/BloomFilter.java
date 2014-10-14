@@ -33,11 +33,14 @@ import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Serializables;
 import org.cinchapi.concourse.server.io.Syncable;
+import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -50,6 +53,7 @@ import com.google.common.base.Throwables;
  * 
  * @author jnelson
  */
+@ThreadSafe
 public class BloomFilter implements Syncable {
 
     /**
@@ -137,7 +141,7 @@ public class BloomFilter implements Syncable {
      * Lock used to ensure the object is ThreadSafe. This lock provides access
      * to a masterLock.readLock()() and masterLock.writeLock()().
      */
-    private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+    private final StampedLock lock = new StampedLock();
 
     /**
      * The wrapped bloom filter. This is where the data is actually stored.
@@ -176,17 +180,21 @@ public class BloomFilter implements Syncable {
 
     @Override
     public void sync() {
-        masterLock.readLock().lock();
+        Preconditions.checkState(file != null, "Cannot sync a "
+                + "BloomFilter that does not have an associated file");
         FileChannel channel = FileSystem.getFileChannel(file);
-        try {
-            Preconditions.checkState(file != null, "Cannot sync a "
-                    + "BloomFilter that does not have an associated file");
-            Serializables.write(source, channel); // CON-164
+        long stamp = lock.tryOptimisticRead();
+        Serializables.write(source, channel); // CON-164
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                Serializables.write(source, channel); // CON-164
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
         }
-        finally {
-            FileSystem.closeFileChannel(channel);
-            masterLock.readLock().unlock();
-        }
+        FileSystem.closeFileChannel(channel);
     }
 
     /**
@@ -197,13 +205,18 @@ public class BloomFilter implements Syncable {
      * @return {@code true} if {@code byteables} might exist
      */
     public boolean mightContain(Byteable... byteables) {
-        masterLock.readLock().lock();
-        try {
-            return source.mightContain(Composite.create(byteables));
+        long stamp = lock.tryOptimisticRead();
+        boolean mightContain = source.mightContain(Composite.create(byteables));
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                mightContain = source.mightContain(Composite.create(byteables));
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
         }
-        finally {
-            masterLock.readLock().unlock();
-        }
+        return mightContain;
     }
 
     /**
@@ -224,12 +237,12 @@ public class BloomFilter implements Syncable {
      *         called.
      */
     public boolean put(Byteable... byteables) {
-        masterLock.writeLock().lock();
+        long stamp = lock.writeLock();
         try {
             return source.put(Composite.create(byteables));
         }
         finally {
-            masterLock.writeLock().unlock();
+            lock.unlockWrite(stamp);
         }
     }
 }
