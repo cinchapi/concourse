@@ -613,7 +613,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public boolean hasUser(byte[] username) {
-        return manager.isValidUsername(ByteBuffer.wrap(username));
+        return manager.isExistingUsername(ByteBuffer.wrap(username));
     }
 
     @Atomic
@@ -708,13 +708,13 @@ public class ConcourseServer implements
             String env) throws TException {
         validate(username, password);
         getEngine(env);
-        return manager.login(username);
+        return manager.getNewAccessToken(username);
     }
 
     @Override
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
-        manager.logout(creds);
+        manager.expireAccessToken(creds);
     }
 
     @Override
@@ -940,7 +940,7 @@ public class ConcourseServer implements
     private void checkAccess(AccessToken creds,
             @Nullable TransactionToken transaction) throws TSecurityException,
             IllegalArgumentException {
-        if(!manager.validate(creds)) {
+        if(!manager.isValidAccessToken(creds)) {
             throw new TSecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
@@ -1243,7 +1243,7 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws TSecurityException {
-        if(!manager.isValidUserNamePasswordCombo(username, password)) {
+        if(!manager.isExistingUsernamePasswordCombo(username, password)) {
             throw new TSecurityException(
                     "Invalid username/password combination.");
         }
