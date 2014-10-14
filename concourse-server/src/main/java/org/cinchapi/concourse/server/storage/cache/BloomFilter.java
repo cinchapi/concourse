@@ -31,7 +31,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -206,11 +205,12 @@ public class BloomFilter implements Syncable {
      */
     public boolean mightContain(Byteable... byteables) {
         long stamp = lock.tryOptimisticRead();
-        boolean mightContain = source.mightContain(Composite.create(byteables));
+        Composite composite = Composite.create(byteables);
+        boolean mightContain = source.mightContain(composite);
         if(!lock.validate(stamp)) {
             stamp = lock.readLock();
             try {
-                mightContain = source.mightContain(Composite.create(byteables));
+                mightContain = source.mightContain(composite);
             }
             finally {
                 lock.unlockRead(stamp);
