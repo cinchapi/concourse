@@ -178,6 +178,10 @@ public class BloomFilter implements Syncable {
     }
 
     @Override
+    // NOTE: It seems counter intuitive, but we take a read lock in this
+    // method instead of a write lock so that readers can concurrently use
+    // the bloom filter in memory while the content is being written to
+    // disk.
     public void sync() {
         Preconditions.checkState(file != null, "Cannot sync a "
                 + "BloomFilter that does not have an associated file");
@@ -187,7 +191,11 @@ public class BloomFilter implements Syncable {
         if(!lock.validate(stamp)) {
             stamp = lock.readLock();
             try {
+                channel.position(0);
                 Serializables.write(source, channel); // CON-164
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
             }
             finally {
                 lock.unlockRead(stamp);
