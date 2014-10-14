@@ -24,12 +24,11 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.TArrays;
 
-import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -60,8 +59,7 @@ public class Token implements Byteable {
      * @return the Token
      */
     public static Token wrap(Object... objects) {
-        return new Token(ByteBuffer.wrap(Hashing.murmur3_128()
-                .hashUnencodedChars(Arrays.toString(objects)).asBytes()));
+        return new Token(TArrays.hash(objects));
     }
 
     /**
