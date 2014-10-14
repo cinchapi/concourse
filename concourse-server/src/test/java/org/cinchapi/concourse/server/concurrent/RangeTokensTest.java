@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Set;
-
 import org.cinchapi.common.util.Range;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
@@ -35,7 +33,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link RangeTokens}.
@@ -74,10 +72,12 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.NOT_EQUALS;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Set<Range<Value>> ranges = RangeTokens.convertToRange(token);
-        Assert.assertEquals(Sets.newHashSet(
-                Range.exclusive(Value.NEGATIVE_INFINITY, value),
-                Range.exclusive(value, Value.POSITIVE_INFINITY)), ranges);
+        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(token);
+        Assert.assertEquals(
+                Lists.newArrayList(
+                        Range.exclusive(Value.NEGATIVE_INFINITY, value),
+                        Range.exclusive(value, Value.POSITIVE_INFINITY)),
+                ranges);
     }
 
     @Test

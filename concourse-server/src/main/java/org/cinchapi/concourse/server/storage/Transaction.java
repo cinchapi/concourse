@@ -31,7 +31,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.common.util.NonBlockingRangeMap;
@@ -166,10 +165,12 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
         ((Compoundable) destination).addVersionChangeListener(token, this);
-        // This rest of this implementation is unnecessary since Transactions are assumed to
-        // be isolated (e.g. single-threaded), but is kept here for unit test consistency.
+        // This rest of this implementation is unnecessary since Transactions
+        // are assumed to
+        // be isolated (e.g. single-threaded), but is kept here for unit test
+        // consistency.
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.put(range, listener);
@@ -202,7 +203,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 for (VersionChangeListener listener : rangeVersionChangeListeners
@@ -226,7 +227,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         // This implementation is unnecessary since Transactions are assumed to
         // be isolated (e.g. single-threaded), but is kept here for consistency.
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.remove(range, listener);

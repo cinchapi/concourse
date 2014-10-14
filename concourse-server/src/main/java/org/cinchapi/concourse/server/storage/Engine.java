@@ -355,7 +355,7 @@ public final class Engine extends BufferedStore implements
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.put(range, listener);
@@ -519,7 +519,7 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 for (VersionChangeListener listener : rangeVersionChangeListeners
@@ -554,7 +554,7 @@ public final class Engine extends BufferedStore implements
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.remove(range, listener);
