@@ -23,11 +23,7 @@
  */
 package org.cinchapi.concourse.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import com.google.common.base.Throwables;
 
 /**
  * Utilities for dealing with generic arrays.
@@ -50,23 +46,19 @@ public final class TArrays {
      * </p>
      * 
      * @param objects
-     * @return the hash for the objects 
+     * @return the hash for the objects
      */
     public static ByteBuffer hash(Object... objects) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            for (Object object : objects) {
-                // We make a best effort to "uniquely" identify each object in
-                // the array by that object's hashcode and the name of the
-                // object's class.
-                baos.write(object.hashCode());
-                baos.write(object.getClass().getName().getBytes());
-            }
-            return ByteBuffer.wrap(baos.toByteArray());
+        ByteBuffer bytes = ByteBuffer.allocate(8 * objects.length);
+        for (Object object : objects) {
+            // We make a best effort to "uniquely" identify each object in
+            // the array by that object's hashcode and the name of the
+            // object's class.
+            bytes.putInt(object.hashCode());
+            bytes.putInt(object.getClass().getName().hashCode());
         }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
+        bytes.flip();
+        return bytes;
     }
 
 }
