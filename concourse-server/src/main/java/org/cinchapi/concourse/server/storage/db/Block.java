@@ -140,6 +140,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * The extension for the block file.
+     */
+    @PackagePrivate
+    static final String BLOCK_NAME_EXTENSION = ".blk";
+
+    /**
      * The expected number of Block insertions. This number is used to size the
      * Block's internal data structures. This value should be large enough to
      * reflect the fact that, for each revision, we make 3 inserts into the
@@ -147,12 +153,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * filters in memory.
      */
     private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
-
-    /**
-     * The extension for the block file.
-     */
-    @PackagePrivate
-    static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
      * The extension for the {@link BloomFilter} file.
@@ -165,17 +165,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private static final String INDEX_NAME_EXTENSION = ".indx";
 
     /**
+     * The flag that indicates whether the Block is mutable or not. A Block is
+     * mutable until a call to {@link #sync()} stores it to disk.
+     */
+    protected transient boolean mutable;
+    
+    /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
      */
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
-     * An exclusive lock that permits only one writer and no reader. Use this
-     * lock to ensure that no seek occurs while data is being inserted into the
-     * Block.
-     */
-    protected final WriteLock write = master.writeLock();
 
     /**
      * A shared lock that permits many readers and no writer. Use this lock to
@@ -185,17 +184,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     protected final ReadLock read = master.readLock();
 
     /**
-     * The flag that indicates whether the Block is mutable or not. A Block is
-     * mutable until a call to {@link #sync()} stores it to disk.
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no seek occurs while data is being inserted into the
+     * Block.
      */
-    protected transient boolean mutable;
-
-    /**
-     * The running size of the Block. This number only refers to the size of the
-     * Revisions that are stored in the block file. The size for the filter and
-     * index are tracked separately.
-     */
-    private transient int size;
+    protected final WriteLock write = master.writeLock();
 
     /**
      * The location of the block file.
@@ -203,11 +196,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final String file;
 
     /**
+     * A fixed size filter that is used to test whether elements are contained
+     * in the Block without actually looking through the Block.
+     */
+    private final BloomFilter filter;
+
+    /**
      * The unique id for the block. Each component of the block is named after
      * the id. It is assumed that block ids should be assigned in atomically
      * increasing order (i.e. a timestamp).
      */
     private final String id;
+
+    /**
+     * The index to determine which bytes in the block pertain to a locator or
+     * locator/key pair.
+     */
+    private final BlockIndex index; // Since the index is only used for
+                                    // immutable blocks, it is only populated
+                                    // during the call to #getBytes()
 
     /**
      * A collection that contains all the Revisions that have been inserted into
@@ -220,18 +227,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private TreeMultiset<Revision<L, K, V>> revisions;
 
     /**
-     * A fixed size filter that is used to test whether elements are contained
-     * in the Block without actually looking through the Block.
+     * The running size of the Block. This number only refers to the size of the
+     * Revisions that are stored in the block file. The size for the filter and
+     * index are tracked separately.
      */
-    private final BloomFilter filter;
-
-    /**
-     * The index to determine which bytes in the block pertain to a locator or
-     * locator/key pair.
-     */
-    private final BlockIndex index; // Since the index is only used for
-                                    // immutable blocks, it is only populated
-                                    // during the call to #getBytes()
+    private transient int size;
 
     /**
      * Construct a new instance.
@@ -283,56 +283,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         read.lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
-            L locator = null;
-            K key = null;
-            int position = 0;
-            for (Revision<L, K, V> revision : revisions) {
-                bytes.putInt(revision.size());
-                bytes.put(revision.getBytes());
-                position = bytes.position() - revision.size() - 4;
-                /*
-                 * States that trigger this condition to be true:
-                 * 1. This is the first locator we've seen
-                 * 2. This locator is different than the last one we've seen
-                 */
-                if(locator == null || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator());
-                    if(locator != null) {
-                        // There was a locator before us (we are not the first!)
-                        // and we need to record the end index.
-                        index.putEnd(position - 1, locator);
-                    }
-                }
-                /*
-                 * NOTE: IF key == null, then it must be the case that locator
-                 * == null since they are set at the same time. Therefore we do
-                 * not need to explicitly check for that condition below
-                 * 
-                 * States that trigger this condition to be true:
-                 * 1. This is the first key we've seen
-                 * 2. This key is different than the last one we've seen
-                 * (regardless of whether the locator is different or the same!)
-                 * 3. This key is the same as the last one we've seen, but the
-                 * locator is different.
-                 */
-                if(key == null || !key.equals(revision.getKey())
-                        || !locator.equals(revision.getLocator())) {
-                    index.putStart(position, revision.getLocator(),
-                            revision.getKey());
-                    if(key != null) {
-                        // There was a locator, key before us (we are not the
-                        // first!) and we need to record the end index.
-                        index.putEnd(position - 1, locator, key);
-                    }
-                }
-                locator = revision.getLocator();
-                key = revision.getKey();
-            }
-            if(revisions.size() > 0) {
-                position = bytes.position() - 1;
-                index.putEnd(position, locator);
-                index.putEnd(position, locator, key);
-            }
+            transferBytes(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -487,6 +438,66 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + id;
+    }
+
+    @Override
+    public void transferBytes(ByteBuffer buffer) {
+        read.lock();
+        try {
+            L locator = null;
+            K key = null;
+            int position = 0;
+            for (Revision<L, K, V> revision : revisions) {
+                buffer.putInt(revision.size());
+                buffer.put(revision.getBytes());
+                position = buffer.position() - revision.size() - 4;
+                /*
+                 * States that trigger this condition to be true:
+                 * 1. This is the first locator we've seen
+                 * 2. This locator is different than the last one we've seen
+                 */
+                if(locator == null || !locator.equals(revision.getLocator())) {
+                    index.putStart(position, revision.getLocator());
+                    if(locator != null) {
+                        // There was a locator before us (we are not the first!)
+                        // and we need to record the end index.
+                        index.putEnd(position - 1, locator);
+                    }
+                }
+                /*
+                 * NOTE: IF key == null, then it must be the case that locator
+                 * == null since they are set at the same time. Therefore we do
+                 * not need to explicitly check for that condition below
+                 * 
+                 * States that trigger this condition to be true:
+                 * 1. This is the first key we've seen
+                 * 2. This key is different than the last one we've seen
+                 * (regardless of whether the locator is different or the same!)
+                 * 3. This key is the same as the last one we've seen, but the
+                 * locator is different.
+                 */
+                if(key == null || !key.equals(revision.getKey())
+                        || !locator.equals(revision.getLocator())) {
+                    index.putStart(position, revision.getLocator(),
+                            revision.getKey());
+                    if(key != null) {
+                        // There was a locator, key before us (we are not the
+                        // first!) and we need to record the end index.
+                        index.putEnd(position - 1, locator, key);
+                    }
+                }
+                locator = revision.getLocator();
+                key = revision.getKey();
+            }
+            if(revisions.size() > 0) {
+                position = buffer.position() - 1;
+                index.putEnd(position, locator);
+                index.putEnd(position, locator, key);
+            }
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     /**

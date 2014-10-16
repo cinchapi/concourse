@@ -177,12 +177,12 @@ public class LegacyAccessManager {
             return new Credentials(username, password, salt);
         }
 
+        private final String password;
+        private final String salt;
         // These are hex encoded values. It Is okay to keep them in memory as a
         // strings since the actual password can't be reconstructed from the
         // string hash.
         private final String username;
-        private final String password;
-        private final String salt;
 
         /**
          * Construct a new instance.
@@ -200,11 +200,9 @@ public class LegacyAccessManager {
         @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            bytes.put(ByteBuffers.decodeFromHex(password));
-            bytes.put(ByteBuffers.decodeFromHex(salt));
-            bytes.put(ByteBuffers.decodeFromHex(username));
+            transferBytes(bytes);
             bytes.rewind();
-            return ByteBuffers.asReadOnlyBuffer(bytes);
+            return bytes;
         }
 
         /**
@@ -250,6 +248,13 @@ public class LegacyAccessManager {
             sb.append("salt: " + salt).append(
                     System.getProperty("line.separator"));
             return sb.toString();
+        }
+
+        @Override
+        public void transferBytes(ByteBuffer buffer) {
+            buffer.put(ByteBuffers.decodeFromHex(password));
+            buffer.put(ByteBuffers.decodeFromHex(salt));
+            buffer.put(ByteBuffers.decodeFromHex(username));
         }
 
     }

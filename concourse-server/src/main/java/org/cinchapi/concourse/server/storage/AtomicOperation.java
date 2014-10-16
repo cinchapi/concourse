@@ -633,10 +633,15 @@ public class AtomicOperation extends BufferedStore implements
             // happens if the AtomicOperation is not aborted before an attempt
             // to commit, so its best to not create a copy if we don't have to
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            bytes.put((byte) type.ordinal());
-            bytes.put(token.getBytes());
+            transferBytes(bytes);
             bytes.rewind();
             return bytes;
+        }
+
+        @Override
+        public void transferBytes(ByteBuffer buffer) {
+            buffer.put((byte) type.ordinal());
+            token.transferBytes(buffer);
         }
 
         /**
