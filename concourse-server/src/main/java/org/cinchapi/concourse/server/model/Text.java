@@ -71,15 +71,15 @@ public final class Text implements Byteable, Comparable<Text> {
     public static final Text EMPTY = Text.wrap("");
 
     /**
-     * The wrapped string.
-     */
-    private final String text;
-
-    /**
      * Master byte sequence that represents this object. Read-only duplicates
      * are made when returning from {@link #getBytes()}.
      */
     private transient ByteBuffer bytes = null;
+
+    /**
+     * The wrapped string.
+     */
+    private final String text;
 
     /**
      * Construct an instance that wraps the {@code text} string.
@@ -136,6 +136,11 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public String toString() {
         return text;
+    }
+
+    @Override
+    public void transferBytes(ByteBuffer buffer) {
+        buffer.put(ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8)));
     }
 
 }

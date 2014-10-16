@@ -121,22 +121,22 @@ public final class Write implements Byteable, Versioned {
                                                                    // keySize(4)
 
     /**
-     * Indicates the action that generated the Write. The type information is
-     * recorded so that the Database knows how to apply the Write when accepting
-     * it from a transport.
-     */
-    private final Action type;
-    private final Text key;
-    private final Value value;
-    private final PrimaryKey record;
-    private final long version;
-
-    /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
     @Nullable
     private transient ByteBuffer bytes = null;
+    private final Text key;
+    private final PrimaryKey record;
+    /**
+     * Indicates the action that generated the Write. The type information is
+     * recorded so that the Database knows how to apply the Write when accepting
+     * it from a transport.
+     */
+    private final Action type;
+    private final Value value;
+
+    private final long version;
 
     /**
      * Construct a new instance.
@@ -207,12 +207,8 @@ public final class Write implements Byteable, Versioned {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            bytes.putInt(key.size());
-            bytes.put((byte) type.ordinal());
-            bytes.putLong(version);
-            bytes.put(record.getBytes());
-            bytes.put(key.getBytes());
-            bytes.put(value.getBytes());
+            transferBytes(bytes);
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -296,6 +292,16 @@ public final class Write implements Byteable, Versioned {
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + record + " AT "
                 + version;
+    }
+
+    @Override
+    public void transferBytes(ByteBuffer buffer) {
+        buffer.putInt(key.size());
+        buffer.put((byte) type.ordinal());
+        buffer.putLong(version);
+        record.transferBytes(buffer);
+        key.transferBytes(buffer);
+        value.transferBytes(buffer);
     }
 
 }

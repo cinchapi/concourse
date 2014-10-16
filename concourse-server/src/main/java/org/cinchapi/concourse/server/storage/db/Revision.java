@@ -113,11 +113,16 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     static final int VARIABLE_SIZE = -1;
 
     /**
-     * An field indicating the action performed to generate this Revision. This
-     * information is recorded so that we can efficiently purge history while
-     * maintaining consistent state.
+     * A cached copy of the binary representation that is returned from
+     * {@link #getBytes()}.
      */
-    private final Action type;
+    private transient ByteBuffer bytes = null;
+
+    /**
+     * The secondary component used to locate the field in the index, to which
+     * this Revision belongs.
+     */
+    private final K key;
 
     /**
      * The primary component used to locate the index, to which this Revision
@@ -126,10 +131,17 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     private final L locator;
 
     /**
-     * The secondary component used to locate the field in the index, to which
-     * this Revision belongs.
+     * The number of bytes used to store the Revision. This value depends on
+     * the number of variable sized components.
      */
-    private final K key;
+    private transient final int size;
+
+    /**
+     * An field indicating the action performed to generate this Revision. This
+     * information is recorded so that we can efficiently purge history while
+     * maintaining consistent state.
+     */
+    private final Action type;
 
     /**
      * The tertiary component that typically represents the payload for what
@@ -142,18 +154,6 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
      * be an atomically increasing values (i.e. timestamps).
      */
     private final long version;
-
-    /**
-     * A cached copy of the binary representation that is returned from
-     * {@link #getBytes()}.
-     */
-    private transient ByteBuffer bytes = null;
-
-    /**
-     * The number of bytes used to store the Revision. This value depends on
-     * the number of variable sized components.
-     */
-    private transient final int size;
 
     /**
      * Construct an instance that represents an existing Revision from a
@@ -245,17 +245,8 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            bytes.put((byte) type.ordinal());
-            bytes.putLong(version);
-            if(xLocatorSize() == VARIABLE_SIZE) {
-                bytes.putInt(locator.size());
-            }
-            bytes.put(locator.getBytes());
-            if(xKeySize() == VARIABLE_SIZE) {
-                bytes.putInt(key.size());
-            }
-            bytes.put(key.getBytes());
-            bytes.put(value.getBytes());
+            transferBytes(bytes);
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -320,6 +311,21 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public String toString() {
         return type + " " + key + " AS " + value + " IN " + locator + " AT "
                 + version;
+    }
+
+    @Override
+    public void transferBytes(ByteBuffer buffer) {
+        buffer.put((byte) type.ordinal());
+        buffer.putLong(version);
+        if(xLocatorSize() == VARIABLE_SIZE) {
+            bytes.putInt(locator.size());
+        }
+        locator.transferBytes(buffer);
+        if(xKeySize() == VARIABLE_SIZE) {
+            buffer.putInt(key.size());
+        }
+        key.transferBytes(buffer);
+        value.transferBytes(buffer);
     }
 
     /**

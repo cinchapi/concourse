@@ -86,6 +86,21 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Transfer the bytes from {@code source} to {@code destination} and resets
+     * {@code source} so that its position remains unchanged. The position of
+     * the {@code destination} is incremented by the number of bytes that are
+     * transferred.
+     * 
+     * @param source
+     * @param destination
+     */
+    public static void copy(ByteBuffer source, ByteBuffer destination) {
+        int position = source.position();
+        destination.put(source);
+        source.position(position);
+    }
+
+    /**
      * Encode the remaining bytes in as {@link ByteBuffer} as a hex string and
      * maintain the current position.
      * 
@@ -100,17 +115,6 @@ public abstract class ByteBuffers {
         }
         buffer.reset();
         return sb.toString();
-    }
-
-    /**
-     * Relative <em>get</em> method. Reads the byte at the current position in
-     * {@code buffer} as a boolean, and then increments the position.
-     * 
-     * @param buffer
-     * @return the boolean value at the current position
-     */
-    public static boolean getBoolean(ByteBuffer buffer) {
-        return buffer.get() > 0 ? true : false;
     }
 
     /**
@@ -129,6 +133,17 @@ public abstract class ByteBuffers {
         byte[] backingArray = new byte[length];
         buffer.get(backingArray);
         return ByteBuffer.wrap(backingArray);
+    }
+
+    /**
+     * Relative <em>get</em> method. Reads the byte at the current position in
+     * {@code buffer} as a boolean, and then increments the position.
+     * 
+     * @param buffer
+     * @return the boolean value at the current position
+     */
+    public static boolean getBoolean(ByteBuffer buffer) {
+        return buffer.get() > 0 ? true : false;
     }
 
     /**

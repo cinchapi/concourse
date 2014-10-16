@@ -60,17 +60,40 @@ import java.nio.ByteBuffer;
 public interface Byteable {
 
     /**
+     * Returns a byte sequence that represents this object.
+     * 
+     * @return the byte sequence.
+     */
+    public ByteBuffer getBytes();
+
+    /**
      * Returns the total number of bytes used to represent this object.
+     * <p>
+     * It is recommended that the value returned from this method NOT depend on
+     * a call to {@link #getBytes()}. Therefore, the implementing class should
+     * keep track of the size separately, if necessary.
+     * <p>
      * 
      * @return the number of bytes.
      */
     public int size();
 
     /**
-     * Returns a byte sequence that represents this object.
+     * Copy the byte sequence that represents this object to the {@code buffer}.
+     * <p>
+     * If the binary representation for this object depends on that of another
+     * Byteable, then the implementation of this method should gather those
+     * bytes using the {@link #transferBytes(ByteBuffer)} method for the
+     * other Byteable.
+     * </p>
+     * <p>
+     * <strong>DO NOT</strong> make any modifications to {@code buffer} other
+     * than filling it with bytes for this class (i.e. do not rewind the buffer
+     * or change its position).
+     * </p>
      * 
-     * @return the byte sequence.
+     * @param buffer
      */
-    public ByteBuffer getBytes();
+    public void transferBytes(ByteBuffer buffer);
 
 }
