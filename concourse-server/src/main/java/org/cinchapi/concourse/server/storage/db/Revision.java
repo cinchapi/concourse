@@ -245,8 +245,8 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            transferBytes(bytes);
-            bytes.rewind();
+            copyToByteBuffer(bytes);
+            bytes.flip();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -314,18 +314,18 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
+    public void copyToByteBuffer(ByteBuffer buffer) {
         buffer.put((byte) type.ordinal());
         buffer.putLong(version);
         if(xLocatorSize() == VARIABLE_SIZE) {
-            bytes.putInt(locator.size());
+            buffer.putInt(locator.size());
         }
-        locator.transferBytes(buffer);
+        locator.copyToByteBuffer(buffer);
         if(xKeySize() == VARIABLE_SIZE) {
             buffer.putInt(key.size());
         }
-        key.transferBytes(buffer);
-        value.transferBytes(buffer);
+        key.copyToByteBuffer(buffer);
+        value.copyToByteBuffer(buffer);
     }
 
     /**

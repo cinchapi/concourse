@@ -88,7 +88,7 @@ public class Token implements Byteable {
     public ByteBuffer getBytes() {
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
-    
+
     @Override
     public int hashCode() {
         return getBytes().hashCode();
@@ -106,8 +106,8 @@ public class Token implements Byteable {
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
-        ByteBuffers.copy(bytes, buffer);
+    public void copyToByteBuffer(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }

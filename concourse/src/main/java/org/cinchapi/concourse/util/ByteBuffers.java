@@ -94,7 +94,8 @@ public abstract class ByteBuffers {
      * @param source
      * @param destination
      */
-    public static void copy(ByteBuffer source, ByteBuffer destination) {
+    public static void copyAndRewindSource(ByteBuffer source,
+            ByteBuffer destination) {
         int position = source.position();
         destination.put(source);
         source.position(position);
@@ -115,6 +116,23 @@ public abstract class ByteBuffers {
         }
         buffer.reset();
         return sb.toString();
+    }
+
+    /**
+     * Return a byte buffer that has the UTF-8 encoding for {@code string}. This
+     * method uses some optimization techniques and is the preferable way to
+     * convert strings to byte buffers than doing so manually.
+     * 
+     * @param string
+     * @return the byte buffer with the {@code string} data.
+     */
+    public static ByteBuffer fromString(String string) {
+        try {
+            return ByteBuffer.wrap(string.getBytes(CHARSET));
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -186,6 +204,25 @@ public abstract class ByteBuffers {
             return decoder.decode(buffer).toString();
         }
         catch (CharacterCodingException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Put the UTF-8 encoding for the {@code source} string into the
+     * {@code destination} byte buffer. This method uses some optimization
+     * techniques and is the preferable way to add strings to byte buffers than
+     * doing so manually.
+     * 
+     * @param source
+     * @param destination
+     */
+    public static void putString(String source, ByteBuffer destination) {
+        try {
+            byte[] bytes = source.getBytes(CHARSET);
+            destination.put(bytes);
+        }
+        catch (Exception e) {
             throw Throwables.propagate(e);
         }
     }
@@ -272,5 +309,13 @@ public abstract class ByteBuffers {
             return array;
         }
     }
+
+    /**
+     * The name of the Charset to use for encoding/decoding. We use the name
+     * instead of the charset object because Java caches encoders when
+     * referencing them by name, but creates a new encorder object when
+     * referencing them by Charset object.
+     */
+    private static final String CHARSET = StandardCharsets.UTF_8.name();
 
 }

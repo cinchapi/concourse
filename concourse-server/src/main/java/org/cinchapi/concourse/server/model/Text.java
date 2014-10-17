@@ -118,7 +118,7 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+            bytes = ByteBuffers.fromString(text);
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -139,8 +139,8 @@ public final class Text implements Byteable, Comparable<Text> {
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
-        buffer.put(ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8)));
+    public void copyToByteBuffer(ByteBuffer buffer) {
+        ByteBuffers.putString(text, buffer);
     }
 
 }
