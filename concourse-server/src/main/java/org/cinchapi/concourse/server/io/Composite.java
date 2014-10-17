@@ -96,6 +96,7 @@ public final class Composite implements Byteable {
         for (Byteable byteable : byteables) {
             bytes.put(byteable.getBytes());
         }
+        bytes.flip();
     }
 
     @Override
