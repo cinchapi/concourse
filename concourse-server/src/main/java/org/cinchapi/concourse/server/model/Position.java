@@ -149,8 +149,8 @@ public final class Position implements Byteable, Comparable<Position> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            transferBytes(bytes);
-            bytes.rewind();
+            copyToByteBuffer(bytes);
+            bytes.flip();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -189,18 +189,18 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
-            primaryKey.transferBytes(buffer);
-            // NOTE: Storing the index as an int instead of some size aware
-            // variable length is probably overkill since most indexes will be
-            // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
-            // size indexes means that the size of the entire Position (as an
-            // int) must be stored before the Position for proper
-            // deserialization. By storing the index as an int, the size of each
-            // Position is constant so we won't need to store the overall size
-            // prior to the Position to deserialize it, which is actually more
-            // space efficient.
-            buffer.putInt(index);
+    public void copyToByteBuffer(ByteBuffer buffer) {
+        // NOTE: Storing the index as an int instead of some size aware
+        // variable length is probably overkill since most indexes will be
+        // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
+        // size indexes means that the size of the entire Position (as an
+        // int) must be stored before the Position for proper
+        // deserialization. By storing the index as an int, the size of each
+        // Position is constant so we won't need to store the overall size
+        // prior to the Position to deserialize it, which is actually more
+        // space efficient.
+        primaryKey.copyToByteBuffer(buffer);
+        buffer.putInt(index);
     }
 
 }

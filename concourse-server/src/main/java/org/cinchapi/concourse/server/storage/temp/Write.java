@@ -207,8 +207,8 @@ public final class Write implements Byteable, Versioned {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            transferBytes(bytes);
-            bytes.rewind();
+            copyToByteBuffer(bytes);
+            bytes.flip();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -295,13 +295,13 @@ public final class Write implements Byteable, Versioned {
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
+    public void copyToByteBuffer(ByteBuffer buffer) {
         buffer.putInt(key.size());
         buffer.put((byte) type.ordinal());
         buffer.putLong(version);
-        record.transferBytes(buffer);
-        key.transferBytes(buffer);
-        value.transferBytes(buffer);
+        record.copyToByteBuffer(buffer);
+        key.copyToByteBuffer(buffer);
+        value.copyToByteBuffer(buffer);
     }
 
 }

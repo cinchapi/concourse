@@ -129,8 +129,8 @@ public final class Composite implements Byteable {
     }
 
     @Override
-    public void transferBytes(ByteBuffer buffer) {
-        ByteBuffers.copy(bytes, buffer);
+    public void copyToByteBuffer(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }

@@ -62,5 +62,5 @@ public class TArraysTest extends ConcourseBaseTest {
         ByteBuffer b = TArrays.hash(data);
         Assert.assertEquals(a, b);
     }
-
+    
 }

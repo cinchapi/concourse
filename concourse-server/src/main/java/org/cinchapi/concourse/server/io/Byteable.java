@@ -60,6 +60,30 @@ import java.nio.ByteBuffer;
 public interface Byteable {
 
     /**
+     * Copy the byte sequence that represents this object to the {@code buffer}.
+     * This method should be idempotent, so if the object caches its byte
+     * representation, be sure to reset the position after copying data to the
+     * buffer.
+     * <p>
+     * This method is primary intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single bytebuffer without
+     * doing any unnecessary intermediate copying. So, if the binary
+     * representation for this object depends on that of another Byteable, then
+     * the implementation of this method should gather those bytes using the
+     * {@link #copyToByteBuffer(ByteBuffer)} method for the other Byteable.
+     * </p>
+     * <p>
+     * <strong>DO NOT</strong> make any modifications to {@code buffer} other
+     * than filling it with bytes for this class (i.e. do not rewind the buffer
+     * or change its position). It is assumed that the caller will rewind or
+     * flip the buffer after this method completes.
+     * </p>
+     * 
+     * @param buffer
+     */
+    public void copyToByteBuffer(ByteBuffer buffer);
+
+    /**
      * Returns a byte sequence that represents this object.
      * 
      * @return the byte sequence.
@@ -77,23 +101,5 @@ public interface Byteable {
      * @return the number of bytes.
      */
     public int size();
-
-    /**
-     * Copy the byte sequence that represents this object to the {@code buffer}.
-     * <p>
-     * If the binary representation for this object depends on that of another
-     * Byteable, then the implementation of this method should gather those
-     * bytes using the {@link #transferBytes(ByteBuffer)} method for the
-     * other Byteable.
-     * </p>
-     * <p>
-     * <strong>DO NOT</strong> make any modifications to {@code buffer} other
-     * than filling it with bytes for this class (i.e. do not rewind the buffer
-     * or change its position).
-     * </p>
-     * 
-     * @param buffer
-     */
-    public void transferBytes(ByteBuffer buffer);
 
 }
