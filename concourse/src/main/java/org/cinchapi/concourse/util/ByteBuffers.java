@@ -29,6 +29,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -221,13 +222,26 @@ public abstract class ByteBuffers {
      * @return the string value at the current position
      */
     public static String getString(ByteBuffer buffer, Charset charset) {
+        CharsetDecoder decoder = null;
         try {
-            CharsetDecoder decoder = charset.newDecoder();
+            if(charset == StandardCharsets.UTF_8) {
+                while (decoder == null) {
+                    decoder = DECODERS.poll();
+                }
+            }
+            else {
+                decoder = charset.newDecoder();
+            }
             decoder.onMalformedInput(CodingErrorAction.IGNORE);
             return decoder.decode(buffer).toString();
         }
         catch (CharacterCodingException e) {
             throw Throwables.propagate(e);
+        }
+        finally {
+            if(decoder != null && charset == StandardCharsets.UTF_8) {
+                DECODERS.offer(decoder);
+            }
         }
     }
 
@@ -340,5 +354,27 @@ public abstract class ByteBuffers {
      * referencing them by Charset object.
      */
     private static final String CHARSET = StandardCharsets.UTF_8.name();
+
+    /**
+     * The number of UTF-8 decoders to create for concurrent access.
+     */
+    private static final int NUM_DECODERS = 10;
+
+    /**
+     * A collection of UTF-8 decoders that can be concurrently used. We use this
+     * to avoid creating a new decoder every time we need to decode a string
+     * while still allowing multi-threaded access.
+     */
+    private static final ConcurrentLinkedQueue<CharsetDecoder> DECODERS = new ConcurrentLinkedQueue<CharsetDecoder>();
+    static {
+        try {
+            for (int i = 0; i < NUM_DECODERS; i++) {
+                DECODERS.add(StandardCharsets.UTF_8.newDecoder());
+            }
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
 }
