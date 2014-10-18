@@ -39,7 +39,7 @@ import org.cinchapi.concourse.util.Transformers;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -335,8 +335,8 @@ public class RangeLockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> readers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * We keep track of all the threads that have requested (but not
@@ -344,8 +344,8 @@ public class RangeLockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> writers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * The token that represents the notion this lock controls
@@ -404,7 +404,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    readers.removeExactly(Thread.currentThread(), 1);
+                    readers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 
@@ -443,7 +443,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    writers.removeExactly(Thread.currentThread(), 1);
+                    writers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 
