@@ -284,7 +284,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
             return bytes;
         }
         finally {

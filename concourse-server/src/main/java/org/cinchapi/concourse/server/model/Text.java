@@ -82,6 +82,11 @@ public final class Text implements Byteable, Comparable<Text> {
     private final String text;
 
     /**
+     * A mutex used to synchronized the lazy setting of the byte buffer.
+     */
+    private final Object mutex = new Object();
+
+    /**
      * Construct an instance that wraps the {@code text} string.
      * 
      * @param text
@@ -118,7 +123,9 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffers.fromString(text);
+            synchronized (mutex) {
+                bytes = ByteBuffers.fromString(text);
+            }
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -144,9 +151,7 @@ public final class Text implements Byteable, Comparable<Text> {
             ByteBuffers.putString(text, buffer);
         }
         else {
-            bytes.rewind();
-            buffer.put(bytes);
-            bytes.rewind();
+            buffer.put(getBytes());
         }
     }
 
