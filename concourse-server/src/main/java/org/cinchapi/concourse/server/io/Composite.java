@@ -94,7 +94,7 @@ public final class Composite implements Byteable {
         }
         bytes = ByteBuffer.allocate(size);
         for (Byteable byteable : byteables) {
-            bytes.put(byteable.getBytes());
+            byteable.copyToByteBuffer(bytes);
         }
         bytes.flip();
     }
