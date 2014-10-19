@@ -467,10 +467,11 @@ public final class Buffer extends Limbo {
     public boolean insert(Write write) {
         writeLock.lock();
         try {
+            boolean notify = pages.size() == 2 && currentPage.size == 0;
             currentPage.append(write);
-            if(pages.size() > 1) {
+            if(notify) {
                 synchronized (transportable) {
-                    transportable.notifyAll();
+                    transportable.notify();
                 }
             }
         }
