@@ -57,7 +57,7 @@ public final class TArrays {
             bytes.putInt(object.hashCode());
             bytes.putInt(object.getClass().getName().hashCode());
         }
-        bytes.flip();
+        bytes.rewind();
         return bytes;
     }
 

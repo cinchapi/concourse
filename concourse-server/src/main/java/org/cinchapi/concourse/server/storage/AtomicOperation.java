@@ -621,7 +621,7 @@ public class AtomicOperation extends BufferedStore implements
             // to commit, so its best to not create a copy if we don't have to
             ByteBuffer bytes = ByteBuffer.allocate(size());
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
             return bytes;
         }
 

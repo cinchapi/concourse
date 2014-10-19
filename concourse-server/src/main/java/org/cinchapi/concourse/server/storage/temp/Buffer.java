@@ -893,7 +893,7 @@ public final class Buffer extends Limbo {
                     index(write);
                     ByteBuffer bytes = ByteBuffer.allocate(write.size());
                     write.copyToByteBuffer(bytes);
-                    bytes.flip();
+                    bytes.rewind();
                     content.putInt(write.size());
                     content.put(bytes);
                     content.force();

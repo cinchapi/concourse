@@ -96,7 +96,7 @@ public final class Composite implements Byteable {
         for (Byteable byteable : byteables) {
             byteable.copyToByteBuffer(bytes);
         }
-        bytes.flip();
+        bytes.rewind();
     }
 
     @Override

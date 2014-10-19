@@ -144,7 +144,7 @@ public class BlockIndex implements Byteable, Syncable {
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size());
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
             return bytes;
         }
         finally {
@@ -391,7 +391,7 @@ public class BlockIndex implements Byteable, Syncable {
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
             return bytes;
         }
 

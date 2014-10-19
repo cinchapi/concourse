@@ -150,7 +150,7 @@ public final class Position implements Byteable, Comparable<Position> {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }

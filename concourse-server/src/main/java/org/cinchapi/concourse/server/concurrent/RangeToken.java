@@ -133,7 +133,7 @@ public class RangeToken extends Token {
             bytes.putInt(value.size());
             value.copyToByteBuffer(bytes);
         }
-        bytes.flip();
+        bytes.rewind();
         return bytes;
     }
 

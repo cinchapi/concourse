@@ -246,7 +246,7 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }

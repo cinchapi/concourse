@@ -139,7 +139,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(SIZE);
             copyToByteBuffer(bytes);
-            bytes.flip();
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
