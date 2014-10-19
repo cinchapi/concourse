@@ -206,11 +206,14 @@ public class LockService {
 
         @Override
         public boolean equals(Object object) {
+            // This is a BAD implementation for equality, but for our purposes
+            // we only care to see that the tokens are the same and there are no
+            // readers or writers.
             if(object instanceof TokenReadWriteLock) {
                 TokenReadWriteLock other = (TokenReadWriteLock) object;
                 return token.equals(other.token)
-                        && readers.equals(other.readers)
-                        && writers.equals(other.writers);
+                        && readers.size() == other.readers.size()
+                        && writers.size() == other.writers.size();
             }
             else {
                 return false;
@@ -219,7 +222,7 @@ public class LockService {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(token, readers, writers);
+            return Objects.hashCode(token, readers.size(), writers.size());
         }
 
         @Override
