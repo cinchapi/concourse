@@ -257,7 +257,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public int size() {
-        return CONSTANT_SIZE + data.bufferForData().capacity();
+        return CONSTANT_SIZE + data.data.capacity();
     }
 
     @Override
