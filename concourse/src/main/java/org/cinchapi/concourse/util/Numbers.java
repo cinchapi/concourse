@@ -55,28 +55,30 @@ public abstract class Numbers {
      *         greater than {@code b}.
      */
     public static int compare(Number a, Number b) {
-        if((a.getClass() == Integer.class || a.getClass() == int.class)
-                && (b.getClass() == Integer.class || b.getClass() == int.class)) {
+        Class<?> aClass = a.getClass();
+        Class<?> bClass = b.getClass();
+        if((aClass == int.class || aClass == Integer.class)
+                && (bClass == int.class || bClass == Integer.class)) {
             return Integer.compare(a.intValue(), b.intValue());
         }
-        else if((a.getClass() == Long.class || a.getClass() == long.class)
-                && (b.getClass() == Long.class || b.getClass() == long.class)) {
+        else if((aClass == long.class || aClass == Long.class)
+                && (bClass == long.class || bClass == Long.class)) {
             return Long.compare(a.longValue(), b.longValue());
         }
-        else if((a.getClass() == Float.class || a.getClass() == float.class)
-                && (b.getClass() == Float.class || b.getClass() == float.class)) {
+        else if((aClass == float.class || aClass == Float.class)
+                && (bClass == float.class || bClass == Float.class)) {
             return Float.compare(a.floatValue(), b.floatValue());
         }
-        else if((a.getClass() == Double.class || a.getClass() == double.class)
-                && (b.getClass() == Double.class || b.getClass() == double.class)) {
+        else if((aClass == double.class || aClass == Double.class)
+                && (bClass == double.class || bClass == Double.class)) {
             return Double.compare(a.doubleValue(), b.doubleValue());
         }
-        else if((a.getClass() == Short.class || a.getClass() == short.class)
-                && (b.getClass() == Short.class || b.getClass() == short.class)) {
+        else if((aClass == short.class || aClass == Short.class)
+                && (bClass == short.class || bClass == Short.class)) {
             return Short.compare(a.shortValue(), b.shortValue());
         }
-        else if((a.getClass() == Byte.class || a.getClass() == byte.class)
-                && (b.getClass() == Byte.class || b.getClass() == byte.class)) {
+        else if((aClass == byte.class || aClass == Byte.class)
+                && (bClass == byte.class || bClass == Byte.class)) {
             return Long.compare(a.byteValue(), b.byteValue());
         }
         else {
