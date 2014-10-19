@@ -224,7 +224,8 @@ public abstract class ByteBuffers {
 
     /**
      * Put the UTF-8 encoding for the {@code source} string into the
-     * {@code destination} byte buffer. This method uses some optimization
+     * {@code destination} byte buffer and increment the position by the length
+     * of the strings byte sequence. This method uses some optimization
      * techniques and is the preferable way to add strings to byte buffers than
      * doing so manually.
      * 
