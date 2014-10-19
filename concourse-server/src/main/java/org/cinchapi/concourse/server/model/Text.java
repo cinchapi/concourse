@@ -144,6 +144,7 @@ public final class Text implements Byteable, Comparable<Text> {
             ByteBuffers.putString(text, buffer);
         }
         else {
+            bytes.rewind();
             buffer.put(bytes);
             bytes.rewind();
         }
