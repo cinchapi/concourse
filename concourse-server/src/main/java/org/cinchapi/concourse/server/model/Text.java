@@ -130,7 +130,7 @@ public final class Text implements Byteable, Comparable<Text> {
 
     @Override
     public int size() {
-        return getBytes().capacity();
+        return bytes == null ? getBytes().capacity() : bytes.capacity();
     }
 
     @Override
@@ -140,7 +140,13 @@ public final class Text implements Byteable, Comparable<Text> {
 
     @Override
     public void copyToByteBuffer(ByteBuffer buffer) {
-        ByteBuffers.putString(text, buffer);
+        if(bytes == null) {
+            ByteBuffers.putString(text, buffer);
+        }
+        else {
+            buffer.put(bytes);
+            bytes.flip();
+        }
     }
 
 }
