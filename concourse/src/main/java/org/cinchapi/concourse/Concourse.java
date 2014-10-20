@@ -67,18 +67,19 @@ import com.google.common.collect.Lists;
 /**
  * <p>
  * Concourse is a schemaless and distributed version control database with
- * optimistic availability, serializable transactions and full-text search.
- * Concourse provides a more intuitive approach to data management that is easy
- * to deploy, access and scale with minimal tuning while also maintaining the
- * referential integrity and ACID characteristics of traditional database
- * systems.
+ * automatic indexing, acid transactions and full-text search. Concourse
+ * provides a more intuitive approach to data management that is easy to deploy,
+ * access and scale with minimal tuning while also maintaining the referential
+ * integrity and ACID characteristics of traditional database systems.
  * </p>
  * <h2>Data Model</h2>
  * <p>
- * The Concourse data model is lightweight and flexible which enables it to
- * support any kind of data at very large scales. Concourse trades unnecessary
- * structural notions of schemas, tables and indexes for a more natural modeling
- * of data based solely on the following concepts:
+ * The Concourse data model is lightweight and flexible. Unlike other databases,
+ * Concourse is completely schemaless and does not hold data in tables or
+ * collections. Instead, Concourse is simply a distributed graph of records.
+ * Each record has multiple keys. And each key has one or more distinct values.
+ * Like any graph, you can link records to one another. And the structure of one
+ * record does not affect the structure of another.
  * </p>
  * <p>
  * <ul>
@@ -90,7 +91,7 @@ import com.google.common.collect.Lists;
  * different {@code keys}, and the {@code keys} in one {@code record} do not
  * affect those in another {@code record}.
  * <li><strong>Value</strong> &mdash; A dynamically typed quantity that is
- * mapped from a {@code key} in a {@code record}.
+ * associated with a {@code key} in a {@code record}.
  * </ul>
  * </p>
  * <h4>Data Types</h4>
@@ -115,6 +116,13 @@ import com.google.common.collect.Lists;
  * consistent, isolated, and durable using the {@link #stage()},
  * {@link #commit()} and {@link #abort()} methods.
  * 
+ * </p>
+ * <h2>Thread Safety</h2>
+ * <p>
+ * You should <strong>not</strong> use the same client connection in multiple
+ * threads. If you need to interact with Concourse using multiple threads, you
+ * should create a separate connection for each thread or use a
+ * {@link ConnectionPool}.
  * </p>
  * 
  * @author jnelson
