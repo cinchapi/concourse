@@ -45,9 +45,11 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
+import org.apache.thrift.transport.TFastFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.cinchapi.concourse.annotate.Atomic;
@@ -292,6 +294,10 @@ public class ConcourseServer implements
                 this);
         Args args = new TThreadPoolServer.Args(socket);
         args.processor(processor);
+        args.inputProtocolFactory(new TCompactProtocol.Factory());
+        args.outputProtocolFactory(new TCompactProtocol.Factory());
+        args.inputTransportFactory(new TFastFramedTransport.Factory());
+        args.outputTransportFactory(new TFastFramedTransport.Factory());
         args.maxWorkerThreads(NUM_WORKER_THREADS);
         args.executorService(Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
