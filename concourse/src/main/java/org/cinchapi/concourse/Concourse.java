@@ -31,11 +31,13 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFastFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -127,6 +129,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
+@NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
 
     /**
@@ -1222,10 +1225,11 @@ public abstract class Concourse implements AutoCloseable {
             this.username = ClientSecurity.encrypt(username);
             this.password = ClientSecurity.encrypt(password);
             this.environment = environment;
-            final TTransport transport = new TSocket(host, port);
+            final TTransport transport = new TFastFramedTransport(new TSocket(
+                    host, port));
             try {
                 transport.open();
-                TProtocol protocol = new TBinaryProtocol(transport);
+                TProtocol protocol = new TCompactProtocol(transport);
                 client = new ConcourseService.Client(protocol);
                 authenticate();
                 Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
@@ -1282,7 +1286,6 @@ public abstract class Concourse implements AutoCloseable {
                             .isBlank((String) value)))) { // CON-21
                 return execute(new Callable<Boolean>() {
 
-                    @Override
                     public Boolean call() throws Exception {
                         return client.add(key, Convert.javaToThrift(value),
                                 record, creds, transaction, environment);
