@@ -229,6 +229,25 @@ public final class Buffer extends Limbo {
     private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
+     * The number of items to transport to the Database per attempt. There is a
+     * tension between transporting and reading data (e.g. reads cannot happen
+     * while a transport occurs and vice versa). Transports are most efficient
+     * when they can batch up the amount of work per cycle, but that would be
+     * reads are blocked longer. So this variable indicates how many items
+     * should be transported in a single cycle. Each time a transport happens,
+     * this value will increase, but it will be decreased whenever a read
+     * occurs. This allows us to be more aggressive with transports when there
+     * are no reads happening, and also allows us to scale back transports when
+     * reads do occur.
+     */
+    private int transportRate = 1;
+
+    /**
+     * The multiplier that is used when increasing the rate of transport.
+     */
+    protected int transportRateMultiplier = 2; // visible for testing
+
+    /**
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -254,6 +273,7 @@ public final class Buffer extends Limbo {
     public Map<Long, String> audit(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.audit(record);
         }
         finally {
@@ -265,6 +285,7 @@ public final class Buffer extends Limbo {
     public Map<Long, String> audit(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.audit(key, record);
         }
         finally {
@@ -276,6 +297,7 @@ public final class Buffer extends Limbo {
     public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record);
         }
         finally {
@@ -287,6 +309,7 @@ public final class Buffer extends Limbo {
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record, timestamp);
         }
         finally {
@@ -299,6 +322,7 @@ public final class Buffer extends Limbo {
             Map<String, Set<TObject>> context) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record, timestamp, context);
         }
         finally {
@@ -310,6 +334,7 @@ public final class Buffer extends Limbo {
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key);
         }
         finally {
@@ -321,6 +346,7 @@ public final class Buffer extends Limbo {
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key, timestamp);
         }
         finally {
@@ -333,6 +359,7 @@ public final class Buffer extends Limbo {
             Map<TObject, Set<Long>> context) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key, timestamp, context);
         }
         finally {
@@ -345,6 +372,7 @@ public final class Buffer extends Limbo {
             Map<String, Set<TObject>> ktv) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.describe(record, timestamp, ktv);
         }
         finally {
@@ -370,6 +398,7 @@ public final class Buffer extends Limbo {
     public Set<TObject> fetch(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record);
         }
         finally {
@@ -381,6 +410,7 @@ public final class Buffer extends Limbo {
     public Set<TObject> fetch(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record, timestamp);
         }
         finally {
@@ -393,6 +423,7 @@ public final class Buffer extends Limbo {
             Set<TObject> values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record, timestamp, values);
         }
         finally {
@@ -405,6 +436,7 @@ public final class Buffer extends Limbo {
             long timestamp, String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.explore(context, timestamp, key, operator, values);
         }
         finally {
@@ -436,6 +468,7 @@ public final class Buffer extends Limbo {
     public long getVersion(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(record);
         }
         finally {
@@ -447,6 +480,7 @@ public final class Buffer extends Limbo {
     public long getVersion(String key) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(key);
         }
         finally {
@@ -458,6 +492,7 @@ public final class Buffer extends Limbo {
     public long getVersion(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(key, record);
         }
         finally {
@@ -591,6 +626,7 @@ public final class Buffer extends Limbo {
     public Set<Long> search(String key, String query) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.search(key, query);
         }
         finally {
@@ -634,27 +670,31 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * {@inheritDoc} This method will transport the first write in the buffer.
+     * {@inheritDoc} This method will transport at least one write from the
+     * buffer, in chronological order.
      */
     @Override
     public void transport(PermanentStore destination) {
-        // It makes sense to only transport one write at a time because
-        // transporting blocks reading and all writes must read at least once,
-        // so we want to minimize the overhead per write.
         if(pages.size() > 1
                 && !transportLock.writeLock().isHeldByCurrentThread()
                 && transportLock.writeLock().tryLock()) {
             try {
                 Page page = pages.get(0);
-                if(page.hasNext()) {
-                    destination.accept(page.next());
-                    timeOfLastTransport.set(Time.now());
-                    page.remove();
+                int i = 0;
+                while (i < transportRate) {
+                    if(page.hasNext()) {
+                        destination.accept(page.next());
+                        timeOfLastTransport.set(Time.now());
+                        page.remove();
+                        ++i;
+                    }
+                    else {
+                        ((Database) destination).triggerSync();
+                        removePage();
+                        break;
+                    }
                 }
-                else {
-                    ((Database) destination).triggerSync();
-                    removePage();
-                }
+                transportRate *= transportRateMultiplier;
             }
             finally {
                 transportLock.writeLock().unlock();
@@ -666,6 +706,7 @@ public final class Buffer extends Limbo {
     public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.verify(key, value, record, timestamp);
         }
         finally {
@@ -677,6 +718,7 @@ public final class Buffer extends Limbo {
     public boolean verify(Write write, long timestamp, boolean exists) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             for (Page page : pages) {
                 if(page.mightContain(write)
                         && page.locallyContains(write, timestamp)) {
@@ -720,6 +762,7 @@ public final class Buffer extends Limbo {
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.doExplore(timestamp, key, operator, values);
         }
         finally {
@@ -732,6 +775,7 @@ public final class Buffer extends Limbo {
             TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.doExplore(key, operator, values);
         }
         finally {
@@ -766,6 +810,13 @@ public final class Buffer extends Limbo {
         finally {
             writeLock.unlock();
         }
+    }
+
+    /**
+     * Scale back the number of items that are transported in a single cycle.
+     */
+    private void scaleBackTransportRate() {
+        transportRate = 1;
     }
 
     /**
