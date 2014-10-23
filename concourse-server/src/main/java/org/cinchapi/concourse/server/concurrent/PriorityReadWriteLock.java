@@ -119,7 +119,12 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
      */
     private void trySpin() {
         if(forceSpin) {
-            Threads.sleep(1);
+            try {
+                Thread.sleep(1);
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
