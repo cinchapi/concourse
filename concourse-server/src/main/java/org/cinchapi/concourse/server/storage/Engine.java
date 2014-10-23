@@ -149,9 +149,9 @@ public final class Engine extends BufferedStore implements
      * The number of milliseconds that the {@link BufferTransportThread} sleeps
      * after each transport in order to avoid CPU thrashing.
      */
-    protected static int BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = 5; // visible
-                                                                                 // for
-                                                                                 // testing
+    protected static int BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = 100; // visible
+                                                                                   // for
+                                                                                   // testing
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared

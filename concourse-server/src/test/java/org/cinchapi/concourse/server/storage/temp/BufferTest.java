@@ -127,6 +127,7 @@ public class BufferTest extends LimboTest {
 
     @Test
     public void testIteratorAfterTransport() {
+        ((Buffer) store).transportRateMultiplier = 1;
         List<Write> writes = getWrites();
         int j = 0;
         for (Write write : writes) {
@@ -161,6 +162,7 @@ public class BufferTest extends LimboTest {
 
     @Test
     public void testReverseIteratorAfterTransport() {
+        ((Buffer) store).transportRateMultiplier = 1;
         List<Write> writes = getWrites();
         for (Write write : writes) {
             add(write.getKey().toString(), write.getValue().getTObject(), write
