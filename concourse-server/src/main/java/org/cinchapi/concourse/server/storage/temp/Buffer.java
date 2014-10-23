@@ -44,6 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -198,7 +199,8 @@ public final class Buffer extends Limbo {
      * old writes concurrently while prohibiting reading the buffer and
      * transporting writes at the same time.
      */
-    private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+            .prioritizeReads();
 
     /**
      * A monitor that is used to make a thread block while waiting for the
@@ -1250,7 +1252,7 @@ public final class Buffer extends Limbo {
                 // the bloom filter hashing
                 filter.put(write.getRecord(), write.getKey(), write.getValue());
                 writes[size] = write;
-                size++;
+                ++size;
             }
             else {
                 throw new CapacityException();
