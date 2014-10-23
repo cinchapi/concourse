@@ -248,6 +248,11 @@ public final class Buffer extends Limbo {
     protected int transportRateMultiplier = 2; // visible for testing
 
     /**
+     * Don't let the transport rate exceede this value.
+     */
+    private static int MAX_TRANSPORT_RATE = 8192;
+
+    /**
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -694,7 +699,8 @@ public final class Buffer extends Limbo {
                         break;
                     }
                 }
-                transportRate *= transportRateMultiplier;
+                transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
+                        : (transportRate * transportRateMultiplier);
             }
             finally {
                 transportLock.writeLock().unlock();
