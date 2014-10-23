@@ -48,6 +48,7 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
+import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.RangeTokens;
@@ -233,7 +234,8 @@ public final class Engine extends BufferedStore implements
      * transported from the Buffer to the Database after the Database context is
      * captured and sent to the Buffer to finish the buffered reading.
      */
-    private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+            .prioritizeReads();
 
     /**
      * A collection of listeners that should be notified of a version change for
