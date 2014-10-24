@@ -40,6 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
@@ -169,7 +170,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * mutable until a call to {@link #sync()} stores it to disk.
      */
     protected transient boolean mutable;
-    
+
     /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
@@ -319,7 +320,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     public Revision<L, K, V> insert(L locator, K key, V value, long version,
             Action type) throws IllegalStateException {
-        write.lock();
+        Locks.lockIfCondition(write, mutable);
         try {
             Preconditions.checkState(mutable,
                     "Cannot modify a block that is not mutable");
@@ -339,7 +340,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return revision;
         }
         finally {
-            write.unlock();
+            Locks.unlockIfCondition(write, mutable);
         }
     }
 
@@ -357,12 +358,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return {@code true} if it is possible that relevant revisions exists
      */
     public boolean mightContain(L locator, K key, V value) {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             return filter.mightContain(locator, key, value);
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
@@ -395,12 +396,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     @Override
     public int size() {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             return size;
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
@@ -410,7 +411,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     @Override
     public void sync() {
-        write.lock();
+        Locks.lockIfCondition(write, mutable);
         try {
             if(size > 0) {
                 Preconditions.checkState(mutable,
@@ -430,7 +431,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             throw Throwables.propagate(e);
         }
         finally {
-            write.unlock();
+            Locks.unlockIfCondition(write, mutable);
         }
 
     }
@@ -442,7 +443,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
 
     @Override
     public void copyToByteBuffer(ByteBuffer buffer) {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             L locator = null;
             K key = null;
@@ -496,7 +497,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
@@ -511,7 +512,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return a string dump
      */
     protected String dump() {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Dump for " + getClass().getSimpleName() + " " + id);
@@ -539,7 +540,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return sb.toString();
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
@@ -573,7 +574,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param byteables
      */
     private void seek(Record<L, K, V> record, Byteable... byteables) {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             if(filter.mightContain(byteables)) {
                 if(mutable) {
@@ -619,7 +620,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
