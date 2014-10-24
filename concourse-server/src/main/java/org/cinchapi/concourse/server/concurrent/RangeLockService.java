@@ -353,6 +353,70 @@ public class RangeLockService {
         private final RangeToken token;
 
         /**
+         * The lock that is retuned from the {@link #readLock()} method.
+         */
+        private final ReadLock readLock = new ReadLock(this) {
+
+            @Override
+            public void lock() {
+                while (isRangeBlocked(LockType.READ, token)) {
+                    continue;
+                }
+                super.lock();
+            }
+
+            @Override
+            public boolean tryLock() {
+                if(!isRangeBlocked(LockType.READ, token) && super.tryLock()) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public void unlock() {
+                super.unlock();
+                readers.remove(Thread.currentThread(), 1);
+                locks.remove(token, new RangeReadWriteLock(token));
+            }
+
+        };
+
+        /**
+         * The lock that is returned from the {@link #writeLock()} method.
+         */
+        private final WriteLock writeLock = new WriteLock(this) {
+
+            @Override
+            public void lock() {
+                while (isRangeBlocked(LockType.WRITE, token)) {
+                    continue;
+                }
+                super.lock();
+            }
+
+            @Override
+            public boolean tryLock() {
+                if(!isRangeBlocked(LockType.WRITE, token) && super.tryLock()) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public void unlock() {
+                super.unlock();
+                writers.remove(Thread.currentThread(), 1);
+                locks.remove(token, new RangeReadWriteLock(token));
+            }
+
+        };
+
+        /**
          * Construct a new instance.
          * 
          * @param token
@@ -384,34 +448,7 @@ public class RangeLockService {
 
         @Override
         public ReadLock readLock() {
-            return new ReadLock(this) {
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.READ, token)) {
-                        continue;
-                    }
-                    super.lock();
-                }
-
-                @Override
-                public boolean tryLock() {
-                    if(!isRangeBlocked(LockType.READ, token) && super.tryLock()) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                }
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    readers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new RangeReadWriteLock(token));
-                }
-
-            };
+            return readLock;
         }
 
         @Override
@@ -422,35 +459,7 @@ public class RangeLockService {
 
         @Override
         public WriteLock writeLock() {
-            return new WriteLock(this) {
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.WRITE, token)) {
-                        continue;
-                    }
-                    super.lock();
-                }
-
-                @Override
-                public boolean tryLock() {
-                    if(!isRangeBlocked(LockType.WRITE, token)
-                            && super.tryLock()) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                }
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    writers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new RangeReadWriteLock(token));
-                }
-
-            };
+            return writeLock;
         }
 
     }
