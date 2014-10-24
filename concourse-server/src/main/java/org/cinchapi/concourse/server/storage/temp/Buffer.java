@@ -248,7 +248,7 @@ public final class Buffer extends Limbo {
     protected int transportRateMultiplier = 2; // visible for testing
 
     /**
-     * Don't let the transport rate exceede this value.
+     * Don't let the transport rate exceed this value.
      */
     private static int MAX_TRANSPORT_RATE = 8192;
 
@@ -689,7 +689,6 @@ public final class Buffer extends Limbo {
                 while (i < transportRate) {
                     if(page.hasNext()) {
                         destination.accept(page.next());
-                        timeOfLastTransport.set(Time.now());
                         page.remove();
                         ++i;
                     }
@@ -699,6 +698,7 @@ public final class Buffer extends Limbo {
                         break;
                     }
                 }
+                timeOfLastTransport.set(Time.now());
                 transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
                         : (transportRate * transportRateMultiplier);
             }
