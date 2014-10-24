@@ -35,7 +35,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -242,22 +241,6 @@ public final class Buffer extends Limbo {
      * reads do occur.
      */
     private int transportRate = 1;
-
-    /**
-     * The maximum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
-
-    /**
-     * The minimum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
-
-    /**
-     * The number of milliseconds to sleep between transport cycles.
-     */
-    private final AtomicInteger transportThreadSleepTimeInMs = new AtomicInteger(
-            MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
 
     /**
      * The multiplier that is used when increasing the rate of transport.
@@ -474,11 +457,6 @@ public final class Buffer extends Limbo {
     @Restricted
     public String getBackingStore() {
         return directory;
-    }
-
-    @Override
-    public int getDesiredTransportSleepTimeInMs() {
-        return transportThreadSleepTimeInMs.get();
     }
 
     /**
@@ -723,12 +701,6 @@ public final class Buffer extends Limbo {
                 timeOfLastTransport.set(Time.now());
                 transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
                         : (transportRate * transportRateMultiplier);
-                transportThreadSleepTimeInMs
-                        .addAndGet(-MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
-                if(transportThreadSleepTimeInMs.get() < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
-                    transportThreadSleepTimeInMs
-                            .set(MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
-                }
             }
             finally {
                 transportLock.writeLock().unlock();
@@ -851,7 +823,6 @@ public final class Buffer extends Limbo {
      */
     private void scaleBackTransportRate() {
         transportRate = 1;
-        transportThreadSleepTimeInMs.set(MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
     }
 
     /**
