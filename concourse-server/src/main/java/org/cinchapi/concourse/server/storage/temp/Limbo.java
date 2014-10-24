@@ -619,16 +619,6 @@ public abstract class Limbo extends BaseStore implements
                 // the appropriate conditions.
     }
 
-    /**
-     * Return the number of milliseconds that this store desires any back to
-     * back transport requests to pause in between.
-     * 
-     * @return the pause time
-     */
-    public int getDesiredTransportSleepTimeInMs() {
-        return 0;
-    }
-
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
