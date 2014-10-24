@@ -196,34 +196,6 @@ public class LockService {
         private final Token token;
 
         /**
-         * The lock that is returned from the {@link #readLock()} method.
-         */
-        private final ReadLock readLock = new ReadLock(this) {
-
-            @Override
-            public void unlock() {
-                super.unlock();
-                readers.remove(Thread.currentThread(), 1);
-                locks.remove(token, new TokenReadWriteLock(token));
-            }
-
-        };
-
-        /**
-         * The lock that is returned from the {@link #writeLock()} method.
-         */
-        private final WriteLock writeLock = new WriteLock(this) {
-
-            @Override
-            public void unlock() {
-                super.unlock();
-                writers.remove(Thread.currentThread(), 1);
-                locks.remove(token, new TokenReadWriteLock(token));
-            }
-
-        };
-
-        /**
          * Construct a new instance.
          * 
          * @param token
@@ -255,7 +227,16 @@ public class LockService {
 
         @Override
         public ReadLock readLock() {
-            return readLock;
+            return new ReadLock(this) {
+
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    readers.remove(Thread.currentThread(), 1);
+                    locks.remove(token, new TokenReadWriteLock(token));
+                }
+
+            };
         }
 
         @Override
@@ -266,7 +247,16 @@ public class LockService {
 
         @Override
         public WriteLock writeLock() {
-            return writeLock;
+            return new WriteLock(this) {
+
+                @Override
+                public void unlock() {
+                    super.unlock();
+                    writers.remove(Thread.currentThread(), 1);
+                    locks.remove(token, new TokenReadWriteLock(token));
+                }
+
+            };
         }
 
     }
