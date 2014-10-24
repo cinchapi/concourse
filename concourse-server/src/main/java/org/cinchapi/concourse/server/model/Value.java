@@ -297,27 +297,6 @@ public final class Value implements Byteable, Comparable<Value> {
             else if(v2 == NEGATIVE_INFINITY) {
                 return 1;
             }
-            else if(v1.getType() == Type.INTEGER
-                    && v2.getType() == Type.INTEGER) {
-                int o1 = (int) v1.getObject();
-                int o2 = (int) v2.getObject();
-                return Integer.compare(o1, o2);
-            }
-            else if(v1.getType() == Type.LONG && v2.getType() == Type.LONG) {
-                long o1 = (long) v1.getObject();
-                long o2 = (long) v2.getObject();
-                return Long.compare(o1, o2);
-            }
-            else if(v1.getType() == Type.FLOAT && v2.getType() == Type.FLOAT) {
-                float o1 = (float) v1.getObject();
-                float o2 = (float) v2.getObject();
-                return Float.compare(o1, o2);
-            }
-            else if(v1.getType() == Type.DOUBLE && v2.getType() == Type.DOUBLE) {
-                double o1 = (double) v1.getObject();
-                double o2 = (double) v2.getObject();
-                return Double.compare(o1, o2);
-            }
             else {
                 Object o1 = v1.getObject();
                 Object o2 = v2.getObject();
