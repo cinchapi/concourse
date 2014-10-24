@@ -146,12 +146,10 @@ public final class Engine extends BufferedStore implements
                                                                                                  // testing
 
     /**
-     * The number of milliseconds that the {@link BufferTransportThread} sleeps
-     * after each transport in order to avoid CPU thrashing.
+     * If this value is > 0, then we will sleep for this amount instead of what
+     * the buffer suggests. This is mainly used for testing.
      */
-    protected static int BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = 100; // visible
-                                                                                   // for
-                                                                                   // testing
+    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -832,7 +830,9 @@ public final class Engine extends BufferedStore implements
                 try {
                     // NOTE: This thread needs to sleep for a small amount of
                     // time to avoid thrashing
-                    Thread.sleep(BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS);
+                    int sleep = bufferTransportThreadSleepInMs > 0 ? bufferTransportThreadSleepInMs
+                            : buffer.getDesiredTransportSleepTimeInMs();
+                    Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                 }
                 catch (InterruptedException e) {
