@@ -420,7 +420,7 @@ public abstract class Limbo extends BaseStore implements
         Iterator<Write> it = reverseIterator();
         while (it.hasNext()) {
             Write write = it.next();
-            if(write.getKey().equals(Text.wrap(key))) {
+            if(write.getKey().equals(Text.wrapCached(key))) {
                 return write.getVersion();
             }
         }
@@ -435,7 +435,7 @@ public abstract class Limbo extends BaseStore implements
             Write write = it.next();
             if(record == write.getRecord().longValue()
                     && (Strings.isNullOrEmpty(key) || write.getKey().equals(
-                            Text.wrap(key)))) {
+                            Text.wrapCached(key)))) {
                 return write.getVersion();
             }
         }

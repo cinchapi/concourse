@@ -734,7 +734,7 @@ public final class Engine extends BufferedStore implements
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
         }
@@ -781,7 +781,7 @@ public final class Engine extends BufferedStore implements
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
         }

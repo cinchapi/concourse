@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.storage.cache.LazyCache;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
@@ -64,6 +65,31 @@ public final class Text implements Byteable, Comparable<Text> {
     public static Text wrap(String string) {
         return new Text(string);
     }
+
+    /**
+     * Return Text that is backed by {@code string}. It is possible that the
+     * object will be a cached instance. This should only be called when
+     * wrapping record keys since they are expected to be used often.
+     * 
+     * @param string
+     * @return the Text
+     */
+    public static Text wrapCached(String string) {
+        Text text = cache.get(string);
+        if(text == null) {
+            text = new Text(string);
+            cache.put(string, text);
+        }
+        return text;
+    }
+
+    /**
+     * The cache that holds the objects created from the
+     * {@link #wrapCached(String)} method. This is primary used for string keys
+     * since those are expected to be used often.
+     */
+    private static final LazyCache<String, Text> cache = LazyCache
+            .withExpectedSize(5000);
 
     /**
      * Represents an empty text string.
@@ -124,7 +150,10 @@ public final class Text implements Byteable, Comparable<Text> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             synchronized (mutex) {
-                bytes = ByteBuffers.fromString(text);
+                if(bytes == null) { // must check again to prevent duplicate
+                                    // copy if there is a race condition
+                    bytes = ByteBuffers.fromString(text);
+                }
             }
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);

@@ -143,7 +143,7 @@ public class RangeLockService {
      */
     public ReadLock getReadLock(String key, Operator operator,
             TObject... values) {
-        return getReadLock(Text.wrap(key), operator,
+        return getReadLock(Text.wrapCached(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
     }
@@ -190,7 +190,7 @@ public class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(String key, TObject value) {
-        return getWriteLock(Text.wrap(key), Value.wrap(value));
+        return getWriteLock(Text.wrapCached(key), Value.wrap(value));
     }
 
     /**

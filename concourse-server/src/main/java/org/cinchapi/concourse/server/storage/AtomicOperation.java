@@ -209,8 +209,8 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
-        intentions
-                .add(new RangeLockIntention(Text.wrap(key), Value.wrap(value)));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         return super.add(key, value, record);
     }
 
@@ -338,8 +338,8 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
-        intentions
-                .add(new RangeLockIntention(Text.wrap(key), Value.wrap(value)));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         return super.remove(key, value, record);
     }
 
@@ -358,8 +358,8 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
-        intentions
-                .add(new RangeLockIntention(Text.wrap(key), Value.wrap(value)));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         super.set(key, value, record);
     }
 
@@ -430,10 +430,10 @@ public class AtomicOperation extends BufferedStore implements
             TObject... values) {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(RangeToken
-                .forReading(Text.wrap(key), operator, Transformers
+                .forReading(Text.wrapCached(key), operator, Transformers
                         .transformArray(values, Functions.TOBJECT_TO_VALUE,
                                 Value.class)), this);
-        intentions.add(new RangeLockIntention(Text.wrap(key), operator,
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class)));
         return super.doExplore(key, operator, values);

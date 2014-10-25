@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.concurrent;
 import java.nio.ByteBuffer;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.storage.cache.LazyCache;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TArrays;
 
@@ -61,6 +62,29 @@ public class Token implements Byteable {
     public static Token wrap(Object... objects) {
         return new Token(TArrays.hash(objects));
     }
+
+    /**
+     * Return a {@link Token} that wraps the specified {@code key}. This method
+     * takes advantage of caching since the keys are often to be reused
+     * frequently.
+     * 
+     * @param key
+     * @return the Token
+     */
+    public static Token wrap(String key) {
+        Token token = cache.get(key);
+        if(token == null) {
+            token = new Token(TArrays.hash(key));
+            cache.put(key, token);
+        }
+        return token;
+    }
+
+    /**
+     * The cache of string tokens that represent record keys.
+     */
+    private static final LazyCache<String, Token> cache = LazyCache
+            .withExpectedSize(5000);
 
     /**
      * The sequence of bytes is a 128-bit (16 byte) hash.
