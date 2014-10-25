@@ -59,7 +59,7 @@ public final class Write implements Byteable, Versioned {
      * @return the Write
      */
     public static Write add(String key, TObject value, long record) {
-        return new Write(Action.ADD, Text.wrap(key), Value.wrap(value),
+        return new Write(Action.ADD, Text.wrapCached(key), Value.wrap(value),
                 PrimaryKey.wrap(record), Time.now());
     }
 
@@ -95,8 +95,8 @@ public final class Write implements Byteable, Versioned {
      * @return the Write
      */
     public static Write notStorable(String key, TObject value, long record) {
-        return new Write(Action.COMPARE, Text.wrap(key), Value.wrap(value),
-                PrimaryKey.wrap(record), NO_VERSION);
+        return new Write(Action.COMPARE, Text.wrapCached(key),
+                Value.wrap(value), PrimaryKey.wrap(record), NO_VERSION);
     }
 
     /**
@@ -109,8 +109,8 @@ public final class Write implements Byteable, Versioned {
      * @return the Write
      */
     public static Write remove(String key, TObject value, long record) {
-        return new Write(Action.REMOVE, Text.wrap(key), Value.wrap(value),
-                PrimaryKey.wrap(record), Time.now());
+        return new Write(Action.REMOVE, Text.wrapCached(key),
+                Value.wrap(value), PrimaryKey.wrap(record), Time.now());
     }
 
     /**

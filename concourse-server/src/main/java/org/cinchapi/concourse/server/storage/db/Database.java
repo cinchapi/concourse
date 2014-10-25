@@ -252,7 +252,7 @@ public final class Database extends BaseStore implements
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        Text key0 = Text.wrap(key);
+        Text key0 = Text.wrapCached(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).audit(key0);
     }
 
@@ -275,7 +275,7 @@ public final class Database extends BaseStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrap(key)).browse(),
+                getSecondaryRecord(Text.wrapCached(key)).browse(),
                 Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
                 TObjectSorter.INSTANCE);
     }
@@ -283,7 +283,7 @@ public final class Database extends BaseStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         return Transformers.transformTreeMapSet(
-                getSecondaryRecord(Text.wrap(key)).browse(timestamp),
+                getSecondaryRecord(Text.wrapCached(key)).browse(timestamp),
                 Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
                 TObjectSorter.INSTANCE);
     }
@@ -291,7 +291,7 @@ public final class Database extends BaseStore implements
     @Override
     public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrap(key));
+        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
@@ -303,7 +303,7 @@ public final class Database extends BaseStore implements
     @Override
     public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
-        SecondaryRecord record = getSecondaryRecord(Text.wrap(key));
+        SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
         Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
@@ -337,7 +337,7 @@ public final class Database extends BaseStore implements
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        Text key0 = Text.wrap(key);
+        Text key0 = Text.wrapCached(key);
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
                 Functions.VALUE_TO_TOBJECT);
@@ -345,7 +345,7 @@ public final class Database extends BaseStore implements
 
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
-        Text key0 = Text.wrap(key);
+        Text key0 = Text.wrapCached(key);
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
                         timestamp), Functions.VALUE_TO_TOBJECT);
@@ -385,19 +385,19 @@ public final class Database extends BaseStore implements
         // NOTE: We must consult the SecondaryRecord over the SearchRecord
         // because ALL writes for a key are secondary indexed whereas only text
         // writes are search indexed.
-        return getSecondaryRecord(Text.wrap(key)).getVersion();
+        return getSecondaryRecord(Text.wrapCached(key)).getVersion();
     }
 
     @Override
     public long getVersion(String key, long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrap(key))
+        return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrapCached(key))
                 .getVersion();
     }
 
     @Override
     public Set<Long> search(String key, String query) {
         return Transformers.transformSet(
-                getSearchRecord(Text.wrap(key), Text.wrap(query)).search(
+                getSearchRecord(Text.wrapCached(key), Text.wrap(query)).search(
                         Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
     }
 
@@ -448,14 +448,14 @@ public final class Database extends BaseStore implements
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        Text key0 = Text.wrap(key);
+        Text key0 = Text.wrapCached(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
                 Value.wrap(value));
     }
 
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
-        Text key0 = Text.wrap(key);
+        Text key0 = Text.wrapCached(key);
         return getPrimaryRecord(PrimaryKey.wrap(record), key0).verify(key0,
                 Value.wrap(value), timestamp);
     }
