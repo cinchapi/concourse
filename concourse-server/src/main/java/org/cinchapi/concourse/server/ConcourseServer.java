@@ -1058,7 +1058,20 @@ public class ConcourseServer implements
      * @return the Engine
      */
     private Engine getEngine(String env) {
-        env = Environments.sanitize(env);
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env} without
+     * performing any sanitzation on the name. If such an Engine does not exist,
+     * create a new one and add it to the collection.
+     */
+    private Engine getEngineUnsafe(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
             engine = new Engine(bufferStore + File.separator + env, dbStore
