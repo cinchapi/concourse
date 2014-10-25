@@ -808,6 +808,11 @@ public final class Engine extends BufferedStore implements
         @Override
         public void run() {
             while (running) {
+                if(Thread.interrupted()) { // the thread has been
+                                           // interrupted from the Engine
+                                           // stopping
+                    break;
+                }
                 if(getBufferTransportThreadIdleTimeInMs() > BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS) {
                     // If there have been no transports within the last second
                     // then make this thread block until the buffer is
