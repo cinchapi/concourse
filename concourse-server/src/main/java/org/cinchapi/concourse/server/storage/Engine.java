@@ -841,13 +841,18 @@ public final class Engine extends BufferedStore implements
                     bufferTransportThreadLastWakeUp.set(Time.now());
                 }
                 catch (InterruptedException e) {
-                    Logger.warn(
-                            "The data transport thread been sleeping for over "
-                                    + "{} milliseconds even though there is work to do. "
-                                    + "An attempt has been made to restart the stalled "
-                                    + "process.",
-                            BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
-                    bufferTransportThreadHasEverBeenRestarted.set(true);
+                    if(getBufferTransportThreadIdleTimeInMs() > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                        Logger.warn(
+                                "The data transport thread been sleeping for over "
+                                        + "{} milliseconds even though there is work to do. "
+                                        + "An attempt has been made to restart the stalled "
+                                        + "process.",
+                                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+                        bufferTransportThreadHasEverBeenRestarted.set(true);
+                    }
+                    else {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }
