@@ -73,13 +73,17 @@ public class ByteableCollections {
      */
     public static ByteBuffer toByteBuffer(
             Collection<? extends Byteable> collection) {
-        ByteBufferOutputStream out = new ByteBufferOutputStream();
+        int size = 0;
         for (Byteable object : collection) {
-            out.write(object.size());
-            out.write(object);
+            size += (object.size() + 4);
         }
-        out.close();
-        return out.toByteBuffer();
+        ByteBuffer buffer = ByteBuffer.allocate(size);
+        for (Byteable object : collection) {
+            buffer.putInt(object.size());
+            buffer.put(object.getBytes());
+        }
+        buffer.rewind();
+        return buffer;
     }
 
     /**
@@ -92,19 +96,19 @@ public class ByteableCollections {
      */
     public static ByteBuffer toByteBuffer(
             Collection<? extends Byteable> collection, int sizePerElement) {
-        ByteBufferOutputStream out = new ByteBufferOutputStream();
-        out.write(collection.size());
-        out.write(sizePerElement);
+        int size = (collection.size() * sizePerElement) + 8;
+        ByteBuffer buffer = ByteBuffer.allocate(size);
+        buffer.putInt(collection.size());
+        buffer.putInt(sizePerElement);
         for (Byteable object : collection) {
             Preconditions.checkArgument(object.size() == sizePerElement,
                     "'%s' must be '%s' bytes but it is "
                             + "actually '%s' bytes", object, sizePerElement,
                     object.size());
-
-            out.write(object.getBytes());
+            buffer.put(object.getBytes());
         }
-        out.close();
-        return out.toByteBuffer();
+        buffer.rewind();
+        return buffer;
     }
 
     /**
