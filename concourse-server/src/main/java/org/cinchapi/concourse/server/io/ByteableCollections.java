@@ -80,7 +80,7 @@ public class ByteableCollections {
         ByteBuffer buffer = ByteBuffer.allocate(size);
         for (Byteable object : collection) {
             buffer.putInt(object.size());
-            buffer.put(object.getBytes());
+            object.copyToByteBuffer(buffer);
         }
         buffer.rewind();
         return buffer;
@@ -105,7 +105,7 @@ public class ByteableCollections {
                     "'%s' must be '%s' bytes but it is "
                             + "actually '%s' bytes", object, sizePerElement,
                     object.size());
-            buffer.put(object.getBytes());
+            object.copyToByteBuffer(buffer);
         }
         buffer.rewind();
         return buffer;
