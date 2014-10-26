@@ -23,10 +23,11 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Multiset;
@@ -93,7 +94,7 @@ public class LockService {
     /**
      * A cache of locks that have been requested.
      */
-    private final ConcurrentHashMap<Token, TokenReadWriteLock> locks = new ConcurrentHashMap<Token, TokenReadWriteLock>();
+    private final ConcurrentHashMapV8<Token, TokenReadWriteLock> locks = new ConcurrentHashMapV8<Token, TokenReadWriteLock>();
 
     private LockService() {/* noop */}
 
