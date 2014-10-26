@@ -682,6 +682,11 @@ public class AccessManager {
             return sb.toString();
         }
 
+        @Override
+        public void copyToByteBuffer(ByteBuffer buffer) {
+            buffer.put(getBytes());
+        }
+
     }
 
 }
