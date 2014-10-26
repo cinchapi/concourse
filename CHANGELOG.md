@@ -21,6 +21,8 @@
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
 
 #### Version 0.4.3 (TBD)
+*In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
+
 * Added adjustable rate indexing such that the throughput of the background indexing job will automatically increase or decrease inversely with normal data access to prevent contention.
 * Lowered the threshold for Java to start compiling server methods to native code.
 * Implemented priority locks that ensure readers and writers take precence over the background indexing job when there is contention.
