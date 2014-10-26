@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -36,6 +35,7 @@ import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -110,7 +110,7 @@ public class RangeLockService {
     /**
      * A cache of locks that have been requested.
      */
-    private final ConcurrentHashMap<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>();
+    private final ConcurrentHashMapV8<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>();
 
     /**
      * Return the ReadLock that is identified by {@code token}. Every caller
