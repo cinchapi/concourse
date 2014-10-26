@@ -20,6 +20,17 @@
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
 
+#### Version 0.4.3 (TBD)
+* Added adjustable rate indexing such that the throughput of the background indexing job will automatically increase or decrease inversely with normal data access to prevent contention.
+* Lowered the threshold for Java to start compiling server methods to native code.
+* Implemented priority locks that ensure readers and writers take precence over the background indexing job when there is contention.
+* Increased internal caching of some frequently used objects to reduce the overhead for initialization and garbage collection.
+* Switched to using StampedLocks with optimistic reads in some places to reduce the overhead of accessing certain resources with little or no contention.
+* Eliminated unnecessary intermediate copies of data in memory when serializing to disk.
+* Switched to a faster hash function to generate lock tokens.
+* Switched from using the default `ConcurrentHashMap` implemenation to one backported from Java 8 for better performance.
+* Made miscellaneous optimizations for sensible performance gains.
+
 #### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
