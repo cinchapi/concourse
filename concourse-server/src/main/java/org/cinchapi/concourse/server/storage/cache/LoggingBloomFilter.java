@@ -278,7 +278,7 @@ public class LoggingBloomFilter {
         int hash1 = (int) hash64;
         int hash2 = (int) (hash64 >>> 32);
         int[] hashes = new int[numHashFunctions];
-        for (int i = 1; i <= numHashFunctions; ++i+) {
+        for (int i = 1; i <= numHashFunctions; ++i) {
             hashes[i - 1] = Math.abs((hash1 + i * hash2) % numBits);
         }
         return hashes;
