@@ -1165,7 +1165,7 @@ public class ConcourseServer implements
         try {
             Map<Long, String> newResult = operation.audit(key, record);
             if(newResult.size() > history.size()) {
-                for (int i = history.size(); i < newResult.size(); i++) {
+                for (int i = history.size(); i < newResult.size(); ++i) {
                     Long timestamp = Iterables.get(
                             (Iterable<Long>) newResult.keySet(), i);
                     Set<TObject> values = operation.fetch(key, record);

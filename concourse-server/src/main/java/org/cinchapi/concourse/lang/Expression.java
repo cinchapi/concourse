@@ -149,7 +149,7 @@ public class Expression extends AbstractSymbol implements PostfixNotationSymbol 
      */
     public TObject[] getValuesRaw() {
         TObject[] values = new TObject[getValues().size()];
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length; ++i) {
             values[i] = getValues().get(i).getValue();
         }
         return values;

@@ -143,7 +143,7 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             format += "%-" + entry.getValue() + "s | ";
             total += entry.getValue() + 3;
             header[i] = entry.getKey();
-            i++;
+            ++i;
         }
         format += "%n";
         String hr = Strings.padEnd("+", rowLength + 3 + total, '-');
@@ -159,7 +159,7 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
             i = 1;
             for (C column : columns.keySet()) {
                 rowdata[i] = get(row).get(column);
-                i++;
+                ++i;
             }
             sb.append(String.format(format, rowdata));
         }

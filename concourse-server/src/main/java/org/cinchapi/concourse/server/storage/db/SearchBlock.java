@@ -110,7 +110,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
             for (String tok : toks) {
                 executor.submit(getRunnable(key, tok, pos, record, version,
                         type));
-                pos++;
+                ++pos;
             }
             executor.shutdown();
             try {
@@ -176,8 +176,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
                 if(STOPWORDS.contains(term)) {
                     return;
                 }
-                for (int i = 0; i < term.length(); i++) {
-                    for (int j = i + 1; j < term.length() + 1; j++) {
+                for (int i = 0; i < term.length(); ++i) {
+                    for (int j = i + 1; j < term.length() + 1; ++j) {
                         String substring = term.substring(i, j).trim();
                         if(!Strings.isNullOrEmpty(substring)
                                 && !STOPWORDS.contains(substring)

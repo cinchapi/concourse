@@ -346,7 +346,7 @@ public abstract class ByteBuffers {
     private static final ConcurrentLinkedQueue<CharsetDecoder> DECODERS = new ConcurrentLinkedQueue<CharsetDecoder>();
     static {
         try {
-            for (int i = 0; i < NUM_DECODERS; i++) {
+            for (int i = 0; i < NUM_DECODERS; ++i) {
                 DECODERS.add(StandardCharsets.UTF_8.newDecoder());
             }
         }
