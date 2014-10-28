@@ -44,10 +44,10 @@ public final class TLists {
     public static void retainIntersection(List<?>... lists) {
         Preconditions.checkArgument(lists.length > 0);
         List<?> intersection = lists[0];
-        for (int i = 1; i < lists.length; i++) {
+        for (int i = 1; i < lists.length; ++i) {
             intersection.retainAll(lists[i]);
         }
-        for (int i = 1; i < lists.length; i++) {
+        for (int i = 1; i < lists.length; ++i) {
             lists[i].retainAll(intersection);
         }
     }

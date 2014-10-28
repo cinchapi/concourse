@@ -347,7 +347,7 @@ public abstract class ConnectionPool implements AutoCloseable {
             String password, String environment, int poolSize) {
         this.connections = buildCache(poolSize);
         this.numAvailableConnections = new AtomicInteger(poolSize);
-        for (int i = 0; i < poolSize; i++) {
+        for (int i = 0; i < poolSize; ++i) {
             connections.put(Concourse.connect(host, port, username, password,
                     environment), new AtomicBoolean(false));
         }

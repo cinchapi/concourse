@@ -49,7 +49,7 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(long timestamp, String key,
             Operator operator, TObject... values) {
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length; ++i) {
             values[i] = Stores.normalizeValue(operator, values[i]);
         }
         operator = Stores.normalizeOperator(operator);
@@ -59,7 +59,7 @@ public abstract class BaseStore implements Store {
     @Override
     public final Map<Long, Set<TObject>> explore(String key, Operator operator,
             TObject... values) {
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length; ++i) {
             values[i] = Stores.normalizeValue(operator, values[i]);
         }
         operator = Stores.normalizeOperator(operator);

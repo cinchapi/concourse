@@ -57,7 +57,7 @@ public final class Transformers {
     public static <F, V> V[] transformArray(F[] original,
             Function<? super F, ? extends V> function, Class<V> vClass) {
         V[] transformed = (V[]) Array.newInstance(vClass, original.length);
-        for (int i = 0; i < original.length; i++) {
+        for (int i = 0; i < original.length; ++i) {
             F item = original[i];
             transformed[i] = function.apply(item);
         }

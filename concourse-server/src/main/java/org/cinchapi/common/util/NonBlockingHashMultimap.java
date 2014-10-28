@@ -205,7 +205,7 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
             map.put(key, values);
         }
         if(values.add(value)) {
-            totalSize++;
+            ++totalSize;
             return true;
         }
         else {

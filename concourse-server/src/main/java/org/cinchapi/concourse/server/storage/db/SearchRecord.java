@@ -93,7 +93,7 @@ final class SearchRecord extends Record<Text, Text, Position> {
                     // When skipping a stop word, we must record an offset to
                     // correctly determine if the next term match is in the
                     // correct relative position to the previous term match
-                    offset++;
+                    ++offset;
                     continue;
                 }
                 Set<Position> positions = get(Text.wrap(tok));

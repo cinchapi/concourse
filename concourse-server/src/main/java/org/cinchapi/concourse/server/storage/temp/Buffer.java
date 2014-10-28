@@ -1085,8 +1085,8 @@ public final class Buffer extends Limbo {
                                     "A write has been removed from the Page");
                         }
                         Write next = writes[index];
-                        index++;
-                        distance++;
+                        ++index;
+                        ++distance;
                         return next;
                     }
                     finally {
@@ -1209,7 +1209,7 @@ public final class Buffer extends Limbo {
         public void remove() {
             Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
             try {
-                head++;
+                ++head;
             }
             finally {
                 Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);

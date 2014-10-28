@@ -1534,7 +1534,7 @@ public abstract class Concourse implements AutoCloseable {
                 entry = Iterables.get(chronology.entrySet(), index - 1);
                 result.put(entry.getKey(), entry.getValue());
             }
-            for (int i = index; i < chronology.size(); i++) {
+            for (int i = index; i < chronology.size(); ++i) {
                 entry = Iterables.get(chronology.entrySet(), i);
                 if(entry.getKey().getMicros() >= end.getMicros()) {
                     break;
