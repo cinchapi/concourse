@@ -305,7 +305,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     /**
      * Invoke {@link #doCommit()} that is defined in the super class. This
      * method should only be called when it is desirable to doCommit without
-     * performing a backup (i.e. when restoring from a backup).
+     * performing a backup (i.e. when restoring from a backup in a static
+     * method).
      */
     private void invokeSuperDoCommit() {
         super.doCommit();
