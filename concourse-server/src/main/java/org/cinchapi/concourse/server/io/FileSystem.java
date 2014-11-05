@@ -26,7 +26,6 @@ package org.cinchapi.concourse.server.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -295,7 +294,7 @@ public final class FileSystem {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * Attempt to force the unmapping of {@code buffer}. This method should be
      * used with <strong>EXTREME CAUTION</strong>. If {@code buffer} is used
@@ -303,16 +302,8 @@ public final class FileSystem {
      * 
      * @param buffer
      */
-    // http://stackoverflow.com/a/19447758/1336833
     public static void unmap(MappedByteBuffer buffer) {
-        try {
-            Method cleaner = buffer.getClass().getMethod("cleaner");
-            cleaner.setAccessible(true);
-            Method clean = Class.forName("sun.misc.Cleaner").getMethod("clean");
-            clean.setAccessible(true);
-            clean.invoke(cleaner.invoke(buffer));
-        }
-        catch (Exception e) {/* noop */}
+        Cleaners.freeMappedByteBuffer(buffer);
     }
 
     private FileSystem() {}
