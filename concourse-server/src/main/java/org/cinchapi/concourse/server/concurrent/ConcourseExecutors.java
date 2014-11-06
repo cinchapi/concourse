@@ -24,14 +24,15 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.util.Logger;
 
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -43,26 +44,25 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 public final class ConcourseExecutors {
 
     /**
-     * Catches exceptions thrown from pooled threads. For the Database,
-     * exceptions will occur in the event that an attempt is made to write a
-     * duplicate non-offset write when the system shuts down in the middle of a
-     * buffer flush. Those exceptions can be ignored, so we catch them here and
-     * print log statements.
+     * Create an {@link ExecutorService} thread pool with enough threads to
+     * execute {@code commands} and block until all the tasks have completed.
+     * 
+     * @param threadNamePrefix
+     * @param commands
      */
-    private static final UncaughtExceptionHandler uncaughtExceptionHandler;
-    static {
-        uncaughtExceptionHandler = new UncaughtExceptionHandler() {
-
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                Logger.warn("Uncaught exception in thread '{}'. This possibly "
-                        + "indicates that the system shutdown prematurely "
-                        + "during a buffer transport operation.", t);
-                Logger.warn("", e);
-
-            }
-
-        };
+    public static void executeAndAwaitTermination(String threadNamePrefix,
+            Runnable... commands) {
+        BlockingExecutorService executor = executors.get(threadNamePrefix);
+        if(executor == null) {
+            executor = BlockingExecutorService.create(threadNamePrefix);
+            executors.put(threadNamePrefix, executor);
+        }
+        executor.execute(commands);
+    }
+    
+    public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
+        return Executors
+                .newCachedThreadPool(getThreadFactory(threadNamePrefix));
     }
 
     /**
@@ -76,11 +76,6 @@ public final class ConcourseExecutors {
     public static ExecutorService newThreadPool(int num, String threadNamePrefix) {
         return Executors.newFixedThreadPool(num,
                 getThreadFactory(threadNamePrefix));
-    }
-
-    public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
-        return Executors
-                .newCachedThreadPool(getThreadFactory(threadNamePrefix));
     }
 
     /**
@@ -97,37 +92,34 @@ public final class ConcourseExecutors {
     }
 
     /**
-     * Create an {@link ExecutorService} thread pool with enough threads to
-     * execute {@code commands} and block until all the tasks have completed.
-     * 
-     * @param threadNamePrefix
-     * @param commands
+     * A cache of ExecutorServices that are associated with a given
+     * threadNamePrefix.
      */
-    public static void executeAndAwaitTermination(String threadNamePrefix,
-            Runnable... commands) {
-        executeAndAwaitTermination(
-                newThreadPool(commands.length, threadNamePrefix), commands);
-    }
+    private static final Map<String, BlockingExecutorService> executors = Maps
+            .newHashMap();
 
     /**
-     * Execute {@code commands} using {@code executor} and block until all
-     * tasks have completed.
-     * 
-     * @param executor
-     * @param commands
+     * Catches exceptions thrown from pooled threads. For the Database,
+     * exceptions will occur in the event that an attempt is made to write a
+     * duplicate non-offset write when the system shuts down in the middle of a
+     * buffer flush. Those exceptions can be ignored, so we catch them here and
+     * print log statements.
      */
-    public static void executeAndAwaitTermination(ExecutorService executor,
-            Runnable... commands) {
-        for (Runnable command : commands) {
-            executor.execute(command);
-        }
-        executor.shutdown();
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
-                                                                             // wait
-                                                                             // forever...
-        }
-        catch (InterruptedException e) {/* noop */}
+    private static final UncaughtExceptionHandler uncaughtExceptionHandler;
+
+    static {
+        uncaughtExceptionHandler = new UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                Logger.warn("Uncaught exception in thread '{}'. This possibly "
+                        + "indicates that the system shutdown prematurely "
+                        + "during a buffer transport operation.", t);
+                Logger.warn("", e);
+
+            }
+
+        };
     }
 
     private ConcourseExecutors() {/* utility-class */}
