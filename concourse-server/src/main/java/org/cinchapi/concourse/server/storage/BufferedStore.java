@@ -126,9 +126,30 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
+        return add(key, value, record, true);
+    }
+
+    /**
+     * Add {@code key} as {@code value} to {@code record}.
+     * <p>
+     * This method maps {@code key} to {@code value} in {@code record}, if and
+     * only if that mapping does not <em>currently</em> exist (i.e.
+     * {@link #verify(String, Object, long)} is {@code false}). Adding
+     * {@code value} to {@code key} does not replace any existing mappings from
+     * {@code key} in {@code record} because a field may contain multiple
+     * distinct values.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param flush
+     * @return {@code true} if the mapping is added
+     */
+    public boolean add(String key, TObject value, long record, boolean flush) {
         Write write = Write.add(key, value, record);
         if(!verify(write)) {
-            return buffer.insert(write); /* Authorized */
+            return buffer.insert(write, flush); /* Authorized */
         }
         return false;
     }
@@ -199,9 +220,28 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
+        return remove(key, value, record, true);
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record}.
+     * <p>
+     * This method deletes the mapping from {@code key} to {@code value} in
+     * {@code record}, if that mapping <em>currently</em> exists (i.e.
+     * {@link #verify(String, Object, long)} is {@code true}. No other mappings
+     * from {@code key} in {@code record} are affected.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param flush
+     * @return {@code true} if the mapping is removed
+     */
+    public boolean remove(String key, TObject value, long record, boolean flush) {
         Write write = Write.remove(key, value, record);
         if(verify(write)) {
-            return buffer.insert(write); /* Authorized */
+            return buffer.insert(write, flush); /* Authorized */
         }
         return false;
     }
@@ -228,9 +268,9 @@ public abstract class BufferedStore extends BaseStore {
     public void set(String key, TObject value, long record) {
         Set<TObject> values = fetch(key, record);
         for (TObject val : values) {
-            buffer.insert(Write.remove(key, val, record)); /* Authorized */
+            buffer.insert(Write.remove(key, val, record), false); /* Authorized */
         }
-        buffer.insert(Write.add(key, value, record)); /* Authorized */
+        buffer.insert(Write.add(key, value, record), true); /* Authorized */
     }
 
     @Override

@@ -410,6 +410,14 @@ public abstract class Limbo extends BaseStore implements
         return context;
     }
 
+    /**
+     * If applicable, flush any changes that have been made since the last flush
+     * to a persistent medium (i.e. disk). By default, this method does not do
+     * anything, but subclasses may override it to provide the appropriate
+     * functionality.
+     */
+    public void flush() {/* noop */}
+
     @Override
     public long getVersion(long record) {
         return getVersion(null, record);
@@ -452,7 +460,22 @@ public abstract class Limbo extends BaseStore implements
      * @param write
      * @return {@code true}
      */
-    public abstract boolean insert(Write write);
+    public final boolean insert(Write write) {
+        return insert(write, true);
+    }
+
+    /**
+     * Insert {@code write} into the store <strong>without performing any
+     * validity checks</strong>.
+     * <p>
+     * This method is <em>only</em> safe to call from a context that performs
+     * its own validity checks (i.e. a {@link BufferedStore}).
+     * 
+     * @param write
+     * @param flush
+     * @return {@code true}
+     */
+    public abstract boolean insert(Write write, boolean flush);
 
     /**
      * {@inheritDoc}

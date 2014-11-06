@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-
 import com.google.common.collect.Lists;
 
 /**
@@ -70,7 +69,7 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write) {
+    public boolean insert(Write write, boolean flush) {
         writeLock.lock();
         try {
             return writes.add(write);

@@ -324,7 +324,7 @@ public final class Engine extends BufferedStore implements
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
-                value, record) : removeUnsafe(key, value, record);
+                value, record, false) : removeUnsafe(key, value, record, false);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -484,6 +484,11 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+    
+    @Override
+    public void flush() {
+        buffer.flush();
     }
 
     /**
@@ -730,7 +735,24 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean addUnsafe(String key, TObject value, long record) {
-        if(super.add(key, value, record)) {
+        return addUnsafe(key, value, record, true);
+    }
+
+    /**
+     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
+     * locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param flush
+     * @return {@code true} if the add was successful
+     */
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean flush) {
+        if(super.add(key, value, record, flush)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
@@ -777,7 +799,24 @@ public final class Engine extends BufferedStore implements
      * @return {@code true} if the add was successful
      */
     private boolean removeUnsafe(String key, TObject value, long record) {
-        if(super.remove(key, value, record)) {
+        return removeUnsafe(key, value, record, true);
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
+     * any locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param flush
+     * @return {@code true} if the add was successful
+     */
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean flush) {
+        if(super.remove(key, value, record, flush)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
