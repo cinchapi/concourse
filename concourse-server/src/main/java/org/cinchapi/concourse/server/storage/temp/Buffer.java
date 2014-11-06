@@ -526,11 +526,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write, boolean flush) {
+    public boolean insert(Write write) {
         writeLock.lock();
         try {
             boolean notify = pages.size() == 2 && currentPage.size == 0;
-            currentPage.append(write, flush);
+            currentPage.append(write);
             if(notify) {
                 synchronized (transportable) {
                     transportable.notify();
@@ -539,7 +539,7 @@ public final class Buffer extends Limbo {
         }
         catch (CapacityException e) {
             addPage();
-            insert(write, flush);
+            insert(write);
         }
         finally {
             writeLock.unlock();
@@ -914,13 +914,6 @@ public final class Buffer extends Limbo {
         private transient int size = 0;
 
         /**
-         * A flag that indicates whether the page has data that has not been
-         * fsynced to disk. This flag is set to {@code true} if a write is
-         * appended and not immediately flushed.
-         */
-        private transient volatile boolean dirty = false;
-
-        /**
          * Construct an empty Page with {@code capacity} bytes.
          * 
          * @param size
@@ -972,11 +965,10 @@ public final class Buffer extends Limbo {
          * read.
          * 
          * @param write
-         * @param flush
          * @throws CapacityException - if the size of {@code write} is
          *             greater than the remaining capacity of {@link #content}
          */
-        public void append(Write write, boolean flush) throws CapacityException {
+        public void append(Write write) throws CapacityException {
             Preconditions.checkState(this == currentPage, "Illegal attempt to "
                     + "append a Write to an inactive Page");
             pageLock.writeLock().lock();
@@ -985,16 +977,9 @@ public final class Buffer extends Limbo {
                     index(write);
                     content.putInt(write.size());
                     write.copyTo(content);
-                    if(flush) {
-                        content.force();
-                        dirty = false;
-                    }
-                    else {
-                        dirty = true;
-                    }
+                    content.force();
                 }
                 else {
-                    flush();
                     throw new CapacityException();
                 }
             }
@@ -1011,16 +996,6 @@ public final class Buffer extends Limbo {
             FileSystem.deleteFile(filename);
             FileSystem.unmap(content); // CON-163 (authorized)
             Logger.info("Deleting Buffer page {}", filename);
-        }
-
-        /**
-         * Force flush any unsynced changes to disk.
-         */
-        public void flush() {
-            if(dirty) {
-                content.force();
-                dirty = false;
-            }
         }
 
         /**

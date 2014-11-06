@@ -198,11 +198,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         return Math.max(buffer.getVersion(key, record),
                 ((Engine) destination).getVersion(key, record));
     }
-    
-    @Override
-    public void flush() {
-        buffer.flush();
-    }
 
     @Override
     @Restricted

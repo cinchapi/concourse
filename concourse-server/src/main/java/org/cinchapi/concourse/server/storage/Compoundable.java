@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.storage;
 
-import org.cinchapi.concourse.server.storage.temp.Limbo;
-
 /**
  * A Compoundable store can perform AtomicOperations.
  * 
@@ -41,12 +39,5 @@ public interface Compoundable extends PermanentStore, VersionGetter, VersionChan
      * @return the AtomicOperation handler
      */
     public AtomicOperation startAtomicOperation();
-    
-    /**
-     * If applicable, flush any changes in the buffer to a persistent medium. In
-     * most cases, this method will just invoke the {@link Limbo#flush()}
-     * method.
-     */
-    public void flush();
 
 }
