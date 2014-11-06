@@ -143,7 +143,7 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.readLock().lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -282,13 +282,13 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     @Override
-    public void copyToByteBuffer(ByteBuffer buffer) {
+    public void copyTo(ByteBuffer buffer) {
         Preconditions.checkState(mutable);
         masterLock.readLock().lock();
         try {
             for (Entry entry : entries.values()) {
                 buffer.putInt(entry.size());
-                entry.copyToByteBuffer(buffer);
+                entry.copyTo(buffer);
             }
         }
         finally {
@@ -390,7 +390,7 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -446,10 +446,10 @@ public class BlockIndex implements Byteable, Syncable {
         }
 
         @Override
-        public void copyToByteBuffer(ByteBuffer buffer) {
+        public void copyTo(ByteBuffer buffer) {
             buffer.putInt(start);
             buffer.putInt(end);
-            key.copyToByteBuffer(buffer);
+            key.copyTo(buffer);
         }
 
     }

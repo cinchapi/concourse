@@ -94,7 +94,7 @@ public final class Composite implements Byteable {
         }
         bytes = ByteBuffer.allocate(size);
         for (Byteable byteable : byteables) {
-            byteable.copyToByteBuffer(bytes);
+            byteable.copyTo(bytes);
         }
         bytes.rewind();
     }
@@ -130,7 +130,7 @@ public final class Composite implements Byteable {
     }
 
     @Override
-    public void copyToByteBuffer(ByteBuffer buffer) {
+    public void copyTo(ByteBuffer buffer) {
         ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 

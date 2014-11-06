@@ -138,7 +138,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(SIZE);
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -169,7 +169,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     }
 
     @Override
-    public void copyToByteBuffer(ByteBuffer buffer) {
+    public void copyTo(ByteBuffer buffer) {
         buffer.putLong(data);
     }
 

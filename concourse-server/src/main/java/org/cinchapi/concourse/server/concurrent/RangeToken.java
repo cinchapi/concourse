@@ -128,10 +128,10 @@ public class RangeToken extends Token {
         ByteBuffer bytes = ByteBuffer.allocate(size);
         bytes.put(operator != null ? (byte) operator.ordinal() : NULL_OPERATOR);
         bytes.putInt(key.size());
-        key.copyToByteBuffer(bytes);
+        key.copyTo(bytes);
         for (Value value : values) {
             bytes.putInt(value.size());
-            value.copyToByteBuffer(bytes);
+            value.copyTo(bytes);
         }
         bytes.rewind();
         return bytes;

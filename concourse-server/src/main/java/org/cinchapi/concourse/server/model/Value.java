@@ -213,7 +213,7 @@ public final class Value implements Byteable, Comparable<Value> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -266,7 +266,7 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     @Override
-    public void copyToByteBuffer(ByteBuffer buffer) {
+    public void copyTo(ByteBuffer buffer) {
         buffer.put((byte) data.getType().ordinal());
         buffer.put(data.bufferForData());
     }
