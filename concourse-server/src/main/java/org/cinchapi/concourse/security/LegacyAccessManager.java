@@ -200,7 +200,7 @@ public class LegacyAccessManager {
         @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -251,7 +251,7 @@ public class LegacyAccessManager {
         }
 
         @Override
-        public void copyToByteBuffer(ByteBuffer buffer) {
+        public void copyTo(ByteBuffer buffer) {
             buffer.put(ByteBuffers.decodeFromHex(password));
             buffer.put(ByteBuffers.decodeFromHex(salt));
             buffer.put(ByteBuffers.decodeFromHex(username));

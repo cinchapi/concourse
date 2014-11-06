@@ -284,7 +284,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         read.lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
-            copyToByteBuffer(bytes);
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -442,7 +442,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     @Override
-    public void copyToByteBuffer(ByteBuffer buffer) {
+    public void copyTo(ByteBuffer buffer) {
         Locks.lockIfCondition(read, mutable);
         try {
             L locator = null;
@@ -450,7 +450,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             int position = 0;
             for (Revision<L, K, V> revision : revisions) {
                 buffer.putInt(revision.size());
-                revision.copyToByteBuffer(buffer);
+                revision.copyTo(buffer);
                 position = buffer.position() - revision.size() - 4;
                 /*
                  * States that trigger this condition to be true:
