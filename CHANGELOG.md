@@ -15,7 +15,7 @@
 		> println fetch("name", record);
 		> }
 
-##### Miscellaneous		
+##### Miscellaneous
 * Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
@@ -30,7 +30,8 @@
 * Switched to using StampedLocks with optimistic reads in some places to reduce the overhead of accessing certain resources with little or no contention.
 * Eliminated unnecessary intermediate copies of data in memory when serializing to disk.
 * Switched to a faster hash function to generate lock tokens.
-* Switched from using the default `ConcurrentHashMap` implemenation to one backported from Java 8 for better performance.
+* Switched from using the default `ConcurrentHashMap` implementation to one backported from Java 8 for better performance.
+* Improved the efficiency of the background indexing job by re-using worker threads.
 * Made miscellaneous optimizations for sensible performance gains.
 
 #### Version 0.4.2 (October 4, 2014)
@@ -187,7 +188,7 @@
 * Removed unused `transaction_directory` key from concourse.prefs.
 * Fixed an issue that allowed the storage of blank string keys and values.
 * Fixed an issue that prevented the client from properly processing compound `#get` operations that tried to retrieve data for a key in a record that did not contain any values.
-* Improved the info logging for transactions by only using a unique id to refer to each transaction. 
+* Improved the info logging for transactions by only using a unique id to refer to each transaction.
 * Slighly increased full text indexing speed.
 * Improved CaSH documentation.
 
