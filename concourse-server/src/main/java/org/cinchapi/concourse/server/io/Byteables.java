@@ -29,10 +29,12 @@ import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Map;
 
 import org.cinchapi.concourse.util.ByteBuffers;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 
 /**
  * Contains static factory methods to construct {@link Byteable} objects from
@@ -68,13 +70,17 @@ public abstract class Byteables {
      * @param classObj
      * @return an instance of {@code classObj} read from {@code bytes}
      */
+    @SuppressWarnings("unchecked")
     public static <T> T read(ByteBuffer bytes, Class<T> classObj) {
         try {
-            Constructor<T> constructor = classObj
-                    .getDeclaredConstructor(ByteBuffer.class);
-            constructor.setAccessible(true);
+            Constructor<T> constructor = (Constructor<T>) constructorCache
+                    .get(classObj);
+            if(constructor == null) {
+                constructor = classObj.getDeclaredConstructor(ByteBuffer.class);
+                constructor.setAccessible(true);
+                constructorCache.put(classObj, constructor);
+            }
             return constructor.newInstance(bytes);
-
         }
         catch (ReflectiveOperationException e) {
             throw Throwables.propagate(e);
@@ -147,8 +153,11 @@ public abstract class Byteables {
     @SuppressWarnings("unchecked")
     public static <T> T readStatic(ByteBuffer bytes, Class<T> classObj) {
         try {
-            Method method = classObj.getMethod("fromByteBuffer",
-                    ByteBuffer.class);
+            Method method = staticFactoryCache.get(classObj);
+            if(method == null) {
+                method = classObj.getMethod("fromByteBuffer", ByteBuffer.class);
+                staticFactoryCache.put(classObj, method);
+            }
             return (T) method.invoke(null, bytes);
         }
         catch (ReflectiveOperationException e) {
@@ -212,5 +221,17 @@ public abstract class Byteables {
         }
 
     }
+
+    /**
+     * Cache of constructors that are captured using reflection.
+     */
+    private static final Map<Class<?>, Constructor<?>> constructorCache = Maps
+            .newIdentityHashMap();
+
+    /**
+     * Cache of static factory methods that are captured using reflection.
+     */
+    private static final Map<Class<?>, Method> staticFactoryCache = Maps
+            .newIdentityHashMap();
 
 }
