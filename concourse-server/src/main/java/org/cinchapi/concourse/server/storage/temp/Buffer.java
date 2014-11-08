@@ -980,7 +980,7 @@ public final class Buffer extends Limbo {
                     content.force();
                 }
                 else {
-                    throw new CapacityException();
+                    throw CapacityException.INSTANCE;
                 }
             }
             finally {
@@ -1334,7 +1334,7 @@ public final class Buffer extends Limbo {
                 ++size;
             }
             else {
-                throw new CapacityException();
+                throw CapacityException.INSTANCE;
             }
         }
     }
