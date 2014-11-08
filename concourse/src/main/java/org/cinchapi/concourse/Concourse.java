@@ -1093,8 +1093,8 @@ public abstract class Concourse implements AutoCloseable {
      * <em>So, basically, this function has the same guarantee as the
      * {@link #set(String, Object, long)} method, except it will not create any
      * new revisions unless it is necessary to do so.</em> The {@code set}
-     * method, on the other hand, would indiscriminately clears all the values
-     * for {@code key} in {@code record} before adding {@code value}, even in
+     * method, on the other hand, would indiscriminately clear all the values
+     * for {@code key} in {@code record} before adding {@code value}, even if
      * {@code value} already existed.
      * </p>
      * <p>
