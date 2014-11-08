@@ -23,7 +23,11 @@
  */
 package org.cinchapi.concourse.server.io;
 
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -42,13 +46,33 @@ import com.google.common.hash.Hashing;
 public final class Composite implements Byteable {
 
     /**
-     * Return a Token for the list of {@code byteables}.
+     * Return a Composite for the list of {@code byteables}.
      * 
      * @param byteables
-     * @return the Token
+     * @return the Composite
      */
     public static Composite create(Byteable... byteables) {
         return new Composite(byteables);
+    }
+
+    /**
+     * Create a Composite for the list of {@code byteables} with support for
+     * caching. Cached Composites are not guaranteed to perfectly match up with
+     * the list of byteables (because hash collisions can occur) so it is only
+     * advisable to use this method of creation when precision is not a
+     * requirement.
+     * 
+     * @param byteables
+     * @return the Composite
+     */
+    public static Composite createCached(Byteable... byteables) {
+        int hashCode = Arrays.hashCode(byteables);
+        Composite composite = CACHE.get(hashCode);
+        if(composite == null) {
+            composite = create(byteables);
+            CACHE.put(hashCode, composite);
+        }
+        return composite;
     }
 
     /**
@@ -65,6 +89,12 @@ public final class Composite implements Byteable {
     public static Composite fromByteBuffer(ByteBuffer bytes) {
         return Byteables.read(bytes, Composite.class);
     }
+
+    /**
+     * A cache of Composite. Each composite is associated with the cumulative
+     * hashcode of all the things that went into the composite.
+     */
+    private final static TIntObjectMap<Composite> CACHE = new TIntObjectHashMap<Composite>();
 
     private final ByteBuffer bytes;
 
@@ -100,6 +130,11 @@ public final class Composite implements Byteable {
     }
 
     @Override
+    public void copyTo(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if(obj instanceof Composite) {
             Composite other = (Composite) obj;
@@ -127,11 +162,6 @@ public final class Composite implements Byteable {
     public String toString() {
         return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
                 .toString();
-    }
-
-    @Override
-    public void copyTo(ByteBuffer buffer) {
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }

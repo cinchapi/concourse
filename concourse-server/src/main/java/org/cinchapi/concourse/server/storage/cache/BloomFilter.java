@@ -57,6 +57,23 @@ public class BloomFilter implements Syncable {
 
     /**
      * Create a new BloomFilter with enough capacity for
+     * {@code expectedInsertions} but cannot be synced to disk.
+     * <p>
+     * Note that overflowing a BloomFilter with significantly more elements than
+     * specified, will result in its saturation, and a sharp deterioration of
+     * its false positive probability (source:
+     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
+     * <p>
+     * 
+     * @param expectedInsertions
+     * @return the BloomFilter
+     */
+    public static BloomFilter create(int expectedInsertions) {
+        return new BloomFilter(null, expectedInsertions);
+    }
+
+    /**
+     * Create a new BloomFilter with enough capacity for
      * {@code expectedInsertions}.
      * <p>
      * Note that overflowing a BloomFilter with significantly more elements than
@@ -71,23 +88,6 @@ public class BloomFilter implements Syncable {
      */
     public static BloomFilter create(String file, int expectedInsertions) {
         return new BloomFilter(file, expectedInsertions);
-    }
-
-    /**
-     * Create a new BloomFilter with enough capacity for
-     * {@code expectedInsertions} but cannot be synced to disk.
-     * <p>
-     * Note that overflowing a BloomFilter with significantly more elements than
-     * specified, will result in its saturation, and a sharp deterioration of
-     * its false positive probability (source:
-     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
-     * <p>
-     * 
-     * @param expectedInsertions
-     * @return the BloomFilter
-     */
-    public static BloomFilter create(int expectedInsertions) {
-        return new BloomFilter(null, expectedInsertions);
     }
 
     /**
@@ -137,6 +137,11 @@ public class BloomFilter implements Syncable {
     }
 
     /**
+     * The file where the content is stored.
+     */
+    private String file;
+
+    /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
      * to a masterLock.readLock()() and masterLock.writeLock()().
      */
@@ -148,9 +153,16 @@ public class BloomFilter implements Syncable {
     private final com.google.common.hash.BloomFilter<Composite> source;
 
     /**
-     * The file where the content is stored.
+     * Construct a new instance.
+     * 
+     * @param file
+     * @param source
      */
-    private String file;
+    private BloomFilter(String file,
+            com.google.common.hash.BloomFilter<Composite> source) {
+        this.source = source;
+        this.file = file;
+    }
 
     /**
      * Construct a new instance.
@@ -166,45 +178,6 @@ public class BloomFilter implements Syncable {
     }
 
     /**
-     * Construct a new instance.
-     * 
-     * @param file
-     * @param source
-     */
-    private BloomFilter(String file,
-            com.google.common.hash.BloomFilter<Composite> source) {
-        this.source = source;
-        this.file = file;
-    }
-
-    @Override
-    // NOTE: It seems counter intuitive, but we take a read lock in this
-    // method instead of a write lock so that readers can concurrently use
-    // the bloom filter in memory while the content is being written to
-    // disk.
-    public void sync() {
-        Preconditions.checkState(file != null, "Cannot sync a "
-                + "BloomFilter that does not have an associated file");
-        FileChannel channel = FileSystem.getFileChannel(file);
-        long stamp = lock.tryOptimisticRead();
-        Serializables.write(source, channel); // CON-164
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
-            try {
-                channel.position(0);
-                Serializables.write(source, channel); // CON-164
-            }
-            catch (IOException e) {
-                throw Throwables.propagate(e);
-            }
-            finally {
-                lock.unlockRead(stamp);
-            }
-        }
-        FileSystem.closeFileChannel(channel);
-    }
-
-    /**
      * Return true if an element made up of {@code byteables} might have been
      * put in this filter or false if this is definitely not the case.
      * 
@@ -212,8 +185,37 @@ public class BloomFilter implements Syncable {
      * @return {@code true} if {@code byteables} might exist
      */
     public boolean mightContain(Byteable... byteables) {
-        long stamp = lock.tryOptimisticRead();
         Composite composite = Composite.create(byteables);
+        return mightContain(composite);
+    }
+
+    /**
+     * Return true if an element made up of a cached copy of the
+     * {@code byteables} might have been put in this filter or false if this is
+     * definitely not the case.
+     * <p>
+     * Since caching is involved, this method is more prone to false positives
+     * than the {@link #mightContain(Byteable...)} alternative, but it will
+     * never return false negatives.
+     * </p>
+     * 
+     * @param byteables
+     * @return {@code true} if {@code byteables} might exist
+     */
+    public boolean mightContainCached(Byteable... byteables) {
+        Composite composite = Composite.createCached(byteables);
+        return mightContain(composite);
+    }
+
+    /**
+     * Check the backing bloom filter to see if the composite might have been
+     * added.
+     * 
+     * @param composite
+     * @return {@code true} if the composite might exist
+     */
+    private boolean mightContain(Composite composite) {
+        long stamp = lock.tryOptimisticRead();
         boolean mightContain = source.mightContain(composite);
         if(!lock.validate(stamp)) {
             stamp = lock.readLock();
@@ -252,5 +254,32 @@ public class BloomFilter implements Syncable {
         finally {
             lock.unlockWrite(stamp);
         }
+    }
+
+    @Override
+    // NOTE: It seems counter intuitive, but we take a read lock in this
+    // method instead of a write lock so that readers can concurrently use
+    // the bloom filter in memory while the content is being written to
+    // disk.
+    public void sync() {
+        Preconditions.checkState(file != null, "Cannot sync a "
+                + "BloomFilter that does not have an associated file");
+        FileChannel channel = FileSystem.getFileChannel(file);
+        long stamp = lock.tryOptimisticRead();
+        Serializables.write(source, channel); // CON-164
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                channel.position(0);
+                Serializables.write(source, channel); // CON-164
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        FileSystem.closeFileChannel(channel);
     }
 }
