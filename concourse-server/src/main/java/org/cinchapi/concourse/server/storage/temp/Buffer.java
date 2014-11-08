@@ -268,6 +268,13 @@ public final class Buffer extends Limbo {
     private static int MAX_TRANSPORT_RATE = 8192;
 
     /**
+     * The number of slots to put in each Page's bloom filter. We want this
+     * small enough to have few hash functions, but large enough so that the
+     * bloom filter does not become saturated.
+     */
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
+
+    /**
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -880,7 +887,7 @@ public final class Buffer extends Limbo {
          * or not.
          */
         private final BloomFilter filter = BloomFilter
-                .create(GlobalState.BUFFER_PAGE_SIZE);
+                .create(PER_PAGE_BLOOM_FILTER_CAPACITY);
 
         /**
          * The append-only buffer that contains the content of the backing file.
