@@ -1106,7 +1106,6 @@ public abstract class Concourse implements AutoCloseable {
      * @param key
      * @param value
      * @param record
-     * @return {@code true} if verify and/or set is successful
      */
     public abstract void verifyOrSet(String key, Object value, long record);
 
