@@ -17,17 +17,10 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 		
 3. Follow the instructions on the [Concourse Dev Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup) guide.
 
-### Run from Eclipse
-1. Import all the concourse projects.
-2. [Import the launch configurations](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0446e/CJADBBIA.html) from `concourse-server/launch` and `concourse-shell/launch`.
-3. Use **Start Server** to start a local server with the default configuration.
-4. Use **Stop Server** to stop all locally running servers.
-5. Use **Launch CaSH** to launch a cash terminal that is connected to a locally running server listening on the default port.
-
 ### Pick an issue
-1. Choose an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature from the [roadma](https://cinchapi.atlassian.net/wiki/display/CON/Roadmap). You can also suggest your own projects.
+1. Choose an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature from the [roadmap](https://cinchapi.atlassian.net/wiki/display/CON/Roadmap). You can also suggest your own projects.
 2. [Create an account](https://cinchapi.atlassian.net/secure/Signup!default.jspa) in Jira.
-3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket. yourself.
+3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket to yourself.
 
 ### Build your changes
 Always check that Concourse builds properly after you've made changes. We use [Gradle](http://www.gradle.org/) as the build system.
