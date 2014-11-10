@@ -12,7 +12,9 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 ### Setup your development environment
 1. [Fork](https://github.com/cinchapi/concourse/fork) the repo.
 2. Clone your forked version of concourse.git.
+
 		$ git clone git@github.com:<username>/concourse.git
+		
 3. Follow the instructions on the [Concourse Dev Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup) guide.
 
 ### Run from Eclipse
