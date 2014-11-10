@@ -6,7 +6,7 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 ### Learn how things work
 1. Introduction to the [data model](http://concoursedb.com/guide/data-model/)
 2. Introduction to the [storage model](http://concoursedb.com/guide/storage-model/)
-3. Understanding the [code base](http://concoursedb.com/guide/the-codebase/)
+3. Understanding the [codebase](http://concoursedb.com/guide/the-codebase/)
 4. Read the [coding standards](https://cinchapi.atlassian.net/wiki/display/CON/Coding+Standards).
 
 ### Setup your development environment
