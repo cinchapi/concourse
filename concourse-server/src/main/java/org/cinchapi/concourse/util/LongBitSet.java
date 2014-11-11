@@ -185,6 +185,12 @@ public class LongBitSet {
         return index >> VALUE_BITS;
     }
 
+    /**
+     * Convert the bit set to an iterable that can be used to return an
+     * iterator.
+     * 
+     * @return the iterable
+     */
     private Iterable<Long> toIterable() {
         Set<Long> collection = Sets.newTreeSet();
         for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
