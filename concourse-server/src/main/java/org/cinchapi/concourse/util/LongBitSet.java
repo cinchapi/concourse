@@ -122,12 +122,24 @@ public class LongBitSet {
     }
 
     /**
-     * Turn the bit at {@code index} on.
+     * Set the bit at {@code index} to {@code true}, if it is currently
+     * {@code false}.
      * 
      * @param index
+     * @return {@code true} if this operation results in a change to the
+     *         underlying bit set (e.g. the bit was previously turned off and is
+     *         not turned on), {@code false} otherwise
      */
-    public void set(final long index) {
-        getBitSet(index).set(getPos(index), true);
+    public boolean set(final long index) {
+        BitSet bs = getBitSet(index);
+        int pos = getPos(index);
+        if(!bs.get(pos)) {
+            bs.set(pos, true);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**

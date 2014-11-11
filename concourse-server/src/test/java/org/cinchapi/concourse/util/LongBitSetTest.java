@@ -49,13 +49,6 @@ public class LongBitSetTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testSetFalse() {
-        int position = getPosition();
-        bitSet.set(position, false);
-        Assert.assertEquals(false, bitSet.get(position));
-    }
-
-    @Test
     public void testDefaultIsFalse() {
         int position = getPosition();
         Assert.assertEquals(false, bitSet.get(position));
