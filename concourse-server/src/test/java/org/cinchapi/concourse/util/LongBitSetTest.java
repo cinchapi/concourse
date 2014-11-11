@@ -28,17 +28,17 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link TBitSet}.
+ * Unit tests for {@link LongBitSet}.
  * 
  * @author jnelson
  */
-public class TBitSetTest extends ConcourseBaseTest {
+public class LongBitSetTest extends ConcourseBaseTest {
 
-    private TBitSet bitSet;
+    private LongBitSet bitSet;
 
     @Override
     public void beforeEachTest() {
-        bitSet = TBitSet.create();
+        bitSet = LongBitSet.create();
     }
 
     @Test
@@ -69,35 +69,6 @@ public class TBitSetTest extends ConcourseBaseTest {
         Assert.assertEquals(false, bitSet.get(position));
     }
 
-    @Test
-    public void testCompareAndFlipSuccessful() {
-        int position = getPosition();
-        Assert.assertTrue(bitSet.compareAndFlip(position, false));
-        Assert.assertEquals(true, bitSet.get(position));
-    }
-
-    @Test
-    public void testCompareAndFlipUnsuccessful() {
-        int position = getPosition();
-        Assert.assertFalse(bitSet.compareAndFlip(position, true));
-        Assert.assertEquals(false, bitSet.get(position));
-    }
-
-    @Test
-    public void testFlip() {
-        int count = TestData.getScaleCount();
-        int position = getPosition();
-        for (int i = 0; i < count; i++) {
-            bitSet.flip(position);
-        }
-        Assert.assertEquals(Numbers.isEven(count) ? false : true,
-                bitSet.get(position));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testCannotUseNegativePosition() {
-        bitSet.flip(getPosition() * -1);
-    }
 
     /**
      * Return a random position.
@@ -105,7 +76,7 @@ public class TBitSetTest extends ConcourseBaseTest {
      * @return the position
      */
     private static int getPosition() {
-        return Math.abs(TestData.getInt());
+        return TestData.getInt();
     }
 
 }

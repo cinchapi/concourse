@@ -35,7 +35,7 @@ import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.util.ByteBuffers;
-import org.cinchapi.concourse.util.TBitSet;
+import org.cinchapi.concourse.util.LongBitSet;
 
 import com.google.common.hash.Hashing;
 
@@ -119,7 +119,7 @@ public class LoggingBloomFilter {
     /**
      * The internal bit set that holds the boom filter's state.
      */
-    private final TBitSet bits;
+    private final LongBitSet bits;
 
     /**
      * The buffer that records recent changes to the state of the {@link #bits}
@@ -166,7 +166,7 @@ public class LoggingBloomFilter {
      * @param numHashFunctions
      */
     private LoggingBloomFilter(String file, int numBits, int numHashFunctions) {
-        this.bits = TBitSet.create();
+        this.bits = LongBitSet.create();
         this.numBits = numBits;
         this.numHashFunctions = numHashFunctions;
         this.file = file;
@@ -237,7 +237,8 @@ public class LoggingBloomFilter {
             int[] hashes = hash(Composite.create(byteables));
             boolean bitsChanged = true;
             for (int hash : hashes) {
-                if(bits.compareAndFlip(hash, false)) {
+                if(!bits.get(hash)) {
+                    bits.set(hash);
                     bitsChanged = true;
                     buffer.putInt(hash);
                     lengthOfRecentChanges += 4;
