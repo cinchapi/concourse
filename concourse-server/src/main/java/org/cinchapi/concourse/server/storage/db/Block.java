@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -228,6 +229,14 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private TreeMultiset<Revision<L, K, V>> revisions;
 
     /**
+     * A soft reference to the {@link #revisions} that <em>may</em> stay in
+     * memory after the Block has been synced. The GC is encouraged to clear
+     * this reference in response to memory pressure at which point disk seeks
+     * will be performed in the {@link #seek(Record, Byteable...)} method.
+     */
+    private final SoftReference<TreeMultiset<Revision<L, K, V>>> softRevisions;
+
+    /**
      * The running size of the Block. This number only refers to the size of the
      * Revisions that are stored in the block file. The size for the filter and
      * index are tracked separately.
@@ -265,6 +274,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.index = BlockIndex.create(directory + File.separator + id
                     + INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
         }
+        this.softRevisions = new SoftReference<TreeMultiset<Revision<L, K, V>>>(
+                revisions);
     }
 
     @Override
@@ -577,7 +588,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         Locks.lockIfCondition(read, mutable);
         try {
             if(filter.mightContain(byteables)) {
-                if(mutable) {
+                TreeMultiset<Revision<L, K, V>> revisions = softRevisions.get();
+                if(revisions != null) {
                     Iterator<Revision<L, K, V>> it = revisions.iterator();
                     boolean processing = false; // Since the revisions are
                                                 // sorted, I can toggle this
