@@ -44,11 +44,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
 import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.io.ReRunnable;
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.Inventory;
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 import org.cinchapi.concourse.server.storage.db.Database;
@@ -243,6 +246,42 @@ public final class Buffer extends Limbo {
     private int transportRate = 1;
 
     /**
+     * A pointer to the inventory that is used within the Engine.
+     */
+    private Inventory inventory = null;
+
+    /**
+     * A runnable instance that flushes the content the current buffer page to
+     * disk.
+     */
+    private ReRunnable<MappedByteBuffer> sync0 = new ReRunnable<MappedByteBuffer>() {
+
+        @Override
+        public void run() {
+            object.force();
+        }
+
+    };
+
+    /**
+     * A runnable that flushes the inventory to disk.
+     */
+    private Runnable sync1 = new Runnable() {
+
+        @Override
+        public void run() {
+            inventory.sync();
+        }
+
+    };
+
+    /**
+     * The prefix for the threads that are responsible for flushing data to
+     * disk.
+     */
+    private final String threadNamePrefix;
+
+    /**
      * The maximum number of milliseconds to sleep between transport cycles.
      */
     private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
@@ -294,6 +333,11 @@ public final class Buffer extends Limbo {
     public Buffer(String directory) {
         FileSystem.mkdirs(directory);
         this.directory = directory;
+        this.inventory = Inventory.create(directory + File.separator + "meta"
+                + File.separator + "inventory"); // just incase we are running
+                                                 // from a unit test and there
+                                                 // is no call to #setInventory
+        this.threadNamePrefix = "buffer-sync-" + System.identityHashCode(this);
     }
 
     @Override
@@ -487,6 +531,15 @@ public final class Buffer extends Limbo {
     }
 
     /**
+     * Return the Buffer's inventory collection.
+     * 
+     * @return the Inventory
+     */
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    /**
      * Return the timestamp of the most recent data transport from the Buffer.
      * 
      * @return the time of last transport
@@ -664,6 +717,21 @@ public final class Buffer extends Limbo {
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    /**
+     * <p>
+     * <strong>DO NOT CALL!!!</strong>
+     * </p>
+     * <p>
+     * Called by the parent {@link Engine} to set the inventory that the Buffer
+     * writes to when new records are added.
+     * </p>
+     * 
+     * @param inventory
+     */
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
     }
 
     @Override
@@ -984,7 +1052,9 @@ public final class Buffer extends Limbo {
                     index(write);
                     content.putInt(write.size());
                     write.copyTo(content);
-                    content.force();
+                    inventory.add(write.getRecord().longValue());
+                    ConcourseExecutors.executeAndAwaitTermination(
+                            threadNamePrefix, sync0.runWith(content), sync1);
                 }
                 else {
                     throw CapacityException.INSTANCE;
@@ -1336,7 +1406,8 @@ public final class Buffer extends Limbo {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                filter.putCached(write.getRecord(), write.getKey(), write.getValue());
+                filter.putCached(write.getRecord(), write.getKey(),
+                        write.getValue());
                 writes[size] = write;
                 ++size;
             }

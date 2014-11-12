@@ -85,8 +85,8 @@ public class Inventory {
     /**
      * A collection of dirty writes that have not been synced to disk yet.
      */
-    private transient volatile List<Long> dirty = Lists
-            .newArrayListWithExpectedSize(1);
+    protected final transient List<Long> dirty = Lists
+            .newArrayListWithExpectedSize(1); // visible for testing
 
     /**
      * Concurrency control

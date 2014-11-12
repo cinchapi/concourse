@@ -269,7 +269,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param write
      * @return {@code true} if {@code write} currently exists
      */
-    private boolean verify(Write write) {
+    protected boolean verify(Write write) {
         return buffer.verify(write, destination.verify(write.getKey()
                 .toString(), write.getValue().getTObject(), write.getRecord()
                 .longValue()));

@@ -225,6 +225,15 @@ public final class Engine extends BufferedStore implements
     private final Timer scheduler = new Timer(true);
 
     /**
+     * The inventory contains a collection of all the records that have ever
+     * been created. The Engine and its buffer share access to this inventory so
+     * that the Buffer can update it whenever a new record is written. The
+     * Engine uses the inventory to make some reads (i.e. verify) more
+     * efficient.
+     */
+    private final Inventory inventory;
+
+    /**
      * A lock that prevents the Engine from causing the Buffer to transport
      * Writes to the Database while a buffered read is occurring. Even though
      * the Buffer has a transportLock, we must also maintain one at the Engine
@@ -292,6 +301,9 @@ public final class Engine extends BufferedStore implements
         this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
+        this.inventory = Inventory.create(buffer.getBackingStore()
+                + File.separator + "meta" + File.separator + "inventory");
+        buffer.setInventory(inventory);
     }
 
     /**
@@ -672,7 +684,8 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return super.verify(key, value, record);
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
         }
         finally {
             read.unlock();
@@ -684,11 +697,18 @@ public final class Engine extends BufferedStore implements
     public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.verify(key, value, record, timestamp);
+            return inventory.contains(record) ? super.verify(key, value,
+                    record, timestamp) : false;
         }
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    @Override
+    protected boolean verify(Write write) {
+        return inventory.contains(write.getRecord().longValue()) ? super
+                .verify(write) : false;
     }
 
     @Override
