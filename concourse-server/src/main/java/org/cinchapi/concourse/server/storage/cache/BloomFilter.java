@@ -196,7 +196,8 @@ public class BloomFilter implements Syncable {
      * <p>
      * Since caching is involved, this method is more prone to false positives
      * than the {@link #mightContain(Byteable...)} alternative, but it will
-     * never return false negatives.
+     * never return false negatives as long as the bits were added with the
+     * {@code #putCached(Byteable...)} method.
      * </p>
      * 
      * @param byteables
@@ -205,28 +206,6 @@ public class BloomFilter implements Syncable {
     public boolean mightContainCached(Byteable... byteables) {
         Composite composite = Composite.createCached(byteables);
         return mightContain(composite);
-    }
-
-    /**
-     * Check the backing bloom filter to see if the composite might have been
-     * added.
-     * 
-     * @param composite
-     * @return {@code true} if the composite might exist
-     */
-    private boolean mightContain(Composite composite) {
-        long stamp = lock.tryOptimisticRead();
-        boolean mightContain = source.mightContain(composite);
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
-            try {
-                mightContain = source.mightContain(composite);
-            }
-            finally {
-                lock.unlockRead(stamp);
-            }
-        }
-        return mightContain;
     }
 
     /**
@@ -247,13 +226,29 @@ public class BloomFilter implements Syncable {
      *         called.
      */
     public boolean put(Byteable... byteables) {
-        long stamp = lock.writeLock();
-        try {
-            return source.put(Composite.create(byteables));
-        }
-        finally {
-            lock.unlockWrite(stamp);
-        }
+        return put(Composite.create(byteables));
+    }
+
+    /**
+     * <p>
+     * <strong>Copied from {@link BloomFilter#put(Object)}.</strong>
+     * </p>
+     * Puts {@link byteables} into this BloomFilter as a single element with
+     * support for caching Ensures that subsequent invocations of
+     * {@link #mightContainCached(Byteable...)} with the same elements will
+     * always return true.
+     * 
+     * @param byteables
+     * @return {@code true} if the filter's bits changed as a result of this
+     *         operation. If the bits changed, this is definitely the first time
+     *         {@code byteables} have been added to the filter. If the bits
+     *         haven't changed, this might be the first time they have been
+     *         added. Note that put(t) always returns the opposite result to
+     *         what mightContain(t) would have returned at the time it is
+     *         called.
+     */
+    public boolean putCached(Byteable... byteables) {
+        return put(Composite.createCached(byteables));
     }
 
     @Override
@@ -281,5 +276,44 @@ public class BloomFilter implements Syncable {
             }
         }
         FileSystem.closeFileChannel(channel);
+    }
+
+    /**
+     * Check the backing bloom filter to see if the composite might have been
+     * added.
+     * 
+     * @param composite
+     * @return {@code true} if the composite might exist
+     */
+    private boolean mightContain(Composite composite) {
+        long stamp = lock.tryOptimisticRead();
+        boolean mightContain = source.mightContain(composite);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                mightContain = source.mightContain(composite);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return mightContain;
+    }
+
+    /**
+     * Place the {@code composite} in the backing bloom filter.
+     * 
+     * @param composite
+     * @return {@code true} if the bits have changed as a result of the addition
+     *         of the {@code composite}
+     */
+    private boolean put(Composite composite) {
+        long stamp = lock.writeLock();
+        try {
+            return source.put(composite);
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
     }
 }

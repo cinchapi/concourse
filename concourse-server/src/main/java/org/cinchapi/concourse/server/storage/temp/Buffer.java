@@ -1336,7 +1336,7 @@ public final class Buffer extends Limbo {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                filter.put(write.getRecord(), write.getKey(), write.getValue());
+                filter.putCached(write.getRecord(), write.getKey(), write.getValue());
                 writes[size] = write;
                 ++size;
             }
