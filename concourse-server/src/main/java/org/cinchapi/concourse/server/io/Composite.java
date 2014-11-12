@@ -23,17 +23,16 @@
  */
 package org.cinchapi.concourse.server.io;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 
 /**
@@ -94,7 +93,7 @@ public final class Composite implements Byteable {
      * A cache of Composite. Each composite is associated with the cumulative
      * hashcode of all the things that went into the composite.
      */
-    private final static TIntObjectMap<Composite> CACHE = new TIntObjectHashMap<Composite>();
+    private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
     private final ByteBuffer bytes;
 
