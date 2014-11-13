@@ -304,6 +304,7 @@ public final class Engine extends BufferedStore implements
         this.inventory = Inventory.create(buffer.getBackingStore()
                 + File.separator + "meta" + File.separator + "inventory");
         buffer.setInventory(inventory);
+        buffer.setThreadNamePrefix(environment + "-buffer");
     }
 
     /**

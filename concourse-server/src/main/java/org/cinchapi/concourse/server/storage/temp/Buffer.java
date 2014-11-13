@@ -49,7 +49,6 @@ import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.io.ReRunnable;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Inventory;
 import org.cinchapi.concourse.server.storage.PermanentStore;
@@ -254,11 +253,11 @@ public final class Buffer extends Limbo {
      * A runnable instance that flushes the content the current buffer page to
      * disk.
      */
-    private ReRunnable<MappedByteBuffer> sync0 = new ReRunnable<MappedByteBuffer>() {
+    private Runnable pageSync = new Runnable() {
 
         @Override
         public void run() {
-            object.force();
+            currentPage.content.force();
         }
 
     };
@@ -266,7 +265,7 @@ public final class Buffer extends Limbo {
     /**
      * A runnable that flushes the inventory to disk.
      */
-    private Runnable sync1 = new Runnable() {
+    private Runnable inventorySync = new Runnable() {
 
         @Override
         public void run() {
@@ -277,9 +276,10 @@ public final class Buffer extends Limbo {
 
     /**
      * The prefix for the threads that are responsible for flushing data to
-     * disk.
+     * disk. This is normally set by the Engine using the
+     * {@link #setThreadNamePrefix(String)} method.
      */
-    private final String threadNamePrefix;
+    private String threadNamePrefix;
 
     /**
      * The maximum number of milliseconds to sleep between transport cycles.
@@ -337,7 +337,7 @@ public final class Buffer extends Limbo {
                 + File.separator + "inventory"); // just incase we are running
                                                  // from a unit test and there
                                                  // is no call to #setInventory
-        this.threadNamePrefix = "buffer-sync-" + System.identityHashCode(this);
+        this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
     }
 
     @Override
@@ -734,6 +734,21 @@ public final class Buffer extends Limbo {
         this.inventory = inventory;
     }
 
+    /**
+     * <p>
+     * <strong>DO NOT CALL!!!</strong>
+     * </p>
+     * <p>
+     * Called by the parent {@link Engine} to set the thread name prefix that
+     * the Buffer uses when spawning asynchronous threads.
+     * </p>
+     * 
+     * @param threadNamePrefix
+     */
+    public void setThreadNamePrefix(String threadNamePrefix) {
+        this.threadNamePrefix = threadNamePrefix;
+    }
+
     @Override
     public void start() {
         if(!running) {
@@ -1054,7 +1069,7 @@ public final class Buffer extends Limbo {
                     write.copyTo(content);
                     inventory.add(write.getRecord().longValue());
                     ConcourseExecutors.executeAndAwaitTermination(
-                            threadNamePrefix, sync0.runWith(content), sync1);
+                            threadNamePrefix, pageSync, inventorySync);
                 }
                 else {
                     throw CapacityException.INSTANCE;
