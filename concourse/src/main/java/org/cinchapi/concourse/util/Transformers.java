@@ -127,13 +127,14 @@ public final class Transformers {
      */
     public static <F, V> Set<V> transformSet(Set<F> original,
             Function<? super F, ? extends V> function) {
-        Set<V> transformed = Sets.newLinkedHashSet();
+        Set<V> transformed = Sets.newLinkedHashSetWithExpectedSize(original
+                .size());
         for (F item : original) {
             transformed.add(function.apply(item));
         }
         return transformed;
     }
-    
+
     /**
      * Transform the keys in {@code original} with the {@code keys} function
      * and each of the values with the {@code values} function and return the
@@ -151,8 +152,9 @@ public final class Transformers {
      * @return the transformed TreeMap
      */
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformTreeMapSet(
-            Map<K, Set<V>> original, Function<? super K,? extends K2> keys,
-            Function<? super V, ? extends V2> values, final Comparator<K2> sorter) {
+            Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
+            Function<? super V, ? extends V2> values,
+            final Comparator<K2> sorter) {
         Map<K2, Set<V2>> transformed = Maps.newTreeMap(sorter);
         for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
             transformed.put(keys.apply(entry.getKey()),
