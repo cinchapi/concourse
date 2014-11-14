@@ -49,16 +49,36 @@ public final class MultimapViews {
      * @return {@code true} if the new associated is added, {@code false}
      *         otherwise
      */
-    public static <K extends Comparable<K>, V> boolean putInSet(
-            Map<K, Set<V>> map, K key, V value) {
+    public static <K extends Comparable<K>, V> boolean put(Map<K, Set<V>> map,
+            K key, V value) {
         Set<V> set = map.get(key);
         if(set == null) {
-            set = Sets.newLinkedHashSet();
+            set = Sets.newHashSet();
             map.put(key, set);
         }
         return set.add(value);
     }
 
+    /**
+     * Remove the {@code value} from the collection mapped from {@code key} in
+     * the {@code map}. If the {@code value} is the only one associated with the
+     * {@code key} in the map then clear the {@code key}.
+     * 
+     * @param map
+     * @param key
+     * @param value
+     * @return {@code true} if the value existed and is removed, {@code false}
+     *         otherwise
+     */
+    public static <K extends Comparable<K>, V> boolean remove(
+            Map<K, Set<V>> map, K key, V value) {
+        Set<V> set = map.get(key);
+        if(set != null && set.size() == 1) {
+            map.remove(key);
+        }
+        return set.remove(value);
+    }
+
     private MultimapViews() {/* noop */}
- 
+
 }
