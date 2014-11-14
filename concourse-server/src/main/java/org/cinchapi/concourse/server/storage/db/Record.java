@@ -163,7 +163,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * number of times that the value appears <em>beforehand</em> at determine
      * if the mapping existed or not.
      */
-    protected final transient HashMap<K, List<Revision<L, K, V>>> history = Maps
+    protected final transient HashMap<K, List<CompactRevision<V>>> history = Maps
             .newHashMap();
 
     /**
@@ -174,7 +174,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     /**
      * The locator used to identify this Record.
      */
-    private final L locator;
+    protected final L locator;
 
     /**
      * The key used to identify this Record. This value is {@code null} unless
@@ -273,15 +273,18 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
             }
 
             // Update history index
-            List<Revision<L, K, V>> revisions = history.get(revision.getKey());
+            List<CompactRevision<V>> revisions = history.get(revision.getKey());
             if(revisions == null) {
                 revisions = Lists.newArrayList();
                 history.put(revision.getKey(), revisions);
             }
-            revisions.add(revision);
+            revisions.add(revision.compact());
 
             // Update metadata
             version = Math.max(version, revision.getVersion());
+
+            // Make revision eligible for GC
+            revision = null;
 
         }
         finally {
@@ -381,8 +384,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<V> values = present.get(key);
-            return values != null ? Collections.unmodifiableSet(values)
-                    : emptyValues;
+            return values != null ? values : emptyValues;
         }
         finally {
             read.unlock();
@@ -401,12 +403,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<V> values = emptyValues;
-            List<Revision<L, K, V>> stored = history.get(key);
+            List<CompactRevision<V>> stored = history.get(key);
             if(stored != null) {
                 values = Sets.newLinkedHashSet();
-                Iterator<Revision<L, K, V>> it = stored.iterator();
+                Iterator<CompactRevision<V>> it = stored.iterator();
                 while (it.hasNext()) {
-                    Revision<L, K, V> revision = it.next();
+                    CompactRevision<V> revision = it.next();
                     if(revision.getVersion() <= timestamp) {
                         if(revision.getType() == Action.ADD) {
                             values.add(revision.getValue());

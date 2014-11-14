@@ -207,6 +207,17 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     }
 
     /**
+     * Return a {@link CompactRevision} that is appropriate to store in a
+     * {@link Record records} history collection. After calling this method, it
+     * is okay to set this instance equal to {@code null}.
+     * 
+     * @return the compact form of this Revision.
+     */
+    public CompactRevision<V> compact() {
+        return new CompactRevision<V>(value, version, type);
+    }
+
+    /**
      * {@inheritDoc}
      * <p>
      * <strong>NOTE: The Revision type is NOT considered when determining
