@@ -39,7 +39,6 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.MultimapViews;
-import org.cinchapi.concourse.util.TMaps;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -152,15 +151,12 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             long timestamp, Operator operator, Value... values) { /* Authorized */
         read.lock();
         try {
-            Map<PrimaryKey, Set<Value>> data = Maps.newHashMap(); // sorting at
-                                                                  // the end is
-                                                                  // generally
-                                                                  // faster
+            Map<PrimaryKey, Set<Value>> data = Maps.newHashMap();
             Value value = values[0];
             if(operator == Operator.EQUALS) {
                 for (PrimaryKey record : historical ? get(value, timestamp)
                         : get(value)) {
-                    MultimapViews.putInSet(data, record, value);
+                    MultimapViews.put(data, record, value);
                 }
             }
             else if(operator == Operator.NOT_EQUALS) {
@@ -169,7 +165,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!value.equals(stored)) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -181,7 +177,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) > 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -193,7 +189,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) >= 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -205,7 +201,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) < 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -217,7 +213,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) <= 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -233,7 +229,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                     .compareTo(value2) < 0)) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -246,7 +242,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(m.matches()) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -259,7 +255,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!m.matches()) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
-                            MultimapViews.putInSet(data, record, stored);
+                            MultimapViews.put(data, record, stored);
                         }
                     }
                 }
@@ -267,7 +263,7 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             else {
                 throw new UnsupportedOperationException();
             }
-            return TMaps.asSortedMap(data);
+            return data;
         }
         finally {
             read.unlock();
