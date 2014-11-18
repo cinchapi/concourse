@@ -859,6 +859,15 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code JSON String} of the list of {@code records}
      */
     public abstract String jsonify(List<Long> records, boolean flag);
+    
+    /**
+     * Convert list of {@code record} into {@code Json} syntax formatted String.
+     * No flag parameter defaults to the flag being set to true.
+     * 
+     * @param records
+     * @return {@code JSON String} of the list of {@code records}
+     */
+    public abstract String jsonify(List<Long> records);
 
     /**
      * Link {@code key} in {@code source} to each of the {@code destinations}.
@@ -2027,9 +2036,15 @@ public abstract class Concourse implements AutoCloseable {
         		
         		@Override
         		public String call() throws Exception {
-        			return client.jsonify(records, flag);
+        			return client.jsonify(records, flag, creds, transaction,
+        					environment);
         		}
         	});
+        }
+        
+        @Override
+        public String jsonify(final List<Long> records) {
+        	return jsonify(records, true);
         }
 
         @Override

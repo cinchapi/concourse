@@ -30,6 +30,7 @@ import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -86,11 +87,13 @@ import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
+import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -1209,6 +1212,62 @@ public class ConcourseServer implements
      */
     private boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
+    }
+    
+    /**
+     * Atomically convert list of {@code record} into {@code JSON} formatted
+     * string.
+     * 
+     * @param records
+     * @param flag
+     * @param creds
+     * @param transaction
+     * @param env
+     * @return
+     * @throws TException
+     */
+    public String jsonify(List<Long> records, boolean flag, AccessToken
+    		creds, TransactionToken transaction, String env) 
+    		throws TSecurityException, TException {
+    	checkAccess(creds, transaction);
+    	try {
+    		Map<Long, Map<String, Set<Object>>> result = new HashMap<>();
+    		Map<String, Set<Object>> resultNoKey = new HashMap<>();
+    		
+    		for (Long record: records) {
+    			//For storing the converted thrift objects
+    			Map<String, Set<Object>> rec = new HashMap<>();
+    			Map<String, Set<TObject>> r = 
+    					getStore(transaction, env).browse(record);
+    			
+    			// Converting the set of Thrift objects to Java objects
+    			for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
+    				Set<Object> values = Transformers.transformSet(entry.getValue(), 
+    						new Function<TObject, Object>() {
+
+		                        @Override
+		                        public Object apply(TObject input) {
+		                            return Convert
+		                                    .thriftToJava(input);
+		                        }
+
+                    });
+    				rec.put(entry.getKey(), values);
+    				if (!flag) {
+    					resultNoKey.put(entry.getKey(), values);
+    				}
+    			}
+    			if (flag) {
+    				result.put(record, rec);
+    			}
+    		} // End for record loop
+    		
+    		return flag ? Convert.javaToJson(result):
+    			Convert.javaToJsonFalse(resultNoKey);
+    	}
+    	catch (TransactionStateException e) {
+    		throw new TTransactionException();
+    	}
     }
 
     /**

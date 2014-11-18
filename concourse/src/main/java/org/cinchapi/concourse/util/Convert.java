@@ -27,7 +27,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -41,6 +43,7 @@ import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -108,6 +111,32 @@ public final class Convert {
         }
         bytes.rewind();
         return new TObject(bytes, type);
+    }
+    
+    /**
+     * Convert Java objects into a JSON formatted string.
+     * The Java objects store values of the data of each of the records.
+     * The records have a structure of Map<Record ID, Map<Key, Values>>
+     * 
+     * @param data
+     * @return the JSON string
+     */
+    public static String javaToJson(Map<Long, Map<String, Set<Object>>> data) {
+    	Gson gson = new Gson();
+    	return gson.toJson(data);
+    }
+    
+    
+    /**
+     * Convert Java Objects into a JSON formatted string.
+     * Records have structure Map<Key, Values> since flag indicates without
+     * key.
+     * @param data
+     * @return the JSON string without the key
+     */
+    public static String javaToJsonFalse(Map<String, Set<Object>> data) {
+    	Gson gson = new Gson();
+    	return gson.toJson(data);
     }
 
     /**
