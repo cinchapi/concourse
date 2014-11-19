@@ -2,6 +2,10 @@
 
 #### Version 0.5.0 (TBD)
 
+#### Inventory
+* Added an inventory to keep track of which records have been created.
+* Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
+
 ##### CaSH
 * Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
 * Added a feature to automatically preserve CaSH command history across sessions.
@@ -32,6 +36,10 @@
 * Switched to a faster hash function to generate lock tokens.
 * Switched from using the default `ConcurrentHashMap` implementation to one backported from Java 8 for better performance.
 * Improved the efficiency of the background indexing job by re-using worker threads.
+* Improved heuristics to determine bloom filter sizing.
+* Where appropriate, added some bloom filters that are less precise but have faster lookup times.
+* Switched to using soft references for revisions in recently synced data blocks so that they avoid disk i/o unless absolutely necessary due to memory pressure.
+* Added a more compact representation for revisions in memory to reduce memory bloat.
 * Made miscellaneous optimizations for sensible performance gains.
 
 #### Version 0.4.2 (October 4, 2014)
