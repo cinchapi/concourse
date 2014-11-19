@@ -4,7 +4,7 @@
 # local repository and pushed to the fork.
 
 # Check to make sure this script is not being run from a non-fork
-FORK=`git remote -v | grep "origin.*cinchapi/"
+FORK=`git remote -v | grep "origin.*cinchapi/"`
 if [ ! -z "$FORK" ]; then
 	echo "There is no need to sync a non-forked repo"
 	exit 128
