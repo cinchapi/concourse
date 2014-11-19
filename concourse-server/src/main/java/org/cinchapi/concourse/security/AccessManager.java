@@ -131,6 +131,7 @@ public class AccessManager {
     private static ByteBuffer decodeHex(String hex) {
         return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
     }
+
     /**
      * Encode the {@code bytes} as a hexadecimal string.
      * 
@@ -141,6 +142,7 @@ public class AccessManager {
         bytes.rewind();
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
+
     // The AccessManager keeps track of user sessions and their associated
     // AccessTokens. An AccessToken is valid for a limited amount of time.
     private static final int ACCESS_TOKEN_TTL = 24;
@@ -683,8 +685,9 @@ public class AccessManager {
         }
 
         @Override
-        public void copyToByteBuffer(ByteBuffer buffer) {
+        public void copyTo(ByteBuffer buffer) {
             buffer.put(getBytes());
+
         }
 
     }
