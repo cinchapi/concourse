@@ -1090,7 +1090,7 @@ public class ConcourseServer implements
 				jsonStr.append(Convert.javaToJson(result));
 			}
 			else {
-				jsonStr.append(Convert.javaToJsonFalse(resultNoKey));
+				jsonStr.append(Convert.javaToJson(resultNoKey));
 			}
 			return operation;
     	} 

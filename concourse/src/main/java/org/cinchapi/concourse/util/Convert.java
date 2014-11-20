@@ -115,29 +115,20 @@ public final class Convert {
     
     /**
      * Convert Java objects into a JSON formatted string.
-     * The Java objects store values of the data of each of the records.
-     * The records have a structure of Map<Record ID, Map<Key, Values>>
+     * The Java objects is a mapping of key to values of the data of each of the records.
+     * The records have a structure of Map<Record ID, Map<Key, Values>> when true
+     * The records have a structure of Map<Key, Values> when false.
+     * @param <K> 
+     * @param <V>
      * 
      * @param data
      * @return the JSON string
      */
-    public static String javaToJson(Map<Long, Map<String, Set<Object>>> data) {
+    public static <K, V> String javaToJson(Map<K, V> data) {
     	Gson gson = new Gson();
     	return gson.toJson(data);
     }
-    
-    
-    /**
-     * Convert Java Objects into a JSON formatted string.
-     * Records have structure Map<Key, Values> since flag indicates without
-     * key. 
-     * @param data
-     * @return the JSON string without the key
-     */
-    public static String javaToJsonFalse(Map<String, Set<Object>> data) {
-    	Gson gson = new Gson();
-    	return gson.toJson(data);
-    }
+  
 
     /**
      * Convert a JSON formatted string to a mapping that associates each key
