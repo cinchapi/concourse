@@ -36,7 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collection;
 import java.util.Set;
 
 import org.cinchapi.concourse.util.Logger;
@@ -185,7 +184,7 @@ public final class FileSystem {
      * @param dir
      * @return the sub directories under {@code dir}.
      */
-    public static Collection<String> getSubDirs(String dir) {
+    public static Set<String> getSubDirs(String dir) {
         File directory = new File(dir);
         File[] files = directory.listFiles();
         Set<String> subDirs = Sets.newHashSet();
