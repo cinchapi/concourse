@@ -279,7 +279,7 @@ service ConcourseService {
 	/**
 	 * Atomically convert the list of records into JSON formatted string
 	 */
-	string jsonify(1: list<i64> records, 2: bool flag, 
+	string jsonify(1: list<i64> records, 2: bool includePrimaryKey, 
 		3: shared.AccessToken creds,  4: shared.TransactionToken
 		token, 5: string environment) throws (
 		1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);

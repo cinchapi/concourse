@@ -855,10 +855,10 @@ public abstract class Concourse implements AutoCloseable {
      * Convert list of {@code record} into {@code json} syntax formatted String
      * 
      * @param records
-     * @param flag
+     * @param includePrimaryKey
      * @return {@code JSON String} of the list of {@code records}
      */
-    public abstract String jsonify(List<Long> records, boolean flag);
+    public abstract String jsonify(List<Long> records, boolean includePrimaryKey);
     
     /**
      * Convert list of {@code record} into {@code Json} syntax formatted String.

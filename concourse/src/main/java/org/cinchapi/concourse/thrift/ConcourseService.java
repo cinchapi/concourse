@@ -394,14 +394,13 @@ public class ConcourseService {
     /**
      * Atomically convert the list of records into JSON formatted string
      * 
-     * 
      * @param records
-     * @param flag
+     * @param includePrimaryKey
      * @param creds
      * @param token
      * @param environment
      */
-    public String jsonify(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.cinchapi.concourse.thrift.TSecurityException, org.cinchapi.concourse.thrift.TTransactionException, org.apache.thrift.TException;
+    public String jsonify(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.cinchapi.concourse.thrift.TSecurityException, org.cinchapi.concourse.thrift.TTransactionException, org.apache.thrift.TException;
 
   }
 
@@ -465,7 +464,7 @@ public class ConcourseService {
 
     public void insert1(String json, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.insert1_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void jsonify(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.jsonify_call> resultHandler) throws org.apache.thrift.TException;
+    public void jsonify(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.jsonify_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -1402,17 +1401,17 @@ public class ConcourseService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "insert1 failed: unknown result");
     }
 
-    public String jsonify(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.cinchapi.concourse.thrift.TSecurityException, org.cinchapi.concourse.thrift.TTransactionException, org.apache.thrift.TException
+    public String jsonify(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.cinchapi.concourse.thrift.TSecurityException, org.cinchapi.concourse.thrift.TTransactionException, org.apache.thrift.TException
     {
-      send_jsonify(records, flag, creds, token, environment);
+      send_jsonify(records, includePrimaryKey, creds, token, environment);
       return recv_jsonify();
     }
 
-    public void send_jsonify(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.apache.thrift.TException
+    public void send_jsonify(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment) throws org.apache.thrift.TException
     {
       jsonify_args args = new jsonify_args();
       args.setRecords(records);
-      args.setFlag(flag);
+      args.setIncludePrimaryKey(includePrimaryKey);
       args.setCreds(creds);
       args.setToken(token);
       args.setEnvironment(environment);
@@ -2696,23 +2695,23 @@ public class ConcourseService {
       }
     }
 
-    public void jsonify(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<jsonify_call> resultHandler) throws org.apache.thrift.TException {
+    public void jsonify(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<jsonify_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      jsonify_call method_call = new jsonify_call(records, flag, creds, token, environment, resultHandler, this, ___protocolFactory, ___transport);
+      jsonify_call method_call = new jsonify_call(records, includePrimaryKey, creds, token, environment, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class jsonify_call extends org.apache.thrift.async.TAsyncMethodCall {
       private List<Long> records;
-      private boolean flag;
+      private boolean includePrimaryKey;
       private org.cinchapi.concourse.thrift.AccessToken creds;
       private org.cinchapi.concourse.thrift.TransactionToken token;
       private String environment;
-      public jsonify_call(List<Long> records, boolean flag, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<jsonify_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public jsonify_call(List<Long> records, boolean includePrimaryKey, org.cinchapi.concourse.thrift.AccessToken creds, org.cinchapi.concourse.thrift.TransactionToken token, String environment, org.apache.thrift.async.AsyncMethodCallback<jsonify_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.records = records;
-        this.flag = flag;
+        this.includePrimaryKey = includePrimaryKey;
         this.creds = creds;
         this.token = token;
         this.environment = environment;
@@ -2722,7 +2721,7 @@ public class ConcourseService {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("jsonify", org.apache.thrift.protocol.TMessageType.CALL, 0));
         jsonify_args args = new jsonify_args();
         args.setRecords(records);
-        args.setFlag(flag);
+        args.setIncludePrimaryKey(includePrimaryKey);
         args.setCreds(creds);
         args.setToken(token);
         args.setEnvironment(environment);
@@ -3557,7 +3556,7 @@ public class ConcourseService {
       public jsonify_result getResult(I iface, jsonify_args args) throws org.apache.thrift.TException {
         jsonify_result result = new jsonify_result();
         try {
-          result.success = iface.jsonify(args.records, args.flag, args.creds, args.token, args.environment);
+          result.success = iface.jsonify(args.records, args.includePrimaryKey, args.creds, args.token, args.environment);
         } catch (org.cinchapi.concourse.thrift.TSecurityException ex) {
           result.ex = ex;
         } catch (org.cinchapi.concourse.thrift.TTransactionException ex2) {
@@ -40374,7 +40373,7 @@ public class ConcourseService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("jsonify_args");
 
     private static final org.apache.thrift.protocol.TField RECORDS_FIELD_DESC = new org.apache.thrift.protocol.TField("records", org.apache.thrift.protocol.TType.LIST, (short)1);
-    private static final org.apache.thrift.protocol.TField FLAG_FIELD_DESC = new org.apache.thrift.protocol.TField("flag", org.apache.thrift.protocol.TType.BOOL, (short)2);
+    private static final org.apache.thrift.protocol.TField INCLUDE_PRIMARY_KEY_FIELD_DESC = new org.apache.thrift.protocol.TField("includePrimaryKey", org.apache.thrift.protocol.TType.BOOL, (short)2);
     private static final org.apache.thrift.protocol.TField CREDS_FIELD_DESC = new org.apache.thrift.protocol.TField("creds", org.apache.thrift.protocol.TType.STRUCT, (short)3);
     private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRUCT, (short)4);
     private static final org.apache.thrift.protocol.TField ENVIRONMENT_FIELD_DESC = new org.apache.thrift.protocol.TField("environment", org.apache.thrift.protocol.TType.STRING, (short)5);
@@ -40386,7 +40385,7 @@ public class ConcourseService {
     }
 
     public List<Long> records; // required
-    public boolean flag; // required
+    public boolean includePrimaryKey; // required
     public org.cinchapi.concourse.thrift.AccessToken creds; // required
     public org.cinchapi.concourse.thrift.TransactionToken token; // required
     public String environment; // required
@@ -40394,7 +40393,7 @@ public class ConcourseService {
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       RECORDS((short)1, "records"),
-      FLAG((short)2, "flag"),
+      INCLUDE_PRIMARY_KEY((short)2, "includePrimaryKey"),
       CREDS((short)3, "creds"),
       TOKEN((short)4, "token"),
       ENVIRONMENT((short)5, "environment");
@@ -40414,8 +40413,8 @@ public class ConcourseService {
         switch(fieldId) {
           case 1: // RECORDS
             return RECORDS;
-          case 2: // FLAG
-            return FLAG;
+          case 2: // INCLUDE_PRIMARY_KEY
+            return INCLUDE_PRIMARY_KEY;
           case 3: // CREDS
             return CREDS;
           case 4: // TOKEN
@@ -40462,7 +40461,7 @@ public class ConcourseService {
     }
 
     // isset id assignments
-    private static final int __FLAG_ISSET_ID = 0;
+    private static final int __INCLUDEPRIMARYKEY_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -40470,7 +40469,7 @@ public class ConcourseService {
       tmpMap.put(_Fields.RECORDS, new org.apache.thrift.meta_data.FieldMetaData("records", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-      tmpMap.put(_Fields.FLAG, new org.apache.thrift.meta_data.FieldMetaData("flag", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.INCLUDE_PRIMARY_KEY, new org.apache.thrift.meta_data.FieldMetaData("includePrimaryKey", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.CREDS, new org.apache.thrift.meta_data.FieldMetaData("creds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, org.cinchapi.concourse.thrift.AccessToken.class)));
@@ -40487,15 +40486,15 @@ public class ConcourseService {
 
     public jsonify_args(
       List<Long> records,
-      boolean flag,
+      boolean includePrimaryKey,
       org.cinchapi.concourse.thrift.AccessToken creds,
       org.cinchapi.concourse.thrift.TransactionToken token,
       String environment)
     {
       this();
       this.records = records;
-      this.flag = flag;
-      setFlagIsSet(true);
+      this.includePrimaryKey = includePrimaryKey;
+      setIncludePrimaryKeyIsSet(true);
       this.creds = creds;
       this.token = token;
       this.environment = environment;
@@ -40513,7 +40512,7 @@ public class ConcourseService {
         }
         this.records = __this__records;
       }
-      this.flag = other.flag;
+      this.includePrimaryKey = other.includePrimaryKey;
       if (other.isSetCreds()) {
         this.creds = new org.cinchapi.concourse.thrift.AccessToken(other.creds);
       }
@@ -40532,8 +40531,8 @@ public class ConcourseService {
     @Override
     public void clear() {
       this.records = null;
-      setFlagIsSet(false);
-      this.flag = false;
+      setIncludePrimaryKeyIsSet(false);
+      this.includePrimaryKey = false;
       this.creds = null;
       this.token = null;
       this.environment = null;
@@ -40578,27 +40577,27 @@ public class ConcourseService {
       }
     }
 
-    public boolean isFlag() {
-      return this.flag;
+    public boolean isIncludePrimaryKey() {
+      return this.includePrimaryKey;
     }
 
-    public jsonify_args setFlag(boolean flag) {
-      this.flag = flag;
-      setFlagIsSet(true);
+    public jsonify_args setIncludePrimaryKey(boolean includePrimaryKey) {
+      this.includePrimaryKey = includePrimaryKey;
+      setIncludePrimaryKeyIsSet(true);
       return this;
     }
 
-    public void unsetFlag() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FLAG_ISSET_ID);
+    public void unsetIncludePrimaryKey() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INCLUDEPRIMARYKEY_ISSET_ID);
     }
 
-    /** Returns true if field flag is set (has been assigned a value) and false otherwise */
-    public boolean isSetFlag() {
-      return EncodingUtils.testBit(__isset_bitfield, __FLAG_ISSET_ID);
+    /** Returns true if field includePrimaryKey is set (has been assigned a value) and false otherwise */
+    public boolean isSetIncludePrimaryKey() {
+      return EncodingUtils.testBit(__isset_bitfield, __INCLUDEPRIMARYKEY_ISSET_ID);
     }
 
-    public void setFlagIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FLAG_ISSET_ID, value);
+    public void setIncludePrimaryKeyIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INCLUDEPRIMARYKEY_ISSET_ID, value);
     }
 
     public org.cinchapi.concourse.thrift.AccessToken getCreds() {
@@ -40683,11 +40682,11 @@ public class ConcourseService {
         }
         break;
 
-      case FLAG:
+      case INCLUDE_PRIMARY_KEY:
         if (value == null) {
-          unsetFlag();
+          unsetIncludePrimaryKey();
         } else {
-          setFlag((Boolean)value);
+          setIncludePrimaryKey((Boolean)value);
         }
         break;
 
@@ -40723,8 +40722,8 @@ public class ConcourseService {
       case RECORDS:
         return getRecords();
 
-      case FLAG:
-        return Boolean.valueOf(isFlag());
+      case INCLUDE_PRIMARY_KEY:
+        return Boolean.valueOf(isIncludePrimaryKey());
 
       case CREDS:
         return getCreds();
@@ -40748,8 +40747,8 @@ public class ConcourseService {
       switch (field) {
       case RECORDS:
         return isSetRecords();
-      case FLAG:
-        return isSetFlag();
+      case INCLUDE_PRIMARY_KEY:
+        return isSetIncludePrimaryKey();
       case CREDS:
         return isSetCreds();
       case TOKEN:
@@ -40782,12 +40781,12 @@ public class ConcourseService {
           return false;
       }
 
-      boolean this_present_flag = true;
-      boolean that_present_flag = true;
-      if (this_present_flag || that_present_flag) {
-        if (!(this_present_flag && that_present_flag))
+      boolean this_present_includePrimaryKey = true;
+      boolean that_present_includePrimaryKey = true;
+      if (this_present_includePrimaryKey || that_present_includePrimaryKey) {
+        if (!(this_present_includePrimaryKey && that_present_includePrimaryKey))
           return false;
-        if (this.flag != that.flag)
+        if (this.includePrimaryKey != that.includePrimaryKey)
           return false;
       }
 
@@ -40844,12 +40843,12 @@ public class ConcourseService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFlag()).compareTo(typedOther.isSetFlag());
+      lastComparison = Boolean.valueOf(isSetIncludePrimaryKey()).compareTo(typedOther.isSetIncludePrimaryKey());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFlag()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.flag, typedOther.flag);
+      if (isSetIncludePrimaryKey()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.includePrimaryKey, typedOther.includePrimaryKey);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -40912,8 +40911,8 @@ public class ConcourseService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("flag:");
-      sb.append(this.flag);
+      sb.append("includePrimaryKey:");
+      sb.append(this.includePrimaryKey);
       first = false;
       if (!first) sb.append(", ");
       sb.append("creds:");
@@ -41008,10 +41007,10 @@ public class ConcourseService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // FLAG
+            case 2: // INCLUDE_PRIMARY_KEY
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.flag = iprot.readBool();
-                struct.setFlagIsSet(true);
+                struct.includePrimaryKey = iprot.readBool();
+                struct.setIncludePrimaryKeyIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -41069,8 +41068,8 @@ public class ConcourseService {
           }
           oprot.writeFieldEnd();
         }
-        oprot.writeFieldBegin(FLAG_FIELD_DESC);
-        oprot.writeBool(struct.flag);
+        oprot.writeFieldBegin(INCLUDE_PRIMARY_KEY_FIELD_DESC);
+        oprot.writeBool(struct.includePrimaryKey);
         oprot.writeFieldEnd();
         if (struct.creds != null) {
           oprot.writeFieldBegin(CREDS_FIELD_DESC);
@@ -41108,7 +41107,7 @@ public class ConcourseService {
         if (struct.isSetRecords()) {
           optionals.set(0);
         }
-        if (struct.isSetFlag()) {
+        if (struct.isSetIncludePrimaryKey()) {
           optionals.set(1);
         }
         if (struct.isSetCreds()) {
@@ -41130,8 +41129,8 @@ public class ConcourseService {
             }
           }
         }
-        if (struct.isSetFlag()) {
-          oprot.writeBool(struct.flag);
+        if (struct.isSetIncludePrimaryKey()) {
+          oprot.writeBool(struct.includePrimaryKey);
         }
         if (struct.isSetCreds()) {
           struct.creds.write(oprot);
@@ -41162,8 +41161,8 @@ public class ConcourseService {
           struct.setRecordsIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.flag = iprot.readBool();
-          struct.setFlagIsSet(true);
+          struct.includePrimaryKey = iprot.readBool();
+          struct.setIncludePrimaryKeyIsSet(true);
         }
         if (incoming.get(2)) {
           struct.creds = new org.cinchapi.concourse.thrift.AccessToken();
