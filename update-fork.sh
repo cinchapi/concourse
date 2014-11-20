@@ -3,6 +3,10 @@
 # Changes from the upstream "develop" branch are pulled into the
 # local repository and pushed to the fork.
 
+# Change to the directory of the rep
+DIR=`dirname $0`
+cd $DIR
+
 # Check to make sure this script is not being run from a non-fork
 FORK=`git remote -v | grep "origin.*cinchapi/"`
 if [ ! -z "$FORK" ]; then
