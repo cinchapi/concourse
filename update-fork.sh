@@ -3,7 +3,7 @@
 # Changes from the upstream "develop" branch are pulled into the
 # local repository and pushed to the fork.
 
-# Change to the directory of the rep
+# Change to the directory of the repo
 DIR=`dirname $0`
 cd $DIR
 
