@@ -130,7 +130,7 @@ public final class Convert {
     /**
      * Convert Java Objects into a JSON formatted string.
      * Records have structure Map<Key, Values> since flag indicates without
-     * key.
+     * key. 
      * @param data
      * @return the JSON string without the key
      */

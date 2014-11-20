@@ -45,6 +45,8 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
+import jline.console.Operation;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -1040,6 +1042,63 @@ public class ConcourseServer implements
         }
         return operation;
     }
+    
+    /**
+     * Atomically convert list of {@code record} into {@code JSON} formatted
+     * string.
+     * 
+     * @param records
+     * @param includePrimaryKey
+     * @param store
+     * @param jsonStr
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doJsonify(List<Long> records, boolean 
+    		includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
+    	AtomicOperation operation = store.startAtomicOperation();
+    	try {
+	   		Map<Long, Map<String, Set<Object>>> result = Maps.newHashMap();
+			Map<String, Set<Object>> resultNoKey = Maps.newHashMap();
+			
+			for (Long record: records) {
+				//For storing the converted thrift objects
+				Map<String, Set<Object>> rec = Maps.newHashMap();
+				Map<String, Set<TObject>> r = 
+						operation.browse(record);
+				
+				// Converting the set of Thrift objects to Java objects
+				for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
+					Set<Object> values = Transformers.transformSet(entry.getValue(), 
+							new Function<TObject, Object>() {
+	
+		                        @Override
+		                        public Object apply(TObject input) {
+		                            return Convert
+		                                    .thriftToJava(input);
+		                        }
+	                });
+					rec.put(entry.getKey(), values);
+					if (!includePrimaryKey) {
+						resultNoKey.put(entry.getKey(), values);
+					}
+				}
+				if (includePrimaryKey) {
+					result.put(record, rec);
+				}
+			} // End for record loop
+			
+			if (includePrimaryKey){
+				jsonStr.append(Convert.javaToJson(result));
+			}
+			else {
+				jsonStr.append(Convert.javaToJsonFalse(resultNoKey));
+			}
+			return operation;
+    	} 
+    	catch (AtomicStateException e) {
+    		return null;
+    	}
+    }
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
@@ -1214,56 +1273,28 @@ public class ConcourseServer implements
         return link.longValue() != record;
     }
     
-    /**
-     * Atomically convert list of {@code record} into {@code JSON} formatted
-     * string.
-     * 
-     * @param records
-     * @param flag
-     * @param creds
-     * @param transaction
-     * @param env
-     * @return
-     * @throws TException
-     */
-    public String jsonify(List<Long> records, boolean flag, AccessToken
+    @Atomic
+    @Override
+    public String jsonify(List<Long> records, boolean includePrimaryKey, AccessToken
     		creds, TransactionToken transaction, String env) 
     		throws TSecurityException, TException {
     	checkAccess(creds, transaction);
     	try {
-    		Map<Long, Map<String, Set<Object>>> result = new HashMap<>();
-    		Map<String, Set<Object>> resultNoKey = new HashMap<>();
-    		
-    		for (Long record: records) {
-    			//For storing the converted thrift objects
-    			Map<String, Set<Object>> rec = new HashMap<>();
-    			Map<String, Set<TObject>> r = 
-    					getStore(transaction, env).browse(record);
-    			
-    			// Converting the set of Thrift objects to Java objects
-    			for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
-    				Set<Object> values = Transformers.transformSet(entry.getValue(), 
-    						new Function<TObject, Object>() {
-
-		                        @Override
-		                        public Object apply(TObject input) {
-		                            return Convert
-		                                    .thriftToJava(input);
-		                        }
-
-                    });
-    				rec.put(entry.getKey(), values);
-    				if (!flag) {
-    					resultNoKey.put(entry.getKey(), values);
-    				}
-    			}
-    			if (flag) {
-    				result.put(record, rec);
-    			}
-    		} // End for record loop
-    		
-    		return flag ? Convert.javaToJson(result):
-    			Convert.javaToJsonFalse(resultNoKey);
+    		Compoundable store = getStore(transaction, env);
+    		boolean nullOk = true;
+    		boolean retryable = store instanceof Engine;
+    		AtomicOperation operation = null;
+    		StringBuilder jsonResult = new StringBuilder();
+    		while((operation == null && nullOk) || operation != null &&
+    				!operation.commit() && retryable) {
+    					nullOk = false;
+    					operation = doJsonify(records, includePrimaryKey, store, 
+    							jsonResult);
+    		}
+    		if (operation == null) {
+    			throw new TTransactionException();
+    		}
+    		return jsonResult.toString();
     	}
     	catch (TransactionStateException e) {
     		throw new TTransactionException();
