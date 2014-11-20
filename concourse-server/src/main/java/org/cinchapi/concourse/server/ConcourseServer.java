@@ -653,6 +653,12 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Set<String> listAllEnvironments() {
+        return TSets.intersection(FileSystem.getSubDirs(BUFFER_DIRECTORY),
+                FileSystem.getSubDirs(DATABASE_DIRECTORY));
+    }
+
+    @Override
     @ManagedOperation
     public boolean login(byte[] username, byte[] password) {
         try {
