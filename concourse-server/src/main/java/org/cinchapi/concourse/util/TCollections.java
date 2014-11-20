@@ -71,23 +71,5 @@ public final class TCollections {
         return Iterables.get(collection, Math.abs(Random.getInt()) % size);
     }
 
-    /**
-     * Return a string that displays the {@code collection} as an order
-     * numerical list.
-     * 
-     * @param collection
-     * @return the string output
-     */
-    public static <T> String toOrderedListString(Iterable<T> collection) {
-        StringBuilder sb = new StringBuilder();
-        int i = 1;
-        for (T item : collection) {
-            sb.append(i).append(". ").append(item)
-                    .append(System.getProperty("line.separator"));
-            ++i;
-        }
-        return sb.toString();
-    }
-
     private TCollections() {/* noop */}
 }
