@@ -27,9 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -118,15 +116,13 @@ public final class Convert {
      * The Java objects is a mapping of key to values of the data of each of the records.
      * The records have a structure of Map<Record ID, Map<Key, Values>> when true
      * The records have a structure of Map<Key, Values> when false.
-     * @param <K> 
-     * @param <V>
      * 
-     * @param data
+     * @param object
      * @return the JSON string
      */
-    public static <K, V> String javaToJson(Map<K, V> data) {
+    public static String javaToJson(Object o) {
     	Gson gson = new Gson();
-    	return gson.toJson(data);
+    	return gson.toJson(o);
     }
   
 
