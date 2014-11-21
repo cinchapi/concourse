@@ -11,6 +11,7 @@ cd $DIR
 FORK=`git remote -v | grep "origin.*cinchapi/"`
 if [ ! -z "$FORK" ]; then
 	echo "There is no need to sync a non-forked repo"
+	cd - > /dev/null
 	exit 128
 else
 	REMOTE_NAME="upstream"
@@ -27,5 +28,6 @@ else
 	git pull upstream develop
 	git push origin HEAD
 	git stash pop
+	cd - /dev/null
 	exit 0
 fi
