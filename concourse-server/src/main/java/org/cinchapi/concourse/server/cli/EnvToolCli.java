@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.cli;
 
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
-import org.cinchapi.concourse.util.TCollections;
 
 /**
  * A tool that is used to manage the environments in Concourse Server.
@@ -55,9 +54,8 @@ public class EnvToolCli extends ManagedOperationCli {
 
     @Override
     protected void doTask(ConcourseServerMXBean bean) {
-        System.out.println(TCollections.toOrderedListString(bean
-                .listAllEnvironments()));
-
+        System.out.println("These are the environments in Concourse Server:");
+        System.out.println(bean.listAllEnvironments());
     }
 
     /**
