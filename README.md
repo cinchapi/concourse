@@ -7,7 +7,7 @@ The Concourse data model is lightweight and flexible. Unlike other databases, Co
 ### Connecting to Concourse
 Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`. 
 
-The easiest way to connect is to establish a connection using the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
+The easiest way to connect is to use the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
 ```java
 Concourse concourse = Concourse.connect();
 ```
