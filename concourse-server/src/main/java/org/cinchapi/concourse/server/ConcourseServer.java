@@ -84,6 +84,7 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
@@ -653,9 +654,10 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Set<String> listAllEnvironments() {
-        return TSets.intersection(FileSystem.getSubDirs(BUFFER_DIRECTORY),
-                FileSystem.getSubDirs(DATABASE_DIRECTORY));
+    public String listAllEnvironments() {
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(BUFFER_DIRECTORY),
+                FileSystem.getSubDirs(DATABASE_DIRECTORY)));
     }
 
     @Override

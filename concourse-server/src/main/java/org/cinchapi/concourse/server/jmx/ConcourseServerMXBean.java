@@ -23,8 +23,6 @@
  */
 package org.cinchapi.concourse.server.jmx;
 
-import java.util.Set;
-
 import javax.management.MXBean;
 
 import org.cinchapi.concourse.server.GlobalState;
@@ -125,7 +123,7 @@ public interface ConcourseServerMXBean {
      * @return a set containing all of the environments
      */
     @ManagedOperation
-    public Set<String> listAllEnvironments();
+    public String listAllEnvironments();
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
