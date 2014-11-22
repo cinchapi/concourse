@@ -84,6 +84,7 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
@@ -678,17 +679,24 @@ public class ConcourseServer implements
     }
 
     @Override
+    public String listAllEnvironments() {
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(BUFFER_DIRECTORY),
+                FileSystem.getSubDirs(DATABASE_DIRECTORY)));
+    }
+
+    @Override
     @ManagedOperation
     public boolean login(byte[] username, byte[] password) {
-        // NOTE: Any existing sessions for the user will be invalidated.
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
-                    ByteBuffer.wrap(password), null); // TODO get real
-                                                      // env
+                    ByteBuffer.wrap(password));
             username = null;
             password = null;
             if(token != null) {
-                logout(token, null); // TODO get real env
+                logout(token, null); // NOTE: managed operations don't actually
+                                     // need an access token, so we expire it
+                                     // immediately
                 return true;
             }
             else {
@@ -1209,6 +1217,21 @@ public class ConcourseServer implements
      */
     private boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
+    }
+
+    /**
+     * A version of the login routine that handles the case when no environment
+     * has been specified. The is most common when authenticating a user for
+     * managed operations.
+     * 
+     * @param username
+     * @param password
+     * @return the access token
+     * @throws TException
+     */
+    private AccessToken login(ByteBuffer username, ByteBuffer password)
+            throws TException {
+        return login(username, password, DEFAULT_ENVIRONMENT);
     }
 
     /**

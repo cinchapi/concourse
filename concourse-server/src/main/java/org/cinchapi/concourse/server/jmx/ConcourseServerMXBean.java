@@ -116,6 +116,16 @@ public interface ConcourseServerMXBean {
     public boolean hasUser(byte[] username);
 
     /**
+     * Return the names of all the environments that exist within Concourse
+     * Server. An environment is said to exist if at least one user has
+     * established a connection to that environment.
+     * 
+     * @return a set containing all of the environments
+     */
+    @ManagedOperation
+    public String listAllEnvironments();
+
+    /**
      * Return {@code true} if {@code username} and {@code password} is a valid
      * combination to login to the server for the purpose of performing a
      * managed operation. This method should only be used to authenticate a user
