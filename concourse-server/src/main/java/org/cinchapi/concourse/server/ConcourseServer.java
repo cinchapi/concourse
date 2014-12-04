@@ -661,6 +661,11 @@ public class ConcourseServer implements
     }
 
     @Override
+    public String listAllUserSessions() {
+        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+    }
+
+    @Override
     @ManagedOperation
     public boolean login(byte[] username, byte[] password) {
         try {

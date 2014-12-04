@@ -81,6 +81,10 @@ public class ManageUsersCli extends ManagedOperationCli {
                 bean.revoke(username);
                 System.out.println("Consider it done.");
             }
+            else if(opts.listSessions) {
+                System.out.println("Current User Sessions:");
+                System.out.println(bean.listAllUserSessions());
+            }
             else if(!Strings.isNullOrEmpty(opts.addingUsername)) {
                 if(bean.hasUser(opts.addingUsername.getBytes())) {
                     console.readLine(opts.addingUsername + " already exists. "
@@ -141,16 +145,15 @@ public class ManageUsersCli extends ManagedOperationCli {
             throw Throwables.propagate(e);
         }
     }
-    
+
     @Override
     protected boolean isReadyToRun() {
         MyOptions opts = (MyOptions) options;
-        return super.isReadyToRun() && 
-                (opts.grant 
-                        || opts.revoke 
-                        || !Strings.isNullOrEmpty(opts.addingUsername) 
-                        || !Strings.isNullOrEmpty(opts.deletingUsername) 
-                        || !Strings.isNullOrEmpty(opts.editingUsername));     
+        return super.isReadyToRun()
+                && (opts.grant || opts.revoke || opts.listSessions
+                        || !Strings.isNullOrEmpty(opts.addingUsername)
+                        || !Strings.isNullOrEmpty(opts.deletingUsername) || !Strings
+                            .isNullOrEmpty(opts.editingUsername));
     }
 
     /**
@@ -177,6 +180,9 @@ public class ManageUsersCli extends ManagedOperationCli {
 
         @Parameter(names = { "-np", "--new-password" }, description = "Password of new user to add/edit.")
         public String newPassword;
+
+        @Parameter(names = { "--list-sessions" }, description = "List the user sessions that are currently active")
+        public boolean listSessions = false;
 
     }
 

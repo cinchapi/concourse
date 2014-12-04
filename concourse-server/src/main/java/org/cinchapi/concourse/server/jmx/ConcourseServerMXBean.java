@@ -120,10 +120,19 @@ public interface ConcourseServerMXBean {
      * Server. An environment is said to exist if at least one user has
      * established a connection to that environment.
      * 
-     * @return a set containing all of the environments
+     * @return a string containing all of the environments
      */
     @ManagedOperation
     public String listAllEnvironments();
+
+    /**
+     * Return a description of all the currently active user sessions within
+     * Concourse Server.
+     * 
+     * @return a string containing all the user sessions
+     */
+    @ManagedOperation
+    public String listAllUserSessions();
 
     /**
      * Return {@code true} if {@code username} and {@code password} is a valid
