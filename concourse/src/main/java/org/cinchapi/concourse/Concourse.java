@@ -1604,8 +1604,14 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public void exit() {
-            client.getInputProtocol().getTransport().close();
-            client.getOutputProtocol().getTransport().close();
+            try {
+                client.logout(creds, environment);
+                client.getInputProtocol().getTransport().close();
+                client.getOutputProtocol().getTransport().close();
+            }
+            catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
         }
 
         @Override
