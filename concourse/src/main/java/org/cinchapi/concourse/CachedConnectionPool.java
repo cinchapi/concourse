@@ -23,13 +23,9 @@
  */
 package org.cinchapi.concourse;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import org.cinchapi.concourse.util.ConcurrentLoadingQueue;
 
 /**
  * A {@link ConnectionPool} that has no limit on the number of connections it
@@ -39,12 +35,6 @@ import com.google.common.cache.RemovalNotification;
  * @author jnelson
  */
 class CachedConnectionPool extends ConnectionPool {
-
-    // Each connection will, if not active, will automatically expire. These
-    // units are chosen to correspond to the AccessToken TTL that is defined in
-    // {@link AccessManager}.
-    private static final int CONNECTION_TTL = 24;
-    private static final TimeUnit CONNECTION_TTL_UNIT = TimeUnit.HOURS;
 
     // Connection Info
     private final String host;
@@ -88,47 +78,21 @@ class CachedConnectionPool extends ConnectionPool {
     }
 
     @Override
-    public boolean hasAvailableConnection() {
-        return true;
+    protected Queue<Concourse> buildQueue(int size) {
+        return ConcurrentLoadingQueue.create(new Callable<Concourse>() {
+
+            @Override
+            public Concourse call() throws Exception {
+                return Concourse.connect(host, port, username, password,
+                        environment);
+            }
+
+        });
     }
 
     @Override
-    public Concourse request() {
-        try {
-            return super.request();
-        }
-        catch (IllegalStateException e) {
-            Concourse connection = Concourse.connect(host, port, username,
-                    password, environment);
-            connections.put(connection, new AtomicBoolean(true));
-            return connection;
-        }
-    }
-
-    @Override
-    protected Cache<Concourse, AtomicBoolean> buildCache(int size) {
-        return CacheBuilder
-                .newBuilder()
-                .initialCapacity(size)
-                .expireAfterWrite(CONNECTION_TTL, CONNECTION_TTL_UNIT)
-                .removalListener(
-                        new RemovalListener<Concourse, AtomicBoolean>() {
-
-                            @Override
-                            public void onRemoval(
-                                    RemovalNotification<Concourse, AtomicBoolean> notification) {
-                                if(notification.getValue().get()) { // ensure
-                                                                    // that
-                                                                    // active
-                                                                    // connections
-                                                                    // don't get
-                                                                    // dropped
-                                    connections.put(notification.getKey(),
-                                            notification.getValue());
-                                }
-                            }
-
-                        }).build();
+    protected Concourse getConnection() {
+        return available.poll();
     }
 
 }

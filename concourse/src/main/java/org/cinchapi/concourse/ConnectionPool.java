@@ -23,15 +23,16 @@
  */
 package org.cinchapi.concourse;
 
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.config.ConcourseClientPreferences;
 
 import com.google.common.base.Preconditions;
-import com.google.common.cache.Cache;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -303,15 +304,14 @@ public abstract class ConnectionPool implements AutoCloseable {
     private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
 
     /**
-     * A mapping from connection to a flag indicating if the connection is
-     * active (e.g. taken).
+     * A FIFO queue of connections that are available to be leased.
      */
-    protected final Cache<Concourse, AtomicBoolean> connections;
+    protected final Queue<Concourse> available;
 
     /**
-     * The number of connections that are currently available;
+     * The connections that have been leased from this pool.
      */
-    private AtomicInteger numAvailableConnections;
+    private final Set<Concourse> leased;
 
     /**
      * A flag to indicate if the pool is currently open and operational.
@@ -345,14 +345,15 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
-        this.connections = buildCache(poolSize);
-        this.numAvailableConnections = new AtomicInteger(poolSize);
+        this.available = buildQueue(poolSize);
+        this.leased = Sets.newSetFromMap(Maps
+                .<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
-            connections.put(Concourse.connect(host, port, username, password,
-                    environment), new AtomicBoolean(false));
+            available.offer(Concourse.connect(host, port, username, password,
+                    environment));
         }
         // Ensure that the client connections are forced closed when the JVM is
-        // shutdown in case the user does not properly shutdown the pool
+        // shutdown in case the user does not properly close the pool
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -384,8 +385,8 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return {@code true} if there are one or more available connections
      */
     public boolean hasAvailableConnection() {
-        Preconditions.checkState(open.get(), "Connection pool is closed");
-        return numAvailableConnections.get() > 0;
+        verifyOpenState();
+        return available.peek() != null;
     }
 
     /**
@@ -394,19 +395,10 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @param connection
      */
     public void release(Concourse connection) {
-        Preconditions.checkState(open.get(), "Connection pool is closed");
-        Preconditions.checkArgument(
-                connections.getIfPresent(connection) != null,
-                "Cannot release the connection because it "
-                        + "was not previously requested from this pool");
-        if(connections.getIfPresent(connection).compareAndSet(true, false)) {
-            numAvailableConnections.incrementAndGet();
-        }
-        else {
-            throw new IllegalStateException(
-                    "This is an unreachable state that is obviously "
-                            + "reachable, indicating a bug in the code");
-        }
+        verifyOpenState();
+        verifyValidOrigin(connection);
+        available.offer(connection);
+        leased.remove(connection);
     }
 
     /**
@@ -416,35 +408,35 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return a connection
      */
     public Concourse request() {
-        Preconditions.checkState(open.get(), "Connection pool is closed");
-        while (!hasAvailableConnection()) {
-            continue;
-        }
-        for (Concourse connection : connections.asMap().keySet()) {
-            if(connections.getIfPresent(connection).compareAndSet(false, true)) {
-                numAvailableConnections.decrementAndGet();
-                return connection;
-            }
-        }
-        throw new IllegalStateException(
-                "This is an unreachable state that is obviously "
-                        + "reachable, indicating a bug in the code");
+        verifyOpenState();
+        Concourse connection = getConnection();
+        leased.add(connection);
+        return connection;
     }
 
     /**
-     * Return the {@link Cache} that will hold the connections.
+     * Return the {@link Queue} that will hold the connections.
      * 
      * @param size
      * 
      * @return the connections cache
      */
-    protected abstract Cache<Concourse, AtomicBoolean> buildCache(int size);
+    protected abstract Queue<Concourse> buildQueue(int size);
+
+    /**
+     * Get a connection from the queue of {@code available} ones. The subclass
+     * should use the correct method depending upon whether this method should
+     * block or not.
+     * 
+     * @return the connection
+     */
+    protected abstract Concourse getConnection();
 
     /**
      * Exit all the connections managed by the pool.
      */
     private void exitAllConnections() {
-        for (Concourse concourse : connections.asMap().keySet()) {
+        for (Concourse concourse : available) {
             concourse.exit();
         }
     }
@@ -455,12 +447,28 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return {@code true} if the pool can be closed
      */
     private boolean isCloseable() {
-        for (AtomicBoolean bool : connections.asMap().values()) {
-            if(bool.get()) {
-                return false;
-            }
+        return leased.isEmpty();
+    }
+
+    /**
+     * Ensure that the connection pool is open. If it is not, throw an
+     * IllegalStateException.
+     */
+    private void verifyOpenState() {
+        Preconditions.checkState(open.get(), "Connection pool is closed");
+    }
+
+    /**
+     * Verify that the {@code connection} was leased from this pool.
+     * 
+     * @param connection
+     */
+    private void verifyValidOrigin(Concourse connection) {
+        if(!leased.contains(connection)) {
+            throw new IllegalArgumentException(
+                    "Cannot release the connection because it "
+                            + "was not previously requested from this pool");
         }
-        return true;
     }
 
 }
