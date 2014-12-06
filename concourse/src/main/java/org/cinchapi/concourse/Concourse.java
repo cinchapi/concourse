@@ -873,7 +873,7 @@ public abstract class Concourse implements AutoCloseable {
     
     /**
      * Convert list of {@code record} into {@code Json} syntax formatted String.
-     * No flag parameter defaults to the flag being set to true.
+     * No includePimaryKey parameter defaults to value set to true.
      * 
      * @param records
      * @return {@code JSON String} of the list of {@code records}

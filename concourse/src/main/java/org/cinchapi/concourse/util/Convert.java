@@ -112,13 +112,11 @@ public final class Convert {
     }
     
     /**
-     * Convert Java objects into a JSON formatted string.
-     * The Java objects is a mapping of key to values of the data of each of the records.
-     * The records have a structure of Map<Record ID, Map<Key, Values>> when true
-     * The records have a structure of Map<Key, Values> when false.
+     * Convert Java objects using toJson method from GSON library
+     * into a JSON formatted string.
      * 
      * @param object
-     * @return the JSON string
+     * @return JSON string
      */
     public static String javaToJson(Object o) {
     	Gson gson = new Gson();
