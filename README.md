@@ -4,13 +4,29 @@
 
 ## Introduction
 The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
-### Writing Data
+### Connecting to Concourse
+Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`. 
+
+The easiest way to connect is to use the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
 ```java
-import org.cinchapi.concourse
-
-// Establish connection to Concourse Server
 Concourse concourse = Concourse.connect();
+```
 
+Of course, you can always specify an environment other than the default one when connecting to Concourse Server. For instance, you can connect to the "staging" environment of the default local server.
+```java
+Concourse concourse = Concourse.connect("staging");
+```
+*You can always connect to an existing environment. If you try to create a client connection with an environment that doesn't exist, it will be dynamically created. There is never a need to explicitly define environments in Concourse*
+
+Finally, you can specify all the connection parameters to override the default values. For instance, you can connect to the production environment on remote server as a non-admin user.
+```java
+Concourse concourse = Concourse.connect("http://remote-server.com", 11345, "myusername", 
+  "mycomplexpassword", "production");
+```
+
+### Writing to Concourse
+Concourse allows you to write data immediately without specifying a schema or creating any explicit structure.
+```java
 // Insert a value for the "name" key in record 1
 concourse.set("name", "Jeff Nelson", 1);
 
@@ -21,7 +37,8 @@ concourse.add("name", "John Doe", 1);
 concourse.remove("name", "Jeff Nelson", 1)
 ```
 
-### Reading Data
+### Reading from Concourse
+Concourse automatically creates primary, secondary and fulltext indexes for all of your data so you can perform efficient predicate, range, and search queries on anything at anytime.
 ```java
 // Get the oldest value for the "name" key in record 1
 concourse.get("name", 1);
@@ -34,6 +51,7 @@ concourse.find("name", Operator.EQUALS, "Jeff Nelson");
 ```
 
 ### Transactions
+Concourse provides cross-record transactions that are fully ACID compliant: all operations succeed or fail together; writes are visible to all readers only after being successfully committed; serializable isolation with [just-in-time locking ](http://concoursedb.com/blog/just-in-time-locking/) prevents all read or write phenomena and committed transactions are immediately stored to disk so they persist in the event of power loss, crash or error.
 ```java
 try {
   // Transfer $50 from acct1 to acct2
@@ -45,6 +63,30 @@ try {
 catch (TransactionException e) {
   concourse.abort();
 }
+```
+
+### Version Control
+Concourse automatically and efficiently tracks revisions to your data. This means that you can easily audit changes and rever to previous states without downtime.
+```java
+// return all the revisions to the record
+concourse.audit(1);
+
+// return all the revisions to just the "name" key in the record
+concourse.audit("name", 1);
+
+// Return a timeseries for all the changes to the "name" key in 
+// the record between last month and last week
+concourse.chronologize("name", 1, Timestamp.parse("last month"), Timestamp.parse("last week"));
+```
+
+### Reading from the past
+Version control in Concourse also  means that you have the power to query and fetch data from any point in the past, which makes it  possible to build applications that know what was known when and can analyze real-time changes over time.
+```java
+// Find data matching criteria in the past
+concourse.find("age", Operator.LESS_THAN, 50, Timestamp.parse("last year"));
+
+// Fetch data in a previous state from a record
+concourse.get("name", 1, Timestamp.parse("yesterday"));
 ```
 
 For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).

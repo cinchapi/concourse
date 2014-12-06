@@ -426,7 +426,7 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void clear(String key, long record);
 
     @Override
-    public final void close() throws Exception {
+    public final void close() {
         exit();
     }
 
@@ -623,6 +623,17 @@ public abstract class Concourse implements AutoCloseable {
                                                      // forgets
                                                      // to called #build() on
                                                      // the CriteriaBuilder
+
+    /**
+     * Find and return the set of records where {@code key} is equal to
+     * {@code value}. This method is a shortcut for calling
+     * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
+     * 
+     * @param key
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, Object value);
 
     /**
      * Find {@code key} {@code operator} {@code value} and return the set of
@@ -1680,8 +1691,14 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public void exit() {
-            client.getInputProtocol().getTransport().close();
-            client.getOutputProtocol().getTransport().close();
+            try {
+                client.logout(creds, environment);
+                client.getInputProtocol().getTransport().close();
+                client.getOutputProtocol().getTransport().close();
+            }
+            catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
         }
 
         @Override
@@ -1805,6 +1822,11 @@ public abstract class Concourse implements AutoCloseable {
                 throw new IllegalArgumentException(object
                         + " is not a valid argument for the find method");
             }
+        }
+
+        @Override
+        public Set<Long> find(String key, Object value) {
+            return find(key, Operator.EQUALS, value);
         }
 
         @Override

@@ -95,12 +95,12 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
      * against write locking. The opposite is true if the parameter is
      * {@code false}.
      * 
-     * @param privilegedReads
+     * @param prioritizeReads
      */
-    private PriorityReadWriteLock(boolean privilegedReads) {
-        readLock = privilegedReads ? new PriorityReadLock(this)
+    private PriorityReadWriteLock(boolean prioritizeReads) {
+        readLock = prioritizeReads ? new PriorityReadLock(this)
                 : new UnpriorityReadLock(this);
-        writeLock = privilegedReads ? new UnpriorityWriteLock(this)
+        writeLock = prioritizeReads ? new UnpriorityWriteLock(this)
                 : new PriorityWriteLock(this);
     }
 
