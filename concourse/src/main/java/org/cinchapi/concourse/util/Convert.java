@@ -41,6 +41,7 @@ import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -109,6 +110,19 @@ public final class Convert {
         bytes.rewind();
         return new TObject(bytes, type);
     }
+    
+    /**
+     * Convert Java objects using toJson method from GSON library
+     * into a JSON formatted string.
+     * 
+     * @param object
+     * @return JSON string
+     */
+    public static String javaToJson(Object o) {
+    	Gson gson = new Gson();
+    	return gson.toJson(o);
+    }
+  
 
     /**
      * Convert a JSON formatted string to a mapping that associates each key

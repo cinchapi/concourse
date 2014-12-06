@@ -25,6 +25,7 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -859,6 +860,25 @@ public abstract class Concourse implements AutoCloseable {
      * @return {@code true} if the data is inserted into {@code record}
      */
     public abstract boolean insert(String json, long record);
+    
+    
+    /**
+     * Convert list of {@code record} into {@code json} syntax formatted String
+     * 
+     * @param records
+     * @param includePrimaryKey
+     * @return {@code JSON String} of the list of {@code records}
+     */
+    public abstract String jsonify(List<Long> records, boolean includePrimaryKey);
+    
+    /**
+     * Convert list of {@code record} into {@code Json} syntax formatted String.
+     * No includePimaryKey parameter defaults to value set to true.
+     * 
+     * @param records
+     * @return {@code JSON String} of the list of {@code records}
+     */
+    public abstract String jsonify(List<Long> records);
 
     /**
      * Link {@code key} in {@code source} to each of the {@code destinations}.
@@ -2030,6 +2050,23 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+        
+        @Override
+        public String jsonify(final List<Long> records, final boolean flag) {
+        	return execute(new Callable<String>() {
+        		
+        		@Override
+        		public String call() throws Exception {
+        			return client.jsonify(records, flag, creds, transaction,
+        					environment);
+        		}
+        	});
+        }
+        
+        @Override
+        public String jsonify(final List<Long> records) {
+        	return jsonify(records, true);
         }
 
         @Override

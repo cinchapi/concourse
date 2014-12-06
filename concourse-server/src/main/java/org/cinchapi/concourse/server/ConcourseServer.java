@@ -87,11 +87,13 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
+import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -1050,6 +1052,63 @@ public class ConcourseServer implements
         }
         return operation;
     }
+    
+    /**
+     * Atomically convert list of {@code record} into {@code JSON} formatted
+     * string.
+     * 
+     * @param records
+     * @param includePrimaryKey
+     * @param store
+     * @param jsonStr
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doJsonify(List<Long> records, boolean 
+    		includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
+    	AtomicOperation operation = store.startAtomicOperation();
+    	try {
+	   		Map<Long, Map<String, Set<Object>>> result = Maps.newHashMap();
+			Map<String, Set<Object>> resultNoKey = Maps.newHashMap();
+			
+			for (Long record: records) {
+				//For storing the converted thrift objects
+				Map<String, Set<Object>> rec = Maps.newHashMap();
+				Map<String, Set<TObject>> r = 
+						operation.browse(record);
+				
+				// Converting the set of Thrift objects to Java objects
+				for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
+					Set<Object> values = Transformers.transformSet(entry.getValue(), 
+							new Function<TObject, Object>() {
+	
+		                        @Override
+		                        public Object apply(TObject input) {
+		                            return Convert
+		                                    .thriftToJava(input);
+		                        }
+	                });
+					rec.put(entry.getKey(), values);
+					if (!includePrimaryKey) {
+						resultNoKey.put(entry.getKey(), values);
+					}
+				}
+				if (includePrimaryKey) {
+					result.put(record, rec);
+				}
+			} // End for record loop
+			
+			if (includePrimaryKey){
+				jsonStr.append(Convert.javaToJson(result));
+			}
+			else {
+				jsonStr.append(Convert.javaToJson(resultNoKey));
+			}
+			return operation;
+    	} 
+    	catch (AtomicStateException e) {
+    		return null;
+    	}
+    }
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
@@ -1222,6 +1281,34 @@ public class ConcourseServer implements
      */
     private boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
+    }
+    
+    @Atomic
+    @Override
+    public String jsonify(List<Long> records, boolean includePrimaryKey, AccessToken
+    		creds, TransactionToken transaction, String env) 
+    		throws TSecurityException, TException {
+    	checkAccess(creds, transaction);
+    	try {
+    		Compoundable store = getStore(transaction, env);
+    		boolean nullOk = true;
+    		boolean retryable = store instanceof Engine;
+    		AtomicOperation operation = null;
+    		StringBuilder jsonResult = new StringBuilder();
+    		while((operation == null && nullOk) || operation != null &&
+    				!operation.commit() && retryable) {
+    					nullOk = false;
+    					operation = doJsonify(records, includePrimaryKey, store, 
+    							jsonResult);
+    		}
+    		if (operation == null) {
+    			throw new TTransactionException();
+    		}
+    		return jsonResult.toString();
+    	}
+    	catch (TransactionStateException e) {
+    		throw new TTransactionException();
+    	}
     }
 
     /**
