@@ -869,7 +869,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param includePrimaryKey
      * @return {@code JSON String} of the list of {@code records}
      */
-    public abstract String jsonify(List<Long> records, boolean includePrimaryKey);
+    public abstract String jsonify(Collection<Long> records, boolean includePrimaryKey);
     
     /**
      * Convert list of {@code record} into {@code Json} syntax formatted String.
@@ -2053,12 +2053,13 @@ public abstract class Concourse implements AutoCloseable {
         }
         
         @Override
-        public String jsonify(final List<Long> records, final boolean flag) {
+        public String jsonify(final Collection<Long> records, final boolean flag) {
         	return execute(new Callable<String>() {
         		
         		@Override
         		public String call() throws Exception {
-        			return client.jsonify(records, flag, creds, transaction,
+        			List<Long> recordsList = Lists.newArrayList(records);
+        			return client.jsonify(recordsList, flag, creds, transaction,
         					environment);
         		}
         	});
