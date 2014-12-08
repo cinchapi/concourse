@@ -27,7 +27,7 @@
 #### Version 0.4.3 (TBD)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
 
-* Added auto adjustable rate indexing such that the throughput of the background indexing job will increase or decrease inversely with the system load to prevent contention.
+* Added auto adjustable rate indexing where the throughput of the background indexing job will increase or decrease inversely with query load to prevent contention.
 * Lowered the threshold for Java to start compiling server methods to native code.
 * Implemented priority locks that ensure readers and writers always take precedence over the background indexing job when there is contention.
 * Increased internal caching of some frequently used objects to reduce the overhead for initialization and garbage collection.
@@ -39,7 +39,7 @@
 * Improved heuristics to determine bloom filter sizing.
 * Where appropriate, added some bloom filters that are less precise but have faster lookup times.
 * Switched to using soft references for revisions in recently synced data blocks so that they avoid disk i/o unless absolutely necessary due to memory pressure.
-* Added a more compact representation for revisions in memory to reduce memory bloat.
+* Added a more compact representation for revisions in memory to reduce bloat.
 * Made miscellaneous optimizations for sensible performance gains.
 
 #### Version 0.4.2 (October 4, 2014)

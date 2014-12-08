@@ -85,7 +85,7 @@ import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
-import org.cinchapi.concourse.util.TLinkedHashMap;
+import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
@@ -407,7 +407,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newTLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);
@@ -683,6 +683,11 @@ public class ConcourseServer implements
         return TCollections.toOrderedListString(TSets.intersection(
                 FileSystem.getSubDirs(BUFFER_DIRECTORY),
                 FileSystem.getSubDirs(DATABASE_DIRECTORY)));
+    }
+
+    @Override
+    public String listAllUserSessions() {
+        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
     }
 
     @Override

@@ -31,21 +31,37 @@ import javax.annotation.Nullable;
 import com.google.common.base.Strings;
 
 /**
- * A {@link LinkedHashMap} with a named key and value that returns a formatted
- * {@link #toString()}.
+ * A special {@link LinkedHashMap} with a named key and value that returns a
+ * pretty {@link #toString()} representation in the form of a two column table
+ * where the key/value pairs are listed in different rows :
+ * 
+ * <pre>
+ * +-------------------------------+
+ * | Key  | Values                 |
+ * +-------------------------------+
+ * | age  | [1]                    |
+ * | foo  | [1]                    |
+ * | name | [Jeff Nelson, jeffery] |
+ * +-------------------------------+
+ * </pre>
+ * <p>
+ * A {@link PrettyLinkedHashMap} is suitable to use when displaying information
+ * about a single record or document.
+ * </p>
  * 
  * @author jnelson
  */
-public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
+public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
     /**
-     * Return an empty {@link TLinkedHashMap} with the default key and value
+     * Return an empty {@link PrettyLinkedHashMap} with the default key and
+     * value
      * names.
      * 
      * @return the TLinkedHashMap
      */
-    public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap() {
-        return new TLinkedHashMap<K, V>(null, null);
+    public static <K, V> PrettyLinkedHashMap<K, V> newTLinkedHashMap() {
+        return new PrettyLinkedHashMap<K, V>(null, null);
     }
 
     /**
@@ -56,9 +72,9 @@ public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param valueName
      * @return the TLinkedHashMap.
      */
-    public static <K, V> TLinkedHashMap<K, V> newTLinkedHashMap(String keyName,
-            String valueName) {
-        return new TLinkedHashMap<K, V>(keyName, valueName);
+    public static <K, V> PrettyLinkedHashMap<K, V> newTLinkedHashMap(
+            String keyName, String valueName) {
+        return new PrettyLinkedHashMap<K, V>(keyName, valueName);
     }
 
     private static final long serialVersionUID = 1L; // serializability
@@ -76,7 +92,8 @@ public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param keyName
      * @param valueName
      */
-    private TLinkedHashMap(@Nullable String keyName, @Nullable String valueName) {
+    private PrettyLinkedHashMap(@Nullable String keyName,
+            @Nullable String valueName) {
         if(!Strings.isNullOrEmpty(keyName)) {
             setKeyName(keyName);
         }
@@ -99,7 +116,7 @@ public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param name
      * @return this
      */
-    public TLinkedHashMap<K, V> setKeyName(String name) {
+    public PrettyLinkedHashMap<K, V> setKeyName(String name) {
         keyName = name;
         keyLength = Math.max(name.length(), keyLength);
         return this;
@@ -111,7 +128,7 @@ public class TLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param name
      * @return this
      */
-    public TLinkedHashMap<K, V> setValueName(String name) {
+    public PrettyLinkedHashMap<K, V> setValueName(String name) {
         valueName = name;
         valueLength = Math.max(name.length(), valueLength);
         return this;
