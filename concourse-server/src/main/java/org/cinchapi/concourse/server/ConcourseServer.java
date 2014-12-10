@@ -66,6 +66,7 @@ import org.cinchapi.concourse.server.storage.AtomicStateException;
 import org.cinchapi.concourse.server.storage.BufferedStore;
 import org.cinchapi.concourse.server.storage.Compoundable;
 import org.cinchapi.concourse.server.storage.Engine;
+import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.server.storage.TransactionStateException;
 import org.cinchapi.concourse.shell.CommandLine;
@@ -93,7 +94,6 @@ import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -1079,14 +1079,7 @@ public class ConcourseServer implements
 				// Converting the set of Thrift objects to Java objects
 				for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
 					Set<Object> values = Transformers.transformSet(entry.getValue(), 
-							new Function<TObject, Object>() {
-	
-		                        @Override
-		                        public Object apply(TObject input) {
-		                            return Convert
-		                                    .thriftToJava(input);
-		                        }
-	                });
+							Functions.TOBJECT_TO_JAVA);
 					rec.put(entry.getKey(), values);
 					if (!includePrimaryKey) {
 						resultNoKey.put(entry.getKey(), values);
@@ -1297,6 +1290,7 @@ public class ConcourseServer implements
     		StringBuilder jsonResult = new StringBuilder();
     		while((operation == null && nullOk) || operation != null &&
     				!operation.commit() && retryable) {
+    					jsonResult = new StringBuilder();
     					nullOk = false;
     					operation = doJsonify(records, includePrimaryKey, store, 
     							jsonResult);

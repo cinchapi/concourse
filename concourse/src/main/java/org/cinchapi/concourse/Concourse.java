@@ -861,9 +861,33 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract boolean insert(String json, long record);
     
+    /**
+     * Atomically convert a record to JSON string including the primary 
+     * key by default.
+     * 
+     * @param record
+     * @return {@code} JSON string
+     */
+    public abstract String jsonify(long record);
     
     /**
-     * Convert list of {@code record} into {@code json} syntax formatted String
+     * Atomically convert a record to JSON string.
+     * 
+     * @param record
+     * @param includePrimaryKey
+     * @return
+     */
+    public abstract String jsonify(long record, boolean includePrimaryKey);
+    
+    /**
+     * Atomically convert list of {@code record} into {@code json} syntax 
+     * formatted String.
+     * <p>
+     * The includePrimaryKey value sets to true returns primary key in 
+     * JSON string.
+     * The includePrimarykey value set to false does not return primary 
+     * key in result JSON string.
+     * </p>
      * 
      * @param records
      * @param includePrimaryKey
@@ -878,7 +902,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param records
      * @return {@code JSON String} of the list of {@code records}
      */
-    public abstract String jsonify(List<Long> records);
+    public abstract String jsonify(Collection<Long> records);
 
     /**
      * Link {@code key} in {@code source} to each of the {@code destinations}.
@@ -2053,20 +2077,33 @@ public abstract class Concourse implements AutoCloseable {
         }
         
         @Override
-        public String jsonify(final Collection<Long> records, final boolean flag) {
+        public String jsonify(final long record) {
+        	return jsonify(record, true);
+        }
+        
+        public String jsonify(final long record, final boolean 
+        		includePrimaryKey) {
+        	List<Long> records = Lists.newLinkedList();
+        	records.add(record);
+        	return jsonify(records, includePrimaryKey);
+        }
+        
+        @Override
+        public String jsonify(final Collection<Long> records, final boolean 
+        		includePrimaryKey) {
         	return execute(new Callable<String>() {
         		
         		@Override
         		public String call() throws Exception {
         			List<Long> recordsList = Lists.newArrayList(records);
-        			return client.jsonify(recordsList, flag, creds, transaction,
+        			return client.jsonify(recordsList, includePrimaryKey, creds, transaction,
         					environment);
         		}
         	});
         }
         
         @Override
-        public String jsonify(final List<Long> records) {
+        public String jsonify(final Collection<Long> records) {
         	return jsonify(records, true);
         }
 
