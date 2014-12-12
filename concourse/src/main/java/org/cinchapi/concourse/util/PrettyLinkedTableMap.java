@@ -59,9 +59,9 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
     /**
      * Return an empty {@link PrettyLinkedTableMap} with the default row name.
      * 
-     * @return the TLinkedTableMap
+     * @return the PrettyLinkedTableMap
      */
-    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newTLinkedTableMap() {
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newPrettyLinkedTableMap() {
         return new PrettyLinkedTableMap<R, C, V>(null);
     }
 
@@ -70,9 +70,9 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * {@code rowName}.
      * 
      * @param rowName
-     * @return the TLinkedTableMap
+     * @return the PrettyLinkedTableMap
      */
-    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newTLinkedTableMap(
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newPrettyLinkedTableMap(
             String rowName) {
         return new PrettyLinkedTableMap<R, C, V>(rowName);
     }

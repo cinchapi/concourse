@@ -58,9 +58,9 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * value
      * names.
      * 
-     * @return the TLinkedHashMap
+     * @return the PrettyLinkedHashMap
      */
-    public static <K, V> PrettyLinkedHashMap<K, V> newTLinkedHashMap() {
+    public static <K, V> PrettyLinkedHashMap<K, V> newPrettyLinkedHashMap() {
         return new PrettyLinkedHashMap<K, V>(null, null);
     }
 
@@ -70,9 +70,9 @@ public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * 
      * @param keyName
      * @param valueName
-     * @return the TLinkedHashMap.
+     * @return the PrettyLinkedHashMap.
      */
-    public static <K, V> PrettyLinkedHashMap<K, V> newTLinkedHashMap(
+    public static <K, V> PrettyLinkedHashMap<K, V> newPrettyLinkedHashMap(
             String keyName, String valueName) {
         return new PrettyLinkedHashMap<K, V>(keyName, valueName);
     }
