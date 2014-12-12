@@ -96,7 +96,7 @@ public class BloomFilter implements Syncable {
      * @param file
      * @return the BloomFilter
      */
-    @SuppressWarnings({ "unchecked", "resource" })
+    @SuppressWarnings({ "unchecked" })
     public static BloomFilter open(String file) {
         try {
             final AtomicBoolean upgrade = new AtomicBoolean(false);
