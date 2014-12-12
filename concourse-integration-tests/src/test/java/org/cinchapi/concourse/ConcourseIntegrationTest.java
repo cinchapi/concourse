@@ -100,6 +100,8 @@ public abstract class ConcourseIntegrationTest {
             System.out.println("---");
             System.out.println(Variables.dump());
             System.out.println("");
+            stop();
+            afterEachTest();
         }
 
         @Override
