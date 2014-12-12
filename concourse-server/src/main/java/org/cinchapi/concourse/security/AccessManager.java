@@ -27,13 +27,17 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
+import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -42,6 +46,8 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TStrings;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -50,6 +56,7 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
@@ -216,6 +223,20 @@ public class AccessManager {
         tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
+    /**
+     * Return a list of strings, each of which describes a currently existing
+     * access token.
+     * 
+     * @return a list of token descriptions
+     */
+    public List<String> describeAllAccessTokens() {
+        List<String> sessions = Lists.newArrayList();
+        for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
+            sessions.add(token.getDescription());
+        }
+        return sessions;
+    }
+    
     /**
      * Grant access to the user identified by {@code username} with
      * {@code password}.
@@ -505,6 +526,18 @@ public class AccessManager {
             return new AccessTokenWrapper(token, username, timestamp);
         }
 
+        /**
+         * The formatter that is used to when constructing a human readable
+         * description of the access token.
+         */
+        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+                .appendMonthOfYearShortText().appendLiteral(" ")
+                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
+                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
+                .appendMinuteOfHour(2).appendLiteral(":")
+                .appendSecondOfMinute(2).appendLiteral(" ")
+                .appendHalfdayOfDayText().toFormatter();
+
         private final AccessToken token;
         private final String username; // hex
         private final long timestamp;
@@ -539,6 +572,19 @@ public class AccessManager {
         @SuppressWarnings("unused")
         public AccessToken getAccessToken() {
             return token;
+        }
+
+        /**
+         * Return a human readable description of the access token.
+         * 
+         * @return the description
+         */
+        public String getDescription() {
+            return MessageFormat.format(
+                    "{0} logged in since {1}",
+                    ByteBuffers.getString(decodeHex(username)),
+                    Timestamp.fromMicros(timestamp).getJoda()
+                            .toString(DATE_TIME_FORMATTER));
         }
 
         /**
@@ -631,6 +677,12 @@ public class AccessManager {
         }
 
         @Override
+        public void copyTo(ByteBuffer buffer) {
+            buffer.put(getBytes());
+
+        }
+
+        @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
             bytes.put(decodeHex(password));
@@ -682,12 +734,6 @@ public class AccessManager {
                     System.getProperty("line.seperator"));
             sb.append("salt: " + salt);
             return sb.toString();
-        }
-
-        @Override
-        public void copyTo(ByteBuffer buffer) {
-            buffer.put(getBytes());
-
         }
 
     }
