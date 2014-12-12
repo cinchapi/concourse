@@ -49,6 +49,7 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
@@ -1632,8 +1633,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
-            Map<Long, Set<String>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
+            Map<Long, Set<String>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Record", "Keys");
             for (long record : records) {
                 result.put(record, describe(record));
             }
@@ -1643,8 +1644,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
                 Timestamp timestamp) {
-            Map<Long, Set<String>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
+            Map<Long, Set<String>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Record", "Keys");
             for (long record : records) {
                 result.put(record, describe(record, timestamp));
             }
@@ -1675,6 +1676,13 @@ public abstract class Concourse implements AutoCloseable {
                 client.logout(creds, environment);
                 client.getInputProtocol().getTransport().close();
                 client.getOutputProtocol().getTransport().close();
+            }
+            catch (TSecurityException | TTransportException e) {
+                // Handle corner case where the client is existing because of
+                // (or after the occurence of) a password change, which means it
+                // can't perform a traditional logout. Its worth nothing that
+                // we're okay with this scenario because a password change will
+                // delete all previously issued tokens.
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);
@@ -1711,8 +1719,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Set<Object>> fetch(Collection<String> keys,
                 long record) {
-            Map<String, Set<Object>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
+            Map<String, Set<Object>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Key", "Values");
             for (String key : keys) {
                 result.put(key, fetch(key, record));
             }
@@ -1722,8 +1730,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Set<Object>> fetch(Collection<String> keys,
                 long record, Timestamp timestamp) {
-            Map<String, Set<Object>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
+            Map<String, Set<Object>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Key", "Values");
             for (String key : keys) {
                 result.put(key, fetch(key, record, timestamp));
             }
@@ -1732,8 +1740,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
-            Map<Long, Set<Object>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Record", key);
+            Map<Long, Set<Object>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record));
             }
@@ -1743,8 +1751,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Set<Object>> fetch(String key,
                 Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Set<Object>> result = PrettyLinkedHashMap.newTLinkedHashMap(
-                    "Record", key);
+            Map<Long, Set<Object>> result = PrettyLinkedHashMap
+                    .newTLinkedHashMap("Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record, timestamp));
             }
