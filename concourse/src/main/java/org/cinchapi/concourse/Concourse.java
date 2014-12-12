@@ -49,6 +49,7 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
@@ -1608,6 +1609,13 @@ public abstract class Concourse implements AutoCloseable {
                 client.logout(creds, environment);
                 client.getInputProtocol().getTransport().close();
                 client.getOutputProtocol().getTransport().close();
+            }
+            catch (TSecurityException | TTransportException e) {
+                // Handle corner case where the client is existing because of
+                // (or after the occurence of) a password change, which means it
+                // can't perform a traditional logout. Its worth nothing that
+                // we're okay with this scenario because a password change will
+                // delete all previously issued tokens.
             }
             catch (Exception e) {
                 throw Throwables.propagate(e);
