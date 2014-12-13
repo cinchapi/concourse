@@ -258,6 +258,12 @@ if [ "$FIRST_CHAR" != "/" ]
   then
   WRAPPER_CONF=$REALDIR/$WRAPPER_CONF
 fi
+# Same test for PREFS
+FIRST_CHAR=`echo $PREFS | cut -c1,1`
+if [ "$PREFS" != "/" ]
+  then
+  PREFS=$REALDIR/$PREFS
+fi
 
 # Process ID
 ANCHORFILE="$PIDDIR/$APP_NAME.anchor"
