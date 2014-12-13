@@ -151,35 +151,6 @@ PLIST_DOMAIN=org.cinchapi.concourse
 #   3) RUN_LEVEL, to specify a general run level.
 RUN_LEVEL=20
 
-# The following block contains custom logic to dynamically pull attributes from
-#  the concourse.prefs file and make analogous changes to the tanuki wrapper
-#  configuration file.
-#-----------------------------------------------------------------------------
-
-# Pull jmx_port from concourse.prefs
-JMX_PREF=`cat $PREFS | grep -e '^jmx_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
-JMX_CONF=`cat $WRAPPER_CONF | grep -e '-Dcom.sun.management.jmxremote.port\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f3 | tr -d ' '`
-if [ -z "$JMX_PREF" ]; then
-  JMX_PREF="9010"
-fi
-perl -p -i -e "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
-
-# Pull heap_size from concourse.prefs
-HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
-HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
-HEAP=${HEAP_PREF//[!0-9]/}
-if [[ $HEAP_PREF == *g* ]]
-  then
-  HEAP=$(($HEAP * 1024))
-fi
-if [ -z "$HEAP" ]; then
-  HEAP="1024"
-fi
-MIN_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.initmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
-MAX_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.maxmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
-perl -p -i -e "s/wrapper.java.initmemory=$MIN_HEAP/wrapper.java.initmemory=$HEAP/g" $WRAPPER_CONF
-perl -p -i -e "s/wrapper.java.maxmemory=$MAX_HEAP/wrapper.java.maxmemory=$HEAP/g" $WRAPPER_CONF
-
 # Do not modify anything beyond this point
 #-----------------------------------------------------------------------------
 
@@ -287,6 +258,35 @@ if [ "$FIRST_CHAR" != "/" ]
   then
   WRAPPER_CONF=$REALDIR/$WRAPPER_CONF
 fi
+
+# The following block contains custom logic to dynamically pull attributes from
+#  the concourse.prefs file and make analogous changes to the tanuki wrapper
+#  configuration file.
+#-----------------------------------------------------------------------------
+
+# Pull jmx_port from concourse.prefs
+JMX_PREF=`cat $PREFS | grep -e '^jmx_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+JMX_CONF=`cat $WRAPPER_CONF | grep -e '-Dcom.sun.management.jmxremote.port\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f3 | tr -d ' '`
+if [ -z "$JMX_PREF" ]; then
+  JMX_PREF="9010"
+fi
+perl -p -i -e "s/jmxremote.port=$JMX_CONF/jmxremote.port=$JMX_PREF/g" $WRAPPER_CONF
+
+# Pull heap_size from concourse.prefs
+HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
+HEAP=${HEAP_PREF//[!0-9]/}
+if [[ $HEAP_PREF == *g* ]]
+  then
+  HEAP=$(($HEAP * 1024))
+fi
+if [ -z "$HEAP" ]; then
+  HEAP="1024"
+fi
+MIN_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.initmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
+MAX_HEAP=`cat $WRAPPER_CONF | grep -e 'wrapper.java.maxmemory\s*=\s*[0-9]\{1,\}' | head -n1 | cut -d'=' -f2`
+perl -p -i -e "s/wrapper.java.initmemory=$MIN_HEAP/wrapper.java.initmemory=$HEAP/g" $WRAPPER_CONF
+perl -p -i -e "s/wrapper.java.maxmemory=$MAX_HEAP/wrapper.java.maxmemory=$HEAP/g" $WRAPPER_CONF
 
 # Process ID
 ANCHORFILE="$PIDDIR/$APP_NAME.anchor"
