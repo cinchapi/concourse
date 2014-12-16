@@ -162,7 +162,7 @@ public class TwitterCLI {
                         if(toks.length < 2) {
                             System.err.println("Please specify a username");
                         }
-                        else if(twitter.follow(toks[1])) {
+                        else if(twitter.unfollow(toks[1])) {
                             System.out.println("You are no longer following "
                                     + toks[1]);
                         }
