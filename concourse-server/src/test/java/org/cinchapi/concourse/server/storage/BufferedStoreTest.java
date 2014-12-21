@@ -209,6 +209,48 @@ public abstract class BufferedStoreTest extends StoreTest {
     }
 
     @Test
+    public void testVerifyBufferedReproBuild634() {
+        String order = "ADD D AS ten IN 6, ADD D AS eight "
+                + "IN 7, ADD C AS five IN 1, ADD D AS two "
+                + "IN 5, REMOVE C AS five IN 1, ADD D AS four "
+                + "IN 3, REMOVE D AS ten IN 6, ADD A AS seven "
+                + "IN 3, ADD B AS six IN 5, ADD A AS one IN 1, "
+                + "ADD C AS seven IN 6, ADD B AS four IN 7, ADD "
+                + "B AS six IN 6, REMOVE B AS four IN 7, ADD A "
+                + "AS nine IN 1, ADD B AS two IN 2, ADD C AS nine "
+                + "IN 5, ADD C AS three IN 2, ADD A AS three IN 6,"
+                + " REMOVE D AS two IN 5, ADD B AS two IN 1, REMOVE "
+                + "C AS seven IN 6, ADD A AS one IN 7, ADD C "
+                + "AS three IN 3, ADD D AS four IN 4, ADD B AS ten "
+                + "IN 3, REMOVE A AS seven IN 3, ADD A AS nine IN "
+                + "2, REMOVE C AS nine IN 5, ADD A AS five IN 5, "
+                + "REMOVE A AS one IN 1, ADD B AS eight IN 4, "
+                + "REMOVE C AS three IN 2, ADD A AS five IN 4, "
+                + "REMOVE D AS four IN 4, ADD D AS six IN 2, "
+                + "REMOVE D AS six IN 2, ADD D AS eight IN 1, "
+                + "REMOVE A AS nine IN 2, ADD C AS one IN 4, "
+                + "REMOVE B AS two IN 2, ADD C AS seven IN 7, "
+                + "REMOVE B AS six IN 6, REMOVE B AS two IN 1, "
+                + "REMOVE C AS three IN 3, REMOVE C AS seven IN 7, REMOVE "
+                + "A AS three IN 6, REMOVE D AS four IN 3, REMOVE "
+                + "B AS six IN 5, REMOVE A AS one IN 7, REMOVE "
+                + "A AS five IN 5, REMOVE B AS ten IN 3, REMOVE "
+                + "B AS eight IN 4, REMOVE D AS eight IN 1, "
+                + "REMOVE A AS five IN 4, REMOVE C AS one IN 4";
+        String[] parts = order.split(",");
+        List<Data> data = Lists.newArrayList();
+        for (String part : parts) {
+            part = part.trim();
+            data.add(Data.fromString(part));
+        }
+        Data d = Data.fromString("ADD D AS eight IN 7");
+        insertData(data, 54);
+        boolean verify = Numbers.isOdd(count(data, d));
+        Assert.assertEquals(verify, store.verify(d.key, d.value, d.record));
+
+    }
+
+    @Test
     public void testVerifyBuffered() {
         List<Data> data = generateTestData();
         insertData(data);
@@ -443,6 +485,15 @@ public abstract class BufferedStoreTest extends StoreTest {
             else {
                 ((BufferedStore) store).destination.accept(Write.remove(d.key,
                         d.value, d.record));
+            }
+            if(store instanceof Engine) { // The Engine uses the inventory to
+                                          // check if records exist when
+                                          // verifying but the inventory is only
+                                          // populated from the buffer so we
+                                          // must manually add the record here
+                                          // for the purpose of test cases
+                Engine e = (Engine) ((BufferedStore) store);
+                e.inventory.add(d.record);
             }
         }
         while (it.hasNext()) {

@@ -231,7 +231,7 @@ public final class Engine extends BufferedStore implements
      * Engine uses the inventory to make some reads (i.e. verify) more
      * efficient.
      */
-    private final Inventory inventory;
+    protected final Inventory inventory; // visible for testing
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
