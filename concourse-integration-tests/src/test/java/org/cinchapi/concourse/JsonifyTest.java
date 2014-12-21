@@ -46,12 +46,30 @@ import com.google.gson.Gson;
 public class JsonifyTest extends ConcourseIntegrationTest {
 
 	@Test
-	//Boundary cases
 	public void testEmptyJsonify() {
 		String expected = "{}";
 		List<Long> empty = new ArrayList<>();
 		String actual = client.jsonify(empty);
 		Assert.assertEquals(expected, actual);
+	}
+	
+	@Test
+	//Test for corner cases with Concourse data types
+	//Double, Link and Tag
+	public void testDoubleLinkTagJsonify() {
+		String expectedDouble = "{1:{\"key\":3.14D}";
+		String expectedLink = "{2:{\"key\":@12345@}";
+		String expectedTag = "{3:{\"key\":'John Doe'}";
+		
+		client.add("key", 3.14, 1);
+		client.add("key", Link.to(12345), 2);
+		client.add("key", Tag.create("John Doe"), 3);
+		String actualDouble = client.jsonify(1);
+		String actualLink = client.jsonify(2);
+		String actualTag = client.jsonify(3);
+		Assert.assertEquals(expectedDouble, actualDouble);
+		Assert.assertEquals(expectedLink, actualLink);
+		Assert.assertEquals(expectedTag, actualTag);
 	}
 	
 	@Test

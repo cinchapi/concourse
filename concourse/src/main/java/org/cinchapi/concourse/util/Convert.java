@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
@@ -42,10 +43,14 @@ import org.cinchapi.concourse.thrift.Type;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -118,9 +123,11 @@ public final class Convert {
      * @param object
      * @return JSON string
      */
-    public static String javaToJson(Object o) {
-    	Gson gson = new Gson();
-    	return gson.toJson(o);
+    public static String javaToJson(Object obj) {
+    	GsonBuilder builder = new GsonBuilder();
+    	builder.registerTypeAdapter(Object.class, new DataAdapter());
+    	Gson gson = builder.create();
+    	return gson.toJson(obj);
     }
   
 
@@ -506,6 +513,25 @@ public final class Convert {
                     .getSimpleName(), key, value);
         }
 
+    }
+    
+    public static class DataAdapter extends TypeAdapter<Object> {
+    	public Object read(JsonReader reader) throws IOException {
+    		Double d = reader.nextDouble();
+    		return d;
+    	}
+    	
+    	public void write(JsonWriter writer, Object value) throws IOException {
+    		if (value instanceof Double) {
+    			writer.value(value.toString() + "D");
+    		}
+    		if (value instanceof Link) {
+    			writer.value("@" + value.toString() + "@");
+    		}
+    		if (value instanceof Tag) {
+    			writer.value("'" + value.toString() + "'");
+    		}
+    	}
     }
 
 }
