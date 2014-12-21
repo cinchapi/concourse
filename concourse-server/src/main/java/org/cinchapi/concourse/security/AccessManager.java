@@ -29,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,6 +61,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
+import com.google.common.primitives.Longs;
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
@@ -231,12 +233,15 @@ public class AccessManager {
      */
     public List<String> describeAllAccessTokens() {
         List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
         for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
             sessions.add(token.getDescription());
         }
         return sessions;
     }
-    
+
     /**
      * Grant access to the user identified by {@code username} with
      * {@code password}.
@@ -510,7 +515,8 @@ public class AccessManager {
      * 
      * @author jnelson
      */
-    private static class AccessTokenWrapper {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -554,6 +560,11 @@ public class AccessManager {
             this.token = token;
             this.username = username;
             this.timestamp = timestamp;
+        }
+
+        @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
         }
 
         @Override
