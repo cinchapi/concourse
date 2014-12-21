@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
+import com.google.common.primitives.Longs;
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
@@ -274,6 +276,8 @@ public class AccessManager {
      */
     public List<String> describeAllAccessTokens() {
         List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists.newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
         for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
             sessions.add(token.getDescription());
         }
@@ -713,7 +717,8 @@ public class AccessManager {
      * 
      * @author jnelson
      */
-    private static class AccessTokenWrapper {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -818,6 +823,11 @@ public class AccessManager {
         @Override
         public String toString() {
             return token.toString();
+        }
+
+        @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
         }
     }
 
