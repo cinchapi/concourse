@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -260,15 +259,6 @@ public class AccessManager {
     }
 
     /**
-     * Logout {@code token} so that it is not valid for subsequent access.
-     * 
-     * @param token
-     */
-    public void expireAccessToken(AccessToken token) {
-        tokenManager.deleteToken(token); // the #tokenManager handles locking
-    }
-
-    /**
      * Return a list of strings, each of which describes a currently existing
      * access token.
      * 
@@ -276,12 +266,22 @@ public class AccessManager {
      */
     public List<String> describeAllAccessTokens() {
         List<String> sessions = Lists.newArrayList();
-        List<AccessTokenWrapper> tokens = Lists.newArrayList(tokenManager.tokens.asMap().values());
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
         Collections.sort(tokens);
         for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
             sessions.add(token.getDescription());
         }
         return sessions;
+    }
+
+    /**
+     * Logout {@code token} so that it is not valid for subsequent access.
+     * 
+     * @param token
+     */
+    public void expireAccessToken(AccessToken token) {
+        tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
     /**
@@ -765,6 +765,11 @@ public class AccessManager {
         }
 
         @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if(obj instanceof AccessTokenWrapper) {
                 return token.equals(((AccessTokenWrapper) obj).token);
@@ -823,11 +828,6 @@ public class AccessManager {
         @Override
         public String toString() {
             return token.toString();
-        }
-
-        @Override
-        public int compareTo(AccessTokenWrapper o) {
-            return Longs.compare(timestamp, o.timestamp);
         }
     }
 
