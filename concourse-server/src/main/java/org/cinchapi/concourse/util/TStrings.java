@@ -131,6 +131,16 @@ public final class TStrings {
     public static final String REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS = "\\s+";
     private static final String REGEX_ZERO_OR_MORE_NON_WHITESPACE_CHARS = "[^\\s]*";
     private static final String REGEX_SINGLE_WHITESPACE = "[\\s]";
+    
+    /**
+     * {@code REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR} Matches the percent sign without escape character[%].
+     */
+    public static final String REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR = "(?<!\\\\)%";
+    
+    /**
+     * {@code REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR} Matches the percent sign without escape character[\%].
+     */ 
+    public static final String REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR = "\\\\%";
 
     private TStrings() {/* utility class */}
 

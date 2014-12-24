@@ -57,9 +57,24 @@ public class StoresTest {
     @Test
     @Theory
     public void testNormalizeValue(Operator operator) {
-        long value = TestData.getLong();
-        Object expected = operator == Operator.LINKS_TO ? Link.to(value)
-                : value;
+        long num =  TestData.getLong();
+        Object value=null;
+        Object expected=null;
+        switch(operator){
+        case REGEX :
+        case NOT_REGEX :
+        	value=putNumberWithinPercentSign(num);
+        	expected=putNumberWithinStarSign(num);
+        	break;
+        case LINKS_TO : 
+        	value=num;
+        	expected=Link.to(num);
+        	break;
+        default : 
+        	value=num;
+        	expected=num;
+        	break;
+        }
         Assert.assertEquals(Convert.javaToThrift(expected),
                 Stores.normalizeValue(operator, Convert.javaToThrift(value)));
     }
@@ -69,6 +84,30 @@ public class StoresTest {
         TObject value = Convert.javaToThrift(TestData.getString());
         Assert.assertEquals(value,
                 Stores.normalizeValue(Operator.LINKS_TO, value));
+    }
+    
+    /**
+     * This method will convert {@link long} into String. It will put % (percent) Sign at the both
+     * end and \\% in the middle of {@link String}. 
+     * 
+     * @param num
+     * @return {@link String}
+     */
+    private String putNumberWithinPercentSign(long num){
+    	String str = String.valueOf(num);
+    	return "%"+str.substring(0, str.length()/2)+"\\%"+str.substring(str.length()/2, str.length())+"%";    	
+    }
+    
+    /**
+     * This method will convert {@link long} into {@link String}. It will put * (percent) sign at the both
+     * end and % in the middle of  {@link String}.
+     * 
+     * @param num
+     * @return {@link String}
+     */
+    private String putNumberWithinStarSign(long num){
+    	String str=String.valueOf(num);
+    	return ".*"+str.substring(0, str.length()/2)+"%"+str.substring(str.length()/2, str.length())+".*";    	
     }
 
 }
