@@ -58,19 +58,23 @@ public final class Stores {
      */
     public static TObject normalizeValue(Operator operator, TObject value) {
         try {
-        	switch(operator){
-        	case REGEX :  
-        	case NOT_REGEX:
-        		value=Convert.javaToThrift(((String)Convert.thriftToJava(value)).replaceAll(TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR, ".*").replaceAll(TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR, "%"));
-        		break;
-        	case LINKS_TO:
-        		value=Convert.javaToThrift(Link
-                        .to(((Number) Convert.thriftToJava(value)).longValue()));
-        		break;
-        	default :
-        		value=value;
-        		break;
-        	}
+            switch (operator) {
+            case REGEX:
+            case NOT_REGEX:
+                value = Convert.javaToThrift(((String) Convert
+                        .thriftToJava(value)).replaceAll(
+                        TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR, ".*")
+                        .replaceAll(
+                                TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                "%"));
+                break;
+            case LINKS_TO:
+                value = Convert.javaToThrift(Link.to(((Number) Convert
+                        .thriftToJava(value)).longValue()));
+                break;
+            default:
+                break;
+            }
             return value;
         }
         catch (ClassCastException e) {
