@@ -27,6 +27,7 @@ import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.TStrings;
 
 /**
  * {@link Store} based utility functions.
@@ -57,13 +58,27 @@ public final class Stores {
      */
     public static TObject normalizeValue(Operator operator, TObject value) {
         try {
-            return operator == Operator.LINKS_TO ? Convert.javaToThrift(Link
-                    .to(((Number) Convert.thriftToJava(value)).longValue()))
-                    : value;
+            switch (operator) {
+            case REGEX:
+            case NOT_REGEX:
+                value = Convert.javaToThrift(((String) Convert
+                        .thriftToJava(value)).replaceAll(
+                        TStrings.REGEX_PERCENT_SIGN_WITHOUT_ESCAPE_CHAR, ".*")
+                        .replaceAll(
+                                TStrings.REGEX_PERCENT_SIGN_WITH_ESCAPE_CHAR,
+                                "%"));
+                break;
+            case LINKS_TO:
+                value = Convert.javaToThrift(Link.to(((Number) Convert
+                        .thriftToJava(value)).longValue()));
+                break;
+            default:
+                break;
+            }
+            return value;
         }
         catch (ClassCastException e) {
             return value;
         }
     }
-
 }
