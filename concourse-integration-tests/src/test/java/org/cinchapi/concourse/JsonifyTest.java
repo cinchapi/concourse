@@ -25,15 +25,15 @@ package org.cinchapi.concourse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
-
+import org.cinchapi.concourse.util.Convert;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.gson.Gson;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
 
 
 /**
@@ -53,37 +53,57 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		Assert.assertEquals(expected, actual);
 	}
 	
-	@Test
 	//Test for corner cases with Concourse data types
-	//Double, Link and Tag
-	public void testDoubleLinkTagJsonify() {
-		String expectedDouble = "{1:{\"key\":3.14D}";
-		String expectedLink = "{2:{\"key\":@12345@}";
-		String expectedTag = "{3:{\"key\":'John Doe'}";
-		
+	//Double and Link
+	public void testDoubleLinkJsonify() {
+		String expectedDouble = "{\"1\":{\"key\":[\"3.14D\"]}}";
+		String expectedLink = "{\"2\":{\"key\":[\"@12345@\"]}}";
+
 		client.add("key", 3.14, 1);
 		client.add("key", Link.to(12345), 2);
-		client.add("key", Tag.create("John Doe"), 3);
 		String actualDouble = client.jsonify(1);
 		String actualLink = client.jsonify(2);
-		String actualTag = client.jsonify(3);
+
 		Assert.assertEquals(expectedDouble, actualDouble);
 		Assert.assertEquals(expectedLink, actualLink);
-		Assert.assertEquals(expectedTag, actualTag);
 	}
 	
 	@Test
-	public void testToJson() {
-		Map<String, List<Integer>> myMap = new HashMap<>();
-		myMap.put("integers", Arrays.asList(1,2,3,4,5));
-		myMap.put("123", Arrays.asList(1,2,3));
-		String expected = "{\"integers\":[1,2,3,4,5],\"123\":[1,2,3]}";
-		Gson gson = new Gson();
-		String actual = gson.toJson(myMap);
-		Assert.assertEquals(expected, actual);
+	public void testStringToJavaAndBack() {
+		String testStr = "{\"key1\": a, \"key2\": b, \"key3\": [c, d, e]}";
+		client.insert(testStr, 10L);
+		String resultStr = client.jsonify(10L);
+		System.out.println(resultStr);
+		Assert.assertTrue(resultStr.contains("\"key1\":[\"a\"]"));
+		Assert.assertTrue(resultStr.contains("\"key2\":[\"b\"]"));
+		Assert.assertTrue(resultStr.contains("\"key3\":[\"d\",\"e\",\"c\"]"));
 	}
 	
-	//Typical cases flag set as true
+	@Test
+	public void testJavaToStringAndBack() {
+		Multimap<String, Object> expectedMap = LinkedListMultimap.create();
+		expectedMap.put("key1", Arrays.asList(1L, 2L, 3L));;
+		expectedMap.put("key2", Arrays.asList(4L, 5L, 6L));
+		Collection<Long> r1 = Arrays.asList(1L, 2L, 3L);
+		Collection<Long> r2 = Arrays.asList(4L, 5L, 6L);
+		client.add("key1", r1, 1L);
+		client.add("key2", r2, 2L);
+		
+		String json = client.jsonify(Arrays.asList(1L, 2L), false);
+
+		Multimap<String, Object> actualMap = Convert.jsonToJava(json);
+		
+		String expectedkey1 = expectedMap.get("key1").toString();
+		String actualkey1 = actualMap.get("key1").toString();
+		String expectedkey2 = expectedMap.get("key2").toString();
+		String actualkey2 = actualMap.get("key2").toString();
+
+		Assert.assertTrue(expectedkey1.equals(actualkey1));
+		Assert.assertTrue(expectedkey2.equals(actualkey2));
+		
+	}
+	
+	//includePrimaryKey set as true
 	@Test
 	public void testJsonify() {
 		long record1 = 1;
@@ -112,7 +132,7 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		Assert.assertEquals(expected, actual);
 	}
 	
-	// Without primary key included
+	// PrimaryKey not included
 	@Test
 	public void testJsonifyFalse() {
 		long record1 = 1;
@@ -134,10 +154,9 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		client.add("d", 4, record3);
 		client.add("d", 5, record3);
 		client.add("d", 6, record3);
-		String expected = "{\"d\":[6,4,5],\"b\":[2,1,3],"
-				+ "\"c\":[2,1,3],"
-				+ "\"a\":[2,1,3]}";
 		String actual = client.jsonify(recordsList, false);
-		Assert.assertEquals(expected, actual);
+		String expected = "{\"c\":[2,1,3],\"b\":[2,1,3]," + 
+					"\"a\":[2,1,3],\"d\":[6,4,5]}";
+		Assert.assertEquals(actual, expected);
 	}
 }

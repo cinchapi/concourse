@@ -1068,7 +1068,7 @@ public class ConcourseServer implements
     	AtomicOperation operation = store.startAtomicOperation();
     	try {
 	   		Map<Long, Map<String, Set<Object>>> result = Maps.newHashMap();
-			Map<String, Set<Object>> resultNoKey = Maps.newHashMap();
+			Set<Map<String, Set<Object>>> resultNoKey = Sets.newHashSet();
 			
 			for (Long record: records) {
 				//For storing the converted thrift objects
@@ -1081,12 +1081,12 @@ public class ConcourseServer implements
 					Set<Object> values = Transformers.transformSet(entry.getValue(), 
 							Functions.TOBJECT_TO_JAVA);
 					rec.put(entry.getKey(), values);
-					if (!includePrimaryKey) {
-						resultNoKey.put(entry.getKey(), values);
-					}
 				}
 				if (includePrimaryKey) {
 					result.put(record, rec);
+				}
+				else {
+					resultNoKey.add(rec);
 				}
 			} // End for record loop
 			
@@ -1094,7 +1094,9 @@ public class ConcourseServer implements
 				jsonStr.append(Convert.javaToJson(result));
 			}
 			else {
-				jsonStr.append(Convert.javaToJson(resultNoKey));
+				//Gson encapsulates collections with square brackets
+				String json = Convert.javaToJson(resultNoKey).replaceAll("[{}]", "");
+				jsonStr.append("{" + json.substring(1, json.length() - 1) + "}");
 			}
 			return operation;
     	} 

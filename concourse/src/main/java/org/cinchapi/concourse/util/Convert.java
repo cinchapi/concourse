@@ -125,8 +125,12 @@ public final class Convert {
      */
     public static String javaToJson(Object obj) {
     	GsonBuilder builder = new GsonBuilder();
-    	builder.registerTypeAdapter(Object.class, new DataAdapter());
-    	Gson gson = builder.create();
+    	builder.registerTypeAdapter(Double.class, 
+    			new DataTypeAdapter().nullSafe());
+    	builder.registerTypeAdapter(Link.class, 
+    			new DataTypeAdapter().nullSafe());
+
+    	Gson gson = builder.disableHtmlEscaping().create();
     	return gson.toJson(obj);
     }
   
@@ -515,20 +519,20 @@ public final class Convert {
 
     }
     
-    public static class DataAdapter extends TypeAdapter<Object> {
+    public static class DataTypeAdapter extends TypeAdapter<Object> {
     	public Object read(JsonReader reader) throws IOException {
-    		Double d = reader.nextDouble();
-    		return d;
+    		return null;
     	}
     	
     	public void write(JsonWriter writer, Object value) throws IOException {
     		if (value instanceof Double) {
+    			value = (Double) value;
     			writer.value(value.toString() + "D");
     		}
-    		if (value instanceof Link) {
+    		else if (value instanceof Link) {
     			writer.value("@" + value.toString() + "@");
     		}
-    		if (value instanceof Tag) {
+    		else if (value instanceof Tag) {
     			writer.value("'" + value.toString() + "'");
     		}
     	}
