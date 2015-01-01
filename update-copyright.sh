@@ -13,7 +13,7 @@ grep -r -l "$SEARCH" --exclude=\*sh . | uniq | xargs perl -e "s/$SEARCH/$REPLACE
 
 SEARCH="Copyright (c) $LAST_YEAR"
 SEARCH2="Copyright \(c\) $LAST_YEAR"
-grep -r -l "$SEARCH" --exclude=\*sh . | uniq | xargs perl -e "s/$SEARCH2/$REPLACE/" -pi
+grep -r -l "$SEARCH" --exclude=\*sh . | uniq | xargs perl -e "s/$SEARCH2/Copyright \(c\) $REPLACE/" -pi
 
 echo "The copyright text has been updated to reflect the year $YEAR"
 
