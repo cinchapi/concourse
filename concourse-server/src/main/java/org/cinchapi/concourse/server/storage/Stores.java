@@ -73,6 +73,7 @@ public final class Stores {
                         .thriftToJava(value)).longValue()));
                 break;
             default:
+                // noop: default case added to suppress compiler warning
                 break;
             }
             return value;
