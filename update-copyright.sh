@@ -6,10 +6,14 @@
 # the same year
 YEAR=`date +"%Y"`
 LAST_YEAR=$(($YEAR - 1))
-SEARCH="2013-$LAST_YEAR"
 REPLACE="2013-$YEAR"
 
+SEARCH="2013-$LAST_YEAR"
 grep -r -l "$SEARCH" --exclude=\*sh . | uniq | xargs perl -e "s/$SEARCH/$REPLACE/" -pi
+
+SEARCH="Copyright (c) $LAST_YEAR"
+SEARCH2="Copyright \(c\) $LAST_YEAR"
+grep -r -l "$SEARCH" --exclude=\*sh . | uniq | xargs perl -e "s/$SEARCH2/$REPLACE/" -pi
 
 echo "The copyright text has been updated to reflect the year $YEAR"
 
