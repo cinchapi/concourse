@@ -149,7 +149,7 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ### License
 
-Copyright © 2013-2014 Jeff Nelson, Cinchapi Software Collective.
+Copyright © 2013-2015 Jeff Nelson, Cinchapi Software Collective.
 
 Concourse is released under the MIT License. For more information see LICENSE, which is included with this package.
 
