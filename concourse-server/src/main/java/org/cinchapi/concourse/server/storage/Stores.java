@@ -45,7 +45,16 @@ public final class Stores {
      * @return the normalized Operator
      */
     public static Operator normalizeOperator(Operator operator) {
-        return operator == Operator.LINKS_TO ? Operator.EQUALS : operator;
+    	switch (operator) {
+		case LIKE:
+			return Operator.REGEX;
+		case NOT_LIKE:
+			return Operator.NOT_REGEX;
+		case LINKS_TO:
+			return Operator.EQUALS;
+		default:
+			return operator;
+		}
     }
 
     /**

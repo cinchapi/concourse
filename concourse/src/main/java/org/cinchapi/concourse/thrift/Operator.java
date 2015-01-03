@@ -66,9 +66,9 @@ public enum Operator implements org.apache.thrift.TEnum {
         case 10:
             return LINKS_TO;
         case 11:
-            return REGEX;
+            return LIKE;
         case 12:
-            return NOT_REGEX;
+            return NOT_LIKE;
         default:
             return null;
         }
