@@ -49,8 +49,17 @@ public class StoresTest {
     @Test
     @Theory
     public void testNormalizeOperator(Operator operator) {
-        Operator expected = operator == Operator.LINKS_TO ? Operator.EQUALS
-                : operator;
+        Operator expected = null;
+        switch (operator) {
+        case LIKE:
+            expected = Operator.REGEX;
+        case NOT_LIKE:
+            expected = Operator.NOT_REGEX;
+        case LINKS_TO:
+            operator = Operator.EQUALS;
+        default:
+            expected = operator;
+        }
         Assert.assertEquals(expected, Stores.normalizeOperator(operator));
     }
 
