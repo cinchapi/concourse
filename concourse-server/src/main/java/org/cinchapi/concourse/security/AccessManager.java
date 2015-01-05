@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
+import com.google.common.primitives.Longs;
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
@@ -258,15 +259,6 @@ public class AccessManager {
     }
 
     /**
-     * Logout {@code token} so that it is not valid for subsequent access.
-     * 
-     * @param token
-     */
-    public void expireAccessToken(AccessToken token) {
-        tokenManager.deleteToken(token); // the #tokenManager handles locking
-    }
-
-    /**
      * Return a list of strings, each of which describes a currently existing
      * access token.
      * 
@@ -274,10 +266,22 @@ public class AccessManager {
      */
     public List<String> describeAllAccessTokens() {
         List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
         for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
             sessions.add(token.getDescription());
         }
         return sessions;
+    }
+
+    /**
+     * Logout {@code token} so that it is not valid for subsequent access.
+     * 
+     * @param token
+     */
+    public void expireAccessToken(AccessToken token) {
+        tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
     /**
@@ -713,7 +717,8 @@ public class AccessManager {
      * 
      * @author jnelson
      */
-    private static class AccessTokenWrapper {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -757,6 +762,11 @@ public class AccessManager {
             this.token = token;
             this.username = username;
             this.timestamp = timestamp;
+        }
+
+        @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
         }
 
         @Override

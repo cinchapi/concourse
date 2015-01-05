@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,7 +86,7 @@ import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
-import org.cinchapi.concourse.util.TLinkedHashMap;
+import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.Version;
@@ -409,7 +409,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = TLinkedHashMap.newTLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newPrettyLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);

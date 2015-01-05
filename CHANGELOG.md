@@ -23,6 +23,9 @@
 * Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+* Added a `find(key, value)` method that is a shortcut to query for records where `key` equals `value`.
+* Changed the method signature of the `close()` method so that it does not throw a checked `Exception`.
+* Added percent sign (%) wild card functionality that matches one or more characters for REGEX and NOT_REGEX operators in find operations. The (%) wildcard is an alias for the traditional regex (\*) wildcard. For example `find("name", REGEX, "%Jeff%")` returns the same result as `find("name", REGEX, "*Jeff*")` which is all the records where the name key contains the substring "Jeff".
 
 #### Version 0.4.3 (TBD)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
@@ -41,6 +44,10 @@
 * Switched to using soft references for revisions in recently synced data blocks so that they avoid disk i/o unless absolutely necessary due to memory pressure.
 * Added a more compact representation for revisions in memory to reduce bloat.
 * Made miscellaneous optimizations for sensible performance gains.
+* Upgraded the Tanuki wrapper to version 3.5.26 to fix an issue where Concourse Server on OS X Yosemite (10.10) systems mistakenly tried to start using 32-bit native libraries.
+* Added an `envtool` CLI that can be used to managed environments in Concourse Server.
+* Added a `--list-sessions` action to the `useradmin` CLI to list all the currently active user session in Concourse Server.
+* Removed unnecessary locking that occurred when performing writes in a transaction or atomic operation.
 
 #### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.

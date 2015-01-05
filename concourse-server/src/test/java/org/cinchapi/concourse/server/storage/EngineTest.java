@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -164,7 +164,7 @@ public class EngineTest extends BufferedStoreTest {
         engine.start();
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
-        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 10);
+        Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS + 30);
         engine.add(TestData.getString(), TestData.getTObject(),
                 TestData.getLong());
         Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());

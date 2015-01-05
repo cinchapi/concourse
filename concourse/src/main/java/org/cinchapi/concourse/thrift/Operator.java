@@ -21,7 +21,9 @@ public enum Operator implements org.apache.thrift.TEnum {
     LESS_THAN(7),
     LESS_THAN_OR_EQUALS(8),
     BETWEEN(9),
-    LINKS_TO(10);
+    LINKS_TO(10),
+    LIKE(11),
+    NOT_LIKE(12);
 
     private final int value;
 
@@ -63,6 +65,10 @@ public enum Operator implements org.apache.thrift.TEnum {
             return BETWEEN;
         case 10:
             return LINKS_TO;
+        case 11:
+            return LIKE;
+        case 12:
+            return NOT_LIKE;
         default:
             return null;
         }

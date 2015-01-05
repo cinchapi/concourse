@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,7 +79,7 @@ public final class Transformers {
      */
     public static <K, K2, V> Map<K2, V> transformMap(Map<K, V> original,
             Function<? super K, ? extends K2> function) {
-        Map<K2, V> transformed = TLinkedHashMap.newTLinkedHashMap();
+        Map<K2, V> transformed = PrettyLinkedHashMap.newPrettyLinkedHashMap();
         for (Map.Entry<K, V> entry : original.entrySet()) {
             transformed.put(function.apply(entry.getKey()), entry.getValue());
         }
@@ -104,7 +104,7 @@ public final class Transformers {
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformMapSet(
             Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
             Function<? super V, ? extends V2> values) {
-        Map<K2, Set<V2>> transformed = TLinkedHashMap.newTLinkedHashMap();
+        Map<K2, Set<V2>> transformed = PrettyLinkedHashMap.newPrettyLinkedHashMap();
         for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
             transformed.put(keys.apply(entry.getKey()),
                     transformSet(entry.getValue(), values));

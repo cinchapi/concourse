@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,14 +50,15 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
-import org.cinchapi.concourse.util.TLinkedTableMap;
+import org.cinchapi.concourse.util.PrettyLinkedTableMap;
 import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Transformers;
-import org.cinchapi.concourse.util.TLinkedHashMap;
+import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -1356,7 +1357,7 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> add(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", "Result");
             for (long record : records) {
                 result.put(record, add(key, value, record));
@@ -1412,7 +1413,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, null, creds,
                             transaction, environment);
-                    return ((TLinkedHashMap<Timestamp, String>) Transformers
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     new Function<Long, Timestamp>() {
 
@@ -1436,7 +1437,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Timestamp, String> call() throws Exception {
                     Map<Long, String> audit = client.audit(record, key, creds,
                             transaction, environment);
-                    return ((TLinkedHashMap<Timestamp, String>) Transformers
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     new Function<Long, Timestamp>() {
 
@@ -1456,8 +1457,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Map<String, Set<Object>>> browse(
                 Collection<Long> records) {
-            Map<Long, Map<String, Set<Object>>> data = TLinkedTableMap
-                    .newTLinkedTableMap("Record");
+            Map<Long, Map<String, Set<Object>>> data = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 data.put(record, browse(record, now));
             }
@@ -1468,8 +1469,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Map<String, Set<Object>>> browse(
                 Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Map<String, Set<Object>>> data = TLinkedTableMap
-                    .newTLinkedTableMap("Record");
+            Map<Long, Map<String, Set<Object>>> data = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 data.put(record, browse(record, timestamp));
             }
@@ -1488,8 +1489,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<String, Set<Object>> call() throws Exception {
-                    Map<String, Set<Object>> data = TLinkedHashMap
-                            .newTLinkedHashMap("Key", "Values");
+                    Map<String, Set<Object>> data = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
                     for (Entry<String, Set<TObject>> entry : client.browse0(
                             record, timestamp.getMicros(), creds, transaction,
                             environment).entrySet()) {
@@ -1522,8 +1523,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Object, Set<Long>> call() throws Exception {
-                    Map<Object, Set<Long>> data = TLinkedHashMap
-                            .newTLinkedHashMap(key, "Records");
+                    Map<Object, Set<Long>> data = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap(key, "Records");
                     for (Entry<TObject, Set<Long>> entry : client.browse1(key,
                             timestamp.getMicros(), creds, transaction,
                             environment).entrySet()) {
@@ -1545,8 +1546,8 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Timestamp, Set<Object>> call() throws Exception {
                     Map<Long, Set<TObject>> chronologize = client.chronologize(
                             record, key, creds, transaction, environment);
-                    Map<Timestamp, Set<Object>> result = TLinkedHashMap
-                            .newTLinkedHashMap("DateTime", "Values");
+                    Map<Timestamp, Set<Object>> result = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("DateTime", "Values");
                     for (Entry<Long, Set<TObject>> entry : chronologize
                             .entrySet()) {
                         result.put(Timestamp.fromMicros(entry.getKey()),
@@ -1578,8 +1579,8 @@ public abstract class Concourse implements AutoCloseable {
                 final long record, final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
-            Map<Timestamp, Set<Object>> result = TLinkedHashMap
-                    .newTLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("DateTime", "Values");
             Map<Timestamp, Set<Object>> chronology = chronologize(key, record);
             int index = Timestamps.findNearestSuccessorForTimestamp(
                     chronology.keySet(), start);
@@ -1676,8 +1677,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
-            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
+            Map<Long, Set<String>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Keys");
             for (long record : records) {
                 result.put(record, describe(record));
             }
@@ -1687,8 +1688,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records,
                 Timestamp timestamp) {
-            Map<Long, Set<String>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", "Keys");
+            Map<Long, Set<String>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Keys");
             for (long record : records) {
                 result.put(record, describe(record, timestamp));
             }
@@ -1720,6 +1721,13 @@ public abstract class Concourse implements AutoCloseable {
                 client.getInputProtocol().getTransport().close();
                 client.getOutputProtocol().getTransport().close();
             }
+            catch (TSecurityException | TTransportException e) {
+                // Handle corner case where the client is existing because of
+                // (or after the occurence of) a password change, which means it
+                // can't perform a traditional logout. Its worth nothing that
+                // we're okay with this scenario because a password change will
+                // delete all previously issued tokens.
+            }
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
@@ -1728,8 +1736,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Map<String, Set<Object>>> fetch(
                 Collection<String> keys, Collection<Long> records) {
-            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
-                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            PrettyLinkedTableMap<Long, String, Set<Object>> result = PrettyLinkedTableMap
+                    .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
                     result.put(record, key, fetch(key, record));
@@ -1742,8 +1750,8 @@ public abstract class Concourse implements AutoCloseable {
         public Map<Long, Map<String, Set<Object>>> fetch(
                 Collection<String> keys, Collection<Long> records,
                 Timestamp timestamp) {
-            TLinkedTableMap<Long, String, Set<Object>> result = TLinkedTableMap
-                    .<Long, String, Set<Object>> newTLinkedTableMap("Record");
+            PrettyLinkedTableMap<Long, String, Set<Object>> result = PrettyLinkedTableMap
+                    .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
                     result.put(record, key, fetch(key, record, timestamp));
@@ -1755,8 +1763,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Set<Object>> fetch(Collection<String> keys,
                 long record) {
-            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
+            Map<String, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Values");
             for (String key : keys) {
                 result.put(key, fetch(key, record));
             }
@@ -1766,8 +1774,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Set<Object>> fetch(Collection<String> keys,
                 long record, Timestamp timestamp) {
-            Map<String, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Key", "Values");
+            Map<String, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Values");
             for (String key : keys) {
                 result.put(key, fetch(key, record, timestamp));
             }
@@ -1776,8 +1784,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
-            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", key);
+            Map<Long, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record));
             }
@@ -1787,8 +1795,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Set<Object>> fetch(String key,
                 Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Set<Object>> result = TLinkedHashMap.newTLinkedHashMap(
-                    "Record", key);
+            Map<Long, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 result.put(record, fetch(key, record, timestamp));
             }
@@ -1914,8 +1922,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Map<String, Object>> get(Collection<String> keys,
                 Collection<Long> records) {
-            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
-                    .<Long, String, Object> newTLinkedTableMap("Record");
+            PrettyLinkedTableMap<Long, String, Object> result = PrettyLinkedTableMap
+                    .<Long, String, Object> newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
                     Object value = get(key, record);
@@ -1930,8 +1938,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Map<String, Object>> get(Collection<String> keys,
                 Collection<Long> records, Timestamp timestamp) {
-            TLinkedTableMap<Long, String, Object> result = TLinkedTableMap
-                    .<Long, String, Object> newTLinkedTableMap("Record");
+            PrettyLinkedTableMap<Long, String, Object> result = PrettyLinkedTableMap
+                    .<Long, String, Object> newPrettyLinkedTableMap("Record");
             for (long record : records) {
                 for (String key : keys) {
                     Object value = get(key, record, timestamp);
@@ -1945,7 +1953,7 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<String, Object> get(Collection<String> keys, long record) {
-            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record);
@@ -1959,7 +1967,7 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Object> get(Collection<String> keys, long record,
                 Timestamp timestamp) {
-            Map<String, Object> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record, timestamp);
@@ -1972,7 +1980,7 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records) {
-            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", key);
             for (long record : records) {
                 Object value = get(key, record);
@@ -1986,7 +1994,7 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records,
                 Timestamp timestamp) {
-            Map<Long, Object> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", key);
             for (long record : records) {
                 Object value = get(key, record, timestamp);
@@ -2055,7 +2063,7 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", "Result");
             for (long record : records) {
                 result.put(record, insert(json, record));
@@ -2110,7 +2118,7 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> link(String key, long source,
                 Collection<Long> destinations) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", "Result");
             for (long destination : destinations) {
                 result.put(destination, link(key, source, destination));
@@ -2125,7 +2133,7 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> ping(Collection<Long> records) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", "Result");
             for (long record : records) {
                 result.put(record, ping(record));
@@ -2148,7 +2156,7 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> remove(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = TLinkedHashMap.newTLinkedHashMap(
+            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
                     "Record", "Result");
             for (long record : records) {
                 result.put(record, remove(key, value, record));

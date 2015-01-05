@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,34 +32,49 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 /**
- * A special {@link LinkedHashMap} that holds data mapping a row key to a
- * submapping for column key to value (e.g. Map[R, -> Map[C -> V]]). This object
- * has pretty {@link #toString()} output and
+ * A special {@link LinkedHashMap} that simulates a sparse table where a row key
+ * maps to a set of columns and each column maps to a value (e.g. Map[R, ->
+ * Map[C -> V]]). This object has pretty {@link #toString()} output that is
+ * formatted as such:
+ * 
+ * <pre>
+ * +-----------------------------------------------------------+
+ * | Record           | name          | gender      | joinedBy |
+ * +-----------------------------------------------------------+
+ * | 1416242356271000 | Deary Hudson  | UNSPECIFIED | EMAIL    |
+ * | 1416242356407000 | Jeff Nelson   | UNSPECIFIED | EMAIL    |
+ * | 1416242356436000 | Morgan Debaun | UNSPECIFIED | EMAIL    |
+ * +-----------------------------------------------------------+
+ * </pre>
+ * <p>
+ * A {@link PrettyLinkedTableMap} is suitable for displaying information about
+ * multiple records or documents.
+ * </p>
  * 
  * @author jnelson
  */
 @SuppressWarnings("serial")
-public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
+public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
 
     /**
-     * Return an empty {@link TLinkedTableMap} with the default row name.
+     * Return an empty {@link PrettyLinkedTableMap} with the default row name.
      * 
-     * @return the TLinkedTableMap
+     * @return the PrettyLinkedTableMap
      */
-    public static <R, C, V> TLinkedTableMap<R, C, V> newTLinkedTableMap() {
-        return new TLinkedTableMap<R, C, V>(null);
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newPrettyLinkedTableMap() {
+        return new PrettyLinkedTableMap<R, C, V>(null);
     }
 
     /**
-     * Return an empty {@link TLinkedTableMap} with the specified
+     * Return an empty {@link PrettyLinkedTableMap} with the specified
      * {@code rowName}.
      * 
      * @param rowName
-     * @return the TLinkedTableMap
+     * @return the PrettyLinkedTableMap
      */
-    public static <R, C, V> TLinkedTableMap<R, C, V> newTLinkedTableMap(
+    public static <R, C, V> PrettyLinkedTableMap<R, C, V> newPrettyLinkedTableMap(
             String rowName) {
-        return new TLinkedTableMap<R, C, V>(rowName);
+        return new PrettyLinkedTableMap<R, C, V>(rowName);
     }
 
     private String rowName = "Row";
@@ -77,7 +92,7 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * 
      * @param rowName
      */
-    private TLinkedTableMap(@Nullable String rowName) {
+    private PrettyLinkedTableMap(@Nullable String rowName) {
         if(!Strings.isNullOrEmpty(rowName)) {
             setRowName(rowName);
         }
@@ -126,7 +141,7 @@ public class TLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
      * @param name
      * @return this
      */
-    public TLinkedTableMap<R, C, V> setRowName(String name) {
+    public PrettyLinkedTableMap<R, C, V> setRowName(String name) {
         rowName = name;
         rowLength = Math.max(name.length(), rowLength);
         return this;

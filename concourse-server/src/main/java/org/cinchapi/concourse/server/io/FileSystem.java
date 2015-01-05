@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,6 +130,19 @@ public final class FileSystem {
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
+    }
+
+    /**
+     * Expand the given {@code path} so that it contains completely normalized
+     * components (e.g. ".", "..", and "~" are resolved to the correct absolute
+     * paths).
+     * 
+     * @param path
+     * @return the expanded path
+     */
+    public static String expandPath(String path) {
+        path = path.replaceAll("~", USER_HOME);
+        return BASE_PATH.resolve(path).normalize().toString();
     }
 
     /**
@@ -345,6 +359,23 @@ public final class FileSystem {
     public static void unmap(MappedByteBuffer buffer) {
         Cleaners.freeMappedByteBuffer(buffer);
     }
+
+    /**
+     * The user's home directory, which is used to expand path names with "~"
+     * (tilde).
+     */
+    private static String USER_HOME = System.getProperty("user.home");
+
+    /**
+     * The working directory from which the current JVM process was launched.
+     */
+    private static String WORKING_DIRECTORY = System.getProperty("user.dir");
+
+    /**
+     * The base path that is used to resolve and normalize other relative paths.
+     */
+    private static Path BASE_PATH = FileSystems.getDefault().getPath(
+            WORKING_DIRECTORY);
 
     private FileSystem() {}
 

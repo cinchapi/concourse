@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -843,6 +843,35 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Set<Long> records = addRecords(key, min, operator);
         Assert.assertEquals(records,
                 store.find(key, operator, Convert.javaToThrift(min)));
+    }
+    
+    @Test
+    public void testFindForRegexWithPercentSign() {
+        String key = TestData.getString();
+        String value = TestData.getString();
+        Set<Long> records = getRecords();
+        for (long record : records ){
+        	add(key, Convert.javaToThrift(value), record);        	
+        }
+       Assert.assertEquals(records,
+                store.find(key, Operator.REGEX, Convert.javaToThrift(putStringWithinPercentSign(value))));
+    }
+
+    @Test
+    public void testFindForNotRegExWithPercentSign() {
+        String key = TestData.getString();
+        String value1 = TestData.getString();
+        Set<Long> records1 = getRecords();
+        for (long record : records1 ){
+        	add(key, Convert.javaToThrift(value1), record);        	
+        }
+        String value2 = TestData.getString();
+        Set<Long> records2 = getRecords();
+        for (long record : records2){
+        	add(key, Convert.javaToThrift(value2), record);
+        }
+       Assert.assertEquals(records2,
+               store.find(key, Operator.NOT_REGEX, Convert.javaToThrift(putStringWithinPercentSign(value1))));
     }
 
     @Test
@@ -1854,5 +1883,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
     private enum SearchType {
         PREFIX, INFIX, SUFFIX, FULL
     }
+    
+    /**
+     * This method will put (percent) % sign at both end of the {@link String}.
+     *  
+     * @param str
+     * @return {@code String}
+     */
+    private String putStringWithinPercentSign(String str){
+    	return "%"+str+"%";
+    }    
 
 }

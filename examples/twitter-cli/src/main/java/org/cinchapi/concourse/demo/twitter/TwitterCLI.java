@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -162,7 +162,7 @@ public class TwitterCLI {
                         if(toks.length < 2) {
                             System.err.println("Please specify a username");
                         }
-                        else if(twitter.follow(toks[1])) {
+                        else if(twitter.unfollow(toks[1])) {
                             System.out.println("You are no longer following "
                                     + toks[1]);
                         }

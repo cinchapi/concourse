@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -231,7 +231,7 @@ public final class Engine extends BufferedStore implements
      * Engine uses the inventory to make some reads (i.e. verify) more
      * efficient.
      */
-    private final Inventory inventory;
+    protected final Inventory inventory; // visible for testing
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
