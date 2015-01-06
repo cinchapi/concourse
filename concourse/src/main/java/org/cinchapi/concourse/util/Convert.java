@@ -237,6 +237,62 @@ public final class Convert {
         }
         return string;
     }
+    
+    public static Operator stringToOperator(String symbol){
+    	Operator operator = null;
+    	
+    	switch(symbol){
+    	case "=":
+    	case "eq":
+    		operator = Operator.EQUALS;
+    		break;
+    	
+    	case "!=":
+    	case "ne":
+    		operator = Operator.NOT_EQUALS;
+    		break;
+    	
+    	case ">":
+    	case "gt":
+    		operator = Operator.GREATER_THAN;
+    		break;
+    	
+    	case ">=":
+    	case "gte":
+    		operator = Operator.GREATER_THAN_OR_EQUALS;
+    		break;
+    		
+    	case "<":
+    	case "lt":
+    		operator = Operator.LESS_THAN;
+    		break;
+    		
+    	case "<=":
+    	case "lte":
+    		operator = Operator.LESS_THAN_OR_EQUALS;
+    		break;
+    		
+    	case "><":
+    	case "bw":
+    		operator = Operator.BETWEEN;
+    		break;
+    		
+    	case "->":
+    	case "lnk2":
+    		operator = Operator.LINKS_TO;
+    		break;
+    	
+    	case "regex":
+    		operator = Operator.REGEX;
+    		break;
+    		
+    	case "nregex":
+    		operator = Operator.NOT_REGEX;
+    		break;
+    	}
+    	
+    	return operator;
+    }
 
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
