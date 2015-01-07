@@ -38,6 +38,7 @@ import groovy.lang.GroovyShell;
 import groovy.lang.MissingMethodException;
 import groovy.lang.Script;
 import jline.TerminalFactory;
+import jline.TerminalSupport;
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
@@ -54,6 +55,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.ParseException;
 import org.cinchapi.concourse.thrift.SecurityException;
 import org.cinchapi.concourse.util.FileOps;
+import org.cinchapi.concourse.util.Platform;
 import org.cinchapi.concourse.util.Version;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.MultipleCompilationErrorsException;
@@ -483,7 +485,17 @@ public final class ConcourseShell {
      * @throws Exception
      */
     protected ConcourseShell() throws Exception {
-        this.console = new ConsoleReader();
+        if(Platform.isWindows()) {
+            // According to
+            // https://groups.google.com/forum/#!topic/jline-users/C4UcXtsq-5c
+            // this is what we need to do in order to prevent null input from
+            // console#readLine()
+            this.console = new ConsoleReader(System.in, System.out,
+                    new TerminalSupport(false) {});
+        }
+        else {
+            this.console = new ConsoleReader();
+        }
         this.groovyBinding = new Binding();
         this.groovy = new GroovyShell(groovyBinding);
     }
