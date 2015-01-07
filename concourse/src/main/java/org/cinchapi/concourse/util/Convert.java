@@ -31,8 +31,9 @@ import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.Tag;
+import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.Operator;
@@ -237,61 +238,60 @@ public final class Convert {
         }
         return string;
     }
-    
-    public static Operator stringToOperator(String symbol){
-    	Operator operator = null;
-    	
-    	switch(symbol){
-    	case "=":
-    	case "eq":
-    		operator = Operator.EQUALS;
-    		break;
-    	
-    	case "!=":
-    	case "ne":
-    		operator = Operator.NOT_EQUALS;
-    		break;
-    	
-    	case ">":
-    	case "gt":
-    		operator = Operator.GREATER_THAN;
-    		break;
-    	
-    	case ">=":
-    	case "gte":
-    		operator = Operator.GREATER_THAN_OR_EQUALS;
-    		break;
-    		
-    	case "<":
-    	case "lt":
-    		operator = Operator.LESS_THAN;
-    		break;
-    		
-    	case "<=":
-    	case "lte":
-    		operator = Operator.LESS_THAN_OR_EQUALS;
-    		break;
-    		
-    	case "><":
-    	case "bw":
-    		operator = Operator.BETWEEN;
-    		break;
-    		
-    	case "->":
-    	case "lnk2":
-    		operator = Operator.LINKS_TO;
-    		break;
-    	
-    	case "regex":
-    		operator = Operator.REGEX;
-    		break;
-    		
-    	case "nregex":
-    		operator = Operator.NOT_REGEX;
-    		break;
-    	}
-    	
-    	return operator;
+
+    /**
+     * Convert the {@code symbol} to the corresponding {@link Operator}.
+     * These include strings such as (=, >, >=, etc), and CaSH symbols (eq, gt,
+     * gte, etc).
+     * 
+     * @param symbol
+     * @return
+     */
+    public static Operator stringToOperator(String symbol) {
+        Operator operator = null;
+
+        switch (symbol) {
+        case "=":
+        case "eq":
+            operator = Operator.EQUALS;
+            break;
+        case "!=":
+        case "ne":
+            operator = Operator.NOT_EQUALS;
+            break;
+        case ">":
+        case "gt":
+            operator = Operator.GREATER_THAN;
+            break;
+        case ">=":
+        case "gte":
+            operator = Operator.GREATER_THAN_OR_EQUALS;
+            break;
+        case "<":
+        case "lt":
+            operator = Operator.LESS_THAN;
+            break;
+        case "<=":
+        case "lte":
+            operator = Operator.LESS_THAN_OR_EQUALS;
+            break;
+        case "><":
+        case "bw":
+            operator = Operator.BETWEEN;
+            break;
+        case "->":
+        case "lnk2":
+            operator = Operator.LINKS_TO;
+            break;
+        case "regex":
+            operator = Operator.REGEX;
+            break;
+        case "nregex":
+            operator = Operator.NOT_REGEX;
+            break;
+        }
+
+        return operator;
     }
 
     /**
