@@ -4,4 +4,4 @@
 call .env.bat %*
 
 @rem run the program
-"%JAVA_EXE%" -classpath "%CLASSPATH%"org.cinchapi.concourse.server.cli.ManageUsersCli %CMD_LINE_ARGS%
+"%JAVA_EXE%" -classpath "%CLASSPATH%" org.cinchapi.concourse.server.cli.ManageUsersCli %CMD_LINE_ARGS%

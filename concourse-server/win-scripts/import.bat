@@ -6,6 +6,5 @@ call .env.bat %*
 @rem Specify the fully qualified name of the java CLI class to run. 
 SET CLI="org.cinchapi.concourse.importer.cli.GeneralCsvImportCli"
 
-
 @rem run the program
-"%JAVA_EXE%" -classpath "%CLASSPATHorg.cinchapi.concourse.cli.CommandLineInterfaceRunner "%CLI%" %CMD_LINE_ARGS%
+"%JAVA_EXE%" -classpath "%CLASSPATH%" org.cinchapi.concourse.cli.CommandLineInterfaceRunner "%CLI%" %CMD_LINE_ARGS%
