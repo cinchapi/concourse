@@ -32,6 +32,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.junit.Assert;
 import org.junit.Test;
@@ -345,6 +346,131 @@ public class ConvertTest {
                 .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
                         RAW_RESOLVABLE_LINK_SYMBOL_APPEND), value), Convert
                 .stringToResolvableLinkSpecification(key, value));
+    }
+
+    @Test
+    public void testStringToOperator() {
+        String symbol = "=";
+        Assert.assertTrue(Convert.stringToOperator(symbol) instanceof Operator);
+    }
+
+    @Test
+    public void testStringToOperatorEquals() {
+        String string = "=";
+        Assert.assertEquals(Convert.stringToOperator(string), Operator.EQUALS);
+    }
+
+    @Test
+    public void testSymbolToOperatorEquals() {
+        String symbol = "eq";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.EQUALS);
+    }
+
+    @Test
+    public void testStringToOperatorNotEquals() {
+        String symbol = "!=";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.NOT_EQUALS);
+    }
+
+    @Test
+    public void testSymbolToOperatorNotEquals() {
+        String symbol = "ne";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.NOT_EQUALS);
+    }
+
+    @Test
+    public void testStringToOperatorGreaterThan() {
+        String symbol = ">";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.GREATER_THAN);
+    }
+
+    @Test
+    public void testSymbolToOperatorGreaterThan() {
+        String symbol = "gt";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.GREATER_THAN);
+    }
+
+    @Test
+    public void testStringToOperatorGreaterThanOrEquals() {
+        String symbol = ">=";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.GREATER_THAN_OR_EQUALS);
+    }
+
+    @Test
+    public void testSymbolToOperatorGreaterThanOrEquals() {
+        String symbol = "gte";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.GREATER_THAN_OR_EQUALS);
+    }
+
+    @Test
+    public void testStringToOperatorLessThan() {
+        String symbol = "<";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LESS_THAN);
+    }
+
+    @Test
+    public void testSymbolToOperatorLessThan() {
+        String symbol = "lt";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LESS_THAN);
+    }
+
+    @Test
+    public void testStringToOperatorLessThanOrEquals() {
+        String symbol = "<=";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LESS_THAN_OR_EQUALS);
+    }
+
+    @Test
+    public void testSymbolToOperatorLessThanOrEquals() {
+        String symbol = "lte";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.LESS_THAN_OR_EQUALS);
+    }
+
+    @Test
+    public void testStringToOperatorBetween() {
+        String symbol = "><";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.BETWEEN);
+    }
+
+    @Test
+    public void testSymbolToOperatorBetween() {
+        String symbol = "bw";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.BETWEEN);
+    }
+
+    @Test
+    public void testStringToOperatorLinksTo() {
+        String symbol = "->";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+    }
+
+    @Test
+    public void testSymbolToOperatorLinksTo() {
+        String symbol = "lnk2";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.LINKS_TO);
+    }
+
+    @Test
+    public void testSymbolToOperatorRegex() {
+        String symbol = "regex";
+        Assert.assertEquals(Convert.stringToOperator(symbol), Operator.REGEX);
+    }
+
+    @Test
+    public void testSymbolToOperatorNotRegex() {
+        String symbol = "nregex";
+        Assert.assertEquals(Convert.stringToOperator(symbol),
+                Operator.NOT_REGEX);
     }
 
     /**
