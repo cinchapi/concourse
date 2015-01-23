@@ -73,7 +73,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
      * check.
      */
     private ConcurrentMap<RangeToken, V> safeEmptyMap = IncrementalSortMap
-            .create(); // TODO create a dummy map
+            .create(RangeTokens.APPROX_VALUE_COMPARATOR); // TODO create a dummy map
 
     @Override
     public void clear() {
@@ -264,7 +264,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     private ConcurrentMap<RangeToken, V> sureGet(Text key) {
         ConcurrentMap<RangeToken, V> existing = data.get(key);
         if(existing == null) {
-            ConcurrentMap<RangeToken, V> created = new ConcurrentHashMapV8<RangeToken, V>();
+            ConcurrentMap<RangeToken, V> created = IncrementalSortMap.create(RangeTokens.APPROX_VALUE_COMPARATOR);
             existing = data.putIfAbsent(key, created);
             existing = Objects.firstNonNull(existing, created);
         }
