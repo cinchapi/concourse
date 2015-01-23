@@ -250,7 +250,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
      */
     private ConcurrentMap<RangeToken, V> safeGet(Text key) {
         ConcurrentMap<RangeToken, V> filtered = data.get(key);
-        return data != null ? filtered : safeEmptyMap;
+        return filtered != null ? filtered : safeEmptyMap;
     }
 
     /**
