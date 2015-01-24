@@ -406,6 +406,16 @@ public abstract class Limbo extends BaseStore implements
         return context;
     }
 
+    /**
+     * Return the number of milliseconds that this store desires any back to
+     * back transport requests to pause in between.
+     * 
+     * @return the pause time
+     */
+    public int getDesiredTransportSleepTimeInMs() {
+        return 0;
+    }
+
     @Override
     public long getVersion(long record) {
         return getVersion(null, record);
@@ -448,7 +458,24 @@ public abstract class Limbo extends BaseStore implements
      * @param write
      * @return {@code true}
      */
-    public abstract boolean insert(Write write);
+    public final boolean insert(Write write) {
+        return insert(write, true);
+    }
+
+    /**
+     * Insert {@code write} into the store <strong>without performing any
+     * validity checks</strong> and specify whether a {@code sync} should occur
+     * or not. By default, syncs are meaningless in {@link Limbo}, but some
+     * implementations may wish to provide guarantees that the write will be
+     * durably stored.
+     * <p>
+     * This method is <em>only</em> safe to call from a context that performs
+     * its own validity checks (i.e. a {@link BufferedStore}).
+     * 
+     * @param write
+     * @return {@code true}
+     */
+    public abstract boolean insert(Write write, boolean sync);
 
     /**
      * {@inheritDoc}
@@ -519,17 +546,35 @@ public abstract class Limbo extends BaseStore implements
     }
 
     /**
+     * If the implementation supports durable storage, this method guarantees
+     * that all the data contained here-within is durably persisted. Otherwise,
+     * this method is meaningless and returns immediately.
+     */
+    public void sync() {/* noop */}
+
+    /**
      * Transport the content of this store to {@code destination}.
      * 
      * @param destination
      */
-    public void transport(PermanentStore destination) {
+    public final void transport(PermanentStore destination) {
+        transport(destination, true);
+    }
+
+    /**
+     * Transport the content of this store to {@code destination} with the
+     * directive to {@code sync} or not. A sync guarantees that the transported
+     * data is durably persisted within the {@link PermanentStore}.
+     * 
+     * @param destination
+     * @param sync
+     */
+    public void transport(PermanentStore destination, boolean sync) {
         Iterator<Write> it = iterator();
         while (it.hasNext()) {
-            destination.accept(it.next());
+            destination.accept(it.next(), sync);
             it.remove();
         }
-
     }
 
     @Override
@@ -613,16 +658,6 @@ public abstract class Limbo extends BaseStore implements
         return; // do nothing because Limbo is assumed to always be
                 // transportable. But the Buffer will override this method with
                 // the appropriate conditions.
-    }
-
-    /**
-     * Return the number of milliseconds that this store desires any back to
-     * back transport requests to pause in between.
-     * 
-     * @return the pause time
-     */
-    public int getDesiredTransportSleepTimeInMs() {
-        return 0;
     }
 
     @Override

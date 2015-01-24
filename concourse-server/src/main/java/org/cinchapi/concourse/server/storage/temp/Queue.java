@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-
 import com.google.common.collect.Lists;
 
 /**
@@ -70,8 +69,11 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write) {
-    	return writes.add(write);
+    public boolean insert(Write write, boolean sync) {
+        return writes.add(write);// NOTE: #sync is
+                                 // meaningless since
+                                 // Queue is a memory
+                                 // store
     }
 
     @Override
