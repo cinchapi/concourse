@@ -533,11 +533,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write) {
+    public boolean insert(Write write, boolean sync) {
         writeLock.lock();
         try {
             boolean notify = pages.size() == 2 && currentPage.size == 0;
-            currentPage.append(write);
+            currentPage.append(write, sync);
             if(notify) {
                 synchronized (transportable) {
                     transportable.notify();
@@ -706,7 +706,9 @@ public final class Buffer extends Limbo {
      * buffer, in chronological order.
      */
     @Override
-    public void transport(PermanentStore destination) {
+    public void transport(PermanentStore destination, boolean sync) {
+        // NOTE: The #sync parameter is ignored because the Database does not
+        // support allowing the Buffer to control when syncs happen.
         if(pages.size() > 1
                 && !transportLock.writeLock().isHeldByCurrentThread()
                 && transportLock.writeLock().tryLock()) {
@@ -826,6 +828,7 @@ public final class Buffer extends Limbo {
     private void addPage() {
         writeLock.lock();
         try {
+            sync();
             currentPage = new Page(BUFFER_PAGE_SIZE);
             pages.add(currentPage);
             Logger.debug("Added page {} to Buffer", currentPage);
@@ -975,7 +978,7 @@ public final class Buffer extends Limbo {
          * @throws CapacityException - if the size of {@code write} is
          *             greater than the remaining capacity of {@link #content}
          */
-        public void append(Write write) throws CapacityException {
+        public void append(Write write, boolean sync) throws CapacityException {
             Preconditions.checkState(this == currentPage, "Illegal attempt to "
                     + "append a Write to an inactive Page");
             pageLock.writeLock().lock();

@@ -401,7 +401,8 @@ public class AtomicOperation extends BufferedStore implements
         // technically not a violation of "all or nothing" if the entire
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
-        buffer.transport(destination);
+        buffer.transport(destination, false);
+        destination.sync();
     }
 
     @Override

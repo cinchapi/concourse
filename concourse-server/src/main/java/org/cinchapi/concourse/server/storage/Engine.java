@@ -146,39 +146,6 @@ public final class Engine extends BufferedStore implements
                                                                                                  // testing
 
     /**
-     * If this value is > 0, then we will sleep for this amount instead of what
-     * the buffer suggests. This is mainly used for testing.
-     */
-    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThrread} has appeared
-     * to be hung at some point during the current lifecycle.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThread} has ever been
-     * sucessfully restarted after appearing to be hung during the current
-     * lifecycle.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThread} has gone into
-     * block mode instead of busy waiting at least once.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * The location where transaction backups are stored.
-     */
-    protected final String transactionStore; // exposed for Transaction backup
-
-    /**
      * The thread that is responsible for transporting buffer content in the
      * background.
      */
@@ -243,6 +210,39 @@ public final class Engine extends BufferedStore implements
             .create();
 
     /**
+     * A flag to indicate that the {@link BufferTransportThrread} has appeared
+     * to be hung at some point during the current lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has ever been
+     * sucessfully restarted after appearing to be hung during the current
+     * lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has gone into
+     * block mode instead of busy waiting at least once.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * If this value is > 0, then we will sleep for this amount instead of what
+     * the buffer suggests. This is mainly used for testing.
+     */
+    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
+
+    /**
+     * The location where transaction backups are stored.
+     */
+    protected final String transactionStore; // exposed for Transaction backup
+
+    /**
      * Construct an Engine that is made up of a {@link Buffer} and
      * {@link Database} in the default locations.
      * 
@@ -294,6 +294,12 @@ public final class Engine extends BufferedStore implements
                 + "txn"; /* (authorized) */
     }
 
+    @Override
+    @DoNotInvoke
+    public void accept(Write write) {
+        accept(write, true);
+    }
+
     /**
      * <p>
      * The Engine is the destination for Transaction commits, which means that
@@ -318,13 +324,13 @@ public final class Engine extends BufferedStore implements
      */
     @Override
     @DoNotInvoke
-    public void accept(Write write) {
+    public void accept(Write write, boolean sync) {
         checkArgument(write.getType() != Action.COMPARE);
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
-                value, record) : removeUnsafe(key, value, record);
+                value, record, sync) : removeUnsafe(key, value, record, sync);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -345,7 +351,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record);
+            return addUnsafe(key, value, record, true);
         }
         finally {
             write.unlock();
@@ -655,7 +661,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record);
+            return removeUnsafe(key, value, record, true);
         }
         finally {
             write.unlock();
@@ -767,6 +773,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public void sync() {
+        buffer.sync();
+    }
+
+    @Override
     public boolean verify(String key, TObject value, long record) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(key, record);
@@ -841,7 +852,7 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
-
+    
     /**
      * Do the work to explore {@code key} {@code operator} {@code values}
      * without worry about normalizing the {@code operator} or {@code values}.
@@ -877,8 +888,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record) {
-        if(super.add(key, value, record)) {
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        if(super.add(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
@@ -924,8 +936,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record) {
-        if(super.remove(key, value, record)) {
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        if(super.remove(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
