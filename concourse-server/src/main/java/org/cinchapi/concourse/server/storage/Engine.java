@@ -677,6 +677,7 @@ public final class Engine extends BufferedStore implements
             bufferTransportThread.interrupt();
             destination.stop();
             lockService.shutdown();
+            rangeLockService.shutdown();
         }
     }
 

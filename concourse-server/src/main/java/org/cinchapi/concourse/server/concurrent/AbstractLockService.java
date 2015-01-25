@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
+import java.util.ConcurrentModificationException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,6 +34,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * This is the base class from all the internal lock services that provide
@@ -43,30 +47,42 @@ import com.google.common.base.Objects;
  */
 public abstract class AbstractLockService<T extends Token, L extends ReferenceCountingLock> {
 
+    // --- Global GC State
+
     /**
      * The amount of time to wait between GC cycles.
      */
-    private static int GC_DELAY = 500;
+    private static int GC_DELAY = 1000;
 
     /**
-     * The {@link GarbageCollector} executable.
+     * A collection of services that are GC eligible.
      */
-    private final ScheduledExecutorService gc = Executors
-            .newScheduledThreadPool(1);
+    private static Set<AbstractLockService<?, ?>> services = Sets.newHashSet();
+
+    /**
+     * The service that is responsible for carrying out garbage collection for
+     * all the lock services.
+     */
+    private static final ScheduledExecutorService gc = Executors
+            .newScheduledThreadPool(1, new ThreadFactoryBuilder()
+                    .setNameFormat("Lock Service GC").setDaemon(true).build());
+    static {
+        gc.scheduleWithFixedDelay(new GarbageCollector(), GC_DELAY, GC_DELAY,
+                TimeUnit.MILLISECONDS);
+    }
 
     /**
      * A cache of locks that have been requested, each of which is mapped from a
      * corresponding {@link Token}. This cache is periodically cleaned (e.g.
      * stale locks are removed) up using a protocol defined in the subclass.
      */
-    private final ConcurrentMap<T, L> locks;
+    protected final ConcurrentMap<T, L> locks;
 
     /**
      * Construct a new NOOP instance.
      */
     protected AbstractLockService() {
         this.locks = null;
-        // Do not enable GC since there are no locks
     }
 
     /**
@@ -76,8 +92,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
      */
     protected AbstractLockService(ConcurrentMap<T, L> locks) {
         this.locks = locks;
-        gc.scheduleWithFixedDelay(new GarbageCollector(), GC_DELAY, GC_DELAY,
-                TimeUnit.MILLISECONDS);
+        services.add(this);
     }
 
     /**
@@ -108,7 +123,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
      * Shutdown the lock service.
      */
     public void shutdown() {
-        gc.shutdownNow();
+        services.remove(this);
     }
 
     /**
@@ -160,16 +175,24 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
      * 
      * @author jnelson
      */
-    private class GarbageCollector implements Runnable {
+    private static class GarbageCollector implements Runnable {
 
         @Override
         public void run() {
-            for (T token : locks.keySet()) {
-                L lock = locks.get(token);
-                if(lock.refs.compareAndSet(0, Integer.MIN_VALUE)) {
-                    locks.remove(token, lock);
+            try {
+                for (AbstractLockService<?, ?> service : services) {
+                    for (Object token : service.locks.keySet()) {
+                        ReferenceCountingLock lock = service.locks.get(token);
+                        if(lock.refs.compareAndSet(0, Integer.MIN_VALUE)) {
+                            service.locks.remove(token, lock);
+                        }
+                    }
                 }
             }
+            catch (ConcurrentModificationException e) {
+                return;
+            }
+
         }
     }
 
