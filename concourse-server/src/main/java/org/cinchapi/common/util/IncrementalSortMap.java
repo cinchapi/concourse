@@ -245,15 +245,17 @@ public class IncrementalSortMap<K, V> implements ConcurrentNavigableMap<K, V> {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof IncrementalSortMap) {
+            IncrementalSortMap other = (IncrementalSortMap) obj;
             long[] stamps = grabAllSegmentReadLocks();
+            long[] otherStamps = other.grabAllSegmentReadLocks();
             try {
-                IncrementalSortMap other = (IncrementalSortMap) obj;
                 sort();
                 other.sort();
                 return sorted.equals(other.sorted);
             }
             finally {
                 releaseSegmentLocks(stamps);
+                other.releaseSegmentLocks(otherStamps);
             }
         }
         else {
