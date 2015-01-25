@@ -121,6 +121,7 @@ public final class RangeTokens {
                 for (int i = 0; i < ranges0.size(); i++) {
                     chain = chain.compare(ranges0.get(i), ranges1.get(i));
                 }
+                chain = chain.compare(arg0.getOperator() == null ? -1 : arg0.getOperator().ordinal(), arg1.getOperator() == null ? -1 : arg1.getOperator().ordinal());
                 return chain.result();
             }
             else if(ranges0.size() > 1) {

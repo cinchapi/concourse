@@ -88,6 +88,8 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
                 map.put(getRangeToken(key2), TestData.getString());
             }
         }
+        System.out.println(map.filter(key).size());
+        System.out.println(expected.size());
         Assert.assertEquals(expected, map.filter(key));
     }
 
@@ -101,11 +103,8 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
      */
     private RangeToken getRangeToken(Text key) {
         if(Time.now() % 2 == 0) {
-            return RangeToken.forReading(key, Operator.GREATER_THAN,
-                    TestData.getValue()); // NOTE: Do not use Operator.EQUALS.
-                                          // See javadoc for
-                                          // RangeTokens#APPROX_VALUE_COMPARATOR
-                                          // for explanation
+            return RangeToken.forReading(key, Operator.EQUALS,
+                    TestData.getValue());
         }
         else {
             return RangeToken.forWriting(key, TestData.getValue());
