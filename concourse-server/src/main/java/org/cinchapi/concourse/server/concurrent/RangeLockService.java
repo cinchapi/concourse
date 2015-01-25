@@ -35,7 +35,6 @@ import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
-import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import com.google.common.base.Preconditions;
 
@@ -72,8 +71,7 @@ public class RangeLockService extends
      * @return the RangeLockService
      */
     public static RangeLockService create() {
-        return new RangeLockService(
-                new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>());
+        return new RangeLockService(RangeTokenMap.<RangeReadWriteLock> create());
     }
 
     /**
