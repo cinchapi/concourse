@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
@@ -62,10 +64,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).unlock();
+                        ReadLock readLock = rangeLockService.getReadLock("foo", Operator.EQUALS,
+                                Convert.javaToThrift(1));
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -84,10 +86,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).unlock();
+                        WriteLock writeLock = rangeLockService.getWriteLock("foo",
+                                Convert.javaToThrift(1));
+                        writeLock.lock();
+                        writeLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
