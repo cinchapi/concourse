@@ -23,14 +23,10 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.Multiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -48,7 +44,7 @@ import com.google.common.collect.Multiset;
  * 
  * @author jnelson
  */
-public class LockService {
+public class LockService extends AbstractLockService<Token, TokenReadWriteLock> {
 
     /**
      * Return a new {@link LockService} instance.
@@ -56,7 +52,8 @@ public class LockService {
      * @return the LockService
      */
     public static LockService create() {
-        return new LockService();
+        return new LockService(
+                new ConcurrentHashMapV8<Token, TokenReadWriteLock>());
     }
 
     /**
@@ -91,12 +88,16 @@ public class LockService {
         }
     };
 
-    /**
-     * A cache of locks that have been requested.
-     */
-    private final ConcurrentHashMapV8<Token, TokenReadWriteLock> locks = new ConcurrentHashMapV8<Token, TokenReadWriteLock>();
-
     private LockService() {/* noop */}
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param locks
+     */
+    private LockService(ConcurrentHashMapV8<Token, TokenReadWriteLock> locks) {
+        super(locks);
+    }
 
     /**
      * Return the ReadLock that is identified by {@code objects}. Every caller
@@ -110,26 +111,6 @@ public class LockService {
         return getReadLock(Token.wrap(objects));
     }
 
-    /**
-     * Return the ReadLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the ReadLock
-     */
-    public ReadLock getReadLock(Token token) {
-        Thread thread = Thread.currentThread();
-        TokenReadWriteLock existing = locks.get(token);
-        if(existing == null) {
-            TokenReadWriteLock created = new TokenReadWriteLock(token);
-            existing = locks.putIfAbsent(token, created);
-            existing = Objects.firstNonNull(existing, created);
-        }
-        existing.readers.setCount(thread, 1);
-        return locks.putIfAbsent(token, existing) == existing ? existing
-                .readLock() : getReadLock(token);
-    }
 
     /**
      * Return the WriteLock that is identified by {@code objects}. Every caller
@@ -143,123 +124,10 @@ public class LockService {
         return getWriteLock(Token.wrap(objects));
     }
 
-    /**
-     * Return the WriteLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the WriteLock
-     */
-    public WriteLock getWriteLock(Token token) {
-        Thread thread = Thread.currentThread();
-        TokenReadWriteLock existing = locks.get(token);
-        if(existing == null) {
-            TokenReadWriteLock created = new TokenReadWriteLock(token);
-            existing = locks.putIfAbsent(token, created);
-            existing = Objects.firstNonNull(existing, created);
-        }
-        existing.writers.setCount(thread, 1);
-        return locks.putIfAbsent(token, existing) == existing ? existing
-                .writeLock() : getWriteLock(token);
-    }
 
-    /**
-     * A custom {@link ReentrantReadWriteLock} that is defined by a
-     * {@link Token}.
-     * 
-     * @author jnelson
-     */
-    @SuppressWarnings("serial")
-    private final class TokenReadWriteLock extends ReentrantReadWriteLock {
-
-        /**
-         * We keep track of all the threads that have requested (but not
-         * necessarily locked) the read or write lock. If a lock is not
-         * associated with any threads then it can be safely removed from the
-         * cache.
-         */
-        private final Multiset<Thread> readers = GuavaInternals
-                .newSynchronizedHashMultiset();
-
-        /**
-         * We keep track of all the threads that have requested (but not
-         * necessarily locked) the read or write lock. If a lock is not
-         * associated with any threads then it can be safely removed from the
-         * cache.
-         */
-        private final Multiset<Thread> writers = GuavaInternals
-                .newSynchronizedHashMultiset();
-
-        /**
-         * The token that represents the notion this lock controls
-         */
-        private final Token token;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param token
-         */
-        public TokenReadWriteLock(Token token) {
-            this.token = token;
-        }
-
-        @Override
-        public boolean equals(Object object) {
-            // This is a BAD implementation for equality, but for our purposes
-            // we only care to see that the tokens are the same and there are no
-            // readers or writers.
-            if(object instanceof TokenReadWriteLock) {
-                TokenReadWriteLock other = (TokenReadWriteLock) object;
-                return token.equals(other.token)
-                        && readers.size() == other.readers.size()
-                        && writers.size() == other.writers.size();
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(token, readers.size(), writers.size());
-        }
-
-        @Override
-        public ReadLock readLock() {
-            return new ReadLock(this) {
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    readers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new TokenReadWriteLock(token));
-                }
-
-            };
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + "[id = " + System.identityHashCode(this)
-                    + "]";
-        }
-
-        @Override
-        public WriteLock writeLock() {
-            return new WriteLock(this) {
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    writers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new TokenReadWriteLock(token));
-                }
-
-            };
-        }
-
+    @Override
+    protected TokenReadWriteLock createLock(Token token) {
+        return new TokenReadWriteLock(token);
     }
 
 }

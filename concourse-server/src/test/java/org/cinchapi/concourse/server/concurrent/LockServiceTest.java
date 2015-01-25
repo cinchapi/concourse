@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TCollections;
@@ -71,8 +73,9 @@ public class LockServiceTest extends ConcourseBaseTest {
                     try {
                         String key = TCollections.getRandomElement(keys);
                         long record = TCollections.getRandomElement(records);
-                        lockService.getReadLock(key, record).lock();
-                        lockService.getReadLock(key, record).unlock();
+                        ReadLock readLock = lockService.getReadLock(key, record);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -104,8 +107,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getReadLock("bar", 1).lock();
-                        lockService.getReadLock("bar", 1).unlock();
+                        ReadLock readLock = lockService.getReadLock("bar", 1);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         done.set(true);
@@ -136,13 +140,14 @@ public class LockServiceTest extends ConcourseBaseTest {
             @Override
             public void run() {
                 try {
-                    lockService.getReadLock("foo", 1).lock();
+                    ReadLock readLock = lockService.getReadLock("foo", 1);
+                    readLock.lock();
                     wait0.set(false);
                     while (wait1.get()) {
                         continue;
                     }
                     Thread.sleep(TestData.getScaleCount() * 4);
-                    lockService.getReadLock("foo", 1).unlock();
+                    readLock.unlock();
                 }
                 catch (IllegalMonitorStateException e) {
                     failed.set(true);
@@ -165,8 +170,9 @@ public class LockServiceTest extends ConcourseBaseTest {
                 while (wait0.get()) {
                     continue;
                 }
-                lockService.getReadLock("foo", 1).lock();
-                lockService.getReadLock("foo", 1).unlock();
+                ReadLock readLock = lockService.getReadLock("foo", 1);
+                readLock.lock();
+                readLock.unlock();
                 wait1.set(false);
 
             }
@@ -192,8 +198,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getReadLock("foo", 1).lock();
-                        lockService.getReadLock("foo", 1).unlock();
+                        ReadLock readLock = lockService.getReadLock("foo", 1);
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -212,8 +219,9 @@ public class LockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        lockService.getWriteLock("foo", 1).lock();
-                        lockService.getWriteLock("foo", 1).unlock();
+                        WriteLock writeLock = lockService.getWriteLock("foo", 1);
+                        writeLock.lock();
+                        writeLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
