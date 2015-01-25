@@ -46,7 +46,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
     /**
      * The amount of time to wait between GC cycles.
      */
-    protected static int GC_DELAY = 500; // visible for testing
+    private static int GC_DELAY = 500;
 
     /**
      * The {@link GarbageCollector} executable.
@@ -59,7 +59,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
      * corresponding {@link Token}. This cache is periodically cleaned (e.g.
      * stale locks are removed) up using a protocol defined in the subclass.
      */
-    protected final ConcurrentMap<T, L> locks; // visible for testing
+    private final ConcurrentMap<T, L> locks;
 
     /**
      * Construct a new NOOP instance.
