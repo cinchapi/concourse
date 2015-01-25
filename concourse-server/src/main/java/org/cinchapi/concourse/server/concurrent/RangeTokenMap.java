@@ -73,7 +73,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
      * check.
      */
     private ConcurrentMap<RangeToken, V> safeEmptyMap = IncrementalSortMap
-            .create(RangeTokens.APPROX_VALUE_COMPARATOR); // TODO create a dummy map
+            .create(RangeTokens.APPROX_VALUE_COMPARATOR);
 
     @Override
     public void clear() {
@@ -165,9 +165,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         if(key instanceof RangeToken) {
             Map<RangeToken, V> filtered = safeGet(((RangeToken) key).getKey());
             V value = filtered.remove(key);
-            if(filtered.isEmpty() && filtered != safeEmptyMap) {
-                data.remove(filtered);
-            }
+            data.remove(((RangeToken) key).getKey(), safeEmptyMap);
             return value;
         }
         else {
@@ -181,9 +179,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
             ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
                     .getKey());
             boolean result = filtered.remove(key, value);
-            if(filtered.isEmpty()) {
-                data.remove(((RangeToken) key).getKey());
-            }
+            data.remove(((RangeToken) key).getKey(), safeEmptyMap);
             return result;
         }
         else {
@@ -196,11 +192,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         if(key instanceof RangeToken) {
             ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
                     .getKey());
-            V result = filtered.replace(key, value);
-            if(filtered.isEmpty()) {
-                data.remove(((RangeToken) key).getKey());
-            }
-            return result;
+            return filtered.replace(key, value);
         }
         else {
             return null;
@@ -212,11 +204,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         if(key instanceof RangeToken) {
             ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
                     .getKey());
-            boolean result = filtered.replace(key, old, nu);
-            if(filtered.isEmpty()) {
-                data.remove(((RangeToken) key).getKey());
-            }
-            return result;
+            return filtered.replace(key, old, nu);
         }
         else {
             return false;
@@ -264,7 +252,8 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     private ConcurrentMap<RangeToken, V> sureGet(Text key) {
         ConcurrentMap<RangeToken, V> existing = data.get(key);
         if(existing == null) {
-            ConcurrentMap<RangeToken, V> created = IncrementalSortMap.create(RangeTokens.APPROX_VALUE_COMPARATOR);
+            ConcurrentMap<RangeToken, V> created = IncrementalSortMap
+                    .create(RangeTokens.APPROX_VALUE_COMPARATOR);
             existing = data.putIfAbsent(key, created);
             existing = Objects.firstNonNull(existing, created);
         }
