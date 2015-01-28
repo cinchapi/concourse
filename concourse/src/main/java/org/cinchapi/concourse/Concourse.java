@@ -688,6 +688,60 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp);
+    
+    /**
+     * Find {@code key} {@code operator} {@code value} and return the set of
+     * records that satisfy the criteria. This is analogous to the SELECT action
+     * in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} at
+     * {@code timestamp} and return the set of records that satisfy the
+     * criteria. This is analogous to the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param timestamp
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} at {@code timestamp} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Timestamp timestamp);
 
     /**
      * Get each of the {@code keys} from each of the {@code records} and return
@@ -1875,6 +1929,34 @@ public abstract class Concourse implements AutoCloseable {
             });
         }
 
+        @Override
+        public Set<Long> find(final String key, final String operator, 
+        		final Object value) {
+        	Operator parsedOp = Convert.stringToOperator(operator);
+        	return find(key, parsedOp, value);
+        }
+        
+        @Override
+        public Set<Long> find(final String key, final String operator, 
+        		final Object value, final Object value2) {
+        	Operator parsedOp = Convert.stringToOperator(operator);
+        	return find(key, parsedOp, value, value2);
+        }
+        
+        @Override
+        public Set<Long> find(final String key, final String operator, 
+        		final Object value, final Object value2, Timestamp timestamp) {
+        	Operator parsedOp = Convert.stringToOperator(operator);
+        	return find(key, parsedOp, value, value2, timestamp);
+        }
+        
+        @Override
+        public Set<Long> find(final String key, final String operator, 
+        		final Object value, Timestamp timestamp) {
+        	Operator parsedOp = Convert.stringToOperator(operator);
+        	return find(key, parsedOp, value, timestamp);
+        }
+        
         @Override
         public Map<Long, Map<String, Object>> get(Collection<String> keys,
                 Collection<Long> records) {
