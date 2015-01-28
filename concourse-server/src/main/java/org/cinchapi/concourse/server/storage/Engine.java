@@ -395,6 +395,11 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
+    
+    public Map<Long, String> auditUnsafe(long record) {
+            return super.audit(record);
+    }
+
 
     @Override
     public Map<Long, String> audit(String key, long record) {
@@ -408,6 +413,10 @@ public final class Engine extends BufferedStore implements
             read.unlock();
             transportLock.readLock().unlock();
         }
+    }
+
+    public Map<Long, String> auditUnsafe(String key, long record) {
+            return super.audit(key, record);
     }
 
     @Override
@@ -424,6 +433,10 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    public Map<String, Set<TObject>> browseUnsafe(long record) {
+            return super.browse(record);
+    }
+
     @Override
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
@@ -433,6 +446,10 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    public Map<String, Set<TObject>> browseUnsafe(long record, long timestamp) {
+            return super.browse(record, timestamp);
     }
 
     @Override
@@ -449,6 +466,10 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+            return super.browse(key);
+    }
+
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         transportLock.readLock().lock();
@@ -458,6 +479,10 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    public Map<TObject, Set<Long>> browseUnsafe(String key, long timestamp) {
+            return super.browse(key, timestamp);
     }
 
     /**
@@ -488,6 +513,10 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    public Set<TObject> fetchUnsafe(String key, long record) {
+            return super.fetch(key, record);
+    }
+
     @Override
     public Set<TObject> fetch(String key, long record, long timestamp) {
         transportLock.readLock().lock();
@@ -497,6 +526,10 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    public Set<TObject> fetchUnsafe(String key, long record, long timestamp) {
+            return super.fetch(key, record, timestamp);
     }
 
     /**
@@ -603,6 +636,10 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    public Set<Long> searchUnsafe(String key, String query) {
+            return super.search(key, query);
+    }
+
     @Override
     public void set(String key, TObject value, long record) {
         Lock write = lockService.getWriteLock(key, record);
@@ -694,6 +731,11 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    public boolean verifyUnsafe(String key, TObject value, long record) {
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
+    }
+
     @Override
     public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
@@ -704,6 +746,11 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
+    }
+
+    public boolean verifyUnsafe(String key, TObject value, long record, long timestamp) {
+            return inventory.contains(record) ? super.verify(key, value,
+                    record, timestamp) : false;
     }
 
     @Override
@@ -724,6 +771,11 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    protected Map<Long, Set<TObject>> doExploreUnsafe(long timestamp, String key,
+            Operator operator, TObject... values) {
+            return super.doExplore(timestamp, key, operator, values);
+    }
+
     @Override
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
@@ -737,6 +789,11 @@ public final class Engine extends BufferedStore implements
             range.unlock();
             transportLock.readLock().unlock();
         }
+    }
+
+    protected Map<Long, Set<TObject>> doExploreUnsafe(String key, Operator operator,
+            TObject... values) {
+            return super.doExplore(key, operator, values);
     }
 
     /**
