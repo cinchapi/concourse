@@ -688,7 +688,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
             Timestamp timestamp);
-    
+
     /**
      * Find {@code key} {@code operator} {@code value} and return the set of
      * records that satisfy the criteria. This is analogous to the SELECT action
@@ -1367,8 +1367,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> add(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, add(key, value, record));
             }
@@ -1930,33 +1930,33 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Set<Long> find(final String key, final String operator, 
-        		final Object value) {
-        	Operator parsedOp = Convert.stringToOperator(operator);
-        	return find(key, parsedOp, value);
+        public Set<Long> find(final String key, final String operator,
+                final Object value) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value);
         }
-        
+
         @Override
-        public Set<Long> find(final String key, final String operator, 
-        		final Object value, final Object value2) {
-        	Operator parsedOp = Convert.stringToOperator(operator);
-        	return find(key, parsedOp, value, value2);
+        public Set<Long> find(final String key, final String operator,
+                final Object value, final Object value2) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, value2);
         }
-        
+
         @Override
-        public Set<Long> find(final String key, final String operator, 
-        		final Object value, final Object value2, Timestamp timestamp) {
-        	Operator parsedOp = Convert.stringToOperator(operator);
-        	return find(key, parsedOp, value, value2, timestamp);
+        public Set<Long> find(final String key, final String operator,
+                final Object value, final Object value2, Timestamp timestamp) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, value2, timestamp);
         }
-        
+
         @Override
-        public Set<Long> find(final String key, final String operator, 
-        		final Object value, Timestamp timestamp) {
-        	Operator parsedOp = Convert.stringToOperator(operator);
-        	return find(key, parsedOp, value, timestamp);
+        public Set<Long> find(final String key, final String operator,
+                final Object value, Timestamp timestamp) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, timestamp);
         }
-        
+
         @Override
         public Map<Long, Map<String, Object>> get(Collection<String> keys,
                 Collection<Long> records) {
@@ -1991,8 +1991,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<String, Object> get(Collection<String> keys, long record) {
-            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Key", "Value");
+            Map<String, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record);
                 if(value != null) {
@@ -2005,8 +2005,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Object> get(Collection<String> keys, long record,
                 Timestamp timestamp) {
-            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Key", "Value");
+            Map<String, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record, timestamp);
                 if(value != null) {
@@ -2018,8 +2018,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records) {
-            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", key);
+            Map<Long, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 Object value = get(key, record);
                 if(value != null) {
@@ -2032,8 +2032,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records,
                 Timestamp timestamp) {
-            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", key);
+            Map<Long, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 Object value = get(key, record, timestamp);
                 if(value != null) {
@@ -2101,8 +2101,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, insert(json, record));
             }
@@ -2125,8 +2125,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> link(String key, long source,
                 Collection<Long> destinations) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long destination : destinations) {
                 result.put(destination, link(key, source, destination));
             }
@@ -2140,8 +2140,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> ping(Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, ping(record));
             }
@@ -2163,8 +2163,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> remove(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, remove(key, value, record));
             }

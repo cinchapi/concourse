@@ -60,7 +60,7 @@ import org.junit.runners.Suite.SuiteClasses;
         SecurityExceptionTest.class, ThriftComplianceTest.class,
         FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
         InsertTest.class, TransactionIsolationTest.class, CounterTest.class,
-        FindOperatorConversionTest.class})
+        FindOperatorConversionTest.class })
 public class IntegrationTestSuite {
 
 }
