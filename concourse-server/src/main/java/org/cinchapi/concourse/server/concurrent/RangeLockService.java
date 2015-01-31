@@ -180,7 +180,8 @@ public class RangeLockService extends
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = ((RangeTokenMap<RangeReadWriteLock>) locks)
+        RangeTokenMap<RangeReadWriteLock> rtm = (RangeTokenMap<RangeReadWriteLock>) locks;
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = rtm
                 .filter(token.getKey()).entrySet().iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
