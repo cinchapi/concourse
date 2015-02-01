@@ -51,7 +51,7 @@
 * Added a more compact representation for revisions in memory to reduce bloat.
 * Made miscellaneous optimizations for sensible performance gains.
 * Upgraded the Tanuki wrapper to version 3.5.26 to fix an issue where Concourse Server on OS X Yosemite (10.10) systems mistakenly tried to start using 32-bit native libraries.
-* Added an `envtool` CLI that can be used to managed environments in Concourse Server.
+* Added an `envtool` CLI that can be used to manage environments in Concourse Server.
 * Added a `--list-sessions` action to the `useradmin` CLI to list all the currently active user session in Concourse Server.
 * Removed unnecessary locking that occurred when performing writes in a transaction or atomic operation.
 
