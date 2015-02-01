@@ -33,7 +33,7 @@
 		concourse.find("foo", "eq", "bar");
 		find("foo", eq, "bar"); // in CaSH
 
-#### Version 0.4.3 (TBD)
+#### Version 0.4.3 (February 1, 2015)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
 
 * Added auto adjustable rate indexing where the throughput of the background indexing job will increase or decrease inversely with query load to prevent contention.
