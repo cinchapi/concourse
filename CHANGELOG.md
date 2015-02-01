@@ -1,5 +1,27 @@
 ## Changelog
 
+#### Version 0.4.3 (February 1, 2015)
+*In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
+
+* Added auto adjustable rate indexing where the throughput of the background indexing job will increase or decrease inversely with query load to prevent contention.
+* Lowered the threshold for Java to start compiling server methods to native code.
+* Implemented priority locks that ensure readers and writers always take precedence over the background indexing job when there is contention.
+* Increased internal caching of some frequently used objects to reduce the overhead for initialization and garbage collection.
+* Switched to using StampedLocks with optimistic reads in some places to reduce the overhead of accessing certain resources with little or no contention.
+* Eliminated unnecessary intermediate copies of data in memory when serializing to disk.
+* Switched to a faster hash function to generate lock tokens.
+* Switched from using the default `ConcurrentHashMap` implementation to one backported from Java 8 for better performance.
+* Improved the efficiency of the background indexing job by re-using worker threads.
+* Improved heuristics to determine bloom filter sizing.
+* Where appropriate, added some bloom filters that are less precise but have faster lookup times.
+* Switched to using soft references for revisions in recently synced data blocks so that they avoid disk i/o unless absolutely necessary due to memory pressure.
+* Added a more compact representation for revisions in memory to reduce bloat.
+* Made miscellaneous optimizations for sensible performance gains.
+* Upgraded the Tanuki wrapper to version 3.5.26 to fix an issue where Concourse Server on OS X Yosemite (10.10) systems mistakenly tried to start using 32-bit native libraries.
+* Added an `envtool` CLI that can be used to manage environments in Concourse Server.
+* Added a `--list-sessions` action to the `useradmin` CLI to list all the currently active user session in Concourse Server.
+* Removed unnecessary locking that occurred when performing writes in a transaction or atomic operation.
+
 #### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
