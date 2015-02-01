@@ -26,6 +26,12 @@
 * Added a `find(key, value)` method that is a shortcut to query for records where `key` equals `value`.
 * Changed the method signature of the `close()` method so that it does not throw a checked `Exception`.
 * Added percent sign (%) wild card functionality that matches one or more characters for REGEX and NOT_REGEX operators in find operations. The (%) wildcard is an alias for the traditional regex (\*) wildcard. For example `find("name", REGEX, "%Jeff%")` returns the same result as `find("name", REGEX, "*Jeff*")` which is all the records where the name key contains the substring "Jeff".
+* Added support for specifying *operators* to `find` methods and the `Criteria` builder using string symbols. For example, the following method invocations are now identical:
+	
+		concourse.find("foo", Operator.EQUALS, "bar");
+		concourse.find("foo", "=", "bar");
+		concourse.find("foo", "eq", "bar");
+		find("foo", eq, "bar"); // in CaSH
 
 #### Version 0.4.3 (TBD)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
