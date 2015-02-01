@@ -81,10 +81,9 @@ public class BlockIndex implements Byteable, Syncable {
     public static final int NO_ENTRY = -1;
 
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
+     * The entries contained in the index.
      */
-    private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
+    private Map<Composite, Entry> entries;
 
     /**
      * The file where the BlockIndex is stored during an diskSync.
@@ -92,26 +91,27 @@ public class BlockIndex implements Byteable, Syncable {
     private final String file;
 
     /**
-     * The running size of the index in bytes.
+     * Lock used to ensure the object is ThreadSafe. This lock provides access
+     * to a masterLock.readLock()() and masterLock.writeLock()().
      */
-    private transient int size = 0;
-
-    /**
-     * The entries contained in the index.
-     */
-    private Map<Composite, Entry> entries;
-
-    /**
-     * A {@link SoftReference} to the entries contained in the index that is
-     * used to reduce memory overhead.
-     */
-    private SoftReference<Map<Composite, Entry>> softEntries;
+    private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
      * A flag that indicates if this index is mutable. An index is no longer
      * mutable after it has been synced.
      */
     private boolean mutable;
+
+    /**
+     * The running size of the index in bytes.
+     */
+    private transient int size = 0;
+
+    /**
+     * A {@link SoftReference} to the entries contained in the index that is
+     * used to reduce memory overhead.
+     */
+    private SoftReference<Map<Composite, Entry>> softEntries;
 
     /**
      * Lazily construct an existing instance from the data in {@code file}.
@@ -143,10 +143,7 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.readLock().lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            for (Entry entry : entries.values()) {
-                bytes.putInt(entry.size());
-                bytes.put(entry.getBytes());
-            }
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -284,6 +281,21 @@ public class BlockIndex implements Byteable, Syncable {
         }
     }
 
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        Preconditions.checkState(mutable);
+        masterLock.readLock().lock();
+        try {
+            for (Entry entry : entries.values()) {
+                buffer.putInt(entry.size());
+                entry.copyTo(buffer);
+            }
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
     /**
      * Return {@code true} if this index is considered <em>loaded</em> meaning
      * all of its entries are available in memory.
@@ -346,9 +358,9 @@ public class BlockIndex implements Byteable, Syncable {
 
         private static final int CONSTANT_SIZE = 8; // start(4), end(4)
 
+        private int end = NO_ENTRY;
         private final Composite key;
         private int start = NO_ENTRY;
-        private int end = NO_ENTRY;
 
         /**
          * Construct an instance that represents an existing Entry from a
@@ -378,9 +390,7 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            bytes.putInt(start);
-            bytes.putInt(end);
-            bytes.put(key.getBytes());
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
         }
@@ -433,6 +443,13 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public int size() {
             return CONSTANT_SIZE + key.size();
+        }
+
+        @Override
+        public void copyTo(ByteBuffer buffer) {
+            buffer.putInt(start);
+            buffer.putInt(end);
+            key.copyTo(buffer);
         }
 
     }

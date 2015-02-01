@@ -23,10 +23,10 @@
  */
 package org.cinchapi.concourse;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import com.google.common.base.Throwables;
 
 /**
  * A {@link ConnectionPool} with a fixed number of connections. If all the
@@ -67,8 +67,18 @@ class FixedConnectionPool extends ConnectionPool {
     }
 
     @Override
-    protected Cache<Concourse, AtomicBoolean> buildCache(int size) {
-        return CacheBuilder.newBuilder().initialCapacity(size).build();
+    protected Queue<Concourse> buildQueue(int size) {
+        return new ArrayBlockingQueue<Concourse>(size);
+    }
+
+    @Override
+    protected Concourse getConnection() {
+        try {
+            return ((BlockingQueue<Concourse>) available).take();
+        }
+        catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
 }

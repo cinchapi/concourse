@@ -9,10 +9,9 @@
 # DEFAULT: {$user.home}/concourse/buffer
 #buffer_directory = /var/lib/concourse/buffer
 
-# The size for each page in the Buffer. During reads, Buffer pages are
-# individually locked, so it is desirable to have several smaller  pages as
-# opposed to few larger ones. Nevertheless, be sure to balance the desire to
-# maximize lock granularity with the risks of having too many open buffer files
+# The size for each page in the Buffer. It is generally desirable to have
+# several smaller pages in the Buffer to maximize read and indexing throughput
+# but this should be baanced with the risks of having too many open buffer files
 # which may lead to more frequent and less efficient disk I/O.
 #
 # DEFAULT: 8KB
@@ -33,7 +32,7 @@
 
 # The default environment that is automatically loaded when the server
 # starts and is used whenever a client does not specify an environment 
-# for a connection.
+# when connecting.
 #default_environment = default
 
 # Determine whether log messages should also be printed to the console (STDOUT)
@@ -48,6 +47,17 @@
 # expensive disk seeks where possible. Concourse generally sets both
 # the initial and maximum heap sizes to the specified value, so there
 # must be enough system memory available for Concourse Server to start.
+#
+# Be careful and avoid setting the heap size too large because this may 
+# cause longer garbage collection (gc) pauses or interfere with the ability 
+# of Concourse Server to memory map (mmap) certain data files. We 
+# recommend the following sizing guidelines:
+# 
+# SYSTEM MEMORY    | Recommended heap_size
+# -----------------------------------------------------------
+# Less than 2GB    | 1/2 system memory
+# 2GB to 4GB       | 1GB
+# Greater than 4GB | 1/4 system memory, but not more than 8GB
 #
 # DEFAULT: 1GB
 #heap_size = 1GB

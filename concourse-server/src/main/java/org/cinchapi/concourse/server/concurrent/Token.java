@@ -24,12 +24,12 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.storage.cache.LazyCache;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.TArrays;
 
-import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -60,12 +60,34 @@ public class Token implements Byteable {
      * @return the Token
      */
     public static Token wrap(Object... objects) {
-        return new Token(ByteBuffer.wrap(Hashing.md5()
-                .hashUnencodedChars(Arrays.toString(objects)).asBytes()));
+        return new Token(TArrays.hash(objects));
     }
 
     /**
-     * The sequence of bytes is a MD5 hash.
+     * Return a {@link Token} that wraps the specified {@code key}. This method
+     * takes advantage of caching since the keys are often to be reused
+     * frequently.
+     * 
+     * @param key
+     * @return the Token
+     */
+    public static Token wrap(String key) {
+        Token token = cache.get(key);
+        if(token == null) {
+            token = new Token(TArrays.hash(key));
+            cache.put(key, token);
+        }
+        return token;
+    }
+
+    /**
+     * The cache of string tokens that represent record keys.
+     */
+    private static final LazyCache<String, Token> cache = LazyCache
+            .withExpectedSize(5000);
+
+    /**
+     * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
 
@@ -105,6 +127,11 @@ public class Token implements Byteable {
     public String toString() {
         return BaseEncoding.base16()
                 .encode(ByteBuffers.toByteArray(getBytes())).toLowerCase();
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }

@@ -25,7 +25,6 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -36,10 +35,11 @@ import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -110,7 +110,7 @@ public class RangeLockService {
     /**
      * A cache of locks that have been requested.
      */
-    private final ConcurrentHashMap<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMap<RangeToken, RangeReadWriteLock>();
+    private final ConcurrentHashMapV8<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>();
 
     /**
      * Return the ReadLock that is identified by {@code token}. Every caller
@@ -143,7 +143,7 @@ public class RangeLockService {
      */
     public ReadLock getReadLock(String key, Operator operator,
             TObject... values) {
-        return getReadLock(Text.wrap(key), operator,
+        return getReadLock(Text.wrapCached(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
     }
@@ -190,7 +190,7 @@ public class RangeLockService {
      * @return the WriteLock
      */
     public WriteLock getWriteLock(String key, TObject value) {
-        return getWriteLock(Text.wrap(key), Value.wrap(value));
+        return getWriteLock(Text.wrapCached(key), Value.wrap(value));
     }
 
     /**
@@ -335,8 +335,8 @@ public class RangeLockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> readers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * We keep track of all the threads that have requested (but not
@@ -344,8 +344,8 @@ public class RangeLockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> writers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * The token that represents the notion this lock controls
@@ -363,11 +363,14 @@ public class RangeLockService {
 
         @Override
         public boolean equals(Object object) {
+            // This is a BAD implementation for equality, but for our purposes
+            // we only care to see that the tokens are the same and there are no
+            // readers or writers.
             if(object instanceof RangeReadWriteLock) {
                 RangeReadWriteLock other = (RangeReadWriteLock) object;
                 return token.equals(other.token)
-                        && readers.equals(other.readers)
-                        && writers.equals(other.writers);
+                        && readers.size() == other.readers.size()
+                        && writers.size() == other.writers.size();
             }
             else {
                 return false;
@@ -404,7 +407,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    readers.removeExactly(Thread.currentThread(), 1);
+                    readers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 
@@ -443,7 +446,7 @@ public class RangeLockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    writers.removeExactly(Thread.currentThread(), 1);
+                    writers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new RangeReadWriteLock(token));
                 }
 

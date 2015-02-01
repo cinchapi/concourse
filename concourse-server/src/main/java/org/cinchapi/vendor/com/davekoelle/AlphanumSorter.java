@@ -37,14 +37,14 @@ public class AlphanumSorter implements Comparator<String> {
         StringBuilder chunk = new StringBuilder();
         char c = s.charAt(marker);
         chunk.append(c);
-        marker++;
+        ++marker;
         if(isDigit(c)) {
             while (marker < slength) {
                 c = s.charAt(marker);
                 if(!isDigit(c))
                     break;
                 chunk.append(c);
-                marker++;
+                ++marker;
             }
         }
         else {
@@ -53,7 +53,7 @@ public class AlphanumSorter implements Comparator<String> {
                 if(isDigit(c))
                     break;
                 chunk.append(c);
-                marker++;
+                ++marker;
             }
         }
         return chunk.toString();
@@ -85,7 +85,7 @@ public class AlphanumSorter implements Comparator<String> {
                 result = thisChunkLength - thatChunk.length();
                 // If equal, the first different number counts
                 if(result == 0) {
-                    for (int i = 0; i < thisChunkLength; i++) {
+                    for (int i = 0; i < thisChunkLength; ++i) {
                         result = thisChunk.charAt(i) - thatChunk.charAt(i);
                         if(result != 0) {
                             return result;

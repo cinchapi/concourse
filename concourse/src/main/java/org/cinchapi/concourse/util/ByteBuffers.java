@@ -29,6 +29,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -86,6 +87,22 @@ public abstract class ByteBuffers {
     }
 
     /**
+     * Transfer the bytes from {@code source} to {@code destination} and resets
+     * {@code source} so that its position remains unchanged. The position of
+     * the {@code destination} is incremented by the number of bytes that are
+     * transferred.
+     * 
+     * @param source
+     * @param destination
+     */
+    public static void copyAndRewindSource(ByteBuffer source,
+            ByteBuffer destination) {
+        int position = source.position();
+        destination.put(source);
+        source.position(position);
+    }
+
+    /**
      * Encode the remaining bytes in as {@link ByteBuffer} as a hex string and
      * maintain the current position.
      * 
@@ -103,14 +120,20 @@ public abstract class ByteBuffers {
     }
 
     /**
-     * Relative <em>get</em> method. Reads the byte at the current position in
-     * {@code buffer} as a boolean, and then increments the position.
+     * Return a byte buffer that has the UTF-8 encoding for {@code string}. This
+     * method uses some optimization techniques and is the preferable way to
+     * convert strings to byte buffers than doing so manually.
      * 
-     * @param buffer
-     * @return the boolean value at the current position
+     * @param string
+     * @return the byte buffer with the {@code string} data.
      */
-    public static boolean getBoolean(ByteBuffer buffer) {
-        return buffer.get() > 0 ? true : false;
+    public static ByteBuffer fromString(String string) {
+        try {
+            return ByteBuffer.wrap(string.getBytes(CHARSET));
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
@@ -129,6 +152,17 @@ public abstract class ByteBuffers {
         byte[] backingArray = new byte[length];
         buffer.get(backingArray);
         return ByteBuffer.wrap(backingArray);
+    }
+
+    /**
+     * Relative <em>get</em> method. Reads the byte at the current position in
+     * {@code buffer} as a boolean, and then increments the position.
+     * 
+     * @param buffer
+     * @return the boolean value at the current position
+     */
+    public static boolean getBoolean(ByteBuffer buffer) {
+        return buffer.get() > 0 ? true : false;
     }
 
     /**
@@ -165,12 +199,45 @@ public abstract class ByteBuffers {
      * @return the string value at the current position
      */
     public static String getString(ByteBuffer buffer, Charset charset) {
+        CharsetDecoder decoder = null;
         try {
-            CharsetDecoder decoder = charset.newDecoder();
+            if(charset == StandardCharsets.UTF_8) {
+                while (decoder == null) {
+                    decoder = DECODERS.poll();
+                }
+            }
+            else {
+                decoder = charset.newDecoder();
+            }
             decoder.onMalformedInput(CodingErrorAction.IGNORE);
             return decoder.decode(buffer).toString();
         }
         catch (CharacterCodingException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            if(decoder != null && charset == StandardCharsets.UTF_8) {
+                DECODERS.offer(decoder);
+            }
+        }
+    }
+
+    /**
+     * Put the UTF-8 encoding for the {@code source} string into the
+     * {@code destination} byte buffer and increment the position by the length
+     * of the strings byte sequence. This method uses some optimization
+     * techniques and is the preferable way to add strings to byte buffers than
+     * doing so manually.
+     * 
+     * @param source
+     * @param destination
+     */
+    public static void putString(String source, ByteBuffer destination) {
+        try {
+            byte[] bytes = source.getBytes(CHARSET);
+            destination.put(bytes);
+        }
+        catch (Exception e) {
             throw Throwables.propagate(e);
         }
     }
@@ -255,6 +322,36 @@ public abstract class ByteBuffers {
             buffer.get(array);
             buffer.reset();
             return array;
+        }
+    }
+
+    /**
+     * The name of the Charset to use for encoding/decoding. We use the name
+     * instead of the charset object because Java caches encoders when
+     * referencing them by name, but creates a new encorder object when
+     * referencing them by Charset object.
+     */
+    private static final String CHARSET = StandardCharsets.UTF_8.name();
+
+    /**
+     * The number of UTF-8 decoders to create for concurrent access.
+     */
+    private static final int NUM_DECODERS = 10;
+
+    /**
+     * A collection of UTF-8 decoders that can be concurrently used. We use this
+     * to avoid creating a new decoder every time we need to decode a string
+     * while still allowing multi-threaded access.
+     */
+    private static final ConcurrentLinkedQueue<CharsetDecoder> DECODERS = new ConcurrentLinkedQueue<CharsetDecoder>();
+    static {
+        try {
+            for (int i = 0; i < NUM_DECODERS; ++i) {
+                DECODERS.add(StandardCharsets.UTF_8.newDecoder());
+            }
+        }
+        catch (Exception e) {
+            throw Throwables.propagate(e);
         }
     }
 

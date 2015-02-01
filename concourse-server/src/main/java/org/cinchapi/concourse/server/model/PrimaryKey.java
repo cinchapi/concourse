@@ -78,15 +78,15 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public static final int SIZE = 8;
 
     /**
-     * The underlying data that represents this PrimaryKey.
-     */
-    private final long data;
-
-    /**
      * A cached copy of the binary representation that is returned from
      * {@link #getBytes()}.
      */
     private transient ByteBuffer bytes = null;
+
+    /**
+     * The underlying data that represents this PrimaryKey.
+     */
+    private final long data;
 
     /**
      * Construct a new instance.
@@ -117,8 +117,12 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     }
 
     @Override
-    public int size() {
-        return SIZE;
+    public boolean equals(Object obj) {
+        if(obj instanceof PrimaryKey) {
+            final PrimaryKey other = (PrimaryKey) obj;
+            return Longs.compare(data, other.data) == 0;
+        }
+        return false;
     }
 
     /**
@@ -134,7 +138,8 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(SIZE);
-            bytes.putLong(data);
+            copyTo(bytes);
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -142,15 +147,6 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     @Override
     public int hashCode() {
         return Longs.hashCode(data);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof PrimaryKey) {
-            final PrimaryKey other = (PrimaryKey) obj;
-            return Longs.compare(data, other.data) == 0;
-        }
-        return false;
     }
 
     /**
@@ -163,8 +159,18 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     }
 
     @Override
+    public int size() {
+        return SIZE;
+    }
+
+    @Override
     public String toString() {
         return UnsignedLongs.toString(data);
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        buffer.putLong(data);
     }
 
     /**

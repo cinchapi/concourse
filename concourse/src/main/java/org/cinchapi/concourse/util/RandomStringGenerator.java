@@ -48,10 +48,10 @@ public class RandomStringGenerator {
     private static final Character[] letters = new Character[26];
 
     static {
-        for (int i = 0; i < digits.length; i++) {
+        for (int i = 0; i < digits.length; ++i) {
             digits[i] = (char) ('0' + i);
         }
-        for (int i = 0; i < letters.length; i++) {
+        for (int i = 0; i < letters.length; ++i) {
             letters[i] = (char) ('a' + i);
         }
     }
@@ -91,7 +91,7 @@ public class RandomStringGenerator {
     public String nextString(int length) {
         Character[] spaces = new Character[random
                 .nextInt(MAX_DISTRIBUTION_OF_SPACE_CHARS)];
-        for (int i = 0; i < spaces.length; i++) {
+        for (int i = 0; i < spaces.length; ++i) {
             spaces[i] = spaceChar;
         }
         ArrayList<Character> source = new ArrayList<Character>();
@@ -119,7 +119,7 @@ public class RandomStringGenerator {
     public String nextStringAllowDigits(int length) {
         Character[] spaces = new Character[random
                 .nextInt(MAX_DISTRIBUTION_OF_SPACE_CHARS)];
-        for (int i = 0; i < spaces.length; i++) {
+        for (int i = 0; i < spaces.length; ++i) {
             spaces[i] = spaceChar;
         }
         ArrayList<Character> source = new ArrayList<Character>();
@@ -144,7 +144,7 @@ public class RandomStringGenerator {
                     "Cannot generate a string with fewer than 1 characters.");
         }
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < length; ++i) {
             int index = random.nextInt(source.size());
             builder.append(source.get(index));
         }

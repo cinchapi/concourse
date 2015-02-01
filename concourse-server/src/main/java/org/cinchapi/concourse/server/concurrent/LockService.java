@@ -23,13 +23,14 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
+
 import com.google.common.base.Objects;
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -93,7 +94,7 @@ public class LockService {
     /**
      * A cache of locks that have been requested.
      */
-    private final ConcurrentHashMap<Token, TokenReadWriteLock> locks = new ConcurrentHashMap<Token, TokenReadWriteLock>();
+    private final ConcurrentHashMapV8<Token, TokenReadWriteLock> locks = new ConcurrentHashMapV8<Token, TokenReadWriteLock>();
 
     private LockService() {/* noop */}
 
@@ -178,8 +179,8 @@ public class LockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> readers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> readers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * We keep track of all the threads that have requested (but not
@@ -187,8 +188,8 @@ public class LockService {
          * associated with any threads then it can be safely removed from the
          * cache.
          */
-        private final ConcurrentHashMultiset<Thread> writers = ConcurrentHashMultiset
-                .create();
+        private final Multiset<Thread> writers = GuavaInternals
+                .newSynchronizedHashMultiset();
 
         /**
          * The token that represents the notion this lock controls
@@ -206,11 +207,14 @@ public class LockService {
 
         @Override
         public boolean equals(Object object) {
+            // This is a BAD implementation for equality, but for our purposes
+            // we only care to see that the tokens are the same and there are no
+            // readers or writers.
             if(object instanceof TokenReadWriteLock) {
                 TokenReadWriteLock other = (TokenReadWriteLock) object;
                 return token.equals(other.token)
-                        && readers.equals(other.readers)
-                        && writers.equals(other.writers);
+                        && readers.size() == other.readers.size()
+                        && writers.size() == other.writers.size();
             }
             else {
                 return false;
@@ -219,7 +223,7 @@ public class LockService {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(token, readers, writers);
+            return Objects.hashCode(token, readers.size(), writers.size());
         }
 
         @Override
@@ -229,7 +233,7 @@ public class LockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    readers.removeExactly(Thread.currentThread(), 1);
+                    readers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new TokenReadWriteLock(token));
                 }
 
@@ -249,7 +253,7 @@ public class LockService {
                 @Override
                 public void unlock() {
                     super.unlock();
-                    writers.removeExactly(Thread.currentThread(), 1);
+                    writers.remove(Thread.currentThread(), 1);
                     locks.remove(token, new TokenReadWriteLock(token));
                 }
 

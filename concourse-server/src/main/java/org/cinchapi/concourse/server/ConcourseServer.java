@@ -84,6 +84,7 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Version;
@@ -653,17 +654,29 @@ public class ConcourseServer implements
     }
 
     @Override
+    public String listAllEnvironments() {
+        return TCollections.toOrderedListString(TSets.intersection(
+                FileSystem.getSubDirs(BUFFER_DIRECTORY),
+                FileSystem.getSubDirs(DATABASE_DIRECTORY)));
+    }
+
+    @Override
+    public String listAllUserSessions() {
+        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+    }
+
+    @Override
     @ManagedOperation
     public boolean login(byte[] username, byte[] password) {
-        // NOTE: Any existing sessions for the user will be invalidated.
         try {
             AccessToken token = login(ByteBuffer.wrap(username),
-                    ByteBuffer.wrap(password), null); // TODO get real
-                                                      // env
+                    ByteBuffer.wrap(password));
             username = null;
             password = null;
             if(token != null) {
-                logout(token, null); // TODO get real env
+                logout(token, null); // NOTE: managed operations don't actually
+                                     // need an access token, so we expire it
+                                     // immediately
                 return true;
             }
             else {
@@ -1058,7 +1071,20 @@ public class ConcourseServer implements
      * @return the Engine
      */
     private Engine getEngine(String env) {
-        env = Environments.sanitize(env);
+        Engine engine = engines.get(env);
+        if(engine == null) {
+            env = Environments.sanitize(env);
+            return getEngineUnsafe(env);
+        }
+        return engine;
+    }
+
+    /**
+     * Return the {@link Engine} that is associated with {@code env} without
+     * performing any sanitzation on the name. If such an Engine does not exist,
+     * create a new one and add it to the collection.
+     */
+    private Engine getEngineUnsafe(String env) {
         Engine engine = engines.get(env);
         if(engine == null) {
             engine = new Engine(bufferStore + File.separator + env, dbStore
@@ -1134,6 +1160,21 @@ public class ConcourseServer implements
     }
 
     /**
+     * A version of the login routine that handles the case when no environment
+     * has been specified. The is most common when authenticating a user for
+     * managed operations.
+     * 
+     * @param username
+     * @param password
+     * @return the access token
+     * @throws TException
+     */
+    private AccessToken login(ByteBuffer username, ByteBuffer password)
+            throws TException {
+        return login(username, password, DEFAULT_ENVIRONMENT);
+    }
+
+    /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
      * and do the work to update chronologized values in {@code key} in
      * {@code record} with respect to {@code history} audit.
@@ -1152,7 +1193,7 @@ public class ConcourseServer implements
         try {
             Map<Long, String> newResult = operation.audit(key, record);
             if(newResult.size() > history.size()) {
-                for (int i = history.size(); i < newResult.size(); i++) {
+                for (int i = history.size(); i < newResult.size(); ++i) {
                     Long timestamp = Iterables.get(
                             (Iterable<Long>) newResult.keySet(), i);
                     Set<TObject> values = operation.fetch(key, record);

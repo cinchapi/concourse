@@ -96,14 +96,13 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
         read.lock();
         try {
             Map<Long, String> audit = Maps.newLinkedHashMap();
-            List<Revision<PrimaryKey, Text, Value>> revisions = history
-                    .get(key); /* Authorized */
+            List<CompactRevision<Value>> revisions = history.get(key); /* Authorized */
             if(revisions != null) {
-                Iterator<Revision<PrimaryKey, Text, Value>> it = revisions
-                        .iterator();
+                Iterator<CompactRevision<Value>> it = revisions.iterator();
                 while (it.hasNext()) {
-                    Revision<PrimaryKey, Text, Value> revision = it.next();
-                    audit.put(revision.getVersion(), revision.toString());
+                    CompactRevision<Value> revision = it.next();
+                    audit.put(revision.getVersion(),
+                            revision.toString(locator, key));
                 }
             }
             return audit;

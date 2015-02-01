@@ -27,13 +27,18 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
+import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
@@ -42,6 +47,8 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TStrings;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -50,9 +57,11 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
+import com.google.common.primitives.Longs;
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
@@ -131,6 +140,7 @@ public class AccessManager {
     private static ByteBuffer decodeHex(String hex) {
         return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
     }
+
     /**
      * Encode the {@code bytes} as a hexadecimal string.
      * 
@@ -141,6 +151,7 @@ public class AccessManager {
         bytes.rewind();
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
+
     // The AccessManager keeps track of user sessions and their associated
     // AccessTokens. An AccessToken is valid for a limited amount of time.
     private static final int ACCESS_TOKEN_TTL = 24;
@@ -212,6 +223,23 @@ public class AccessManager {
      */
     public void deauthorize(AccessToken token) {
         tokenManager.deleteToken(token); // the #tokenManager handles locking
+    }
+
+    /**
+     * Return a list of strings, each of which describes a currently existing
+     * access token.
+     * 
+     * @return a list of token descriptions
+     */
+    public List<String> describeAllAccessTokens() {
+        List<String> sessions = Lists.newArrayList();
+        List<AccessTokenWrapper> tokens = Lists
+                .newArrayList(tokenManager.tokens.asMap().values());
+        Collections.sort(tokens);
+        for (AccessTokenWrapper token : tokenManager.tokens.asMap().values()) {
+            sessions.add(token.getDescription());
+        }
+        return sessions;
     }
 
     /**
@@ -487,7 +515,8 @@ public class AccessManager {
      * 
      * @author jnelson
      */
-    private static class AccessTokenWrapper {
+    private static class AccessTokenWrapper implements
+            Comparable<AccessTokenWrapper> {
 
         /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
@@ -502,6 +531,18 @@ public class AccessManager {
                 String username, long timestamp) {
             return new AccessTokenWrapper(token, username, timestamp);
         }
+
+        /**
+         * The formatter that is used to when constructing a human readable
+         * description of the access token.
+         */
+        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+                .appendMonthOfYearShortText().appendLiteral(" ")
+                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
+                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
+                .appendMinuteOfHour(2).appendLiteral(":")
+                .appendSecondOfMinute(2).appendLiteral(" ")
+                .appendHalfdayOfDayText().toFormatter();
 
         private final AccessToken token;
         private final String username; // hex
@@ -522,6 +563,11 @@ public class AccessManager {
         }
 
         @Override
+        public int compareTo(AccessTokenWrapper o) {
+            return Longs.compare(timestamp, o.timestamp);
+        }
+
+        @Override
         public boolean equals(Object obj) {
             if(obj instanceof AccessTokenWrapper) {
                 return token.equals(((AccessTokenWrapper) obj).token);
@@ -537,6 +583,19 @@ public class AccessManager {
         @SuppressWarnings("unused")
         public AccessToken getAccessToken() {
             return token;
+        }
+
+        /**
+         * Return a human readable description of the access token.
+         * 
+         * @return the description
+         */
+        public String getDescription() {
+            return MessageFormat.format(
+                    "{0} logged in since {1}",
+                    ByteBuffers.getString(decodeHex(username)),
+                    Timestamp.fromMicros(timestamp).getJoda()
+                            .toString(DATE_TIME_FORMATTER));
         }
 
         /**
@@ -626,6 +685,12 @@ public class AccessManager {
             this.username = username;
             this.password = password;
             this.salt = salt;
+        }
+
+        @Override
+        public void copyTo(ByteBuffer buffer) {
+            buffer.put(getBytes());
+
         }
 
         @Override

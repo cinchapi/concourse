@@ -71,13 +71,7 @@ public class Queue extends Limbo {
 
     @Override
     public boolean insert(Write write) {
-        writeLock.lock();
-        try {
-            return writes.add(write);
-        }
-        finally {
-            writeLock.unlock();
-        }
+    	return writes.add(write);
     }
 
     @Override

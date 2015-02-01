@@ -60,11 +60,28 @@ import java.nio.ByteBuffer;
 public interface Byteable {
 
     /**
-     * Returns the total number of bytes used to represent this object.
+     * Copy the byte sequence that represents this object to the {@code buffer}.
+     * This method should be idempotent, so if the object caches its byte
+     * representation, be sure to reset the position after copying data to the
+     * buffer.
+     * <p>
+     * This method is primary intended for pass-through gathering where data
+     * from multiple Byteables can be copied to a single bytebuffer without
+     * doing any unnecessary intermediate copying. So, if the binary
+     * representation for this object depends on that of another Byteable, then
+     * the implementation of this method should gather those bytes using the
+     * {@link #copyTo(ByteBuffer)} method for the other Byteable.
+     * </p>
+     * <p>
+     * <strong>DO NOT</strong> make any modifications to {@code buffer} other
+     * than filling it with bytes for this class (i.e. do not rewind the buffer
+     * or change its position). It is assumed that the caller will rewind or
+     * flip the buffer after this method completes.
+     * </p>
      * 
-     * @return the number of bytes.
+     * @param buffer
      */
-    public int size();
+    public void copyTo(ByteBuffer buffer);
 
     /**
      * Returns a byte sequence that represents this object.
@@ -72,5 +89,17 @@ public interface Byteable {
      * @return the byte sequence.
      */
     public ByteBuffer getBytes();
+
+    /**
+     * Returns the total number of bytes used to represent this object.
+     * <p>
+     * It is recommended that the value returned from this method NOT depend on
+     * a call to {@link #getBytes()}. Therefore, the implementing class should
+     * keep track of the size separately, if necessary.
+     * <p>
+     * 
+     * @return the number of bytes.
+     */
+    public int size();
 
 }
