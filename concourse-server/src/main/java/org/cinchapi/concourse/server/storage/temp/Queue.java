@@ -93,4 +93,18 @@ public class Queue extends Limbo {
         return copy.iterator();
     }
 
+    @Override
+    public long getOldestWriteTimstamp() {
+        // When there is no data in the buffer return the max possible timestamp
+        // so that no query's timestamp is less than this timestamp
+        if(writes.size() == 0) {
+            return Long.MAX_VALUE;
+        }
+        else {
+            Write oldestWrite = writes.get(0);
+            return oldestWrite.getVersion();
+        }
+
+    }
+
 }

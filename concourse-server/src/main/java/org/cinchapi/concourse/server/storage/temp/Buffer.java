@@ -757,11 +757,13 @@ public final class Buffer extends Limbo {
     public boolean verify(Write write, long timestamp, boolean exists) {
         transportLock.readLock().lock();
         try {
-            scaleBackTransportRate();
-            for (Page page : pages) {
-                if(page.mightContain(write)
-                        && page.locallyContains(write, timestamp)) {
-                    exists ^= true; // toggle boolean
+            if(timestamp >= getOldestWriteTimstamp()) {
+                scaleBackTransportRate();
+                for (Page page : pages) {
+                    if(page.mightContain(write)
+                            && page.locallyContains(write, timestamp)) {
+                        exists ^= true; // toggle boolean
+                    }
                 }
             }
             return exists;
@@ -784,11 +786,11 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * Return {@code true} if the Buffer has more than 1 page and the
-     * first page has at least one element that can be transported. If this
-     * method returns {@code false} it means that the first page is the only
-     * page or that the Buffer would need to trigger a Database sync and remove
-     * the first page in order to transport.
+     * Return {@code true} if the Buffer has more than 1 page and the first page
+     * has at least one element that can be transported. If this method returns
+     * {@code false} it means that the first page is the only page or that the
+     * Buffer would need to trigger a Database sync and remove the first page in
+     * order to transport.
      * 
      * @return {@code true} if the Buffer can transport a Write.
      */
@@ -975,8 +977,9 @@ public final class Buffer extends Limbo {
          * read.
          * 
          * @param write
-         * @throws CapacityException - if the size of {@code write} is
-         *             greater than the remaining capacity of {@link #content}
+         * @throws CapacityException
+         *             - if the size of {@code write} is greater than the
+         *             remaining capacity of {@link #content}
          */
         public void append(Write write, boolean sync) throws CapacityException {
             Preconditions.checkState(this == currentPage, "Illegal attempt to "
@@ -1043,10 +1046,11 @@ public final class Buffer extends Limbo {
          */
         /*
          * (non-Javadoc)
-         * This iterator is only used for Limbo reads that traverse the
-         * collection of Writes. This iterator differs from the Page (which is
-         * also an Iterator over Write objects) by virtue of the fact that it
-         * does not allow removes and will detect concurrent modification.
+         * This iterator is only used for Limbo reads that
+         * traverse the collection of Writes. This iterator differs from the
+         * Page (which is also an Iterator over Write objects) by virtue of the
+         * fact that it does not allow removes and will detect concurrent
+         * modification.
          */
         @Override
         public Iterator<Write> iterator() {
@@ -1347,5 +1351,16 @@ public final class Buffer extends Limbo {
                 throw CapacityException.INSTANCE;
             }
         }
+    }
+
+    @Override
+    public long getOldestWriteTimstamp() {
+        Page oldestPage = pages.get(0);
+        Write oldestWrite = oldestPage.next();
+        // When there is no data in the buffer return the max possible timestamp
+        // so that no query's timestamp is less than this timestamp
+        if(oldestWrite == null)
+            return Long.MAX_VALUE;
+        return oldestWrite.getVersion();
     }
 }
