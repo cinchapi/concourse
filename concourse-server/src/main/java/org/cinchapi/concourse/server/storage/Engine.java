@@ -388,27 +388,32 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(record);
         read.lock();
         try {
-        	return auditUnsafe(record);
+            return super.audit(record);
         }
         finally {
             read.unlock();
             transportLock.readLock().unlock();
         }
     }
-    
+
     /**
      * This method returns a log of revisions in {@code record} as
      * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
      * to call from the methods of {@link #AtomicOperation} class
-     * because in this case intermediate lock is not required. 
+     * because in this case intermediate read {@link #Lock} is not required.
      * 
      * @param record
      * @return {@code Map}
      */
     public Map<Long, String> auditUnsafe(long record) {
+        transportLock.readLock().lock();
+        try {
             return super.audit(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
-
 
     @Override
     public Map<Long, String> audit(String key, long record) {
@@ -416,7 +421,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-        	return auditUnsafe(key, record);
+            return super.audit(key, record);
         }
         finally {
             read.unlock();
@@ -425,17 +430,24 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Audit {@code key} in {@code record}. This method returns a log of revisions in {@code record} as
-     * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
-     * to call from the methods of {@link #AtomicOperation} class 
-     * because in this case intermediate lock is not required. 
+     * Audit {@code key} in {@code record}. This method returns a log of
+     * revisions in {@code record} as a Map WITHOUT grabbing any locks.
+     * This method is ONLY appropriate to call from the methods of 
+     * {@link #AtomicOperation} class because in this case intermediate
+     * read {@link #Lock} is not required.
      * 
      * @param key
      * @param record
      * @return {@code Map}
      */
     public Map<Long, String> auditUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
             return super.audit(key, record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -444,7 +456,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(record);
         read.lock();
         try {
-        	return browseUnsafe(record);
+            return super.browse(record);
         }
         finally {
             read.unlock();
@@ -456,39 +468,30 @@ public final class Engine extends BufferedStore implements
      * This method returns a log of revisions in {@code record} as
      * a Map WITHOUT grabbing any locks. This method is ONLY appropriate
      * to call from the methods of {@link #AtomicOperation} class
-     * because in this case intermediate lock is not required.
+     * because in this case intermediate read {@link #Lock} is not required.
      * 
      * @param record
-     * @return {@code Map} 
+     * @return {@code Map}
      */
     public Map<String, Set<TObject>> browseUnsafe(long record) {
-            return super.browse(record);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-        	return browseUnsafe(record, timestamp);
+            return super.browse(record);
         }
         finally {
             transportLock.readLock().unlock();
         }
     }
 
-    /**
-     * Browse {@code record} at {@code timestamp}.
-     * This method returns a mapping from each of the nonempty keys in {@code record}
-     * at {@code timestamp} to a Set of  associated values. If there were no such
-     * keys, an empty Map is returned. This method is ONLY appropriate to call from
-     * the methods of {@link #AtomicOperation} class because in this case intermediate lock is not required.
-     * 
-     * @param record
-     * @param timestamp
-     * @return {@code Map}
-     */
-    public Map<String, Set<TObject>> browseUnsafe(long record, long timestamp) {
+    @Override
+    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
             return super.browse(record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -497,7 +500,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key);
         read.lock();
         try {
-        	return browseUnsafe(key);
+            return super.browse(key);
         }
         finally {
             read.unlock();
@@ -508,42 +511,34 @@ public final class Engine extends BufferedStore implements
     /**
      * Browse {@code key}.
      * This method returns a mapping from each of the values that is
-     * currently indexed to {@code key} to a Set the records that contain {@code key}
-     * as the associated value. If there are no such values, an empty Map is 
-     * returned. This method is ONLY appropriate to call from the methods of
-     * {@link #AtomicOperation} class because in this case intermediate lock is not required.
+     * currently indexed to {@code key} to a Set the records that contain
+     * {@code key} as the associated value. If there are no such values, an
+     * empty Map is returned. This method is ONLY appropriate to call from
+     * the methods of {@link #AtomicOperation} class because in this case 
+     * intermediate read {@link #Lock} is not required.
      * 
      * @param key
      * @return {@code Map}
      */
     public Map<TObject, Set<Long>> browseUnsafe(String key) {
-            return super.browse(key);
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         transportLock.readLock().lock();
         try {
-        	return browseUnsafe(key, timestamp);
+            return super.browse(key);
         }
         finally {
             transportLock.readLock().unlock();
         }
     }
 
-    /**
-     * Browse {@code key} at {@code timestamp}.
-     * This method returns a mapping from each of the values that was indexed to {@code key} at {@code timestamp} to a 
-     * Set the records that contained {@code key} as the associated value at {@code timestamp}. If there were no such
-     * values, an empty Map is returned. This method is ONLY appropriate to call from the methods of
-     * {@link #AtomicOperation} class because in this case intermediate lock is not required. 
-     * 
-     * @param key
-     * @param timestamp
-     * @return {@code Map}
-     */
-    public Map<TObject, Set<Long>> browseUnsafe(String key, long timestamp) {
+    @Override
+    public Map<TObject, Set<Long>> browse(String key, long timestamp) {
+        transportLock.readLock().lock();
+        try {
             return super.browse(key, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
@@ -566,7 +561,7 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-        	return fetchUnsafe(key, record);
+            return super.fetch(key, record);
         }
         finally {
             read.unlock();
@@ -576,43 +571,36 @@ public final class Engine extends BufferedStore implements
 
     /**
      * Fetch {@code key} from {@code record}.
-     * This method returns the values currently mapped from {@code key} in {@code record}.
-     * The returned Set is nonempty if and only if {@code key} is a member of the Set
-     * returned from {@link describe(long)}. This method is ONLY appropriate to call from the
-     * methods of {@link #AtomicOperation} class because in this case intermediate lock is not required.
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link describe(long)}.
+     * This method is ONLY appropriate to call from the methods of 
+     * {@link #AtomicOperation} class because in this case
+     * intermediate read {@link #Lock} is not required.
      * 
      * @param key
      * @param record
      * @return {@code Set}
      */
     public Set<TObject> fetchUnsafe(String key, long record) {
-            return super.fetch(key, record);
-    }
-
-    @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-        	return fetchUnsafe(key, record, timestamp);
+            return super.fetch(key, record);
         }
         finally {
             transportLock.readLock().unlock();
         }
     }
 
-    /**
-     * Fetch {@code key} from record at {@code timestamp}.
-     * This method return the values mapped from {@code key} at {@code timestamp}. The returned Set is nonempty if and only
-     * if {@code key} is a member of the Set returned from ({@link describe(long, long)}. This method is ONLY appropriate to 
-     * call from the methods of {@link #AtomicOperation} class because in this case intermediate lock is not required.
-     * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @return {@code Set}
-     */
-    public Set<TObject> fetchUnsafe(String key, long record, long timestamp) {
+    @Override
+    public Set<TObject> fetch(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
             return super.fetch(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
@@ -712,25 +700,11 @@ public final class Engine extends BufferedStore implements
         // processing.
         transportLock.readLock().lock();
         try {
-        	return searchUnsafe(key, query);
+            return super.search(key, query);
         }
         finally {
             transportLock.readLock().unlock();
         }
-    }
-
-    /**
-     * Search {@code key} for {@code query}.
-     * This method performs a fulltext search for {@code query} in all data currently mapped from {@code key}.
-     * This method is ONLY appropriate to call from the methods of {@link #AtomicOperation}
-     * class because in this case intermediate lock is not required.
-     * 
-     * @param key
-     * @param query
-     * @return {@code Set}
-     */
-    public Set<Long> searchUnsafe(String key, String query) {
-            return super.search(key, query);
     }
 
     @Override
@@ -815,7 +789,8 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-        	return verifyUnsafe(key, value, record);
+            return inventory.contains(record) ? super.verify(key, value, record)
+                    : false;
         }
         finally {
             read.unlock();
@@ -825,10 +800,12 @@ public final class Engine extends BufferedStore implements
 
     /**
      * Verify {@code key} equals {@code value} in {@code record}.
-     * This method checks that there is currently a mapping from {@code key} to {@code value} in {@code record}.
-     * This method has the same affect as calling {@link fetch(String, long)} {@link Set.contains(Object)}.
-     * This method is ONLY appropriate to call from the methods of {@link #AtomicOperation}
-     * class because in this case intermediate lock is not required. 
+     * This method checks that there is currently a mapping from {@code key} to
+     * {@code value} in {@code record}. This method has the same affect as 
+     * calling {@link fetch(String, long)} {@link Set.contains(Object)}.
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read 
+     * {@link #Lock} is not required.
      * 
      * @param key
      * @param value
@@ -836,37 +813,26 @@ public final class Engine extends BufferedStore implements
      * @return {@code boolean}
      */
     public boolean verifyUnsafe(String key, TObject value, long record) {
-            return inventory.contains(record) ? super
-                    .verify(key, value, record) : false;
-    }
-
-    @Override
-    public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-        	return verifyUnsafe(key, value, record, timestamp);
+            return inventory.contains(record) ? super.verify(key, value, record)
+                    : false;
         }
         finally {
             transportLock.readLock().unlock();
         }
     }
 
-    /**
-     * Verify {@code key} equals {@code value} in {@code record} at {@code timestamp}.
-     * This method checks that there was a mapping from {@code key} to {@code value} in {@code record} at {@code timestamp}.
-     * This method has the same affect as calling {@link fetch(String, long, DateTime)} {@link Set.contains(Object)}.
-     * This method is ONLY appropriate to call from the methods of {@link #AtomicOperation}
-     * class because in this case intermediate lock is not required.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     * @param timestamp
-     * @return {@code boolean}
-     */
-    public boolean verifyUnsafe(String key, TObject value, long record, long timestamp) {
-            return inventory.contains(record) ? super.verify(key, value,
-                    record, timestamp) : false;
+    @Override
+    public boolean verify(String key, TObject value, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super.verify(key, value, record,
+                    timestamp) : false;
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -880,27 +846,11 @@ public final class Engine extends BufferedStore implements
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
-        	return doExploreUnsafe(timestamp, key, operator, values);
+            return super.doExplore(timestamp, key, operator, values);
         }
         finally {
             transportLock.readLock().unlock();
         }
-    }
-
-    /**
-     * Do the work to explore {@code key} {@code operator} {@code values} at {@code timestamp} without worry about
-     * normalizing the {@code operator} or {@code values}. This method is ONLY appropriate to call from
-     * the methods of {@link #AtomicOperation} class because in this case intermediate lock is not required.
-     * 
-     * @param timestamp
-     * @param key
-     * @param operator
-     * @param values
-     * @return {@code Map}
-     */
-    protected Map<Long, Set<TObject>> doExploreUnsafe(long timestamp, String key,
-            Operator operator, TObject... values) {
-            return super.doExplore(timestamp, key, operator, values);
     }
 
     @Override
@@ -910,7 +860,7 @@ public final class Engine extends BufferedStore implements
         Lock range = rangeLockService.getReadLock(key, operator, values);
         range.lock();
         try {
-        	return doExploreUnsafe(key, operator, values);
+            return super.doExplore(key, operator, values);
         }
         finally {
             range.unlock();
@@ -919,18 +869,26 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Do the work to explore {@code key} {@code operator} {@code values} without worry about
-     * normalizing the {@code operator} or {@code values}. This method is ONLY appropriate to call from
-     * the methods of {@link #AtomicOperation} class because in this case intermediate lock is not required.
+     * Do the work to explore {@code key} {@code operator} {@code values}
+     * without worry about normalizing the {@code operator} or {@code values}.
+     * This method is ONLY appropriate to call from the methods of 
+     * {@link #AtomicOperation} class because in this case intermediate read 
+     * {@link #Lock} is not required.
      * 
      * @param key
      * @param operator
      * @param values
      * @return {@code Map}
      */
-    protected Map<Long, Set<TObject>> doExploreUnsafe(String key, Operator operator,
-            TObject... values) {
+    protected Map<Long, Set<TObject>> doExploreUnsafe(String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
             return super.doExplore(key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
