@@ -47,6 +47,7 @@ import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -74,81 +75,6 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     }
 
     /**
-     * Check the {@code map} for entries that satisfy {@code operator} in
-     * relation to {@code value}.
-     * 
-     * @param operator
-     * @param value
-     * @param map
-     * @return {@code true} if there are any entries that match the filter
-     */
-    private static <V> boolean checkShardComponent(Operator operator,
-            Value value, TreeMap<Range<Value>, Set<Entry<RangeToken, V>>> map) {
-        Range<Value> point = Range.point(value);
-        switch (operator) {
-        case GREATER_THAN:
-            return map.tailMap(point, false).values().isEmpty();
-        case GREATER_THAN_OR_EQUALS:
-            return map.tailMap(point, true).values().isEmpty();
-        case LESS_THAN:
-            return map.headMap(point, false).values().isEmpty();
-        case LESS_THAN_OR_EQUALS:
-            return map.headMap(point, true).values().isEmpty();
-        case NOT_EQUALS:
-            return map
-                    .subMap(Range.point(Value.NEGATIVE_INFINITY), false, point,
-                            false).values().isEmpty()
-                    && map.subMap(point, false,
-                            Range.point(Value.POSITIVE_INFINITY), false)
-                            .values().isEmpty();
-        case EQUALS:
-            return map.subMap(point, true, point, true).values().isEmpty();
-        default:
-            throw new IllegalArgumentException();
-        }
-    }
-
-    /**
-     * Filter the {@code map} for entries that satisfy {@code operator} in
-     * relation to {@code value}.
-     * 
-     * @param operator
-     * @param value
-     * @param map
-     * @return the filtered entries
-     */
-    private static <V> Set<Entry<RangeToken, V>> filterShardComponent(
-            Operator operator, Value value,
-            TreeMap<Range<Value>, Set<Entry<RangeToken, V>>> map) {
-        Range<Value> point = Range.point(value);
-        switch (operator) {
-        case GREATER_THAN:
-            return Sets.newHashSet(Iterables.concat(map.tailMap(point, false)
-                    .values()));
-        case GREATER_THAN_OR_EQUALS:
-            return Sets.newHashSet(Iterables.concat(map.tailMap(point, true)
-                    .values()));
-        case LESS_THAN:
-            return Sets.newHashSet(Iterables.concat(map.headMap(point, false)
-                    .values()));
-        case LESS_THAN_OR_EQUALS:
-            return Sets.newHashSet(Iterables.concat(map.headMap(point, true)
-                    .values()));
-        case NOT_EQUALS:
-            return Sets.newHashSet(Iterables.concat(Iterables.concat(map
-                    .subMap(Range.point(Value.NEGATIVE_INFINITY), false, point,
-                            false).values()), Iterables.concat(map.subMap(
-                    point, false, Range.point(Value.POSITIVE_INFINITY), false)
-                    .values())));
-        case EQUALS:
-            return Sets.newHashSet(Iterables.concat(map.subMap(point, true,
-                    point, true).values()));
-        default:
-            throw new IllegalArgumentException();
-        }
-    }
-
-    /**
      * A mapping from range token keys to the appropriate shard, which mimics a
      * mapping from RangeToken to V.
      * 
@@ -168,26 +94,27 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     }
 
     /**
-     * Filter this map and return one that only has range tokens with the
-     * specified {@code key} and a start value that satisfies the
-     * {@code startOperator} in relation to the specified {@code start} value
-     * joined by an end value that satisfies the {@code endOperator} in relation
-     * to the specified {@code end} value (e.g. all the range tokens with "foo"
-     * key, a start value > 1 AND an end value <= 10).
-     * 
+     * TODO
      * @param key
-     * @param leftOperator
-     * @param left
-     * @param joinBy
-     * @param rightOperator
-     * @param right
-     * @return {@code true} if there are any items in the map that match the
-     *         filter
+     * @param operator
+     * @param value
+     * @return
      */
-    public boolean contains(Text key, Operator leftOperator, Value left,
-            JoinBy joinBy, Operator rightOperator, Value right) {
+    public boolean contains(Text key, Operator operator, Value value) {
         Shard shard = safeGet(key);
-        return shard.contains(leftOperator, left, joinBy, rightOperator, right);
+        return shard.contains(operator, value);
+    }
+
+    /**
+     * TODO
+     * @param key
+     * @param value1
+     * @param value2
+     * @return
+     */
+    public boolean contains(Text key, Value value1, Value value2) {
+        Shard shard = safeGet(key);
+        return shard.contains(Operator.BETWEEN, value1, value2);
     }
 
     @Override
@@ -227,25 +154,31 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     }
 
     /**
-     * Filter this map and return one that only has range tokens with the
-     * specified {@code key} and a start value that satisfies the
-     * {@code startOperator} in relation to the specified {@code start} value
-     * joined by an end value that satisfies the {@code endOperator} in relation
-     * to the specified {@code end} value (e.g. all the range tokens with "foo"
-     * key, a start value > 1 AND an end value <= 10).
+     * Filter this map and return... TODO update
      * 
      * @param key
-     * @param startOperator
-     * @param start
-     * @param joinBy
-     * @param endOperator
-     * @param end
-     * @return a collection that contains the filtered view
+     * @param operator
+     * @param value
+     * @return the filtered view
      */
-    public Map<RangeToken, V> filter(Text key, Operator startOperator,
-            Value start, JoinBy joinBy, Operator endOperator, Value end) {
+    public Map<RangeToken, V> filter(Text key, Operator operator, Value value) {
         Shard shard = safeGet(key);
-        return shard.filter(startOperator, start, joinBy, endOperator, end);
+        return shard.filter(operator, value);
+    }
+
+    /**
+     * Filter this map to return all the entries where the range token has the
+     * specified {@code key} component} and the value(s) in the token is/are
+     * between {@code value1} and {@code value2}.
+     * 
+     * @param key
+     * @param value1
+     * @param value2
+     * @return the filtered view
+     */
+    public Map<RangeToken, V> filter(Text key, Value value1, Value value2) {
+        Shard shard = safeGet(key);
+        return shard.filter(Operator.BETWEEN, value1, value2);
     }
 
     @Override
@@ -391,17 +324,6 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     }
 
     /**
-     * An enum that determines how to handle the
-     * {@link RangeTokenMap#filter(Text, Operator, Value, JoinBy, Operator, Value)}
-     * method.
-     * 
-     * @author jnelson
-     */
-    public enum JoinBy {
-        AND, OR
-    }
-
-    /**
      * A shard is internally associated with a {@link Text key} component of a
      * RangeToken. Shards help to perform initial range token filtering. Each
      * shard allows concurrent access that is protected by a {@link StampedLock}
@@ -445,21 +367,36 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         }
 
         /**
-         * Check to see if there are values within this shard that match the
-         * given filter.
-         * 
-         * @param leftOperator
-         * @param left
-         * @param joinBy
-         * @param rightOperator
-         * @param right
-         * @return {@code true} if there mappings that match the filter
+         * TODO
+         * @param operator
+         * @param value
+         * @return
          */
-        public boolean contains(Operator leftOperator, Value left,
-                JoinBy joinBy, Operator rightOperator, Value right) {
-            boolean a = checkShardComponent(leftOperator, left, lefts);
-            boolean b = checkShardComponent(rightOperator, right, rights);
-            return joinBy == JoinBy.AND ? a && b : a || b;
+        public boolean contains(Operator operator, Value value) {
+            long stamp = getLock().readLock();
+            try{
+                return contains0(operator, value);
+            }
+            finally{
+                getLock().unlock(stamp);
+            }
+        }
+
+        /**
+         * TODO
+         * @param operator
+         * @param value1
+         * @param value2
+         * @return
+         */
+        public boolean contains(Operator operator, Value value1, Value value2) {
+            long stamp = getLock().readLock();
+            try{
+                return contains0(operator, value1, value2);
+            }
+            finally{
+                getLock().unlock(stamp);
+            }
         }
 
         @Override
@@ -503,31 +440,212 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         }
 
         /**
-         * Filter within this shard and return a map that satisfies the query.
+         * Return a map that contains the entries in this shard where all the
+         * range tokens have values that satisfy {@code operator} in relation to
+         * the specified {@code value}.
+         * <p>
+         * TODO give examples
+         * </p>
          * 
-         * @param startOperator
-         * @param start
-         * @param joinBy
-         * @param endOperator
-         * @param end
+         * @param operator
+         * @param value
          * @return the filtered map
          */
-        public Map<RangeToken, V> filter(Operator startOperator, Value start,
-                JoinBy joinBy, Operator endOperator, Value end) {
+        public Map<RangeToken, V> filter(Operator operator, Value value) {
             long stamp = getLock().readLock();
             try {
-                Set<Entry<RangeToken, V>> a = filterShardComponent(
-                        startOperator, start, lefts);
-                Set<Entry<RangeToken, V>> b = filterShardComponent(endOperator,
-                        end, rights);
-                return joinBy == JoinBy.AND ? TMaps.fromEntrySet(Sets
-                        .intersection(a, b)) : TMaps.fromEntrySet(Sets.union(a,
-                        b));
+                return TMaps.fromEntrySet(filter0(operator, value));
             }
             finally {
                 getLock().unlock(stamp);
             }
+        }
 
+        /**
+         * Return a map that contains the entries in this shard where all the
+         * range tokens have values between {@code value1} and {@code value2}.
+         * 
+         * @param operator
+         * @param value1
+         * @param value2
+         * @return the filtered map
+         */
+        public Map<RangeToken, V> filter(Operator operator, Value value1,
+                Value value2) {
+            long stamp = getLock().readLock();
+            try {
+                return TMaps.fromEntrySet(filter0(operator, value1, value2));
+            }
+            finally {
+                getLock().unlock(stamp);
+            }
+        }
+
+        /**
+         * Do the work to filter this shard to return the entry set where all
+         * the range tokens have values between {@code value1} and
+         * {@code value2}.
+         * 
+         * @param operator
+         * @param value1
+         * @param value2
+         * @return the filtered entry set
+         */
+        private Set<Entry<RangeToken, V>> filter0(Operator operator,
+                Value value1, Value value2) {
+            Preconditions.checkArgument(operator == Operator.BETWEEN);
+            Range<Value> point1 = Range.point(value1);
+            Range<Value> point2 = Range.point(value2);
+            Set<Entry<RangeToken, V>> a = Sets.newHashSet(Iterables
+                    .concat(lefts.headMap(point2, false).values()));
+            Set<Entry<RangeToken, V>> b = Sets.newHashSet(Iterables
+                    .concat(rights.tailMap(point1, true).values()));
+            return Sets.intersection(a, b);
+        }
+
+        /**
+         * TODO
+         * @param operator
+         * @param value1
+         * @param value2
+         * @return
+         */
+        private boolean contains0(Operator operator, Value value1, Value value2) {
+            Preconditions.checkArgument(operator == Operator.BETWEEN);
+            return !lefts.headMap(Range.point(value2), false).values()
+                    .isEmpty()
+                    && !rights.tailMap(Range.point(value1), true).values()
+                            .isEmpty();
+        }
+
+        /**
+         * Do the work to filter this shard and return the entry set where all
+         * the range tokens have values that satisfy {@code operator} in
+         * relation to the specified {@code value}.
+         * 
+         * @param operator
+         * @param value
+         * @return the filtered entry set
+         */
+        private Set<Entry<RangeToken, V>> filter0(Operator operator, Value value) {
+            Range<Value> point = Range.point(value);
+            switch (operator) {
+            case EQUALS:
+                return Sets.intersection(lefts.get(point), rights.get(point));
+            case NOT_EQUALS:
+                Set<Entry<RangeToken, V>> ne = Sets.newHashSet();
+                for (Set<Entry<RangeToken, V>> coll : lefts.tailMap(point,
+                        false).values()) {
+                    for (Entry<RangeToken, V> entry : coll) {
+                        Iterable<Range<Value>> ranges = RangeTokens
+                                .convertToRange(entry.getKey());
+                        boolean add = true;
+                        for (Range<Value> range : ranges) {
+                            if(range.intersects(point)) {
+                                add = false;
+                                break;
+                            }
+                        }
+                        if(add) {
+                            ne.add(entry);
+                        }
+                    }
+                }
+                for (Set<Entry<RangeToken, V>> coll : rights.headMap(point,
+                        false).values()) {
+                    for (Entry<RangeToken, V> entry : coll) {
+                        Iterable<Range<Value>> ranges = RangeTokens
+                                .convertToRange(entry.getKey());
+                        boolean add = true;
+                        for (Range<Value> range : ranges) {
+                            if(range.intersects(point)) {
+                                add = false;
+                                break;
+                            }
+                        }
+                        if(add) {
+                            ne.add(entry);
+                        }
+                    }
+                }
+                return ne;
+            case GREATER_THAN:
+                return Sets.newHashSet(Iterables.concat(rights.tailMap(point,
+                        false).values()));
+            case GREATER_THAN_OR_EQUALS:
+                return Sets.newHashSet(Iterables.concat(rights.tailMap(point,
+                        true).values()));
+            case LESS_THAN:
+                return Sets.newHashSet(Iterables.concat(lefts.headMap(point,
+                        false).values()));
+            case LESS_THAN_OR_EQUALS:
+                return Sets.newHashSet(Iterables.concat(lefts.headMap(point,
+                        true).values()));
+            default:
+                throw new UnsupportedOperationException();
+            }
+        }
+        
+        /**
+         * TODO
+         * @param operator
+         * @param value
+         * @return
+         */
+        private boolean contains0(Operator operator, Value value){
+            Range<Value> point = Range.point(value);
+            switch (operator) {
+            case EQUALS:
+                return !lefts.get(point).isEmpty() && !rights.get(point).isEmpty();
+            case NOT_EQUALS:
+                //TODO better way to do this...
+                Set<Entry<RangeToken, V>> ne = Sets.newHashSet();
+                for (Set<Entry<RangeToken, V>> coll : lefts.tailMap(point,
+                        false).values()) {
+                    for (Entry<RangeToken, V> entry : coll) {
+                        Iterable<Range<Value>> ranges = RangeTokens
+                                .convertToRange(entry.getKey());
+                        boolean add = true;
+                        for (Range<Value> range : ranges) {
+                            if(range.intersects(point)) {
+                                add = false;
+                                break;
+                            }
+                        }
+                        if(add) {
+                            ne.add(entry);
+                        }
+                    }
+                }
+                for (Set<Entry<RangeToken, V>> coll : rights.headMap(point,
+                        false).values()) {
+                    for (Entry<RangeToken, V> entry : coll) {
+                        Iterable<Range<Value>> ranges = RangeTokens
+                                .convertToRange(entry.getKey());
+                        boolean add = true;
+                        for (Range<Value> range : ranges) {
+                            if(range.intersects(point)) {
+                                add = false;
+                                break;
+                            }
+                        }
+                        if(add) {
+                            ne.add(entry);
+                        }
+                    }
+                }
+                return !ne.isEmpty();
+            case GREATER_THAN:
+                return !rights.tailMap(point,  false).values().isEmpty();
+            case GREATER_THAN_OR_EQUALS:
+                return !rights.tailMap(point,  true).values().isEmpty();
+            case LESS_THAN:
+                return !lefts.headMap(point,  false).values().isEmpty();
+            case LESS_THAN_OR_EQUALS:
+                return !lefts.headMap(point,  true).values().isEmpty();
+            default:
+                throw new UnsupportedOperationException();
+            }
         }
 
         @Override
