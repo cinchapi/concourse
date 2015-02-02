@@ -25,8 +25,8 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Map;
 
+import org.cinchapi.common.util.Range;
 import org.cinchapi.concourse.ConcourseBaseTest;
-import org.cinchapi.concourse.server.concurrent.RangeTokenMap.JoinBy;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
@@ -37,6 +37,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for the {@link RangeTokenMap} data structure.
@@ -50,71 +51,6 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
     @Override
     public void beforeEachTest() {
         map = RangeTokenMap.create();
-    }
-
-    @Test
-    public void testPut() {
-        Text key = TestData.getText();
-        RangeToken token = getRangeToken(key);
-        String value = TestData.getString();
-        map.put(token, value);
-        Assert.assertEquals(value, map.get(token));
-    }
-
-    @Test
-    public void testGetReproA() {
-        Text key = Text
-                .wrap("ob1n03nfibohnt nnseh5 y pdf5xq9maz054e7oz q k0d wc wc7qly17waqq8icla64iugdx4 j x0ovg  w7aow9 wtk8qy");
-        Value value = Value.wrap(Convert.javaToThrift(true));
-        RangeToken equals = RangeToken.forReading(key, Operator.EQUALS, value);
-        RangeToken write = RangeToken.forWriting(key, value);
-        map.put(equals, "a");
-        map.put(equals, "b");
-        map.put(equals, "c");
-        map.put(write, "d");
-        map.put(equals, "e");
-        map.put(equals, "f");
-        map.put(equals, "g");
-        map.put(equals, "h");
-        map.put(equals, "i");
-        map.put(equals, "j");
-        Assert.assertEquals("j", map.get(equals));       
-    }
-
-    @Test
-    public void testRemove() {
-        Text key = TestData.getText();
-        RangeToken token = getRangeToken(key);
-        String value = TestData.getString();
-        map.put(token, value);
-        map.remove(token);
-        Assert.assertNull(map.get(token));
-    }
-
-    @Test
-    public void testReadEqualsAndWriteCanCoExist() {
-        Text key = Text.wrap("foo");
-        Value value = Value.wrap(Convert.javaToThrift(false));
-        RangeToken read = RangeToken.forReading(key, Operator.EQUALS, value);
-        RangeToken write = RangeToken.forWriting(key, value);
-        map.put(read, "read");
-        map.put(write, "write");
-        Assert.assertEquals(map.get(read), "read");
-        Assert.assertEquals(map.get(write), "write");
-    }
-
-    @Test
-    public void testOverwrite() {
-        Text key = TestData.getText();
-        RangeToken token = getRangeToken(key);
-        String value = TestData.getString();
-        String other = null;
-        while (other == null || value.equals(other)) {
-            other = TestData.getString();
-        }
-        map.put(token, value);
-        map.put(token, other);
-        Assert.assertEquals(other, map.get(token));
     }
 
     @Test
@@ -140,6 +76,267 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
         Assert.assertEquals(expected, map.filter(key));
     }
 
+    @Test
+    public void testFilterEq() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key, Operator.EQUALS,
+                v(1));
+        Assert.assertEquals(2, filtered.size());
+        Assert.assertEquals(Sets.newHashSet("G", "Q"),
+                Sets.newHashSet(filtered.values()));
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            if(token.getValues()[0].equals(v(1))
+                    && token.getValues().length == 1
+                    && (token.getOperator() == null || token.getOperator() == Operator.EQUALS)) {
+                Assert.assertTrue(filtered.containsKey(token));
+            }
+            else {
+                Assert.assertFalse(filtered.containsKey(token));
+            }
+        }
+    }
+
+    @Test
+    public void testFilterNeq() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key, Operator.NOT_EQUALS,
+                v(1));
+        Range<Value> range = Range.point(v(1));
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = true;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = false;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterGt() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key,
+                Operator.GREATER_THAN, v(1));
+        Range<Value> range = Range.exclusive(v(1), Value.POSITIVE_INFINITY);
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = false;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = true;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterGte() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key,
+                Operator.GREATER_THAN_OR_EQUALS, v(1));
+        Range<Value> range = Range.inclusive(v(1), Value.POSITIVE_INFINITY);
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = false;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = true;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterLte() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key,
+                Operator.LESS_THAN_OR_EQUALS, v(1));
+        Range<Value> range = Range.exclusiveInclusive(Value.NEGATIVE_INFINITY,
+                v(1));
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = false;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = true;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterLt() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key, Operator.LESS_THAN,
+                v(1));
+        Range<Value> range = Range.exclusive(Value.NEGATIVE_INFINITY, v(1));
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = false;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = true;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterBw() {
+        Text key = setupFilterTests();
+        Map<RangeToken, String> filtered = map.filter(key, v(1), v(5));
+        Range<Value> range = Range.inclusiveExclusive(v(1), v(5));
+        for (RangeToken token : map.keySet()) {
+            if(!token.getKey().equals(key)) {
+                continue;
+            }
+            Iterable<Range<Value>> myRanges = RangeTokens.convertToRange(token);
+            boolean status = false;
+            for (Range<Value> myRange : myRanges) {
+                if(range.contains(myRange) || range.intersects(myRange)) {
+                    status = true;
+                    break;
+                }
+            }
+            Assert.assertEquals(status, filtered.containsKey(token));
+        }
+    }
+
+    @Test
+    public void testFilterEqReproA() {
+        Text key = Text.wrap("caaa");
+        Value value = Value.wrap(Convert.javaToThrift(1));
+        map.put(RangeToken.forReading(key, Operator.EQUALS, value), "G");
+        map.put(RangeToken.forReading(key, Operator.EQUALS, value), "H");
+        map.put(RangeToken.forWriting(key, value), "Q");
+        Map<RangeToken, String> filtered = map.filter(key, Operator.EQUALS,
+                v(1));
+        Assert.assertEquals(2, filtered.size());
+    }
+
+    @Test
+    public void testGetReproA() {
+        Text key = Text
+                .wrap("ob1n03nfibohnt nnseh5 y pdf5xq9maz054e7oz q k0d wc wc7qly17waqq8icla64iugdx4 j x0ovg  w7aow9 wtk8qy");
+        Value value = Value.wrap(Convert.javaToThrift(true));
+        RangeToken equals = RangeToken.forReading(key, Operator.EQUALS, value);
+        RangeToken write = RangeToken.forWriting(key, value);
+        map.put(equals, "a");
+        map.put(equals, "b");
+        map.put(equals, "c");
+        map.put(write, "d");
+        map.put(equals, "e");
+        map.put(equals, "f");
+        map.put(equals, "g");
+        map.put(equals, "h");
+        map.put(equals, "i");
+        map.put(equals, "j");
+        Assert.assertEquals("j", map.get(equals));
+    }
+
+    @Test
+    public void testOverwrite() {
+        Text key = TestData.getText();
+        RangeToken token = getRangeToken(key);
+        String value = TestData.getString();
+        String other = null;
+        while (other == null || value.equals(other)) {
+            other = TestData.getString();
+        }
+        map.put(token, value);
+        map.put(token, other);
+        Assert.assertEquals(other, map.get(token));
+    }
+
+    @Test
+    public void testPut() {
+        Text key = TestData.getText();
+        RangeToken token = getRangeToken(key);
+        String value = TestData.getString();
+        map.put(token, value);
+        Assert.assertEquals(value, map.get(token));
+    }
+
+    @Test
+    public void testReadEqualsAndWriteCanCoExist() {
+        Text key = Text.wrap("foo");
+        Value value = Value.wrap(Convert.javaToThrift(false));
+        RangeToken read = RangeToken.forReading(key, Operator.EQUALS, value);
+        RangeToken write = RangeToken.forWriting(key, value);
+        map.put(read, "read");
+        map.put(write, "write");
+        Assert.assertEquals(map.get(read), "read");
+        Assert.assertEquals(map.get(write), "write");
+    }
+
+    @Test
+    public void testRemove() {
+        Text key = TestData.getText();
+        RangeToken token = getRangeToken(key);
+        String value = TestData.getString();
+        map.put(token, value);
+        map.remove(token);
+        Assert.assertNull(map.get(token));
+    }
+
+    // TODO: add more tests
+    /**
+     * Return a random {@link RangeToken} that has the specified {@code key}
+     * component.
+     * 
+     * @param key
+     * @return the RangeToken
+     */
+    private RangeToken getRangeToken(Text key) {
+        return getRangeToken(key, TestData.getValue());
+    }
+
+    /**
+     * Return a {@link RangeToken} that has the specified {@code key} and
+     * {@code value} components, but a random operator.
+     * 
+     * @param key
+     * @param value
+     * @return the RangeToken
+     */
+    private RangeToken getRangeToken(Text key, Value value) {
+        if(Time.now() % 2 == 0) {
+            return RangeToken.forReading(key, Operator.EQUALS, value);
+        }
+        else {
+            return RangeToken.forWriting(key, value);
+        }
+    }
+
     /**
      * Populate the map with data in preparation for tests that verify the
      * {@link RangeTokenMap#filter(Text, Operator, Value, org.cinchapi.concourse.server.concurrent.RangeTokenMap.JoinBy, Operator, Value)
@@ -148,7 +345,7 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
      * @return the key
      */
     private Text setupFilterTests() {
-        Text key = TestData.getText();
+        Text key = Text.wrap("foo");
         map.put(RangeToken.forReading(key, Operator.BETWEEN, v(1), v(10)), "A");
         map.put(RangeToken.forReading(key, Operator.GREATER_THAN, v(1)), "B");
         map.put(RangeToken.forReading(key, Operator.LESS_THAN, v(10)), "C");
@@ -208,55 +405,6 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
      */
     private Value v(int i) {
         return Value.wrap(Convert.javaToThrift(i));
-    }
-
-    @Test
-    public void testFilterEq() {
-        Text key = setupFilterTests();
-        Map<RangeToken, String> filtered = map.filter(key, Operator.EQUALS,
-                v(1), JoinBy.AND, Operator.EQUALS, v(1));
-        Assert.assertEquals(2, filtered.size());
-    }
-
-    @Test
-    public void testFilterEqReproA() {
-        Text key = Text.wrap("caaa");
-        Value value = Value.wrap(Convert.javaToThrift(1));
-        map.put(RangeToken.forReading(key, Operator.EQUALS, value), "G");
-        map.put(RangeToken.forReading(key, Operator.EQUALS, value), "H");
-        map.put(RangeToken.forWriting(key, value), "Q");
-        Map<RangeToken, String> filtered = map.filter(key, Operator.EQUALS,
-                v(1), JoinBy.AND, Operator.EQUALS, v(1));
-        Assert.assertEquals(2, filtered.size());
-    }
-
-    // TODO: add more tests
-    /**
-     * Return a random {@link RangeToken} that has the specified {@code key}
-     * component.
-     * 
-     * @param key
-     * @return the RangeToken
-     */
-    private RangeToken getRangeToken(Text key) {
-        return getRangeToken(key, TestData.getValue());
-    }
-
-    /**
-     * Return a {@link RangeToken} that has the specified {@code key} and
-     * {@code value} components, but a random operator.
-     * 
-     * @param key
-     * @param value
-     * @return the RangeToken
-     */
-    private RangeToken getRangeToken(Text key, Value value) {
-        if(Time.now() % 2 == 0) {
-            return RangeToken.forReading(key, Operator.EQUALS, value);
-        }
-        else {
-            return RangeToken.forWriting(key, value);
-        }
     }
 
 }
