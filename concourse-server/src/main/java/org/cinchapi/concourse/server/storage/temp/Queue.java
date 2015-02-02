@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-
 import com.google.common.collect.Lists;
 
 /**
@@ -71,7 +70,7 @@ public class Queue extends Limbo {
 
     @Override
     public boolean insert(Write write) {
-    	return writes.add(write);
+        return writes.add(write);
     }
 
     @Override
@@ -89,6 +88,20 @@ public class Queue extends Limbo {
         List<Write> copy = Lists.newArrayList(writes);
         Collections.reverse(copy);
         return copy.iterator();
+    }
+
+    @Override
+    public long getOldestWriteTimstamp() {
+        // When there is no data in the buffer return the max possible timestamp
+        // so that no query's timestamp is less than this timestamp
+        if(writes.size() == 0) {
+            return Long.MAX_VALUE;
+        }
+        else {
+            Write oldestWrite = writes.get(0);
+            return oldestWrite.getVersion();
+        }
+
     }
 
 }
