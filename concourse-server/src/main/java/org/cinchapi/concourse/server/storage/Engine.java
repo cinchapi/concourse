@@ -405,7 +405,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<Long, String> auditUnsafe(long record) {
+    Map<Long, String> auditUnsafe(long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(record);
@@ -432,7 +432,7 @@ public final class Engine extends BufferedStore implements
     /**
      * Audit {@code key} in {@code record}. This method returns a log of
      * revisions in {@code record} as a Map WITHOUT grabbing any locks.
-     * This method is ONLY appropriate to call from the methods of 
+     * This method is ONLY appropriate to call from the methods of
      * {@link #AtomicOperation} class because in this case intermediate
      * read {@link #Lock} is not required.
      * 
@@ -440,7 +440,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    Map<Long, String> auditUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(key, record);
@@ -473,7 +473,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<String, Set<TObject>> browseUnsafe(long record) {
+    Map<String, Set<TObject>> browseUnsafe(long record) {
         transportLock.readLock().lock();
         try {
             return super.browse(record);
@@ -514,13 +514,13 @@ public final class Engine extends BufferedStore implements
      * currently indexed to {@code key} to a Set the records that contain
      * {@code key} as the associated value. If there are no such values, an
      * empty Map is returned. This method is ONLY appropriate to call from
-     * the methods of {@link #AtomicOperation} class because in this case 
+     * the methods of {@link #AtomicOperation} class because in this case
      * intermediate read {@link #Lock} is not required.
      * 
      * @param key
      * @return {@code Map}
      */
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    Map<TObject, Set<Long>> browseUnsafe(String key) {
         transportLock.readLock().lock();
         try {
             return super.browse(key);
@@ -574,7 +574,7 @@ public final class Engine extends BufferedStore implements
      * This method returns the values currently mapped from {@code key} in
      * {@code record}. The returned Set is nonempty if and only if {@code key}
      * is a member of the Set returned from {@link describe(long)}.
-     * This method is ONLY appropriate to call from the methods of 
+     * This method is ONLY appropriate to call from the methods of
      * {@link #AtomicOperation} class because in this case
      * intermediate read {@link #Lock} is not required.
      * 
@@ -582,7 +582,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Set}
      */
-    public Set<TObject> fetchUnsafe(String key, long record) {
+    Set<TObject> fetchUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.fetch(key, record);
@@ -789,8 +789,8 @@ public final class Engine extends BufferedStore implements
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
         }
         finally {
             read.unlock();
@@ -801,10 +801,10 @@ public final class Engine extends BufferedStore implements
     /**
      * Verify {@code key} equals {@code value} in {@code record}.
      * This method checks that there is currently a mapping from {@code key} to
-     * {@code value} in {@code record}. This method has the same affect as 
+     * {@code value} in {@code record}. This method has the same affect as
      * calling {@link fetch(String, long)} {@link Set.contains(Object)}.
      * This method is ONLY appropriate to call from the methods of
-     * {@link #AtomicOperation} class because in this case intermediate read 
+     * {@link #AtomicOperation} class because in this case intermediate read
      * {@link #Lock} is not required.
      * 
      * @param key
@@ -812,11 +812,11 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code boolean}
      */
-    public boolean verifyUnsafe(String key, TObject value, long record) {
+    boolean verifyUnsafe(String key, TObject value, long record) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record)
-                    : false;
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -827,8 +827,8 @@ public final class Engine extends BufferedStore implements
     public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return inventory.contains(record) ? super.verify(key, value, record,
-                    timestamp) : false;
+            return inventory.contains(record) ? super.verify(key, value,
+                    record, timestamp) : false;
         }
         finally {
             transportLock.readLock().unlock();
@@ -871,8 +871,8 @@ public final class Engine extends BufferedStore implements
     /**
      * Do the work to explore {@code key} {@code operator} {@code values}
      * without worry about normalizing the {@code operator} or {@code values}.
-     * This method is ONLY appropriate to call from the methods of 
-     * {@link #AtomicOperation} class because in this case intermediate read 
+     * This method is ONLY appropriate to call from the methods of
+     * {@link #AtomicOperation} class because in this case intermediate read
      * {@link #Lock} is not required.
      * 
      * @param key
@@ -880,8 +880,8 @@ public final class Engine extends BufferedStore implements
      * @param values
      * @return {@code Map}
      */
-    protected Map<Long, Set<TObject>> doExploreUnsafe(String key,
-            Operator operator, TObject... values) {
+    Map<Long, Set<TObject>> doExploreUnsafe(String key, Operator operator,
+            TObject... values) {
         transportLock.readLock().lock();
         try {
             return super.doExplore(key, operator, values);
