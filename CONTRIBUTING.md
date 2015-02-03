@@ -17,7 +17,7 @@ To get started, please <a href="http://www.clahub.com/agreements/cinchapi/concou
 3. Follow the instructions on the [Concourse Dev Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup) guide.
 
 ### Pick an issue
-1. Choose an open [issue](https://cinchapi.atlassian.net/browse/CON) or implement a new feature from the [roadmap](https://cinchapi.atlassian.net/wiki/display/CON/Roadmap). You can also suggest your own projects.
+1. Choose an open [issue](https://cinchapi.atlassian.net/issues/?filter=10402) or implement a new feature from the [roadmap](https://cinchapi.atlassian.net/wiki/display/CON/Roadmap). You can also suggest your own projects.
 2. [Create an account](https://cinchapi.atlassian.net/secure/Signup!default.jspa) in Jira.
 3. If necessary, create a new ticket to track your work. Otherwise, assign an existing ticket to yourself.
 
