@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.lang;
 
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Convert;
 
 /**
  * The {@link State} that expects the next token to be an operator.
@@ -51,6 +52,10 @@ public class KeyState extends State {
     public OperatorState operator(Operator operator) {
         criteria.add(OperatorSymbol.create(operator));
         return new OperatorState(criteria);
+    }
+    
+    public OperatorState operator(String operator) {
+    	return operator(Convert.stringToOperator(operator));
     }
 
 }
