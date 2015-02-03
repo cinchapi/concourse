@@ -398,7 +398,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<Long, String> auditUnsafe(long record) {
+    Map<Long, String> auditUnsafe(long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(record);
@@ -433,7 +433,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<Long, String> auditUnsafe(String key, long record) {
+    Map<Long, String> auditUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.audit(key, record);
@@ -466,7 +466,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Map}
      */
-    public Map<String, Set<TObject>> browseUnsafe(long record) {
+    Map<String, Set<TObject>> browseUnsafe(long record) {
         transportLock.readLock().lock();
         try {
             return super.browse(record);
@@ -513,7 +513,7 @@ public final class Engine extends BufferedStore implements
      * @param key
      * @return {@code Map}
      */
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+    Map<TObject, Set<Long>> browseUnsafe(String key) {
         transportLock.readLock().lock();
         try {
             return super.browse(key);
@@ -575,7 +575,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code Set}
      */
-    public Set<TObject> fetchUnsafe(String key, long record) {
+    Set<TObject> fetchUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.fetch(key, record);
@@ -807,7 +807,7 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code boolean}
      */
-    public boolean verifyUnsafe(String key, TObject value, long record) {
+    boolean verifyUnsafe(String key, TObject value, long record) {
         transportLock.readLock().lock();
         try {
             return super.verify(key, value, record);
@@ -854,7 +854,7 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
-    
+
     /**
      * Do the work to explore {@code key} {@code operator} {@code values}
      * without worry about normalizing the {@code operator} or {@code values}.
@@ -868,8 +868,8 @@ public final class Engine extends BufferedStore implements
      * @param values
      * @return {@code Map}
      */
-    protected Map<Long, Set<TObject>> doExploreUnsafe(String key,
-            Operator operator, TObject... values) {
+    Map<Long, Set<TObject>> doExploreUnsafe(String key, Operator operator,
+            TObject... values) {
         transportLock.readLock().lock();
         try {
             return super.doExplore(key, operator, values);
