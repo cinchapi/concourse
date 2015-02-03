@@ -53,9 +53,9 @@ public class KeyState extends State {
         criteria.add(OperatorSymbol.create(operator));
         return new OperatorState(criteria);
     }
-    
+
     public OperatorState operator(String operator) {
-    	return operator(Convert.stringToOperator(operator));
+        return operator(Convert.stringToOperator(operator));
     }
 
 }
