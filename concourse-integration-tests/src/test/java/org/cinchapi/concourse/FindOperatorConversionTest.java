@@ -1,7 +1,7 @@
 package org.cinchapi.concourse;
 
+import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.thrift.Operator;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testLessThanOrEqualToOperatorConversion() {
+    public void testLessThanOrEqualsOperatorConversion() {
         Assert.assertEquals(
                 client.find("age", Operator.LESS_THAN_OR_EQUALS, 2),
                 client.find("age", "<=", 2));
@@ -51,7 +51,7 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testGreaterThanOrEqualOperatorToConversion() {
+    public void testGreaterThanOrEqualsOperatorToConversion() {
         Assert.assertEquals(
                 client.find("age", Operator.GREATER_THAN_OR_EQUALS, 99),
                 client.find("age", ">=", 99));
@@ -73,5 +73,61 @@ public class FindOperatorConversionTest extends ConcourseIntegrationTest {
     public void testBetweenOperatorConversion() {
         Assert.assertEquals(client.find("age", Operator.BETWEEN, 40, 50),
                 client.find("age", "><", 40, 50));
+    }
+
+    // Testing CriteriaBuilder
+    @Test
+    public void testLessThanOperatorConversionCb() {
+        Assert.assertEquals(client.find(Criteria.where().key("age")
+                .operator(Operator.LESS_THAN).value(25)), client.find(Criteria
+                .where().key("age").operator("<").value(25)));
+    }
+
+    @Test
+    public void testLessThanOrEqualsOperatorConversionCb() {
+        Assert.assertEquals(client.find(Criteria.where().key("age")
+                .operator(Operator.LESS_THAN_OR_EQUALS).value(2)), client
+                .find(Criteria.where().key("age").operator("<=").value(2)));
+    }
+
+    @Test
+    public void testGreaterThanOperatorConversionCb() {
+        Assert.assertEquals(client.find(Criteria.where().key("age")
+                .operator(Operator.GREATER_THAN).value(50)), client
+                .find(Criteria.where().key("age").operator(">").value(50)));
+    }
+
+    @Test
+    public void testGreaterThanOrEqualsOperatorConversionCb() {
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.GREATER_THAN_OR_EQUALS).value(99)),
+                client.find(Criteria.where().key("age").operator(">=")
+                        .value(99)));
+    }
+
+    @Test
+    public void testEqualsOperatorConversionCb() {
+        Assert.assertEquals(client.find(Criteria.where().key("age")
+                .operator(Operator.EQUALS).value(15)), client.find(Criteria
+                .where().key("age").operator("=").value(15)));
+    }
+
+    @Test
+    public void testNotEqualsOperatorConversionCb() {
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.NOT_EQUALS).value(19)),
+                client.find(Criteria.where().key("age").operator("!=")
+                        .value(19)));
+    }
+
+    @Test
+    public void testBetweenOperatorConversionCb() {
+        Assert.assertEquals(
+                client.find(Criteria.where().key("age")
+                        .operator(Operator.BETWEEN).value(40).value(50)),
+                client.find(Criteria.where().key("age").operator("><")
+                        .value(40).value(50)));
     }
 }
