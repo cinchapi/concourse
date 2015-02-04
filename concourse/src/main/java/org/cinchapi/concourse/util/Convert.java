@@ -248,50 +248,38 @@ public final class Convert {
      * @return
      */
     public static Operator stringToOperator(String symbol) {
-        Operator operator = null;
-
         switch (symbol) {
         case "=":
         case "eq":
-            operator = Operator.EQUALS;
-            break;
+            return Operator.EQUALS;
         case "!=":
         case "ne":
-            operator = Operator.NOT_EQUALS;
-            break;
+            return Operator.NOT_EQUALS;
         case ">":
         case "gt":
-            operator = Operator.GREATER_THAN;
-            break;
+            return Operator.GREATER_THAN;
         case ">=":
         case "gte":
-            operator = Operator.GREATER_THAN_OR_EQUALS;
-            break;
+            return Operator.GREATER_THAN_OR_EQUALS;
         case "<":
         case "lt":
-            operator = Operator.LESS_THAN;
-            break;
+            return Operator.LESS_THAN;
         case "<=":
         case "lte":
-            operator = Operator.LESS_THAN_OR_EQUALS;
-            break;
+            return Operator.LESS_THAN_OR_EQUALS;
         case "><":
         case "bw":
-            operator = Operator.BETWEEN;
-            break;
+            return Operator.BETWEEN;
         case "->":
         case "lnk2":
-            operator = Operator.LINKS_TO;
-            break;
+            return Operator.LINKS_TO;
         case "regex":
-            operator = Operator.REGEX;
-            break;
+            return Operator.REGEX;
         case "nregex":
-            operator = Operator.NOT_REGEX;
-            break;
+            return Operator.NOT_REGEX;
+        default:
+            throw new IllegalArgumentException();
         }
-
-        return operator;
     }
 
     /**
