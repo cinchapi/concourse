@@ -54,6 +54,13 @@ public class KeyState extends State {
         return new OperatorState(criteria);
     }
 
+    /**
+     * Add the specified {@code operator} to the {@link Criteria} that is
+     * building.
+     * 
+     * @param operator
+     * @return the builder
+     */
     public OperatorState operator(String operator) {
         return operator(Convert.stringToOperator(operator));
     }
