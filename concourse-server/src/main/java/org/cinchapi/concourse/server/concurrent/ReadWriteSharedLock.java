@@ -60,15 +60,47 @@ public class ReadWriteSharedLock implements ReadWriteLock {
     private final Object readSync, writeSync;
 
     /**
-     * Construct a new instance.
+     * The flag that indicates whether this lock allows many concurrent writers
+     * (traditional = false) or not (traditional = true). This variable is
+     * called traditional because, in the case that it is {@code true}, this
+     * lock behaves just like a normal {@link ReentrantReadWriteLock}.
+     */
+    private final boolean traditional;
+
+    /**
+     * Construct a new default instance which allows multiple concurrent
+     * writers.
      */
     public ReadWriteSharedLock() {
-        this.readers = new ReentrantReadWriteLock();
-        this.writers = new ReentrantReadWriteLock();
-        this.readSync = new Object();
-        this.writeSync = new Object();
-        this.readLock = new SharedLock(readers, writers, readSync, writeSync);
-        this.writeLock = new SharedLock(writers, readers, writeSync, readSync);
+        this(true);
+    }
+
+    /**
+     * Construct a new instance that optionally allows concurrent writers or not
+     * (and therefore behaves like a traditional {@link ReentrantReadWriteLock}.
+     * 
+     * @param allowConcurrentWriters
+     */
+    public ReadWriteSharedLock(boolean allowConcurrentWriters) {
+        this.traditional = !allowConcurrentWriters;
+        if(traditional) {
+            this.readers = new ReentrantReadWriteLock();
+            this.writers = readers;
+            this.readLock = readers.readLock();
+            this.writeLock = readers.writeLock();
+            this.readSync = null;
+            this.writeSync = null;
+        }
+        else {
+            this.readers = new ReentrantReadWriteLock();
+            this.writers = new ReentrantReadWriteLock();
+            this.readSync = new Object();
+            this.writeSync = new Object();
+            this.readLock = new SharedLock(readers, writers, readSync,
+                    writeSync);
+            this.writeLock = new SharedLock(writers, readers, writeSync,
+                    readSync);
+        }
 
     }
 
@@ -103,7 +135,8 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      *         or zero if the write lock is not held by the current thread
      */
     public int getWriteHoldCount() {
-        return writers.getReadHoldCount();
+        return traditional ? writers.getWriteHoldCount() : writers
+                .getReadHoldCount();
     }
 
     /**
@@ -113,7 +146,8 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * @return the number of write locks held
      */
     public int getWriteLockCount() {
-        return writers.getReadLockCount();
+        return traditional ? (writers.isWriteLocked() ? 1 : 0) : writers
+                .getReadLockCount();
     }
 
     /**
@@ -122,7 +156,8 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * @return {@code true} if the write lock is held by the current thread
      */
     public boolean isWriteLockedByCurrentThread() {
-        return writers.getReadHoldCount() > 0;
+        return traditional ? writers.isWriteLockedByCurrentThread() : writers
+                .getReadHoldCount() > 0;
     }
 
     @Override
@@ -164,7 +199,7 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * 
      * @author jnelson
      */
-    private static class SharedLock implements Lock {
+    static class SharedLock implements Lock {
 
         /**
          * References to the internal locks that are coordinated by this shared
@@ -181,6 +216,20 @@ public class ReadWriteSharedLock implements ReadWriteLock {
         private final Object receivers, corners;
 
         /**
+         * This constructor is meant for anonymous subclasses to create a new
+         * instance in-line.
+         * 
+         * @param parent
+         * @param read
+         */
+        protected SharedLock(ReadWriteSharedLock parent, boolean read) {
+            this(read ? parent.readers : parent.writers, read ? parent.writers
+                    : parent.readers,
+                    read ? parent.readSync : parent.writeSync,
+                    read ? parent.writeSync : parent.readSync);
+        }
+
+        /**
          * Construct a new instance.
          * 
          * @param offense
@@ -188,7 +237,7 @@ public class ReadWriteSharedLock implements ReadWriteLock {
          * @param receivers
          * @param corners
          */
-        protected SharedLock(ReentrantReadWriteLock offense,
+        private SharedLock(ReentrantReadWriteLock offense,
                 ReentrantReadWriteLock defense, Object receivers, Object corners) {
             this.offense = offense;
             this.defense = defense;
