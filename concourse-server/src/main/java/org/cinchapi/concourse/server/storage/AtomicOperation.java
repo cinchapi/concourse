@@ -220,7 +220,7 @@ public class AtomicOperation extends BufferedStore implements
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
         intentions.add(new RecordLockIntention(record));
-        return super.audit(record);
+        return super.audit(record, true);
     }
 
     @Override
@@ -231,7 +231,7 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.READ));
-        return super.audit(key, record);
+        return super.audit(key, record, true);
     }
 
     @Override
@@ -241,7 +241,7 @@ public class AtomicOperation extends BufferedStore implements
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
         intentions.add(new RecordLockIntention(record));
-        return super.browse(record);
+        return super.browse(record, true);
     }
 
     @Override
@@ -258,7 +258,7 @@ public class AtomicOperation extends BufferedStore implements
         ((Compoundable) destination).addVersionChangeListener(Token.wrap(key),
                 this);
         intentions.add(new KeyLockIntention(key));
-        return super.browse(key);
+        return super.browse(key, true);
     }
 
     @Override
@@ -312,7 +312,7 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.READ));
-        return super.fetch(key, record);
+        return super.fetch(key, record, true);
     }
 
     @Override
@@ -377,7 +377,7 @@ public class AtomicOperation extends BufferedStore implements
                 Token.wrap(key, record), this);
         intentions
                 .add(new KeyInRecordLockIntention(key, record, LockType.READ));
-        return super.verify(key, value, record);
+        return super.verify(key, value, record, true);
     }
 
     @Override
@@ -436,7 +436,7 @@ public class AtomicOperation extends BufferedStore implements
         intentions.add(new RangeLockIntention(Text.wrapCached(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class)));
-        return super.doExplore(key, operator, values);
+        return super.doExplore(key, operator, values, true);
     }
 
     /**

@@ -135,22 +135,17 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Map<Long, String> audit(long record) {
-        Map<Long, String> result = destination.audit(record);
-        result.putAll(buffer.audit(record));
-        return result;
+        return audit(record, false);
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        Map<Long, String> result = destination.audit(key, record);
-        result.putAll(buffer.audit(key, record));
-        return result;
+        return audit(key, record, false);
     }
 
     @Override
     public Map<String, Set<TObject>> browse(long record) {
-        Map<String, Set<TObject>> context = destination.browse(record);
-        return buffer.browse(record, Time.now(), context);
+        return browse(record, false);
     }
 
     @Override
@@ -162,8 +157,7 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        Map<TObject, Set<Long>> context = destination.browse(key);
-        return buffer.browse(key, Time.now(), context);
+        return browse(key, false);
     }
 
     @Override
@@ -174,8 +168,7 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Set<TObject> fetch(String key, long record) {
-        Set<TObject> context = destination.fetch(key, record);
-        return buffer.fetch(key, record, Time.now(), context);
+        return fetch(key, record, false);
     }
 
     @Override
@@ -235,8 +228,8 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        return buffer.verify(Write.notStorable(key, value, record),
-                destination.verify(key, value, record));
+        return verify(key, value, record, false);
+
     }
 
     @Override
@@ -255,9 +248,195 @@ public abstract class BufferedStore extends BaseStore {
 
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(key, operator,
-                values);
+        return doExplore(key, operator, values, false);
+    }
+
+    /**
+     * Audit {@code record} either using safe methods or unsafe methods..
+     * <p>
+     * This method returns a log of revisions in {@code record} as a Map
+     * associating timestamps (in milliseconds) to CAL statements:
+     * </p>
+     * 
+     * <pre>
+     * {
+     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
+     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
+     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
+     * }
+     * </pre>
+     * 
+     * @param record
+     * @param boolean
+     * @return the the revision log
+     */
+    protected Map<Long, String> audit(long record, boolean unsafe) {
+        Map<Long, String> result;
+        if(unsafe && destination instanceof Compoundable) {
+            result = ((Compoundable) (destination)).auditUnsafe(record);
+        }
+        else {
+            result = destination.audit(record);
+        }
+        result.putAll(buffer.audit(record));
+        return result;
+    }
+
+    /**
+     * Audit {@code key} in {@code record} either using safe methods or unsafe
+     * methods.
+     * <p>
+     * This method returns a log of revisions in {@code record} as a Map
+     * associating timestamps (in milliseconds) to CAL statements:
+     * </p>
+     * 
+     * <pre>
+     * {
+     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
+     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
+     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
+     * }
+     * </pre>
+     * 
+     * @param key
+     * @param record
+     * @param unsafe
+     * @return the revision log
+     */
+    protected Map<Long, String> audit(String key, long record, boolean unsafe) {
+        Map<Long, String> result;
+        if(unsafe && destination instanceof Compoundable) {
+            result = ((Compoundable) (destination)).auditUnsafe(key, record);
+        }
+        else {
+            result = destination.audit(key, record);
+        }
+        result.putAll(buffer.audit(key, record));
+        return result;
+    }
+
+    /**
+     * Browse {@code record} either using safe or unsafe methods.
+     * <p>
+     * This method returns a mapping from each of the nonempty keys in
+     * {@code record} to a Set of associated values. If there are no such keys,
+     * an empty Map is returned.
+     * </p>
+     * 
+     * @param record
+     * @param unsafe
+     * @return a possibly empty Map of data.
+     */
+    protected Map<String, Set<TObject>> browse(long record, boolean unsafe) {
+        Map<String, Set<TObject>> context;
+        if(unsafe && destination instanceof Compoundable) {
+            context = ((Compoundable) (destination)).browseUnsafe(record);
+        }
+        else {
+            context = destination.browse(record);
+        }
+        return buffer.browse(record, Time.now(), context);
+    }
+
+    /**
+     * Browse {@code key} either using safe or unsafe methods.
+     * <p>
+     * This method returns a mapping from each of the values that is currently
+     * indexed to {@code key} to a Set the records that contain {@code key} as
+     * the associated value. If there are no such values, an empty Map is
+     * returned.
+     * </p>
+     * 
+     * @param key
+     * @param unsafe
+     * @return a possibly empty Map of data
+     */
+    protected Map<TObject, Set<Long>> browse(String key, boolean unsafe) {
+        Map<TObject, Set<Long>> context;
+        if(unsafe && destination instanceof Compoundable) {
+            context = ((Compoundable) (destination)).browseUnsafe(key);
+        }
+        else {
+            context = destination.browse(key);
+        }
+        return buffer.browse(key, Time.now(), context);
+    }
+
+    /**
+     * Do the work to explore {@code key} {@code operator} {@code values}
+     * without worry about normalizing the {@code operator} or {@code values}
+     * either using safe or unsafe methods.
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     * @return {@code Map}
+     */
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject[] values, boolean unsafe) {
+        Map<Long, Set<TObject>> context;
+        if(unsafe && destination instanceof Compoundable) {
+            context = ((Compoundable) (destination)).doExploreUnsafe(key,
+                    operator, values);
+        }
+        else {
+            context = destination.explore(key, operator, values);
+        }
         return buffer.explore(context, Time.now(), key, operator, values);
+    }
+
+    /**
+     * Fetch {@code key} from {@code record} either using safe or unsafe
+     * methods.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link #describe(long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param unsafe
+     * @return a possibly empty Set of values
+     */
+    protected Set<TObject> fetch(String key, long record, boolean unsafe) {
+        Set<TObject> context;
+        if(unsafe && destination instanceof Compoundable) {
+            context = ((Compoundable) (destination)).fetchUnsafe(key, record);
+        }
+        else {
+            context = destination.fetch(key, record);
+        }
+        return buffer.fetch(key, record, Time.now(), context);
+    }
+
+    /**
+     * Verify {@code key} equals {@code value} in {@code record} either using
+     * safe or unsafe method.
+     * <p>
+     * This method checks that there is <em>currently</em> a mapping from
+     * {@code key} to {@code value} in {@code record}. This method has the same
+     * affect as calling {@link #fetch(String, long)}
+     * {@link Set#contains(Object)}.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if there is a an association from {@code key} to
+     *         {@code value} in {@code record}
+     */
+    protected boolean verify(String key, TObject value, long record,
+            boolean unsafe) {
+        boolean destResult;
+        if(unsafe && destination instanceof Compoundable) {
+            destResult = ((Compoundable) (destination)).verifyUnsafe(key,
+                    value, record);
+        }
+        else {
+            destResult = destination.verify(key, value, record);
+        }
+        return buffer.verify(Write.notStorable(key, value, record), destResult);
     }
 
     /**
