@@ -108,9 +108,11 @@ public class TSets {
             }
             else if(order > 0) {
                 bgo = true;
+                ago = false;
             }
             else {
                 ago = true;
+                bgo = false;
             }
         }
         return intersection;
