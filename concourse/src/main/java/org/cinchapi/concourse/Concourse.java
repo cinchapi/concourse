@@ -67,11 +67,10 @@ import com.google.common.collect.Lists;
 
 /**
  * <p>
- * Concourse is a schemaless and distributed version control database with
- * automatic indexing, acid transactions and full-text search. Concourse
- * provides a more intuitive approach to data management that is easy to deploy,
- * access and scale with minimal tuning while also maintaining the referential
- * integrity and ACID characteristics of traditional database systems.
+ * Concourse is a distributed self-tuning database with automatic indexing,
+ * version control, and ACID transactions. Concourse provides a more intuitive
+ * approach to data management that is easy to deploy, access and scale while
+ * maintaining the strong consistency of traditional database systems.
  * </p>
  * <h2>Data Model</h2>
  * <p>
