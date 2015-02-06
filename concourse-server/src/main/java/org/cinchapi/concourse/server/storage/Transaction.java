@@ -31,6 +31,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.common.util.NonBlockingRangeMap;
@@ -47,6 +49,7 @@ import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.server.storage.temp.Write;
+import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -63,7 +66,8 @@ import com.google.common.collect.Multimap;
  * @author jnelson
  */
 public final class Transaction extends AtomicOperation implements Compoundable {
-
+    // NOTE: Because Transaction's rely on JIT locking, the safe methods are
+    // identical to the unsafe ones and do not grab any locks
     /**
      * Return the Transaction for {@code destination} that is backed up to
      * {@code file}. This method will finish committing the transaction before
@@ -242,6 +246,42 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         else {
             versionChangeListeners.remove(token, listener);
         }
+    }
+
+    @Override
+    public Map<Long, String> auditUnsafe(long record) {
+        return audit(record);
+    }
+
+    @Override
+    public Map<Long, String> auditUnsafe(String key, long record) {
+        return audit(key, record);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browseUnsafe(long record) {
+        return browse(record);
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+        return browse(key);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
+            Operator operator, TObject... values) {
+        return doExplore(key, operator, values);
+    }
+
+    @Override
+    public Set<TObject> fetchUnsafe(String key, long record) {
+        return fetch(key, record);
+    }
+
+    @Override
+    public boolean verifyUnsafe(String key, TObject value, long record) {
+        return verify(key, value, record);
     }
 
     @Override
