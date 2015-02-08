@@ -46,7 +46,7 @@ final class TokenReadWriteLock extends ReferenceCountingLock {
      * @param token
      */
     public TokenReadWriteLock(Token token) {
-        super();
+        super(token.cardinality > 1 ? new ReadWriteSharedLock() : new ReentrantReadWriteLock());
         this.token = token;
     }
 

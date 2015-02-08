@@ -28,8 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 
 /**
- * A {@link ReentrantReadWriteLock} that has a counter to keep track of
- * references. References are decremented when the read or write lock is
+ * A decorated {@link ReentrantReadWriteLock} that has a counter to keep track
+ * of references. References are decremented when the read or write lock is
  * released. The subclass should increment the reference count when the lock is
  * considered to be <em>grabbed</em>
  * 
@@ -51,29 +51,161 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
     @PackagePrivate
     final AtomicInteger refs = new AtomicInteger(0);
 
+    /**
+     * The lock that is decorated by this reference counting wrapper.
+     */
+    private final ReentrantReadWriteLock decorated;
+
+    /**
+     * A reference to the readLock that performs the work in the
+     * {@link #readLock()} method.
+     */
+    private final ReadLock readLock0;
+
+    /**
+     * A reference to the writeLock that performs the work in the
+     * {@link #writeLock()} method.
+     */
+    private final WriteLock writeLock0;
+
+    /**
+     * The {@link ReadLock} instance that is returned from the
+     * {@link #readLock()} method.
+     */
+    private final ReadLock readLock;
+
+    /**
+     * The {@link WriteLock} instance that is returned from the
+     * {@link #writeLock()} method.
+     */
+    private final WriteLock writeLock;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param decorated
+     */
+    ReferenceCountingLock(ReentrantReadWriteLock decorated) {
+        this.decorated = decorated;
+        this.readLock0 = decorated.readLock();
+        this.writeLock0 = decorated.writeLock();
+
+        this.readLock = new DecoratedReadLock();
+        this.writeLock = new DecoratedWriteLock();
+    }
+
+    /**
+     * A {@link WriteLock} that handles reference counting.
+     * 
+     * @author jnelson
+     */
+    private class DecoratedWriteLock extends WriteLock {
+
+        /**
+         * Construct a new instance.
+         */
+        protected DecoratedWriteLock() {
+            super(decorated);
+        }
+
+        @Override
+        public void lock() {
+            beforeWriteLock();
+            writeLock0.lock();
+        }
+
+        @Override
+        public boolean tryLock() {
+            return tryBeforeWriteLock() && writeLock0.tryLock();
+        }
+
+        @Override
+        public void unlock() {
+            writeLock0.unlock();
+            refs.decrementAndGet();
+        }
+
+    }
+
+    /**
+     * A {@link ReadLock} that handles reference counting.
+     * 
+     * @author jnelson
+     */
+    private class DecoratedReadLock extends ReadLock {
+
+        /**
+         * Construct a new instance.
+         */
+        protected DecoratedReadLock() {
+            super(decorated);
+        }
+
+        @Override
+        public void lock() {
+            beforeReadLock();
+            readLock0.lock();
+        }
+
+        @Override
+        public boolean tryLock() {
+            return tryBeforeReadLock() && readLock0.tryLock();
+        }
+
+        @Override
+        public void unlock() {
+            readLock0.unlock();
+            refs.decrementAndGet();
+        }
+
+    }
+
     @Override
     public ReadLock readLock() {
-        return new ReadLock(this) {
-
-            @Override
-            public void unlock() {
-                super.unlock();
-                refs.decrementAndGet();
-            }
-
-        };
+        return readLock;
     }
 
     @Override
     public WriteLock writeLock() {
-        return new WriteLock(this) {
+        return writeLock;
+    }
 
-            @Override
-            public void unlock() {
-                super.unlock();
-                refs.decrementAndGet();
-            }
+    /**
+     * This (optional) method is always run before grabbing the read lock. It is
+     * useful for cases where it is necessary to check some additional state
+     * before proceeding to the locking routing.
+     */
+    protected void beforeReadLock() {/* noop */}
 
-        };
+    /**
+     * This (optional) method is always run before grabbing the write lock. It
+     * is useful for cases where it is necessary to check some additional state
+     * before proceeding to the locking routing.
+     */
+    protected void beforeWriteLock() {/* noop */}
+
+    /**
+     * This (optional) method is always run before an attempt is made to grab
+     * the read lock. It is useful for cases where it is necessary to check some
+     * additional state to determine if the read lock is grabable.
+     * 
+     * @return {@code true} if the routine determines an attempt should be made
+     *         to grab the read lock
+     */
+    protected boolean tryBeforeReadLock() {
+        return true;
+    }
+
+    /**
+     * This (optional) method is always run before an attempt is made to grab
+     * the write lock. It is useful for cases where it is necessary to check
+     * some
+     * additional state to determine if the write lock is grabable.
+     * 
+     * @return {@code true} if the routine determines an attempt should be made
+     *         to grab the write lock
+     */
+    protected boolean tryBeforeWriteLock() {
+        return true;
     }
 }
