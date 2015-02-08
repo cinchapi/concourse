@@ -346,14 +346,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
+        Lock shared = lockService.getWriteLock(record);
         Lock write = lockService.getWriteLock(key, record);
         Lock range = rangeLockService.getWriteLock(key, value);
+        shared.lock();
         write.lock();
         range.lock();
         try {
             return addUnsafe(key, value, record, true);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -453,12 +456,17 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
+        Lock shared = rangeLockService.getReadLock(Text.wrapCached(key),
+                Operator.BETWEEN, Value.NEGATIVE_INFINITY,
+                Value.POSITIVE_INFINITY);
         Lock read = lockService.getReadLock(key);
+        shared.lock();
         read.lock();
         try {
             return super.browse(key);
         }
         finally {
+            shared.unlock();
             read.unlock();
             transportLock.readLock().unlock();
         }
@@ -619,14 +627,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
+        Lock shared = lockService.getWriteLock(record);
         Lock write = lockService.getWriteLock(key, record);
         Lock range = rangeLockService.getWriteLock(key, value);
+        shared.lock();
         write.lock();
         range.lock();
         try {
             return removeUnsafe(key, value, record, true);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -661,22 +672,6 @@ public final class Engine extends BufferedStore implements
         finally {
             transportLock.readLock().unlock();
         }
-    }
-
-    /**
-     * Search {@code key} for {@code query}.
-     * This method performs a fulltext search for {@code query} in all data
-     * currently mapped from {@code key}.
-     * This method is ONLY appropriate to call from the methods of
-     * {@link #AtomicOperation} class because in this case intermediate lock is
-     * not required.
-     * 
-     * @param key
-     * @param query
-     * @return {@code Set}
-     */
-    public Set<Long> searchUnsafe(String key, String query) {
-        return super.search(key, query);
     }
 
     @Override
