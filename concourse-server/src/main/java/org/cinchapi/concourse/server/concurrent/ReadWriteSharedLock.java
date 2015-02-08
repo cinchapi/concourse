@@ -280,9 +280,16 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
         public void lock() {
             boolean locked = false;
             while (!locked) {
-                writers.writeLock().lock();
-                locked = readers.readLock().tryLock();
-                writers.writeLock().unlock();
+                if(writers.getReadHoldCount() > 0) {
+                    // this thread already has the write lock, so it can
+                    // reentrantly grab the read lock
+                    locked = readers.readLock().tryLock();
+                }
+                else {
+                    writers.writeLock().lock();
+                    locked = readers.readLock().tryLock();
+                    writers.writeLock().unlock();
+                }
                 if(!locked) {
                     Thread.yield();
                 }
@@ -293,6 +300,11 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
         public void lockInterruptibly() throws InterruptedException {
             boolean locked = false;
             while (!locked) {
+                if(writers.getReadHoldCount() > 0) {
+                    // this thread already has the write lock, so it can
+                    // reentrantly grab the read lock
+                    locked = readers.readLock().tryLock();
+                }
                 writers.writeLock().lockInterruptibly();
                 locked = readers.readLock().tryLock();
                 writers.writeLock().unlock();
@@ -306,7 +318,13 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
         public boolean tryLock() {
             for (;;) {
                 if(writers.getReadLockCount() == 0) {
-                    if(writers.writeLock().tryLock()) {
+                    if(writers.getReadHoldCount() > 0) {
+                        // this thread already has the write lock, so it can
+                        // reentrantly grab the read lock
+                        readers.readLock().lock();
+                        return true;
+                    }
+                    else if(writers.writeLock().tryLock()) {
                         if(readers.readLock().tryLock()) {
                             return true;
                         }
@@ -326,6 +344,12 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
             Stopwatch watch = Stopwatch.createStarted();
             for (;;) {
                 if(writers.getReadLockCount() == 0) {
+                    if(writers.getReadHoldCount() > 0) {
+                        // this thread already has the write lock, so it can
+                        // reentrantly grab the read lock
+                        readers.readLock().lock();
+                        return true;
+                    }
                     if(writers.writeLock().tryLock(time, unit)) {
                         watch.stop();
                         long elapsed = watch.elapsed(unit);
