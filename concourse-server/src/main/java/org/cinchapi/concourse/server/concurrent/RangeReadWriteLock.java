@@ -55,6 +55,7 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
      */
     public RangeReadWriteLock(RangeLockService rangeLockService,
             RangeToken token) {
+        super(new ReentrantReadWriteLock());
         this.rangeLockService = rangeLockService;
         this.token = token;
     }

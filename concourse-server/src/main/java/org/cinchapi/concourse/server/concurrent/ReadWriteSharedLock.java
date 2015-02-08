@@ -25,8 +25,6 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.base.Stopwatch;
@@ -37,7 +35,8 @@ import com.google.common.base.Stopwatch;
  * 
  * @author jnelson
  */
-public class ReadWriteSharedLock implements ReadWriteLock {
+@SuppressWarnings("serial")
+public class ReadWriteSharedLock extends ReentrantReadWriteLock {
 
     /**
      * These are the internal locks that are used to actually control concurrent
@@ -45,64 +44,25 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * the read and write locks. In both cases, we only use the read view of the
      * locks so that multiple actors can concurrent access.
      */
-    private final ReentrantReadWriteLock readers, writers;
+    private final ReentrantReadWriteLock readers = new ReentrantReadWriteLock();
 
     /**
-     * These are the actual read and write locks that are returned from the
-     * methods of this lock.
+     * These are the internal locks that are used to actually control concurrent
+     * access. We use a distinct traditional ReentrantReadWriteLock to represent
+     * the read and write locks. In both cases, we only use the read view of the
+     * locks so that multiple actors can concurrent access.
      */
-    private final Lock readLock, writeLock;
+    private final ReentrantReadWriteLock writers = new ReentrantReadWriteLock();
 
     /**
-     * The are the syncs that are used internally to signal when a certain kind
-     * of actor is no longer blocked.
+     * Return from the {@link #readLock()} method.
      */
-    private final Object readSync, writeSync;
+    private final ReadLock readLock = new SharedReadLock();
 
     /**
-     * The flag that indicates whether this lock allows many concurrent writers
-     * (traditional = false) or not (traditional = true). This variable is
-     * called traditional because, in the case that it is {@code true}, this
-     * lock behaves just like a normal {@link ReentrantReadWriteLock}.
+     * Return from the {@link #writeLock()} method.
      */
-    private final boolean traditional;
-
-    /**
-     * Construct a new default instance which allows multiple concurrent
-     * writers.
-     */
-    public ReadWriteSharedLock() {
-        this(true);
-    }
-
-    /**
-     * Construct a new instance that optionally allows concurrent writers or not
-     * (and therefore behaves like a traditional {@link ReentrantReadWriteLock}.
-     * 
-     * @param allowConcurrentWriters
-     */
-    public ReadWriteSharedLock(boolean allowConcurrentWriters) {
-        this.traditional = !allowConcurrentWriters;
-        if(traditional) {
-            this.readers = new ReentrantReadWriteLock();
-            this.writers = readers;
-            this.readLock = readers.readLock();
-            this.writeLock = readers.writeLock();
-            this.readSync = null;
-            this.writeSync = null;
-        }
-        else {
-            this.readers = new ReentrantReadWriteLock();
-            this.writers = new ReentrantReadWriteLock();
-            this.readSync = new Object();
-            this.writeSync = new Object();
-            this.readLock = new SharedLock(readers, writers, readSync,
-                    writeSync);
-            this.writeLock = new SharedLock(writers, readers, writeSync,
-                    readSync);
-        }
-
-    }
+    private final WriteLock writeLock = new SharedWriteLock();
 
     /**
      * Return the number of reentrant read holds on this lock by the current
@@ -135,8 +95,7 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      *         or zero if the write lock is not held by the current thread
      */
     public int getWriteHoldCount() {
-        return traditional ? writers.getWriteHoldCount() : writers
-                .getReadHoldCount();
+        return writers.getReadHoldCount();
     }
 
     /**
@@ -146,8 +105,7 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * @return the number of write locks held
      */
     public int getWriteLockCount() {
-        return traditional ? (writers.isWriteLocked() ? 1 : 0) : writers
-                .getReadLockCount();
+        return writers.getReadLockCount();
     }
 
     /**
@@ -156,12 +114,11 @@ public class ReadWriteSharedLock implements ReadWriteLock {
      * @return {@code true} if the write lock is held by the current thread
      */
     public boolean isWriteLockedByCurrentThread() {
-        return traditional ? writers.isWriteLockedByCurrentThread() : writers
-                .getReadHoldCount() > 0;
+        return writers.getReadHoldCount() > 0;
     }
 
     @Override
-    public Lock readLock() {
+    public ReadLock readLock() {
         return readLock;
     }
 
@@ -188,166 +145,217 @@ public class ReadWriteSharedLock implements ReadWriteLock {
     }
 
     @Override
-    public Lock writeLock() {
+    public WriteLock writeLock() {
         return writeLock;
     }
 
     /**
-     * An view that represents a lock that can be grabbed by multiple actors of
-     * the same kind (i.e. many readers can concurrently lock OR many writers
-     * can concurrently lock).
+     * An {@link WriteLock} that can be grabbed by multiple writers at the same
+     * time while blocking all readers.
      * 
      * @author jnelson
      */
-    static class SharedLock implements Lock {
-
-        /**
-         * References to the internal locks that are coordinated by this shared
-         * instance. {@link #offense} represents the lock that this instance is
-         * trying to grab while {@link #defense} represents the other lock that
-         * is trying to block it.
-         */
-        private final ReentrantReadWriteLock offense, defense;
-
-        /**
-         * References to the syncs that are used to notify the other internal
-         * shared instance that they are no longer blocked.
-         */
-        private final Object receivers, corners;
-
-        /**
-         * This constructor is meant for anonymous subclasses to create a new
-         * instance in-line.
-         * 
-         * @param parent
-         * @param read
-         */
-        protected SharedLock(ReadWriteSharedLock parent, boolean read) {
-            this(read ? parent.readers : parent.writers, read ? parent.writers
-                    : parent.readers,
-                    read ? parent.readSync : parent.writeSync,
-                    read ? parent.writeSync : parent.readSync);
-        }
+    private class SharedWriteLock extends WriteLock {
 
         /**
          * Construct a new instance.
          * 
-         * @param offense
-         * @param defense
-         * @param receivers
-         * @param corners
+         * @param lock
          */
-        private SharedLock(ReentrantReadWriteLock offense,
-                ReentrantReadWriteLock defense, Object receivers, Object corners) {
-            this.offense = offense;
-            this.defense = defense;
-            this.receivers = receivers;
-            this.corners = corners;
+        protected SharedWriteLock() {
+            super(ReadWriteSharedLock.this);
         }
 
         @Override
         public void lock() {
-            if(defense.getReadLockCount() > 0) {
-                synchronized (receivers) {
-                    try {
-                        receivers.wait();
-                        lock();
-                    }
-                    catch (InterruptedException e) {}
+            boolean locked = false;
+            while (!locked) {
+                readers.writeLock().lock();
+                locked = writers.readLock().tryLock();
+                readers.writeLock().unlock();
+                if(!locked) {
+                    Thread.yield();
                 }
-            }
-            else if(defense.writeLock().tryLock()) {
-                try {
-                    offense.readLock().lock();
-                }
-                finally {
-                    defense.writeLock().unlock();
-                }
-            }
-            else {
-                lock();
             }
         }
 
         @Override
         public void lockInterruptibly() throws InterruptedException {
-            if(defense.getReadLockCount() > 0) {
-                synchronized (receivers) {
-                    receivers.wait();
-                    lock();
+            boolean locked = false;
+            while (!locked) {
+                readers.writeLock().lockInterruptibly();
+                locked = writers.readLock().tryLock();
+                readers.writeLock().unlock();
+                if(!locked) {
+                    Thread.yield();
                 }
             }
-            else if(defense.writeLock().tryLock()) {
-                try {
-                    offense.readLock().lock();
-                }
-                finally {
-                    defense.writeLock().unlock();
-                }
-            }
-            else {
-                lock();
-            }
-
-        }
-
-        @Override
-        public Condition newCondition() {
-            return offense.readLock().newCondition();
         }
 
         @Override
         public boolean tryLock() {
-            if(defense.getReadLockCount() == 0) {
-                if(defense.writeLock().tryLock()) {
-                    try {
-                        return offense.readLock().tryLock();
-                    }
-                    finally {
-                        defense.writeLock().unlock();
+            for (;;) {
+                if(readers.getReadLockCount() == 0) {
+                    if(readers.writeLock().tryLock()) {
+                        if(writers.readLock().tryLock()) {
+                            return true;
+                        }
+                        readers.writeLock().unlock();
+                        Thread.yield();
                     }
                 }
                 else {
-                    return tryLock();
+                    return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
         @Override
         public boolean tryLock(long time, TimeUnit unit)
                 throws InterruptedException {
-            if(defense.getReadLockCount() != 0) {
-                Stopwatch watch = Stopwatch.createStarted();
-                synchronized (receivers) {
-                    receivers.wait(TimeUnit.MILLISECONDS.convert(time, unit));
-                }
-                watch.stop();
-                long elapsed = watch.elapsed(unit);
-                long left = time - elapsed;
-                if(left > 0) {
-                    return tryLock(left, unit);
+            Stopwatch watch = Stopwatch.createStarted();
+            for (;;) {
+                if(readers.getReadLockCount() == 0) {
+                    if(readers.writeLock().tryLock(time, unit)) {
+                        watch.stop();
+                        long elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
+                        if(writers.readLock().tryLock(time, unit)) {
+                            return true;
+                        }
+                        readers.writeLock().unlock();
+                        watch.stop();
+                        elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
+                        Thread.yield();
+                    }
                 }
                 else {
                     return false;
                 }
-
-            }
-            else {
-                return offense.readLock().tryLock(time, unit);
             }
         }
 
         @Override
         public void unlock() {
-            offense.readLock().unlock();
-            if(offense.getReadLockCount() == 0) {
-                synchronized (corners) {
-                    corners.notifyAll();
+            writers.readLock().unlock();
+        }
+
+        @Override
+        public Condition newCondition() {
+            return writers.readLock().newCondition();
+        }
+
+        @Override
+        public boolean isHeldByCurrentThread() {
+            return writers.getReadHoldCount() > 0;
+        }
+
+        @Override
+        public int getHoldCount() {
+            return writers.getReadHoldCount();
+        }
+    }
+
+    /**
+     * An {@link ReadLock} that can be grabbed by multiple readers at the same
+     * time while blocking all writers.
+     * 
+     * @author jnelson
+     */
+    private class SharedReadLock extends ReadLock {
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param lock
+         */
+        protected SharedReadLock() {
+            super(ReadWriteSharedLock.this);
+        }
+
+        @Override
+        public void lock() {
+            boolean locked = false;
+            while (!locked) {
+                writers.writeLock().lock();
+                locked = readers.readLock().tryLock();
+                writers.writeLock().unlock();
+                if(!locked) {
+                    Thread.yield();
                 }
             }
+        }
+
+        @Override
+        public void lockInterruptibly() throws InterruptedException {
+            boolean locked = false;
+            while (!locked) {
+                writers.writeLock().lockInterruptibly();
+                locked = readers.readLock().tryLock();
+                writers.writeLock().unlock();
+                if(!locked) {
+                    Thread.yield();
+                }
+            }
+        }
+
+        @Override
+        public boolean tryLock() {
+            for (;;) {
+                if(writers.getReadLockCount() == 0) {
+                    if(writers.writeLock().tryLock()) {
+                        if(readers.readLock().tryLock()) {
+                            return true;
+                        }
+                        writers.writeLock().unlock();
+                        Thread.yield();
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
+        @Override
+        public boolean tryLock(long time, TimeUnit unit)
+                throws InterruptedException {
+            Stopwatch watch = Stopwatch.createStarted();
+            for (;;) {
+                if(writers.getReadLockCount() == 0) {
+                    if(writers.writeLock().tryLock(time, unit)) {
+                        watch.stop();
+                        long elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
+                        if(readers.readLock().tryLock(time, unit)) {
+                            return true;
+                        }
+                        writers.writeLock().unlock();
+                        watch.stop();
+                        elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
+                        Thread.yield();
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
+        @Override
+        public void unlock() {
+            readers.readLock().unlock();
+        }
+
+        @Override
+        public Condition newCondition() {
+            return readers.readLock().newCondition();
         }
 
     }

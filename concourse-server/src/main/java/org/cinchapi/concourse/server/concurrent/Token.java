@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
 
+import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.storage.cache.LazyCache;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -60,7 +61,9 @@ public class Token implements Byteable {
      * @return the Token
      */
     public static Token wrap(Object... objects) {
-        return new Token(TArrays.hash(objects));
+        Token token = new Token(TArrays.hash(objects));
+        token.cardinality = objects.length;
+        return token;
     }
 
     /**
@@ -75,6 +78,7 @@ public class Token implements Byteable {
         Token token = cache.get(key);
         if(token == null) {
             token = new Token(TArrays.hash(key));
+            token.cardinality = 1;
             cache.put(key, token);
         }
         return token;
@@ -90,6 +94,13 @@ public class Token implements Byteable {
      * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
+
+    /**
+     * The number of objects that are embedded within the token. This is only
+     * used by {@link TokenReadWriteLock} to determine lock granularity.
+     */
+    @PackagePrivate
+    int cardinality = 1;
 
     /**
      * Construct a new instance.
