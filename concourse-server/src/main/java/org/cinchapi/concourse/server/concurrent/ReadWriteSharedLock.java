@@ -197,10 +197,14 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
             for (;;) {
                 if(readers.getReadLockCount() == 0) {
                     if(readers.writeLock().tryLock()) {
-                        if(writers.readLock().tryLock()) {
-                            return true;
+                        try {
+                            if(writers.readLock().tryLock()) {
+                                return true;
+                            }
                         }
-                        readers.writeLock().unlock();
+                        finally {
+                            readers.writeLock().unlock();
+                        }
                         Thread.yield();
                     }
                 }
@@ -221,10 +225,14 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
                         long elapsed = watch.elapsed(unit);
                         time = time - elapsed;
                         watch.start();
-                        if(writers.readLock().tryLock(time, unit)) {
-                            return true;
+                        try {
+                            if(writers.readLock().tryLock(time, unit)) {
+                                return true;
+                            }
                         }
-                        readers.writeLock().unlock();
+                        finally {
+                            readers.writeLock().unlock();
+                        }
                         watch.stop();
                         elapsed = watch.elapsed(unit);
                         time = time - elapsed;
@@ -325,10 +333,14 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
                         return true;
                     }
                     else if(writers.writeLock().tryLock()) {
-                        if(readers.readLock().tryLock()) {
-                            return true;
+                        try {
+                            if(readers.readLock().tryLock()) {
+                                return true;
+                            }
                         }
-                        writers.writeLock().unlock();
+                        finally {
+                            writers.writeLock().unlock();
+                        }
                         Thread.yield();
                     }
                 }
@@ -355,10 +367,14 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
                         long elapsed = watch.elapsed(unit);
                         time = time - elapsed;
                         watch.start();
-                        if(readers.readLock().tryLock(time, unit)) {
-                            return true;
+                        try {
+                            if(readers.readLock().tryLock(time, unit)) {
+                                return true;
+                            }
                         }
-                        writers.writeLock().unlock();
+                        finally {
+                            writers.writeLock().unlock();
+                        }
                         watch.stop();
                         elapsed = watch.elapsed(unit);
                         time = time - elapsed;
