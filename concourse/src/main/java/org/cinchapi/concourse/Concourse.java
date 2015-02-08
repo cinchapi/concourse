@@ -250,6 +250,50 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Map<Timestamp, String> audit(String key, long record);
 
     /**
+     * Audit {@code record} and return a log of revisions.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(String key, long record,
+            Timestamp start, Timestamp end);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(String key, long record,
+            Timestamp start);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     *
+     * @param record
+     * @param start
+     * @param end
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(long record,
+            Timestamp start, Timestamp end);  
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     *
+     * @param record
+     * @param start
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(long record,
+            Timestamp start);      
+
+    /**
      * Browse the {@code records} and return a mapping from each record to all
      * the data that is contained as a mapping from key name to value set.
      * 
@@ -1461,6 +1505,68 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+
+        @Override
+        public Map<Timestamp, String> audit(final String key,
+                final long record, final Timestamp start) {
+            return audit(key, record, start, Timestamp.now());
+        }
+
+        @Override
+        public Map<Timestamp, String> audit(final String key, final long record,
+                final Timestamp start, final Timestamp end) {
+            Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
+                    "Start of range cannot be greater than the end");
+            Map<Timestamp, String> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, String> audited = audit(key, record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    audited.keySet(), start);
+            Entry<Timestamp, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(audited.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < audited.size(); ++i) {
+                entry = Iterables.get(audited.entrySet(), i);
+                if(entry.getKey().getMicros() >= end.getMicros()) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
+        }                                     
+
+        @Override
+        public Map<Timestamp, String> audit(final long record,
+                final Timestamp start) {
+            return audit(record, start, Timestamp.now());
+        }
+
+        @Override
+        public  Map<Timestamp, String> audit(final long record,
+                final Timestamp start, final Timestamp end) {
+            Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
+                    "Start of range cannot be greater than the end");
+            Map<Timestamp, String> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, String> audited = audit(record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    audited.keySet(), start);
+            Entry<Timestamp, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(audited.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < audited.size(); ++i) {
+                entry = Iterables.get(audited.entrySet(), i);
+                if(entry.getKey().getMicros() >= end.getMicros()) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
         }
 
         @CompoundOperation
