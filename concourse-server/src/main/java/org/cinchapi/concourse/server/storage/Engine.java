@@ -456,18 +456,15 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
-        Lock shared = rangeLockService.getReadLock(Text.wrapCached(key),
+        Lock range = rangeLockService.getReadLock(Text.wrapCached(key),
                 Operator.BETWEEN, Value.NEGATIVE_INFINITY,
                 Value.POSITIVE_INFINITY);
-        Lock read = lockService.getReadLock(key);
-        shared.lock();
-        read.lock();
+        range.lock();
         try {
             return super.browse(key);
         }
         finally {
-            shared.unlock();
-            read.unlock();
+            range.unlock();
             transportLock.readLock().unlock();
         }
     }
