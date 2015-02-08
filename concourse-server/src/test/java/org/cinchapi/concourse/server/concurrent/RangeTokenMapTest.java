@@ -100,6 +100,23 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testContainsEq() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(1)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(2)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(3)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(4)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(5)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(6)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(7)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(8)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(9)));
+        Assert.assertTrue(map.contains(key, Operator.EQUALS, v(10)));
+        Assert.assertFalse(map.contains(key, Operator.EQUALS, v(11)));
+        Assert.assertFalse(map.contains(key, Operator.EQUALS, v(0)));
+    }
+
+    @Test
     public void testFilterNeq() {
         Text key = setupFilterTests();
         Map<RangeToken, String> filtered = map.filter(key, Operator.NOT_EQUALS,
@@ -122,6 +139,21 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testContainsNeqA() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.NOT_EQUALS, v(11)));
+        Assert.assertTrue(map.contains(key, Operator.NOT_EQUALS, v(1)));
+    }
+
+    @Test
+    public void testContainsNeqB() {
+        Text key = TestData.getText();
+        map.put(RangeToken.forReading(key, Operator.EQUALS, v(1)), "a");
+        map.put(RangeToken.forWriting(key, v(1)), "b");
+        Assert.assertFalse(map.contains(key, Operator.NOT_EQUALS, v(1)));
+    }
+
+    @Test
     public void testFilterGt() {
         Text key = setupFilterTests();
         Map<RangeToken, String> filtered = map.filter(key,
@@ -141,6 +173,48 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
             }
             Assert.assertEquals(status, filtered.containsKey(token));
         }
+    }
+
+    @Test
+    public void testContainsGt() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN, v(0)));
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN,
+                Value.NEGATIVE_INFINITY));
+        Assert.assertFalse(map.contains(key, Operator.GREATER_THAN,
+                Value.POSITIVE_INFINITY));
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN, v(11)));
+    }
+
+    @Test
+    public void testContainsGte() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN_OR_EQUALS,
+                v(0)));
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN_OR_EQUALS,
+                Value.NEGATIVE_INFINITY));
+        Assert.assertFalse(map.contains(key, Operator.GREATER_THAN_OR_EQUALS,
+                Value.POSITIVE_INFINITY));
+        Assert.assertTrue(map.contains(key, Operator.GREATER_THAN_OR_EQUALS,
+                v(11)));
+    }
+
+    @Test
+    public void testContainsLt() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.LESS_THAN, v(0)));
+        Assert.assertFalse(map.contains(key, Operator.LESS_THAN,
+                Value.NEGATIVE_INFINITY));
+        Assert.assertTrue(map.contains(key, Operator.LESS_THAN,
+                Value.POSITIVE_INFINITY));
+    }
+
+    @Test
+    public void testContainsLte() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, Operator.LESS_THAN_OR_EQUALS, v(0)));
+        Assert.assertTrue(map.contains(key, Operator.LESS_THAN_OR_EQUALS,
+                Value.POSITIVE_INFINITY));
     }
 
     @Test
@@ -229,6 +303,22 @@ public class RangeTokenMapTest extends ConcourseBaseTest {
             }
             Assert.assertEquals(status, filtered.containsKey(token));
         }
+    }
+
+    @Test
+    public void testContainsBw() {
+        Text key = setupFilterTests();
+        Assert.assertTrue(map.contains(key, v(1), v(10)));
+        Assert.assertTrue(map.contains(key, Value.NEGATIVE_INFINITY,
+                Value.POSITIVE_INFINITY));
+    }
+
+    @Test
+    public void testContainsBw0() {
+        Text key = TestData.getText();
+        map.put(RangeToken.forReading(key, Operator.EQUALS, v(1)), "a");
+        map.put(RangeToken.forWriting(key, v(2)), "b");
+        Assert.assertFalse(map.contains(key, v(3), v(4)));
     }
 
     @Test
