@@ -95,6 +95,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     /**
      * TODO
+     * 
      * @param key
      * @param operator
      * @param value
@@ -107,6 +108,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     /**
      * TODO
+     * 
      * @param key
      * @param value1
      * @param value2
@@ -368,22 +370,24 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
         /**
          * TODO
+         * 
          * @param operator
          * @param value
          * @return
          */
         public boolean contains(Operator operator, Value value) {
             long stamp = getLock().readLock();
-            try{
+            try {
                 return contains0(operator, value);
             }
-            finally{
+            finally {
                 getLock().unlock(stamp);
             }
         }
 
         /**
          * TODO
+         * 
          * @param operator
          * @param value1
          * @param value2
@@ -391,10 +395,10 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          */
         public boolean contains(Operator operator, Value value1, Value value2) {
             long stamp = getLock().readLock();
-            try{
+            try {
                 return contains0(operator, value1, value2);
             }
-            finally{
+            finally {
                 getLock().unlock(stamp);
             }
         }
@@ -505,6 +509,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
         /**
          * TODO
+         * 
          * @param operator
          * @param value1
          * @param value2
@@ -585,20 +590,26 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
                 throw new UnsupportedOperationException();
             }
         }
-        
+
         /**
          * TODO
+         * 
          * @param operator
          * @param value
          * @return
          */
-        private boolean contains0(Operator operator, Value value){
+        private boolean contains0(Operator operator, Value value) {
             Range<Value> point = Range.point(value);
             switch (operator) {
             case EQUALS:
-                return !lefts.get(point).isEmpty() && !rights.get(point).isEmpty();
+                Set<Entry<RangeToken, V>> fromLeft;
+                Set<Entry<RangeToken, V>> fromRight;
+                return (fromLeft = lefts.get(point)) != null
+                        && !fromLeft.isEmpty()
+                        && (fromRight = rights.get(point)) != null
+                        && !fromRight.isEmpty();
             case NOT_EQUALS:
-                //TODO better way to do this...
+                // TODO better way to do this...
                 Set<Entry<RangeToken, V>> ne = Sets.newHashSet();
                 for (Set<Entry<RangeToken, V>> coll : lefts.tailMap(point,
                         false).values()) {
@@ -636,13 +647,13 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
                 }
                 return !ne.isEmpty();
             case GREATER_THAN:
-                return !rights.tailMap(point,  false).values().isEmpty();
+                return !rights.tailMap(point, false).values().isEmpty();
             case GREATER_THAN_OR_EQUALS:
-                return !rights.tailMap(point,  true).values().isEmpty();
+                return !rights.tailMap(point, true).values().isEmpty();
             case LESS_THAN:
-                return !lefts.headMap(point,  false).values().isEmpty();
+                return !lefts.headMap(point, false).values().isEmpty();
             case LESS_THAN_OR_EQUALS:
-                return !lefts.headMap(point,  true).values().isEmpty();
+                return !lefts.headMap(point, true).values().isEmpty();
             default:
                 throw new UnsupportedOperationException();
             }
