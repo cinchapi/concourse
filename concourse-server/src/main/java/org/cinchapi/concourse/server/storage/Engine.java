@@ -353,14 +353,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
+        Lock shared = lockService.getWriteLock(record);
         Lock write = lockService.getWriteLock(key, record);
         Lock range = rangeLockService.getWriteLock(key, value);
+        shared.lock();
         write.lock();
         range.lock();
         try {
             return addUnsafe(key, value, record);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -438,12 +441,17 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
+        Lock shared = rangeLockService.getReadLock(Text.wrapCached(key),
+                Operator.BETWEEN, Value.NEGATIVE_INFINITY,
+                Value.POSITIVE_INFINITY);
         Lock read = lockService.getReadLock(key);
+        shared.lock();
         read.lock();
         try {
             return super.browse(key);
         }
         finally {
+            shared.unlock();
             read.unlock();
             transportLock.readLock().unlock();
         }
@@ -559,14 +567,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
+        Lock shared = lockService.getWriteLock(record);
         Lock write = lockService.getWriteLock(key, record);
         Lock range = rangeLockService.getWriteLock(key, value);
+        shared.lock();
         write.lock();
         range.lock();
         try {
             return removeUnsafe(key, value, record);
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
@@ -605,8 +616,10 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public void set(String key, TObject value, long record) {
+        Lock shared = lockService.getWriteLock(record);
         Lock write = lockService.getWriteLock(key, record);
         Lock range = rangeLockService.getWriteLock(key, value);
+        shared.lock();
         write.lock();
         range.lock();
         try {
@@ -618,6 +631,7 @@ public final class Engine extends BufferedStore implements
                     Value.wrap(value)));
         }
         finally {
+            shared.unlock();
             write.unlock();
             range.unlock();
         }
