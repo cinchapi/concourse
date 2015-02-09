@@ -25,6 +25,7 @@ package org.cinchapi.concourse.testsuite;
 
 import org.cinchapi.concourse.AddTest;
 import org.cinchapi.concourse.AtomicOperationWofkflowTest;
+import org.cinchapi.concourse.AuditTest;
 import org.cinchapi.concourse.BrowseTest;
 import org.cinchapi.concourse.CachedConnectionPoolTest;
 import org.cinchapi.concourse.ChronologizeTest;
@@ -60,7 +61,7 @@ import org.junit.runners.Suite.SuiteClasses;
         SecurityExceptionTest.class, ThriftComplianceTest.class,
         FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
         InsertTest.class, TransactionIsolationTest.class, CounterTest.class,
-        FindOperatorConversionTest.class })
+        FindOperatorConversionTest.class, AuditTest.class })
 public class IntegrationTestSuite {
 
 }
