@@ -262,9 +262,9 @@ public class EngineTest extends BufferedStoreTest {
         write.join();
         Assert.assertTrue(succeeded.get());
     }
-    
+
     @Test
-    public void reproCON_239BrowseKey() throws InterruptedException{
+    public void reproCON_239BrowseKey() throws InterruptedException {
         final Engine engine = (Engine) store;
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
@@ -365,6 +365,40 @@ public class EngineTest extends BufferedStoreTest {
         write.join();
         Assert.assertTrue(succeeded.get());
     }
+
+//    @Test
+//    public void testAddThroughputDifferentKeysInRecord() throws InterruptedException {
+//        final Engine engine = (Engine) store;
+//        final AtomicBoolean done = new AtomicBoolean(false);
+//        Thread a = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                while (!done.get()) {
+//                    engine.add("foo", Convert.javaToThrift(Time.now()), 1);
+//                }
+//            }
+//
+//        });
+//        Thread b = new Thread(new Runnable(){
+//
+//            @Override
+//            public void run() {
+//                while (!done.get()) {
+//                    engine.add("bar", Convert.javaToThrift(Time.now()), 1);
+//                }
+//            }
+//            
+//        });
+//        a.start();
+//        b.start();
+//        TestData.sleep();
+//        done.set(true);
+//        a.join();
+//        b.join();
+//        System.out.println(engine.fetch("foo", 1).size());
+//        System.out.println(engine.fetch("bar", 1).size());
+//    }
 
     @Override
     protected void add(String key, TObject value, long record) {
