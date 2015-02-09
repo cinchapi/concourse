@@ -94,7 +94,7 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public long getOldestWriteTimstamp() {
+    protected long getOldestWriteTimstamp() {
         // When there is no data in the buffer return the max possible timestamp
         // so that no query's timestamp is less than this timestamp
         if(writes.size() == 0) {

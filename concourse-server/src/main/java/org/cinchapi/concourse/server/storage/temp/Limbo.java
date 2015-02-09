@@ -460,7 +460,7 @@ public abstract class Limbo extends BaseStore implements
     }
 
     /**
-     * Return the timestamp for the oldest write available
+     * Return the timestamp for the oldest write available.
      * 
      * @return {@code timestamp}
      */
