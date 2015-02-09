@@ -913,10 +913,7 @@ public final class Buffer extends Limbo {
         Write oldestWrite = oldestPage.next();
         // When there is no data in the buffer return the max possible timestamp
         // so that no query's timestamp is less than this timestamp
-        if(oldestWrite == null) {
-            return Long.MAX_VALUE;
-        }
-        return oldestWrite.getVersion();
+        return oldestWrite == null ? Long.MAX_VALUE : oldestWrite.getVersion();
     }
 
     /**
