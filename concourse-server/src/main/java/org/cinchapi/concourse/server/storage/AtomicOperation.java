@@ -255,8 +255,10 @@ public class AtomicOperation extends BufferedStore implements
     public Map<TObject, Set<Long>> browse(String key)
             throws AtomicStateException {
         checkState();
-        ((Compoundable) destination).addVersionChangeListener(Token.wrap(key),
-                this);
+        ((Compoundable) destination)
+                .addVersionChangeListener(RangeToken.forReading(
+                        Text.wrapCached(key), Operator.BETWEEN,
+                        Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY), this);
         intentions.add(new KeyLockIntention(key));
         return super.browse(key, true);
     }

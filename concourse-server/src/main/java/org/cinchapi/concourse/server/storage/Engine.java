@@ -786,7 +786,6 @@ public final class Engine extends BufferedStore implements
         if(super.add(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
@@ -834,7 +833,6 @@ public final class Engine extends BufferedStore implements
         if(super.remove(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(Token.wrap(key));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
