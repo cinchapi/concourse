@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -181,8 +182,21 @@ public class RangeLockService extends
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
         RangeTokenMap<RangeReadWriteLock> rtm = (RangeTokenMap<RangeReadWriteLock>) locks;
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = rtm
-                .filter(token.getKey()).entrySet().iterator();
+        Map<RangeToken, RangeReadWriteLock> filtered = token.getOperator() == Operator.BETWEEN ? rtm
+                .filter(token.getKey(), value, token.getValues()[1]) : rtm
+                .filter(token.getKey(), token.getOperator(), value);
+        Iterator<RangeReadWriteLock> it = filtered.values().iterator();
+        while (it.hasNext()) {
+            if(type == LockType.READ) {
+                // If I want to READ X, I am blocked if:
+
+            }
+            else {
+                // If I want to WRITE X, I am blocked if there is a READ smaller
+                // than X and another READ larger than X OR there is a READ for
+                // X
+            }
+        }
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             while (it.hasNext()) {
@@ -194,7 +208,7 @@ public class RangeLockService extends
                         && !myLock.isWriteLockedByCurrentThread()) {
                     for (Value myValue : myToken.getValues()) {
                         switch (token.getOperator()) {
-                        // If I want to READ X, I am blocked if:
+
                         case BETWEEN:
                             if((myValue.compareTo(value) >= 0 && myValue
                                     .compareTo(token.getValues()[1]) < 0)
