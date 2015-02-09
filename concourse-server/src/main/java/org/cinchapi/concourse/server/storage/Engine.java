@@ -45,7 +45,6 @@ import org.cinchapi.common.util.Range;
 import org.cinchapi.common.util.RangeMap;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
