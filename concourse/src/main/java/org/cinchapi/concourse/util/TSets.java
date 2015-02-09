@@ -48,10 +48,11 @@ public class TSets {
      * @return the intersection of the Sets
      */
     public static <T> Set<T> intersection(Set<T> a, Set<T> b) {
-        if(a instanceof SortedSet && b instanceof SortedSet) {
-            return sortedIntersection((SortedSet<T>) a, (SortedSet<T>) b);
-        }
-        else {
+        //TODO: look into CON-245
+//        if(a instanceof SortedSet && b instanceof SortedSet) {
+//            return sortedIntersection((SortedSet<T>) a, (SortedSet<T>) b);
+//        }
+//        else {
             Set<T> intersection = Sets.newLinkedHashSet();
             Set<T> smaller = a.size() <= b.size() ? a : b;
             Set<T> larger = Sets.newHashSet(a.size() > b.size() ? a : b);
@@ -61,7 +62,7 @@ public class TSets {
                 }
             }
             return intersection;
-        }
+//        }
     }
 
     /**
