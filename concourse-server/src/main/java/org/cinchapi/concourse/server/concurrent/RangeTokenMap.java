@@ -826,7 +826,21 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
             Range<Value> point = Range.point(value);
             switch (operator) {
             case EQUALS:
-                return Sets.intersection(lefts.get(point), rights.get(point));
+                Set<Entry<RangeToken, V>> fromLeft = lefts.get(point);
+                Set<Entry<RangeToken, V>> fromRight = rights.get(point);
+                fromLeft = fromLeft == null ? Sets
+                        .<Entry<RangeToken, V>> newHashSet() : fromLeft; // TODO
+                                                                         // use
+                                                                         // static
+                                                                         // placeholder
+                                                                         // set
+                fromRight = fromRight == null ? Sets
+                        .<Entry<RangeToken, V>> newHashSet() : fromRight; // TODO
+                                                                          // use
+                                                                          // static
+                                                                          // placeholder
+                                                                          // set
+                return Sets.intersection(fromLeft, fromRight);
             case NOT_EQUALS:
                 Set<Entry<RangeToken, V>> ne = Sets.newHashSet();
                 for (Set<Entry<RangeToken, V>> coll : lefts.tailMap(point,
