@@ -907,6 +907,18 @@ public final class Buffer extends Limbo {
         }
     }
 
+    @Override
+    protected long getOldestWriteTimstamp() {
+        Page oldestPage = pages.get(0);
+        Write oldestWrite = oldestPage.next();
+        // When there is no data in the buffer return the max possible timestamp
+        // so that no query's timestamp is less than this timestamp
+        if(oldestWrite == null) {
+            return Long.MAX_VALUE;
+        }
+        return oldestWrite.getVersion();
+    }
+
     /**
      * Add a new Page to the Buffer.
      */
@@ -1436,16 +1448,5 @@ public final class Buffer extends Limbo {
                 throw CapacityException.INSTANCE;
             }
         }
-    }
-
-    @Override
-    public long getOldestWriteTimstamp() {
-        Page oldestPage = pages.get(0);
-        Write oldestWrite = oldestPage.next();
-        // When there is no data in the buffer return the max possible timestamp
-        // so that no query's timestamp is less than this timestamp
-        if(oldestWrite == null)
-            return Long.MAX_VALUE;
-        return oldestWrite.getVersion();
     }
 }
