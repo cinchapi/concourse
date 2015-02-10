@@ -364,6 +364,12 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         private final TreeMap<Range<Value>, Set<Entry<RangeToken, V>>> rights = Maps
                 .newTreeMap(Ranges.<Value> rightValueComparator());
 
+        /**
+         * A cache of the data returned from {@link #entrySet0()}. This is
+         * cleared every time an item is put or removed.
+         */
+        private Set<Entry<RangeToken, V>> cachedEntrySet = null;
+
         @Override
         public void clear() {
             long stamp = getLock().writeLock();
@@ -808,9 +814,12 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          * @return the entry set
          */
         private Set<Entry<RangeToken, V>> entrySet0() {
-            return TSets.intersection(
-                    Sets.newHashSet(MultimapViews.values(lefts)),
-                    Sets.newHashSet(MultimapViews.values(rights)));
+            while (cachedEntrySet == null) {
+                cachedEntrySet = TSets.intersection(
+                        Sets.newHashSet(MultimapViews.values(lefts)),
+                        Sets.newHashSet(MultimapViews.values(rights)));
+            }
+            return cachedEntrySet;
         }
 
         /**
@@ -984,6 +993,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          */
         @Nullable
         private V put0(RangeToken key, V value) {
+            cachedEntrySet = null;
             Iterable<Range<Value>> ranges = RangeTokens.convertToRange(key);
             Entry<RangeToken, V> entry = new AbstractMap.SimpleImmutableEntry<RangeToken, V>(
                     key, value);
@@ -1008,6 +1018,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          */
         @Nullable
         private V remove0(RangeToken key) {
+            cachedEntrySet = null;
             V value = get0(key);
             if(value != null) {
                 Iterable<Range<Value>> ranges = RangeTokens.convertToRange(key);
