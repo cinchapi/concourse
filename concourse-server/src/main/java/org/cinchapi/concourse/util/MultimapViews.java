@@ -23,9 +23,12 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -38,6 +41,19 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public final class MultimapViews {
+
+    /**
+     * Return the set of values mapped from {@code key} in the {@code map} or an
+     * empty set if no values exist.
+     * 
+     * @param map
+     * @param key
+     * @return the set of values
+     */
+    public static <K, V> Set<V> get(Map<K, Set<V>> map, Object key) {
+        Set<V> values = map.get(key);
+        return values != null ? values : Sets.<V> newHashSetWithExpectedSize(0);
+    }
 
     /**
      * Associates the {@code value} with the {@code key} in the {@code map} if
@@ -77,6 +93,23 @@ public final class MultimapViews {
             map.remove(key);
         }
         return set.remove(value);
+    }
+
+    /**
+     * Flatten the values in the {@code map} and return a collection that
+     * contains them all.
+     * 
+     * @param map
+     * @return the values in the map
+     */
+    public static <K, V> Collection<V> values(Map<K, Set<V>> map) {
+        List<V> values = Lists.newArrayList();
+        for (Set<V> set : map.values()) {
+            for (V value : set) {
+                values.add(value);
+            }
+        }
+        return values;
     }
 
     private MultimapViews() {/* noop */}
