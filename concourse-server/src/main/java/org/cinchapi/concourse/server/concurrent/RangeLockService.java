@@ -232,17 +232,19 @@ public class RangeLockService extends
             }
         }
         else {
-            // If I want to WRITE X, I am blocked if there is a READ smaller
-            // than X and another READ larger than X OR there is a READ for X
-            it = rtm.filter(token.getKey(), Operator.EQUALS, value).entrySet().iterator();
-            while(it.hasNext()){
+            // If I want to WRITE X, I am blocked if there is a READ that
+            // touches X (e.g. direct read for X or a range read that includes
+            // X)
+            it = rtm.filter(token.getKey(), Operator.EQUALS, value).entrySet()
+                    .iterator();
+            while (it.hasNext()) {
                 RangeReadWriteLock lock = it.next().getValue();
                 if(lock.getReadLockCount() > 0) {
                     return true;
                 }
             }
             it = rtm.filter(token.getKey(), value, value).entrySet().iterator();
-            while(it.hasNext()){
+            while (it.hasNext()) {
                 RangeReadWriteLock lock = it.next().getValue();
                 if(lock.getReadLockCount() > 0) {
                     return true;
