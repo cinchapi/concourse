@@ -24,7 +24,9 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.cinchapi.concourse.annotate.PackagePrivate;
 
 /**
@@ -38,9 +40,46 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 @SuppressWarnings("serial")
 class ReferenceCountingLock extends ReentrantReadWriteLock {
+    
+    
 
     // NOTE: This class does not define hashCode() or equals() because the
     // defaults are the desired behaviour
+
+    @Override
+    public int getReadLockCount() {
+        return decorated.getReadLockCount();
+    }
+
+    @Override
+    public boolean isWriteLocked() {
+        return decorated.isWriteLocked();
+    }
+
+    @Override
+    public boolean isWriteLockedByCurrentThread() {
+        return decorated.isWriteLockedByCurrentThread();
+    }
+
+    @Override
+    public int getWriteHoldCount() {
+        return decorated.getWriteHoldCount();
+    }
+
+    @Override
+    public int getReadHoldCount() {
+        return decorated.getReadHoldCount();
+    }
+
+    @Override
+    public boolean hasWaiters(Condition condition) {
+        return decorated.hasWaiters(condition);
+    }
+    
+    @Override
+    public int getWaitQueueLength(Condition condition) {
+        return decorated.getWaitQueueLength(condition);
+    }
 
     /**
      * A counter that keeps track of "references" to this lock. Each time
