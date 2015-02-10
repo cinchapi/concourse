@@ -123,6 +123,7 @@ public final class Composite implements Byteable {
         }
         bytes = ByteBuffer.allocate(size);
         for (Byteable byteable : byteables) {
+<<<<<<< HEAD
             byteable.copyTo(bytes);
         }
         bytes.rewind();
@@ -131,6 +132,11 @@ public final class Composite implements Byteable {
     @Override
     public void copyTo(ByteBuffer buffer) {
         ByteBuffers.copyAndRewindSource(bytes, buffer);
+=======
+            byteable.copyToByteBuffer(bytes);
+        }
+        bytes.rewind();
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     @Override
@@ -161,6 +167,11 @@ public final class Composite implements Byteable {
     public String toString() {
         return Hashing.sha1().hashBytes(ByteBuffers.toByteArray(getBytes()))
                 .toString();
+    }
+
+    @Override
+    public void copyToByteBuffer(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }

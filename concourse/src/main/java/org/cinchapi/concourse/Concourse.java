@@ -49,7 +49,10 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
+<<<<<<< HEAD
 import org.cinchapi.concourse.thrift.TSecurityException;
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
@@ -131,10 +134,10 @@ import com.google.common.collect.Lists;
 public abstract class Concourse implements AutoCloseable {
 
     /**
-     * Create a new Client connection to the environment of the Concourse
-     * Server described in {@code concourse_client.prefs} (or the default
-     * environment and server if the prefs file does not exist) and return a
-     * handler to facilitate database interaction.
+     * Create a new Client connection to the environment of the Concourse Server
+     * described in {@code concourse_client.prefs} (or the default environment
+     * and server if the prefs file does not exist) and return a handler to
+     * facilitate database interaction.
      * 
      * @return the database handler
      */
@@ -143,11 +146,10 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * /**
-     * Create a new Client connection to the specified {@code environment} of
-     * the Concourse Server described in {@code concourse_client.prefs} (or
-     * the default server if the prefs file does not exist) and return a
-     * handler to facilitate database interaction.
+     * /** Create a new Client connection to the specified {@code environment}
+     * of the Concourse Server described in {@code concourse_client.prefs} (or
+     * the default server if the prefs file does not exist) and return a handler
+     * to facilitate database interaction.
      * 
      * @param environment
      * @return
@@ -158,8 +160,8 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new Client connection to the default environment of the
-     * specified Concourse Server and return a handler to facilitate
-     * database interaction.
+     * specified Concourse Server and return a handler to facilitate database
+     * interaction.
      * 
      * @param host
      * @param port
@@ -211,6 +213,16 @@ public abstract class Concourse implements AutoCloseable {
     @CompoundOperation
     public abstract Map<Long, Boolean> add(String key, Object value,
             Collection<Long> records);
+
+    /**
+     * Add {@code key} as {@code value} in a new record and return the primary
+     * key.
+     * 
+     * @param key
+     * @param value
+     * @return the primary key of the record in which the data was added
+     */
+    public abstract <T> long add(String key, T value);
 
     /**
      * Add {@code key} as {@code value} to {@code record} if it is not already
@@ -288,8 +300,7 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param record
      * @param timestamp
-     * @return a mapping of all the contained keys and their mapped
-     *         values
+     * @return a mapping of all the contained keys and their mapped values
      */
     public abstract Map<String, Set<Object>> browse(long record,
             Timestamp timestamp);
@@ -346,8 +357,8 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * from {@code start} timestamp inclusively to {@code end} timestamp
-     * exclusively and return a mapping from each timestamp to the non-empty
-     * set of values.
+     * exclusively and return a mapping from each timestamp to the non-empty set
+     * of values.
      * 
      * @param key
      * @param record
@@ -362,8 +373,8 @@ public abstract class Concourse implements AutoCloseable {
             long record, Timestamp start, Timestamp end);
 
     /**
-     * Clear every {@code key} and contained value in each of
-     * the {@code records} by removing every value for each {@code key} in each
+     * Clear every {@code key} and contained value in each of the
+     * {@code records} by removing every value for each {@code key} in each
      * record.
      * 
      * @param records
@@ -392,8 +403,8 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void clear(Collection<String> keys, long record);
 
     /**
-     * Atomically clear {@code record} by removing each contained
-     * key and their values.
+     * Atomically clear {@code record} by removing each contained key and their
+     * values.
      * 
      * @param record
      */
@@ -511,8 +522,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param keys
      * @param records
      * @param timestamp
-     * @return the contained values for each of the {@code keys} in each
-     *         of the {@code records} at {@code timestamp}
+     * @return the contained values for each of the {@code keys} in each of the
+     *         {@code records} at {@code timestamp}
      */
     @CompoundOperation
     public abstract Map<Long, Map<String, Set<Object>>> fetch(
@@ -611,7 +622,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
-                                                     // case the caller forgets
+                                                     // case the caller
+                                                     // forgets
                                                      // to called #build() on
                                                      // the CriteriaBuilder
 
@@ -921,8 +933,8 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Revert each of the {@code keys} in {@code record} to {@code timestamp} by
-     * creating new revisions that the relevant changes
-     * that have occurred since {@code timestamp}.
+     * creating new revisions that the relevant changes that have occurred since
+     * {@code timestamp}.
      * 
      * @param keys
      * @param record
@@ -934,8 +946,8 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Revert {@code key} in each of the {@code records} to {@code timestamp} by
-     * creating new revisions that the relevant changes that have occurred
-     * since {@code timestamp}.
+     * creating new revisions that the relevant changes that have occurred since
+     * {@code timestamp}.
      * 
      * @param key
      * @param records
@@ -947,8 +959,8 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Atomically revert {@code key} in {@code record} to {@code timestamp} by
-     * creating new revisions that undo the relevant changes that have
-     * occurred since {@code timestamp}.
+     * creating new revisions that undo the relevant changes that have occurred
+     * since {@code timestamp}.
      * 
      * @param key
      * @param record
@@ -988,12 +1000,11 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> void set(String key, T value, long record);
 
     /**
-     * Turn on {@code staging} mode so that all subsequent changes are
-     * collected in a staging area before possibly being committed. Staged
-     * operations are guaranteed to be reliable, all or nothing
-     * units of work that allow correct recovery from failures and provide
-     * isolation between clients so that Concourse is always in a consistent
-     * state (e.g. a transaction).
+     * Turn on {@code staging} mode so that all subsequent changes are collected
+     * in a staging area before possibly being committed. Staged operations are
+     * guaranteed to be reliable, all or nothing units of work that allow
+     * correct recovery from failures and provide isolation between clients so
+     * that Concourse is always in a consistent state (e.g. a transaction).
      * <p>
      * After this method returns, all subsequent operations will be done in
      * {@code staging} mode until either {@link #abort()} or {@link #commit()}
@@ -1070,6 +1081,38 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract boolean verifyAndSwap(String key, Object expected,
             long record, Object replacement);
+
+    /**
+     * Atomically verify that {@code key} equals {@code expected} in
+     * {@code record} or set it as such.
+     * <p>
+     * Please note that after returning, this method guarantees that {@code key}
+     * in {@code record} will only contain {@code value}, even if {@code value}
+     * already existed alongside other values [e.g. calling verifyOrSet("foo",
+     * "bar", 1) will mean that "foo" in 1 only has "bar" as a value after
+     * returning, even if "foo" in 1 already had "bar", "baz", and "apple" as
+     * values].
+     * </p>
+     * <p>
+     * <em>So, basically, this function has the same guarantee as the
+     * {@link #set(String, Object, long)} method, except it will not create any
+     * new revisions unless it is necessary to do so.</em> The {@code set}
+     * method, on the other hand, would indiscriminately clears all the values
+     * for {@code key} in {@code record} before adding {@code value}, even in
+     * {@code value} already existed.
+     * </p>
+     * <p>
+     * If you want to add a new value if it does not exist while also preserving
+     * other values, you should use the {@link #add(String, Object, long)}
+     * method instead.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if verify and/or set is successful
+     */
+    public abstract void verifyOrSet(String key, Object value, long record);
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -1152,18 +1195,16 @@ public abstract class Concourse implements AutoCloseable {
 
         /**
          * The client keeps a copy of its {@link AccessToken} and passes it to
-         * the
-         * server for each remote procedure call. The client will
-         * re-authenticate
-         * when necessary using the username/password read from the prefs file.
+         * the server for each remote procedure call. The client will
+         * re-authenticate when necessary using the username/password read from
+         * the prefs file.
          */
         private AccessToken creds = null;
 
         /**
          * Whenever the client starts a Transaction, it keeps a
          * {@link TransactionToken} so that the server can stage the changes in
-         * the
-         * appropriate place.
+         * the appropriate place.
          */
         private TransactionToken transaction = null;
 
@@ -1179,9 +1220,8 @@ public abstract class Concourse implements AutoCloseable {
 
         /**
          * Create a new Client connection to the specified {@code environment}
-         * of
-         * the Concourse Server described in {@code concourse_client.prefs} (or
-         * the default server if the prefs file does not exist) and return a
+         * of the Concourse Server described in {@code concourse_client.prefs}
+         * (or the default server if the prefs file does not exist) and return a
          * handler to facilitate database interaction.
          * 
          * @param environment
@@ -1206,8 +1246,7 @@ public abstract class Concourse implements AutoCloseable {
 
         /**
          * Create a new Client connection to the specified {@code environment}
-         * of
-         * the specified Concourse Server and return a handler to facilitate
+         * of the specified Concourse Server and return a handler to facilitate
          * database interaction.
          * 
          * @param host
@@ -1273,6 +1312,27 @@ public abstract class Concourse implements AutoCloseable {
                 result.put(record, add(key, value, record));
             }
             return result;
+        }
+
+        public <T> long add(final String key, final T value) {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Long>() {
+
+                    @Override
+                    public Long call() throws Exception {
+                        return client.add1(key, Convert.javaToThrift(value),
+                                creds, transaction, environment);
+                    }
+
+                });
+            }
+            else {
+                throw new IllegalArgumentException(
+                        "Either your key is blank or value");
+            }
+
         }
 
         @Override
@@ -2169,6 +2229,21 @@ public abstract class Concourse implements AutoCloseable {
                             Convert.javaToThrift(expected), record,
                             Convert.javaToThrift(replacement), creds,
                             transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public void verifyOrSet(final String key, final Object value,
+                final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.verifyOrSet(key, Convert.javaToThrift(value),
+                            record, creds, transaction, environment);
+                    return null;
                 }
 
             });

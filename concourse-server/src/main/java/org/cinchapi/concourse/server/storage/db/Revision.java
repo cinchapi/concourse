@@ -256,7 +256,11 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -325,18 +329,31 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     }
 
     @Override
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer) {
+=======
+    public void copyToByteBuffer(ByteBuffer buffer) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         buffer.put((byte) type.ordinal());
         buffer.putLong(version);
         if(xLocatorSize() == VARIABLE_SIZE) {
             buffer.putInt(locator.size());
         }
+<<<<<<< HEAD
         locator.copyTo(buffer);
         if(xKeySize() == VARIABLE_SIZE) {
             buffer.putInt(key.size());
         }
         key.copyTo(buffer);
         value.copyTo(buffer);
+=======
+        locator.copyToByteBuffer(buffer);
+        if(xKeySize() == VARIABLE_SIZE) {
+            buffer.putInt(key.size());
+        }
+        key.copyToByteBuffer(buffer);
+        value.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**

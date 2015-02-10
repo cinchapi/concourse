@@ -211,6 +211,7 @@ public class ConcourseServer implements
      */
     private static final String ACCESS_FILE = ".access";
 
+<<<<<<< HEAD
     /**
      * The Thrift server controls the RPC protocol. Use
      * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
@@ -221,8 +222,19 @@ public class ConcourseServer implements
     /**
      * A mapping from env to the corresponding Engine that controls all
      * the logic for data storage and retrieval.
+=======
+    private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
+
+    private static final int NUM_WORKER_THREADS = 100; // This may become
+                                                       // configurable in a
+                                                       // prefs file in a
+                                                       // future release.
+
+    /**
+     * The base location where the indexed buffer pages are stored.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      */
-    private final Map<String, Engine> engines;
+    private final String bufferStore;
 
     /**
      * The base location where the indexed database records are stored.
@@ -230,9 +242,10 @@ public class ConcourseServer implements
     private final String dbStore;
 
     /**
-     * The base location where the indexed buffer pages are stored.
+     * A mapping from env to the corresponding Engine that controls all the
+     * logic for data storage and retrieval.
      */
-    private final String bufferStore;
+    private final Map<String, Engine> engines;
 
     /**
      * The AccessManager controls access to the server.
@@ -245,6 +258,13 @@ public class ConcourseServer implements
                                                        // configurable in a
                                                        // prefs file in a
                                                        // future release.
+    /**
+     * The Thrift server controls the RPC protocol. Use
+     * https://github.com/m1ch1/mapkeeper/wiki/Thrift-Java-Servers-Compared for
+     * a reference.
+     */
+    private final TServer server;
+
     /**
      * The server maintains a collection of {@link Transaction} objects to
      * ensure that client requests are properly routed. When the client makes a
@@ -328,6 +348,33 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+<<<<<<< HEAD
+=======
+        }
+    }
+
+    @Override
+    @Atomic
+    public long add1(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String env) throws TException {
+        long record = 0;
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                record = Time.now();
+                operation = addToEmptyRecord(key, value, record, store);
+            }
+            return record;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
     }
 
@@ -581,7 +628,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void grant(byte[] username, byte[] password) {
-        manager.grant(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
+        manager.createUser(ByteBuffer.wrap(username), ByteBuffer.wrap(password));
         username = null;
         password = null;
     }
@@ -589,7 +636,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public boolean hasUser(byte[] username) {
-        return manager.isValidUsername(ByteBuffer.wrap(username));
+        return manager.isExistingUsername(ByteBuffer.wrap(username));
     }
 
     @Atomic
@@ -651,6 +698,7 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+<<<<<<< HEAD
     }
 
     @Override
@@ -663,6 +711,8 @@ public class ConcourseServer implements
     @Override
     public String listAllUserSessions() {
         return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     @Override
@@ -696,13 +746,13 @@ public class ConcourseServer implements
             String env) throws TException {
         validate(username, password);
         getEngine(env);
-        return manager.authorize(username);
+        return manager.getNewAccessToken(username);
     }
 
     @Override
     public void logout(AccessToken creds, String env) throws TException {
         checkAccess(creds, null);
-        manager.deauthorize(creds);
+        manager.expireAccessToken(creds);
     }
 
     @Override
@@ -766,7 +816,7 @@ public class ConcourseServer implements
     @Override
     @ManagedOperation
     public void revoke(byte[] username) {
-        manager.revoke(ByteBuffer.wrap(username));
+        manager.deleteUser(ByteBuffer.wrap(username));
         username = null;
     }
 
@@ -787,6 +837,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String env) throws TException {
         checkAccess(creds, transaction);
         try {
+<<<<<<< HEAD
             Compoundable store = getStore(transaction, env);
             boolean nullOk = true;
             boolean retryable = store instanceof Engine;
@@ -800,6 +851,10 @@ public class ConcourseServer implements
             if(operation == null) {
                 throw new TTransactionException();
             }
+=======
+            ((BufferedStore) getStore(transaction, env))
+                    .set(key, value, record);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -880,6 +935,53 @@ public class ConcourseServer implements
         }
     }
 
+    @Atomic
+    @Override
+    public void verifyOrSet(String key, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doVerifyOrSet(key, value, record, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    /**
+     * Atomically add {@code key} as {@code value} to {@code record} as long as
+     * {@code record} is currently empty.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param store
+     * @return the AtomicOperation
+     */
+    private AtomicOperation addToEmptyRecord(String key, TObject value,
+            long record, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        if(operation.describe(record).isEmpty()) {
+            operation.add(key, value, record);
+            return operation;
+        }
+        else {
+            return null;
+        }
+    }
+
     /**
      * Check to make sure that {@code creds} and {@code transaction} are valid
      * and are associated with one another.
@@ -892,7 +994,7 @@ public class ConcourseServer implements
     private void checkAccess(AccessToken creds,
             @Nullable TransactionToken transaction) throws TSecurityException,
             IllegalArgumentException {
-        if(!manager.validate(creds)) {
+        if(!manager.isValidAccessToken(creds)) {
             throw new TSecurityException("Invalid access token");
         }
         Preconditions.checkArgument((transaction != null
@@ -1025,7 +1127,8 @@ public class ConcourseServer implements
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
-     * and do the work to set {@code key} as {@code value} in {@code record}.
+     * and do the work to verify {@code key} as {@code value} in {@code record}
+     * and set {@code key} as {@code value} in {@code record} if not set.
      * 
      * @param key
      * @param value
@@ -1033,17 +1136,26 @@ public class ConcourseServer implements
      * @param store
      * @return
      */
+<<<<<<< HEAD
     private AtomicOperation doSet(String key, TObject value, long record,
             Compoundable store) {
         // NOTE: We cannot use the #clear() method because our removes must be
         // defined in terms of the AtomicOperation for true atomic safety.
+=======
+    private AtomicOperation doVerifyOrSet(String key, TObject value,
+            long record, Compoundable store) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         AtomicOperation operation = store.startAtomicOperation();
         try {
             Set<TObject> values = operation.fetch(key, record);
-            for (TObject oldValue : values) {
-                operation.remove(key, oldValue, record);
+            for (TObject val : values) {
+                if(!val.equals(value)) {
+                    operation.remove(key, val, record);
+                }
             }
-            operation.add(key, value, record);
+            if(!operation.verify(key, value, record)) {
+                operation.add(key, value, record);
+            }
             return operation;
         }
         catch (AtomicStateException e) {
@@ -1063,9 +1175,8 @@ public class ConcourseServer implements
     }
 
     /**
-     * Return the {@link Engine} that is associated with {@code env}. If
-     * such an Engine does not exist, create a new one and add it to the
-     * collection.
+     * Return the {@link Engine} that is associated with {@code env}. If such an
+     * Engine does not exist, create a new one and add it to the collection.
      * 
      * @param env
      * @return the Engine
@@ -1150,6 +1261,8 @@ public class ConcourseServer implements
 
     /**
      * Return {@code true} if adding {@code link} to {@code record} is valid.
+     * This method is used to enforce referential integrity (i.e. record cannot
+     * link to itself) before the data makes it way to the Engine.
      * 
      * @param link
      * @param record
@@ -1219,10 +1332,9 @@ public class ConcourseServer implements
      */
     private void validate(ByteBuffer username, ByteBuffer password)
             throws TSecurityException {
-        if(!manager.validate(username, password)) {
+        if(!manager.isExistingUsernamePasswordCombo(username, password)) {
             throw new TSecurityException(
                     "Invalid username/password combination.");
         }
     }
-
 }

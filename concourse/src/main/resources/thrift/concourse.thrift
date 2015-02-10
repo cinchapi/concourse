@@ -86,6 +86,17 @@ service ConcourseService {
 	bool add(1: string key, 2: data.TObject value, 3: i64 record, 4: shared.AccessToken creds,
 		5: shared.TransactionToken transaction, 6: string environment)
 		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+<<<<<<< HEAD
+=======
+
+	/**
+	 * Add {@code  key} as {@code value} to a unique record and return the primary
+	 * key.
+	 */
+	i64 add1(1: string key, 2: data.TObject value, 3: shared.AccessToken creds,
+		4: shared.TransactionToken transaction, 5: string environment)
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 	/**
 	 * Remove {@code key} as {@code value} from {@code record}. This method returns
@@ -204,6 +215,18 @@ service ConcourseService {
 		4: data.TObject replacement, 5: shared.AccessToken creds,
 		6: shared.TransactionToken token, 7: string environment)
 		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+<<<<<<< HEAD
+=======
+
+	/**
+	 * Atomically verify {@code key} as {@code expected} in {@code record} or 
+	 * set {@code key} as {@code expected} in {@code record}.
+ 	 */
+	void verifyOrSet(1: string key, 2: data.TObject value, 3: i64 record,
+		4: shared.AccessToken creds, 7: shared.TransactionToken token, 
+		8: string environment)
+		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 	/**
 	 * Return the release version of the server.

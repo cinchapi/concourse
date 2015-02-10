@@ -1,15 +1,45 @@
 ## Changelog
 
+<<<<<<< HEAD
 #### Version 0.4.3 (February 1, 2015)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
 
 * Added auto adjustable rate indexing where the throughput of the background indexing job will increase or decrease inversely with query load to prevent contention.
 * Lowered the threshold for Java to start compiling server methods to native code.
 * Implemented priority locks that ensure readers and writers always take precedence over the background indexing job when there is contention.
+=======
+#### Version 0.5.0 (TBD)
+
+##### CaSH
+* Fixed a bug in CaSH where pressing `CTRL + C` at the command prompt would unexpectedly exit the shell instead of returning a new prompt.
+* Added a feature to automatically preserve CaSH command history across sessions.
+* Changed CaSH error exit status from `127` to `1`.
+* Added `-r` and `--run` options to the `cash` CLI that allow the execution of commands inline without launching the entire CaSH application.
+* Added a `whoami` variable to CaSH that displays the current Concourse user.
+* Added support for multi-line input in CaSH. For example, you can now write complex routines that span several lines like:
+
+		[default/cash]$ for(long record : find("attending", eq, "Y")){
+		> count+= fetch("name", record).size();
+		> println fetch("name", record);
+		> }
+
+##### Miscellaneous		
+* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
+* Improved the performance of the `set` operation by over 25 percent.
+* Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
+
+#### Version 0.4.3 (TBD)
+*In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
+
+* Added adjustable rate indexing such that the throughput of the background indexing job will automatically increase or decrease inversely with normal data access to prevent contention.
+* Lowered the threshold for Java to start compiling server methods to native code.
+* Implemented priority locks that ensure readers and writers take precence over the background indexing job when there is contention.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 * Increased internal caching of some frequently used objects to reduce the overhead for initialization and garbage collection.
 * Switched to using StampedLocks with optimistic reads in some places to reduce the overhead of accessing certain resources with little or no contention.
 * Eliminated unnecessary intermediate copies of data in memory when serializing to disk.
 * Switched to a faster hash function to generate lock tokens.
+<<<<<<< HEAD
 * Switched from using the default `ConcurrentHashMap` implementation to one backported from Java 8 for better performance.
 * Improved the efficiency of the background indexing job by re-using worker threads.
 * Improved heuristics to determine bloom filter sizing.
@@ -21,12 +51,20 @@
 * Added an `envtool` CLI that can be used to manage environments in Concourse Server.
 * Added a `--list-sessions` action to the `useradmin` CLI to list all the currently active user session in Concourse Server.
 * Removed unnecessary locking that occurred when performing writes in a transaction or atomic operation.
+=======
+* Switched from using the default `ConcurrentHashMap` implemenation to one backported from Java 8 for better performance.
+* Made miscellaneous optimizations for sensible performance gains.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 #### Version 0.4.2 (October 4, 2014)
 * Improved the way that the storage engine processes `find` queries, resulting in a further speed improvement of over 35 percent.
 * Fixed a bug with real-time transaction failure detection that made it possible for [phantom reads](http://en.wikipedia.org/wiki/Isolation_(database_systems)#Phantom_reads) to occur.
 * Fixed an issue that caused Concourse Server to drop transaction tokens when under increased concurrency.
+<<<<<<< HEAD
 * Fixed and bug in the just-in-time locking protocol that prematurely removed references to active locks.
+=======
+* Fixed a bug in the just-in-time locking protocol that prematurely removed references to active locks.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 * Fixed a bug where transactions that started to commit but failed before completing did not release locks, resulting in deadlocks.
 * Fixed an issue where transactions unnecessarily grabbed locks twice while committing.
 * Fixed an issues that made it possible for deadlocks to occur with many concurrent Transactions performing atomic operations (i.e. `set`).
@@ -88,8 +126,13 @@
 	* `insert` writes serveral key/value mappings from a JSON encoded string into one or more records with a single network call.
 * Added `LINKS_TO` Operator (aliased as `lnk2` in CaSH) to make it easy to include links in find criteria. For example, the following statements are equivalent:
 
+<<<<<<< HEAD
 		concourse.find("foo", Operator.LINKS_TO, 1);
 		concourse.find("foo", Operator.EQUALS, Links.to(1));
+=======
+		concourse.find(\"foo\", Operator.LINKS_TO, 1);
+		concourse.find(\"foo\", Operator.EQUALS, Links.to(1));
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 * Added a new `Tag` datatype for the purpose of storing a string value without performing full text search indexing. A `Tag` can be created programatically using the `Tag#create` method and in CaSH using the `tag()` alias.
 
 ##### Usability
@@ -121,8 +164,8 @@
 #### Version 0.3.5 (May 26, 2014)
 * Added support for using short syntax in nested commands in CaSH. For example, the following commands are equivalanet and can now be used interchanably:
 
-		cash$ get(describe(1), find("name", eq, 1))
-		cash$ concourse.get(concourse.describe(1), concourse.find("name", eq, 1))
+		cash$ get(describe(1), find(\"name\", eq, 1))
+		cash$ concourse.get(concourse.describe(1), concourse.find(\"name\", eq, 1))
 
 * Fixed a bug that caused a deadlock when committing a transaction that wrote a value to a key and then subsequently performed a query against the key that included the value directly.
 * Fixed a bug that made it possible for the server to hang after reaching an inconsistent state caused by the Buffer expanding to accommodate new data written by one client while simultaneously servicing a read request for another client.
@@ -141,10 +184,10 @@
 #### Version 0.3.4 (April 13, 2014)
 * Added support for issuing commands in CaSH using short syntax. Short syntax allows the user to make Concourse API calls by invoking the desired method directly by name instead of prepending the invocation with `concourse.`. For example, the following commands are all equivalent and can now be used interchangably in stand-alone statements:
 
-		cash$ add("name", "jeff", 1)
-		cash$ concourse.add("name", "jeff", 1)
-		cash$ add "name", "jeff", 1
-		cash$ concourse.add "name", "jeff", 1
+		cash$ add(\"name\", \"jeff\", 1)
+		cash$ concourse.add(\"name\", \"jeff\", 1)
+		cash$ add \"name\", \"jeff\", 1
+		cash$ concourse.add \"name\", \"jeff\", 1
 
 * Improved the `toString()` output of `Timestamp` objects so that they match the following format: `Thu Apr 03, 2014 @ 1:32:42:54 PM PDT`.
 * Fixed an issue that caused the server to incorrectly lock resources when processing lots of concurrent reads/writes to a record or key in record.

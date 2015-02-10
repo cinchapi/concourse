@@ -350,6 +350,23 @@ public class AtomicOperation extends BufferedStore implements
         return super.search(key, query);
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+    public void set(String key, TObject value, long record)
+            throws AtomicStateException {
+        checkState();
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
+        super.set(key, value, record);
+    }
+
+    @Override
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     public final void start() {}
 
     @Override
@@ -587,7 +604,10 @@ public class AtomicOperation extends BufferedStore implements
         }
 
         private final Lock lock;
+<<<<<<< HEAD
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         private final Token token;
         private final LockType type;
 
@@ -620,15 +640,25 @@ public class AtomicOperation extends BufferedStore implements
             // happens if the AtomicOperation is not aborted before an attempt
             // to commit, so its best to not create a copy if we don't have to
             ByteBuffer bytes = ByteBuffer.allocate(size());
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
             return bytes;
         }
 
         @Override
+<<<<<<< HEAD
         public void copyTo(ByteBuffer buffer) {
             buffer.put((byte) type.ordinal());
             token.copyTo(buffer);
+=======
+        public void copyToByteBuffer(ByteBuffer buffer) {
+            buffer.put((byte) type.ordinal());
+            token.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
 
         /**

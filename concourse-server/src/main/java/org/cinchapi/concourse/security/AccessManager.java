@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
+<<<<<<< HEAD
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.Collections;
@@ -39,16 +40,27 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.Timestamp;
+=======
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 import org.cinchapi.concourse.annotate.Restricted;
-import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.io.Serializables;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TStrings;
+<<<<<<< HEAD
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
+=======
+import org.cinchapi.vendor.jsr166e.StampedLock;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 import static com.google.common.base.Preconditions.*;
 
@@ -57,11 +69,16 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+<<<<<<< HEAD
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import com.google.common.primitives.Longs;
+=======
+import com.google.common.collect.HashBasedTable;
+import com.google.common.hash.Hashing;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 /**
  * The {@link AccessManager} controls access to the server by keeping tracking
@@ -116,6 +133,19 @@ public class AccessManager {
     }
 
     /**
+     * Return {@code true} if {@code username} is reserved.
+     * 
+     * @param username
+     * @return {@code true} if ({@code username} is reserved
+     */
+    protected static boolean isReservedUsername(ByteBuffer username) { // visible
+                                                                       // for
+                                                                       // testing
+        String usernameStr = new String(username.array());
+        return usernameStr.equalsIgnoreCase(DELETED_USERNAME);
+    }
+
+    /**
      * Return {@code true} if {@code password} is in valid format,
      * in which it must not be null or empty, or contain fewer than
      * 3 characters.
@@ -123,13 +153,14 @@ public class AccessManager {
      * @param password
      * @return {@code true} if {@code password} is valid format
      */
-    protected static boolean isSecuredPassword(ByteBuffer password) { // visible
-                                                                      // for
-                                                                      // testing
+    protected static boolean isSecurePassword(ByteBuffer password) { // visible
+                                                                     // for
+                                                                     // testing
         String passwordStr = new String(password.array());
         return !Strings.isNullOrEmpty(passwordStr) && passwordStr.length() >= 3;
     }
 
+<<<<<<< HEAD
     /**
      * Decode the {@code hex}adeciaml string and return the resulting binary
      * data.
@@ -152,27 +183,40 @@ public class AccessManager {
         return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
     }
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     // The AccessManager keeps track of user sessions and their associated
     // AccessTokens. An AccessToken is valid for a limited amount of time.
     private static final int ACCESS_TOKEN_TTL = 24;
-
     private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
-    private final AccessTokenManager tokenManager;
+    private static final String ADMIN_PASSWORD = ByteBuffers
+            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+
     // The AccessManager stores credentials in memory for fast processing and
     // backs them up on disk for persistence.
-    private static final String ADMIN_USERNAME = encodeHex(ByteBuffer
-            .wrap("admin".getBytes()));
-    private static final String ADMIN_PASSWORD = encodeHex(ByteBuffer
-            .wrap("admin".getBytes()));
+    private static final String ADMIN_USERNAME = ByteBuffers
+            .encodeAsHex(ByteBuffer.wrap("admin".getBytes()));
+    // Reserved username that is used to display deleted user
+    // in history output.
+    private static final String DELETED_USERNAME = "Unknown";
+    private static final String PASSWORD_KEY = "password"; // table value as hex
+    private static final String SALT_KEY = "salt"; // table value as hex
 
-    private final Map<String, Credentials> credentials = Maps.newHashMap();
+    // Column keys in table of credentials.
+    private static final String USERNAME_KEY = "username"; // table value as hex
+
     private final String backingStore;
-    // Concurrency controls
-    private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
+    // The new uid is generated by incrementing the largest existing uid
+    // in the credentials mapping in memory.
+    private AtomicInteger counter;
 
-    private final ReadLock read = master.readLock();
+    private final HashBasedTable<Short, String, Object> credentials;
 
-    private final WriteLock write = master.writeLock();
+    // Concurrency controls.
+    private final StampedLock lock = new StampedLock();
+
+    // Deals with all the access tokens for user sessions
+    private final AccessTokenManager tokenManager;
 
     /**
      * Construct a new instance.
@@ -181,51 +225,96 @@ public class AccessManager {
      * @param accessTokenTtl
      * @param accessTokenTtlUnit
      */
+    @SuppressWarnings("unchecked")
     private AccessManager(String backingStore, int accessTokenTtl,
             TimeUnit accessTokenTtlUnit) {
         this.backingStore = backingStore;
         this.tokenManager = AccessTokenManager.create(accessTokenTtl,
                 accessTokenTtlUnit);
-        Iterator<ByteBuffer> it = ByteableCollections.iterator(FileSystem
-                .readBytes(backingStore));
-        while (it.hasNext()) {
-            insert(Credentials.fromByteBuffer(it.next()));
+        if(FileSystem.getFileSize(backingStore) > 0) {
+            ByteBuffer bytes = FileSystem.readBytes(backingStore);
+            credentials = Serializables.read(bytes, HashBasedTable.class);
+            counter = new AtomicInteger(
+                    Collections.max(credentials.rowKeySet()));
         }
-        // If there are no credentials (which implies this is a new server) add
-        // the default admin username/password
-        if(credentials.isEmpty()) {
-            grant(decodeHex(ADMIN_USERNAME), decodeHex(ADMIN_PASSWORD));
+        else {
+            counter = new AtomicInteger(0);
+            credentials = HashBasedTable.create();
+            // If there are no credentials (which implies this is a new server)
+            // add the default admin username/password
+            createUser(ByteBuffers.decodeFromHex(ADMIN_USERNAME),
+                    ByteBuffers.decodeFromHex(ADMIN_PASSWORD));
         }
     }
 
     /**
-     * Authorize {@code username} for subsequent access with the returned
-     * {@link AccessToken}.
+     * Create access to the user identified by {@code username} with
+     * {@code password}.
+     * 
+     * <p>
+     * If the existing user simply changes the password, the new auto-generated
+     * id will not be generated and this username still has the same uid as the
+     * time it has been assigned when this {@link AccessManager} is
+     * instantiated.
+     * </p>
      * 
      * @param username
-     * @return the AccessToken
+     * @param password
      */
-    public AccessToken authorize(ByteBuffer username) {
-        read.lock();
+    public void createUser(ByteBuffer username, ByteBuffer password) {
+        Preconditions.checkArgument(isAcceptableUsername(username),
+                "Username must not be empty, or contain any whitespace.");
+        Preconditions.checkArgument(!isReservedUsername(username),
+                "This username is reserved.");
+        Preconditions.checkArgument(isSecurePassword(password),
+                "Password must not be empty, or have fewer than 3 characters.");
+        long stamp = lock.writeLock();
         try {
-            checkArgument(isValidUsername(username));
-            return tokenManager.addToken(encodeHex(username));
+            ByteBuffer salt = Passwords.getSalt();
+            password = Passwords.hash(password, salt);
+            insert0(username, password, salt);
+            tokenManager.deleteAllUserTokens(ByteBuffers.encodeAsHex(username));
+            diskSync();
         }
         finally {
-            read.unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
     /**
-     * Deauthorize {@code token} so that it is not valid for subsequent access.
+     * Delete access of the user identified by {@code username}.
+     * 
+     * @param username
+     */
+    public void deleteUser(ByteBuffer username) {
+        long stamp = lock.writeLock();
+        try {
+            String hex = ByteBuffers.encodeAsHex(username);
+            checkArgument(!hex.equals(ADMIN_USERNAME),
+                    "Cannot revoke access for the admin user!");
+            short uid = getUidByUsername0(username);
+            credentials.remove(uid, USERNAME_KEY);
+            credentials.remove(uid, PASSWORD_KEY);
+            credentials.remove(uid, SALT_KEY);
+            tokenManager.deleteAllUserTokens(hex);
+            diskSync();
+        }
+        finally {
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Logout {@code token} so that it is not valid for subsequent access.
      * 
      * @param token
      */
-    public void deauthorize(AccessToken token) {
+    public void expireAccessToken(AccessToken token) {
         tokenManager.deleteToken(token); // the #tokenManager handles locking
     }
 
     /**
+<<<<<<< HEAD
      * Return a list of strings, each of which describes a currently existing
      * access token.
      * 
@@ -245,69 +334,109 @@ public class AccessManager {
     /**
      * Grant access to the user identified by {@code username} with
      * {@code password}.
+=======
+     * Login {@code username} for subsequent access with the returned
+     * {@link AccessToken}.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      * 
      * @param username
-     * @param password
+     * @return the AccessToken
      */
-    public void grant(ByteBuffer username, ByteBuffer password) {
-        Preconditions.checkArgument(isAcceptableUsername(username),
-                "Username must not be empty, or contain any whitespace.");
-        Preconditions.checkArgument(isSecuredPassword(password),
-                "Password must not be empty, or have fewer than 3 characters.");
-        write.lock();
-        try {
-            ByteBuffer salt = Passwords.getSalt();
-            password = Passwords.hash(password, salt);
-            insert(Credentials.create(encodeHex(username), encodeHex(password),
-                    encodeHex(salt)));
-            tokenManager.deleteAllUserTokens(encodeHex(username));
-            diskSync();
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if {@code username} is valid.
-     * 
-     * @param username
-     * @return {@code true} if {@code username} is valid
-     */
-    public boolean isValidUsername(ByteBuffer username) {
-        return credentials.get(encodeHex(username)) != null;
-    }
-
-    /**
-     * Revoke access for the user identified by {@code username}.
-     * 
-     * @param username
-     */
-    public void revoke(ByteBuffer username) {
-        write.lock();
-        try {
-            String hex = encodeHex(username);
-            checkArgument(!hex.equals(ADMIN_USERNAME),
-                    "Cannot revoke access for the admin user!");
-            if(credentials.remove(hex) != null) {
-                tokenManager.deleteAllUserTokens(hex);
-                diskSync();
+    public AccessToken getNewAccessToken(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        checkArgument(isExistingUsername0(username));
+        if(!lock.validate(stamp)) {
+            lock.readLock();
+            try {
+                checkArgument(isExistingUsername0(username));
+            }
+            finally {
+                lock.unlockRead(stamp);
             }
         }
-        finally {
-            write.unlock();
-        }
+        return tokenManager.addToken(ByteBuffers.encodeAsHex(username)); // tokenManager
+                                                                         // handles
+                                                                         // locking
     }
 
     /**
-     * Return {@code true} if {@code token} is a valid AccessToken.
+     * Return the uid of the user associated with {@code token}.
      * 
      * @param token
-     * @return {@code true} if {@code token} is valid
+     * @return the uid
      */
-    public boolean validate(AccessToken token) {
-        return tokenManager.isValidToken(token); // the #tokenManager does
-                                                 // locking
+    public short getUidByAccessToken(AccessToken token) {
+        long stamp = lock.tryOptimisticRead();
+        ByteBuffer username = getUsernameByAccessToken0(token);
+        short uid = getUidByUsername0(username);
+        if(!lock.validate(stamp)) {
+            username = getUsernameByAccessToken0(token);
+            uid = getUidByUsername0(username);
+        }
+        return uid;
+    }
+
+    /**
+     * Return the uid of the user identified by {@code username}.
+     * 
+     * @param username
+     * @return the uid
+     */
+    public short getUidByUsername(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        short uid = getUidByUsername0(username);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                uid = getUidByUsername0(username);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return uid;
+    }
+
+    /**
+     * Return the binary format of username associated with {@code token}.
+     * 
+     * @param token
+     * @return the username
+     */
+    public ByteBuffer getUsernameByAccessToken(AccessToken token) {
+        long stamp = lock.tryOptimisticRead();
+        ByteBuffer username = getUsernameByAccessToken0(token);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                username = getUsernameByAccessToken0(token);
+            }
+            finally {
+                lock.unlock(stamp);
+            }
+        }
+        return username;
+    }
+
+    /**
+     * Return {@code true} if {@code username} exists in {@link #backingStore}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exists in {@link #backingStore}
+     */
+    public boolean isExistingUsername(ByteBuffer username) {
+        long stamp = lock.tryOptimisticRead();
+        boolean valid = isExistingUsername0(username);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                valid = isExistingUsername0(username);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return valid;
     }
 
     /**
@@ -318,20 +447,50 @@ public class AccessManager {
      * @param password
      * @return {@code true} if {@code username}/{@code password} is valid
      */
-    public boolean validate(ByteBuffer username, ByteBuffer password) {
-        read.lock();
-        try {
-            Credentials accessRecord = credentials.get(encodeHex(username));
-            if(accessRecord != null) {
-                ByteBuffer salt = accessRecord.getSalt();
-                password.rewind();
-                password = Passwords.hash(password, salt);
-                return encodeHex(password).equals(accessRecord.getPassword());
+    public boolean isExistingUsernamePasswordCombo(ByteBuffer username,
+            ByteBuffer password) {
+        long stamp = lock.tryOptimisticRead();
+        boolean valid = isExistingUsernamePasswordCombo0(username, password);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                valid = isExistingUsernamePasswordCombo0(username, password);
             }
-            return false;
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return valid;
+    }
+
+    /**
+     * Return {@code true} if {@code token} is a valid AccessToken.
+     * 
+     * @param token
+     * @return {@code true} if {@code token} is valid
+     */
+    public boolean isValidAccessToken(AccessToken token) {
+        return tokenManager.isValidToken(token); // the #tokenManager does
+                                                 // locking
+    }
+
+    /**
+     * Insert credential with {@code username}, {@code password},
+     * and {@code salt} into the memory store.
+     * 
+     * @param username
+     * @param password
+     * @param salt
+     */
+    protected void insert(ByteBuffer username, ByteBuffer password,
+            ByteBuffer salt) { // visible for
+                               // upgrade task
+        long stamp = lock.writeLock();
+        try {
+            insert0(username, password, salt);
         }
         finally {
-            read.unlock();
+            lock.unlockWrite(stamp);
         }
     }
 
@@ -339,39 +498,99 @@ public class AccessManager {
      * Sync any changes made to the memory store to disk.
      */
     private void diskSync() {
-        write.lock();
+        // TODO take a backup in order to make this ACID durable...
+        FileChannel channel = FileSystem.getFileChannel(backingStore);
         try {
-            FileChannel channel = FileSystem.getFileChannel(backingStore);
-            ByteBuffer bytes = ByteableCollections.toByteBuffer(credentials
-                    .values());
-            try {
-                channel.write(bytes);
-            }
-            catch (IOException e) {
-                throw Throwables.propagate(e);
-            }
-            finally {
-                FileSystem.closeFileChannel(channel);
-            }
+            channel.position(0);
+            Serializables.write(credentials, channel);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
         }
         finally {
-            write.unlock();
+            FileSystem.closeFileChannel(channel);
         }
     }
 
     /**
-     * Insert the {@code creds} into the memory store.
+     * Implementation of {@link #getUidByAccessToken(AccessToken)}.
      * 
-     * @param creds
+     * @param username
+     * @return the uid
      */
-    private void insert(Credentials creds) {
-        write.lock();
-        try {
-            credentials.put(creds.getUsername(), creds);
+    private short getUidByUsername0(ByteBuffer username) {
+        checkArgument(isExistingUsername0(username));
+        Map<Short, Object> credsCol = credentials.column(USERNAME_KEY);
+        for (Map.Entry<Short, Object> creds : credsCol.entrySet()) {
+            String value = (String) creds.getValue();
+            if(value.equals(ByteBuffers.encodeAsHex(username))) {
+                return creds.getKey();
+            }
         }
-        finally {
-            write.unlock();
+        return -1; // supress compiler error
+                   // but this statement will
+                   // never actually execute
+    }
+
+    /**
+     * Implementation of {@link #getUsernameByAccessToken(AccessToken)}.
+     * 
+     * @param token
+     * @return the username
+     */
+    private ByteBuffer getUsernameByAccessToken0(AccessToken token) {
+        String username = tokenManager.getUsernameByAccessToken(token);
+        return ByteBuffers.decodeFromHex(username);
+    }
+
+    /**
+     * Implementation of {@link #insert(ByteBuffer, ByteBuffer, ByteBuffer)}
+     * without locking.
+     * 
+     * @param username
+     * @param password
+     * @param salt
+     */
+    private void insert0(ByteBuffer username, ByteBuffer password,
+            ByteBuffer salt) {
+        short uid = isExistingUsername0(username) ? getUidByUsername0(username)
+                : (short) counter.incrementAndGet();
+        credentials.put(uid, USERNAME_KEY, ByteBuffers.encodeAsHex(username));
+        credentials.put(uid, PASSWORD_KEY, ByteBuffers.encodeAsHex(password));
+        credentials.put(uid, SALT_KEY, ByteBuffers.encodeAsHex(salt));
+    }
+
+    /**
+     * Implementation of {@link #isExistingUsername(ByteBuffer)}.
+     * 
+     * @param username
+     * @return {@code true} if {@code username} exiasts in {@link #backingStore}
+     *         .
+     */
+    private boolean isExistingUsername0(ByteBuffer username) {
+        return credentials.containsValue(ByteBuffers.encodeAsHex(username));
+    }
+
+    /**
+     * Implementation of
+     * {@link #isExistingUsernamePasswordCombo(ByteBuffer, ByteBuffer)}.
+     * 
+     * @param username
+     * @param password
+     * @return {@code true} if {@code username}/{@code password} is valid
+     */
+    private boolean isExistingUsernamePasswordCombo0(ByteBuffer username,
+            ByteBuffer password) {
+        if(isExistingUsername0(username)) {
+            short uid = getUidByUsername0(username);
+            ByteBuffer salt = ByteBuffers.decodeFromHex((String) credentials
+                    .get(uid, SALT_KEY));
+            password.rewind();
+            password = Passwords.hash(password, salt);
+            return ByteBuffers.encodeAsHex(password).equals(
+                    (String) credentials.get(uid, PASSWORD_KEY));
         }
+        return false;
     }
 
     /**
@@ -397,6 +616,8 @@ public class AccessManager {
             return new AccessTokenManager(accessTokenTtl, accessTokenTtlUnit);
         }
 
+        private final StampedLock lock = new StampedLock();
+        private final SecureRandom srand = new SecureRandom();
         /**
          * The collection of currently valid tokens is maintained as a cache
          * mapping from a raw AccessToken to an AccessTokenWrapper. Each raw
@@ -405,8 +626,6 @@ public class AccessManager {
          * access token.
          */
         private final Cache<AccessToken, AccessTokenWrapper> tokens;
-        private final ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
-        private final SecureRandom srand = new SecureRandom();
 
         /**
          * Construct a new instance.
@@ -428,7 +647,7 @@ public class AccessManager {
          * @return the AccessToken
          */
         public AccessToken addToken(String username) {
-            masterLock.writeLock().lock();
+            long stamp = lock.writeLock();
             try {
                 long timestamp = Time.now();
                 StringBuilder sb = new StringBuilder();
@@ -443,7 +662,7 @@ public class AccessManager {
                 return token;
             }
             finally {
-                masterLock.writeLock().unlock();
+                lock.unlockWrite(stamp);
             }
         }
 
@@ -453,7 +672,7 @@ public class AccessManager {
          * @param username
          */
         public void deleteAllUserTokens(String username) {
-            masterLock.writeLock().lock();
+            long stamp = lock.writeLock();
             try {
                 for (AccessToken token : tokens.asMap().keySet()) {
                     if(tokens.getIfPresent(token).getUsername()
@@ -463,7 +682,7 @@ public class AccessManager {
                 }
             }
             finally {
-                masterLock.writeLock().unlock();
+                lock.unlockWrite(stamp);
             }
         }
 
@@ -473,14 +692,43 @@ public class AccessManager {
          * @param token
          */
         public void deleteToken(AccessToken token) {
-            masterLock.writeLock().lock();
+            long stamp = lock.writeLock();
             try {
                 tokens.invalidate(token);
             }
             finally {
-                masterLock.writeLock().unlock();
+                lock.unlockWrite(stamp);
             }
 
+        }
+
+        /**
+         * Return the username associated with the valid {@code token}.
+         * 
+         * @param token
+         * @return the username if {@code token} is valid
+         */
+        public String getUsernameByAccessToken(AccessToken token) {
+            Preconditions.checkArgument(isValidToken(token),
+                    "Access token is no longer invalid.");
+            long stamp = lock.tryOptimisticRead();
+            String username = tokens.getIfPresent(token).getUsername();
+            if(!lock.validate(stamp)) {
+                stamp = lock.readLock();
+                try {
+                    username = tokens.getIfPresent(token).getUsername();
+                }
+                finally {
+                    lock.unlockRead(stamp);
+                }
+            }
+            if(Strings.isNullOrEmpty(username)) {
+                throw new IllegalArgumentException(
+                        "Access token is no longer valid");
+            }
+            else {
+                return username;
+            }
         }
 
         /**
@@ -490,13 +738,18 @@ public class AccessManager {
          * @return {@code true} if {@code token} is valid
          */
         public boolean isValidToken(AccessToken token) {
-            masterLock.readLock().lock();
-            try {
-                return tokens.getIfPresent(token) != null;
+            long stamp = lock.tryOptimisticRead();
+            boolean valid = tokens.getIfPresent(token) != null;
+            if(!lock.validate(stamp)) {
+                stamp = lock.readLock();
+                try {
+                    valid = tokens.getIfPresent(token) != null;
+                }
+                finally {
+                    lock.unlockRead(stamp);
+                }
             }
-            finally {
-                masterLock.readLock().unlock();
-            }
+            return valid;
         }
     }
 
@@ -532,6 +785,7 @@ public class AccessManager {
             return new AccessTokenWrapper(token, username, timestamp);
         }
 
+<<<<<<< HEAD
         /**
          * The formatter that is used to when constructing a human readable
          * description of the access token.
@@ -544,9 +798,11 @@ public class AccessManager {
                 .appendSecondOfMinute(2).appendLiteral(" ")
                 .appendHalfdayOfDayText().toFormatter();
 
+=======
+        private final long timestamp;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         private final AccessToken token;
         private final String username; // hex
-        private final long timestamp;
 
         /**
          * Construct a new instance.
@@ -629,6 +885,7 @@ public class AccessManager {
         }
     }
 
+<<<<<<< HEAD
     /**
      * A grouping of a username, password and salt that together identify a
      * valid authentication scheme for a user.
@@ -749,4 +1006,6 @@ public class AccessManager {
 
     }
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 }

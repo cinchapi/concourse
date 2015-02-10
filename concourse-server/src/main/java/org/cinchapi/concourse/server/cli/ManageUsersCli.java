@@ -145,6 +145,7 @@ public class ManageUsersCli extends ManagedOperationCli {
             throw Throwables.propagate(e);
         }
     }
+<<<<<<< HEAD
 
     @Override
     protected boolean isReadyToRun() {
@@ -154,6 +155,18 @@ public class ManageUsersCli extends ManagedOperationCli {
                         || !Strings.isNullOrEmpty(opts.addingUsername)
                         || !Strings.isNullOrEmpty(opts.deletingUsername) || !Strings
                             .isNullOrEmpty(opts.editingUsername));
+=======
+    
+    @Override
+    protected boolean isReadyToRun() {
+        MyOptions opts = (MyOptions) options;
+        return super.isReadyToRun() && 
+                (opts.grant 
+                        || opts.revoke 
+                        || !Strings.isNullOrEmpty(opts.addingUsername) 
+                        || !Strings.isNullOrEmpty(opts.deletingUsername) 
+                        || !Strings.isNullOrEmpty(opts.editingUsername));     
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**

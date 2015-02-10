@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.util.Logger;
@@ -105,6 +106,7 @@ public final class ConcourseExecutors {
      * buffer flush. Those exceptions can be ignored, so we catch them here and
      * print log statements.
      */
+<<<<<<< HEAD
     private static final UncaughtExceptionHandler uncaughtExceptionHandler;
 
     static {
@@ -120,6 +122,20 @@ public final class ConcourseExecutors {
             }
 
         };
+=======
+    public static void executeAndAwaitTermination(ExecutorService executor,
+            Runnable... commands) {
+        for (Runnable command : commands) {
+            executor.execute(command);
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
+                                                                             // wait
+                                                                             // forever...
+        }
+        catch (InterruptedException e) {/* noop */}
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     private ConcourseExecutors() {/* utility-class */}

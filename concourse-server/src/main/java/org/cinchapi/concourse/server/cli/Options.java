@@ -23,6 +23,12 @@
  */
 package org.cinchapi.concourse.server.cli;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import org.cinchapi.concourse.config.ConcourseClientPreferences;
+
 import com.beust.jcommander.Parameter;
 
 /**
@@ -38,13 +44,31 @@ import com.beust.jcommander.Parameter;
  */
 public abstract class Options {
 
+    /**
+     * A handler for the client preferences that <em>may</em> exist in the
+     * user's home directory.
+     */
+    private ConcourseClientPreferences prefs = null;
+
+    {
+        String file = System.getProperty("user.home") + File.separator
+                + "concourse_client.prefs";
+        if(Files.exists(Paths.get(file))) { // check to make sure that the
+                                            // file exists first, so we
+                                            // don't create a blank one if
+                                            // it doesn't
+            prefs = ConcourseClientPreferences.load(file);
+        }
+    }
+
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
     public boolean help;
-    
+
     @Parameter(names = { "-u", "--username" }, description = "The username with which to connect")
-    public String username = "admin";
+    public String username = prefs != null ? prefs.getUsername() : "admin";
 
     @Parameter(names = "--password", description = "The password", hidden = true)
-    public String password;
-    
+    public String password = prefs != null ? new String(prefs.getPassword())
+            : null;
+
 }

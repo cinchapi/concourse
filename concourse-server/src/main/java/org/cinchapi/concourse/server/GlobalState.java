@@ -230,6 +230,17 @@ public final class GlobalState {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * The file which contains the credentials used by the
+     * {@link org.cinchapi.concourse.security.AccessManager}.
+     * This file is typically located in the root of the server installation.
+     */
+    @NonPreference
+    public static String ACCESS_FILE = ".access";
+
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     // ========================================================================
 
 }

@@ -71,6 +71,7 @@ public final class TCollections {
         return Iterables.get(collection, Math.abs(Random.getInt()) % size);
     }
 
+<<<<<<< HEAD
     /**
      * Return a string that displays the {@code collection} as an order
      * numerical list.
@@ -89,5 +90,7 @@ public final class TCollections {
         return sb.toString();
     }
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     private TCollections() {/* noop */}
 }

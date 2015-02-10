@@ -268,6 +268,7 @@ public final class Buffer extends Limbo {
     private static int MAX_TRANSPORT_RATE = 8192;
 
     /**
+<<<<<<< HEAD
      * The number of slots to put in each Page's bloom filter. We want this
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
@@ -275,6 +276,8 @@ public final class Buffer extends Limbo {
     private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
 
     /**
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -982,8 +985,15 @@ public final class Buffer extends Limbo {
             try {
                 if(content.remaining() >= write.size() + 4) {
                     index(write);
+                    ByteBuffer bytes = ByteBuffer.allocate(write.size());
+                    write.copyToByteBuffer(bytes);
+                    bytes.rewind();
                     content.putInt(write.size());
+<<<<<<< HEAD
                     write.copyTo(content);
+=======
+                    content.put(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                     content.force();
                 }
                 else {
@@ -1158,17 +1168,29 @@ public final class Buffer extends Limbo {
             Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
             try {
                 Type valueType = write.getValue().getType();
+<<<<<<< HEAD
                 if(filter.mightContainCached(write.getRecord(), write.getKey(),
+=======
+                if(filter.mightContain(write.getRecord(), write.getKey(),
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         write.getValue())) {
                     return true;
                 }
                 else if(valueType == Type.STRING) {
+<<<<<<< HEAD
                     return filter.mightContainCached(write.getRecord(), write
+=======
+                    return filter.mightContain(write.getRecord(), write
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                             .getKey(), Value.wrap(Convert.javaToThrift(Tag
                             .create((String) write.getValue().getObject()))));
                 }
                 else if(valueType == Type.TAG) {
+<<<<<<< HEAD
                     return filter.mightContainCached(
+=======
+                    return filter.mightContain(
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                             write.getRecord(),
                             write.getKey(),
                             Value.wrap(Convert.javaToThrift(write.getValue()

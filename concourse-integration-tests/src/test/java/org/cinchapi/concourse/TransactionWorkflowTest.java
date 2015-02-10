@@ -404,5 +404,21 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.abort();
         }
     }
+<<<<<<< HEAD
+=======
+    
+    @Test(expected = TransactionException.class)
+    public void testPreCommitTransactionFailuresAreIndicatedWithExceptionVerifyOrSet() {
+        try {
+            client.stage();
+            client.get("foo", 1);
+            client2.set("foo", "baz", 1);
+            client.verifyOrSet("foo", "bar", 1);
+        }
+        finally {
+            client.abort();
+        }
+    }
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 }

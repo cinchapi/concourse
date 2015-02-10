@@ -88,7 +88,10 @@ public class Upgrader {
 
             // Run the new upgrade tasks
             for (UpgradeTask task : tasks) {
+<<<<<<< HEAD
                 System.out.println(task);
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                 try {
                     task.run();
                 }

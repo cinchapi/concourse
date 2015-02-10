@@ -197,8 +197,12 @@ public class TObject implements
 
     @Override
     public int hashCode() {
+<<<<<<< HEAD
         return Arrays.hashCode(new int[] { data.hashCode(),
                 getInternalType().ordinal() });
+=======
+        return Objects.hash(data, getInternalType());
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**

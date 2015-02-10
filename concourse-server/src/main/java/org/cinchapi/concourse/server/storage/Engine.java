@@ -590,6 +590,30 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+    public void set(String key, TObject value, long record) {
+        Lock write = lockService.getWriteLock(key, record);
+        Lock range = rangeLockService.getWriteLock(key, value);
+        write.lock();
+        range.lock();
+        try {
+            super.set(key, value, record);
+            notifyVersionChange(Token.wrap(key, record));
+            notifyVersionChange(Token.wrap(record));
+            notifyVersionChange(Token.wrap(key));
+            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+                    Value.wrap(value)));
+        }
+        finally {
+            write.unlock();
+            range.unlock();
+        }
+    }
+
+    @Override
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     public void start() {
         if(!running) {
             Logger.info("Starting the '{}' Engine...", environment);
@@ -781,6 +805,7 @@ public final class Engine extends BufferedStore implements
         public BufferTransportThread() {
             super(MessageFormat.format("BufferTransport [{0}]", environment));
             setDaemon(true);
+            setPriority(MIN_PRIORITY);
         }
 
         @Override

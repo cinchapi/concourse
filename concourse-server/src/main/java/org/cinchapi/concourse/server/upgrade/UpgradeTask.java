@@ -182,10 +182,18 @@ public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 
     /**
      * Return the path to the server installation directory, from which other
+<<<<<<< HEAD
      * aspects of the Concourse Server deployment are accessible.
      */
     protected String getServerInstallDirectory() {
         return System.getProperty("user.home");
+=======
+     * aspects of the Concourse Server deployment are accessible. This is
+     * typically the working directory from which Concourse Server is launched.
+     */
+    protected String getServerInstallDirectory() {
+        return System.getProperty("user.dir");
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**

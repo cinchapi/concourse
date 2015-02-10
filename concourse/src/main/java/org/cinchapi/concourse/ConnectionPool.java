@@ -304,7 +304,12 @@ public abstract class ConnectionPool implements AutoCloseable {
     private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
 
     /**
+<<<<<<< HEAD
      * A FIFO queue of connections that are available to be leased.
+=======
+     * A mapping from connection to a flag indicating if the connection is
+     * active (e.g. taken).
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      */
     protected final Queue<Concourse> available;
 
@@ -345,12 +350,20 @@ public abstract class ConnectionPool implements AutoCloseable {
      */
     protected ConnectionPool(String host, int port, String username,
             String password, String environment, int poolSize) {
+<<<<<<< HEAD
         this.available = buildQueue(poolSize);
         this.leased = Sets.newSetFromMap(Maps
                 .<Concourse, Boolean> newConcurrentMap());
         for (int i = 0; i < poolSize; ++i) {
             available.offer(Concourse.connect(host, port, username, password,
                     environment));
+=======
+        this.connections = buildCache(poolSize);
+        this.numAvailableConnections = new AtomicInteger(poolSize);
+        for (int i = 0; i < poolSize; ++i) {
+            connections.put(Concourse.connect(host, port, username, password,
+                    environment), new AtomicBoolean(false));
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
         // Ensure that the client connections are forced closed when the JVM is
         // shutdown in case the user does not properly close the pool

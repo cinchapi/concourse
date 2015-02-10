@@ -1,16 +1,62 @@
 # Concourse
 
-[Concourse](http://cinchapi.org/concourse) is a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
+[Concourse](http://concoursedb.com) is a schemaless and distributed version control database with [automatic indexing](http://concoursedb.com/blog/index-all-the-things/), acid transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.
+
+## Introduction
+The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
+### Writing Data
+```java
+import org.cinchapi.concourse
+
+// Establish connection to Concourse Server
+Concourse concourse = Concourse.connect();
+
+// Insert a value for the "name" key in record 1
+concourse.set("name", "Jeff Nelson", 1);
+
+// Append an additional value for the "name" key in record 1
+concourse.add("name", "John Doe", 1);
+
+// Remove a value for the "name" key in record 1
+concourse.remove("name", "Jeff Nelson", 1)
+```
+
+### Reading Data
+```java
+// Get the oldest value for the "name" key in record 1
+concourse.get("name", 1);
+
+// Fetch all the values for the "name" key in record 1
+concourse.fetch("name", 1);
+
+// Find all the records that have a value of "Jeff Nelson" for the "name" key
+concourse.find("name", Operator.EQUALS, "Jeff Nelson");
+```
+
+### Transactions
+```java
+try {
+  // Transfer $50 from acct1 to acct2
+  concourse.stage(); //start transaction
+  concourse.set("balance", concourse.get("balance", acct1) - 50), acct1);
+  concourse.set("balance", concourse.get("balance", acct2) + 50), acct2);
+  concourse.commit();
+}
+catch (TransactionException e) {
+  concourse.abort();
+}
+```
+
+For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Overview
-* [End User Installation Guide](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started#GettingStarted-InstallConcourse)
-* [End User Upgrade Guide](https://cinchapi.atlassian.net/wiki/display/CON/Upgrade+Guide)
-* [Hello World Tutorial](https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started)
-* [API Documentation](concourse/README.md)
+* [Installation](http://concoursedb.com/guide/installation)
+* [Tutorial](http://concoursedb.com/guide/tutorial)
+* [API](concourse/README.md)
 * [Developer Setup](https://cinchapi.atlassian.net/wiki/display/CON/Concourse+Dev+Setup)
-* [Understanding the codebase](https://cinchapi.atlassian.net/wiki/display/CON/Understanding+the+codebase)
-* [Data Model](https://cinchapi.atlassian.net/wiki/display/CON/Data+Model)
-* [Storage Model](https://cinchapi.atlassian.net/wiki/display/CON/Storage+Model)
+* [Codebase](http://concoursedb.com/guide/the-codebase)
+* [Data Model](http://concoursedb.com/guide/data-model/)
+* [Storage Model](http://concoursedb.com/guide/storage-model/)
 
 ### System Requirements
 
@@ -27,7 +73,11 @@ Concourse runs on Java 1.7.
 
 #### Versioning
 
+<<<<<<< HEAD
 This is version 0.4.3 of Concourse.
+=======
+This is version 0.5.0 of Concourse.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
 guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`

@@ -384,7 +384,12 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<V> values = present.get(key);
+<<<<<<< HEAD
             return values != null ? values : emptyValues;
+=======
+            return values != null ? Collections.unmodifiableSet(values)
+                    : emptyValues;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
         finally {
             read.unlock();
@@ -403,10 +408,17 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
         read.lock();
         try {
             Set<V> values = emptyValues;
+<<<<<<< HEAD
             List<CompactRevision<V>> stored = history.get(key);
             if(stored != null) {
                 values = Sets.newLinkedHashSet();
                 Iterator<CompactRevision<V>> it = stored.iterator();
+=======
+            List<Revision<L, K, V>> stored = history.get(key);
+            if(stored != null) {
+                values = Sets.newLinkedHashSet();
+                Iterator<Revision<L, K, V>> it = stored.iterator();
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                 while (it.hasNext()) {
                     CompactRevision<V> revision = it.next();
                     if(revision.getVersion() <= timestamp) {

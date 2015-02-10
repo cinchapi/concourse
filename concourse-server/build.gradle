@@ -7,7 +7,11 @@ dependencies {
     compile ('org.cinchapi:concourse-import:1.1.0'){
     	exclude group: 'org.cinchapi'
     }
+<<<<<<< HEAD
     compile ('org.cinchapi:concourse-cli:1.1.0'){
+=======
+    compile ('org.cinchapi:concourse-cli:1.1.3'){
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     	exclude group: 'org.cinchapi'
     }
     compile fileTree(dir: 'wrapperlib', include: 'wrapper.jar')
@@ -15,6 +19,10 @@ dependencies {
     	exclude group: 'org.javassist', module:'javassist'
     }
     compile 'org.javassist:javassist:3.18.2-GA'
+<<<<<<< HEAD
+=======
+    compile 'net.sf.trove4j:trove4j:3.0.3'
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }

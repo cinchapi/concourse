@@ -140,4 +140,8 @@ public final class Serializables {
 
     private Serializables() {/* noop */}
 
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252

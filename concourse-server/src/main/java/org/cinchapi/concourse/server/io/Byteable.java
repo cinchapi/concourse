@@ -70,7 +70,11 @@ public interface Byteable {
      * doing any unnecessary intermediate copying. So, if the binary
      * representation for this object depends on that of another Byteable, then
      * the implementation of this method should gather those bytes using the
+<<<<<<< HEAD
      * {@link #copyTo(ByteBuffer)} method for the other Byteable.
+=======
+     * {@link #copyToByteBuffer(ByteBuffer)} method for the other Byteable.
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      * </p>
      * <p>
      * <strong>DO NOT</strong> make any modifications to {@code buffer} other
@@ -81,7 +85,11 @@ public interface Byteable {
      * 
      * @param buffer
      */
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer);
+=======
+    public void copyToByteBuffer(ByteBuffer buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
     /**
      * Returns a byte sequence that represents this object.

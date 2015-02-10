@@ -48,6 +48,7 @@
 # the initial and maximum heap sizes to the specified value, so there
 # must be enough system memory available for Concourse Server to start.
 #
+<<<<<<< HEAD
 # Be careful and avoid setting the heap size too large because this may 
 # cause longer garbage collection (gc) pauses or interfere with the ability 
 # of Concourse Server to memory map (mmap) certain data files. We 
@@ -59,6 +60,8 @@
 # 2GB to 4GB       | 1GB
 # Greater than 4GB | 1/4 system memory, but not more than 8GB
 #
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 # DEFAULT: 1GB
 #heap_size = 1GB
 

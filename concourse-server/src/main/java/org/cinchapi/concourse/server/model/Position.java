@@ -149,7 +149,11 @@ public final class Position implements Byteable, Comparable<Position> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
@@ -189,7 +193,11 @@ public final class Position implements Byteable, Comparable<Position> {
     }
 
     @Override
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer) {
+=======
+    public void copyToByteBuffer(ByteBuffer buffer) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         // NOTE: Storing the index as an int instead of some size aware
         // variable length is probably overkill since most indexes will be
         // smaller than Byte.MAX_SIZE or Short.MAX_SIZE, but having variable
@@ -199,7 +207,11 @@ public final class Position implements Byteable, Comparable<Position> {
         // Position is constant so we won't need to store the overall size
         // prior to the Position to deserialize it, which is actually more
         // space efficient.
+<<<<<<< HEAD
         primaryKey.copyTo(buffer);
+=======
+        primaryKey.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         buffer.putInt(index);
     }
 

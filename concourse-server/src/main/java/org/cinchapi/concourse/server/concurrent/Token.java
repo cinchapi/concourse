@@ -130,7 +130,11 @@ public class Token implements Byteable {
     }
 
     @Override
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer) {
+=======
+    public void copyToByteBuffer(ByteBuffer buffer) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 

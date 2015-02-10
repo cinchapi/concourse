@@ -32,7 +32,6 @@ import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Random;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
@@ -285,8 +284,9 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
     // TODO testClearCompletesEvenIfInterrupted
 
     @Test
-    @Ignore("waiting on fix for CON-15")
     public void testSetCompletesEvenIfInterrupted() throws InterruptedException {
+        final Concourse client2 = Concourse.connect(SERVER_HOST, SERVER_PORT,
+                "admin", "admin");
         final int count = 100;
         for (int i = 0; i < count; i++) {
             client.add("foo", i, 1);
@@ -307,8 +307,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
             @Override
             public void run() {
-                client.add("foo", TestData.getPositiveNumber().intValue()
-                        % count, 1);
+                Assert.assertTrue(client2.add("foo", 1000, 1));
             }
 
         };
@@ -321,7 +320,9 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         t1.join();
         t2.join();
 
-        // TODO assert something
+        Assert.assertEquals(-1, client.get("foo", 1)); // this shows that the
+                                                       // atomic operation has
+                                                       // retry logic
 
     }
 

@@ -12,14 +12,22 @@ The concourse jar is available at [Maven Central](http://search.maven.org/#searc
 	}
 
 	dependencies {
+<<<<<<< HEAD
     	compile 'org.cinchapi:concourse:0.4.3+'
+=======
+    	compile 'org.cinchapi:concourse:0.5.0+'
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 	} 
 	
 If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
 	
 	GroupId: org.cinchapi
 	ArtifactId: concourse
+<<<<<<< HEAD
 	Version: 0.4.3+
+=======
+	Version: 0.5.0+
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 	
 Alternatively, you can [download](http://cinchapi.org/concourse/download-api) the latest jar and manually add it to your project's classpath.
 
@@ -86,6 +94,7 @@ The `Operator` class defines the operators that can be used to build a query cri
 * [unlink](#unlink) - Remove a link from one record to another
 * [verify](#verify) - Verify that a value exists for a key in a record
 * [verifyAndSwap](#verifyandswap) - Atomically set a new value if the existing value matches
+* [verifyOrSet](#verifyorset) - Atomically set a value if the existing value is not mapped to a key
 
 ---
 
@@ -847,3 +856,22 @@ Atomically verify *key* as *expected* in *record* and swap with *replacement*.
 	concourse.verifyAndSwap("count", count, 1, count++);
 
 ---
+<<<<<<< HEAD
+=======
+	
+### verifyOrSet
+##### `void verifyOrSet(String key, Object value, long record)`
+Atomically verify *key* as *value* in *record* or set *key* as *value* in *record*.
+###### Parameters
+* key
+* value
+* record
+
+###### Returns
+*true* if both the verification and swap are successful
+###### Example
+	int count = concourse.get("count", 1);
+	concourse.verifyOrSet("count", count, 1, count++);
+
+---
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252

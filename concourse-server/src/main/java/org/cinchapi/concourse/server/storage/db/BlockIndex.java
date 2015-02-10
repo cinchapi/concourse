@@ -143,7 +143,11 @@ public class BlockIndex implements Byteable, Syncable {
         masterLock.readLock().lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size());
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
             return bytes;
         }
@@ -282,13 +286,21 @@ public class BlockIndex implements Byteable, Syncable {
     }
 
     @Override
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer) {
+=======
+    public void copyToByteBuffer(ByteBuffer buffer) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         Preconditions.checkState(mutable);
         masterLock.readLock().lock();
         try {
             for (Entry entry : entries.values()) {
                 buffer.putInt(entry.size());
+<<<<<<< HEAD
                 entry.copyTo(buffer);
+=======
+                entry.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             }
         }
         finally {
@@ -390,7 +402,11 @@ public class BlockIndex implements Byteable, Syncable {
         @Override
         public ByteBuffer getBytes() {
             ByteBuffer bytes = ByteBuffer.allocate(size());
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
             return bytes;
         }
@@ -446,10 +462,17 @@ public class BlockIndex implements Byteable, Syncable {
         }
 
         @Override
+<<<<<<< HEAD
         public void copyTo(ByteBuffer buffer) {
             buffer.putInt(start);
             buffer.putInt(end);
             key.copyTo(buffer);
+=======
+        public void copyToByteBuffer(ByteBuffer buffer) {
+            buffer.putInt(start);
+            buffer.putInt(end);
+            key.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
 
     }

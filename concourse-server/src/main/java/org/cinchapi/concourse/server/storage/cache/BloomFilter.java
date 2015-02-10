@@ -184,9 +184,43 @@ public class BloomFilter implements Syncable {
      * @param byteables
      * @return {@code true} if {@code byteables} might exist
      */
+<<<<<<< HEAD
     public boolean mightContain(Byteable... byteables) {
         Composite composite = Composite.create(byteables);
         return mightContain(composite);
+=======
+    private BloomFilter(String file,
+            com.google.common.hash.BloomFilter<Composite> source) {
+        this.source = source;
+        this.file = file;
+    }
+
+    @Override
+    // NOTE: It seems counter intuitive, but we take a read lock in this
+    // method instead of a write lock so that readers can concurrently use
+    // the bloom filter in memory while the content is being written to
+    // disk.
+    public void sync() {
+        Preconditions.checkState(file != null, "Cannot sync a "
+                + "BloomFilter that does not have an associated file");
+        FileChannel channel = FileSystem.getFileChannel(file);
+        long stamp = lock.tryOptimisticRead();
+        Serializables.write(source, channel); // CON-164
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                channel.position(0);
+                Serializables.write(source, channel); // CON-164
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        FileSystem.closeFileChannel(channel);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**
@@ -203,9 +237,26 @@ public class BloomFilter implements Syncable {
      * @param byteables
      * @return {@code true} if {@code byteables} might exist
      */
+<<<<<<< HEAD
     public boolean mightContainCached(Byteable... byteables) {
         Composite composite = Composite.createCached(byteables);
         return mightContain(composite);
+=======
+    public boolean mightContain(Byteable... byteables) {
+        long stamp = lock.tryOptimisticRead();
+        Composite composite = Composite.create(byteables);
+        boolean mightContain = source.mightContain(composite);
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
+            try {
+                mightContain = source.mightContain(composite);
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
+        }
+        return mightContain;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     /**
@@ -226,6 +277,7 @@ public class BloomFilter implements Syncable {
      *         called.
      */
     public boolean put(Byteable... byteables) {
+<<<<<<< HEAD
         return put(Composite.create(byteables));
     }
 
@@ -308,6 +360,8 @@ public class BloomFilter implements Syncable {
      *         of the {@code composite}
      */
     private boolean put(Composite composite) {
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         long stamp = lock.writeLock();
         try {
             return source.put(composite);

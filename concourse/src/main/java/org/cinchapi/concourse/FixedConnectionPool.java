@@ -66,11 +66,14 @@ class FixedConnectionPool extends ConnectionPool {
         super(host, port, username, password, environment, poolSize);
     }
 
+<<<<<<< HEAD
     @Override
     protected Queue<Concourse> buildQueue(int size) {
         return new ArrayBlockingQueue<Concourse>(size);
     }
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     @Override
     protected Concourse getConnection() {
         try {

@@ -23,12 +23,14 @@
  */
 package org.cinchapi.concourse.testsuite;
 
+import org.cinchapi.concourse.AddTest;
 import org.cinchapi.concourse.AtomicOperationWofkflowTest;
 import org.cinchapi.concourse.BrowseTest;
 import org.cinchapi.concourse.CachedConnectionPoolTest;
 import org.cinchapi.concourse.ChronologizeTest;
 import org.cinchapi.concourse.ClearTest;
 import org.cinchapi.concourse.CompoundOperationTest;
+import org.cinchapi.concourse.CounterTest;
 import org.cinchapi.concourse.FindCriteriaTest;
 import org.cinchapi.concourse.InsertTest;
 import org.cinchapi.concourse.ReferentialIntegrityTest;
@@ -36,13 +38,15 @@ import org.cinchapi.concourse.SecurityExceptionTest;
 import org.cinchapi.concourse.SmokeTest;
 import org.cinchapi.concourse.FixedConnectionPoolTest;
 import org.cinchapi.concourse.ThriftComplianceTest;
+import org.cinchapi.concourse.TransactionIsolationTest;
 import org.cinchapi.concourse.TransactionWorkflowTest;
+import org.cinchapi.concourse.VerifyOrSetTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 /**
- * 
+ * A collection of integrations tests that deal with the client and server.
  * 
  * @author jnelson
  */
@@ -53,7 +57,12 @@ import org.junit.runners.Suite.SuiteClasses;
         FixedConnectionPoolTest.class, ChronologizeTest.class, ClearTest.class,
         ReferentialIntegrityTest.class, BrowseTest.class,
         SecurityExceptionTest.class, ThriftComplianceTest.class,
+<<<<<<< HEAD
         FindCriteriaTest.class, InsertTest.class })
+=======
+        FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
+        InsertTest.class, TransactionIsolationTest.class, CounterTest.class })
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 public class IntegrationTestSuite {
 
 }

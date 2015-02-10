@@ -42,6 +42,12 @@ import org.cinchapi.concourse.util.MultimapViews;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+<<<<<<< HEAD
+=======
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.TreeMultimap;
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 
 /**
  * A grouping of data for efficient indirect queries.
@@ -151,12 +157,20 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             long timestamp, Operator operator, Value... values) { /* Authorized */
         read.lock();
         try {
+<<<<<<< HEAD
             Map<PrimaryKey, Set<Value>> data = Maps.newHashMap();
+=======
+            SetMultimap<PrimaryKey, Value> data = TreeMultimap.create();
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             Value value = values[0];
             if(operator == Operator.EQUALS) {
                 for (PrimaryKey record : historical ? get(value, timestamp)
                         : get(value)) {
+<<<<<<< HEAD
                     MultimapViews.put(data, record, value);
+=======
+                    data.put(record, value);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                 }
             }
             else if(operator == Operator.NOT_EQUALS) {
@@ -165,7 +179,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!value.equals(stored)) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -177,7 +195,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) > 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -189,7 +211,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) >= 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -201,7 +227,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) < 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -213,7 +243,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!historical || stored.compareTo(value) <= 0) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -229,7 +263,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                                     .compareTo(value2) < 0)) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -242,7 +280,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(m.matches()) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -255,7 +297,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
                     if(!m.matches()) {
                         for (PrimaryKey record : historical ? get(stored,
                                 timestamp) : get(stored)) {
+<<<<<<< HEAD
                             MultimapViews.put(data, record, stored);
+=======
+                            data.put(record, stored);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                         }
                     }
                 }
@@ -263,7 +309,11 @@ final class SecondaryRecord extends BrowsableRecord<Text, Value, PrimaryKey> {
             else {
                 throw new UnsupportedOperationException();
             }
+<<<<<<< HEAD
             return data;
+=======
+            return Multimaps.asMap(data);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         }
         finally {
             read.unlock();

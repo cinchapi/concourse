@@ -33,8 +33,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+<<<<<<< HEAD
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.TMaps;
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.server.model.Text;
@@ -322,6 +325,7 @@ public abstract class Limbo extends BaseStore implements
                 .keySet();
     }
 
+<<<<<<< HEAD
     /**
      * This is an implementation of the {@code findAndBrowse} routine that takes
      * in a prior {@code context}. Find and browse will return a mapping from
@@ -372,6 +376,66 @@ public abstract class Limbo extends BaseStore implements
         return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
     }
 
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
+    /**
+     * This is an implementation of the {@code findAndBrowse} routine that takes
+     * in a prior {@code context}. Find and browse will return a mapping from
+     * records that match a criteria (expressed as {@code key} filtered by
+     * {@code operator} in relation to one or more {@code values}) to the set of
+     * values that cause that record to match the criteria.
+     * 
+     * @param context
+     * @param timestamp
+     * @param key
+     * @param operator
+     * @param values
+     * @return the relevant data for the records that satisfy the find query
+     */
+    public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
+            long timestamp, String key, Operator operator, TObject... values) {
+        Iterator<Write> it = iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            long record = write.getRecord().longValue();
+            if(write.getVersion() <= timestamp) {
+                if(write.getKey().toString().equals(key)
+                        && matches(write.getValue(), operator, values)) {
+                    Set<TObject> v = context.get(record);
+                    if(v == null) {
+                        v = Sets.newHashSet();
+                        context.put(record, v);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        v.add(write.getValue().getTObject());
+                    }
+                    else {
+                        v.remove(write.getValue().getTObject());
+                        if(v.isEmpty()) {
+                            context.remove(record);
+                        }
+                    }
+                }
+            }
+            else {
+                break;
+            }
+        }
+        return context;
+    }
+
+    @Override
+<<<<<<< HEAD
+=======
+    public Set<TObject> fetch(String key, long record) {
+        return fetch(key, record, Time.now());
+    }
+
+    @Override
+    public Set<TObject> fetch(String key, long record, long timestamp) {
+        return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
+    }
+
     /**
      * Fetch the values mapped from {@code key} in {@code record} at
      * {@code timestamp} using prior {@code context} as if it were also a part
@@ -407,6 +471,7 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     public long getVersion(long record) {
         return getVersion(null, record);
     }

@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cinchapi.concourse.server.concurrent.Threads;
@@ -44,6 +46,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests for {@link Engine}.
@@ -165,6 +170,28 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
         engine.stop();
         FileSystem.deleteDirectory(loc);
+    }
+
+    @Test
+    public void testBrowseKeyIsSortedBetweenDatabaseAndBuffer() {
+        Engine engine = (Engine) store;
+        List<String> colleges = Lists.newArrayList("Boston College",
+                "Yale University", "Harvard University");
+        for (String college : colleges) {
+            engine.destination.accept(Write.add("name",
+                    Convert.javaToThrift(college), Time.now()));
+        }
+        engine.buffer.insert(Write.add("name", Convert.javaToThrift("jeffery"),
+                Time.now()));
+        Set<TObject> keys = engine.browse("name").keySet();
+        Assert.assertEquals(Convert.javaToThrift("Boston College"),
+                Iterables.get(keys, 0));
+        Assert.assertEquals(Convert.javaToThrift("Harvard University"),
+                Iterables.get(keys, 1));
+        Assert.assertEquals(Convert.javaToThrift("jeffery"),
+                Iterables.get(keys, 2));
+        Assert.assertEquals(Convert.javaToThrift("Yale University"),
+                Iterables.get(keys, 3));
     }
 
     @Test

@@ -229,6 +229,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private TreeMultiset<Revision<L, K, V>> revisions;
 
     /**
+<<<<<<< HEAD
      * A soft reference to the {@link #revisions} that <em>may</em> stay in
      * memory after the Block has been synced. The GC is encouraged to clear
      * this reference in response to memory pressure at which point disk seeks
@@ -237,6 +238,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final SoftReference<TreeMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
+=======
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      * The running size of the Block. This number only refers to the size of the
      * Revisions that are stored in the block file. The size for the filter and
      * index are tracked separately.
@@ -295,7 +298,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         read.lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
+<<<<<<< HEAD
             copyTo(bytes);
+=======
+            copyToByteBuffer(bytes);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
             bytes.rewind();
             return bytes;
         }
@@ -453,7 +460,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     @Override
+<<<<<<< HEAD
     public void copyTo(ByteBuffer buffer) {
+=======
+    public void copyToByteBuffer(ByteBuffer buffer) {
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
         Locks.lockIfCondition(read, mutable);
         try {
             L locator = null;
@@ -461,7 +472,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             int position = 0;
             for (Revision<L, K, V> revision : revisions) {
                 buffer.putInt(revision.size());
+<<<<<<< HEAD
                 revision.copyTo(buffer);
+=======
+                revision.copyToByteBuffer(buffer);
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
                 position = buffer.position() - revision.size() - 4;
                 /*
                  * States that trigger this condition to be true:

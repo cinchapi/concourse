@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.io.BaseEncoding;
 
 /**
  * Additional utility methods for ByteBuffers that are not found in the
@@ -103,6 +104,31 @@ public abstract class ByteBuffers {
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * Decode the {@code hex}adeciaml string and return the resulting binary
+     * data.
+     * 
+     * @param hex
+     * @return the binary data
+     */
+    public static ByteBuffer decodeFromHex(String hex) {
+        return ByteBuffer.wrap(BaseEncoding.base16().decode(hex));
+    }
+
+    /**
+     * Encode the {@code bytes} as a hexadecimal string.
+     * 
+     * @param bytes
+     * @return the hex string
+     */
+    public static String encodeAsHex(ByteBuffer bytes) {
+        bytes.rewind();
+        return BaseEncoding.base16().encode(ByteBuffers.toByteArray(bytes));
+    }
+
+    /**
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
      * Encode the remaining bytes in as {@link ByteBuffer} as a hex string and
      * maintain the current position.
      * 

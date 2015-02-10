@@ -81,6 +81,7 @@ class CachedConnectionPool extends ConnectionPool {
     protected Queue<Concourse> buildQueue(int size) {
         return ConcurrentLoadingQueue.create(new Callable<Concourse>() {
 
+<<<<<<< HEAD
             @Override
             public Concourse call() throws Exception {
                 return Concourse.connect(host, port, username, password,
@@ -88,6 +89,19 @@ class CachedConnectionPool extends ConnectionPool {
             }
 
         });
+=======
+    @Override
+    public Concourse request() {
+        try {
+            return super.request();
+        }
+        catch (IllegalStateException e) {
+            Concourse connection = Concourse.connect(host, port, username,
+                    password, environment);
+            connections.put(connection, new AtomicBoolean(true));
+            return connection;
+        }
+>>>>>>> de8748264fd8f0370664c027005cdaf90ba95252
     }
 
     @Override
