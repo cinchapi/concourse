@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -238,6 +239,192 @@ public class EngineTest extends BufferedStoreTest {
             Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = threshold;
         }
     }
+
+    @Test
+    public void reproCON_239BrowseRecord() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add(Long.toString(Time.now()), Convert.javaToThrift(i), 1);
+        }
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(Long.toString(Time.now()),
+                                Convert.javaToThrift("a"), 1);
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<String, Set<TObject>> data = engine.browse(1);
+                done.set(true);
+                Map<String, Set<TObject>> data1 = engine.browse(1);
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+    @Test
+    public void reproCON_239BrowseKey() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add("foo", Convert.javaToThrift(i), i);
+        }
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(
+                                "foo",
+                                Convert.javaToThrift(Long.toString(Time.now())),
+                                Time.now());
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<TObject, Set<Long>> data = engine.browse("foo");
+                done.set(true);
+                Map<TObject, Set<Long>> data1 = engine.browse("foo");
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+    @Test
+    public void reproCON_239AuditRecord() throws InterruptedException {
+        final Engine engine = (Engine) store;
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            engine.add(Long.toString(Time.now()), Convert.javaToThrift(i), 1);
+        }
+        engine.add("foo", Convert.javaToThrift("a"), 1);
+        final AtomicBoolean done = new AtomicBoolean(false);
+        final AtomicBoolean go = new AtomicBoolean(false);
+        Thread write = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (!go.get()) {
+                    continue; // ensure read goes first
+                }
+                while (!done.get()) {
+                    if(!done.get()) {
+                        engine.add(
+                                "foo",
+                                Convert.javaToThrift(Long.toString(Time.now())),
+                                1);
+                    }
+                }
+            }
+
+        });
+        final AtomicBoolean succeeded = new AtomicBoolean(true);
+        Thread read = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                go.set(true);
+                Map<Long, String> data = engine.audit(1);
+                done.set(true);
+                Map<Long, String> data1 = engine.audit(1);
+                Variables.register("data_size", data.size());
+                Variables.register("data1_size", data1.size());
+                succeeded.set(data.size() == data1.size()
+                        || data.size() == data1.size() - 1);
+            }
+
+        });
+
+        read.start();
+        write.start();
+        read.join();
+        write.join();
+        Assert.assertTrue(succeeded.get());
+    }
+
+//    @Test
+//    public void testAddThroughputDifferentKeysInRecord() throws InterruptedException {
+//        final Engine engine = (Engine) store;
+//        final AtomicBoolean done = new AtomicBoolean(false);
+//        Thread a = new Thread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                while (!done.get()) {
+//                    engine.add("foo", Convert.javaToThrift(Time.now()), 1);
+//                }
+//            }
+//
+//        });
+//        Thread b = new Thread(new Runnable(){
+//
+//            @Override
+//            public void run() {
+//                while (!done.get()) {
+//                    engine.add("bar", Convert.javaToThrift(Time.now()), 1);
+//                }
+//            }
+//            
+//        });
+//        a.start();
+//        b.start();
+//        TestData.sleep();
+//        done.set(true);
+//        a.join();
+//        b.join();
+//        System.out.println(engine.fetch("foo", 1).size());
+//        System.out.println(engine.fetch("bar", 1).size());
+//    }
 
     @Override
     protected void add(String key, TObject value, long record) {
