@@ -73,16 +73,17 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
         return !rangeLockService.isRangeBlocked(LockType.READ, token);
     }
 
+
     @Override
-    public void beforeWriteLock(){
+    public void beforeWriteLock() {
         while (rangeLockService.isRangeBlocked(LockType.WRITE, token)) {
             Thread.yield();
             continue;
         }
     }
-    
+
     @Override
-    public boolean tryBeforeWriteLock(){
+    public boolean tryBeforeWriteLock() {
         return !rangeLockService.isRangeBlocked(LockType.WRITE, token);
     }
 
