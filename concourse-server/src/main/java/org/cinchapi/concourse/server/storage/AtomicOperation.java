@@ -40,6 +40,7 @@ import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Text;
@@ -50,6 +51,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Transformers;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -93,47 +95,26 @@ public class AtomicOperation extends BufferedStore implements
      * @param locks
      */
     protected static void prepareLockForPossibleUpgrade(
-            LockIntention expectation, Map<Token, LockDescription> locks) { // visible
-                                                                            // for
-                                                                            // testing
+            LockIntention expectation, Map<Token, LockDescription> locks,
+            RangeTokenMap<LockDescription> rangeLocks) { // visible
+                                                         // for
+                                                         // testing
         LockType type = expectation.getLockType();
         Token token = expectation.getToken();
         if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
-            Iterator<Entry<Token, LockDescription>> it = locks.entrySet()
+            RangeToken rt = (RangeToken) token;
+            Value value = rt.getValues()[0];
+            Iterator<Entry<RangeToken, LockDescription>> it = Iterables.concat(
+                    rangeLocks.filter(rt.getKey(), Operator.EQUALS, value)
+                            .entrySet(),
+                    rangeLocks.filter(rt.getKey(), value, value).entrySet())
                     .iterator();
-            outer: while (it.hasNext()) {
-                Entry<Token, LockDescription> entry = it.next();
-                Token otherToken = entry.getKey();
-                LockDescription otherLock = entry.getValue();
-                if(otherToken instanceof RangeToken
-                        && otherLock.getType() == LockType.RANGE_READ) {
-                    RangeToken myRangeToken = (RangeToken) token;
-                    RangeToken otherRangeToken = (RangeToken) otherToken;
-                    if(myRangeToken.getKey().equals(otherRangeToken.getKey())) {
-                        // Since the keys are equal, check to see if my value is
-                        // equal to or within the range of the other values. If
-                        // so, that means the lock needs to be upgraded because
-                        // a write lock for my value will do the appropriate
-                        // range blocking
-                        boolean foundSmaller = false;
-                        boolean foundLarger = false;
-                        boolean foundEqual = false;
-                        for (Value otherValue : otherRangeToken.getValues()) {
-                            for (Value myValue : myRangeToken.getValues()) {
-                                foundEqual = myValue.compareTo(otherValue) == 0 ? true
-                                        : foundEqual;
-                                foundSmaller = myValue.compareTo(otherValue) < 0 ? true
-                                        : foundSmaller;
-                                foundLarger = myValue.compareTo(otherValue) > 0 ? true
-                                        : foundLarger;
-                                if(foundEqual || (foundSmaller && foundLarger)) {
-                                    otherLock.getLock().unlock();
-                                    it.remove();
-                                    break outer;
-                                }
-                            }
-                        }
-                    }
+            while (it.hasNext()) {
+                Entry<RangeToken, LockDescription> entry = it.next();
+                RangeToken tok = entry.getKey();
+                LockDescription lock = entry.getValue();
+                if(lock.getType() == LockType.RANGE_READ) {
+                    rangeLocks.remove(tok).getLock().unlock();
                 }
             }
         }
@@ -165,6 +146,13 @@ public class AtomicOperation extends BufferedStore implements
      */
     @Nullable
     protected Map<Token, LockDescription> locks = null;
+
+    /**
+     * The collection of range {@link LockDescription} objects that are grabbed
+     * in the {@link #grabLocks()} method at commit time.
+     */
+    @Nullable
+    protected RangeTokenMap<LockDescription> rangeLocks = null;
 
     /**
      * The AtomicOperation is open until it is committed or aborted.
@@ -451,9 +439,10 @@ public class AtomicOperation extends BufferedStore implements
      */
     private boolean grabLocks() {
         locks = Maps.newHashMap();
+        rangeLocks = RangeTokenMap.create();
         try {
             search: for (LockIntention intention : intentions) {
-                prepareLockForPossibleUpgrade(intention, locks);
+                prepareLockForPossibleUpgrade(intention, locks, rangeLocks);
                 if(intention.getLockType() == LockType.RANGE_READ) {
                     // CON-72: Check to see if we already have a RANGE_WRITE
                     // that covers one of the values in this RANGE_READ. If so
@@ -464,12 +453,31 @@ public class AtomicOperation extends BufferedStore implements
                         RangeToken rt = RangeToken.forWriting(
                                 ((RangeToken) intention.getToken()).getKey(),
                                 value);
-                        if(locks.containsKey(rt)) {
+                        if(rangeLocks.containsKey(rt)) {
                             continue search;
                         }
                     }
                 }
-                if(!locks.containsKey(intention.getToken())) {
+                if((intention.getLockType() == LockType.RANGE_READ || intention
+                        .getLockType() == LockType.RANGE_WRITE)
+                        && !rangeLocks.containsKey(intention.getToken())) {
+                    LockDescription description = LockDescription
+                            .forVersionExpectation(intention, lockService,
+                                    rangeLockService);
+                    if(description.getLock().tryLock()) {
+                        rangeLocks.put((RangeToken) intention.getToken(),
+                                description);
+                    }
+                    else {
+                        // If we can't grab the lock immediately because it
+                        // is held by someone else, then we must fail
+                        // immediately because the AtomicOperation can't
+                        // properly commit.
+                        return false;
+                    }
+
+                }
+                else if(!locks.containsKey(intention.getToken())) {
                     LockDescription description = LockDescription
                             .forVersionExpectation(intention, lockService,
                                     rangeLockService);
@@ -477,9 +485,10 @@ public class AtomicOperation extends BufferedStore implements
                         locks.put(intention.getToken(), description);
                     }
                     else {
-                        // If we can't grab the lock immediately because it is
-                        // held by someone else, then we must fail immediately
-                        // because the AtomicOperation can't properly commit.
+                        // If we can't grab the lock immediately because it
+                        // is held by someone else, then we must fail
+                        // immediately because the AtomicOperation can't
+                        // properly commit.
                         return false;
                     }
                 }
@@ -500,11 +509,21 @@ public class AtomicOperation extends BufferedStore implements
     private void releaseLocks() {
         if(locks != null) {
             Map<Token, LockDescription> _locks = locks;
+            RangeTokenMap<LockDescription> _rangeLocks = rangeLocks;
+            rangeLocks = null;
             locks = null; // CON-172: Set the reference of the locks to null
                           // immediately to prevent a race condition where the
                           // #grabLocks method isn't notified of version change
                           // failure in time
             for (LockDescription lock : _locks.values()) {
+                ((Compoundable) destination).removeVersionChangeListener(
+                        lock.getToken(), this);
+                lock.getLock().unlock(); // We should never encounter an
+                                         // IllegalMonitorStateException here
+                                         // because a lock should only go in
+                                         // #locks once it has been locked.
+            }
+            for (LockDescription lock : _rangeLocks.values()) {
                 ((Compoundable) destination).removeVersionChangeListener(
                         lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
