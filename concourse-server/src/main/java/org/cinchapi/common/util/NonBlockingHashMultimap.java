@@ -165,12 +165,8 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
      */
     @Override
     public Set<V> get(K key) {
-        if(map.containsKey(key)) {
-            return map.get(key);
-        }
-        else {
-            return emptySet;
-        }
+        Set<V> values = map.get(key);
+        return values != null ? values : emptySet;
     }
 
     @Override
@@ -209,7 +205,7 @@ public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {
             map.put(key, values);
         }
         if(values.add(value)) {
-            totalSize++;
+            ++totalSize;
             return true;
         }
         else {

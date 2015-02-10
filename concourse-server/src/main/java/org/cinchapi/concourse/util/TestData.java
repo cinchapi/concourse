@@ -53,6 +53,15 @@ import com.google.common.base.Throwables;
 public final class TestData extends Random {
 
     public static final String DATA_DIR = "test.out";
+    
+    /**
+     * Return a temporary directory to use for testing files.
+     * 
+     * @return the directory path
+     */
+    public static String getTemporaryTestDir() {
+        return DATA_DIR + File.separator + Time.now();
+    }
 
     public static PrimaryRevision getPrimaryRevision() {
         return Revision.createPrimaryRevision(getPrimaryKey(), getText(),

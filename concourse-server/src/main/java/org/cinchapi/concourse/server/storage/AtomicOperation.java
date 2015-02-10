@@ -93,9 +93,9 @@ public class AtomicOperation extends BufferedStore implements
      * @param locks
      */
     protected static void prepareLockForPossibleUpgrade(
-            VersionExpectation expectation, Map<Token, LockDescription> locks) { // visible
-                                                                                 // for
-                                                                                 // testing
+            LockIntention expectation, Map<Token, LockDescription> locks) { // visible
+                                                                            // for
+                                                                            // testing
         LockType type = expectation.getLockType();
         Token token = expectation.getToken();
         if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
@@ -145,18 +145,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * A flag to distinguish the case where we should ignore the version when
-     * checking that expectations are met (i.e when performing a historical
-     * read).
-     * <p>
-     * --- We must use a value other than {@link Versioned#NO_VERSION} so that
-     * we can distinguish the cases where we legitimately need to check that
-     * there is no version for atomic safety.
-     * </p>
-     */
-    private static final long IGNORE_VERSION = Versioned.NO_VERSION - 1;
-
-    /**
      * The initial capacity
      */
     private static final int INITIAL_CAPACITY = 10;
@@ -184,10 +172,10 @@ public class AtomicOperation extends BufferedStore implements
     protected AtomicBoolean open = new AtomicBoolean(true);
 
     /**
-     * The sequence of VersionExpectations that were generated from the sequence
+     * The sequence of LockIntentions that were generated from the sequence
      * of operations.
      */
-    private final List<VersionExpectation> expectations = Lists
+    private final List<LockIntention> intentions = Lists
             .newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
     /**
@@ -219,9 +207,9 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.WRITE));
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
                 .wrap(value)));
         return super.add(key, value, record);
     }
@@ -231,7 +219,7 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
-        expectations.add(new RecordVersionExpectation(record));
+        intentions.add(new RecordLockIntention(record));
         return super.audit(record);
     }
 
@@ -241,8 +229,8 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.READ));
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.audit(key, record);
     }
 
@@ -252,7 +240,7 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(record), this);
-        expectations.add(new RecordVersionExpectation(record));
+        intentions.add(new RecordLockIntention(record));
         return super.browse(record);
     }
 
@@ -269,7 +257,7 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(Token.wrap(key),
                 this);
-        expectations.add(new KeyVersionExcpectation(key));
+        intentions.add(new KeyLockIntention(key));
         return super.browse(key);
     }
 
@@ -322,8 +310,8 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.READ));
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.fetch(key, record);
     }
 
@@ -348,9 +336,9 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.WRITE));
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), Value
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
                 .wrap(value)));
         return super.remove(key, value, record);
     }
@@ -362,7 +350,6 @@ public class AtomicOperation extends BufferedStore implements
         return super.search(key, query);
     }
 
-    @Override
     public final void start() {}
 
     @Override
@@ -374,8 +361,8 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         ((Compoundable) destination).addVersionChangeListener(
                 Token.wrap(key, record), this);
-        expectations.add(new KeyInRecordVersionExpectation(key, record,
-                LockType.READ));
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.verify(key, value, record);
     }
 
@@ -429,17 +416,17 @@ public class AtomicOperation extends BufferedStore implements
             TObject... values) {
         checkState();
         ((Compoundable) destination).addVersionChangeListener(RangeToken
-                .forReading(Text.wrap(key), operator, Transformers
+                .forReading(Text.wrapCached(key), operator, Transformers
                         .transformArray(values, Functions.TOBJECT_TO_VALUE,
                                 Value.class)), this);
-        expectations.add(new RangeVersionExpectation(Text.wrap(key), operator,
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class)));
         return super.doExplore(key, operator, values);
     }
 
     /**
-     * Check each one of the {@link #expectations} against the
+     * Check each one of the {@link #intentions} against the
      * {@link #destination} and grab the appropriate locks along the way. This
      * method will return {@code true} if all expectations are met and all
      * necessary locks are grabbed. Otherwise it will return {@code false}, in
@@ -451,29 +438,29 @@ public class AtomicOperation extends BufferedStore implements
     private boolean grabLocks() {
         locks = Maps.newHashMap();
         try {
-            search: for (VersionExpectation expectation : expectations) {
-                prepareLockForPossibleUpgrade(expectation, locks);
-                if(expectation.getLockType() == LockType.RANGE_READ) {
+            search: for (LockIntention intention : intentions) {
+                prepareLockForPossibleUpgrade(intention, locks);
+                if(intention.getLockType() == LockType.RANGE_READ) {
                     // CON-72: Check to see if we already have a RANGE_WRITE
                     // that covers one of the values in this RANGE_READ. If so
                     // skip this lock since the write will adequately block any
                     // conflicting reads
-                    for (Value value : ((RangeToken) expectation.getToken())
+                    for (Value value : ((RangeToken) intention.getToken())
                             .getValues()) {
                         RangeToken rt = RangeToken.forWriting(
-                                ((RangeToken) expectation.getToken()).getKey(),
+                                ((RangeToken) intention.getToken()).getKey(),
                                 value);
                         if(locks.containsKey(rt)) {
                             continue search;
                         }
                     }
                 }
-                if(!locks.containsKey(expectation.getToken())) {
+                if(!locks.containsKey(intention.getToken())) {
                     LockDescription description = LockDescription
-                            .forVersionExpectation(expectation, lockService,
+                            .forVersionExpectation(intention, lockService,
                                     rangeLockService);
                     if(description.getLock().tryLock()) {
-                        locks.put(expectation.getToken(), description);
+                        locks.put(intention.getToken(), description);
                     }
                     else {
                         // If we can't grab the lock immediately because it is
@@ -532,7 +519,7 @@ public class AtomicOperation extends BufferedStore implements
          * @return the LockDescription
          */
         public static LockDescription forVersionExpectation(
-                VersionExpectation expectation, LockService lockService,
+                LockIntention expectation, LockService lockService,
                 RangeLockService rangeLockService) {
             switch (expectation.getLockType()) {
             case RANGE_READ:
@@ -633,10 +620,15 @@ public class AtomicOperation extends BufferedStore implements
             // happens if the AtomicOperation is not aborted before an attempt
             // to commit, so its best to not create a copy if we don't have to
             ByteBuffer bytes = ByteBuffer.allocate(size());
-            bytes.put((byte) type.ordinal());
-            bytes.put(token.getBytes());
+            copyTo(bytes);
             bytes.rewind();
             return bytes;
+        }
+
+        @Override
+        public void copyTo(ByteBuffer buffer) {
+            buffer.put((byte) type.ordinal());
+            token.copyTo(buffer);
         }
 
         /**
@@ -682,13 +674,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * A VersionExpectation for a read or write that touches a key IN a record
+     * A LockIntention for a read or write that touches a key IN a record
      * (i.e. fetch, verify, etc).
      * 
      * @author jnelson
      */
-    private final class KeyInRecordVersionExpectation extends
-            VersionExpectation {
+    private final class KeyInRecordLockIntention extends LockIntention {
 
         private final String key;
 
@@ -702,10 +693,9 @@ public class AtomicOperation extends BufferedStore implements
          * @param record
          * @param lockType
          */
-        protected KeyInRecordVersionExpectation(String key, long record,
+        protected KeyInRecordLockIntention(String key, long record,
                 LockType lockType) {
-            super(Token.wrap(key, record), ((Compoundable) destination)
-                    .getVersion(key, record));
+            super(Token.wrap(key, record));
             this.key = key;
             this.record = record;
             this.lockType = lockType;
@@ -729,12 +719,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * A VersionExpectation for a read that touches an entire key (i.e.
+     * A LockIntention for a read that touches an entire key (i.e.
      * browse(key)).
      * 
      * @author jnelson
      */
-    private final class KeyVersionExcpectation extends VersionExpectation {
+    private final class KeyLockIntention extends LockIntention {
 
         private final String key;
 
@@ -744,8 +734,8 @@ public class AtomicOperation extends BufferedStore implements
          * @param token
          * @param expectedVersion
          */
-        protected KeyVersionExcpectation(String key) {
-            super(Token.wrap(key), ((Compoundable) destination).getVersion(key));
+        protected KeyLockIntention(String key) {
+            super(Token.wrap(key));
             this.key = key;
         }
 
@@ -767,13 +757,13 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * A VersionExpectation for a range read/write. No version is actually
+     * A LockIntention for a range read/write. No version is actually
      * expected, but this is a placeholder so that we know to grab to
      * appropriate range lock.
      * 
      * @author jnelson
      */
-    private final class RangeVersionExpectation extends VersionExpectation {
+    private final class RangeLockIntention extends LockIntention {
 
         private final Text key;
 
@@ -786,11 +776,10 @@ public class AtomicOperation extends BufferedStore implements
          * @param operator
          * @param values
          */
-        protected RangeVersionExpectation(Text key, Operator operator,
+        protected RangeLockIntention(Text key, Operator operator,
                 Value... values) {
             super(operator == null ? RangeToken.forWriting(key, values[0])
-                    : RangeToken.forReading(key, operator, values),
-                    IGNORE_VERSION);
+                    : RangeToken.forReading(key, operator, values));
             this.key = key;
             this.operator = operator;
         }
@@ -801,7 +790,7 @@ public class AtomicOperation extends BufferedStore implements
          * @param key
          * @param value
          */
-        protected RangeVersionExpectation(Text key, Value value) {
+        protected RangeLockIntention(Text key, Value value) {
             this(key, null, value);
         }
 
@@ -823,12 +812,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * A VersionExpectation for a read that touches an entire record (i.e.
+     * A LockIntention for a read that touches an entire record (i.e.
      * browse(record), audit, etc).
      * 
      * @author jnelson
      */
-    private final class RecordVersionExpectation extends VersionExpectation {
+    private final class RecordLockIntention extends LockIntention {
 
         private final long record;
 
@@ -837,9 +826,8 @@ public class AtomicOperation extends BufferedStore implements
          * 
          * @param record
          */
-        public RecordVersionExpectation(long record) {
-            super(Token.wrap(record), ((Compoundable) destination)
-                    .getVersion(record));
+        public RecordLockIntention(long record) {
+            super(Token.wrap(record));
             this.record = record;
         }
 
@@ -861,24 +849,14 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * The base class for those that determine and stores the expected version
-     * of a record and and/or key and/or timestamp in {@link #destination}. A
-     * VersionExpectation should be stored whenever a read/write occurs in the
-     * AtomicOperation, so that we can check to see if any versions have changed
-     * when we go to commit.
+     * The base class for those that record an atomic operation's intention to
+     * grab a particular lock identified by a certain token at commit time.
      * 
      * @author jnelson
      */
-    private abstract class VersionExpectation {
+    private abstract class LockIntention {
         // NOTE: This class does not define hashCode() or equals() because the
         // defaults are the desired behaviour.
-
-        /**
-         * OPTINAL parameter that exists iff {@link #timestamp} ==
-         * {@link Versioned#NO_VERSION} since since data returned from a
-         * historical read won't change with additional writes.
-         */
-        private final long expectedVersion;
 
         /**
          * The Token that corresponds to the data components that were used to
@@ -890,11 +868,9 @@ public class AtomicOperation extends BufferedStore implements
          * Construct a new instance.
          * 
          * @param token
-         * @param expectedVersion
          */
-        protected VersionExpectation(Token token, long expectedVersion) {
+        protected LockIntention(Token token) {
             this.token = token;
-            this.expectedVersion = expectedVersion;
         }
 
         /**
@@ -935,7 +911,7 @@ public class AtomicOperation extends BufferedStore implements
         public String toString() {
             StringBuilder sb = new StringBuilder();
             boolean replaceInClause = false;
-            sb.append("Expecting version " + expectedVersion + " for '");
+            sb.append("Intention to lock ");
             try {
                 sb.append(getKey() + " IN ");
             }

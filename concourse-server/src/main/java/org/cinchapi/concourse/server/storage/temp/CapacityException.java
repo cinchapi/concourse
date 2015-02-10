@@ -35,6 +35,14 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 class CapacityException extends RuntimeException {
 
+    /**
+     * A cached instance of the exception that can be used to avoid the overhead
+     * that is traditionally associated with creating new exceptions. This is
+     * okay to do since this exception is used as a state signaler and does not
+     * really imply any sort of error case.
+     */
+    static final CapacityException INSTANCE = new CapacityException();
+
     private static final long serialVersionUID = 1L;
 
 }

@@ -93,7 +93,7 @@ public final class Versions {
                     Character.forDigit(0, 10))));
         }
         long sum = 0;
-        for (int i = 0; i < parts.size(); i++) {
+        for (int i = 0; i < parts.size(); ++i) {
             sum += parts.get(i) * Math.pow(10, (n * parts.size() - (i + 1)));
         }
         return sum;

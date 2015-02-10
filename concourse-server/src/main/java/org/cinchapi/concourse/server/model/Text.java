@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.server.io.Byteable;
+import org.cinchapi.concourse.server.storage.cache.LazyCache;
 import org.cinchapi.concourse.util.ByteBuffers;
 
 /**
@@ -66,9 +67,40 @@ public final class Text implements Byteable, Comparable<Text> {
     }
 
     /**
+     * Return Text that is backed by {@code string}. It is possible that the
+     * object will be a cached instance. This should only be called when
+     * wrapping record keys since they are expected to be used often.
+     * 
+     * @param string
+     * @return the Text
+     */
+    public static Text wrapCached(String string) {
+        Text text = cache.get(string);
+        if(text == null) {
+            text = new Text(string);
+            cache.put(string, text);
+        }
+        return text;
+    }
+
+    /**
+     * The cache that holds the objects created from the
+     * {@link #wrapCached(String)} method. This is primary used for string keys
+     * since those are expected to be used often.
+     */
+    private static final LazyCache<String, Text> cache = LazyCache
+            .withExpectedSize(5000);
+
+    /**
      * Represents an empty text string.
      */
     public static final Text EMPTY = Text.wrap("");
+
+    /**
+     * Master byte sequence that represents this object. Read-only duplicates
+     * are made when returning from {@link #getBytes()}.
+     */
+    private transient ByteBuffer bytes = null;
 
     /**
      * The wrapped string.
@@ -76,10 +108,9 @@ public final class Text implements Byteable, Comparable<Text> {
     private final String text;
 
     /**
-     * Master byte sequence that represents this object. Read-only duplicates
-     * are made when returning from {@link #getBytes()}.
+     * A mutex used to synchronized the lazy setting of the byte buffer.
      */
-    private transient ByteBuffer bytes = null;
+    private final Object mutex = new Object();
 
     /**
      * Construct an instance that wraps the {@code text} string.
@@ -118,7 +149,12 @@ public final class Text implements Byteable, Comparable<Text> {
     @Override
     public ByteBuffer getBytes() {
         if(bytes == null) {
-            bytes = ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8));
+            synchronized (mutex) {
+                if(bytes == null) { // must check again to prevent duplicate
+                                    // copy if there is a race condition
+                    bytes = ByteBuffers.fromString(text);
+                }
+            }
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -130,12 +166,22 @@ public final class Text implements Byteable, Comparable<Text> {
 
     @Override
     public int size() {
-        return getBytes().capacity();
+        return bytes == null ? getBytes().capacity() : bytes.capacity();
     }
 
     @Override
     public String toString() {
         return text;
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        if(bytes == null) {
+            ByteBuffers.putString(text, buffer);
+        }
+        else {
+            buffer.put(getBytes());
+        }
     }
 
 }

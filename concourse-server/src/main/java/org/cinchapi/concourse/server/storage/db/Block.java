@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.storage.db;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -40,6 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.Byteables;
@@ -140,6 +142,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     }
 
     /**
+     * The extension for the block file.
+     */
+    @PackagePrivate
+    static final String BLOCK_NAME_EXTENSION = ".blk";
+
+    /**
      * The expected number of Block insertions. This number is used to size the
      * Block's internal data structures. This value should be large enough to
      * reflect the fact that, for each revision, we make 3 inserts into the
@@ -147,12 +155,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * filters in memory.
      */
     private static final int EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE;
-
-    /**
-     * The extension for the block file.
-     */
-    @PackagePrivate
-    static final String BLOCK_NAME_EXTENSION = ".blk";
 
     /**
      * The extension for the {@link BloomFilter} file.
@@ -165,17 +167,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private static final String INDEX_NAME_EXTENSION = ".indx";
 
     /**
+     * The flag that indicates whether the Block is mutable or not. A Block is
+     * mutable until a call to {@link #sync()} stores it to disk.
+     */
+    protected transient boolean mutable;
+
+    /**
      * The master lock for {@link #write} and {@link #read}. DO NOT use this
      * lock directly.
      */
     private final ReentrantReadWriteLock master = new ReentrantReadWriteLock();
-
-    /**
-     * An exclusive lock that permits only one writer and no reader. Use this
-     * lock to ensure that no seek occurs while data is being inserted into the
-     * Block.
-     */
-    protected final WriteLock write = master.writeLock();
 
     /**
      * A shared lock that permits many readers and no writer. Use this lock to
@@ -185,17 +186,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     protected final ReadLock read = master.readLock();
 
     /**
-     * The flag that indicates whether the Block is mutable or not. A Block is
-     * mutable until a call to {@link #sync()} stores it to disk.
+     * An exclusive lock that permits only one writer and no reader. Use this
+     * lock to ensure that no seek occurs while data is being inserted into the
+     * Block.
      */
-    protected transient boolean mutable;
-
-    /**
-     * The running size of the Block. This number only refers to the size of the
-     * Revisions that are stored in the block file. The size for the filter and
-     * index are tracked separately.
-     */
-    private transient int size;
+    protected final WriteLock write = master.writeLock();
 
     /**
      * The location of the block file.
@@ -203,11 +198,25 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final String file;
 
     /**
+     * A fixed size filter that is used to test whether elements are contained
+     * in the Block without actually looking through the Block.
+     */
+    private final BloomFilter filter;
+
+    /**
      * The unique id for the block. Each component of the block is named after
      * the id. It is assumed that block ids should be assigned in atomically
      * increasing order (i.e. a timestamp).
      */
     private final String id;
+
+    /**
+     * The index to determine which bytes in the block pertain to a locator or
+     * locator/key pair.
+     */
+    private final BlockIndex index; // Since the index is only used for
+                                    // immutable blocks, it is only populated
+                                    // during the call to #getBytes()
 
     /**
      * A collection that contains all the Revisions that have been inserted into
@@ -220,18 +229,19 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private TreeMultiset<Revision<L, K, V>> revisions;
 
     /**
-     * A fixed size filter that is used to test whether elements are contained
-     * in the Block without actually looking through the Block.
+     * A soft reference to the {@link #revisions} that <em>may</em> stay in
+     * memory after the Block has been synced. The GC is encouraged to clear
+     * this reference in response to memory pressure at which point disk seeks
+     * will be performed in the {@link #seek(Record, Byteable...)} method.
      */
-    private final BloomFilter filter;
+    private final SoftReference<TreeMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
-     * The index to determine which bytes in the block pertain to a locator or
-     * locator/key pair.
+     * The running size of the Block. This number only refers to the size of the
+     * Revisions that are stored in the block file. The size for the filter and
+     * index are tracked separately.
      */
-    private final BlockIndex index; // Since the index is only used for
-                                    // immutable blocks, it is only populated
-                                    // during the call to #getBytes()
+    private transient int size;
 
     /**
      * Construct a new instance.
@@ -264,6 +274,8 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             this.index = BlockIndex.create(directory + File.separator + id
                     + INDEX_NAME_EXTENSION, EXPECTED_INSERTIONS);
         }
+        this.softRevisions = new SoftReference<TreeMultiset<Revision<L, K, V>>>(
+                revisions);
     }
 
     @Override
@@ -283,13 +295,174 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         read.lock();
         try {
             ByteBuffer bytes = ByteBuffer.allocate(size);
+            copyTo(bytes);
+            bytes.rewind();
+            return bytes;
+        }
+        finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Return the block id.
+     * 
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    /**
+     * Insert a revision for {@code key} as {@code value} in {@code locator} at
+     * {@code version} into this Block.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @param version
+     * @param type
+     * @throws IllegalStateException if the Block is not mutable
+     */
+    public Revision<L, K, V> insert(L locator, K key, V value, long version,
+            Action type) throws IllegalStateException {
+        Locks.lockIfCondition(write, mutable);
+        try {
+            Preconditions.checkState(mutable,
+                    "Cannot modify a block that is not mutable");
+            Revision<L, K, V> revision = makeRevision(locator, key, value,
+                    version, type);
+            revisions.add(revision);
+            filter.put(revision.getLocator());
+            filter.put(revision.getLocator(), revision.getKey());
+            filter.put(revision.getLocator(), revision.getKey(),
+                    revision.getValue()); // NOTE: The entire revision is added
+                                          // to the filter so that we can
+                                          // quickly verify that a revision
+                                          // DOES NOT exist using
+                                          // #mightContain(L,K,V) without
+                                          // seeking
+            size += revision.size() + 4;
+            return revision;
+        }
+        finally {
+            Locks.unlockIfCondition(write, mutable);
+        }
+    }
+
+    /**
+     * Return {@code true} if this Block might contain revisions involving
+     * {@code key} as {@code value} in {@code locator}. This method <em>may</em>
+     * return a false positive, but never a false negative. If this method
+     * returns {@code true}, the caller should seek for {@code key} in
+     * {@code locator} and check if any of those revisions contain {@code value}
+     * as a component.
+     * 
+     * @param locator
+     * @param key
+     * @param value
+     * @return {@code true} if it is possible that relevant revisions exists
+     */
+    public boolean mightContain(L locator, K key, V value) {
+        Locks.lockIfCondition(read, mutable);
+        try {
+            return filter.mightContain(locator, key, value);
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
+    }
+
+    /**
+     * Seek revisions that contain {@code key} in {@code locator} and append
+     * them to {@code record} if it is <em>likely</em> that those revisions
+     * exist in this Block.
+     * 
+     * @param locator
+     * @param key
+     * @param record
+     */
+    @GuardedBy("seek(Record, Byteable...)")
+    public void seek(L locator, K key, Record<L, K, V> record) {
+        seek(record, locator, key);
+    }
+
+    /**
+     * Seek revisions that contain any key in {@code locator} and append them to
+     * {@code record} if it is <em>likely</em> that those revisions exist in
+     * this Block.
+     * 
+     * @param locator
+     * @param record
+     */
+    @GuardedBy("seek(Record, Byteable...)")
+    public void seek(L locator, Record<L, K, V> record) {
+        seek(record, locator);
+    }
+
+    @Override
+    public int size() {
+        Locks.lockIfCondition(read, mutable);
+        try {
+            return size;
+        }
+        finally {
+            Locks.unlockIfCondition(read, mutable);
+        }
+    }
+
+    /**
+     * Flush the content to disk in a block file, sync the filter and index and
+     * finally make the Block immutable.
+     */
+    @Override
+    public void sync() {
+        Locks.lockIfCondition(write, mutable);
+        try {
+            if(size > 0) {
+                Preconditions.checkState(mutable,
+                        "Cannot sync a block that is not mutable");
+                mutable = false;
+                FileChannel channel = FileSystem.getFileChannel(file);
+                channel.write(getBytes());
+                channel.force(false);
+                filter.sync();
+                index.sync();
+                FileSystem.closeFileChannel(channel);
+                revisions = null; // Set to NULL so that the Set is eligible for
+                                  // GC while the Block stays in memory.
+            }
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            Locks.unlockIfCondition(write, mutable);
+        }
+
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + id;
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        Locks.lockIfCondition(read, mutable);
+        try {
             L locator = null;
             K key = null;
             int position = 0;
             for (Revision<L, K, V> revision : revisions) {
-                bytes.putInt(revision.size());
-                bytes.put(revision.getBytes());
-                position = bytes.position() - revision.size() - 4;
+                buffer.putInt(revision.size());
+                revision.copyTo(buffer);
+                position = buffer.position() - revision.size() - 4;
                 /*
                  * States that trigger this condition to be true:
                  * 1. This is the first locator we've seen
@@ -329,164 +502,14 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 key = revision.getKey();
             }
             if(revisions.size() > 0) {
-                position = bytes.position() - 1;
+                position = buffer.position() - 1;
                 index.putEnd(position, locator);
                 index.putEnd(position, locator, key);
             }
-            bytes.rewind();
-            return bytes;
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
-    }
-
-    /**
-     * Return the block id.
-     * 
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    /**
-     * Insert a revision for {@code key} as {@code value} in {@code locator} at
-     * {@code version} into this Block.
-     * 
-     * @param locator
-     * @param key
-     * @param value
-     * @param version
-     * @param type
-     * @throws IllegalStateException if the Block is not mutable
-     */
-    public Revision<L, K, V> insert(L locator, K key, V value, long version,
-            Action type) throws IllegalStateException {
-        write.lock();
-        try {
-            Preconditions.checkState(mutable,
-                    "Cannot modify a block that is not mutable");
-            Revision<L, K, V> revision = makeRevision(locator, key, value,
-                    version, type);
-            revisions.add(revision);
-            filter.put(revision.getLocator());
-            filter.put(revision.getLocator(), revision.getKey());
-            filter.put(revision.getLocator(), revision.getKey(),
-                    revision.getValue()); // NOTE: The entire revision is added
-                                          // to the filter so that we can
-                                          // quickly verify that a revision
-                                          // DOES NOT exist using
-                                          // #mightContain(L,K,V) without
-                                          // seeking
-            size += revision.size() + 4;
-            return revision;
-        }
-        finally {
-            write.unlock();
-        }
-    }
-
-    /**
-     * Return {@code true} if this Block might contain revisions involving
-     * {@code key} as {@code value} in {@code locator}. This method <em>may</em>
-     * return a false positive, but never a false negative. If this method
-     * returns {@code true}, the caller should seek for {@code key} in
-     * {@code locator} and check if any of those revisions contain {@code value}
-     * as a component.
-     * 
-     * @param locator
-     * @param key
-     * @param value
-     * @return {@code true} if it is possible that relevant revisions exists
-     */
-    public boolean mightContain(L locator, K key, V value) {
-        read.lock();
-        try {
-            return filter.mightContain(locator, key, value);
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Seek revisions that contain {@code key} in {@code locator} and append
-     * them to {@code record} if it is <em>likely</em> that those revisions
-     * exist in this Block.
-     * 
-     * @param locator
-     * @param key
-     * @param record
-     */
-    @GuardedBy("seek(Record, Byteable...)")
-    public void seek(L locator, K key, Record<L, K, V> record) {
-        seek(record, locator, key);
-    }
-
-    /**
-     * Seek revisions that contain any key in {@code locator} and append them to
-     * {@code record} if it is <em>likely</em> that those revisions exist in
-     * this Block.
-     * 
-     * @param locator
-     * @param record
-     */
-    @GuardedBy("seek(Record, Byteable...)")
-    public void seek(L locator, Record<L, K, V> record) {
-        seek(record, locator);
-    }
-
-    @Override
-    public int size() {
-        read.lock();
-        try {
-            return size;
-        }
-        finally {
-            read.unlock();
-        }
-    }
-
-    /**
-     * Flush the content to disk in a block file, sync the filter and index and
-     * finally make the Block immutable.
-     */
-    @Override
-    public void sync() {
-        write.lock();
-        try {
-            if(size > 0) {
-                Preconditions.checkState(mutable,
-                        "Cannot sync a block that is not mutable");
-                mutable = false;
-                FileChannel channel = FileSystem.getFileChannel(file);
-                channel.write(getBytes());
-                channel.force(false);
-                filter.sync();
-                index.sync();
-                FileSystem.closeFileChannel(channel);
-                revisions = null; // Set to NULL so that the Set is eligible for
-                                  // GC while the Block stays in memory.
-            }
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        finally {
-            write.unlock();
-        }
-
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + " " + id;
     }
 
     /**
@@ -500,7 +523,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @return a string dump
      */
     protected String dump() {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             StringBuilder sb = new StringBuilder();
             sb.append("Dump for " + getClass().getSimpleName() + " " + id);
@@ -528,7 +551,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             return sb.toString();
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 
@@ -562,10 +585,11 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * @param byteables
      */
     private void seek(Record<L, K, V> record, Byteable... byteables) {
-        read.lock();
+        Locks.lockIfCondition(read, mutable);
         try {
             if(filter.mightContain(byteables)) {
-                if(mutable) {
+                TreeMultiset<Revision<L, K, V>> revisions = softRevisions.get();
+                if(revisions != null) {
                     Iterator<Revision<L, K, V>> it = revisions.iterator();
                     boolean processing = false; // Since the revisions are
                                                 // sorted, I can toggle this
@@ -608,7 +632,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             }
         }
         finally {
-            read.unlock();
+            Locks.unlockIfCondition(read, mutable);
         }
     }
 

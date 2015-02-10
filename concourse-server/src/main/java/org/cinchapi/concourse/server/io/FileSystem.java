@@ -26,7 +26,6 @@ package org.cinchapi.concourse.server.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -37,23 +36,27 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 
 import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 
 /**
  * Interface to the underlying filesystem which provides methods to perform file
  * based operations without having to deal with the annoyance of checked
- * exceptions. Using this class will help produce more streamlined and readable
- * code.
+ * exceptions or the awkward {@link Path} API. Using this class will help
+ * produce more streamlined and readable code.
  * 
  * @author jnelson
  */
 public final class FileSystem {
 
     /**
-     * Close {@code channel}.
+     * Close the {@code channel} without throwing a checked exception. If, for
+     * some reason, this can't be done the underlying IOException will be
+     * re-thrown as a runtime exception.
      * 
      * @param channel
      */
@@ -82,9 +85,11 @@ public final class FileSystem {
     }
 
     /**
-     * Delete {@code directory}
+     * Delete {@code directory}. If files are added to the directory while its
+     * being deleted, this method will make a best effort to delete those files
+     * as well.
      * 
-     * @param path
+     * @param directory
      */
     public static void deleteDirectory(String directory) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths
@@ -113,7 +118,7 @@ public final class FileSystem {
     }
 
     /**
-     * Delete {@code file}.
+     * Delete the {@code file}.
      * 
      * @param file
      */
@@ -127,7 +132,8 @@ public final class FileSystem {
     }
 
     /**
-     * Return the random access {@link FileChannel} for {@code file}.
+     * Return the random access {@link FileChannel} for {@code file}. The
+     * channel will be opened for reading and writing.
      * 
      * @param file
      * @return the FileChannel for {@code file}
@@ -173,6 +179,24 @@ public final class FileSystem {
     }
 
     /**
+     * Look through {@code dir} and return all the sub directories.
+     * 
+     * @param dir
+     * @return the sub directories under {@code dir}.
+     */
+    public static Set<String> getSubDirs(String dir) {
+        File directory = new File(dir);
+        File[] files = directory.listFiles();
+        Set<String> subDirs = Sets.newHashSet();
+        for (File file : files) {
+            if(Files.isDirectory(Paths.get(file.getAbsolutePath()))) {
+                subDirs.add(file.getName());
+            }
+        }
+        return subDirs;
+    }
+
+    /**
      * Return {@code true} in the filesystem contains {@code dir} and it is
      * a directory.
      * 
@@ -194,6 +218,21 @@ public final class FileSystem {
     public static boolean hasFile(String file) {
         Path path = Paths.get(file);
         return Files.exists(path) && !Files.isDirectory(path);
+    }
+
+    /**
+     * Create a valid path that contains sepearators in the appropriate places
+     * by joining all the {@link parts} together with the {@link File#separator}
+     * 
+     * @param parts
+     * @return the path
+     */
+    public static String makePath(String... parts) {
+        StringBuilder path = new StringBuilder();
+        for (String part : parts) {
+            path.append(part).append(File.separator);
+        }
+        return path.toString();
     }
 
     /**
@@ -295,7 +334,7 @@ public final class FileSystem {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * Attempt to force the unmapping of {@code buffer}. This method should be
      * used with <strong>EXTREME CAUTION</strong>. If {@code buffer} is used
@@ -303,16 +342,8 @@ public final class FileSystem {
      * 
      * @param buffer
      */
-    // http://stackoverflow.com/a/19447758/1336833
     public static void unmap(MappedByteBuffer buffer) {
-        try {
-            Method cleaner = buffer.getClass().getMethod("cleaner");
-            cleaner.setAccessible(true);
-            Method clean = Class.forName("sun.misc.Cleaner").getMethod("clean");
-            clean.setAccessible(true);
-            clean.invoke(cleaner.invoke(buffer));
-        }
-        catch (Exception e) {/* noop */}
+        Cleaners.freeMappedByteBuffer(buffer);
     }
 
     private FileSystem() {}

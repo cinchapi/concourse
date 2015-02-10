@@ -76,7 +76,7 @@ public final class Value implements Byteable, Comparable<Value> {
         TObject data = extractTObjectAndCache(bytes, type);
         return new Value(data, bytes);
     }
-    
+
     /**
      * Return the optimized Value of {@code value}.
      * 
@@ -84,7 +84,7 @@ public final class Value implements Byteable, Comparable<Value> {
      * @return the optimized Value
      */
     public static Value optimize(Value value) {
-        if (value.getType() == Type.TAG) {
+        if(value.getType() == Type.TAG) {
             return Value.wrap(Convert
                     .javaToThrift(value.getObject().toString()));
         }
@@ -125,14 +125,6 @@ public final class Value implements Byteable, Comparable<Value> {
     }
 
     /**
-     * A constant representing the largest possible Value. This shouldn't be
-     * used in normal operations, but should only be used to indicate an
-     * infinite range.
-     */
-    public static Value POSITIVE_INFINITY = Value.wrap(Convert
-            .javaToThrift(Long.MAX_VALUE));
-
-    /**
      * A constant representing the smallest possible Value. This should be used
      * in normal operations, but should only be used to indicate an infinite
      * range.
@@ -141,16 +133,17 @@ public final class Value implements Byteable, Comparable<Value> {
             .javaToThrift(Long.MIN_VALUE));
 
     /**
+     * A constant representing the largest possible Value. This shouldn't be
+     * used in normal operations, but should only be used to indicate an
+     * infinite range.
+     */
+    public static Value POSITIVE_INFINITY = Value.wrap(Convert
+            .javaToThrift(Long.MAX_VALUE));
+
+    /**
      * The minimum number of bytes needed to encode every Value.
      */
     private static final int CONSTANT_SIZE = 1; // type(1)
-
-    /**
-     * The underlying data represented by this Value. This representation is
-     * used when serializing/deserializing the data for RPC or disk and network
-     * I/O.
-     */
-    private final TObject data;
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -158,6 +151,13 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     @Nullable
     private transient ByteBuffer bytes = null;
+
+    /**
+     * The underlying data represented by this Value. This representation is
+     * used when serializing/deserializing the data for RPC or disk and network
+     * I/O.
+     */
+    private final TObject data;
 
     /**
      * The java representation of the underlying {@link #data}. This
@@ -213,8 +213,8 @@ public final class Value implements Byteable, Comparable<Value> {
     public ByteBuffer getBytes() {
         if(bytes == null) {
             bytes = ByteBuffer.allocate(size());
-            bytes.put((byte) data.getType().ordinal());
-            bytes.put(data.bufferForData());
+            copyTo(bytes);
+            bytes.rewind();
         }
         return ByteBuffers.asReadOnlyBuffer(bytes);
     }
@@ -257,12 +257,18 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public int size() {
-        return CONSTANT_SIZE + data.bufferForData().capacity();
+        return CONSTANT_SIZE + data.data.capacity();
     }
 
     @Override
     public String toString() {
         return getObject().toString() + " (" + getType() + ")";
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        buffer.put((byte) data.getType().ordinal());
+        buffer.put(data.bufferForData());
     }
 
     /**

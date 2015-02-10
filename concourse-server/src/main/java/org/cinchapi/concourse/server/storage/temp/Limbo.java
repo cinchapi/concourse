@@ -33,6 +33,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.cinchapi.concourse.util.MultimapViews;
+import org.cinchapi.concourse.util.TMaps;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.server.model.TObjectSorter;
 import org.cinchapi.concourse.server.model.Text;
@@ -343,19 +345,13 @@ public abstract class Limbo extends BaseStore implements
             if(write.getVersion() <= timestamp) {
                 if(write.getKey().toString().equals(key)
                         && matches(write.getValue(), operator, values)) {
-                    Set<TObject> v = context.get(record);
-                    if(v == null) {
-                        v = Sets.newHashSet();
-                        context.put(record, v);
-                    }
                     if(write.getType() == Action.ADD) {
-                        v.add(write.getValue().getTObject());
+                        MultimapViews.put(context, record, write.getValue()
+                                .getTObject());
                     }
                     else {
-                        v.remove(write.getValue().getTObject());
-                        if(v.isEmpty()) {
-                            context.remove(record);
-                        }
+                        MultimapViews.remove(context, record, write.getValue()
+                                .getTObject());
                     }
                 }
             }
@@ -363,7 +359,7 @@ public abstract class Limbo extends BaseStore implements
                 break;
             }
         }
-        return context;
+        return TMaps.asSortedMap(context);
     }
 
     @Override
@@ -420,7 +416,7 @@ public abstract class Limbo extends BaseStore implements
         Iterator<Write> it = reverseIterator();
         while (it.hasNext()) {
             Write write = it.next();
-            if(write.getKey().equals(Text.wrap(key))) {
+            if(write.getKey().equals(Text.wrapCached(key))) {
                 return write.getVersion();
             }
         }
@@ -435,7 +431,7 @@ public abstract class Limbo extends BaseStore implements
             Write write = it.next();
             if(record == write.getRecord().longValue()
                     && (Strings.isNullOrEmpty(key) || write.getKey().equals(
-                            Text.wrap(key)))) {
+                            Text.wrapCached(key)))) {
                 return write.getVersion();
             }
         }
@@ -617,6 +613,16 @@ public abstract class Limbo extends BaseStore implements
         return; // do nothing because Limbo is assumed to always be
                 // transportable. But the Buffer will override this method with
                 // the appropriate conditions.
+    }
+
+    /**
+     * Return the number of milliseconds that this store desires any back to
+     * back transport requests to pause in between.
+     * 
+     * @return the pause time
+     */
+    public int getDesiredTransportSleepTimeInMs() {
+        return 0;
     }
 
     @Override

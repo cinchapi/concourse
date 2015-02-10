@@ -24,12 +24,15 @@
 package org.cinchapi.concourse.server.io;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Map;
 
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.util.ByteBuffers;
 
+import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 
 /**
@@ -42,13 +45,33 @@ import com.google.common.hash.Hashing;
 public final class Composite implements Byteable {
 
     /**
-     * Return a Token for the list of {@code byteables}.
+     * Return a Composite for the list of {@code byteables}.
      * 
      * @param byteables
-     * @return the Token
+     * @return the Composite
      */
     public static Composite create(Byteable... byteables) {
         return new Composite(byteables);
+    }
+
+    /**
+     * Create a Composite for the list of {@code byteables} with support for
+     * caching. Cached Composites are not guaranteed to perfectly match up with
+     * the list of byteables (because hash collisions can occur) so it is only
+     * advisable to use this method of creation when precision is not a
+     * requirement.
+     * 
+     * @param byteables
+     * @return the Composite
+     */
+    public static Composite createCached(Byteable... byteables) {
+        int hashCode = Arrays.hashCode(byteables);
+        Composite composite = CACHE.get(hashCode);
+        if(composite == null) {
+            composite = create(byteables);
+            CACHE.put(hashCode, composite);
+        }
+        return composite;
     }
 
     /**
@@ -65,6 +88,12 @@ public final class Composite implements Byteable {
     public static Composite fromByteBuffer(ByteBuffer bytes) {
         return Byteables.read(bytes, Composite.class);
     }
+
+    /**
+     * A cache of Composite. Each composite is associated with the cumulative
+     * hashcode of all the things that went into the composite.
+     */
+    private final static Map<Integer, Composite> CACHE = Maps.newHashMap();
 
     private final ByteBuffer bytes;
 
@@ -94,8 +123,14 @@ public final class Composite implements Byteable {
         }
         bytes = ByteBuffer.allocate(size);
         for (Byteable byteable : byteables) {
-            bytes.put(byteable.getBytes());
+            byteable.copyTo(bytes);
         }
+        bytes.rewind();
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
     @Override

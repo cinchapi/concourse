@@ -55,10 +55,38 @@ public abstract class Numbers {
      *         greater than {@code b}.
      */
     public static int compare(Number a, Number b) {
-        // TODO review
-        BigDecimal first = new BigDecimal(a.toString());
-        BigDecimal second = new BigDecimal(b.toString());
-        return first.compareTo(second);
+        Class<?> aClass = a.getClass();
+        Class<?> bClass = b.getClass();
+        if((aClass == int.class || aClass == Integer.class)
+                && (bClass == int.class || bClass == Integer.class)) {
+            return Integer.compare(a.intValue(), b.intValue());
+        }
+        else if((aClass == long.class || aClass == Long.class)
+                && (bClass == long.class || bClass == Long.class)) {
+            return Long.compare(a.longValue(), b.longValue());
+        }
+        else if((aClass == float.class || aClass == Float.class)
+                && (bClass == float.class || bClass == Float.class)) {
+            return Float.compare(a.floatValue(), b.floatValue());
+        }
+        else if((aClass == double.class || aClass == Double.class)
+                && (bClass == double.class || bClass == Double.class)) {
+            return Double.compare(a.doubleValue(), b.doubleValue());
+        }
+        else if((aClass == short.class || aClass == Short.class)
+                && (bClass == short.class || bClass == Short.class)) {
+            return Short.compare(a.shortValue(), b.shortValue());
+        }
+        else if((aClass == byte.class || aClass == Byte.class)
+                && (bClass == byte.class || bClass == Byte.class)) {
+            return Long.compare(a.byteValue(), b.byteValue());
+        }
+        else {
+            // TODO review
+            BigDecimal first = new BigDecimal(a.toString());
+            BigDecimal second = new BigDecimal(b.toString());
+            return first.compareTo(second);
+        }
     }
 
     /**

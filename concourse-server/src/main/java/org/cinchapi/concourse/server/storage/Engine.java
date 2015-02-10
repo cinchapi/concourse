@@ -34,6 +34,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -47,6 +48,7 @@ import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.concurrent.LockService;
+import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.RangeTokens;
@@ -144,12 +146,10 @@ public final class Engine extends BufferedStore implements
                                                                                                  // testing
 
     /**
-     * The number of milliseconds that the {@link BufferTransportThread} sleeps
-     * after each transport in order to avoid CPU thrashing.
+     * If this value is > 0, then we will sleep for this amount instead of what
+     * the buffer suggests. This is mainly used for testing.
      */
-    protected static int BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS = 5; // visible
-                                                                                 // for
-                                                                                 // testing
+    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -232,7 +232,8 @@ public final class Engine extends BufferedStore implements
      * transported from the Buffer to the Database after the Database context is
      * captured and sent to the Buffer to finish the buffered reading.
      */
-    private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+            .prioritizeReads();
 
     /**
      * A collection of listeners that should be notified of a version change for
@@ -339,14 +340,16 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        lockService.getWriteLock(key, record).lock();
-        rangeLockService.getWriteLock(key, value).lock();
+        Lock write = lockService.getWriteLock(key, record);
+        Lock range = rangeLockService.getWriteLock(key, value);
+        write.lock();
+        range.lock();
         try {
             return addUnsafe(key, value, record);
         }
         finally {
-            lockService.getWriteLock(key, record).unlock();
-            rangeLockService.getWriteLock(key, value).unlock();
+            write.unlock();
+            range.unlock();
         }
     }
 
@@ -355,7 +358,7 @@ public final class Engine extends BufferedStore implements
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.put(range, listener);
@@ -369,12 +372,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<Long, String> audit(long record) {
         transportLock.readLock().lock();
-        lockService.getReadLock(record).lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
         try {
             return super.audit(record);
         }
         finally {
-            lockService.getReadLock(record).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -382,12 +386,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<Long, String> audit(String key, long record) {
         transportLock.readLock().lock();
-        lockService.getReadLock(key, record).lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
         try {
             return super.audit(key, record);
         }
         finally {
-            lockService.getReadLock(key, record).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -395,12 +400,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
-        lockService.getReadLock(record).lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
         try {
             return super.browse(record);
         }
         finally {
-            lockService.getReadLock(record).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -419,12 +425,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
-        lockService.getReadLock(key).lock();
+        Lock read = lockService.getReadLock(key);
+        read.lock();
         try {
             return super.browse(key);
         }
         finally {
-            lockService.getReadLock(key).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -457,12 +464,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Set<TObject> fetch(String key, long record) {
         transportLock.readLock().lock();
-        lockService.getReadLock(key, record).lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
         try {
             return super.fetch(key, record);
         }
         finally {
-            lockService.getReadLock(key, record).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -519,7 +527,7 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 for (VersionChangeListener listener : rangeVersionChangeListeners
@@ -538,14 +546,16 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        lockService.getWriteLock(key, record).lock();
-        rangeLockService.getWriteLock(key, value).lock();
+        Lock write = lockService.getWriteLock(key, record);
+        Lock range = rangeLockService.getWriteLock(key, value);
+        write.lock();
+        range.lock();
         try {
             return removeUnsafe(key, value, record);
         }
         finally {
-            lockService.getWriteLock(key, record).unlock();
-            rangeLockService.getWriteLock(key, value).unlock();
+            write.unlock();
+            range.unlock();
         }
     }
 
@@ -554,7 +564,7 @@ public final class Engine extends BufferedStore implements
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Set<Range<Value>> ranges = RangeTokens
+            Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 rangeVersionChangeListeners.remove(range, listener);
@@ -580,7 +590,6 @@ public final class Engine extends BufferedStore implements
         }
     }
 
-    @Override
     public void start() {
         if(!running) {
             Logger.info("Starting the '{}' Engine...", environment);
@@ -639,12 +648,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean verify(String key, TObject value, long record) {
         transportLock.readLock().lock();
-        lockService.getReadLock(key, record).lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
         try {
             return super.verify(key, value, record);
         }
         finally {
-            lockService.getReadLock(key, record).unlock();
+            read.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -676,12 +686,13 @@ public final class Engine extends BufferedStore implements
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
         transportLock.readLock().lock();
-        rangeLockService.getReadLock(key, operator, values).lock();
+        Lock range = rangeLockService.getReadLock(key, operator, values);
+        range.lock();
         try {
             return super.doExplore(key, operator, values);
         }
         finally {
-            rangeLockService.getReadLock(key, operator, values).unlock();
+            range.unlock();
             transportLock.readLock().unlock();
         }
     }
@@ -702,7 +713,7 @@ public final class Engine extends BufferedStore implements
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
         }
@@ -749,7 +760,7 @@ public final class Engine extends BufferedStore implements
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
-            notifyVersionChange(RangeToken.forWriting(Text.wrap(key),
+            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
                     Value.wrap(value)));
             return true;
         }
@@ -775,6 +786,11 @@ public final class Engine extends BufferedStore implements
         @Override
         public void run() {
             while (running) {
+                if(Thread.interrupted()) { // the thread has been
+                                           // interrupted from the Engine
+                                           // stopping
+                    break;
+                }
                 if(getBufferTransportThreadIdleTimeInMs() > BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS) {
                     // If there have been no transports within the last second
                     // then make this thread block until the buffer is
@@ -797,17 +813,24 @@ public final class Engine extends BufferedStore implements
                 try {
                     // NOTE: This thread needs to sleep for a small amount of
                     // time to avoid thrashing
-                    Thread.sleep(BUFFER_TRANSPORT_THREAD_SLEEP_TIME_IN_MILLISECONDS);
+                    int sleep = bufferTransportThreadSleepInMs > 0 ? bufferTransportThreadSleepInMs
+                            : buffer.getDesiredTransportSleepTimeInMs();
+                    Thread.sleep(sleep);
                     bufferTransportThreadLastWakeUp.set(Time.now());
                 }
                 catch (InterruptedException e) {
-                    Logger.warn(
-                            "The data transport thread been sleeping for over "
-                                    + "{} milliseconds even though there is work to do. "
-                                    + "An attempt has been made to restart the stalled "
-                                    + "process.",
-                            BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
-                    bufferTransportThreadHasEverBeenRestarted.set(true);
+                    if(getBufferTransportThreadIdleTimeInMs() > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                        Logger.warn(
+                                "The data transport thread been sleeping for over "
+                                        + "{} milliseconds even though there is work to do. "
+                                        + "An attempt has been made to restart the stalled "
+                                        + "process.",
+                                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+                        bufferTransportThreadHasEverBeenRestarted.set(true);
+                    }
+                    else {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }

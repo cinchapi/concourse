@@ -48,8 +48,8 @@ public final class TStrings {
      */
     public static Set<String> getAllSubStrings(String string) {
         Set<String> result = Sets.newHashSet();
-        for (int i = 0; i < string.length(); i++) {
-            for (int j = i + 1; j <= string.length(); j++) {
+        for (int i = 0; i < string.length(); ++i) {
+            for (int j = i + 1; j <= string.length(); ++j) {
                 String substring = string.substring(i, j).trim();
                 if(!Strings.isNullOrEmpty(substring)) {
                     result.add(substring);

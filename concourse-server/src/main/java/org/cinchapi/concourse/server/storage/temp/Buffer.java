@@ -44,6 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
+import org.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import org.cinchapi.concourse.server.concurrent.Locks;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -198,7 +199,8 @@ public final class Buffer extends Limbo {
      * old writes concurrently while prohibiting reading the buffer and
      * transporting writes at the same time.
      */
-    private final ReentrantReadWriteLock transportLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+            .prioritizeReads();
 
     /**
      * A monitor that is used to make a thread block while waiting for the
@@ -227,6 +229,52 @@ public final class Buffer extends Limbo {
     private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
+     * The number of items to transport to the Database per attempt. There is a
+     * tension between transporting and reading data (e.g. reads cannot happen
+     * while a transport occurs and vice versa). Transports are most efficient
+     * when they can batch up the amount of work per cycle, but that would be
+     * reads are blocked longer. So this variable indicates how many items
+     * should be transported in a single cycle. Each time a transport happens,
+     * this value will increase, but it will be decreased whenever a read
+     * occurs. This allows us to be more aggressive with transports when there
+     * are no reads happening, and also allows us to scale back transports when
+     * reads do occur.
+     */
+    private int transportRate = 1;
+
+    /**
+     * The maximum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
+
+    /**
+     * The minimum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
+
+    /**
+     * The number of milliseconds to sleep between transport cycles.
+     */
+    private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+
+    /**
+     * The multiplier that is used when increasing the rate of transport.
+     */
+    protected int transportRateMultiplier = 2; // visible for testing
+
+    /**
+     * Don't let the transport rate exceed this value.
+     */
+    private static int MAX_TRANSPORT_RATE = 8192;
+
+    /**
+     * The number of slots to put in each Page's bloom filter. We want this
+     * small enough to have few hash functions, but large enough so that the
+     * bloom filter does not become saturated.
+     */
+    private static int PER_PAGE_BLOOM_FILTER_CAPACITY = GlobalState.BUFFER_PAGE_SIZE / 10;
+
+    /**
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -252,6 +300,7 @@ public final class Buffer extends Limbo {
     public Map<Long, String> audit(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.audit(record);
         }
         finally {
@@ -263,6 +312,7 @@ public final class Buffer extends Limbo {
     public Map<Long, String> audit(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.audit(key, record);
         }
         finally {
@@ -274,6 +324,7 @@ public final class Buffer extends Limbo {
     public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record);
         }
         finally {
@@ -285,6 +336,7 @@ public final class Buffer extends Limbo {
     public Map<String, Set<TObject>> browse(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record, timestamp);
         }
         finally {
@@ -297,6 +349,7 @@ public final class Buffer extends Limbo {
             Map<String, Set<TObject>> context) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(record, timestamp, context);
         }
         finally {
@@ -308,6 +361,7 @@ public final class Buffer extends Limbo {
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key);
         }
         finally {
@@ -319,6 +373,7 @@ public final class Buffer extends Limbo {
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key, timestamp);
         }
         finally {
@@ -331,6 +386,7 @@ public final class Buffer extends Limbo {
             Map<TObject, Set<Long>> context) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.browse(key, timestamp, context);
         }
         finally {
@@ -343,6 +399,7 @@ public final class Buffer extends Limbo {
             Map<String, Set<TObject>> ktv) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.describe(record, timestamp, ktv);
         }
         finally {
@@ -368,6 +425,7 @@ public final class Buffer extends Limbo {
     public Set<TObject> fetch(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record);
         }
         finally {
@@ -379,6 +437,7 @@ public final class Buffer extends Limbo {
     public Set<TObject> fetch(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record, timestamp);
         }
         finally {
@@ -391,6 +450,7 @@ public final class Buffer extends Limbo {
             Set<TObject> values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.fetch(key, record, timestamp, values);
         }
         finally {
@@ -403,6 +463,7 @@ public final class Buffer extends Limbo {
             long timestamp, String key, Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.explore(context, timestamp, key, operator, values);
         }
         finally {
@@ -420,6 +481,11 @@ public final class Buffer extends Limbo {
         return directory;
     }
 
+    @Override
+    public int getDesiredTransportSleepTimeInMs() {
+        return transportThreadSleepTimeInMs;
+    }
+
     /**
      * Return the timestamp of the most recent data transport from the Buffer.
      * 
@@ -434,6 +500,7 @@ public final class Buffer extends Limbo {
     public long getVersion(long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(record);
         }
         finally {
@@ -445,6 +512,7 @@ public final class Buffer extends Limbo {
     public long getVersion(String key) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(key);
         }
         finally {
@@ -456,6 +524,7 @@ public final class Buffer extends Limbo {
     public long getVersion(String key, long record) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.getVersion(key, record);
         }
         finally {
@@ -467,10 +536,11 @@ public final class Buffer extends Limbo {
     public boolean insert(Write write) {
         writeLock.lock();
         try {
+            boolean notify = pages.size() == 2 && currentPage.size == 0;
             currentPage.append(write);
-            if(pages.size() > 1) {
+            if(notify) {
                 synchronized (transportable) {
-                    transportable.notifyAll();
+                    transportable.notify();
                 }
             }
         }
@@ -588,6 +658,7 @@ public final class Buffer extends Limbo {
     public Set<Long> search(String key, String query) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.search(key, query);
         }
         finally {
@@ -631,26 +702,35 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * {@inheritDoc} This method will transport the first write in the buffer.
+     * {@inheritDoc} This method will transport at least one write from the
+     * buffer, in chronological order.
      */
     @Override
     public void transport(PermanentStore destination) {
-        // It makes sense to only transport one write at a time because
-        // transporting blocks reading and all writes must read at least once,
-        // so we want to minimize the overhead per write.
         if(pages.size() > 1
                 && !transportLock.writeLock().isHeldByCurrentThread()
                 && transportLock.writeLock().tryLock()) {
             try {
                 Page page = pages.get(0);
-                if(page.hasNext()) {
-                    destination.accept(page.next());
-                    timeOfLastTransport.set(Time.now());
-                    page.remove();
+                int i = 0;
+                while (i < transportRate) {
+                    if(page.hasNext()) {
+                        destination.accept(page.next());
+                        page.remove();
+                        ++i;
+                    }
+                    else {
+                        ((Database) destination).triggerSync();
+                        removePage();
+                        break;
+                    }
                 }
-                else {
-                    ((Database) destination).triggerSync();
-                    removePage();
+                timeOfLastTransport.set(Time.now());
+                transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
+                        : (transportRate * transportRateMultiplier);
+                --transportThreadSleepTimeInMs;
+                if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
+                    transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
                 }
             }
             finally {
@@ -663,6 +743,7 @@ public final class Buffer extends Limbo {
     public boolean verify(String key, TObject value, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.verify(key, value, record, timestamp);
         }
         finally {
@@ -674,6 +755,7 @@ public final class Buffer extends Limbo {
     public boolean verify(Write write, long timestamp, boolean exists) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             for (Page page : pages) {
                 if(page.mightContain(write)
                         && page.locallyContains(write, timestamp)) {
@@ -717,6 +799,7 @@ public final class Buffer extends Limbo {
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.doExplore(timestamp, key, operator, values);
         }
         finally {
@@ -729,6 +812,7 @@ public final class Buffer extends Limbo {
             TObject... values) {
         transportLock.readLock().lock();
         try {
+            scaleBackTransportRate();
             return super.doExplore(key, operator, values);
         }
         finally {
@@ -766,6 +850,14 @@ public final class Buffer extends Limbo {
     }
 
     /**
+     * Scale back the number of items that are transported in a single cycle.
+     */
+    private void scaleBackTransportRate() {
+        transportRate = 1;
+        transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+    }
+
+    /**
      * A {@link Page} represents a granular section of the {@link Buffer}. Pages
      * are an append-only iterator over a sequence of {@link Write} objects.
      * Pages differ from other iterators because they do not advance in the
@@ -795,7 +887,7 @@ public final class Buffer extends Limbo {
          * or not.
          */
         private final BloomFilter filter = BloomFilter
-                .create(GlobalState.BUFFER_PAGE_SIZE);
+                .create(PER_PAGE_BLOOM_FILTER_CAPACITY);
 
         /**
          * The append-only buffer that contains the content of the backing file.
@@ -891,11 +983,11 @@ public final class Buffer extends Limbo {
                 if(content.remaining() >= write.size() + 4) {
                     index(write);
                     content.putInt(write.size());
-                    content.put(write.getBytes());
+                    write.copyTo(content);
                     content.force();
                 }
                 else {
-                    throw new CapacityException();
+                    throw CapacityException.INSTANCE;
                 }
             }
             finally {
@@ -997,8 +1089,8 @@ public final class Buffer extends Limbo {
                                     "A write has been removed from the Page");
                         }
                         Write next = writes[index];
-                        index++;
-                        distance++;
+                        ++index;
+                        ++distance;
                         return next;
                     }
                     finally {
@@ -1066,17 +1158,17 @@ public final class Buffer extends Limbo {
             Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
             try {
                 Type valueType = write.getValue().getType();
-                if(filter.mightContain(write.getRecord(), write.getKey(),
+                if(filter.mightContainCached(write.getRecord(), write.getKey(),
                         write.getValue())) {
                     return true;
                 }
                 else if(valueType == Type.STRING) {
-                    return filter.mightContain(write.getRecord(), write
+                    return filter.mightContainCached(write.getRecord(), write
                             .getKey(), Value.wrap(Convert.javaToThrift(Tag
                             .create((String) write.getValue().getObject()))));
                 }
                 else if(valueType == Type.TAG) {
-                    return filter.mightContain(
+                    return filter.mightContainCached(
                             write.getRecord(),
                             write.getKey(),
                             Value.wrap(Convert.javaToThrift(write.getValue()
@@ -1121,7 +1213,7 @@ public final class Buffer extends Limbo {
         public void remove() {
             Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
             try {
-                head++;
+                ++head;
             }
             finally {
                 Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
@@ -1244,12 +1336,12 @@ public final class Buffer extends Limbo {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                filter.put(write.getRecord(), write.getKey(), write.getValue());
+                filter.putCached(write.getRecord(), write.getKey(), write.getValue());
                 writes[size] = write;
-                size++;
+                ++size;
             }
             else {
-                throw new CapacityException();
+                throw CapacityException.INSTANCE;
             }
         }
     }

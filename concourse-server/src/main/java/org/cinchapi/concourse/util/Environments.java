@@ -25,6 +25,9 @@ package org.cinchapi.concourse.util;
 
 import static org.cinchapi.concourse.server.GlobalState.DEFAULT_ENVIRONMENT;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.cinchapi.concourse.server.GlobalState;
 
 import com.google.common.base.Strings;
@@ -37,6 +40,13 @@ import com.google.common.base.Strings;
 public final class Environments {
 
     /**
+     * The pattern that is used for sanitizing the environment. We compile it
+     * statically so that we can avoid the overhead of doing it for every
+     * sanitization request.
+     */
+    private static final Pattern SANITIZER = Pattern.compile("[^A-Za-z0-9_]");
+
+    /**
      * Ensure that we return the correct environment with
      * alphanumeric-char name for the specified {@code env}.
      * e.g. if {@code env} is null or empty then return the
@@ -47,11 +57,10 @@ public final class Environments {
      */
     public static String sanitize(String env) {
         env = Strings.isNullOrEmpty(env) ? DEFAULT_ENVIRONMENT : env;
-        env = env.replaceAll("[^A-Za-z0-9_]", ""); // ConcourseServer checks to
-                                                  // make sure sanitizing the
-                                                  // default environment won't
-                                                  // turn it into the empty
-                                                  // string
+        Matcher matcher = SANITIZER.matcher(env);
+        env = matcher.replaceAll(""); // ConcourseServer checks to make sure
+                                      // sanitizing the default environment
+                                      // won't turn it into an empty string
         return env;
     }
 
