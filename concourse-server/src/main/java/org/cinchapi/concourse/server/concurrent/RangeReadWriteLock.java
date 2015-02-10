@@ -66,6 +66,7 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
             @Override
             public void lock() {
                 while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
+                    Thread.yield();
                     continue;
                 }
                 super.lock();
@@ -98,6 +99,7 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
             @Override
             public void lock() {
                 while (rangeLockService.isRangeBlocked(LockType.WRITE, token)) {
+                    Thread.yield();
                     continue;
                 }
                 super.lock();
