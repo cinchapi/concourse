@@ -38,6 +38,10 @@
 #### Version 0.4.4 (TBD)
 * Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol. [BACKPORT PLEASE]
 * Added logic to prevent the Buffer from attempting a scan for historical data that is older than any data that is currently within the Buffer. [BACKPORT PLEASE]
+* Added *group sync*: an optimization that improves Transaction performance by durably fsyncing committed writes to the Buffer in bulk. Transactions still honor the durability guarantee by taking a full backup prior to acknowledging a successful commit.
+* Improved the performance of releasing locks by moving garbage collection of unused locks to a background thread.
+* Improved the performance for upgrading range locks and checking for range conflicts by using collections that shard and sort range tokens.
+* CON-239: Fixed a bug where storage engine methods that touched an entire record (e.g. `browse(record)` and `audit(record)`) or an entire key (`browse(key)`) were not properly locked which potentially made reads inconsistent.
 
 #### Version 0.4.3 (February 1, 2015)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
