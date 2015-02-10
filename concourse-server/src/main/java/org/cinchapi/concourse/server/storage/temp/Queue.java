@@ -69,8 +69,11 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write) {
-        return writes.add(write);
+    public boolean insert(Write write, boolean sync) {
+        return writes.add(write);// NOTE: #sync is
+                                 // meaningless since
+                                 // Queue is a memory
+                                 // store
     }
 
     @Override

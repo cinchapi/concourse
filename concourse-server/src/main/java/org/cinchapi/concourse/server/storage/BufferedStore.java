@@ -126,11 +126,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        Write write = Write.add(key, value, record);
-        if(!verify(write)) {
-            return buffer.insert(write); /* Authorized */
-        }
-        return false;
+        return add(key, value, record, true);
     }
 
     @Override
@@ -192,11 +188,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        Write write = Write.remove(key, value, record);
-        if(verify(write)) {
-            return buffer.insert(write); /* Authorized */
-        }
-        return false;
+        return remove(key, value, record, true);
     }
 
     @Override
@@ -238,17 +230,30 @@ public abstract class BufferedStore extends BaseStore {
                 destination.verify(key, value, record, timestamp));
     }
 
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
-                operator, values);
-        return buffer.explore(context, timestamp, key, operator, values);
-    }
-
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        return doExplore(key, operator, values, false);
+    /**
+     * Add {@code key} as {@code value} to {@code record} with the directive to
+     * {@code sync} the data or not. Depending upon the implementation of the
+     * {@link #buffer}, a sync may guarantee that the data is durably stored.
+     * <p>
+     * This method maps {@code key} to {@code value} in {@code record}, if and
+     * only if that mapping does not <em>currently</em> exist (i.e.
+     * {@link #verify(String, Object, long)} is {@code false}). Adding
+     * {@code value} to {@code key} does not replace any existing mappings from
+     * {@code key} in {@code record} because a field may contain multiple
+     * distinct values.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the mapping is added
+     */
+    protected boolean add(String key, TObject value, long record, boolean sync) {
+        Write write = Write.add(key, value, record);
+        if(!verify(write)) {
+            return buffer.insert(write, sync); /* Authorized */
+        }
+        return false;
     }
 
     /**
@@ -362,6 +367,19 @@ public abstract class BufferedStore extends BaseStore {
         return buffer.browse(key, Time.now(), context);
     }
 
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        Map<Long, Set<TObject>> context = destination.explore(timestamp, key,
+                operator, values);
+        return buffer.explore(context, timestamp, key, operator, values);
+    }
+
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        return doExplore(key, operator, values, false);
+    }
+
     /**
      * Do the work to explore {@code key} {@code operator} {@code values}
      * without worry about normalizing the {@code operator} or {@code values}
@@ -386,6 +404,7 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
+     * <<<<<<< HEAD
      * Fetch {@code key} from {@code record} either using safe or unsafe
      * methods.
      * <p>
@@ -408,6 +427,32 @@ public abstract class BufferedStore extends BaseStore {
             context = destination.fetch(key, record);
         }
         return buffer.fetch(key, record, Time.now(), context);
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} with the
+     * directive to {@code sync} the data or not. Depending upon the
+     * implementation of the {@link #buffer}, a sync may guarantee that the data
+     * is durably stored.
+     * <p>
+     * This method deletes the mapping from {@code key} to {@code value} in
+     * {@code record}, if that mapping <em>currently</em> exists (i.e.
+     * {@link #verify(String, Object, long)} is {@code true}. No other mappings
+     * from {@code key} in {@code record} are affected.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @return {@code true} if the mapping is removed
+     */
+    protected boolean remove(String key, TObject value, long record,
+            boolean sync) {
+        Write write = Write.remove(key, value, record);
+        if(verify(write)) {
+            return buffer.insert(write, sync); /* Authorized */
+        }
+        return false;
     }
 
     /**

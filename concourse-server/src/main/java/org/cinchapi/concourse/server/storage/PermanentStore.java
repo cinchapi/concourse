@@ -40,4 +40,22 @@ public interface PermanentStore extends Store {
      * @param write
      */
     public void accept(Write write);
+
+    /**
+     * Process and store {@code write} while obeying the directive to
+     * {@code sync} or not. A sync guarantees that the write is durably
+     * persisted.
+     * 
+     * @param write
+     * @param sync
+     */
+    public void accept(Write write, boolean sync);
+
+    /**
+     * Force the store to sync all of its writes to disk to guarantee that they
+     * are durably persisted. Generally, this method will "fsync" pending writes
+     * that {@link #accept(Write, boolean) were not synced when accepted}. For
+     * example, this is a way to enable <em>group sync</em> functionality.
+     */
+    public void sync();
 }

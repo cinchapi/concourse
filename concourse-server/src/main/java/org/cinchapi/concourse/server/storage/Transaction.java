@@ -114,16 +114,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     /**
      * A collection of listeners that should be notified of a version change for
-     * a given token.
+     * a given range token.
      */
-    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
+    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
             .create();
 
     /**
      * A collection of listeners that should be notified of a version change for
-     * a given range token.
+     * a given token.
      */
-    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
+    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
             .create();
 
     /**
@@ -162,6 +162,12 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         else {
             remove(key, value, record);
         }
+    }
+
+    @Override
+    public void accept(Write write, boolean sync) {
+        accept(write);
+
     }
 
     @Override
@@ -287,38 +293,11 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
+    public void sync() {/* no-op */}
+
+    @Override
     public String toString() {
         return id;
-    }
-
-    @Override
-    protected void checkState() throws AtomicStateException {
-        try {
-            super.checkState();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void doCommit() {
-        String file = ((Engine) destination).transactionStore + File.separator
-                + id + ".txn";
-        FileChannel channel = FileSystem.getFileChannel(file);
-        try {
-            channel.write(serialize());
-            channel.force(true);
-            Logger.info("Created backup for transaction {} at '{}'", this, file);
-            invokeSuperDoCommit();
-            FileSystem.deleteFile(file);
-        }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        finally {
-            FileSystem.closeFileChannel(channel);
-        }
     }
 
     /**
@@ -373,6 +352,36 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         bytes.put(_writes);
         bytes.rewind();
         return bytes;
+    }
+
+    @Override
+    protected void checkState() throws AtomicStateException {
+        try {
+            super.checkState();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
+    }
+
+    @Override
+    protected void doCommit() {
+        String file = ((Engine) destination).transactionStore + File.separator
+                + id + ".txn";
+        FileChannel channel = FileSystem.getFileChannel(file);
+        try {
+            channel.write(serialize());
+            channel.force(true);
+            Logger.info("Created backup for transaction {} at '{}'", this, file);
+            invokeSuperDoCommit();
+            FileSystem.deleteFile(file);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+        finally {
+            FileSystem.closeFileChannel(channel);
+        }
     }
 
 }
