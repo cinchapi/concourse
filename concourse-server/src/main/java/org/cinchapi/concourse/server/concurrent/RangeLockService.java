@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -182,118 +181,75 @@ public class RangeLockService extends
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
         RangeTokenMap<RangeReadWriteLock> rtm = (RangeTokenMap<RangeReadWriteLock>) locks;
-        Map<RangeToken, RangeReadWriteLock> filtered = token.getOperator() == Operator.BETWEEN ? rtm
-                .filter(token.getKey(), value, token.getValues()[1]) : rtm
-                .filter(token.getKey(), token.getOperator(), value);
-        Iterator<RangeReadWriteLock> it = filtered.values().iterator();
-        while (it.hasNext()) {
-            if(type == LockType.READ) {
-                // If I want to READ X, I am blocked if:
-
-            }
-            else {
-                // If I want to WRITE X, I am blocked if there is a READ smaller
-                // than X and another READ larger than X OR there is a READ for
-                // X
-            }
-        }
+        Iterator<Entry<RangeToken, RangeReadWriteLock>> it;
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
+            switch (token.getOperator()) {
+            case BETWEEN:
+                it = rtm.filter(token.getKey(), value, token.getValues()[1])
+                        .entrySet().iterator();
+                break;
+            case REGEX:
+            case NOT_REGEX:
+                it = rtm.entrySet().iterator();
+                break;
+            default:
+                it = rtm.filter(token.getKey(), token.getOperator(), value)
+                        .entrySet().iterator();
+                break;
+            }
             while (it.hasNext()) {
                 Entry<RangeToken, RangeReadWriteLock> entry = it.next();
                 RangeToken myToken = entry.getKey();
                 RangeReadWriteLock myLock = entry.getValue();
-                if(myToken.getKey().equals(token.getKey())
-                        && myLock.isWriteLocked()
+                if(myLock.isWriteLocked()
                         && !myLock.isWriteLockedByCurrentThread()) {
-                    for (Value myValue : myToken.getValues()) {
-                        switch (token.getOperator()) {
-
-                        case BETWEEN:
-                            if((myValue.compareTo(value) >= 0 && myValue
-                                    .compareTo(token.getValues()[1]) < 0)
-                                    || (myValue.compareTo(token.getValues()[1])) >= 0
-                                    && myValue.compareTo(value) < 0) {
-                                return true;
+                    if(token.getOperator() != Operator.REGEX
+                            & token.getOperator() != Operator.NOT_REGEX) {
+                        return true;
+                    }
+                    else {
+                        for (Value myValue : myToken.getValues()) {
+                            if(token.getOperator() == Operator.REGEX) {
+                                if(myValue.getTObject().toString()
+                                        .matches(value.getTObject().toString())) {
+                                    return true;
+                                }
                             }
-                            break;
-                        case EQUALS:
-                            if(myValue.equals(value)) {
-                                return true;
+                            else if(token.getOperator() == Operator.NOT_REGEX) {
+                                if(!myValue.getTObject().toString()
+                                        .matches(value.getTObject().toString())) {
+                                    return true;
+                                }
                             }
-                            break;
-                        case GREATER_THAN:
-                            if(myValue.compareTo(value) > 0) {
-                                return true;
+                            else {
+                                throw new IllegalStateException();
                             }
-                            break;
-                        case GREATER_THAN_OR_EQUALS:
-                            if(myValue.compareTo(value) >= 0) {
-                                return true;
-                            }
-                            break;
-                        case LESS_THAN:
-                            if(myValue.compareTo(value) < 0) {
-                                return true;
-                            }
-                            break;
-                        case LESS_THAN_OR_EQUALS:
-                            if(myValue.compareTo(value) <= 0) {
-                                return true;
-                            }
-                            break;
-                        case NOT_EQUALS:
-                            if(!myValue.equals(value)) {
-                                return true;
-                            }
-                            break;
-                        case NOT_REGEX:
-                            if(!myValue.getTObject().toString()
-                                    .matches(value.getTObject().toString())) {
-                                return true;
-                            }
-                            break;
-                        case REGEX:
-                            if(myValue.getTObject().toString()
-                                    .matches(value.getTObject().toString())) {
-                                return true;
-                            }
-                            break;
-                        default:
-                            break;
                         }
                     }
-                }
 
+                }
             }
-            return false;
         }
         else {
             // If I want to WRITE X, I am blocked if there is a READ smaller
             // than X and another READ larger than X OR there is a READ for X
-            boolean foundSmaller = false;
-            boolean foundLarger = false;
-            while (it.hasNext() && (!foundSmaller || !foundLarger)) {
-                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
-                RangeToken myToken = entry.getKey();
-                RangeReadWriteLock myLock = entry.getValue();
-                if(myToken.getKey().equals(token.getKey())
-                        && myLock.getReadLockCount() > 0) {
-                    for (Value myValue : myToken.getValues()) {
-                        if(value.equals(myValue)) {
-                            return true;
-                        }
-                        else {
-                            foundSmaller = value.compareTo(myValue) >= 0 ? true
-                                    : foundSmaller;
-                            foundLarger = value.compareTo(myValue) < 0 ? true
-                                    : foundLarger;
-                        }
-                    }
+            it = rtm.filter(token.getKey(), Operator.EQUALS, value).entrySet().iterator();
+            while(it.hasNext()){
+                RangeReadWriteLock lock = it.next().getValue();
+                if(lock.getReadLockCount() > 0) {
+                    return true;
                 }
             }
-            return foundSmaller && foundLarger;
+            it = rtm.filter(token.getKey(), value, value).entrySet().iterator();
+            while(it.hasNext()){
+                RangeReadWriteLock lock = it.next().getValue();
+                if(lock.getReadLockCount() > 0) {
+                    return true;
+                }
+            }
         }
+        return false;
     }
 
     @Override
