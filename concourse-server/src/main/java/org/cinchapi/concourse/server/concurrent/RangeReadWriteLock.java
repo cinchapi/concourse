@@ -50,8 +50,8 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
     /**
      * Construct a new instance.
      * 
+     * @param rangeLockService
      * @param token
-     * @param rangeLockService TODO
      */
     public RangeReadWriteLock(RangeLockService rangeLockService,
             RangeToken token) {
@@ -61,63 +61,29 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
     }
 
     @Override
-    public ReadLock readLock() {
-        return new ReadLock(this) {
-
-            @Override
-            public void lock() {
-                while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
-                    Thread.yield();
-                    continue;
-                }
-                super.lock();
-            }
-
-            @Override
-            public boolean tryLock() {
-                if(!rangeLockService.isRangeBlocked(LockType.READ, token)
-                        && super.tryLock()) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-
-        };
+    public void beforeReadLock() {
+        while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
+            Thread.yield();
+            continue;
+        }
     }
 
     @Override
-    public String toString() {
-        return super.toString() + "[id = " + System.identityHashCode(this)
-                + "]";
+    public boolean tryBeforeReadLock() {
+        return !rangeLockService.isRangeBlocked(LockType.READ, token);
     }
 
     @Override
-    public WriteLock writeLock() {
-        return new WriteLock(this) {
-
-            @Override
-            public void lock() {
-                while (rangeLockService.isRangeBlocked(LockType.WRITE, token)) {
-                    Thread.yield();
-                    continue;
-                }
-                super.lock();
-            }
-
-            @Override
-            public boolean tryLock() {
-                if(!rangeLockService.isRangeBlocked(LockType.WRITE, token)
-                        && super.tryLock()) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-
-        };
+    public void beforeWriteLock(){
+        while (rangeLockService.isRangeBlocked(LockType.WRITE, token)) {
+            Thread.yield();
+            continue;
+        }
+    }
+    
+    @Override
+    public boolean tryBeforeWriteLock(){
+        return !rangeLockService.isRangeBlocked(LockType.WRITE, token);
     }
 
 }
