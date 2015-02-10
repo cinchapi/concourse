@@ -114,6 +114,8 @@ public class AtomicOperation extends BufferedStore implements
                 RangeToken tok = entry.getKey();
                 LockDescription lock = entry.getValue();
                 if(lock.getType() == LockType.RANGE_READ) {
+                    // NOTE: cannot use it.remove() here because the iterator
+                    // does not read through to the underlying map
                     rangeLocks.remove(tok).getLock().unlock();
                 }
             }
