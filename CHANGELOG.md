@@ -36,8 +36,8 @@
 * Added methods to limit the `audit` of a record or a key/record to a specified range of time.
 
 #### Version 0.4.4 (TBD)
-* Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol. [BACKPORT PLEASE]
-* Added logic to prevent the Buffer from attempting a scan for historical data that is older than any data that is currently within the Buffer. [BACKPORT PLEASE]
+* Fixed an issue where transactions and atomic operations unnecessarily performed pre-commit locking during read operations, which negatively impacted performance and violated the just-in-time locking protocol.
+* Added logic to prevent the Buffer from attempting a scan for historical data that is older than any data that is currently within the Buffer.
 * Added *group sync*: an optimization that improves Transaction performance by durably fsyncing committed writes to the Buffer in bulk. Transactions still honor the durability guarantee by taking a full backup prior to acknowledging a successful commit.
 * Improved the performance of releasing locks by moving garbage collection of unused locks to a background thread.
 * Improved the performance for upgrading range locks and checking for range conflicts by using collections that shard and sort range tokens.
