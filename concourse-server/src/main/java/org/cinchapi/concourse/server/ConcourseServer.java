@@ -407,8 +407,7 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newPrettyLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);
