@@ -32,8 +32,9 @@ import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.Tag;
+import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.thrift.Operator;
@@ -261,6 +262,49 @@ public final class Convert {
 
         }
         return string;
+    }
+
+    /**
+     * Convert the {@code symbol} to the corresponding {@link Operator}.
+     * These include strings such as (=, >, >=, etc), and CaSH symbols (eq, gt,
+     * gte, etc).
+     * 
+     * @param symbol
+     * @return
+     */
+    public static Operator stringToOperator(String symbol) {
+        switch (symbol) {
+        case "=":
+        case "eq":
+            return Operator.EQUALS;
+        case "!=":
+        case "ne":
+            return Operator.NOT_EQUALS;
+        case ">":
+        case "gt":
+            return Operator.GREATER_THAN;
+        case ">=":
+        case "gte":
+            return Operator.GREATER_THAN_OR_EQUALS;
+        case "<":
+        case "lt":
+            return Operator.LESS_THAN;
+        case "<=":
+        case "lte":
+            return Operator.LESS_THAN_OR_EQUALS;
+        case "><":
+        case "bw":
+            return Operator.BETWEEN;
+        case "->":
+        case "lnk2":
+            return Operator.LINKS_TO;
+        case "regex":
+            return Operator.REGEX;
+        case "nregex":
+            return Operator.NOT_REGEX;
+        default:
+            throw new IllegalArgumentException();
+        }
     }
 
     /**

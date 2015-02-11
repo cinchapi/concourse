@@ -55,14 +55,13 @@ class OperatorSymbol extends AbstractSymbol implements PostfixNotationSymbol {
      * @return the symbol
      */
     public static OperatorSymbol parse(String string) {
-        for (Operator operator : Operator.values()) {
-            if(string.equalsIgnoreCase(Convert.operatorToString(operator))
-                    || string.equalsIgnoreCase(operator.name())) {
-                return new OperatorSymbol(operator);
-            }
+        try {
+            return new OperatorSymbol(Convert.stringToOperator(string));
         }
-        throw new RuntimeException(MessageFormat.format(
-                "Cannot parse {0} into an OperatorSymbol", string));
+        catch (IllegalArgumentException e) {
+            throw new RuntimeException(MessageFormat.format(
+                    "Cannot parse {0} into an OperatorSymbol", string));
+        }
     }
 
     /**

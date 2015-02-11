@@ -68,11 +68,10 @@ import com.google.common.collect.Lists;
 
 /**
  * <p>
- * Concourse is a schemaless and distributed version control database with
- * automatic indexing, acid transactions and full-text search. Concourse
- * provides a more intuitive approach to data management that is easy to deploy,
- * access and scale with minimal tuning while also maintaining the referential
- * integrity and ACID characteristics of traditional database systems.
+ * Concourse is a distributed self-tuning database with automatic indexing,
+ * version control, and ACID transactions. Concourse provides a more intuitive
+ * approach to data management that is easy to deploy, access and scale while
+ * maintaining the strong consistency of traditional database systems.
  * </p>
  * <h2>Data Model</h2>
  * <p>
@@ -249,6 +248,50 @@ public abstract class Concourse implements AutoCloseable {
      * @return a mapping from timestamp to a description of a revision
      */
     public abstract Map<Timestamp, String> audit(String key, long record);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(String key, long record,
+            Timestamp start, Timestamp end);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(String key, long record,
+            Timestamp start);
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     *
+     * @param record
+     * @param start
+     * @param end
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(long record,
+            Timestamp start, Timestamp end);  
+
+    /**
+     * Audit {@code record} and return a log of revisions.
+     *
+     * @param record
+     * @param start
+     * @return a mapping from timestamp to a description of a revision
+     */
+    public abstract Map<Timestamp, String> audit(long record,
+            Timestamp start);      
 
     /**
      * Browse the {@code records} and return a mapping from each record to all
@@ -688,6 +731,60 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the criteria
      */
     public abstract Set<Long> find(String key, Operator operator, Object value,
+            Timestamp timestamp);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and return the set of
+     * records that satisfy the criteria. This is analogous to the SELECT action
+     * in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} and {@code value2} at
+     * {@code timestamp} and return the set of records that satisfy the
+     * criteria. This is analogous to the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @param value2
+     * @param timestamp
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
+            Object value2, Timestamp timestamp);
+
+    /**
+     * Find {@code key} {@code operator} {@code value} at {@code timestamp} and
+     * return the set of records that satisfy the criteria. This is analogous to
+     * the SELECT action in SQL.
+     * 
+     * @param key
+     * @param operator
+     * @param value
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String key, String operator, Object value,
             Timestamp timestamp);
 
     /**
@@ -1357,8 +1454,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> add(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, add(key, value, record));
             }
@@ -1451,6 +1548,68 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+
+        @Override
+        public Map<Timestamp, String> audit(final String key,
+                final long record, final Timestamp start) {
+            return audit(key, record, start, Timestamp.now());
+        }
+
+        @Override
+        public Map<Timestamp, String> audit(final String key, final long record,
+                final Timestamp start, final Timestamp end) {
+            Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
+                    "Start of range cannot be greater than the end");
+            Map<Timestamp, String> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, String> audited = audit(key, record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    audited.keySet(), start);
+            Entry<Timestamp, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(audited.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < audited.size(); ++i) {
+                entry = Iterables.get(audited.entrySet(), i);
+                if(entry.getKey().getMicros() >= end.getMicros()) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
+        }                                     
+
+        @Override
+        public Map<Timestamp, String> audit(final long record,
+                final Timestamp start) {
+            return audit(record, start, Timestamp.now());
+        }
+
+        @Override
+        public  Map<Timestamp, String> audit(final long record,
+                final Timestamp start, final Timestamp end) {
+            Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
+                    "Start of range cannot be greater than the end");
+            Map<Timestamp, String> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("DateTime", "Values");
+            Map<Timestamp, String> audited = audit(record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    audited.keySet(), start);
+            Entry<Timestamp, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(audited.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < audited.size(); ++i) {
+                entry = Iterables.get(audited.entrySet(), i);
+                if(entry.getKey().getMicros() >= end.getMicros()) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
         }
 
         @CompoundOperation
@@ -1920,6 +2079,34 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public Set<Long> find(final String key, final String operator,
+                final Object value) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value);
+        }
+
+        @Override
+        public Set<Long> find(final String key, final String operator,
+                final Object value, final Object value2) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, value2);
+        }
+
+        @Override
+        public Set<Long> find(final String key, final String operator,
+                final Object value, final Object value2, Timestamp timestamp) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, value2, timestamp);
+        }
+
+        @Override
+        public Set<Long> find(final String key, final String operator,
+                final Object value, Timestamp timestamp) {
+            Operator parsedOp = Convert.stringToOperator(operator);
+            return find(key, parsedOp, value, timestamp);
+        }
+
+        @Override
         public Map<Long, Map<String, Object>> get(Collection<String> keys,
                 Collection<Long> records) {
             PrettyLinkedTableMap<Long, String, Object> result = PrettyLinkedTableMap
@@ -1953,8 +2140,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<String, Object> get(Collection<String> keys, long record) {
-            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Key", "Value");
+            Map<String, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record);
                 if(value != null) {
@@ -1967,8 +2154,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<String, Object> get(Collection<String> keys, long record,
                 Timestamp timestamp) {
-            Map<String, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Key", "Value");
+            Map<String, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Key", "Value");
             for (String key : keys) {
                 Object value = get(key, record, timestamp);
                 if(value != null) {
@@ -1980,8 +2167,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records) {
-            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", key);
+            Map<Long, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 Object value = get(key, record);
                 if(value != null) {
@@ -1994,8 +2181,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Object> get(String key, Collection<Long> records,
                 Timestamp timestamp) {
-            Map<Long, Object> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", key);
+            Map<Long, Object> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", key);
             for (long record : records) {
                 Object value = get(key, record, timestamp);
                 if(value != null) {
@@ -2063,8 +2250,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, insert(json, record));
             }
@@ -2118,8 +2305,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> link(String key, long source,
                 Collection<Long> destinations) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long destination : destinations) {
                 result.put(destination, link(key, source, destination));
             }
@@ -2133,8 +2320,8 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Boolean> ping(Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, ping(record));
             }
@@ -2156,8 +2343,8 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> remove(String key, Object value,
                 Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap.newPrettyLinkedHashMap(
-                    "Record", "Result");
+            Map<Long, Boolean> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Record", "Result");
             for (long record : records) {
                 result.put(record, remove(key, value, record));
             }
