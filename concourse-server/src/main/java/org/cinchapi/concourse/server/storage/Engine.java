@@ -783,7 +783,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean addUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.add(key, value, record, sync)) {
+        if(super.add(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
@@ -830,7 +830,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean removeUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.remove(key, value, record, sync)) {
+        if(super.remove(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
