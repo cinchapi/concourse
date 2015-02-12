@@ -126,7 +126,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, true);
+        return add(key, value, record, true, true);
     }
 
     @Override
@@ -188,7 +188,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, true);
+        return remove(key, value, record, true, true);
     }
 
     @Override
@@ -246,11 +246,14 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
+     * @param sync
+     * @param validate
      * @return {@code true} if the mapping is added
      */
-    protected boolean add(String key, TObject value, long record, boolean sync) {
+    protected boolean add(String key, TObject value, long record, boolean sync,
+            boolean validate) {
         Write write = Write.add(key, value, record);
-        if(!verify(write)) {
+        if(!validate || !verify(write)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
@@ -444,12 +447,14 @@ public abstract class BufferedStore extends BaseStore {
      * @param key
      * @param value
      * @param record
+     * @param sync
+     * @param validate
      * @return {@code true} if the mapping is removed
      */
     protected boolean remove(String key, TObject value, long record,
-            boolean sync) {
+            boolean sync, boolean validate) {
         Write write = Write.remove(key, value, record);
-        if(verify(write)) {
+        if(!validate || verify(write)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;

@@ -821,7 +821,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean addUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.add(key, value, record, sync)) {
+        if(super.add(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
@@ -830,7 +830,7 @@ public final class Engine extends BufferedStore implements
         }
         return false;
     }
-    
+
     /**
      * Restore any transactions that did not finish committing prior to the
      * previous shutdown.
@@ -842,7 +842,7 @@ public final class Engine extends BufferedStore implements
             Logger.info("Restored Transaction from {}", file.getName());
         }
     }
-    
+
     /**
      * Return the number of milliseconds that have elapsed since the last time
      * the {@link BufferTransportThread} successfully transported data.
@@ -854,7 +854,7 @@ public final class Engine extends BufferedStore implements
                 Time.now() - ((Buffer) buffer).getTimeOfLastTransport(),
                 TimeUnit.MICROSECONDS);
     }
-    
+
     /**
      * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
      * any locks. This method is ONLY appropriate to call from the
@@ -868,7 +868,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean removeUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.remove(key, value, record, sync)) {
+        if(super.remove(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
@@ -877,7 +877,7 @@ public final class Engine extends BufferedStore implements
         }
         return false;
     }
-    
+
     @Override
     protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
             Operator operator, TObject... values) {
@@ -889,7 +889,7 @@ public final class Engine extends BufferedStore implements
             transportLock.readLock().unlock();
         }
     }
-    
+
     @Override
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
