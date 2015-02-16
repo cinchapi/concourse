@@ -75,7 +75,7 @@ public final class Range implements Comparable<Range> {
      * @return the Range
      */
     public static Range atLeast(Value value) {
-        return inclusive(value, Value.POSITIVE_INFINITY);
+        return inclusiveExclusive(value, Value.POSITIVE_INFINITY);
     }
 
     /**
@@ -86,7 +86,7 @@ public final class Range implements Comparable<Range> {
      * @return the Range
      */
     public static Range atMost(Value value) {
-        return inclusive(Value.NEGATIVE_INFINITY, value);
+        return exclusiveInclusive(Value.NEGATIVE_INFINITY, value);
     }
 
     /**
@@ -137,7 +137,7 @@ public final class Range implements Comparable<Range> {
      * @return the Range
      */
     public static Range greaterThan(Value value) {
-        return exclusiveInclusive(value, Value.POSITIVE_INFINITY);
+        return exclusive(value, Value.POSITIVE_INFINITY);
     }
 
     /**
@@ -175,7 +175,7 @@ public final class Range implements Comparable<Range> {
      * @return the Range
      */
     public static Range lessThan(Value value) {
-        return inclusiveExclusive(Value.NEGATIVE_INFINITY, value);
+        return exclusive(Value.NEGATIVE_INFINITY, value);
     }
 
     /**
