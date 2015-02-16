@@ -176,9 +176,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
             VersionChangeListener listener) {
         ((Compoundable) destination).addVersionChangeListener(token, this);
         // This rest of this implementation is unnecessary since Transactions
-        // are assumed to
-        // be isolated (e.g. single-threaded), but is kept here for unit test
-        // consistency.
+        // are assumed to be isolated (e.g. single-threaded), but is kept here
+        // for unit test consistency.
         if(token instanceof RangeToken) {
             Iterable<Range<Value>> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
