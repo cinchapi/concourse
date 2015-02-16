@@ -478,7 +478,6 @@ public abstract class BufferedStore extends BaseStore {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
->>>>>>> feature/group-sync
     }
 
     /**
