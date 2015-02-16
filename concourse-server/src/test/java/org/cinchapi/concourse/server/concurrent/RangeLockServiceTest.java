@@ -53,6 +53,19 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testWriteIsRangeBlockedIfReadingAllValues() {
+        ReadLock readLock = rangeLockService.getReadLock(RangeToken.forReading(
+                Text.wrapCached("foo"), Operator.BETWEEN,
+                Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY));
+        readLock.lock();
+        Assert.assertTrue(rangeLockService.isRangeBlocked(
+                LockType.RANGE_WRITE,
+                RangeToken.forWriting(Text.wrapCached("foo"),
+                        TestData.getValue())));
+        readLock.unlock();
+    }
+
+    @Test
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsed()
             throws InterruptedException {
 
@@ -64,8 +77,8 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        ReadLock readLock = rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1));
+                        ReadLock readLock = rangeLockService.getReadLock("foo",
+                                Operator.EQUALS, Convert.javaToThrift(1));
                         readLock.lock();
                         readLock.unlock();
                     }
@@ -86,8 +99,8 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        WriteLock writeLock = rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1));
+                        WriteLock writeLock = rangeLockService.getWriteLock(
+                                "foo", Convert.javaToThrift(1));
                         writeLock.lock();
                         writeLock.unlock();
                     }
