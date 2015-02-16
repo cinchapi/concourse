@@ -23,12 +23,11 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap.Condition;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
@@ -167,6 +166,75 @@ public class RangeLockService extends
         return getWriteLock(RangeToken.forWriting(key, value));
     }
 
+    private static Condition<RangeToken, RangeReadWriteLock> READ_BLOCKING_CONDITION = new Condition<RangeToken, RangeReadWriteLock>() {
+
+        @Override
+        public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
+            return value.isWriteLocked()
+                    && !value.isWriteLockedByCurrentThread();
+        }
+
+    };
+
+    private static Condition<RangeToken, RangeReadWriteLock> WRITE_BLOCKING_CONDITION = new Condition<RangeToken, RangeReadWriteLock>() {
+
+        @Override
+        public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
+            return value.getReadLockCount() > 0;
+        }
+
+    };
+
+    private static Condition<RangeToken, RangeReadWriteLock> readBlockingCondition() {
+        return READ_BLOCKING_CONDITION;
+    }
+
+    private static Condition<RangeToken, RangeReadWriteLock> writeBlockingCondition() {
+        return WRITE_BLOCKING_CONDITION;
+    }
+
+    private static Condition<RangeToken, RangeReadWriteLock> notRegexReadBlockingCondition(
+            final Value proposed) {
+        return new Condition<RangeToken, RangeReadWriteLock>() {
+
+            @Override
+            public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
+                if(value.isWriteLocked()
+                        && !value.isWriteLockedByCurrentThread()) {
+                    for (Value myValue : key.getValues()) {
+                        if(!myValue.getTObject().toString()
+                                .matches(proposed.getTObject().toString())) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+        };
+    }
+
+    private static Condition<RangeToken, RangeReadWriteLock> regexReadBlockingCondition(
+            final Value proposed) {
+        return new Condition<RangeToken, RangeReadWriteLock>() {
+
+            @Override
+            public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
+                if(value.isWriteLocked()
+                        && !value.isWriteLockedByCurrentThread()) {
+                    for (Value myValue : key.getValues()) {
+                        if(myValue.getTObject().toString()
+                                .matches(proposed.getTObject().toString())) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+        };
+    }
+
     /**
      * Return {@code true} if an attempt to used {@code token} for a
      * {@code type} lock is range blocked. Range blocking occurs when there is
@@ -181,77 +249,25 @@ public class RangeLockService extends
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
         RangeTokenMap<RangeReadWriteLock> rtm = (RangeTokenMap<RangeReadWriteLock>) locks;
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it;
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             switch (token.getOperator()) {
-            case BETWEEN:
-                it = rtm.filter(token.getKey(), value, token.getValues()[1])
-                        .entrySet().iterator();
-                break;
             case REGEX:
+                return rtm.contains(token.getKey(),
+                        regexReadBlockingCondition(value));
             case NOT_REGEX:
-                it = rtm.entrySet().iterator();
-                break;
+                return rtm.contains(token.getKey(),
+                        notRegexReadBlockingCondition(value));
             default:
-                it = rtm.filter(token.getKey(), token.getOperator(), value)
-                        .entrySet().iterator();
-                break;
-            }
-            while (it.hasNext()) {
-                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
-                RangeToken myToken = entry.getKey();
-                RangeReadWriteLock myLock = entry.getValue();
-                if(myLock.isWriteLocked()
-                        && !myLock.isWriteLockedByCurrentThread()) {
-                    if(token.getOperator() != Operator.REGEX
-                            & token.getOperator() != Operator.NOT_REGEX) {
-                        return true;
-                    }
-                    else {
-                        for (Value myValue : myToken.getValues()) {
-                            if(token.getOperator() == Operator.REGEX) {
-                                if(myValue.getTObject().toString()
-                                        .matches(value.getTObject().toString())) {
-                                    return true;
-                                }
-                            }
-                            else if(token.getOperator() == Operator.NOT_REGEX) {
-                                if(!myValue.getTObject().toString()
-                                        .matches(value.getTObject().toString())) {
-                                    return true;
-                                }
-                            }
-                            else {
-                                throw new IllegalStateException();
-                            }
-                        }
-                    }
-
-                }
+                return rtm.contains(token, readBlockingCondition());
             }
         }
         else {
             // If I want to WRITE X, I am blocked if there is a READ that
             // touches X (e.g. direct read for X or a range read that includes
             // X)
-            it = rtm.filter(token.getKey(), Operator.EQUALS, value).entrySet()
-                    .iterator();
-            while (it.hasNext()) {
-                RangeReadWriteLock lock = it.next().getValue();
-                if(lock.getReadLockCount() > 0) {
-                    return true;
-                }
-            }
-            it = rtm.filter(token.getKey(), value, value).entrySet().iterator();
-            while (it.hasNext()) {
-                RangeReadWriteLock lock = it.next().getValue();
-                if(lock.getReadLockCount() > 0) {
-                    return true;
-                }
-            }
+            return rtm.contains(token, writeBlockingCondition());
         }
-        return false;
     }
 
     @Override

@@ -23,11 +23,11 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import org.cinchapi.common.util.Range;
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Range;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.EQUALS;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertTrue(range.isPoint());
         Assert.assertEquals(range, Range.point(value));
@@ -59,20 +59,19 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Text key = TestData.getText();
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forWriting(key, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertTrue(range.isPoint());
         Assert.assertEquals(range, Range.point(value));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testConvertNotEqualRangeToken() {
         Text key = TestData.getText();
         Operator operator = Operator.NOT_EQUALS;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(token);
+        Iterable<Range> ranges = RangeTokens.convertToRange(token);
         Assert.assertEquals(
                 Lists.newArrayList(
                         Range.exclusive(Value.NEGATIVE_INFINITY, value),
@@ -86,7 +85,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.GREATER_THAN;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertEquals(range,
                 Range.exclusive(value, Value.POSITIVE_INFINITY));
@@ -98,7 +97,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.GREATER_THAN_OR_EQUALS;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertEquals(range,
                 Range.inclusiveExclusive(value, Value.POSITIVE_INFINITY));
@@ -110,7 +109,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.LESS_THAN;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertEquals(range,
                 Range.exclusive(Value.NEGATIVE_INFINITY, value));
@@ -122,7 +121,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         Operator operator = Operator.LESS_THAN_OR_EQUALS;
         Value value = TestData.getValue();
         RangeToken token = RangeToken.forReading(key, operator, value);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertEquals(range,
                 Range.exclusiveInclusive(Value.NEGATIVE_INFINITY, value));
@@ -140,7 +139,7 @@ public class RangeTokensTest extends ConcourseBaseTest {
         RangeToken token = RangeToken.forReading(key, operator,
                 value1.compareTo(value2) < 0 ? value1 : value2,
                 value1.compareTo(value2) > 0 ? value1 : value2);
-        Range<Value> range = Iterables.getOnlyElement(RangeTokens
+        Range range = Iterables.getOnlyElement(RangeTokens
                 .convertToRange(token));
         Assert.assertEquals(range, Range.inclusiveExclusive(
                 value1.compareTo(value2) < 0 ? value1 : value2,

@@ -23,32 +23,22 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.util.Range;
-import org.cinchapi.common.util.Ranges;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
-import org.cinchapi.concourse.util.MultimapViews;
-import org.cinchapi.concourse.util.TMaps;
-import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -76,10 +66,11 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     /**
      * A mapping from range token keys to the appropriate shard, which mimics a
-     * mapping from RangeToken to V.
+     * mapping from RangeToken to V in order to make filtering operations more
+     * efficient.
      * 
      */
-    private final ConcurrentMap<Text, Shard> data = new ConcurrentHashMapV8<Text, Shard>();
+    private final ConcurrentMap<Text, Shard> shards = new ConcurrentHashMapV8<Text, Shard>();
 
     /**
      * An empty map that is returned in the {@link #safeGet()} method so that
@@ -90,9 +81,10 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     @Override
     public void clear() {
-        data.clear();
+        shards.clear();
     }
 
+<<<<<<< HEAD
     /**
      * TODO
      * 
@@ -117,6 +109,19 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     public boolean contains(Text key, Value value1, Value value2) {
         Shard shard = safeGet(key);
         return shard.contains(Operator.BETWEEN, value1, value2);
+=======
+    public boolean contains(RangeToken token, Condition<RangeToken, V> condition) {
+        return safeGet(token.getKey()).contains(token, condition);
+    }
+
+    public void remove(RangeToken token, Condition<RangeToken, V> condition,
+            AfterRemoval<RangeToken, V> afterwards) {
+        safeGet(token.getKey()).remove(token, condition, afterwards);
+    }
+
+    public boolean contains(Text key, Condition<RangeToken, V> condition) {
+        return safeGet(key).contains(condition);
+>>>>>>> c988f85... lots of changes to RangeTokenMap and RangeToken and Range, etc
     }
 
     @Override
@@ -127,8 +132,8 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     @Override
     public boolean containsValue(Object obj) {
-        for (Map<RangeToken, V> map : data.values()) {
-            if(map.containsValue(obj)) {
+        for (Shard shard : shards.values()) {
+            if(shard.containsValue(obj)) {
                 return true;
             }
         }
@@ -138,12 +143,13 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public Set<Entry<RangeToken, V>> entrySet() {
         Set<Entry<RangeToken, V>> entrySet = Sets.newHashSet();
-        for (Map<RangeToken, V> shard : data.values()) {
+        for (Map<RangeToken, V> shard : shards.values()) {
             entrySet.addAll(shard.entrySet());
         }
         return entrySet;
     }
 
+<<<<<<< HEAD
     /**
      * Filter this map to only have range tokens with the specified {@code key}.
      * The returned map is a read-only view to the underlying map.
@@ -183,6 +189,8 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         return shard.filter(Operator.BETWEEN, value1, value2);
     }
 
+=======
+>>>>>>> c988f85... lots of changes to RangeTokenMap and RangeToken and Range, etc
     @Override
     public V get(Object obj) {
         return obj instanceof RangeToken ? safeGet(((RangeToken) obj).getKey())
@@ -191,24 +199,20 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
 
     @Override
     public boolean isEmpty() {
-        return data.isEmpty();
+        return shards.isEmpty();
     }
 
     @Override
     public Set<RangeToken> keySet() {
-        Set<RangeToken> keySet = Sets.newHashSet();
-        for (Map<RangeToken, V> map : data.values()) {
-            keySet.addAll(map.keySet());
-        }
-        return keySet;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public V put(RangeToken key, V value) {
-        Shard shard = data.get(key.getKey());
+        Shard shard = shards.get(key.getKey());
         if(shard == null) {
             shard = new Shard();
-            data.put(key.getKey(), shard);
+            shards.put(key.getKey(), shard);
         }
         return shard.put(key, value);
     }
@@ -231,7 +235,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         if(key instanceof RangeToken) {
             Map<RangeToken, V> filtered = safeGet(((RangeToken) key).getKey());
             V value = filtered.remove(key);
-            data.remove(((RangeToken) key).getKey(), safeEmptyMap);
+            shards.remove(((RangeToken) key).getKey(), safeEmptyMap);
             return value;
         }
         else {
@@ -242,10 +246,9 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public boolean remove(Object key, Object value) {
         if(key instanceof RangeToken) {
-            ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
-                    .getKey());
-            boolean result = filtered.remove(key, value);
-            data.remove(((RangeToken) key).getKey(), safeEmptyMap);
+            Shard shard = sureGet(((RangeToken) key).getKey());
+            boolean result = shard.remove(key, value);
+            shards.remove(((RangeToken) key).getKey(), safeEmptyMap);
             return result;
         }
         else {
@@ -256,9 +259,8 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public V replace(RangeToken key, V value) {
         if(key instanceof RangeToken) {
-            ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
-                    .getKey());
-            return filtered.replace(key, value);
+            Shard shard = sureGet(((RangeToken) key).getKey());
+            return shard.replace(key, value);
         }
         else {
             return null;
@@ -268,9 +270,8 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public boolean replace(RangeToken key, V old, V nu) {
         if(key instanceof RangeToken) {
-            ConcurrentMap<RangeToken, V> filtered = sureGet(((RangeToken) key)
-                    .getKey());
-            return filtered.replace(key, old, nu);
+            Shard shard = sureGet(((RangeToken) key).getKey());
+            return shard.replace(key, old, nu);
         }
         else {
             return false;
@@ -280,7 +281,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public int size() {
         int count = 0;
-        for (Map<RangeToken, V> map : data.values()) {
+        for (Map<RangeToken, V> map : shards.values()) {
             count += map.size();
         }
         return count;
@@ -289,7 +290,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @Override
     public Collection<V> values() {
         List<V> values = Lists.newArrayList();
-        for (Map<RangeToken, V> map : data.values()) {
+        for (Map<RangeToken, V> map : shards.values()) {
             values.addAll(map.values());
         }
         return values;
@@ -303,7 +304,7 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
      * @return
      */
     private Shard safeGet(Text key) {
-        Shard shard = data.get(key);
+        Shard shard = shards.get(key);
         return shard != null ? shard : safeEmptyMap;
     }
 
@@ -316,13 +317,24 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
      * @return the mapping
      */
     private Shard sureGet(Text key) {
-        Shard existing = data.get(key);
+        Shard existing = shards.get(key);
         if(existing == null) {
             Shard created = new Shard();
-            existing = data.putIfAbsent(key, created);
+            existing = shards.putIfAbsent(key, created);
             existing = Objects.firstNonNull(existing, created);
         }
         return existing;
+    }
+
+    public static interface Condition<K, V> {
+
+        public boolean satisfiedBy(K key, V value);
+
+    }
+
+    public static interface AfterRemoval<K, V> {
+
+        public void clean(K key, V value);
     }
 
     /**
@@ -338,42 +350,66 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
     @ThreadSafe
     private final class Shard implements ConcurrentMap<RangeToken, V> {
 
-        /**
-         * The lock that makes this shard ThreadSafe. Access using the
-         * {@link #getLock()} method.
-         */
-        private final StampedLock _lock = new StampedLock();
+        private final Map<RangeToken, V> hashed = Maps.newHashMap();
+        private final StampedLock lock = new StampedLock();
 
         /**
-         * The entries sorted by their left values.
+         * Return {@code true} if there is any entry in this shard that matches
+         * the {@code condition}.
+         * 
+         * @param condition
+         * @return {@code true} if the condition is met
          */
-        private final TreeMap<Range<Value>, Set<Entry<RangeToken, V>>> lefts = Maps
-                .newTreeMap(Ranges.<Value> leftValueComparator());
-
-        /**
-         * The entries sorted by their right values.
-         */
-        private final TreeMap<Range<Value>, Set<Entry<RangeToken, V>>> rights = Maps
-                .newTreeMap(Ranges.<Value> rightValueComparator());
-
-        /**
-         * A cache of the data returned from {@link #entrySet0()}. This is
-         * cleared every time an item is put or removed.
-         */
-        private Set<Entry<RangeToken, V>> cachedEntrySet = null;
-
-        @Override
-        public void clear() {
-            long stamp = getLock().writeLock();
-            try {
-                lefts.clear();
-                rights.clear();
+        public boolean contains(Condition<RangeToken, V> condition) {
+            Iterator<Entry<RangeToken, V>> it = hashed.entrySet().iterator();
+            while (it.hasNext()) {
+                Entry<RangeToken, V> entry = it.next();
+                if(condition.satisfiedBy(entry.getKey(), entry.getValue())) {
+                    return true;
+                }
             }
-            finally {
-                getLock().unlock(stamp);
+            return false;
+        }
+
+        public void remove(RangeToken token,
+                Condition<RangeToken, V> condition,
+                AfterRemoval<RangeToken, V> afterwards) {
+            Iterator<Entry<RangeToken, V>> it = hashed.entrySet().iterator();
+            while (it.hasNext()) {
+                Entry<RangeToken, V> entry = it.next();
+                if(condition.satisfiedBy(entry.getKey(), entry.getValue())
+                        && entry.getKey().intersects(token)) {
+                    it.remove();
+                    afterwards.clean(entry.getKey(), entry.getValue());
+                }
             }
         }
 
+        public boolean contains(RangeToken token,
+                Condition<RangeToken, V> condition) {
+            Iterator<Entry<RangeToken, V>> it = hashed.entrySet().iterator();
+            while (it.hasNext()) {
+                Entry<RangeToken, V> entry = it.next();
+                if(condition.satisfiedBy(entry.getKey(), entry.getValue())
+                        && entry.getKey().intersects(token)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int size() {
+            long stamp = lock.readLock();
+            try {
+                return hashed.size();
+            }
+            finally {
+                lock.unlock(stamp);
+            }
+        }
+
+<<<<<<< HEAD
         /**
          * TODO
          * 
@@ -383,14 +419,20 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          */
         public boolean contains(Operator operator, Value value) {
             long stamp = getLock().readLock();
+=======
+        @Override
+        public boolean isEmpty() {
+            long stamp = lock.readLock();
+>>>>>>> c988f85... lots of changes to RangeTokenMap and RangeToken and Range, etc
             try {
-                return contains0(operator, value);
+                return hashed.isEmpty();
             }
             finally {
-                getLock().unlock(stamp);
+                lock.unlock(stamp);
             }
         }
 
+<<<<<<< HEAD
         /**
          * TODO
          * 
@@ -401,93 +443,49 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
          */
         public boolean contains(Operator operator, Value value1, Value value2) {
             long stamp = getLock().readLock();
-            try {
-                return contains0(operator, value1, value2);
-            }
-            finally {
-                getLock().unlock(stamp);
-            }
-        }
-
+=======
         @Override
         public boolean containsKey(Object key) {
-            return keySet().contains(key);
+            long stamp = lock.readLock();
+>>>>>>> c988f85... lots of changes to RangeTokenMap and RangeToken and Range, etc
+            try {
+                return hashed.containsKey(key);
+            }
+            finally {
+                lock.unlock(stamp);
+            }
         }
 
         @Override
         public boolean containsValue(Object value) {
-            return values().contains(value);
-        }
-
-        @Override
-        public Set<Entry<RangeToken, V>> entrySet() {
-            long stamp = getLock().tryOptimisticRead();
-            Set<Entry<RangeToken, V>> entrySet = entrySet0();
-            if(!getLock().validate(stamp)) {
-                stamp = getLock().readLock();
-                try {
-                    return entrySet0();
-                }
-                finally {
-                    getLock().unlock(stamp);
-                }
+            long stamp = lock.readLock();
+            try {
+                return hashed.containsValue(value);
             }
-            else {
-                return entrySet;
+            finally {
+                lock.unlock(stamp);
             }
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof Map) {
-                Map<?, ?> map = (Map<?, ?>) obj;
-                return entrySet().equals(map.entrySet())
-                        && entrySet().containsAll(map.entrySet());
+        public V get(Object key) {
+            long stamp = lock.readLock();
+            try {
+                return hashed.get(key);
             }
-            else {
-                return false;
+            finally {
+                lock.unlock(stamp);
             }
         }
 
-        /**
-         * Return a map that contains the entries in this shard where all the
-         * range tokens have values that satisfy {@code operator} in relation to
-         * the specified {@code value}.
-         * <p>
-         * TODO give examples
-         * </p>
-         * 
-         * @param operator
-         * @param value
-         * @return the filtered map
-         */
-        public Map<RangeToken, V> filter(Operator operator, Value value) {
-            long stamp = getLock().readLock();
+        @Override
+        public V put(RangeToken key, V value) {
+            long stamp = lock.writeLock();
             try {
-                return TMaps.fromEntrySet(filter0(operator, value));
+                return hashed.put(key, value);
             }
             finally {
-                getLock().unlock(stamp);
-            }
-        }
-
-        /**
-         * Return a map that contains the entries in this shard where all the
-         * range tokens have values between {@code value1} and {@code value2}.
-         * 
-         * @param operator
-         * @param value1
-         * @param value2
-         * @return the filtered map
-         */
-        public Map<RangeToken, V> filter(Operator operator, Value value1,
-                Value value2) {
-            long stamp = getLock().readLock();
-            try {
-                return TMaps.fromEntrySet(filter0(operator, value1, value2));
-            }
-            finally {
-                getLock().unlock(stamp);
+                lock.unlock(stamp);
             }
         }
 
@@ -666,143 +664,107 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         }
 
         @Override
-        public V get(Object key) {
+        public V remove(Object key) {
             if(key instanceof RangeToken) {
-                RangeToken token = (RangeToken) key;
-                long stamp = getLock(key).tryOptimisticRead();
-                V value = get0(token);
-                if(!getLock(key).validate(stamp)) {
-                    stamp = getLock(key).readLock();
-                    try {
-                        return get0(token);
-                    }
-                    finally {
-                        getLock(key).unlock(stamp);
-                    }
+                long stamp = lock.writeLock();
+                try {
+                    return hashed.remove((RangeToken) key);
                 }
-                else {
-                    return value;
+                finally {
+                    lock.unlock(stamp);
                 }
             }
             else {
                 return null;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(lefts, rights);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            long stamp = getLock().tryOptimisticRead();
-            boolean empty = lefts.isEmpty() && rights.isEmpty();
-            if(!getLock().validate(stamp)) {
-                stamp = getLock().readLock();
-                try {
-                    return lefts.isEmpty() && rights.isEmpty();
-                }
-                finally {
-                    getLock().unlock(stamp);
-                }
-            }
-            else {
-                return empty;
-            }
-        }
-
-        @Override
-        public Set<RangeToken> keySet() {
-            long stamp = getLock().tryOptimisticRead();
-            Set<RangeToken> result = TMaps.extractKeysFromEntrySet(entrySet0());
-            if(!getLock().validate(stamp)) {
-                stamp = getLock().readLock();
-                try {
-                    return TMaps.extractKeysFromEntrySet(entrySet0());
-                }
-                finally {
-                    getLock().unlock(stamp);
-                }
-            }
-            else {
-                return result;
-            }
-        }
-
-        @Override
-        public V put(RangeToken key, V value) {
-            long stamp = getLock().writeLock();
-            try {
-                return put0(key, value);
-            }
-            finally {
-                getLock().unlock(stamp);
             }
         }
 
         @Override
         public void putAll(Map<? extends RangeToken, ? extends V> m) {
-            long stamp = getLock().writeLock();
+            long stamp = lock.writeLock();
             try {
                 for (Entry<? extends RangeToken, ? extends V> entry : m
                         .entrySet()) {
-                    put0(entry.getKey(), entry.getValue());
+                    hashed.put(entry.getKey(), entry.getValue());
                 }
             }
             finally {
-                getLock().unlock(stamp);
+                lock.unlock(stamp);
+            }
+        }
+
+        @Override
+        public void clear() {
+            long stamp = lock.writeLock();
+            try {
+                hashed.clear();
+            }
+            finally {
+                lock.unlock(stamp);
+            }
+        }
+
+        @Override
+        public Set<RangeToken> keySet() {
+            long stamp = lock.readLock();
+            try {
+                return hashed.keySet();
+            }
+            finally {
+                lock.unlock(stamp);
+            }
+        }
+
+        @Override
+        public Collection<V> values() {
+            long stamp = lock.readLock();
+            try {
+                return hashed.values();
+            }
+            finally {
+                lock.unlock(stamp);
+            }
+        }
+
+        @Override
+        public Set<Entry<RangeToken, V>> entrySet() {
+            long stamp = lock.readLock();
+            try {
+                return hashed.entrySet();
+            }
+            finally {
+                lock.unlock(stamp);
             }
         }
 
         @Override
         public V putIfAbsent(RangeToken key, V value) {
-            long stamp = getLock().writeLock();
+            long stamp = lock.writeLock();
             try {
-                V existing = get0(key);
-                if(existing == null) {
-                    put0(key, value);
+                V stored = hashed.get(key);
+                if(stored == null) {
+                    hashed.put(key, value);
                 }
-                return existing;
+                return stored;
             }
             finally {
-                getLock().unlock(stamp);
-            }
-        }
-
-        @Override
-        public V remove(Object key) {
-            if(key instanceof RangeToken) {
-                long stamp = getLock(key).writeLock();
-                try {
-                    return remove0((RangeToken) key);
-                }
-                finally {
-                    getLock().unlock(stamp);
-                }
-            }
-            else {
-                return null;
+                lock.unlock(stamp);
             }
         }
 
         @Override
         public boolean remove(Object key, Object value) {
             if(key instanceof RangeToken) {
-                long stamp = getLock(key).writeLock();
+                long stamp = lock.writeLock();
                 try {
-                    RangeToken token = (RangeToken) key;
-                    V existing = get0(token);
-                    if(existing.equals(value)) {
-                        remove0(token);
-                        return true;
+                    V stored = hashed.get(key);
+                    if(stored != null && stored.equals(value)) {
+                        hashed.remove(key);
                     }
-                    else {
-                        return false;
-                    }
+                    return true;
                 }
                 finally {
-                    getLock(key).unlock(stamp);
+                    lock.unlock(stamp);
                 }
             }
             else {
@@ -811,29 +773,12 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
         }
 
         @Override
-        public V replace(RangeToken key, V value) {
-            long stamp = getLock(key).writeLock();
-            try {
-                RangeToken token = (RangeToken) key;
-                V existing = get0(token);
-                if(existing != null) {
-                    put0(token, value);
-                }
-                return existing;
-            }
-            finally {
-                getLock(key).unlock(stamp);
-            }
-        }
-
-        @Override
         public boolean replace(RangeToken key, V oldValue, V newValue) {
-            long stamp = getLock(key).writeLock();
+            long stamp = lock.writeLock();
             try {
-                RangeToken token = (RangeToken) key;
-                V existing = get0(token);
-                if(existing.equals(oldValue)) {
-                    put0(token, newValue);
+                V stored = hashed.get(key);
+                if(stored != null && stored.equals(oldValue)) {
+                    hashed.put(key, newValue);
                     return true;
                 }
                 else {
@@ -841,29 +786,12 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
                 }
             }
             finally {
-                getLock(key).unlock(stamp);
+                lock.unlock(stamp);
             }
         }
 
         @Override
-        public int size() {
-            long stamp = getLock().tryOptimisticRead();
-            int result = Math.max(lefts.size(), rights.size());
-            if(!getLock().validate(stamp)) {
-                stamp = getLock().readLock();
-                try {
-                    return Math.max(lefts.size(), rights.size());
-                }
-                finally {
-                    getLock().unlock(stamp);
-                }
-            }
-            else {
-                return result;
-            }
-        }
-
-        @Override
+<<<<<<< HEAD
         public String toString() {
             return Maps.newHashMap(this).toString();
         }
@@ -928,84 +856,21 @@ public class RangeTokenMap<V> implements ConcurrentMap<RangeToken, V> {
                         .getOperator() != null && token.getOperator() != null && key
                         .getOperator().equals(token.getOperator())))) {
                     it.remove();
+=======
+        public V replace(RangeToken key, V value) {
+            long stamp = lock.writeLock();
+            try {
+                V stored = hashed.get(key);
+                if(stored != null) {
+                    hashed.put(key, value);
+>>>>>>> c988f85... lots of changes to RangeTokenMap and RangeToken and Range, etc
                 }
+                return stored;
             }
-            Entry<RangeToken, V> entry;
-            return (entry = Iterables.getOnlyElement(entries, null)) != null ? entry
-                    .getValue() : null;
-
-        }
-
-        /**
-         * Alias to the {@link #getLock(Object)} method.
-         * 
-         * @return the lock
-         */
-        private StampedLock getLock() {
-            return getLock(null);
-        }
-
-        /**
-         * Get the appropriate lock that corresponds to the {@code key}.
-         * 
-         * @param key
-         * @return the lock
-         */
-        private StampedLock getLock(@Nullable Object key) {
-            return key == null || key instanceof RangeToken ? _lock : Locks
-                    .noOpStampedLock();
-        }
-
-        /**
-         * Map {@code key} to {@code value} within this shard without grabbing
-         * any locks.
-         * 
-         * @param key
-         * @param value
-         * @return the previous value that was mapped from {@code key}, if it
-         *         exists
-         */
-        @Nullable
-        private V put0(RangeToken key, V value) {
-            cachedEntrySet = null;
-            Iterable<Range<Value>> ranges = RangeTokens.convertToRange(key);
-            Entry<RangeToken, V> entry = new AbstractMap.SimpleImmutableEntry<RangeToken, V>(
-                    key, value);
-            V previous = get0(key);
-            if(previous != null) {
-                remove0(key);
+            finally {
+                lock.unlock(stamp);
             }
-            for (Range<Value> range : ranges) {
-                MultimapViews.put(lefts, range, entry);
-                MultimapViews.put(rights, range, entry);
-            }
-            return previous;
         }
-
-        /**
-         * Remove the mapping from {@code key} to whatever value is stored
-         * within this shard without grabbing any locks.
-         * 
-         * @param key
-         * @return the previous valued that was mapped from {@code key}, if it
-         *         exists
-         */
-        @Nullable
-        private V remove0(RangeToken key) {
-            cachedEntrySet = null;
-            V value = get0(key);
-            if(value != null) {
-                Iterable<Range<Value>> ranges = RangeTokens.convertToRange(key);
-                Entry<RangeToken, V> entry = new AbstractMap.SimpleImmutableEntry<RangeToken, V>(
-                        key, value);
-                for (Range<Value> range : ranges) {
-                    MultimapViews.remove(lefts, range, entry);
-                    MultimapViews.remove(rights, range, entry);
-                }
-            }
-            return value;
-        }
-
     }
 
 }

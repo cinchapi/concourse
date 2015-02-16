@@ -35,9 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.cinchapi.common.util.NonBlockingHashMultimap;
-import org.cinchapi.common.util.NonBlockingRangeMap;
-import org.cinchapi.common.util.Range;
-import org.cinchapi.common.util.RangeMap;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
@@ -46,7 +43,6 @@ import org.cinchapi.concourse.server.concurrent.RangeTokens;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
@@ -54,6 +50,9 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.NonBlockingRangeMap;
+import org.cinchapi.concourse.util.Range;
+import org.cinchapi.concourse.util.RangeMap;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
@@ -116,7 +115,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * A collection of listeners that should be notified of a version change for
      * a given range token.
      */
-    private final RangeMap<Value, VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
+    private final RangeMap<VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
             .create();
 
     /**
@@ -179,9 +178,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         // are assumed to be isolated (e.g. single-threaded), but is kept here
         // for unit test consistency.
         if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
+            Iterable<Range> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
+            for (Range range : ranges) {
                 rangeVersionChangeListeners.put(range, listener);
             }
         }
@@ -212,9 +211,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
+            Iterable<Range> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
+            for (Range range : ranges) {
                 for (VersionChangeListener listener : rangeVersionChangeListeners
                         .get(range)) {
                     listener.onVersionChange(token);
@@ -236,9 +235,9 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         // This implementation is unnecessary since Transactions are assumed to
         // be isolated (e.g. single-threaded), but is kept here for consistency.
         if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
+            Iterable<Range> ranges = RangeTokens
                     .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
+            for (Range range : ranges) {
                 rangeVersionChangeListeners.remove(range, listener);
             }
         }

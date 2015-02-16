@@ -37,53 +37,53 @@ import com.google.common.collect.Sets;
  */
 public abstract class RangeMapTest extends ConcourseBaseTest {
 
-    private RangeMap<Integer, String> map;
-
-    @Override
-    protected void beforeEachTest() {
-        super.beforeEachTest();
-        map = getRangeMap();
-    }
-
-    /**
-     * Return a {@link RangeMap} to use within the unit tests.
-     * 
-     * @return the RangeMap
-     */
-    protected abstract RangeMap<Integer, String> getRangeMap();
-
-    @Test
-    public void testContainsRange() {
-        Range<Integer> a = Range.inclusive(1, 10);
-        Range<Integer> b = Range.inclusive(5, 20);
-        map.put(a, TestData.getString());
-        Assert.assertTrue(map.contains(b));
-    }
-
-    @Test
-    public void testDoesNotContainRange() {
-        Range<Integer> a = Range.inclusive(1, 10);
-        Range<Integer> b = Range.exclusiveInclusive(10, 20);
-        map.put(a, TestData.getString());
-        Assert.assertFalse(map.contains(b));
-    }
-
-    @Test
-    public void testGetRange() {
-        Range<Integer> a = Range.inclusive(1, 10);
-        Range<Integer> b = Range.inclusiveExclusive(5, 10);
-        Range<Integer> c = Range.exclusive(30, 60);
-        Range<Integer> d = Range.inclusive(1, 100);
-        map.put(a, "a");
-        map.put(b, "b");
-        map.put(c, "c");
-        map.put(d, "d");
-        Assert.assertEquals(Sets.newHashSet("c", "d"),
-                map.get(Range.inclusive(50, 80)));
-        Assert.assertEquals(Sets.newHashSet("a", "b", "c", "d"),
-                map.get(Range.exclusive(1, 100)));
-        Assert.assertEquals(Sets.newHashSet("a", "d"),
-                map.get(Range.inclusive(10, 30)));
-    }
+//    private RangeMap<Integer, String> map;
+//
+//    @Override
+//    protected void beforeEachTest() {
+//        super.beforeEachTest();
+//        map = getRangeMap();
+//    }
+//
+//    /**
+//     * Return a {@link RangeMap} to use within the unit tests.
+//     * 
+//     * @return the RangeMap
+//     */
+//    protected abstract RangeMap<Integer, String> getRangeMap();
+//
+//    @Test
+//    public void testContainsRange() {
+//        Range<Integer> a = Range.inclusive(1, 10);
+//        Range<Integer> b = Range.inclusive(5, 20);
+//        map.put(a, TestData.getString());
+//        Assert.assertTrue(map.contains(b));
+//    }
+//
+//    @Test
+//    public void testDoesNotContainRange() {
+//        Range<Integer> a = Range.inclusive(1, 10);
+//        Range<Integer> b = Range.exclusiveInclusive(10, 20);
+//        map.put(a, TestData.getString());
+//        Assert.assertFalse(map.contains(b));
+//    }
+//
+//    @Test
+//    public void testGetRange() {
+//        Range<Integer> a = Range.inclusive(1, 10);
+//        Range<Integer> b = Range.inclusiveExclusive(5, 10);
+//        Range<Integer> c = Range.exclusive(30, 60);
+//        Range<Integer> d = Range.inclusive(1, 100);
+//        map.put(a, "a");
+//        map.put(b, "b");
+//        map.put(c, "c");
+//        map.put(d, "d");
+//        Assert.assertEquals(Sets.newHashSet("c", "d"),
+//                map.get(Range.inclusive(50, 80)));
+//        Assert.assertEquals(Sets.newHashSet("a", "b", "c", "d"),
+//                map.get(Range.exclusive(1, 100)));
+//        Assert.assertEquals(Sets.newHashSet("a", "d"),
+//                map.get(Range.inclusive(10, 30)));
+//    }
 
 }

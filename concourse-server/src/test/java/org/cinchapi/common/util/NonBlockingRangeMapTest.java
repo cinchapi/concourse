@@ -30,9 +30,9 @@ package org.cinchapi.common.util;
  */
 public class NonBlockingRangeMapTest extends RangeMapTest {
 
-    @Override
-    protected RangeMap<Integer, String> getRangeMap() {
-        return NonBlockingRangeMap.create();
-    }
+//    @Override
+//    protected RangeMap<Integer, String> getRangeMap() {
+//        return NonBlockingRangeMap.create();
+//    }
 
 }

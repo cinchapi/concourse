@@ -21,9 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.common.util;
+package org.cinchapi.concourse.util;
 
 import java.util.Set;
+
+import org.cinchapi.common.util.NonBlockingHashMultimap;
+import org.cinchapi.concourse.server.model.Value;
 
 import com.google.common.collect.Sets;
 
@@ -33,16 +36,15 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public class NonBlockingRangeMap<K extends Comparable<K>, V> implements
-        RangeMap<K, V> {
+public class NonBlockingRangeMap<V> implements RangeMap<V> {
 
     /**
      * Return a new instance of a {@link NonBlockingRangeMap}.
      * 
      * @return the NonBlockingRangeMap
      */
-    public static <K extends Comparable<K>, V> NonBlockingRangeMap<K, V> create() {
-        return new NonBlockingRangeMap<K, V>();
+    public static <V> NonBlockingRangeMap<V> create() {
+        return new NonBlockingRangeMap<V>();
     }
 
     /**
@@ -54,16 +56,17 @@ public class NonBlockingRangeMap<K extends Comparable<K>, V> implements
      * new entry. This means that all operations are O(n) with respect to the
      * number of distinct range/value mappings inserted.
      */
-    private final NonBlockingHashMultimap<Range<K>, V> data = NonBlockingHashMultimap.create();
+    private final NonBlockingHashMultimap<Range, V> data = NonBlockingHashMultimap
+            .create();
 
     @Override
-    public boolean contains(K point) {
+    public boolean contains(Value point) {
         return contains(Range.point(point));
     }
 
     @Override
-    public boolean contains(Range<K> range) {
-        for (Range<K> stored : data.keySet()) {
+    public boolean contains(Range range) {
+        for (Range stored : data.keySet()) {
             if(stored.intersects(range)) {
                 return true;
             }
@@ -72,17 +75,17 @@ public class NonBlockingRangeMap<K extends Comparable<K>, V> implements
     }
 
     @Override
-    public boolean put(Range<K> range, V value) {
+    public boolean put(Range range, V value) {
         return data.put(range, value);
     }
 
     @Override
-    public boolean remove(Range<K> range, V value) {
+    public boolean remove(Range range, V value) {
         boolean changed = false;
-        for (Range<K> stored : data.keySet()) {
+        for (Range stored : data.keySet()) {
             if(stored.intersects(range) && data.get(stored).contains(value)) {
-                Set<Range<K>> xor = stored.xor(range);
-                for (Range<K> r : xor) {
+                Set<Range> xor = stored.xor(range);
+                for (Range r : xor) {
                     if(stored.contains(r)) {
                         data.put(r, value);
                     }
@@ -94,14 +97,14 @@ public class NonBlockingRangeMap<K extends Comparable<K>, V> implements
     }
 
     @Override
-    public Set<V> get(K point) {
+    public Set<V> get(Value point) {
         return get(Range.point(point));
     }
 
     @Override
-    public Set<V> get(Range<K> range) {
+    public Set<V> get(Range range) {
         Set<V> values = Sets.newHashSet();
-        for (Range<K> stored : data.keySet()) {
+        for (Range stored : data.keySet()) {
             if(stored.intersects(range)) {
                 values.addAll(data.get(stored));
             }
