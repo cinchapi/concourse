@@ -307,6 +307,12 @@ public final class Engine extends BufferedStore implements
         buffer.setThreadNamePrefix(environment + "-buffer");
     }
 
+    @Override
+    @DoNotInvoke
+    public void accept(Write write) {
+        accept(write, true);
+    }
+
     /**
      * <p>
      * The Engine is the destination for Transaction commits, which means that
@@ -331,13 +337,13 @@ public final class Engine extends BufferedStore implements
      */
     @Override
     @DoNotInvoke
-    public void accept(Write write) {
+    public void accept(Write write, boolean sync) {
         checkArgument(write.getType() != Action.COMPARE);
         String key = write.getKey().toString();
         TObject value = write.getValue().getTObject();
         long record = write.getRecord().longValue();
         boolean accepted = write.getType() == Action.ADD ? addUnsafe(key,
-                value, record) : removeUnsafe(key, value, record);
+                value, record, sync) : removeUnsafe(key, value, record, sync);
         if(!accepted) {
             Logger.warn("Write {} was rejected by the Engine "
                     + "because it was previously accepted "
@@ -358,7 +364,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record);
+            return addUnsafe(key, value, record, true);
         }
         finally {
             write.unlock();
@@ -564,7 +570,7 @@ public final class Engine extends BufferedStore implements
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record);
+            return removeUnsafe(key, value, record, true);
         }
         finally {
             write.unlock();
@@ -680,6 +686,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public void sync() {
+        buffer.sync();
+    }
+
+    @Override
     public boolean verify(String key, TObject value, long record) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(key, record);
@@ -717,8 +728,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean addUnsafe(String key, TObject value, long record) {
-        if(super.add(key, value, record)) {
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        if(super.add(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
@@ -764,8 +776,9 @@ public final class Engine extends BufferedStore implements
      * @param record
      * @return {@code true} if the add was successful
      */
-    private boolean removeUnsafe(String key, TObject value, long record) {
-        if(super.remove(key, value, record)) {
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean sync) {
+        if(super.remove(key, value, record, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(Token.wrap(key));
