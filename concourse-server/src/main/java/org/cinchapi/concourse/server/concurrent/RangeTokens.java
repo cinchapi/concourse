@@ -16,6 +16,58 @@ import com.google.common.collect.Lists;
  */
 public final class RangeTokens {
 
+    public static Iterable<com.google.common.collect.Range<Value>> convertToGuavaRange(
+            RangeToken token) {
+        List<com.google.common.collect.Range<Value>> ranges = Lists
+                .newArrayListWithCapacity(1);
+        if(token.getOperator() == Operator.EQUALS
+                || token.getOperator() == null) { // null operator means
+                                                  // the range token is for
+                                                  // writing
+            ranges.add(com.google.common.collect.Range.singleton(token
+                    .getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.NOT_EQUALS) {
+            ranges.add(com.google.common.collect.Range.lessThan(token
+                    .getValues()[0]));
+            ranges.add(com.google.common.collect.Range.greaterThan(token
+                    .getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.GREATER_THAN) {
+            ranges.add(com.google.common.collect.Range.greaterThan(token
+                    .getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.GREATER_THAN_OR_EQUALS) {
+            ranges.add(com.google.common.collect.Range.atLeast(token
+                    .getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.LESS_THAN) {
+            ranges.add(com.google.common.collect.Range.lessThan(token
+                    .getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.LESS_THAN_OR_EQUALS) {
+            ranges.add(com.google.common.collect.Range.atMost(token.getValues()[0]));
+        }
+        else if(token.getOperator() == Operator.BETWEEN) {
+            Value a = token.getValues()[0];
+            Value b = token.getValues()[1];
+            if(a == Value.NEGATIVE_INFINITY && b == Value.POSITIVE_INFINITY) {
+                ranges.add(com.google.common.collect.Range.<Value> all());
+            }
+            else {
+                ranges.add(com.google.common.collect.Range.closedOpen(a, b));
+            }
+        }
+        else if(token.getOperator() == Operator.REGEX
+                || token.getOperator() == Operator.NOT_REGEX) {
+            ranges.add(com.google.common.collect.Range.<Value> all());
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+        return ranges;
+    }
+
     /**
      * Convert the {@code rangeToken} to the analogous {@link Range} objects.
      * <p>

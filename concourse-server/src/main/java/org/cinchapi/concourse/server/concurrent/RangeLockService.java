@@ -23,19 +23,25 @@
  */
 package org.cinchapi.concourse.server.concurrent;
 
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.concourse.server.concurrent.RangeTokenMap.Condition;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeRangeSet;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -70,7 +76,8 @@ public class RangeLockService extends
      * @return the RangeLockService
      */
     public static RangeLockService create() {
-        return new RangeLockService(RangeTokenMap.<RangeReadWriteLock> create());
+        return new RangeLockService(
+                new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>());
     }
 
     /**
@@ -166,74 +173,17 @@ public class RangeLockService extends
         return getWriteLock(RangeToken.forWriting(key, value));
     }
 
-    private static Condition<RangeToken, RangeReadWriteLock> READ_BLOCKING_CONDITION = new Condition<RangeToken, RangeReadWriteLock>() {
+    /**
+     * A collection of read ranges that are used to determine if a write
+     * {@link #isRangeBlocked(LockType, RangeToken) is range blocked}.
+     */
+    protected final RangeSet<Value> reads = TreeRangeSet.create();
 
-        @Override
-        public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
-            return value.isWriteLocked()
-                    && !value.isWriteLockedByCurrentThread();
-        }
-
-    };
-
-    private static Condition<RangeToken, RangeReadWriteLock> WRITE_BLOCKING_CONDITION = new Condition<RangeToken, RangeReadWriteLock>() {
-
-        @Override
-        public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
-            return value.getReadLockCount() > 0;
-        }
-
-    };
-
-    private static Condition<RangeToken, RangeReadWriteLock> readBlockingCondition() {
-        return READ_BLOCKING_CONDITION;
-    }
-
-    private static Condition<RangeToken, RangeReadWriteLock> writeBlockingCondition() {
-        return WRITE_BLOCKING_CONDITION;
-    }
-
-    private static Condition<RangeToken, RangeReadWriteLock> notRegexReadBlockingCondition(
-            final Value proposed) {
-        return new Condition<RangeToken, RangeReadWriteLock>() {
-
-            @Override
-            public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
-                if(value.isWriteLocked()
-                        && !value.isWriteLockedByCurrentThread()) {
-                    for (Value myValue : key.getValues()) {
-                        if(!myValue.getTObject().toString()
-                                .matches(proposed.getTObject().toString())) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-        };
-    }
-
-    private static Condition<RangeToken, RangeReadWriteLock> regexReadBlockingCondition(
-            final Value proposed) {
-        return new Condition<RangeToken, RangeReadWriteLock>() {
-
-            @Override
-            public boolean satisfiedBy(RangeToken key, RangeReadWriteLock value) {
-                if(value.isWriteLocked()
-                        && !value.isWriteLockedByCurrentThread()) {
-                    for (Value myValue : key.getValues()) {
-                        if(myValue.getTObject().toString()
-                                .matches(proposed.getTObject().toString())) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-        };
-    }
+    /**
+     * A collection of range writes that are used to determine if a write
+     * {@link #isRangeBlocked(LockType, RangeToken) is range blocked}.
+     */
+    protected final Set<Value> writes = Sets.newConcurrentHashSet();
 
     /**
      * Return {@code true} if an attempt to used {@code token} for a
@@ -248,25 +198,37 @@ public class RangeLockService extends
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        RangeTokenMap<RangeReadWriteLock> rtm = (RangeTokenMap<RangeReadWriteLock>) locks;
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
             switch (token.getOperator()) {
-            case REGEX:
-                return rtm.contains(token.getKey(),
-                        regexReadBlockingCondition(value));
-            case NOT_REGEX:
-                return rtm.contains(token.getKey(),
-                        notRegexReadBlockingCondition(value));
+            case EQUALS:
+                return writes.contains(value);
+            case NOT_EQUALS:
+                return writes.size() > 1
+                        || (writes.size() == 1 && !writes.contains(value));
             default:
-                return rtm.contains(token, readBlockingCondition());
+                Iterator<Value> it = writes.iterator();
+                while (it.hasNext()) {
+                    Iterable<Range<Value>> ranges = RangeTokens
+                            .convertToGuavaRange(token);
+                    Range<Value> point = Range.singleton(it.next());
+                    for (Range<Value> range : ranges) {
+                        if(range.isConnected(point)
+                                && !range.intersection(point).isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             }
         }
         else {
             // If I want to WRITE X, I am blocked if there is a READ that
             // touches X (e.g. direct read for X or a range read that includes
             // X)
-            return rtm.contains(token, writeBlockingCondition());
+            synchronized (reads) {
+                return reads.contains(value);
+            }
         }
     }
 
