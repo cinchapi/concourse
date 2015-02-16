@@ -380,7 +380,8 @@ public final class Engine extends BufferedStore implements
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens.convertToRange((RangeToken) token);
+            Iterable<Range> ranges = RangeTokens
+                    .convertToRange((RangeToken) token);
             for (Range range : ranges) {
                 rangeVersionChangeListeners.put(range, listener);
             }
@@ -414,6 +415,28 @@ public final class Engine extends BufferedStore implements
         }
         finally {
             read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, String> auditUnsafe(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.audit(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, String> auditUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.audit(key, record);
+        }
+        finally {
             transportLock.readLock().unlock();
         }
     }
@@ -470,6 +493,40 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    public Map<String, Set<TObject>> browseUnsafe(long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(record);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browseUnsafe(String key) {
+        transportLock.readLock().lock();
+        try {
+            return super.browse(key);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
     /**
      * Public interface for the {@link Database#dump(String)} method.
      * 
@@ -503,6 +560,17 @@ public final class Engine extends BufferedStore implements
         transportLock.readLock().lock();
         try {
             return super.fetch(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> fetchUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.fetch(key, record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -728,6 +796,18 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    public boolean verifyUnsafe(String key, TObject value, long record) {
+        transportLock.readLock().lock();
+        try {
+            return inventory.contains(record) ? super
+                    .verify(key, value, record) : false;
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
@@ -741,7 +821,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean addUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.add(key, value, record, sync)) {
+        if(super.add(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
@@ -788,7 +868,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean removeUnsafe(String key, TObject value, long record,
             boolean sync) {
-        if(super.remove(key, value, record, sync)) {
+        if(super.remove(key, value, record, sync, sync)) {
             notifyVersionChange(Token.wrap(key, record));
             notifyVersionChange(Token.wrap(record));
             notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
@@ -829,85 +909,6 @@ public final class Engine extends BufferedStore implements
     protected boolean verify(Write write) {
         return inventory.contains(write.getRecord().longValue()) ? super
                 .verify(write) : false;
-    }
-
-    @Override
-    public Map<Long, String> auditUnsafe(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.audit(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-    
-    @Override
-    public Map<Long, String> auditUnsafe(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.audit(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-    
-    @Override
-    public Map<String, Set<TObject>> browseUnsafe(long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.browse(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-    
-    @Override
-    public Map<TObject, Set<Long>> browseUnsafe(String key) {
-        transportLock.readLock().lock();
-        try {
-            return super.browse(key);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-    
-    @Override
-    public Map<Long, Set<TObject>> doExploreUnsafe(String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-    
-    @Override
-    public Set<TObject> fetchUnsafe(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.fetch(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
-        transportLock.readLock().lock();
-        try {
-            return inventory.contains(record) ? super
-                    .verify(key, value, record) : false;
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
     }
 
     /**

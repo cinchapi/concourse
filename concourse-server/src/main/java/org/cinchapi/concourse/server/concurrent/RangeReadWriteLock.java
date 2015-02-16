@@ -61,32 +61,6 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
     }
 
     @Override
-    public ReadLock readLock() {
-        return new ReadLock(this) {
-
-            @Override
-            public void lock() {
-                while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
-                    continue;
-                }
-                super.lock();
-            }
-
-            @Override
-            public boolean tryLock() {
-                if(!rangeLockService.isRangeBlocked(LockType.READ, token)
-                        && super.tryLock()) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-
-        };
-    }
-
-    @Override
     public void beforeReadLock() {
         while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
             Thread.yield();
@@ -97,32 +71,6 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
     @Override
     public boolean tryBeforeReadLock() {
         return !rangeLockService.isRangeBlocked(LockType.READ, token);
-    }
-
-    @Override
-    public WriteLock writeLock() {
-        return new WriteLock(this) {
-
-            @Override
-            public void lock() {
-                while (rangeLockService.isRangeBlocked(LockType.WRITE, token)) {
-                    continue;
-                }
-                super.lock();
-            }
-
-            @Override
-            public boolean tryLock() {
-                if(!rangeLockService.isRangeBlocked(LockType.WRITE, token)
-                        && super.tryLock()) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-
-        };
     }
 
     @Override

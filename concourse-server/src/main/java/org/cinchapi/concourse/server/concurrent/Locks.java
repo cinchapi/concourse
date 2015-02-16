@@ -28,6 +28,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import org.cinchapi.vendor.jsr166e.StampedLock;
+
 /**
  * Lock related utility methods.
  * 
@@ -56,6 +58,17 @@ public final class Locks {
      */
     public static ReadLock noOpReadLock() {
         return NOOP_READ_LOCK;
+    }
+
+    /**
+     * Return a {@link StampedLock} that is non-operational and always returns
+     * immediately without actually acquiring and shard or exclusive holds on
+     * any monitor.
+     * 
+     * @return the noop StampedLock
+     */
+    public static StampedLock noOpStampedLock() {
+        return NOOP_STAMPED_LOCK;
     }
 
     /**
@@ -99,6 +112,38 @@ public final class Locks {
 
         @Override
         public void unlock() {}
+    };
+
+    /**
+     * A {@link StampedLock} that does not do anything. This is returned by the
+     * {@link #noOpStampedLock()} method.
+     */
+    @SuppressWarnings("serial")
+    private static final StampedLock NOOP_STAMPED_LOCK = new StampedLock() {
+
+        @Override
+        public long readLock() {
+            return 0;
+        }
+
+        @Override
+        public long tryOptimisticRead() {
+            return 0;
+        }
+
+        @Override
+        public void unlock(long stamp) {/* noop */}
+
+        @Override
+        public boolean validate(long stamp) {
+            return true;
+        }
+
+        @Override
+        public long writeLock() {
+            return 0;
+        }
+
     };
 
     /**
