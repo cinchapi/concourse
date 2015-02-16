@@ -48,21 +48,6 @@ import org.cinchapi.concourse.util.ByteBuffers;
 public class RangeToken extends Token {
 
     /**
-     * Return the RangeToken encoded in {@code bytes} so long as those bytes
-     * adhere to the format specified by the {@link #getBytes()} method. This
-     * method assumes that all the bytes in the {@code bytes} belong to the
-     * RangeToken. In general, it is necessary to get the appropriate RangeToken
-     * slice from the parent ByteBuffer using
-     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
-     * 
-     * @param bytes
-     * @return the RangeToken
-     */
-    public static RangeToken fromByteBuffer(ByteBuffer bytes) {
-        return new RangeToken(bytes);
-    }
-
-    /**
      * Return a {@link RangeToken} that wraps {@code key} {@code operator}
      * {@code values} for the purpose of reading.
      * 
@@ -90,10 +75,7 @@ public class RangeToken extends Token {
             // NOTE: This will block any writers on the #key whenever there is a
             // REGEX or NOT_REGEX read, which isn't the most efficient approach,
             // but is the least burdensome, which is okay for now...
-            values = Arrays.copyOf(values, length + 2);
-            values[length] = Value.POSITIVE_INFINITY;
-            values[length + 1] = Value.NEGATIVE_INFINITY;
-
+            values = ALL_VALUES;
         }
         return new RangeToken(key, operator, values);
     }
@@ -108,6 +90,21 @@ public class RangeToken extends Token {
      */
     public static RangeToken forWriting(Text key, Value value) {
         return new RangeToken(key, null, value);
+    }
+
+    /**
+     * Return the RangeToken encoded in {@code bytes} so long as those bytes
+     * adhere to the format specified by the {@link #getBytes()} method. This
+     * method assumes that all the bytes in the {@code bytes} belong to the
+     * RangeToken. In general, it is necessary to get the appropriate RangeToken
+     * slice from the parent ByteBuffer using
+     * {@link ByteBuffers#slice(ByteBuffer, int, int)}.
+     * 
+     * @param bytes
+     * @return the RangeToken
+     */
+    public static RangeToken fromByteBuffer(ByteBuffer bytes) {
+        return new RangeToken(bytes);
     }
 
     /**
@@ -138,6 +135,13 @@ public class RangeToken extends Token {
     }
 
     /**
+     * A static reference to the range that indicates a RangeToken covers the
+     * entire range of values.
+     */
+    private static final Value[] ALL_VALUES = { Value.NEGATIVE_INFINITY,
+            Value.POSITIVE_INFINITY };
+
+    /**
      * A flag to indicate that {@link #operator} is NULL in the serialized form.
      */
     private static final byte NULL_OPERATOR = (byte) Operator.values().length;
@@ -147,20 +151,6 @@ public class RangeToken extends Token {
     @Nullable
     private final Operator operator;
     private final Value[] values;
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param key
-     * @param operator
-     * @param values
-     */
-    private RangeToken(Text key, Operator operator, Value... values) {
-        super(serialize(key, operator, values));
-        this.key = key;
-        this.operator = operator;
-        this.values = values;
-    }
 
     /**
      * Construct a new instance.
@@ -179,6 +169,20 @@ public class RangeToken extends Token {
             values[i] = Value.fromByteBuffer(ByteBuffers.get(bytes,
                     bytes.getInt()));
         }
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param key
+     * @param operator
+     * @param values
+     */
+    private RangeToken(Text key, Operator operator, Value... values) {
+        super(serialize(key, operator, values));
+        this.key = key;
+        this.operator = operator;
+        this.values = values;
     }
 
     /**
@@ -210,6 +214,174 @@ public class RangeToken extends Token {
         return values;
     }
 
+    /**
+     * Return {@code true} if this RangeToken intersects the {@code other}
+     * RangeToken. This RangeToken is considered to intersect another one if the
+     * left point of this RangeToken is less than or equal to the right point of
+     * the other one and the right point of this RangeToken is greater than or
+     * equal to the left point of the other one.
+     * 
+     * @param other
+     * @return {@code true} if this RangeToken intersects the other
+     */
+    public boolean intersects(RangeToken other) {
+        Value value = other.values[0];
+        Value myValue = this.values[0];
+        Operator myOperator = this.operator == null ? Operator.EQUALS
+                : this.operator;
+        Operator operator = other.operator == null ? Operator.EQUALS
+                : other.operator;
+        switch (myOperator) {
+        case EQUALS:
+            switch (operator) {
+            case EQUALS:
+                return myValue.compareTo(value) == 0;
+            case NOT_EQUALS:
+                return myValue.compareTo(value) != 0;
+            case GREATER_THAN:
+                return myValue.compareTo(value) > 0;
+            case GREATER_THAN_OR_EQUALS:
+                return myValue.compareTo(value) >= 0;
+            case LESS_THAN:
+                return myValue.compareTo(value) < 0;
+            case LESS_THAN_OR_EQUALS:
+                return myValue.compareTo(value) <= 0;
+            case BETWEEN:
+                return myValue.compareTo(value) >= 0
+                        && myValue.compareTo(other.values[1]) < 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case NOT_EQUALS:
+            switch (operator) {
+            case EQUALS:
+                return myValue.compareTo(value) != 0;
+            case NOT_EQUALS:
+            case GREATER_THAN:
+            case GREATER_THAN_OR_EQUALS:
+            case LESS_THAN:
+            case LESS_THAN_OR_EQUALS:
+                return true;
+            case BETWEEN:
+                return myValue.compareTo(value) != 0
+                        || myValue.compareTo(other.values[1]) != 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case GREATER_THAN:
+            switch (operator) {
+            case EQUALS:
+            case LESS_THAN:
+            case LESS_THAN_OR_EQUALS:
+                return value.compareTo(myValue) > 0;
+            case NOT_EQUALS:
+            case GREATER_THAN:
+            case GREATER_THAN_OR_EQUALS:
+                return true;
+            case BETWEEN:
+                return other.values[1].compareTo(myValue) > 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case GREATER_THAN_OR_EQUALS:
+            switch (operator) {
+            case EQUALS:
+            case LESS_THAN_OR_EQUALS:
+                return value.compareTo(myValue) >= 0;
+            case LESS_THAN:
+                return value.compareTo(myValue) > 0;
+            case NOT_EQUALS:
+            case GREATER_THAN:
+            case GREATER_THAN_OR_EQUALS:
+                return true;
+            case BETWEEN:
+                return other.values[1].compareTo(myValue) > 0; // end of range not
+                                                         // included for BETWEEN
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case LESS_THAN:
+            switch (operator) {
+            case EQUALS:
+            case GREATER_THAN:
+            case GREATER_THAN_OR_EQUALS:
+                return value.compareTo(myValue) < 0;
+            case NOT_EQUALS:
+            case LESS_THAN:
+            case LESS_THAN_OR_EQUALS:
+                return true;
+            case BETWEEN:
+                return value.compareTo(myValue) < 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case LESS_THAN_OR_EQUALS:
+            switch (operator) {
+            case EQUALS:
+            case GREATER_THAN_OR_EQUALS:
+                return value.compareTo(myValue) <= 0;
+            case LESS_THAN:
+            case LESS_THAN_OR_EQUALS:
+            case NOT_EQUALS:
+                return true;
+            case GREATER_THAN:
+                return value.compareTo(myValue) < 0;
+            case BETWEEN:
+                return value.compareTo(myValue) <= 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case BETWEEN:
+            Value myOtherValue = this.values[1];
+            switch (operator) {
+            case EQUALS:
+                return value.compareTo(myValue) >= 0
+                        && value.compareTo(myOtherValue) < 0;
+            case NOT_EQUALS:
+                return value.compareTo(myValue) != 0
+                        || value.compareTo(myOtherValue) != 0;
+            case GREATER_THAN:
+            case GREATER_THAN_OR_EQUALS:
+                return value.compareTo(myOtherValue) < 0;
+            case LESS_THAN:
+                return value.compareTo(myValue) > 0;
+            case LESS_THAN_OR_EQUALS:
+                return value.compareTo(myValue) >= 0;
+            case BETWEEN:
+                return myOtherValue.compareTo(value) >= 0
+                        && myValue.compareTo(other.values[1]) <= 0;
+            case REGEX:
+            case NOT_REGEX:
+                return true;
+            default:
+                throw new UnsupportedOperationException();
+            }
+        case REGEX:
+        case NOT_REGEX:
+            return true;
+        default:
+            throw new UnsupportedOperationException();
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -220,4 +392,5 @@ public class RangeToken extends Token {
         }
         return sb.toString();
     }
+
 }

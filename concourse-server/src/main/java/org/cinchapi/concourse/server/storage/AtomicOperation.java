@@ -24,10 +24,8 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +39,8 @@ import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
 import org.cinchapi.concourse.server.concurrent.RangeTokenMap;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap.Condition;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap.AfterRemoval;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Text;
@@ -51,7 +51,6 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Transformers;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -86,6 +85,25 @@ public class AtomicOperation extends BufferedStore implements
         return new AtomicOperation(store);
     }
 
+    private static Condition<RangeToken, LockDescription> RANGE_UPGRADE_CONDITION = new Condition<RangeToken, LockDescription>() {
+
+        @Override
+        public boolean satisfiedBy(RangeToken key, LockDescription value) {
+            return value.getType() == LockType.RANGE_READ;
+        }
+
+    };
+
+    private static AfterRemoval<RangeToken, LockDescription> RANGE_UPGRADE_CLEANER = new AfterRemoval<RangeToken, LockDescription>() {
+
+        @Override
+        public void clean(RangeToken key, LockDescription value) {
+            value.getLock().unlock();
+
+        }
+
+    };
+
     /**
      * It is technically not possible to upgrade a READ lock to a WRITE lock, so
      * we must apply some logical rules to determine if we need to release one
@@ -102,23 +120,11 @@ public class AtomicOperation extends BufferedStore implements
         LockType type = expectation.getLockType();
         Token token = expectation.getToken();
         if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
+            // Remove any range read locks that cover the value in #token since
+            // the corresponding write lock will do the appropriate blocking
             RangeToken rt = (RangeToken) token;
-            Value value = rt.getValues()[0];
-            Iterator<Entry<RangeToken, LockDescription>> it = Iterables.concat(
-                    rangeLocks.filter(rt.getKey(), Operator.EQUALS, value)
-                            .entrySet(),
-                    rangeLocks.filter(rt.getKey(), value, value).entrySet())
-                    .iterator();
-            while (it.hasNext()) {
-                Entry<RangeToken, LockDescription> entry = it.next();
-                RangeToken tok = entry.getKey();
-                LockDescription lock = entry.getValue();
-                if(lock.getType() == LockType.RANGE_READ) {
-                    // NOTE: cannot use it.remove() here because the iterator
-                    // does not read through to the underlying map
-                    rangeLocks.remove(tok).getLock().unlock();
-                }
-            }
+            rangeLocks.remove(rt, RANGE_UPGRADE_CONDITION,
+                    RANGE_UPGRADE_CLEANER);
         }
         else if(token instanceof Token && type == LockType.WRITE
                 && locks.containsKey(token)

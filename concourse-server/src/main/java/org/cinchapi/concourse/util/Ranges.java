@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.common.util;
+package org.cinchapi.concourse.util;
 
 import java.util.Comparator;
 
@@ -32,17 +32,36 @@ import java.util.Comparator;
  */
 public final class Ranges {
 
+
+    /**
+     * Return a {@link Comparator} that sorts ranges based on their low value
+     * first and then sorts by their high values if necessary.
+     * 
+     * @return the comparator
+     */
+    public static Comparator<Range> lowThenHighValueComparator() {
+        return new Comparator<Range>() {
+
+            @Override
+            public int compare(Range o1, Range o2) {
+                int c = o1.compareToLeft(o2);
+                return c == 0 ? o1.compareToRight(o2) : c;
+            }
+
+        };
+    }
+
     /**
      * Return a {@link Comparator} that sorts ranges based solely on their left
      * values.
      * 
-     * @return the left value comparator
+     * @return the low value comparator
      */
-    public static <T extends Comparable<T>> Comparator<Range<T>> leftValueComparator() {
-        return new Comparator<Range<T>>() {
+    public static Comparator<Range> lowValueComparator() {
+        return new Comparator<Range>() {
 
             @Override
-            public int compare(Range<T> o1, Range<T> o2) {
+            public int compare(Range o1, Range o2) {
                 return o1.compareToLeft(o2);
             }
 
@@ -54,13 +73,13 @@ public final class Ranges {
      * Return a {@link Comparator} that sorts ranges based solely on their right
      * values.
      * 
-     * @return the right value comparator
+     * @return the high value comparator
      */
-    public static <T extends Comparable<T>> Comparator<Range<T>> rightValueComparator() {
-        return new Comparator<Range<T>>() {
+    public static Comparator<Range> highValueComparator() {
+        return new Comparator<Range>() {
 
             @Override
-            public int compare(Range<T> o1, Range<T> o2) {
+            public int compare(Range o1, Range o2) {
                 return o1.compareToRight(o2);
             }
 
