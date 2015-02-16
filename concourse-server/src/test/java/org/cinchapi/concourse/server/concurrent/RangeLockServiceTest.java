@@ -838,6 +838,18 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testSameThreadNotRangeBlockedIfReadingRangeThatCoversHeldWrite() {
+        WriteLock lock = rangeLockService.getWriteLock("foo",
+                Convert.javaToThrift(10));
+        lock.lock();
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
+                RangeToken.forReading(Text.wrapCached("foo"), Operator.BETWEEN,
+                        Value.wrap(Convert.javaToThrift(5)),
+                        Value.wrap(Convert.javaToThrift(15)))));
+        lock.unlock();
+    }
+
+    @Test
     public void testWriteNotRangeBlockedIfNoReading() {
         Text key = Variables.register("key", TestData.getText());
         Value value = Variables.register("value", TestData.getValue());

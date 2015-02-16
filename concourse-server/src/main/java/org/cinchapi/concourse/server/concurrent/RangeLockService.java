@@ -211,10 +211,15 @@ public class RangeLockService extends
                 while (it.hasNext()) {
                     Iterable<Range<Value>> ranges = RangeTokens
                             .convertToGuavaRange(token);
-                    Range<Value> point = Range.singleton(it.next());
+                    Value current = it.next();
+                    Range<Value> point = Range.singleton(current);
                     for (Range<Value> range : ranges) {
+                        RangeReadWriteLock lock = null;
                         if(range.isConnected(point)
-                                && !range.intersection(point).isEmpty()) {
+                                && !range.intersection(point).isEmpty()
+                                && (lock = locks.get(RangeToken.forWriting(
+                                        token.getKey(), current))) != null
+                                && !lock.isWriteLockedByCurrentThread()) {
                             return true;
                         }
                     }
