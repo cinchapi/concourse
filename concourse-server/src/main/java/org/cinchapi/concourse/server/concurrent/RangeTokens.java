@@ -47,7 +47,7 @@ public final class RangeTokens {
             ranges.add(Range.atLeast(token.getValues()[0]));
         }
         else if(token.getOperator() == Operator.LESS_THAN) {
-            ranges.add(Range.lessThan(Value.NEGATIVE_INFINITY));
+            ranges.add(Range.lessThan(token.getValues()[0]));
         }
         else if(token.getOperator() == Operator.LESS_THAN_OR_EQUALS) {
             ranges.add(Range.atMost(token.getValues()[0]));
