@@ -24,10 +24,8 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,6 +38,9 @@ import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.LockType;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
 import org.cinchapi.concourse.server.concurrent.RangeToken;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap.Condition;
+import org.cinchapi.concourse.server.concurrent.RangeTokenMap.AfterRemoval;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.model.Text;
@@ -84,6 +85,25 @@ public class AtomicOperation extends BufferedStore implements
         return new AtomicOperation(store);
     }
 
+    private static Condition<RangeToken, LockDescription> RANGE_UPGRADE_CONDITION = new Condition<RangeToken, LockDescription>() {
+
+        @Override
+        public boolean satisfiedBy(RangeToken key, LockDescription value) {
+            return value.getType() == LockType.RANGE_READ;
+        }
+
+    };
+
+    private static AfterRemoval<RangeToken, LockDescription> RANGE_UPGRADE_CLEANER = new AfterRemoval<RangeToken, LockDescription>() {
+
+        @Override
+        public void clean(RangeToken key, LockDescription value) {
+            value.getLock().unlock();
+
+        }
+
+    };
+
     /**
      * It is technically not possible to upgrade a READ lock to a WRITE lock, so
      * we must apply some logical rules to determine if we need to release one
@@ -93,49 +113,18 @@ public class AtomicOperation extends BufferedStore implements
      * @param locks
      */
     protected static void prepareLockForPossibleUpgrade(
-            LockIntention expectation, Map<Token, LockDescription> locks) { // visible
-                                                                            // for
-                                                                            // testing
+            LockIntention expectation, Map<Token, LockDescription> locks,
+            RangeTokenMap<LockDescription> rangeLocks) { // visible
+                                                         // for
+                                                         // testing
         LockType type = expectation.getLockType();
         Token token = expectation.getToken();
         if(token instanceof RangeToken && type == LockType.RANGE_WRITE) {
-            Iterator<Entry<Token, LockDescription>> it = locks.entrySet()
-                    .iterator();
-            outer: while (it.hasNext()) {
-                Entry<Token, LockDescription> entry = it.next();
-                Token otherToken = entry.getKey();
-                LockDescription otherLock = entry.getValue();
-                if(otherToken instanceof RangeToken
-                        && otherLock.getType() == LockType.RANGE_READ) {
-                    RangeToken myRangeToken = (RangeToken) token;
-                    RangeToken otherRangeToken = (RangeToken) otherToken;
-                    if(myRangeToken.getKey().equals(otherRangeToken.getKey())) {
-                        // Since the keys are equal, check to see if my value is
-                        // equal to or within the range of the other values. If
-                        // so, that means the lock needs to be upgraded because
-                        // a write lock for my value will do the appropriate
-                        // range blocking
-                        boolean foundSmaller = false;
-                        boolean foundLarger = false;
-                        boolean foundEqual = false;
-                        for (Value otherValue : otherRangeToken.getValues()) {
-                            for (Value myValue : myRangeToken.getValues()) {
-                                foundEqual = myValue.compareTo(otherValue) == 0 ? true
-                                        : foundEqual;
-                                foundSmaller = myValue.compareTo(otherValue) < 0 ? true
-                                        : foundSmaller;
-                                foundLarger = myValue.compareTo(otherValue) > 0 ? true
-                                        : foundLarger;
-                                if(foundEqual || (foundSmaller && foundLarger)) {
-                                    otherLock.getLock().unlock();
-                                    it.remove();
-                                    break outer;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // Remove any range read locks that cover the value in #token since
+            // the corresponding write lock will do the appropriate blocking
+            RangeToken rt = (RangeToken) token;
+            rangeLocks.remove(rt, RANGE_UPGRADE_CONDITION,
+                    RANGE_UPGRADE_CLEANER);
         }
         else if(token instanceof Token && type == LockType.WRITE
                 && locks.containsKey(token)
@@ -167,6 +156,13 @@ public class AtomicOperation extends BufferedStore implements
     protected Map<Token, LockDescription> locks = null;
 
     /**
+     * The collection of range {@link LockDescription} objects that are grabbed
+     * in the {@link #grabLocks()} method at commit time.
+     */
+    @Nullable
+    protected RangeTokenMap<LockDescription> rangeLocks = null;
+
+    /**
      * The AtomicOperation is open until it is committed or aborted.
      */
     protected AtomicBoolean open = new AtomicBoolean(true);
@@ -179,12 +175,6 @@ public class AtomicOperation extends BufferedStore implements
             .newArrayListWithExpectedSize(INITIAL_CAPACITY);
 
     /**
-     * A casted pointer to the destination store, which is the source from which
-     * this Atomic Operation stems.
-     */
-    private final Compoundable source;
-
-    /**
      * Construct a new instance.
      * 
      * @param destination - must be a {@link Compoundable}
@@ -193,7 +183,6 @@ public class AtomicOperation extends BufferedStore implements
         super(new Queue(INITIAL_CAPACITY), destination,
                 ((BufferedStore) destination).lockService,
                 ((BufferedStore) destination).rangeLockService);
-        this.source = (Compoundable) this.destination;
     }
 
     /**
@@ -212,23 +201,21 @@ public class AtomicOperation extends BufferedStore implements
     public boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention write = new KeyInRecordLockIntention(key, record,
-                LockType.WRITE);
-        LockIntention range = new RangeLockIntention(Text.wrapCached(key),
-                Value.wrap(value));
-        source.addVersionChangeListener(write.token, this);
-        source.addVersionChangeListener(range.token, this);
-        intentions.add(write);
-        intentions.add(range);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         return super.add(key, value, record);
     }
 
     @Override
     public Map<Long, String> audit(long record) throws AtomicStateException {
         checkState();
-        LockIntention intention = new RecordLockIntention(record);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
+        intentions.add(new RecordLockIntention(record));
         return super.audit(record, true);
     }
 
@@ -236,10 +223,10 @@ public class AtomicOperation extends BufferedStore implements
     public Map<Long, String> audit(String key, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention intention = new KeyInRecordLockIntention(key, record,
-                LockType.READ);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.audit(key, record, true);
     }
 
@@ -247,9 +234,9 @@ public class AtomicOperation extends BufferedStore implements
     public Map<String, Set<TObject>> browse(long record)
             throws AtomicStateException {
         checkState();
-        LockIntention intention = new RecordLockIntention(record);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(record), this);
+        intentions.add(new RecordLockIntention(record));
         return super.browse(record, true);
     }
 
@@ -264,11 +251,11 @@ public class AtomicOperation extends BufferedStore implements
     public Map<TObject, Set<Long>> browse(String key)
             throws AtomicStateException {
         checkState();
-        LockIntention intention = new RangeLockIntention(Text.wrapCached(key),
-                Operator.BETWEEN, Value.NEGATIVE_INFINITY,
-                Value.POSITIVE_INFINITY);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination)
+                .addVersionChangeListener(RangeToken.forReading(
+                        Text.wrapCached(key), Operator.BETWEEN,
+                        Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY), this);
+        intentions.add(new KeyLockIntention(key));
         return super.browse(key, true);
     }
 
@@ -319,10 +306,10 @@ public class AtomicOperation extends BufferedStore implements
     public Set<TObject> fetch(String key, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention intention = new KeyInRecordLockIntention(key, record,
-                LockType.READ);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.fetch(key, record, true);
     }
 
@@ -345,14 +332,12 @@ public class AtomicOperation extends BufferedStore implements
     public boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention write = new KeyInRecordLockIntention(key, record,
-                LockType.WRITE);
-        LockIntention range = new RangeLockIntention(Text.wrapCached(key),
-                Value.wrap(value));
-        source.addVersionChangeListener(write.token, this);
-        source.addVersionChangeListener(range.token, this);
-        intentions.add(write);
-        intentions.add(range);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         return super.remove(key, value, record);
     }
 
@@ -367,14 +352,12 @@ public class AtomicOperation extends BufferedStore implements
     public void set(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention write = new KeyInRecordLockIntention(key, record,
-                LockType.WRITE);
-        LockIntention range = new RangeLockIntention(Text.wrapCached(key),
-                Value.wrap(value));
-        source.addVersionChangeListener(write.token, this);
-        source.addVersionChangeListener(range.token, this);
-        intentions.add(write);
-        intentions.add(range);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.WRITE));
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), Value
+                .wrap(value)));
         super.set(key, value, record);
     }
 
@@ -388,10 +371,10 @@ public class AtomicOperation extends BufferedStore implements
     public boolean verify(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
-        LockIntention intention = new KeyInRecordLockIntention(key, record,
-                LockType.READ);
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(
+                Token.wrap(key, record), this);
+        intentions
+                .add(new KeyInRecordLockIntention(key, record, LockType.READ));
         return super.verify(key, value, record, true);
     }
 
@@ -445,11 +428,13 @@ public class AtomicOperation extends BufferedStore implements
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
         checkState();
-        LockIntention intention = new RangeLockIntention(Text.wrapCached(key),
-                operator, Transformers.transformArray(values,
-                        Functions.TOBJECT_TO_VALUE, Value.class));
-        source.addVersionChangeListener(intention.token, this);
-        intentions.add(intention);
+        ((Compoundable) destination).addVersionChangeListener(RangeToken
+                .forReading(Text.wrapCached(key), operator, Transformers
+                        .transformArray(values, Functions.TOBJECT_TO_VALUE,
+                                Value.class)), this);
+        intentions.add(new RangeLockIntention(Text.wrapCached(key), operator,
+                Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
+                        Value.class)));
         return super.doExplore(key, operator, values, true);
     }
 
@@ -465,9 +450,10 @@ public class AtomicOperation extends BufferedStore implements
      */
     private boolean grabLocks() {
         locks = Maps.newHashMap();
+        rangeLocks = RangeTokenMap.create();
         try {
             search: for (LockIntention intention : intentions) {
-                prepareLockForPossibleUpgrade(intention, locks);
+                prepareLockForPossibleUpgrade(intention, locks, rangeLocks);
                 if(intention.getLockType() == LockType.RANGE_READ) {
                     // CON-72: Check to see if we already have a RANGE_WRITE
                     // that covers one of the values in this RANGE_READ. If so
@@ -478,12 +464,31 @@ public class AtomicOperation extends BufferedStore implements
                         RangeToken rt = RangeToken.forWriting(
                                 ((RangeToken) intention.getToken()).getKey(),
                                 value);
-                        if(locks.containsKey(rt)) {
+                        if(rangeLocks.containsKey(rt)) {
                             continue search;
                         }
                     }
                 }
-                if(!locks.containsKey(intention.getToken())) {
+                if((intention.getLockType() == LockType.RANGE_READ || intention
+                        .getLockType() == LockType.RANGE_WRITE)
+                        && !rangeLocks.containsKey(intention.getToken())) {
+                    LockDescription description = LockDescription
+                            .forVersionExpectation(intention, lockService,
+                                    rangeLockService);
+                    if(description.getLock().tryLock()) {
+                        rangeLocks.put((RangeToken) intention.getToken(),
+                                description);
+                    }
+                    else {
+                        // If we can't grab the lock immediately because it
+                        // is held by someone else, then we must fail
+                        // immediately because the AtomicOperation can't
+                        // properly commit.
+                        return false;
+                    }
+
+                }
+                else if(!locks.containsKey(intention.getToken())) {
                     LockDescription description = LockDescription
                             .forVersionExpectation(intention, lockService,
                                     rangeLockService);
@@ -491,9 +496,10 @@ public class AtomicOperation extends BufferedStore implements
                         locks.put(intention.getToken(), description);
                     }
                     else {
-                        // If we can't grab the lock immediately because it is
-                        // held by someone else, then we must fail immediately
-                        // because the AtomicOperation can't properly commit.
+                        // If we can't grab the lock immediately because it
+                        // is held by someone else, then we must fail
+                        // immediately because the AtomicOperation can't
+                        // properly commit.
                         return false;
                     }
                 }
@@ -514,11 +520,21 @@ public class AtomicOperation extends BufferedStore implements
     private void releaseLocks() {
         if(locks != null) {
             Map<Token, LockDescription> _locks = locks;
+            RangeTokenMap<LockDescription> _rangeLocks = rangeLocks;
+            rangeLocks = null;
             locks = null; // CON-172: Set the reference of the locks to null
                           // immediately to prevent a race condition where the
                           // #grabLocks method isn't notified of version change
                           // failure in time
             for (LockDescription lock : _locks.values()) {
+                ((Compoundable) destination).removeVersionChangeListener(
+                        lock.getToken(), this);
+                lock.getLock().unlock(); // We should never encounter an
+                                         // IllegalMonitorStateException here
+                                         // because a lock should only go in
+                                         // #locks once it has been locked.
+            }
+            for (LockDescription lock : _rangeLocks.values()) {
                 ((Compoundable) destination).removeVersionChangeListener(
                         lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
@@ -745,6 +761,44 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * A LockIntention for a read that touches an entire key (i.e.
+     * browse(key)).
+     * 
+     * @author jnelson
+     */
+    private final class KeyLockIntention extends LockIntention {
+
+        private final String key;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param token
+         * @param expectedVersion
+         */
+        protected KeyLockIntention(String key) {
+            super(Token.wrap(key));
+            this.key = key;
+        }
+
+        @Override
+        public String getKey() throws UnsupportedOperationException {
+            return key;
+        }
+
+        @Override
+        public LockType getLockType() {
+            return LockType.READ;
+        }
+
+        @Override
+        public long getRecord() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    /**
      * A LockIntention for a range read/write. No version is actually
      * expected, but this is a placeholder so that we know to grab to
      * appropriate range lock.
@@ -813,7 +867,6 @@ public class AtomicOperation extends BufferedStore implements
          * 
          * @param record
          */
-        // TODO LockIntentions should take a token...
         public RecordLockIntention(long record) {
             super(Token.wrap(record));
             this.record = record;

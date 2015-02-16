@@ -21,9 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.common.util;
+package org.cinchapi.concourse.util;
 
 import java.util.Set;
+
+import org.cinchapi.concourse.server.model.Value;
 
 /**
  * A {@link RangeMap} simulates the mapping from disjoint intervals of points to
@@ -48,7 +50,7 @@ import java.util.Set;
  * 
  * @author jnelson
  */
-public interface RangeMap<P extends Comparable<P>, V> {
+public interface RangeMap<V> {
 
     /**
      * Return {@code true} if the map contains at least one value associated
@@ -59,7 +61,7 @@ public interface RangeMap<P extends Comparable<P>, V> {
      * @param point
      * @return {@code true} if the point is contained
      */
-    public boolean contains(P point);
+    public boolean contains(Value point);
 
     /**
      * Return {@code true} if the map contains any values associated with
@@ -71,7 +73,7 @@ public interface RangeMap<P extends Comparable<P>, V> {
      * @param range
      * @return {@code true} if the range is contained
      */
-    public boolean contains(Range<P> range);
+    public boolean contains(Range range);
 
     /**
      * Put a mapping from all the points in the {@code range} to {@code value}.
@@ -82,7 +84,7 @@ public interface RangeMap<P extends Comparable<P>, V> {
      *         one point in the range maps to {@code value} now whereas it did
      *         not before.
      */
-    public boolean put(Range<P> range, V value);
+    public boolean put(Range range, V value);
 
     /**
      * Remove any existing mappings from all the points in the {@code range} to
@@ -94,7 +96,7 @@ public interface RangeMap<P extends Comparable<P>, V> {
      *         one point in the range mapped to {@code value} previously, but no
      *         longer does
      */
-    public boolean remove(Range<P> range, V value);
+    public boolean remove(Range range, V value);
 
     /**
      * Return all the values that are mapped from {@code point}. Values can be
@@ -106,7 +108,7 @@ public interface RangeMap<P extends Comparable<P>, V> {
      * @return a collection of all the values that are mapped from ranges
      *         containing {@code point}
      */
-    public Set<V> get(P point);
+    public Set<V> get(Value point);
 
     /**
      * Return all the values that are mapped from {@code range}. Values can be
@@ -118,6 +120,6 @@ public interface RangeMap<P extends Comparable<P>, V> {
      * @return a collection of all the values that are mapped from ranges
      *         <em>intersecting</em> {@code range}
      */
-    public Set<V> get(Range<P> range);
+    public Set<V> get(Range range);
 
 }
