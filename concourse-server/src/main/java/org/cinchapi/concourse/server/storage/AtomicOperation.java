@@ -213,7 +213,6 @@ public class AtomicOperation extends BufferedStore implements
         LockIntention range = new RangeLockIntention(Text.wrapCached(key),
                 Value.wrap(value));
         source.addVersionChangeListener(write.token, this);
-        source.addVersionChangeListener(range.token, this);
         intentions.add(write);
         intentions.add(range);
         return super.add(key, value, record);
@@ -346,7 +345,6 @@ public class AtomicOperation extends BufferedStore implements
         LockIntention range = new RangeLockIntention(Text.wrapCached(key),
                 Value.wrap(value));
         source.addVersionChangeListener(write.token, this);
-        source.addVersionChangeListener(range.token, this);
         intentions.add(write);
         intentions.add(range);
         return super.remove(key, value, record);
@@ -523,16 +521,14 @@ public class AtomicOperation extends BufferedStore implements
                           // #grabLocks method isn't notified of version change
                           // failure in time
             for (LockDescription lock : _locks.values()) {
-                ((Compoundable) destination).removeVersionChangeListener(
-                        lock.getToken(), this);
+                source.removeVersionChangeListener(lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
                                          // #locks once it has been locked.
             }
             for (LockDescription lock : _rangeLocks.values()) {
-                ((Compoundable) destination).removeVersionChangeListener(
-                        lock.getToken(), this);
+                source.removeVersionChangeListener(lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
