@@ -25,6 +25,10 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.cinchapi.concourse.server.model.Value;
+
+import com.google.common.collect.Range;
+
 /**
  * A custom {@link ReentrantReadWriteLock} that is defined by a
  * {@link RangeToken} and checks to see if it is "range" blocked before
@@ -62,10 +66,46 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
 
     @Override
     public void beforeReadLock() {
-        while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
-            Thread.yield();
-            continue;
+        synchronized (rangeLockService.reads) {
+            while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
+                Thread.yield();
+                continue;
+            }
         }
+    }
+
+    @Override
+    public void afterReadLock() {
+        synchronized (rangeLockService.reads) {
+            Iterable<Range<Value>> ranges = RangeTokens
+                    .convertToGuavaRange(token);
+            for (Range<Value> range : ranges) {
+                rangeLockService.reads.add(range);
+            }
+        }
+    }
+
+    @Override
+    public void afterReadUnlock(ReentrantReadWriteLock instance) {
+        if(instance.getReadLockCount() == 0) {
+            synchronized (rangeLockService.reads) {
+                Iterable<Range<Value>> ranges = RangeTokens
+                        .convertToGuavaRange(token);
+                for (Range<Value> range : ranges) {
+                    rangeLockService.reads.remove(range);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void afterWriteUnlock(ReentrantReadWriteLock instance) {
+        rangeLockService.writes.remove(token.getValues()[0]);
+    }
+
+    @Override
+    public void afterWriteLock() {
+        rangeLockService.writes.add(token.getValues()[0]);
     }
 
     @Override

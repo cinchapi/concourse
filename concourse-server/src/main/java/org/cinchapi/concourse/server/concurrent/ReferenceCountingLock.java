@@ -40,8 +40,6 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 @PackagePrivate
 @SuppressWarnings("serial")
 class ReferenceCountingLock extends ReentrantReadWriteLock {
-    
-    
 
     // NOTE: This class does not define hashCode() or equals() because the
     // defaults are the desired behaviour
@@ -75,7 +73,7 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
     public boolean hasWaiters(Condition condition) {
         return decorated.hasWaiters(condition);
     }
-    
+
     @Override
     public int getWaitQueueLength(Condition condition) {
         return decorated.getWaitQueueLength(condition);
@@ -151,17 +149,25 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
         public void lock() {
             beforeWriteLock();
             writeLock0.lock();
+            afterWriteLock();
         }
 
         @Override
         public boolean tryLock() {
-            return tryBeforeWriteLock() && writeLock0.tryLock();
+            if(tryBeforeWriteLock() && writeLock0.tryLock()) {
+                afterWriteLock();
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         @Override
         public void unlock() {
             writeLock0.unlock();
             refs.decrementAndGet();
+            afterWriteUnlock(decorated);
         }
 
     }
@@ -184,17 +190,25 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
         public void lock() {
             beforeReadLock();
             readLock0.lock();
+            afterReadLock();
         }
 
         @Override
         public boolean tryLock() {
-            return tryBeforeReadLock() && readLock0.tryLock();
+            if(tryBeforeReadLock() && readLock0.tryLock()) {
+                afterReadLock();
+                return true;
+            }
+            else {
+                return false;
+            }
         }
 
         @Override
         public void unlock() {
             readLock0.unlock();
             refs.decrementAndGet();
+            afterReadUnlock(decorated);
         }
 
     }
@@ -217,11 +231,39 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
     protected void beforeReadLock() {/* noop */}
 
     /**
+     * This (optional) method is always run after grabbing the read lock. It is
+     * useful for cases where it is necessary to update some additional state.
+     */
+    protected void afterReadLock() {/* noop */}
+
+    /**
+     * This (optional) method is always run after releasing the read lock. It is
+     * useful for cases where it is necessary to cleanup state.
+     * 
+     * @param instance
+     */
+    protected void afterReadUnlock(ReentrantReadWriteLock instance) {/* noop */}
+
+    /**
      * This (optional) method is always run before grabbing the write lock. It
      * is useful for cases where it is necessary to check some additional state
      * before proceeding to the locking routing.
      */
     protected void beforeWriteLock() {/* noop */}
+
+    /**
+     * This (optional) method is always run after grabbing the write lock. It is
+     * useful for cases where it is necessary to update some additional state.
+     */
+    protected void afterWriteLock() {/* noop */}
+
+    /**
+     * This (optional) method is always run after releasing the write lock. It
+     * is useful for cases where it is necessary to cleanup state.
+     * 
+     * @param instance
+     */
+    protected void afterWriteUnlock(ReentrantReadWriteLock instance) {/* noop */}
 
     /**
      * This (optional) method is always run before an attempt is made to grab
