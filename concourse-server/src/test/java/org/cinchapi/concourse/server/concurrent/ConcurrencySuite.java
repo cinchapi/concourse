@@ -21,13 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.concurrent;
 
-import org.cinchapi.concourse.server.concurrent.ConcurrencySuite;
-import org.cinchapi.concourse.server.storage.db.BlockSuite;
-import org.cinchapi.concourse.server.storage.db.RecordSuite;
-import org.cinchapi.concourse.server.storage.db.RevisionTest;
-import org.cinchapi.concourse.server.storage.temp.WriteTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -38,9 +33,9 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author jnelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,
-        RecordSuite.class, StoreSuite.class, InventoryTest.class,
-        ConcurrencySuite.class })
-public class StorageSuite {
+@SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,
+        RangeTokensTest.class, ReadWriteSharedLockTest.class,
+        BlockingExecutorServiceTest.class })
+public class ConcurrencySuite {
 
 }
