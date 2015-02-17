@@ -166,8 +166,8 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
         @Override
         public void unlock() {
             writeLock0.unlock();
-            refs.decrementAndGet();
             afterWriteUnlock(decorated);
+            refs.decrementAndGet();    
         }
 
     }
@@ -207,8 +207,9 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
         @Override
         public void unlock() {
             readLock0.unlock();
-            refs.decrementAndGet();
             afterReadUnlock(decorated);
+            refs.decrementAndGet();
+            
         }
 
     }
