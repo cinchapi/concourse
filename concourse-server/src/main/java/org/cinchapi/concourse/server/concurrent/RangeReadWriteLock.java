@@ -66,46 +66,35 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
 
     @Override
     public void beforeReadLock() {
-        synchronized (rangeLockService.reads) {
-            while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
-                Thread.yield();
-                continue;
-            }
+        while (rangeLockService.isRangeBlocked(LockType.READ, token)) {
+            Thread.yield();
+            continue;
         }
     }
 
     @Override
     public void afterReadLock() {
-        synchronized (rangeLockService.reads) {
-            Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToGuavaRange(token);
-            for (Range<Value> range : ranges) {
-                rangeLockService.reads.add(range);
-            }
-        }
+        Iterable<Range<Value>> ranges = RangeTokens.convertToGuavaRange(token);
+        rangeLockService.info.add(token.getKey(), ranges);
     }
 
     @Override
     public void afterReadUnlock(ReentrantReadWriteLock instance) {
         if(instance.getReadLockCount() == 0) {
-            synchronized (rangeLockService.reads) {
-                Iterable<Range<Value>> ranges = RangeTokens
-                        .convertToGuavaRange(token);
-                for (Range<Value> range : ranges) {
-                    rangeLockService.reads.remove(range);
-                }
-            }
+            Iterable<Range<Value>> ranges = RangeTokens
+                    .convertToGuavaRange(token);
+            rangeLockService.info.remove(token.getKey(), ranges);
         }
     }
 
     @Override
     public void afterWriteUnlock(ReentrantReadWriteLock instance) {
-        rangeLockService.writes.remove(token.getValues()[0]);
+        rangeLockService.info.remove(token.getKey(), token.getValues()[0]);
     }
 
     @Override
     public void afterWriteLock() {
-        rangeLockService.writes.add(token.getValues()[0]);
+        rangeLockService.info.add(token.getKey(), token.getValues()[0]);
     }
 
     @Override

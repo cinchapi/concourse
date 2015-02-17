@@ -36,7 +36,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
-
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -111,6 +111,12 @@ public class RangeLockService extends
         }
     };
 
+    /**
+     * The information used in the {@link #isRangeBlocked(LockType, RangeToken)}
+     * method.
+     */
+    protected final RangeBlockingInfo info = new RangeBlockingInfo();
+
     private RangeLockService() {/* noop */}
 
     /**
@@ -173,17 +179,10 @@ public class RangeLockService extends
         return getWriteLock(RangeToken.forWriting(key, value));
     }
 
-    /**
-     * A collection of read ranges that are used to determine if a write
-     * {@link #isRangeBlocked(LockType, RangeToken) is range blocked}.
-     */
-    protected final RangeSet<Value> reads = TreeRangeSet.create();
-
-    /**
-     * A collection of range writes that are used to determine if a write
-     * {@link #isRangeBlocked(LockType, RangeToken) is range blocked}.
-     */
-    protected final Set<Value> writes = Sets.newConcurrentHashSet();
+    @Override
+    protected RangeReadWriteLock createLock(RangeToken token) {
+        return new RangeReadWriteLock(this, token);
+    }
 
     /**
      * Return {@code true} if an attempt to used {@code token} for a
@@ -202,12 +201,13 @@ public class RangeLockService extends
             Preconditions.checkArgument(token.getOperator() != null);
             switch (token.getOperator()) {
             case EQUALS:
-                return writes.contains(value);
+                return info.writes(token.getKey()).contains(value);
             case NOT_EQUALS:
-                return writes.size() > 1
-                        || (writes.size() == 1 && !writes.contains(value));
+                return info.writes(token.getKey()).size() > 1
+                        || (info.writes(token.getKey()).size() == 1 && !info
+                                .writes(token.getKey()).contains(value));
             default:
-                Iterator<Value> it = writes.iterator();
+                Iterator<Value> it = info.writes(token.getKey()).iterator();
                 while (it.hasNext()) {
                     Iterable<Range<Value>> ranges = RangeTokens
                             .convertToGuavaRange(token);
@@ -231,14 +231,127 @@ public class RangeLockService extends
             // If I want to WRITE X, I am blocked if there is a READ that
             // touches X (e.g. direct read for X or a range read that includes
             // X)
-            synchronized (reads) {
-                return reads.contains(value);
-            }
+            return info.reads(token.getKey()).contains(value);
+
         }
     }
 
-    @Override
-    protected RangeReadWriteLock createLock(RangeToken token) {
-        return new RangeReadWriteLock(this, token);
+    /**
+     * A class that holds information that is used to determine if a thread is
+     * {@link RangeLockService#isRangeBlocked(LockType, RangeToken) range
+     * blocked} for a given lock acquisition attempt. This state of this
+     * information is updated externally in {@link RangeReadWriteLock} whenever
+     * locks are acquired and released.
+     * 
+     * @author jnelson
+     */
+    protected class RangeBlockingInfo {
+
+        /**
+         * Info about range read locks.
+         */
+        private final ConcurrentMap<Text, RangeSet<Value>> reads = new ConcurrentHashMapV8<Text, RangeSet<Value>>();
+
+        /**
+         * Info about range write locks.
+         */
+        private final ConcurrentMap<Text, Set<Value>> writes = new ConcurrentHashMapV8<Text, Set<Value>>();
+
+        /**
+         * Add a RANGE_READ for {@code key} that covers all of the
+         * {@code ranges}.
+         * 
+         * @param key
+         * @param ranges
+         */
+        public void add(Text key, Iterable<Range<Value>> ranges) {
+            RangeSet<Value> existing = reads.get(key);
+            if(existing == null) {
+                RangeSet<Value> created = TreeRangeSet.create();
+                existing = reads.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            synchronized (existing) {
+                for (Range<Value> range : ranges) {
+                    existing.add(range);
+                }
+            }
+        }
+
+        /**
+         * Add a RANGE_WRITE for {@code key} that covers the {@code value}.
+         * 
+         * @param key
+         * @param value
+         */
+        public void add(Text key, Value value) {
+            Set<Value> existing = writes.get(key);
+            if(existing == null) {
+                Set<Value> created = Sets.newConcurrentHashSet();
+                existing = writes.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            existing.add(value);
+        }
+
+        /**
+         * Return all the ranges that are RANGE_READ locked for {@code key}.
+         * 
+         * @param key
+         * @return the locked reads
+         */
+        public RangeSet<Value> reads(Text key) {
+            RangeSet<Value> existing = reads.get(key);
+            if(existing == null) {
+                RangeSet<Value> created = TreeRangeSet.create();
+                existing = reads.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            synchronized (existing) {
+                return existing;
+            }
+        }
+
+        /**
+         * Remove the RANGE_READ for {@code key} that covers the {@code ranges}.
+         * 
+         * @param key
+         * @param ranges
+         */
+        public void remove(Text key, Iterable<Range<Value>> ranges) {
+            RangeSet<Value> existing = reads.get(key);
+            synchronized (existing) {
+                for (Range<Value> range : ranges) {
+                    existing.remove(range);
+                }
+            }
+        }
+
+        /**
+         * Remove the RANGE_WRITE for {@code key} that covers the {@code value}.
+         * 
+         * @param key
+         * @param value
+         */
+        public void remove(Text key, Value value) {
+            Set<Value> existing = writes.get(key);
+            existing.remove(value);
+        }
+
+        /**
+         * Return all the values that are RANGE_WRITE locked for {@code key}.
+         * 
+         * @param key
+         * @return the locked writes
+         */
+        public Set<Value> writes(Text key) {
+            Set<Value> existing = writes.get(key);
+            if(existing == null) {
+                Set<Value> created = Sets.newConcurrentHashSet();
+                existing = writes.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            return existing;
+        }
     }
 }

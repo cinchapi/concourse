@@ -523,9 +523,9 @@ public class AtomicOperation extends BufferedStore implements
             for (LockDescription lock : _locks.values()) {
                 source.removeVersionChangeListener(lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
-                                         // IllegalMonitorStateException here
-                                         // because a lock should only go in
-                                         // #locks once it has been locked.
+                                         // IllegalMonitorStateException
+                                         // here because a lock should only go
+                                         // in #locks once it has been locked.
             }
             for (LockDescription lock : _rangeLocks.values()) {
                 source.removeVersionChangeListener(lock.getToken(), this);
@@ -533,6 +533,7 @@ public class AtomicOperation extends BufferedStore implements
                                          // IllegalMonitorStateException here
                                          // because a lock should only go in
                                          // #locks once it has been locked.
+
             }
         }
     }
