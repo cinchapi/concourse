@@ -253,7 +253,7 @@ public class ConcourseServer implements
      * server and a {@link TransactionToken} is used for the client to reference
      * that Transaction in future calls.
      */
-    private final Map<TransactionToken, Transaction> transactions = new NonBlockingHashMap<TransactionToken, Transaction>();
+    private final Map<AccessToken, Transaction> transactions = new NonBlockingHashMap<AccessToken, Transaction>();
 
     /**
      * Construct a ConcourseServer that listens on {@link #SERVER_PORT} and
@@ -407,7 +407,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newPrettyLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);
@@ -687,7 +688,8 @@ public class ConcourseServer implements
 
     @Override
     public String listAllUserSessions() {
-        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+        return TCollections.toOrderedListString(manager
+                .describeAllAccessTokens());
     }
 
     @Override
@@ -824,11 +826,14 @@ public class ConcourseServer implements
     public TransactionToken stage(AccessToken creds, String env)
             throws TException {
         checkAccess(creds, null);
-        TransactionToken token = new TransactionToken(creds, Time.now());
+        Transaction existing = transactions.get(creds);
+        if(existing != null) {
+            existing.abort();
+        }
         Transaction transaction = getEngine(env).startTransaction();
-        transactions.put(token, transaction);
+        transactions.put(creds, transaction);
         Logger.info("Started Transaction {}", transaction);
-        return token;
+        return new TransactionToken();
     }
 
     /**
