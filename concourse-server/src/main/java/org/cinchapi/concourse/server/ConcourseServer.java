@@ -832,7 +832,6 @@ public class ConcourseServer implements
         }
         Transaction transaction = getEngine(env).startTransaction();
         transactions.put(creds, transaction);
-        Logger.info("Started Transaction {}", transaction);
         return new TransactionToken();
     }
 
