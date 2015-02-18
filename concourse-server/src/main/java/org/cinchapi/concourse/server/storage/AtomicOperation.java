@@ -604,7 +604,16 @@ public class AtomicOperation extends BufferedStore implements
      * @author jnelson
      */
     protected static final class LockDescription implements Byteable {
-
+        
+        /**
+         * Return the appropriate {@link LockDescription} that will provide
+         * coverage for {@code token}
+         * 
+         * @param token
+         * @param lockService
+         * @param rangeLockService
+         * @return the LockDescription
+         */
         public static LockDescription forToken(Token token,
                 LockService lockService, RangeLockService rangeLockService,
                 LockType type) {
