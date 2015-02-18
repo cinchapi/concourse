@@ -222,7 +222,7 @@ public class AtomicOperation extends BufferedStore implements
                 Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY);
         source.addVersionChangeListener(rangeToken, this);
         Iterable<Range<Value>> ranges = RangeTokens
-                .convertToGuavaRange(rangeToken);
+                .convertToRange(rangeToken);
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -514,7 +514,7 @@ public class AtomicOperation extends BufferedStore implements
                         Value.class));
         source.addVersionChangeListener(rangeToken, this);
         Iterable<Range<Value>> ranges = RangeTokens
-                .convertToGuavaRange(rangeToken);
+                .convertToRange(rangeToken);
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }

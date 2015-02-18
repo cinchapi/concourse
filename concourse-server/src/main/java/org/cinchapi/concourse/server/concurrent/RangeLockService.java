@@ -210,7 +210,7 @@ public class RangeLockService extends
                 Iterator<Value> it = info.writes(token.getKey()).iterator();
                 while (it.hasNext()) {
                     Iterable<Range<Value>> ranges = RangeTokens
-                            .convertToGuavaRange(token);
+                            .convertToRange(token);
                     Value current = it.next();
                     Range<Value> point = Range.singleton(current);
                     for (Range<Value> range : ranges) {
