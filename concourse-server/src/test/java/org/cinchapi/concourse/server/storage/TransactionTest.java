@@ -27,7 +27,9 @@ import java.io.File;
 
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
@@ -70,6 +72,27 @@ public class TransactionTest extends AtomicOperationTest {
     protected Transaction getStore() {
         destination = getDestination();
         return Transaction.start((Engine) destination);
+    }
+    
+    @Test(expected = TransactionStateException.class)
+    public void testAtomicOperationFromTransactionFailsIfVersionChangesWithCommit(){
+        Transaction txn = (Transaction) this.store;
+        AtomicOperation operation = txn.startAtomicOperation();
+        operation.fetch("foo", 1);
+        Engine engine = (Engine) this.destination;
+        engine.add("foo", Convert.javaToThrift("bar"), 1);
+        operation.commit();
+        Assert.assertFalse(txn.commit());
+    }
+    
+    @Test(expected = TransactionStateException.class)
+    public void testAtomicOperationFromTransactionFailsIfVersionChangesWithoutCommit(){
+        Transaction txn = (Transaction) this.store;
+        AtomicOperation operation = txn.startAtomicOperation();
+        operation.fetch("foo", 1);
+        Engine engine = (Engine) this.destination;
+        engine.add("foo", Convert.javaToThrift("bar"), 1);
+        Assert.assertFalse(txn.commit());
     }
 
     @Test(expected = TransactionStateException.class)
