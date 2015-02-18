@@ -77,6 +77,15 @@ public final class RangeTokens {
             if(a == Value.NEGATIVE_INFINITY && b == Value.POSITIVE_INFINITY) {
                 ranges.add(com.google.common.collect.Range.<Value> all());
             }
+            else if(token.getValues().length == 3) {
+                ranges.add(com.google.common.collect.Range.open(a, b));
+            }
+            else if(token.getValues().length == 4) {
+                ranges.add(com.google.common.collect.Range.closed(a, b));
+            }
+            else if(token.getValues().length == 5) {
+                ranges.add(com.google.common.collect.Range.openClosed(a, b));
+            }
             else {
                 ranges.add(com.google.common.collect.Range.closedOpen(a, b));
             }
