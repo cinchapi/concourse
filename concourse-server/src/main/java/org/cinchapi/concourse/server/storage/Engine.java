@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -61,11 +62,13 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
-import org.cinchapi.concourse.util.NonBlockingRangeMap;
-import org.cinchapi.concourse.util.Range;
-import org.cinchapi.concourse.util.RangeMap;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -178,8 +181,8 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given range token.
      */
-    private final RangeMap<VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
-            .create();
+    private final Cache<VersionChangeListener, RangeSet<Value>> rangeVersionChangeListeners = CacheBuilder
+            .newBuilder().weakKeys().build();
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -367,9 +370,16 @@ public final class Engine extends BufferedStore implements
     public void addVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens.convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                rangeVersionChangeListeners.put(range, listener);
+            Iterable<Range<Value>> ranges = RangeTokens
+                    .convertToGuavaRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                RangeSet<Value> set = rangeVersionChangeListeners
+                        .getIfPresent(listener);
+                if(set == null) {
+                    set = TreeRangeSet.create();
+                    rangeVersionChangeListeners.put(listener, set);
+                }
+                set.add(range);
             }
         }
         else {
@@ -604,12 +614,14 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                for (VersionChangeListener listener : rangeVersionChangeListeners
-                        .get(range)) {
-                    listener.onVersionChange(token);
+            Iterable<Range<Value>> ranges = RangeTokens
+                    .convertToGuavaRange((RangeToken) token);
+            for (Range<Value> range : ranges) {
+                for (Entry<VersionChangeListener, RangeSet<Value>> entry : rangeVersionChangeListeners
+                        .asMap().entrySet()) {
+                    if(!entry.getValue().subRangeSet(range).isEmpty()) {
+                        entry.getKey().onVersionChange(token);
+                    }
                 }
             }
         }
@@ -644,10 +656,15 @@ public final class Engine extends BufferedStore implements
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                rangeVersionChangeListeners.remove(range, listener);
+            RangeSet<Value> set = rangeVersionChangeListeners
+                    .getIfPresent(listener);
+
+            if(set != null) {
+                Iterable<Range<Value>> ranges = RangeTokens
+                        .convertToGuavaRange((RangeToken) token);
+                for (Range<Value> range : ranges) {
+                    set.remove(range);
+                }
             }
         }
         else {
