@@ -65,6 +65,7 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -181,7 +182,7 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given range token.
      */
-    private final Cache<VersionChangeListener, RangeSet<Value>> rangeVersionChangeListeners = CacheBuilder
+    private final Cache<VersionChangeListener, Map<Text, RangeSet<Value>>> rangeVersionChangeListeners = CacheBuilder
             .newBuilder().weakKeys().build();
 
     /**
@@ -386,11 +387,16 @@ public final class Engine extends BufferedStore implements
             Iterable<Range<Value>> ranges = RangeTokens
                     .convertToGuavaRange((RangeToken) token);
             for (Range<Value> range : ranges) {
-                RangeSet<Value> set = rangeVersionChangeListeners
+                Map<Text, RangeSet<Value>> map = rangeVersionChangeListeners
                         .getIfPresent(listener);
+                if(map == null) {
+                    map = Maps.newHashMap();
+                    rangeVersionChangeListeners.put(listener, map);
+                }
+                RangeSet<Value> set = map.get(((RangeToken) token).getKey());
                 if(set == null) {
                     set = TreeRangeSet.create();
-                    rangeVersionChangeListeners.put(listener, set);
+                    map.put(((RangeToken) token).getKey(), set);
                 }
                 set.add(range);
             }
@@ -629,11 +635,14 @@ public final class Engine extends BufferedStore implements
         if(token instanceof RangeToken) {
             Iterable<Range<Value>> ranges = RangeTokens
                     .convertToGuavaRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
-                for (Entry<VersionChangeListener, RangeSet<Value>> entry : rangeVersionChangeListeners
-                        .asMap().entrySet()) {
-                    if(!entry.getValue().subRangeSet(range).isEmpty()) {
-                        entry.getKey().onVersionChange(token);
+            for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
+                    .asMap().entrySet()) {
+                VersionChangeListener listener = entry.getKey();
+                RangeSet<Value> set = entry.getValue().get(
+                        ((RangeToken) token).getKey());
+                for (Range<Value> range : ranges) {
+                    if(set != null && !set.subRangeSet(range).isEmpty()) {
+                        listener.onVersionChange(token);
                     }
                 }
             }
@@ -668,19 +677,9 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        if(token instanceof RangeToken) {
-            RangeSet<Value> set = rangeVersionChangeListeners
-                    .getIfPresent(listener);
-
-            if(set != null) {
-                Iterable<Range<Value>> ranges = RangeTokens
-                        .convertToGuavaRange((RangeToken) token);
-                for (Range<Value> range : ranges) {
-                    set.remove(range);
-                }
-            }
-        }
-        else {
+        // NOTE: Since we use weak references for RangeToken listeners, we don't
+        // have to do manual cleanup
+        if(!(token instanceof RangeToken)) {
             versionChangeListeners.remove(token, listener);
         }
     }
