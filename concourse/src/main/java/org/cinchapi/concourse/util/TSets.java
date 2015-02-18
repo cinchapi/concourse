@@ -89,6 +89,7 @@ public class TSets {
      */
     @SuppressWarnings("unchecked")
     private static <T> Set<T> sortedIntersection(SortedSet<T> a, SortedSet<T> b) {
+        //TODO unit test and fixme
         Set<T> intersection = Sets.newLinkedHashSet();
         Iterator<T> ait = a.iterator();
         Iterator<T> bit = b.iterator();
