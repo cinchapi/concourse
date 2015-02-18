@@ -27,8 +27,8 @@ import java.util.List;
 
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.Operator;
-import org.cinchapi.concourse.util.Range;
 
+import com.google.common.collect.Range;
 import com.google.common.collect.Lists;
 
 /**
@@ -39,86 +39,13 @@ import com.google.common.collect.Lists;
  */
 public final class RangeTokens {
 
-    public static Iterable<com.google.common.collect.Range<Value>> convertToGuavaRange(
-            RangeToken token) {
-        List<com.google.common.collect.Range<Value>> ranges = Lists
-                .newArrayListWithCapacity(1);
+    public static Iterable<Range<Value>> convertToRange(RangeToken token) {
+        List<Range<Value>> ranges = Lists.newArrayListWithCapacity(1);
         if(token.getOperator() == Operator.EQUALS
                 || token.getOperator() == null) { // null operator means
                                                   // the range token is for
                                                   // writing
-            ranges.add(com.google.common.collect.Range.singleton(token
-                    .getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.NOT_EQUALS) {
-            ranges.add(com.google.common.collect.Range.lessThan(token
-                    .getValues()[0]));
-            ranges.add(com.google.common.collect.Range.greaterThan(token
-                    .getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.GREATER_THAN) {
-            ranges.add(com.google.common.collect.Range.greaterThan(token
-                    .getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.GREATER_THAN_OR_EQUALS) {
-            ranges.add(com.google.common.collect.Range.atLeast(token
-                    .getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.LESS_THAN) {
-            ranges.add(com.google.common.collect.Range.lessThan(token
-                    .getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.LESS_THAN_OR_EQUALS) {
-            ranges.add(com.google.common.collect.Range.atMost(token.getValues()[0]));
-        }
-        else if(token.getOperator() == Operator.BETWEEN) {
-            Value a = token.getValues()[0];
-            Value b = token.getValues()[1];
-            if(a == Value.NEGATIVE_INFINITY && b == Value.POSITIVE_INFINITY) {
-                ranges.add(com.google.common.collect.Range.<Value> all());
-            }
-            else if(token.getValues().length == 3) {
-                ranges.add(com.google.common.collect.Range.open(a, b));
-            }
-            else if(token.getValues().length == 4) {
-                ranges.add(com.google.common.collect.Range.closed(a, b));
-            }
-            else if(token.getValues().length == 5) {
-                ranges.add(com.google.common.collect.Range.openClosed(a, b));
-            }
-            else {
-                ranges.add(com.google.common.collect.Range.closedOpen(a, b));
-            }
-        }
-        else if(token.getOperator() == Operator.REGEX
-                || token.getOperator() == Operator.NOT_REGEX) {
-            ranges.add(com.google.common.collect.Range.<Value> all());
-        }
-        else {
-            throw new UnsupportedOperationException();
-        }
-        return ranges;
-    }
-
-    /**
-     * Convert the {@code rangeToken} to the analogous {@link Range} objects.
-     * <p>
-     * NOTE: This method returns an iterable because a NOT_EQUALS RangeToken is
-     * split into two discreet ranges. If you know the RangeToken does not have
-     * a NOT_EQUALS operator, you can assume that the returned Iterable only has
-     * one element.
-     * </p>
-     * 
-     * @param token
-     * @return the Range
-     */
-    public static Iterable<Range> convertToRange(RangeToken token) {
-        List<Range> ranges = Lists.newArrayListWithCapacity(1);
-        if(token.getOperator() == Operator.EQUALS
-                || token.getOperator() == null) { // null operator means
-                                                  // the range token is for
-                                                  // writing
-            ranges.add(Range.point(token.getValues()[0]));
+            ranges.add(Range.singleton(token.getValues()[0]));
         }
         else if(token.getOperator() == Operator.NOT_EQUALS) {
             ranges.add(Range.lessThan(token.getValues()[0]));
@@ -140,15 +67,24 @@ public final class RangeTokens {
             Value a = token.getValues()[0];
             Value b = token.getValues()[1];
             if(a == Value.NEGATIVE_INFINITY && b == Value.POSITIVE_INFINITY) {
-                ranges.add(Range.all());
+                ranges.add(Range.<Value> all());
+            }
+            else if(token.getValues().length == 3) {
+                ranges.add(Range.open(a, b));
+            }
+            else if(token.getValues().length == 4) {
+                ranges.add(Range.closed(a, b));
+            }
+            else if(token.getValues().length == 5) {
+                ranges.add(Range.openClosed(a, b));
             }
             else {
-                ranges.add(Range.between(a, b));
+                ranges.add(Range.closedOpen(a, b));
             }
         }
         else if(token.getOperator() == Operator.REGEX
                 || token.getOperator() == Operator.NOT_REGEX) {
-            ranges.add(Range.all());
+            ranges.add(Range.<Value> all());
         }
         else {
             throw new UnsupportedOperationException();

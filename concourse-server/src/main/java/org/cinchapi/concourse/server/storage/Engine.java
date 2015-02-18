@@ -372,7 +372,7 @@ public final class Engine extends BufferedStore implements
             VersionChangeListener listener) {
         if(token instanceof RangeToken) {
             Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToGuavaRange((RangeToken) token);
+                    .convertToRange((RangeToken) token);
             for (Range<Value> range : ranges) {
                 Map<Text, RangeSet<Value>> map = rangeVersionChangeListeners
                         .getIfPresent(listener);
@@ -621,7 +621,7 @@ public final class Engine extends BufferedStore implements
     public void notifyVersionChange(Token token) {
         if(token instanceof RangeToken) {
             Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToGuavaRange((RangeToken) token);
+                    .convertToRange((RangeToken) token);
             for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
                     .asMap().entrySet()) {
                 VersionChangeListener listener = entry.getKey();
