@@ -1,21 +1,13 @@
 package org.cinchapi.concourse;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import org.cinchapi.concourse.testing.Variables;
-import org.cinchapi.concourse.util.TestData;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 /**
  * Tests new API named Audit which returns a time difference greater than
