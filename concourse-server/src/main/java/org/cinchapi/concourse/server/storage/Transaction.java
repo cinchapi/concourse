@@ -34,12 +34,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.concurrent.LockService;
 import org.cinchapi.concourse.server.concurrent.RangeLockService;
-import org.cinchapi.concourse.server.concurrent.RangeToken;
-import org.cinchapi.concourse.server.concurrent.RangeTokens;
 import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -50,13 +47,8 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
-import org.cinchapi.concourse.util.NonBlockingRangeMap;
-import org.cinchapi.concourse.util.Range;
-import org.cinchapi.concourse.util.RangeMap;
-
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -65,8 +57,10 @@ import com.google.common.collect.Multimap;
  * @author jnelson
  */
 public final class Transaction extends AtomicOperation implements Compoundable {
-    // NOTE: Because Transaction's rely on JIT locking, the safe methods are
-    // identical to the unsafe ones and do not grab any locks
+    // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
+    // the safe counterparts in the super class (AtomicOperation) because those
+    // have logic to tell the BufferedStore class to perform unsafe reads.
+
     /**
      * Return the Transaction for {@code destination} that is backed up to
      * {@code file}. This method will finish committing the transaction before
@@ -110,20 +104,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * The unique Transaction id.
      */
     private final String id;
-
-    /**
-     * A collection of listeners that should be notified of a version change for
-     * a given range token.
-     */
-    private final RangeMap<VersionChangeListener> rangeVersionChangeListeners = NonBlockingRangeMap
-            .create();
-
-    /**
-     * A collection of listeners that should be notified of a version change for
-     * a given token.
-     */
-    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
-            .create();
 
     /**
      * Construct a new instance.
@@ -172,22 +152,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     @Restricted
     public void addVersionChangeListener(Token token,
-            VersionChangeListener listener) {
-        ((Compoundable) destination).addVersionChangeListener(token, this);
-        // This rest of this implementation is unnecessary since Transactions
-        // are assumed to be isolated (e.g. single-threaded), but is kept here
-        // for unit test consistency.
-        if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                rangeVersionChangeListeners.put(range, listener);
-            }
-        }
-        else {
-            versionChangeListeners.put(token, listener);
-        }
-    }
+            VersionChangeListener listener) {}
 
     @Override
     public long getVersion(long record) {
@@ -209,42 +174,12 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     @Restricted
-    public void notifyVersionChange(Token token) {
-        if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                for (VersionChangeListener listener : rangeVersionChangeListeners
-                        .get(range)) {
-                    listener.onVersionChange(token);
-                }
-            }
-        }
-        else {
-            for (VersionChangeListener listener : versionChangeListeners
-                    .get(token)) {
-                listener.onVersionChange(token);
-            }
-        }
-    }
+    public void notifyVersionChange(Token token) {}
 
     @Override
     @Restricted
     public void removeVersionChangeListener(Token token,
-            VersionChangeListener listener) {
-        // This implementation is unnecessary since Transactions are assumed to
-        // be isolated (e.g. single-threaded), but is kept here for consistency.
-        if(token instanceof RangeToken) {
-            Iterable<Range> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range range : ranges) {
-                rangeVersionChangeListeners.remove(range, listener);
-            }
-        }
-        else {
-            versionChangeListeners.remove(token, listener);
-        }
-    }
+            VersionChangeListener listener) {}
 
     @Override
     public Map<Long, String> auditUnsafe(long record) {
