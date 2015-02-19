@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -72,7 +72,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 import static com.google.common.base.Preconditions.*;
@@ -214,7 +213,7 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    private final ConcurrentMap<Token, Set<WeakReference<VersionChangeListener>>> versionChangeListeners = new ConcurrentHashMapV8<Token, Set<WeakReference<VersionChangeListener>>>();
+    private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMapV8<Token, WeakHashMap<VersionChangeListener, Boolean>>();
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -405,16 +404,15 @@ public final class Engine extends BufferedStore implements
             }
         }
         else {
-            Set<WeakReference<VersionChangeListener>> existing = versionChangeListeners
+            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
                     .get(token);
             if(existing == null) {
-                Set<WeakReference<VersionChangeListener>> created = Sets
-                        .newHashSet();
+                WeakHashMap<VersionChangeListener, Boolean> created = new WeakHashMap<VersionChangeListener, Boolean>();
                 existing = versionChangeListeners.putIfAbsent(token, created);
                 existing = Objects.firstNonNull(existing, created);
             }
             synchronized (existing) {
-                existing.add(new WeakReference<VersionChangeListener>(listener));
+                existing.put(listener, Boolean.TRUE);
             }
         }
     }
@@ -661,18 +659,15 @@ public final class Engine extends BufferedStore implements
             }
         }
         else {
-            Set<WeakReference<VersionChangeListener>> set = versionChangeListeners
+            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
                     .get(token);
-            if(set != null) {
-                synchronized (set) {
-                    Iterator<WeakReference<VersionChangeListener>> it = set
+            if(existing != null) {
+                synchronized (existing) {
+                    Iterator<VersionChangeListener> it = existing.keySet()
                             .iterator();
                     while (it.hasNext()) {
-                        WeakReference<VersionChangeListener> listener = it
-                                .next();
-                        if(listener.get() != null) {
-                            listener.get().onVersionChange(token);
-                        }
+                        VersionChangeListener listener = it.next();
+                        listener.onVersionChange(token);
                         it.remove();
                     }
                 }
