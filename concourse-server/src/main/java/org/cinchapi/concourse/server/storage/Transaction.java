@@ -41,12 +41,14 @@ import org.cinchapi.concourse.server.concurrent.Token;
 import org.cinchapi.concourse.server.io.ByteableCollections;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.storage.temp.Queue;
+import org.cinchapi.concourse.server.storage.temp.TransactionQueue;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
+
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
@@ -111,7 +113,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * @param destination
      */
     private Transaction(Engine destination) {
-        super(destination);
+        super(new TransactionQueue(INITIAL_CAPACITY), destination);
         this.id = Long.toString(Time.now());
     }
 
