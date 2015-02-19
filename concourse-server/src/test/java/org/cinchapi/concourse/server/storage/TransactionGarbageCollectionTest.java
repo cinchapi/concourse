@@ -41,40 +41,41 @@ import org.junit.Test;
  * @author jnelson
  */
 public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
-    
+
     private Engine engine;
     private String directory;
-    
+
     @Override
-    public void beforeEachTest(){
+    public void beforeEachTest() {
         directory = TestData.getTemporaryTestDir();
         engine = new Engine(directory + File.separator + "buffer", directory
                 + File.separator + "database");
         engine.start();
     }
-    
+
     @Override
-    public void afterEachTest(){
+    public void afterEachTest() {
         FileSystem.deleteDirectory(directory);
     }
-    
+
     @Test
-    public void testGCAfterCommit(){
+    public void testGCAfterCommit() {
         Transaction transaction = engine.startTransaction();
         transaction.browse(1);
         transaction.add("foo", TestData.getTObject(), 1);
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
         transaction.commit();
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(transaction);
+        WeakReference<Transaction> reference = new WeakReference<Transaction>(
+                transaction);
         Assert.assertNotNull(reference.get());
         transaction = null;
         System.gc();
-        Assert.assertNull(reference.get()); 
+        Assert.assertNull(reference.get());
     }
-    
+
     @Test
-    public void testGCAfterFailure(){
+    public void testGCAfterFailuer() {
         Transaction a = engine.startTransaction();
         Transaction b = engine.startTransaction();
         a.browse(1);
@@ -85,7 +86,7 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         b.browse(1);
         b.add("foo", TestData.getTObject(), 1);
         b.browse("foo");
-        b.find("foo", Operator.GREATER_THAN, TestData.getTObject());  
+        b.find("foo", Operator.GREATER_THAN, TestData.getTObject());
         WeakReference<Transaction> aa = new WeakReference<Transaction>(a);
         WeakReference<Transaction> bb = new WeakReference<Transaction>(b);
         Assert.assertNotNull(aa.get());
@@ -97,34 +98,36 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         Assert.assertNull(aa.get());
         Assert.assertNull(bb.get());
     }
-    
+
     @Test
-    public void testGCAfterAbort(){
+    public void testGCAfterAbort() {
         Transaction transaction = engine.startTransaction();
         transaction.browse(1);
         transaction.add("foo", TestData.getTObject(), 1);
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(transaction);
+        WeakReference<Transaction> reference = new WeakReference<Transaction>(
+                transaction);
         Assert.assertNotNull(reference.get());
         transaction.abort();
         transaction = null;
         System.gc();
-        Assert.assertNull(reference.get());        
+        Assert.assertNull(reference.get());
     }
-    
+
     @Test
-    public void testGCAfterRangeLockUpgradeAndCommit(){
+    public void testGCAfterRangeLockUpgradeAndCommit() {
         Transaction transaction = engine.startTransaction();
         TObject value = TestData.getTObject();
         transaction.find("foo", Operator.EQUALS, value);
         transaction.add("foo", value, 1);
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(transaction);
+        WeakReference<Transaction> reference = new WeakReference<Transaction>(
+                transaction);
         Assert.assertNotNull(reference.get());
         transaction.commit();
         transaction = null;
         System.gc();
-        Assert.assertNull(reference.get()); 
+        Assert.assertNull(reference.get());
     }
 
 }
