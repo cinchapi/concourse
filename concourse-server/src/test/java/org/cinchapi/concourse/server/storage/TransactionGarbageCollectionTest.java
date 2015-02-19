@@ -75,7 +75,7 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testGCAfterFailuer() {
+    public void testGCAfterFailure(){
         Transaction a = engine.startTransaction();
         Transaction b = engine.startTransaction();
         a.browse(1);
