@@ -90,7 +90,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * The initial capacity
      */
-    private static final int INITIAL_CAPACITY = 10;
+    protected static final int INITIAL_CAPACITY = 10;
 
     /**
      * The {@link RangeToken range read tokens} that represent any queries in
@@ -146,8 +146,17 @@ public class AtomicOperation extends BufferedStore implements
      * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
-        super(new Queue(INITIAL_CAPACITY), destination,
-                ((BufferedStore) destination).lockService,
+        this(new Queue(INITIAL_CAPACITY), destination);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param buffer
+     * @param destination - must be a {@link Compoundable}
+     */
+    protected AtomicOperation(Queue buffer, Compoundable destination) {
+        super(buffer, destination, ((BufferedStore) destination).lockService,
                 ((BufferedStore) destination).rangeLockService);
         this.source = (Compoundable) this.destination;
     }
@@ -221,8 +230,7 @@ public class AtomicOperation extends BufferedStore implements
         RangeToken rangeToken = RangeToken.forReading(key0, Operator.BETWEEN,
                 Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY);
         source.addVersionChangeListener(rangeToken, this);
-        Iterable<Range<Value>> ranges = RangeTokens
-                .convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -513,8 +521,7 @@ public class AtomicOperation extends BufferedStore implements
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
         source.addVersionChangeListener(rangeToken, this);
-        Iterable<Range<Value>> ranges = RangeTokens
-                .convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
