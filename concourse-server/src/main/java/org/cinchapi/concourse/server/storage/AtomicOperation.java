@@ -451,7 +451,6 @@ public class AtomicOperation extends BufferedStore implements
                           // #grabLocks method isn't notified of version change
                           // failure in time
             for (LockDescription lock : _locks.values()) {
-                source.removeVersionChangeListener(lock.getToken(), this);
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException
                                          // here because a lock should only go
