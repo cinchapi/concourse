@@ -24,7 +24,9 @@
 package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -32,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,7 +43,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.common.util.NonBlockingHashMultimap;
 import org.cinchapi.concourse.annotate.Authorized;
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.Restricted;
@@ -62,13 +64,15 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
+import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 import static com.google.common.base.Preconditions.*;
@@ -210,8 +214,7 @@ public final class Engine extends BufferedStore implements
      * A collection of listeners that should be notified of a version change for
      * a given token.
      */
-    private final Multimap<Token, VersionChangeListener> versionChangeListeners = NonBlockingHashMultimap
-            .create();
+    private final ConcurrentMap<Token, Set<WeakReference<VersionChangeListener>>> versionChangeListeners = new ConcurrentHashMapV8<Token, Set<WeakReference<VersionChangeListener>>>();
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -402,7 +405,17 @@ public final class Engine extends BufferedStore implements
             }
         }
         else {
-            versionChangeListeners.put(token, listener);
+            Set<WeakReference<VersionChangeListener>> existing = versionChangeListeners
+                    .get(token);
+            if(existing == null) {
+                Set<WeakReference<VersionChangeListener>> created = Sets
+                        .newHashSet();
+                existing = versionChangeListeners.putIfAbsent(token, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            synchronized (existing) {
+                existing.add(new WeakReference<VersionChangeListener>(listener));
+            }
         }
     }
 
@@ -648,9 +661,21 @@ public final class Engine extends BufferedStore implements
             }
         }
         else {
-            for (VersionChangeListener listener : versionChangeListeners
-                    .get(token)) {
-                listener.onVersionChange(token);
+            Set<WeakReference<VersionChangeListener>> set = versionChangeListeners
+                    .get(token);
+            if(set != null) {
+                synchronized (set) {
+                    Iterator<WeakReference<VersionChangeListener>> it = set
+                            .iterator();
+                    while (it.hasNext()) {
+                        WeakReference<VersionChangeListener> listener = it
+                                .next();
+                        if(listener.get() != null) {
+                            listener.get().onVersionChange(token);
+                        }
+                        it.remove();
+                    }
+                }
             }
         }
     }
@@ -677,11 +702,8 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void removeVersionChangeListener(Token token,
             VersionChangeListener listener) {
-        // NOTE: Since we use weak references for RangeToken listeners, we don't
-        // have to do manual cleanup
-        if(!(token instanceof RangeToken)) {
-            versionChangeListeners.remove(token, listener);
-        }
+        // NOTE: Since we use weak references listeners, we don't have to do
+        // manual cleanup because the GC will take care of it.
     }
 
     @Override
