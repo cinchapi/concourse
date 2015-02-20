@@ -352,14 +352,18 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
-        Lock shared = lockService.getWriteLock(record);
-        Lock write = lockService.getWriteLock(key, record);
-        Lock range = rangeLockService.getWriteLock(key, value);
+        Token shared0 = Token.wrap(record);
+        Token write0 = Token.wrap(key, record);
+        RangeToken range0 = RangeToken.forWriting(Text.wrap(key),
+                Value.wrap(value));
+        Lock shared = lockService.getWriteLock(shared0);
+        Lock write = lockService.getWriteLock(write0);
+        Lock range = rangeLockService.getWriteLock(range0);
         shared.lock();
         write.lock();
         range.lock();
         try {
-            return addUnsafe(key, value, record, true);
+            return addUnsafe(key, value, record, true, shared0, write0, range0);
         }
         finally {
             shared.unlock();
@@ -664,14 +668,19 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
-        Lock shared = lockService.getWriteLock(record);
-        Lock write = lockService.getWriteLock(key, record);
-        Lock range = rangeLockService.getWriteLock(key, value);
+        Token shared0 = Token.wrap(record);
+        Token write0 = Token.wrap(key, record);
+        RangeToken range0 = RangeToken.forWriting(Text.wrap(key),
+                Value.wrap(value));
+        Lock shared = lockService.getWriteLock(shared0);
+        Lock write = lockService.getWriteLock(write0);
+        Lock range = rangeLockService.getWriteLock(range0);
         shared.lock();
         write.lock();
         range.lock();
         try {
-            return removeUnsafe(key, value, record, true);
+            return removeUnsafe(key, value, record, true, shared0, write0,
+                    range0);
         }
         finally {
             shared.unlock();
@@ -815,11 +824,32 @@ public final class Engine extends BufferedStore implements
      */
     private boolean addUnsafe(String key, TObject value, long record,
             boolean sync) {
+        return addUnsafe(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
+                RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
+    }
+
+    /**
+     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
+     * locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param sync
+     * @param shared - {@link LockToken} for record
+     * @param write - {@link LockToken} for key in record
+     * @param range - {@link RangeToken} for writing value to key
+     * @return {@code true} if the add was successful
+     */
+    private boolean addUnsafe(String key, TObject value, long record,
+            boolean sync, Token shared, Token write, RangeToken range) {
         if(super.add(key, value, record, sync, sync)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
-                    Value.wrap(value)));
+            notifyVersionChange(write);
+            notifyVersionChange(shared);
+            notifyVersionChange(range);
             return true;
         }
         return false;
@@ -862,11 +892,33 @@ public final class Engine extends BufferedStore implements
      */
     private boolean removeUnsafe(String key, TObject value, long record,
             boolean sync) {
+        return removeUnsafe(key, value, record, sync, Token.wrap(record),
+                Token.wrap(key, record),
+                RangeToken.forWriting(Text.wrap(key), Value.wrap(value)));
+
+    }
+
+    /**
+     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
+     * any locks. This method is ONLY appropriate to call from the
+     * {@link #accept(Write)} method that processes transaction commits since,
+     * in that case, the appropriate locks have already been grabbed.
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param sync
+     * @param shared - {@link LockToken} for record
+     * @param write - {@link LockToken} for key in record
+     * @param range - {@link RangeToken} for writing value to key
+     * @return {@code true} if the remove was successful
+     */
+    private boolean removeUnsafe(String key, TObject value, long record,
+            boolean sync, Token shared, Token write, RangeToken range) {
         if(super.remove(key, value, record, sync, sync)) {
-            notifyVersionChange(Token.wrap(key, record));
-            notifyVersionChange(Token.wrap(record));
-            notifyVersionChange(RangeToken.forWriting(Text.wrapCached(key),
-                    Value.wrap(value)));
+            notifyVersionChange(write);
+            notifyVersionChange(shared);
+            notifyVersionChange(range);
             return true;
         }
         return false;
