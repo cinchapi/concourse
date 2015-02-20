@@ -1,4 +1,4 @@
-# ConcourseDB
+# Concourse
 
 [Concourse](http://concoursedb.com) is a distributed self-tuning database with [automatic indexing](http://concoursedb.com/blog/index-all-the-things/), version control and acid transactions. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
