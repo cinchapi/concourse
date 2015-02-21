@@ -47,28 +47,36 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 
 	@Test
 	public void testEmptyJsonify() {
-		String expected = "{}";
+		String expected = "[]";
 		List<Long> empty = new ArrayList<>();
+		//Multimap<String, Object> expectedMap = LinkedListMultimap.create();
+		//client.add("map", expectedMap, 1);
 		String actual = client.jsonify(empty);
+		//String test = client.jsonify(1, false);
+		//System.out.println(test);
+		//System.out.println(Convert.jsonToJava(test));
 		Assert.assertEquals(expected, actual);
 	}
 	
 	//Test for corner cases with Concourse data types
 	//Double and Link
+	@Test
 	public void testDoubleLinkJsonify() {
-		String expectedDouble = "{\"1\":{\"key\":[\"3.14D\"]}}";
-		String expectedLink = "{\"2\":{\"key\":[\"@12345@\"]}}";
+		String expectedDouble = "[{\"$primaryKey$\":[1],\"key\":[\"3.14D\"]}]";
+		String expectedLink = "[{\"$primaryKey$\":[2],\"key\":[\"@12345@\"]}]";
 
 		client.add("key", 3.14, 1);
 		client.add("key", Link.to(12345), 2);
 		String actualDouble = client.jsonify(1);
 		String actualLink = client.jsonify(2);
+		
+		System.out.println(actualDouble);
+		System.out.println(actualLink);
 
 		Assert.assertEquals(expectedDouble, actualDouble);
 		Assert.assertEquals(expectedLink, actualLink);
 	}
 	
-	@Test
 	public void testStringToJavaAndBack() {
 		String testStr = "{\"key1\": a, \"key2\": b, \"key3\": [c, d, e]}";
 		client.insert(testStr, 10L);
@@ -79,7 +87,6 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		Assert.assertTrue(resultStr.contains("\"key3\":[\"d\",\"e\",\"c\"]"));
 	}
 	
-	@Test
 	public void testJavaToStringAndBack() {
 		Multimap<String, Object> expectedMap = LinkedListMultimap.create();
 		expectedMap.put("key1", Arrays.asList(1L, 2L, 3L));;
@@ -104,7 +111,6 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 	}
 	
 	//includePrimaryKey set as true
-	@Test
 	public void testJsonify() {
 		long record1 = 1;
 		long record2 = 2;
@@ -133,7 +139,6 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 	}
 	
 	// PrimaryKey not included
-	@Test
 	public void testJsonifyFalse() {
 		long record1 = 1;
 		long record2 = 2;

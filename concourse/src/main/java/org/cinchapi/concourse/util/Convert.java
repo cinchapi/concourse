@@ -29,6 +29,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -50,6 +53,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -168,6 +172,9 @@ public final class Convert {
                     "The JSON string must encapsulate data within an object");
         }
         JsonObject object = (JsonObject) parser.parse(json);
+        if (object.has("$primaryKey$")) {
+        	object.remove("$primaryKey$");
+        }
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             String key = entry.getKey();
             JsonElement val = entry.getValue();
@@ -196,6 +203,16 @@ public final class Convert {
             }
         }
         return data;
+    }
+    
+    public static List<Map<String, Set<Object>>> jsonArrayToJava(String
+    		jsonArray) {
+    	java.lang.reflect.Type typeOfT = 
+    			new TypeToken<List<Map<String, Set<Object>>>>(){}.getType();
+    	Gson gson = new Gson();
+    	List<Map<String, Set<Object>>> listJson = 
+    			gson.fromJson(jsonArray, typeOfT);
+    	return listJson;
     }
 
     /**

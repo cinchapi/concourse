@@ -1067,7 +1067,7 @@ public class ConcourseServer implements
     		includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
     	AtomicOperation operation = store.startAtomicOperation();
     	try {
-	   		Map<Long, Map<String, Set<Object>>> result = Maps.newHashMap();
+	   		List<Map<String, Set<Object>>> result = Lists.newLinkedList();
 			Set<Map<String, Set<Object>>> resultNoKey = Sets.newHashSet();
 			
 			for (Long record: records) {
@@ -1083,20 +1083,21 @@ public class ConcourseServer implements
 					rec.put(entry.getKey(), values);
 				}
 				if (includePrimaryKey) {
-					result.put(record, rec);
+					Set<Object> recordSet = Sets.newHashSet();
+					recordSet.add(record);
+					rec.put("$primaryKey$", recordSet);
+					result.add(rec);
 				}
 				else {
 					resultNoKey.add(rec);
 				}
 			} // End for record loop
 			
-			if (includePrimaryKey){
+			if (includePrimaryKey) {
 				jsonStr.append(Convert.javaToJson(result));
-			}
+			} 
 			else {
-				//Gson encapsulates collections with square brackets
-				String json = Convert.javaToJson(resultNoKey).replaceAll("[{}]", "");
-				jsonStr.append("{" + json.substring(1, json.length() - 1) + "}");
+				jsonStr.append(Convert.javaToJson(resultNoKey));
 			}
 			return operation;
     	} 
