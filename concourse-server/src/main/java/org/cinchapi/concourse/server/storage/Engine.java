@@ -965,6 +965,15 @@ public final class Engine extends BufferedStore implements
         public BufferTransportThread() {
             super(MessageFormat.format("BufferTransport [{0}]", environment));
             setDaemon(true);
+            setPriority(MIN_PRIORITY);
+            setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+
+                @Override
+                public void uncaughtException(Thread t, Throwable e) {
+                    Logger.error("Uncaught exception in {}: {}", t.getName(), e);
+                }
+
+            });
         }
 
         @Override
