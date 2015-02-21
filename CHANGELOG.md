@@ -44,8 +44,8 @@
 * Improved Transaction write performance by using local bloom filters to speed up `verifies`.
 * [CON-239](https://cinchapi.atlassian.net/browse/CON-239): Fixed a bug where storage engine methods that touched an entire record (e.g. `browse(record)` and `audit(record)`) or an entire key (`browse(key)`) were not properly locked which potentially made reads inconsistent.
 * [CON-246](https://cinchapi.atlassian.net/browse/CON-246): Fixed an issue where transactions unnecessarily performed double write validation which hurt performance.
-* [CON-248]((https://cinchapi.atlassian.net/browse/CON-248): Fixed a major memory leak that occurred when transactions were aborted or failed prior to committing.
-* [CON-238]((https://cinchapi.atlassian.net/browse/CON-238): Added logging to indicate if the background indexing job terminates because of an uncaught error.
+* [CON-248](https://cinchapi.atlassian.net/browse/CON-248): Fixed a major memory leak that occurred when transactions were aborted or failed prior to committing.
+* [CON-238](https://cinchapi.atlassian.net/browse/CON-238): Added logging to indicate if the background indexing job terminates because of an uncaught error.
 
 #### Version 0.4.3 (February 1, 2015)
 *In this release we made lots of internal optimizations to further build on the performance improvements in versions 0.4.1 and 0.4.2. Many of them are small, but a few of the larger ones are highlighted below. In total, our efforts have produced additional speed improvements of 53 percent for queries, 80 percent for range queries, 65 percent for writes and 83 perecent for background indexing.*
