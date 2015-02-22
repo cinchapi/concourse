@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
@@ -127,6 +128,7 @@ import com.google.common.collect.Lists;
  * 
  * @author jnelson
  */
+@NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
 
     /**
