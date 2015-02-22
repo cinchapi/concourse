@@ -1380,6 +1380,7 @@ public abstract class Concourse implements AutoCloseable {
                     public void run() {
                         if(transaction != null && transport.isOpen()) {
                             abort();
+                            transport.close();
                         }
                     }
 

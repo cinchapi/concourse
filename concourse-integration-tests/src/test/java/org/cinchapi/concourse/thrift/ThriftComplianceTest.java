@@ -21,8 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.thrift;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
+import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.Timestamp;
+import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Random;
+import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,6 +61,30 @@ public class ThriftComplianceTest extends ConcourseIntegrationTest {
             }
             previous = timestamp;
         }
+    }
+
+    @Test
+    public void testGetTObjectInternalType() {
+        TObject tObject = new TObject(ByteBuffer.wrap(Random.getString()
+                .getBytes()), Type.TAG);
+        Assert.assertEquals(Type.STRING, tObject.getInternalType());
+    }
+
+    @Test
+    public void testTObjectHashCode() {
+        TObject tObject = new TObject(ByteBuffer.wrap(Random.getString()
+                .getBytes()), Type.TAG);
+        Assert.assertEquals(
+                tObject.hashCode(),
+                Arrays.hashCode(new int[] { tObject.data.hashCode(),
+                        tObject.getInternalType().ordinal() }));
+    }
+    
+    @Test
+    public void testTObjectToString(){
+        Object object = TestData.getObject();
+        TObject tObject = Convert.javaToThrift(object);
+        Assert.assertEquals(object.toString(), tObject.toString());
     }
 
 }
