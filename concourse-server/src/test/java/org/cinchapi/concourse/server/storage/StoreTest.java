@@ -844,34 +844,34 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertEquals(records,
                 store.find(key, operator, Convert.javaToThrift(min)));
     }
-    
+
     @Test
     public void testFindForRegexWithPercentSign() {
-        String key = TestData.getString();
-        String value = TestData.getString();
-        Set<Long> records = getRecords();
-        for (long record : records ){
-        	add(key, Convert.javaToThrift(value), record);        	
+        String key = Variables.register("key", TestData.getString());
+        String value = Variables.register("value", TestData.getString());
+        Set<Long> records = Variables.register("records", getRecords());
+        for (long record : records) {
+            add(key, Convert.javaToThrift(value), record);
         }
-       Assert.assertEquals(records,
-                store.find(key, Operator.REGEX, Convert.javaToThrift(putStringWithinPercentSign(value))));
+        Assert.assertEquals(records, store.find(key, Operator.REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value))));
     }
 
     @Test
     public void testFindForNotRegExWithPercentSign() {
-        String key = TestData.getString();
-        String value1 = TestData.getString();
-        Set<Long> records1 = getRecords();
-        for (long record : records1 ){
-        	add(key, Convert.javaToThrift(value1), record);        	
+        String key = Variables.register("key", TestData.getString());
+        String value1 = Variables.register("value1", TestData.getString());
+        Set<Long> records1 = Variables.register("records1", getRecords());
+        for (long record : records1) {
+            add(key, Convert.javaToThrift(value1), record);
         }
-        String value2 = TestData.getString();
-        Set<Long> records2 = getRecords();
-        for (long record : records2){
-        	add(key, Convert.javaToThrift(value2), record);
+        String value2 = Variables.register("value2", TestData.getString());
+        Set<Long> records2 = Variables.register("records2", getRecords());
+        for (long record : records2) {
+            add(key, Convert.javaToThrift(value2), record);
         }
-       Assert.assertEquals(records2,
-               store.find(key, Operator.NOT_REGEX, Convert.javaToThrift(putStringWithinPercentSign(value1))));
+        Assert.assertEquals(records2, store.find(key, Operator.NOT_REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value1))));
     }
 
     @Test
@@ -1387,24 +1387,37 @@ public abstract class StoreTest extends ConcourseBaseTest {
             tagRecord = Variables.register("tagRecord", TestData.getLong());
         }
         add(key, Convert.javaToThrift(value), tagRecord);
-        Assert.assertFalse(store.search(key, value.toString()).contains(tagRecord));
+        Assert.assertFalse(store.search(key, value.toString()).contains(
+                tagRecord));
     }
-    
+
     @Test
     public void testSearchThatRecordWithValueAsTagIsNotIncludedInResultSetReproCON_129() {
         String key = "yy2mf7yveeprn5u1znljub dmld8r2w";
         Tag value = Tag.create("1");
         Long tagRecord = -2641333647249146582L;
-        add(key, Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"), 285009080280006567L);
-        add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"), -7352212869558049531L);
+        add(key,
+                Convert.javaToThrift("btq0adgux53hjckphjeux 7x1sxem yfp sdzipvy0 3 2n 7t9daxkmw1h7r7zyl60 ks5t 06zjdjuj4iooq"),
+                285009080280006567L);
+        add(key, Convert.javaToThrift("7pu1v97xoz5063p9cuq2qoks"),
+                -7352212869558049531L);
         add(key, Convert.javaToThrift(false), 388620935878197713L);
-        add(key, Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"), 1548639509905032340L);
+        add(key,
+                Convert.javaToThrift("2m5 lw amprzq4msvv s2wnv08zc qzi4 new  hl745qodce22h9yy812"),
+                1548639509905032340L);
         add(key, Convert.javaToThrift("e ysho"), -765676142204325002L);
-        add(key, Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"), 2679248400003802470L);
+        add(key,
+                Convert.javaToThrift("jzfttlm258jejhsuapeqybe2j8fej3t7fgb2t6lqbbj"),
+                2679248400003802470L);
         add(key, Convert.javaToThrift("s4i0ite7fep"), -2412570382637653495L);
-        add(key, Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"), -1087503013401908104L);
-        add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"), -9186255645112595336L);
-        add(key, Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"), 8074263650552255137L);
+        add(key,
+                Convert.javaToThrift("6o42czhg72u4u9 w2gqfvrnc6 c7 tm 3kp18 11u6oi04ri8it5 pomhxqx3h71omavvk5pmu4hgl10v00549e"),
+                -1087503013401908104L);
+        add(key, Convert.javaToThrift("ob4yhyvk076c0 ock"),
+                -9186255645112595336L);
+        add(key,
+                Convert.javaToThrift("4 n8c8bf iyjv0q6niyd6wa2l2s01s2g9jkq9y2dqbkz 08 zjcrmnbt f5vnyzf lwthqcfxp o"),
+                8074263650552255137L);
         add(key, Convert.javaToThrift(false), -1122802924122720425L);
         add(key, Convert.javaToThrift(0.6491074), 8257322177342234041L);
         add(key, Convert.javaToThrift(false), 2670863628024031952L);
@@ -1883,15 +1896,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
     private enum SearchType {
         PREFIX, INFIX, SUFFIX, FULL
     }
-    
+
     /**
      * This method will put (percent) % sign at both end of the {@link String}.
-     *  
+     * 
      * @param str
      * @return {@code String}
      */
-    private String putStringWithinPercentSign(String str){
-    	return "%"+str+"%";
-    }    
+    private String putStringWithinPercentSign(String str) {
+        return "%" + str + "%";
+    }
 
 }
