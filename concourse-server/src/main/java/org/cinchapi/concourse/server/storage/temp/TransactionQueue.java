@@ -36,7 +36,7 @@ public class TransactionQueue extends Queue {
     /**
      * The bloom filter used to speed up verifies.
      */
-    private static final BloomFilter bloom = BloomFilter.create(500000);
+    private final BloomFilter bloom = BloomFilter.create(500000);
 
     /**
      * Construct a new instance.
