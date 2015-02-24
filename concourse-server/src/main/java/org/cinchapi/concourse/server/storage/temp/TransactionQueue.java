@@ -21,35 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.server.storage.temp;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 
 /**
- * Unit tests to to check to make sure that the necessary changes have been made
- * to the codebase after regenerating the thrift code.
+ * A special {@link Queue} that is used for {@link Transaction transactions}:
+ * uses a local bloom filter to make verifies more efficient.
  * 
  * @author jnelson
  */
-public class ThriftComplianceTest extends ConcourseIntegrationTest {
+public class TransactionQueue extends Queue {
 
-    @Test
-    public void testSwitchedHashToLinkedHash() {
-        // This test checks to make sure that all instances of Hash* have been
-        // replaced with LinkedHash* in ConcourseService.java
-        client.add("name", "john", 1);
-        client.add("name", "google", 1);
-        client.add("name", "brad", 1);
-        client.add("name", "kenneth", 1);
-        client.add("name", 1, 1);
-        client.add("name", true, 1);
-        Timestamp previous = null;
-        for (Timestamp timestamp : client.audit(1).keySet()) {
-            if(previous != null) {
-                Assert.assertTrue(timestamp.getMicros() > previous.getMicros());
-            }
-            previous = timestamp;
+    /**
+     * The bloom filter used to speed up verifies.
+     */
+    private final BloomFilter bloom = BloomFilter.create(500000);
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param initialSize
+     */
+    public TransactionQueue(int initialSize) {
+        super(initialSize);
+    }
+
+    @Override
+    public boolean insert(Write write, boolean sync) {
+        if(super.insert(write, sync)) {
+            bloom.putCached(write.getKey(), write.getValue(), write.getRecord());
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean verify(Write write, long timestamp, boolean exists) {
+        if(bloom.mightContainCached(write.getKey(), write.getValue(),
+                write.getRecord())) {
+            return super.verify(write, timestamp, exists);
+        }
+        else {
+            return exists;
         }
     }
 

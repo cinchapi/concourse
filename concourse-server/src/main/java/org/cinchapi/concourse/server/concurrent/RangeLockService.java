@@ -24,8 +24,8 @@
 package org.cinchapi.concourse.server.concurrent;
 
 import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
@@ -36,10 +36,12 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Multiset;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeRangeSet;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given
@@ -65,7 +67,8 @@ import com.google.common.collect.Multiset;
  * 
  * @author jnelson
  */
-public class RangeLockService {
+public class RangeLockService extends
+        AbstractLockService<RangeToken, RangeReadWriteLock> {
 
     /**
      * Create a new {@link RangeLockService}.
@@ -73,7 +76,8 @@ public class RangeLockService {
      * @return the RangeLockService
      */
     public static RangeLockService create() {
-        return new RangeLockService();
+        return new RangeLockService(
+                new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>());
     }
 
     /**
@@ -108,29 +112,20 @@ public class RangeLockService {
     };
 
     /**
-     * A cache of locks that have been requested.
+     * The information used in the {@link #isRangeBlocked(LockType, RangeToken)}
+     * method.
      */
-    private final ConcurrentHashMapV8<RangeToken, RangeReadWriteLock> locks = new ConcurrentHashMapV8<RangeToken, RangeReadWriteLock>();
+    protected final RangeBlockingInfo info = new RangeBlockingInfo();
+
+    private RangeLockService() {/* noop */}
 
     /**
-     * Return the ReadLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
+     * Construct a new instance.
      * 
-     * @param token
-     * @return the ReadLock
+     * @param locks
      */
-    public ReadLock getReadLock(RangeToken token) {
-        Thread thread = Thread.currentThread();
-        RangeReadWriteLock existing = locks.get(token);
-        if(existing == null) {
-            RangeReadWriteLock created = new RangeReadWriteLock(token);
-            existing = locks.putIfAbsent(token, created);
-            existing = Objects.firstNonNull(existing, created);
-        }
-        existing.readers.setCount(thread, 1);
-        return locks.putIfAbsent(token, existing) == existing ? existing
-                .readLock() : getReadLock(token);
+    private RangeLockService(ConcurrentMap<RangeToken, RangeReadWriteLock> locks) {
+        super(locks);
     }
 
     /**
@@ -161,27 +156,6 @@ public class RangeLockService {
     }
 
     /**
-     * Return the WriteLock that is identified by {@code token}. Every caller
-     * requesting a lock for {@code token} is guaranteed to get the same
-     * instance if the lock is currently held by a reader of a writer.
-     * 
-     * @param token
-     * @return the WriteLock
-     */
-    public WriteLock getWriteLock(RangeToken token) {
-        Thread thread = Thread.currentThread();
-        RangeReadWriteLock existing = locks.get(token);
-        if(existing == null) {
-            RangeReadWriteLock created = new RangeReadWriteLock(token);
-            existing = locks.putIfAbsent(token, created);
-            existing = Objects.firstNonNull(existing, created);
-        }
-        existing.writers.setCount(thread, 1);
-        return locks.putIfAbsent(token, existing) == existing ? existing
-                .writeLock() : getWriteLock(token);
-    }
-
-    /**
      * Return the WriteLock that is identified by {@code objects}. Every caller
      * requesting a lock for {@code token} is guaranteed to get the same
      * instance if the lock is currently held by a reader of a writer.
@@ -205,6 +179,11 @@ public class RangeLockService {
         return getWriteLock(RangeToken.forWriting(key, value));
     }
 
+    @Override
+    protected RangeReadWriteLock createLock(RangeToken token) {
+        return new RangeReadWriteLock(this, token);
+    }
+
     /**
      * Return {@code true} if an attempt to used {@code token} for a
      * {@code type} lock is range blocked. Range blocking occurs when there is
@@ -218,240 +197,161 @@ public class RangeLockService {
      */
     protected final boolean isRangeBlocked(LockType type, RangeToken token) {
         Value value = token.getValues()[0];
-        Iterator<Entry<RangeToken, RangeReadWriteLock>> it = locks.entrySet()
-                .iterator();
         if(type == LockType.READ) {
             Preconditions.checkArgument(token.getOperator() != null);
-            while (it.hasNext()) {
-                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
-                RangeToken myToken = entry.getKey();
-                RangeReadWriteLock myLock = entry.getValue();
-                if(myToken.getKey().equals(token.getKey())
-                        && myLock.isWriteLocked()
-                        && !myLock.isWriteLockedByCurrentThread()) {
-                    for (Value myValue : myToken.getValues()) {
-                        switch (token.getOperator()) {
-                        // If I want to READ X, I am blocked if:
-                        case BETWEEN:
-                            if((myValue.compareTo(value) >= 0 && myValue
-                                    .compareTo(token.getValues()[1]) < 0)
-                                    || (myValue.compareTo(token.getValues()[1])) >= 0
-                                    && myValue.compareTo(value) < 0) {
-                                return true;
-                            }
-                            break;
-                        case EQUALS:
-                            if(myValue.equals(value)) {
-                                return true;
-                            }
-                            break;
-                        case GREATER_THAN:
-                            if(myValue.compareTo(value) > 0) {
-                                return true;
-                            }
-                            break;
-                        case GREATER_THAN_OR_EQUALS:
-                            if(myValue.compareTo(value) >= 0) {
-                                return true;
-                            }
-                            break;
-                        case LESS_THAN:
-                            if(myValue.compareTo(value) < 0) {
-                                return true;
-                            }
-                            break;
-                        case LESS_THAN_OR_EQUALS:
-                            if(myValue.compareTo(value) <= 0) {
-                                return true;
-                            }
-                            break;
-                        case NOT_EQUALS:
-                            if(!myValue.equals(value)) {
-                                return true;
-                            }
-                            break;
-                        case NOT_REGEX:
-                            if(!myValue.getTObject().toString()
-                                    .matches(value.getTObject().toString())) {
-                                return true;
-                            }
-                            break;
-                        case REGEX:
-                            if(myValue.getTObject().toString()
-                                    .matches(value.getTObject().toString())) {
-                                return true;
-                            }
-                            break;
-                        default:
-                            break;
-                        }
-                    }
-                }
-
-            }
-            return false;
-        }
-        else {
-            // If I want to WRITE X, I am blocked if there is a READ smaller
-            // than X and another READ larger than X OR there is a READ for X
-            boolean foundSmaller = false;
-            boolean foundLarger = false;
-            while (it.hasNext() && (!foundSmaller || !foundLarger)) {
-                Entry<RangeToken, RangeReadWriteLock> entry = it.next();
-                RangeToken myToken = entry.getKey();
-                RangeReadWriteLock myLock = entry.getValue();
-                if(myToken.getKey().equals(token.getKey())
-                        && myLock.getReadLockCount() > 0) {
-                    for (Value myValue : myToken.getValues()) {
-                        if(value.equals(myValue)) {
+            switch (token.getOperator()) {
+            case EQUALS:
+                return info.writes(token.getKey()).contains(value);
+            case NOT_EQUALS:
+                return info.writes(token.getKey()).size() > 1
+                        || (info.writes(token.getKey()).size() == 1 && !info
+                                .writes(token.getKey()).contains(value));
+            default:
+                Iterator<Value> it = info.writes(token.getKey()).iterator();
+                while (it.hasNext()) {
+                    Iterable<Range<Value>> ranges = RangeTokens
+                            .convertToRange(token);
+                    Value current = it.next();
+                    Range<Value> point = Range.singleton(current);
+                    for (Range<Value> range : ranges) {
+                        RangeReadWriteLock lock = null;
+                        if(range.isConnected(point)
+                                && !range.intersection(point).isEmpty()
+                                && (lock = locks.get(RangeToken.forWriting(
+                                        token.getKey(), current))) != null
+                                && !lock.isWriteLockedByCurrentThread()) {
                             return true;
                         }
-                        else {
-                            foundSmaller = value.compareTo(myValue) >= 0 ? true
-                                    : foundSmaller;
-                            foundLarger = value.compareTo(myValue) < 0 ? true
-                                    : foundLarger;
-                        }
                     }
                 }
+                return false;
             }
-            return foundSmaller && foundLarger;
+        }
+        else {
+            // If I want to WRITE X, I am blocked if there is a READ that
+            // touches X (e.g. direct read for X or a range read that includes
+            // X)
+            return info.reads(token.getKey()).contains(value);
+
         }
     }
 
     /**
-     * A custom {@link ReentrantReadWriteLock} that is defined by a
-     * {@link RangeToken} and checks to see if it is "range" blocked before
-     * grabbing a read of write lock.
+     * A class that holds information that is used to determine if a thread is
+     * {@link RangeLockService#isRangeBlocked(LockType, RangeToken) range
+     * blocked} for a given lock acquisition attempt. This state of this
+     * information is updated externally in {@link RangeReadWriteLock} whenever
+     * locks are acquired and released.
      * 
      * @author jnelson
      */
-    @SuppressWarnings("serial")
-    private final class RangeReadWriteLock extends ReentrantReadWriteLock {
+    protected class RangeBlockingInfo {
 
         /**
-         * We keep track of all the threads that have requested (but not
-         * necessarily locked) the read or write lock. If a lock is not
-         * associated with any threads then it can be safely removed from the
-         * cache.
+         * Info about range read locks.
          */
-        private final Multiset<Thread> readers = GuavaInternals
-                .newSynchronizedHashMultiset();
+        private final ConcurrentMap<Text, RangeSet<Value>> reads = new ConcurrentHashMapV8<Text, RangeSet<Value>>();
 
         /**
-         * We keep track of all the threads that have requested (but not
-         * necessarily locked) the read or write lock. If a lock is not
-         * associated with any threads then it can be safely removed from the
-         * cache.
+         * Info about range write locks.
          */
-        private final Multiset<Thread> writers = GuavaInternals
-                .newSynchronizedHashMultiset();
+        private final ConcurrentMap<Text, Set<Value>> writes = new ConcurrentHashMapV8<Text, Set<Value>>();
 
         /**
-         * The token that represents the notion this lock controls
-         */
-        private final RangeToken token;
-
-        /**
-         * Construct a new instance.
+         * Add a RANGE_READ for {@code key} that covers all of the
+         * {@code ranges}.
          * 
-         * @param token
+         * @param key
+         * @param ranges
          */
-        public RangeReadWriteLock(RangeToken token) {
-            this.token = token;
-        }
-
-        @Override
-        public boolean equals(Object object) {
-            // This is a BAD implementation for equality, but for our purposes
-            // we only care to see that the tokens are the same and there are no
-            // readers or writers.
-            if(object instanceof RangeReadWriteLock) {
-                RangeReadWriteLock other = (RangeReadWriteLock) object;
-                return token.equals(other.token)
-                        && readers.size() == other.readers.size()
-                        && writers.size() == other.writers.size();
+        public void add(Text key, Iterable<Range<Value>> ranges) {
+            RangeSet<Value> existing = reads.get(key);
+            if(existing == null) {
+                RangeSet<Value> created = TreeRangeSet.create();
+                existing = reads.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
             }
-            else {
-                return false;
+            synchronized (existing) {
+                for (Range<Value> range : ranges) {
+                    existing.add(range);
+                }
             }
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(token, readers, writers);
+        /**
+         * Add a RANGE_WRITE for {@code key} that covers the {@code value}.
+         * 
+         * @param key
+         * @param value
+         */
+        public void add(Text key, Value value) {
+            Set<Value> existing = writes.get(key);
+            if(existing == null) {
+                Set<Value> created = Sets.newConcurrentHashSet();
+                existing = writes.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            existing.add(value);
         }
 
-        @Override
-        public ReadLock readLock() {
-            return new ReadLock(this) {
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.READ, token)) {
-                        continue;
-                    }
-                    super.lock();
-                }
-
-                @Override
-                public boolean tryLock() {
-                    if(!isRangeBlocked(LockType.READ, token) && super.tryLock()) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                }
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    readers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new RangeReadWriteLock(token));
-                }
-
-            };
+        /**
+         * Return all the ranges that are RANGE_READ locked for {@code key}.
+         * 
+         * @param key
+         * @return the locked reads
+         */
+        public RangeSet<Value> reads(Text key) {
+            RangeSet<Value> existing = reads.get(key);
+            if(existing == null) {
+                RangeSet<Value> created = TreeRangeSet.create();
+                existing = reads.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            synchronized (existing) {
+                return existing;
+            }
         }
 
-        @Override
-        public String toString() {
-            return super.toString() + "[id = " + System.identityHashCode(this)
-                    + "]";
+        /**
+         * Remove the RANGE_READ for {@code key} that covers the {@code ranges}.
+         * 
+         * @param key
+         * @param ranges
+         */
+        public void remove(Text key, Iterable<Range<Value>> ranges) {
+            RangeSet<Value> existing = reads.get(key);
+            synchronized (existing) {
+                for (Range<Value> range : ranges) {
+                    existing.remove(range);
+                }
+            }
         }
 
-        @Override
-        public WriteLock writeLock() {
-            return new WriteLock(this) {
-
-                @Override
-                public void lock() {
-                    while (isRangeBlocked(LockType.WRITE, token)) {
-                        continue;
-                    }
-                    super.lock();
-                }
-
-                @Override
-                public boolean tryLock() {
-                    if(!isRangeBlocked(LockType.WRITE, token)
-                            && super.tryLock()) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                }
-
-                @Override
-                public void unlock() {
-                    super.unlock();
-                    writers.remove(Thread.currentThread(), 1);
-                    locks.remove(token, new RangeReadWriteLock(token));
-                }
-
-            };
+        /**
+         * Remove the RANGE_WRITE for {@code key} that covers the {@code value}.
+         * 
+         * @param key
+         * @param value
+         */
+        public void remove(Text key, Value value) {
+            Set<Value> existing = writes.get(key);
+            existing.remove(value);
         }
 
+        /**
+         * Return all the values that are RANGE_WRITE locked for {@code key}.
+         * 
+         * @param key
+         * @return the locked writes
+         */
+        public Set<Value> writes(Text key) {
+            Set<Value> existing = writes.get(key);
+            if(existing == null) {
+                Set<Value> created = Sets.newConcurrentHashSet();
+                existing = writes.putIfAbsent(key, created);
+                existing = Objects.firstNonNull(existing, created);
+            }
+            return existing;
+        }
     }
 }

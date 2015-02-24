@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.io;
 
 import java.lang.reflect.Method;
 
+import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,7 +37,7 @@ import com.google.common.base.Throwables;
  * 
  * @author jnelson
  */
-public abstract class ByteableTest {
+public abstract class ByteableTest extends ConcourseBaseTest{
 
     /**
      * Return a random instance of the test class defined in

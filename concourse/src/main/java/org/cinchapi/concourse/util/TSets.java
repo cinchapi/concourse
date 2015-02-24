@@ -48,11 +48,10 @@ public class TSets {
      * @return the intersection of the Sets
      */
     public static <T> Set<T> intersection(Set<T> a, Set<T> b) {
-        //TODO: look into CON-245
-//        if(a instanceof SortedSet && b instanceof SortedSet) {
-//            return sortedIntersection((SortedSet<T>) a, (SortedSet<T>) b);
-//        }
-//        else {
+        if(a instanceof SortedSet && b instanceof SortedSet) {
+            return sortedIntersection((SortedSet<T>) a, (SortedSet<T>) b);
+        }
+        else {
             Set<T> intersection = Sets.newLinkedHashSet();
             Set<T> smaller = a.size() <= b.size() ? a : b;
             Set<T> larger = Sets.newHashSet(a.size() > b.size() ? a : b);
@@ -62,7 +61,7 @@ public class TSets {
                 }
             }
             return intersection;
-//        }
+        }
     }
 
     /**
@@ -90,6 +89,9 @@ public class TSets {
     @SuppressWarnings("unchecked")
     private static <T> Set<T> sortedIntersection(SortedSet<T> a, SortedSet<T> b) {
         Set<T> intersection = Sets.newLinkedHashSet();
+        if(a.isEmpty() || b.isEmpty()) {
+            return intersection;
+        }
         Iterator<T> ait = a.iterator();
         Iterator<T> bit = b.iterator();
         Comparator<? super T> comp = a.comparator();
@@ -97,7 +99,8 @@ public class TSets {
         boolean bgo = true;
         T aelt = null;
         T belt = null;
-        while (ait.hasNext() && bit.hasNext()) {
+        while (((ago && ait.hasNext()) || !ago)
+                && ((bgo && bit.hasNext()) || !bgo)) {
             aelt = ago ? ait.next() : aelt;
             belt = bgo ? bit.next() : belt;
             int order = comp == null ? ((Comparable<T>) aelt).compareTo(belt)
