@@ -682,7 +682,7 @@ public final class Buffer extends Limbo {
             }
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {
-                addPage();
+                addPage(false);
             }
             else {
                 currentPage = pages.get(pages.size() - 1);
@@ -837,9 +837,21 @@ public final class Buffer extends Limbo {
      * Add a new Page to the Buffer.
      */
     private void addPage() {
+        addPage(true);
+    }
+
+    /**
+     * Add a new Page to the Buffer and optionally perform a {@code sync}.
+     * 
+     * @param sync - should only be false when called from the {@link #start()}
+     *            method.
+     */
+    private void addPage(boolean sync) {
         writeLock.lock();
         try {
-            sync();
+            if(sync) {
+                sync();
+            }
             currentPage = new Page(BUFFER_PAGE_SIZE);
             pages.add(currentPage);
             Logger.debug("Added page {} to Buffer", currentPage);
@@ -847,7 +859,6 @@ public final class Buffer extends Limbo {
         finally {
             writeLock.unlock();
         }
-
     }
 
     /**
