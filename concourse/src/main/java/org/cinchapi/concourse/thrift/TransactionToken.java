@@ -299,15 +299,14 @@ public class TransactionToken implements
     public boolean equals(Object obj) {
         if(obj instanceof TransactionToken) {
             TransactionToken other = (TransactionToken) obj;
-            return accessToken.equals(other.accessToken)
-                    && timestamp == other.timestamp;
+            return accessToken.equals(other.accessToken);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(accessToken, timestamp);
+        return Objects.hash(accessToken);
     }
 
     @Override
