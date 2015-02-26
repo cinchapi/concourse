@@ -26,14 +26,11 @@ package org.cinchapi.concourse.server.storage.db;
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
 import org.cinchapi.concourse.annotate.PackagePrivate;
-import org.cinchapi.concourse.server.concurrent.ConcourseExecutors;
+import org.cinchapi.concourse.server.concurrent.BlockingExecutorService;
 import org.cinchapi.concourse.server.model.Position;
 import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
@@ -62,6 +59,17 @@ import com.google.common.base.Strings;
 @ThreadSafe
 @PackagePrivate
 final class SearchBlock extends Block<Text, Text, Position> {
+
+    /**
+     * The executor service that is responsible for multithread search indexing.
+     * <p>
+     * The executor is static (and therefore shared by each SearchBlock) because
+     * only one search block at a time should be mutable and able to process
+     * inserts.
+     * </p>
+     */
+    private static final BlockingExecutorService executor = BlockingExecutorService
+            .create();
 
     /**
      * DO NOT CALL!!
@@ -104,21 +112,14 @@ final class SearchBlock extends Block<Text, Text, Position> {
             String string = value.getObject().toString().toLowerCase(); // CON-10
             String[] toks = string
                     .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-            ExecutorService executor = ConcourseExecutors
-                    .newCachedThreadPool("SearchBlock");
             int pos = 0;
-            for (String tok : toks) {
-                executor.submit(getRunnable(key, tok, pos, record, version,
-                        type));
+            Runnable[] tasks = new Runnable[toks.length];
+            for (int i = 0; i < tasks.length; i++) {
+                String tok = toks[i];
+                tasks[i] = getRunnable(key, tok, pos, record, version, type);
                 ++pos;
             }
-            executor.shutdown();
-            try {
-                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); // effectively
-                                                                                 // wait
-                                                                                 // forever...
-            }
-            catch (InterruptedException e) {/* noop */}
+            executor.execute(tasks);
         }
     }
 
