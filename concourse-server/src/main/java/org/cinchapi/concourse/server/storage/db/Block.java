@@ -464,7 +464,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             L locator = null;
             K key = null;
             int position = 0;
+            boolean populated = false;
             for (Revision<L, K, V> revision : revisions) {
+                populated = true;
                 buffer.putInt(revision.size());
                 revision.copyTo(buffer);
                 position = buffer.position() - revision.size() - 4;
@@ -506,7 +508,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 locator = revision.getLocator();
                 key = revision.getKey();
             }
-            if(revisions.size() > 0) {
+            if(populated) {
                 position = buffer.position() - 1;
                 index.putEnd(position, locator);
                 index.putEnd(position, locator, key);
