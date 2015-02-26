@@ -197,11 +197,11 @@ public class EngineTest extends BufferedStoreTest {
 
             });
             thread.start();
-            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
+            Threads.sleep((int) (1.2 * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             Assert.assertTrue(engine.bufferTransportThreadHasEverAppearedHung
                     .get());
-            Threads.sleep(Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS);
+            Threads.sleep((int) (Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS * 1.2));
             Assert.assertTrue(engine.bufferTransportThreadHasEverBeenRestarted
                     .get());
             engine.stop();
@@ -366,39 +366,40 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(succeeded.get());
     }
 
-//    @Test
-//    public void testAddThroughputDifferentKeysInRecord() throws InterruptedException {
-//        final Engine engine = (Engine) store;
-//        final AtomicBoolean done = new AtomicBoolean(false);
-//        Thread a = new Thread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                while (!done.get()) {
-//                    engine.add("foo", Convert.javaToThrift(Time.now()), 1);
-//                }
-//            }
-//
-//        });
-//        Thread b = new Thread(new Runnable(){
-//
-//            @Override
-//            public void run() {
-//                while (!done.get()) {
-//                    engine.add("bar", Convert.javaToThrift(Time.now()), 1);
-//                }
-//            }
-//            
-//        });
-//        a.start();
-//        b.start();
-//        TestData.sleep();
-//        done.set(true);
-//        a.join();
-//        b.join();
-//        System.out.println(engine.fetch("foo", 1).size());
-//        System.out.println(engine.fetch("bar", 1).size());
-//    }
+    // @Test
+    // public void testAddThroughputDifferentKeysInRecord() throws
+    // InterruptedException {
+    // final Engine engine = (Engine) store;
+    // final AtomicBoolean done = new AtomicBoolean(false);
+    // Thread a = new Thread(new Runnable() {
+    //
+    // @Override
+    // public void run() {
+    // while (!done.get()) {
+    // engine.add("foo", Convert.javaToThrift(Time.now()), 1);
+    // }
+    // }
+    //
+    // });
+    // Thread b = new Thread(new Runnable(){
+    //
+    // @Override
+    // public void run() {
+    // while (!done.get()) {
+    // engine.add("bar", Convert.javaToThrift(Time.now()), 1);
+    // }
+    // }
+    //
+    // });
+    // a.start();
+    // b.start();
+    // TestData.sleep();
+    // done.set(true);
+    // a.join();
+    // b.join();
+    // System.out.println(engine.fetch("foo", 1).size());
+    // System.out.println(engine.fetch("bar", 1).size());
+    // }
 
     @Override
     protected void add(String key, TObject value, long record) {
