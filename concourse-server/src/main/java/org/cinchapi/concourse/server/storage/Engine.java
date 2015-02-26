@@ -1017,7 +1017,7 @@ public final class Engine extends BufferedStore implements
 
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
-                    Logger.error("Uncaught exception in {}: {}", t.getName(), e);
+                    Logger.error("Uncaught exception in {}:", t.getName(), e);
                 }
 
             });
