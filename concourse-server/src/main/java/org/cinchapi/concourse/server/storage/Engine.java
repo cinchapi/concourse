@@ -244,6 +244,15 @@ public final class Engine extends BufferedStore implements
     protected int bufferTransportThreadSleepInMs = 0; // visible for testing
 
     /**
+     * A flag that indicates whether the {@link BufferTransportThread} is
+     * actively doing work at the moment. This flag is necessary so we don't
+     * interrupt the thread if it appears to be hung when it is actually just
+     * busy doing a lot of work.
+     */
+    private final AtomicBoolean bufferTransportThreadIsDoingWork = new AtomicBoolean(
+            false);
+
+    /**
      * The inventory contains a collection of all the records that have ever
      * been created. The Engine and its buffer share access to this inventory so
      * that the Buffer can update it whenever a new record is written. The
@@ -763,7 +772,8 @@ public final class Engine extends BufferedStore implements
 
                         @Override
                         public void run() {
-                            if(!bufferTransportThreadIsPaused.get()
+                            if(!bufferTransportThreadIsDoingWork.get()
+                                    && !bufferTransportThreadIsPaused.get()
                                     && bufferTransportThreadLastWakeUp.get() != 0
                                     && TimeUnit.MILLISECONDS
                                             .convert(
@@ -1083,7 +1093,9 @@ public final class Engine extends BufferedStore implements
             if(transportLock.writeLock().tryLock()) {
                 try {
                     bufferTransportThreadIsPaused.compareAndSet(true, false);
+                    bufferTransportThreadIsDoingWork.set(true);
                     buffer.transport(destination);
+                    bufferTransportThreadIsDoingWork.set(false);
                 }
                 finally {
                     transportLock.writeLock().unlock();
