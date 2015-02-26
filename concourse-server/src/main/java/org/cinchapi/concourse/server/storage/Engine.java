@@ -1095,6 +1095,7 @@ public final class Engine extends BufferedStore implements
                     bufferTransportThreadIsPaused.compareAndSet(true, false);
                     bufferTransportThreadIsDoingWork.set(true);
                     buffer.transport(destination);
+                    bufferTransportThreadLastWakeUp.set(Time.now());
                     bufferTransportThreadIsDoingWork.set(false);
                 }
                 finally {
