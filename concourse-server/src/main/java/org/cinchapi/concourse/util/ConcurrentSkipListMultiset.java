@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nullable;
+
 import org.apache.http.annotation.ThreadSafe;
 
 import com.google.common.base.Objects;
@@ -40,7 +42,6 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.primitives.Ints;
-import com.sun.istack.internal.Nullable;
 
 /**
  * Similar to a {@link TreeMultiset} but internally uses a
