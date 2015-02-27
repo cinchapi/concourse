@@ -187,6 +187,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final String id;
 
     /**
+     * A flag that indicates whether we should ignore (and not log a warning) if
+     * an attempt is made to sync an empty block.
+     */
+    private final boolean ignoreEmptySync;
+
+    /**
      * The index to determine which bytes in the block pertain to a locator or
      * locator/key pair.
      */
@@ -230,12 +236,6 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * will be performed in the {@link #seek(Record, Byteable...)} method.
      */
     private final SoftReference<SortedMultiset<Revision<L, K, V>>> softRevisions;
-
-    /**
-     * A flag that indicates whether we should ignore (and not log a warning) if
-     * an attempt is made to sync an empty block.
-     */
-    private final boolean ignoreEmptySync;
 
     /**
      * A hint that this Block uses the
@@ -380,7 +380,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public ByteBuffer getBytes() {
         read.lock();
         try {
-            ByteBuffer bytes = ByteBuffer.allocate(size());
+            ByteBuffer bytes = ByteBuffer.allocate(sizeImpl());
             copyTo(bytes);
             bytes.rewind();
             return bytes;
@@ -495,7 +495,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public int size() {
         Locks.lockIfCondition(read, mutable);
         try {
-            return concurrent ? size0.get() : size;
+            return sizeImpl();
         }
         finally {
             Locks.unlockIfCondition(read, mutable);
@@ -510,7 +510,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     public void sync() {
         write.lock();
         try {
-            if(mutable && size() > 0) {
+            if(mutable && sizeImpl() > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
                 channel.write(getBytes());
@@ -602,6 +602,16 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         finally {
             Locks.unlockIfCondition(read, mutable);
         }
+    }
+
+    /**
+     * Internal implementation to return size of this Block without grabbing any
+     * locks.
+     * 
+     * @return the size
+     */
+    private int sizeImpl() {
+        return concurrent ? size0.get() : size;
     }
 
     /**
