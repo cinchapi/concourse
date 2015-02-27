@@ -237,6 +237,12 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     private final SoftReference<TreeMultiset<Revision<L, K, V>>> softRevisions;
 
     /**
+     * A flag that indicates whether we should ignore (and not log a warning) if
+     * an attempt is made to sync an empty block.
+     */
+    private final boolean ignoreEmptySync;
+
+    /**
      * The running size of the Block. This number only refers to the size of the
      * Revisions that are stored in the block file. The size for the filter and
      * index are tracked separately.
@@ -276,6 +282,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         }
         this.softRevisions = new SoftReference<TreeMultiset<Revision<L, K, V>>>(
                 revisions);
+        this.ignoreEmptySync = this instanceof SearchBlock;
     }
 
     @Override
@@ -438,7 +445,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);
             }
-            else {
+            else if(!ignoreEmptySync) {
                 Logger.warn("Cannot sync a block that is empty: {}. "
                         + "Was there an unexpected server shutdown recently?",
                         id);
