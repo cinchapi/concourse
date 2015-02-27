@@ -2,12 +2,12 @@
 # post thrift generation.
 #
 # To generate java source code run:
-# thrift -out ../../java -gen java shared.thrift 
+# thrift -out ../../java -gen java shared.thrift
 
 namespace java org.cinchapi.concourse.thrift
 
 /**
- * Enumerates the list of operators that can be used in 
+ * Enumerates the list of operators that can be used in
  {@link ConcourseService#find(String, Operator, List<TObject>, long)}.
  */
 enum Operator {
@@ -18,9 +18,11 @@ enum Operator {
 	GREATER_THAN = 5,
 	GREATER_THAN_OR_EQUALS = 6,
 	LESS_THAN = 7,
-	LESS_THAN_OR_EQUALS = 8, 
-	BETWEEN = 9
-	LINKS_TO = 10
+	LESS_THAN_OR_EQUALS = 8,
+	BETWEEN = 9,
+	LINKS_TO = 10,
+  LIKE = 11,
+  NOT_LIKE = 12
 }
 
 /**
@@ -38,7 +40,7 @@ enum Type {
 }
 
 /**
- * A temporary token that is returned by the 
+ * A temporary token that is returned by the
  * {@link ConcourseService#login(String, String)} method to grant access
  * to secure resources in place of raw credentials.
  */

@@ -21,25 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.server.storage.temp;
 
-import org.cinchapi.concourse.server.storage.db.DatabaseTest;
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 
 /**
- * 
+ * A special {@link Queue} that is used for {@link Transaction transactions}:
+ * uses a local bloom filter to make verifies more efficient.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class, DatabaseTest.class,
-        TransactionTest.class, TransactionAtomicOperationTest.class,
-        StoresTest.class, TransactionGarbageCollectionTest.class })
-public class StoreSuite {
+public class TransactionQueue extends Queue {
+
+    /**
+     * The bloom filter used to speed up verifies.
+     */
+    private final BloomFilter bloom = BloomFilter.create(500000);
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param initialSize
+     */
+    public TransactionQueue(int initialSize) {
+        super(initialSize);
+    }
+
+    @Override
+    public boolean insert(Write write, boolean sync) {
+        if(super.insert(write, sync)) {
+            bloom.putCached(write.getKey(), write.getValue(), write.getRecord());
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean verify(Write write, long timestamp, boolean exists) {
+        if(bloom.mightContainCached(write.getKey(), write.getValue(),
+                write.getRecord())) {
+            return super.verify(write, timestamp, exists);
+        }
+        else {
+            return exists;
+        }
+    }
 
 }

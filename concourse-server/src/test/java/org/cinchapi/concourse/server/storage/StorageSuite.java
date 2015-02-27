@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.server.storage;
 
+import org.cinchapi.concourse.server.concurrent.ConcurrencySuite;
 import org.cinchapi.concourse.server.storage.db.BlockSuite;
 import org.cinchapi.concourse.server.storage.db.RecordSuite;
 import org.cinchapi.concourse.server.storage.db.RevisionTest;
@@ -38,7 +39,8 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,
-        RecordSuite.class, StoreSuite.class, InventoryTest.class })
+        RecordSuite.class, StoreSuite.class, InventoryTest.class,
+        ConcurrencySuite.class })
 public class StorageSuite {
 
 }

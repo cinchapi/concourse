@@ -27,6 +27,7 @@ import org.cinchapi.concourse.bugrepro.CON108;
 import org.cinchapi.concourse.bugrepro.CON167;
 import org.cinchapi.concourse.bugrepro.CON171;
 import org.cinchapi.concourse.bugrepro.CON173;
+import org.cinchapi.concourse.bugrepro.CON217;
 import org.cinchapi.concourse.bugrepro.CON52;
 import org.cinchapi.concourse.bugrepro.CON55;
 import org.cinchapi.concourse.bugrepro.CON72;
@@ -41,7 +42,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ CON52.class, CON55.class, CON72.class, CON108.class,
-        CON167.class, CON173.class, CON171.class })
+        CON167.class, CON173.class, CON171.class, CON217.class })
 public class BugReproSuite {
 
 }

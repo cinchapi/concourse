@@ -39,6 +39,60 @@ import com.google.common.base.Throwables;
 public final class Reflection {
 
     /**
+     * Use reflection to call an instance method on {@code obj} with the
+     * specified {@code args}.
+     * 
+     * @param obj
+     * @param methodName
+     * @param args
+     * @return the result of calling the method
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T call(Object obj, String methodName, Object... args) {
+        // TODO cache method instances
+        try {
+            Class<?> clazz = obj.getClass();
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+            Class<?>[] altParameterTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                parameterTypes[i] = args[i].getClass();
+                altParameterTypes[i] = unbox(args[i].getClass());
+            }
+            Method method = null;
+            while (clazz != null && method == null) {
+                try {
+                    method = clazz
+                            .getDeclaredMethod(methodName, parameterTypes);
+                }
+                catch (NoSuchMethodException e) {
+                    try {
+                        // Attempt to find a method using the alt param types.
+                        // This will usually bear fruit in cases where a method
+                        // has a primitive type parameter and Java autoboxing
+                        // causes the passed in parameters to have a wrapper
+                        // type instead of the appropriate primitive type.
+                        method = clazz.getDeclaredMethod(methodName,
+                                altParameterTypes);
+                    }
+                    catch (NoSuchMethodException e2) {
+                        clazz = clazz.getSuperclass();
+                    }
+                }
+            }
+            if(method != null) {
+                method.setAccessible(true);
+                return (T) method.invoke(obj, args);
+            }
+            else {
+                throw new NoSuchMethodException();
+            }
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
      * Use reflection to get the value of {@code variableName} from {@code obj}.
      * This is useful in situations when it is necessary to access an instance
      * variable that is out of scope.
@@ -76,14 +130,14 @@ public final class Reflection {
     }
 
     /**
-     * Return the alternative class for the input {@code clazz}. This is usually
+     * Return the unboxed version of the input {@code clazz}. This is usually
      * a class that represents a primitive for an autoboxed wrapper class.
      * Otherwise, the input {@code clazz} is returned.
      * 
      * @param clazz
      * @return the alt class
      */
-    private static Class<?> getAltClass(Class<?> clazz) {
+    private static Class<?> unbox(Class<?> clazz) {
         if(clazz == Integer.class) {
             return int.class;
         }
@@ -110,60 +164,6 @@ public final class Reflection {
         }
         else {
             return clazz;
-        }
-    }
-
-    /**
-     * Use reflection to call an instance method on {@code obj} with the
-     * specified {@code args}.
-     * 
-     * @param obj
-     * @param methodName
-     * @param args
-     * @return the result of calling the method
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T call(Object obj, String methodName, Object... args) {
-        // TODO cache method instances
-        try {
-            Class<?> clazz = obj.getClass();
-            Class<?>[] parameterTypes = new Class<?>[args.length];
-            Class<?>[] altParameterTypes = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) {
-                parameterTypes[i] = args[i].getClass();
-                altParameterTypes[i] = getAltClass(args[i].getClass());
-            }
-            Method method = null;
-            while (clazz != null && method == null) {
-                try {
-                    method = clazz
-                            .getDeclaredMethod(methodName, parameterTypes);
-                }
-                catch (NoSuchMethodException e) {
-                    try {
-                        // Attempt to find a method using the alt param types.
-                        // This will usually bear fruit in cases where a method
-                        // has a primitive type parameter and Java autoboxing
-                        // causes the passed in parameters to have a wrapper
-                        // type instead of the appropriate primitive type.
-                        method = clazz.getDeclaredMethod(methodName,
-                                altParameterTypes);
-                    }
-                    catch (NoSuchMethodException e2) {
-                        clazz = clazz.getSuperclass();
-                    }
-                }
-            }
-            if(method != null) {
-                method.setAccessible(true);
-                return (T) method.invoke(obj, args);
-            }
-            else {
-                throw new NoSuchMethodException();
-            }
-        }
-        catch (ReflectiveOperationException e) {
-            throw Throwables.propagate(e);
         }
     }
 

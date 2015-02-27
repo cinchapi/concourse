@@ -21,36 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.bugrepro;
 
+import java.util.Map;
+
+import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.server.storage.Transaction;
+import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.util.Reflection;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests to to check to make sure that the necessary changes have been made
- * to the codebase after regenerating the thrift code.
+ * Unit test to reproduce the memory leak issue described in CON-217.
  * 
  * @author jnelson
  */
-public class ThriftComplianceTest extends ConcourseIntegrationTest {
+public class CON217 extends ConcourseIntegrationTest {
 
     @Test
-    public void testSwitchedHashToLinkedHash() {
-        // This test checks to make sure that all instances of Hash* have been
-        // replaced with LinkedHash* in ConcourseService.java
-        client.add("name", "john", 1);
-        client.add("name", "google", 1);
-        client.add("name", "brad", 1);
-        client.add("name", "kenneth", 1);
-        client.add("name", 1, 1);
-        client.add("name", true, 1);
-        Timestamp previous = null;
-        for (Timestamp timestamp : client.audit(1).keySet()) {
-            if(previous != null) {
-                Assert.assertTrue(timestamp.getMicros() > previous.getMicros());
-            }
-            previous = timestamp;
-        }
+    public void repro() {
+        client.stage();
+        client.stage();
+        Map<TransactionToken, Transaction> transactions = Reflection.get(
+                "transactions", Reflection.get("server", this));
+        Assert.assertEquals(1, transactions.size());
     }
 
 }
