@@ -422,11 +422,9 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      */
     @Override
     public void sync() {
-        Locks.lockIfCondition(write, mutable);
+        write.lock();
         try {
-            if(size > 0) {
-                Preconditions.checkState(mutable,
-                        "Cannot sync a block that is not mutable");
+            if(mutable && size > 0) {
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
                 channel.write(getBytes());
@@ -437,14 +435,21 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
             }
+            else if(!mutable) {
+                Logger.warn("Cannot sync a block that is not mutable: {}", id);
+            }
+            else {
+                Logger.warn("Cannot sync a block that is empty: {}. "
+                        + "Was there an unexpected server shutdown recently?",
+                        id);
+            }
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
         }
         finally {
-            Locks.unlockIfCondition(write, mutable);
+            write.unlock();
         }
-
     }
 
     @Override
