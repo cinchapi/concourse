@@ -25,7 +25,9 @@ package org.cinchapi.concourse.server.storage.db;
 
 import static org.cinchapi.concourse.server.GlobalState.STOPWORDS;
 
+import java.util.Comparator;
 import java.util.Set;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.annotate.DoNotInvoke;
@@ -37,11 +39,13 @@ import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.ConcurrentSkipListMultiset;
 import org.cinchapi.concourse.util.TStrings;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.google.common.collect.SortedMultiset;
 
 /**
  * A Block that stores SearchRevision data to be used in a SearchRecord.
@@ -71,6 +75,13 @@ final class SearchBlock extends Block<Text, Text, Position> {
     private static final BlockingExecutorService executor = BlockingExecutorService
             .create();
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected SortedMultiset<Revision<Text, Text, Position>> createBackingStore(
+            Comparator<Revision> comparator) {
+        return ConcurrentSkipListMultiset.create(comparator);
+    }
+
     /**
      * DO NOT CALL!!
      * 
@@ -82,6 +93,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
     @DoNotInvoke
     SearchBlock(String id, String directory, boolean diskLoad) {
         super(id, directory, diskLoad);
+        this.concurrent = true;
     }
 
     /**
@@ -146,7 +158,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
      */
     private final void doInsert(Text locator, Text key, Position value,
             long version, Action type) {
-        super.insert(locator, key, value, version, type);
+        super.insertUnsafe(locator, key, value, version, type);
     }
 
     /**
@@ -170,7 +182,8 @@ final class SearchBlock extends Block<Text, Text, Position> {
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
-            private Set<String> indexed = Sets.newHashSet();
+            private Set<String> indexed = Sets
+                    .newHashSetWithExpectedSize((int) Math.pow(term.length(), 2));
 
             @Override
             public void run() {
