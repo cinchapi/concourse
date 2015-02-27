@@ -514,7 +514,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 mutable = false;
                 FileChannel channel = FileSystem.getFileChannel(file);
                 channel.write(getBytes());
-                channel.force(false);
+                channel.force(true);
                 filter.sync();
                 index.sync();
                 FileSystem.closeFileChannel(channel);

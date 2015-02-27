@@ -268,6 +268,7 @@ public class BlockIndex implements Byteable, Syncable {
         FileChannel channel = FileSystem.getFileChannel(file);
         try {
             channel.write(getBytes());
+            channel.force(true);
             softEntries = new SoftReference<Map<Composite, Entry>>(entries);
             mutable = false;
             entries = null;
