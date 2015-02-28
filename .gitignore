@@ -60,3 +60,5 @@ Thumbs.db
 *.launch
 *.metadata/*
 .metadata
+*.metadata
+*.gitignore
