@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Comparator;
@@ -570,7 +571,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             FileSystem.copyBytes(target, backup);
             FileSystem.deleteFile(target);
             filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
-            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+            MappedByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
             while (it.hasNext()) {
@@ -585,6 +586,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             FileSystem.deleteFile(backup);
             Logger.warn("Found and repaired a corrupted bloom "
                     + "filter for {} {}", this.getClass().getSimpleName(), id);
+            FileSystem.unmap(bytes);
         }
         else {
             throw e;
