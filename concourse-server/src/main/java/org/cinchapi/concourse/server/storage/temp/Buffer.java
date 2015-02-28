@@ -1010,7 +1010,9 @@ public final class Buffer extends Limbo {
                     index(write);
                     content.putInt(write.size());
                     write.copyTo(content);
-                    content.force();
+                    if(sync) {
+                        content.force();
+                    }
                 }
                 else {
                     throw CapacityException.INSTANCE;
@@ -1363,7 +1365,8 @@ public final class Buffer extends Limbo {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                filter.putCached(write.getRecord(), write.getKey(), write.getValue());
+                filter.putCached(write.getRecord(), write.getKey(),
+                        write.getValue());
                 writes[size] = write;
                 ++size;
             }
