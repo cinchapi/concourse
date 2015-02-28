@@ -832,6 +832,11 @@ public final class Buffer extends Limbo {
         // so that no query's timestamp is less than this timestamp
         return oldestWrite == null ? Long.MAX_VALUE : oldestWrite.getVersion();
     }
+    
+    @Override
+    public void sync() {
+        currentPage.content.force();
+    }
 
     /**
      * Add a new Page to the Buffer.
