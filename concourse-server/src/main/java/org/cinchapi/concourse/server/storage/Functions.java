@@ -27,6 +27,7 @@ import org.cinchapi.concourse.server.model.PrimaryKey;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.util.Convert;
 
 import com.google.common.base.Function;
 
@@ -36,6 +37,18 @@ import com.google.common.base.Function;
  * @author jnelson
  */
 public final class Functions {
+	
+	
+	/**
+	 * A function that transforms a {@link TObject} to a {@link Java Object}.
+	 */
+	public static final Function<TObject, Object> TOBJECT_TO_JAVA = new Function<TObject, Object>() {
+		
+        @Override
+        public Object apply(TObject input) {
+            return Convert.thriftToJava(input);
+        }
+	};
 
     /**
      * A function that transforms an {@link TObject} to a {@link Value}.

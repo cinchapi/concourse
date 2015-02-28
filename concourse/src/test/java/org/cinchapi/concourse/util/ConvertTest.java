@@ -27,6 +27,11 @@ import static org.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_APP
 import static org.cinchapi.concourse.util.Convert.RAW_RESOLVABLE_LINK_SYMBOL_PREPEND;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -314,6 +319,35 @@ public class ConvertTest {
         }
         String value = MessageFormat.format("{0}{1}{0}", "`", string);
         Assert.assertTrue(Convert.stringToJava(value) instanceof Tag);
+    }
+    
+    @Test
+    public void testJsonArrayToJava() {
+    	List<Map<String, Set<Object>>> data = new ArrayList<>();
+    	Map<String, Set<Object>> mapping = new HashMap<>();
+    	
+    	Set<Object> values = new HashSet<>();
+    	values.add(1);
+    	values.add("{\'number one\'}");
+    	mapping.put("{One:1}}}", values);
+    	data.add(mapping);
+    	
+    	Map<String, Set<Object>> mapping2 = new HashMap<>();
+    	Set<Object> values2 = new HashSet<>();
+    	values2.add(2);
+    	mapping2.put("value2", values2);
+    	data.add(mapping2);
+    	
+    	String jsonString = Convert.javaToJson(data);
+    	List<Multimap<String, Object>> result = Convert.jsonArrayToJava(jsonString);
+    	Assert.assertEquals(data.toString(), result.toString());
+    }
+    
+    @Test
+    public void testRemovePrimaryKey() {
+    	String json = "{\"$primaryKey$\":[5]}";
+    	Multimap<String, Object> actual = Convert.jsonToJava(json);
+    	Assert.assertTrue(actual.isEmpty());
     }
 
     @Test
