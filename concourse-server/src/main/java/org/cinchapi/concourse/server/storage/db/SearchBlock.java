@@ -83,7 +83,7 @@ final class SearchBlock extends Block<Text, Text, Position> {
     private static final ExecutorService indexer = Executors
             .newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
                     new ThreadFactoryBuilder().setDaemon(true)
-                            .setNameFormat("Search Indexer" + "-%d").build());
+                            .setNameFormat("Search Indexer" + " %d").build());
 
     @SuppressWarnings("rawtypes")
     @Override
