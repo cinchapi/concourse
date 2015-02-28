@@ -72,8 +72,8 @@ public final class ConcourseExecutors {
      */
     public static void executeAndAwaitTerminationAndShutdown(
             String threadNamePrefix, Runnable... commands) {
-        ExecutorService executor = Executors
-                .newFixedThreadPool(commands.length);
+        ExecutorService executor = Executors.newFixedThreadPool(
+                commands.length, getThreadFactory(threadNamePrefix));
         for (Runnable command : commands) {
             executor.execute(command);
         }
