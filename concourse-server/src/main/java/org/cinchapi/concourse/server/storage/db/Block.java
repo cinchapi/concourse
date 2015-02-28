@@ -23,8 +23,10 @@
  */
 package org.cinchapi.concourse.server.storage.db;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -177,7 +179,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * A fixed size filter that is used to test whether elements are contained
      * in the Block without actually looking through the Block.
      */
-    private final BloomFilter filter;
+    private BloomFilter filter;
 
     /**
      * The unique id for the block. Each component of the block is named after
@@ -281,8 +283,13 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
         if(diskLoad) {
             this.mutable = false;
             this.size = (int) FileSystem.getFileSize(this.file);
-            this.filter = BloomFilter.open(directory + File.separator + id
-                    + FILTER_NAME_EXTENSION);
+            try {
+                this.filter = BloomFilter.open(directory + File.separator + id
+                        + FILTER_NAME_EXTENSION);
+            }
+            catch (RuntimeException e) {
+                repair(e);
+            }
             this.index = BlockIndex.open(directory + File.separator + id
                     + INDEX_NAME_EXTENSION);
             this.revisions = null;
@@ -541,6 +548,47 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
     @Override
     public String toString() {
         return getClass().getSimpleName() + " " + id;
+    }
+
+    /**
+     * Attempt to repair the Block from the symptoms of the specified exception.
+     * Generally speaking, a repair is only possible if the exception pertains
+     * to the metadata (e.g. filter or index) and not the actual block data.
+     * <p>
+     * If a repair is not possible, then the input exception is re-thrown
+     * </p>
+     * 
+     * @param e - the {@link RuntimeException} that was caught indicates what
+     *            error needs to be repaired.
+     */
+    private void repair(RuntimeException e) {
+        if(e.getCause() != null
+                && (e.getCause() instanceof EOFException || e.getCause() instanceof StreamCorruptedException)) {
+            String target = file.replace(BLOCK_NAME_EXTENSION,
+                    FILTER_NAME_EXTENSION);
+            String backup = target + ".bak";
+            FileSystem.copyBytes(target, backup);
+            FileSystem.deleteFile(target);
+            filter = BloomFilter.create(target, EXPECTED_INSERTIONS);
+            ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
+                    FileSystem.getFileSize(file));
+            Iterator<ByteBuffer> it = ByteableCollections.iterator(bytes);
+            while (it.hasNext()) {
+                Revision<L, K, V> revision = Byteables.read(it.next(),
+                        xRevisionClass());
+                filter.put(revision.getLocator());
+                filter.put(revision.getLocator(), revision.getKey());
+                filter.put(revision.getLocator(), revision.getKey(),
+                        revision.getValue());
+            }
+            filter.sync();
+            FileSystem.deleteFile(backup);
+            Logger.warn("Found and repaired a corrupted bloom "
+                    + "filter for {} {}", this.getClass().getSimpleName(), id);
+        }
+        else {
+            throw e;
+        }
     }
 
     /**
