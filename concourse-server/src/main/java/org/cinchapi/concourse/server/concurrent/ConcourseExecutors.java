@@ -113,7 +113,7 @@ public final class ConcourseExecutors {
      */
     private static ThreadFactory getThreadFactory(String threadNamePrefix) {
         return new ThreadFactoryBuilder()
-                .setNameFormat(threadNamePrefix + "-%d")
+                .setNameFormat(threadNamePrefix + " #%d")
                 .setUncaughtExceptionHandler(uncaughtExceptionHandler).build();
     }
 
