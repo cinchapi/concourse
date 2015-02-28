@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<libraryInfos>
+<libraryInfo home="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64" version="1.7.0_75">
+<bootpath>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/resources.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/rt.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/sunrsasign.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jsse.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jce.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/charsets.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/rhino.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jfr.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/classes"/>
+</bootpath>
+<extensionDirs>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/ext"/>
+<entry path="/usr/java/packages/lib/ext"/>
+</extensionDirs>
+<endorsedDirs>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/endorsed"/>
+</endorsedDirs>
+</libraryInfo>
+<libraryInfo home="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre" version="1.7.0_75">
+<bootpath>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/resources.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/rt.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/sunrsasign.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jsse.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jce.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/charsets.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/rhino.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/jfr.jar"/>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/classes"/>
+</bootpath>
+<extensionDirs>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/ext"/>
+<entry path="/usr/java/packages/lib/ext"/>
+</extensionDirs>
+<endorsedDirs>
+<entry path="/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/endorsed"/>
+</endorsedDirs>
+</libraryInfo>
+</libraryInfos>

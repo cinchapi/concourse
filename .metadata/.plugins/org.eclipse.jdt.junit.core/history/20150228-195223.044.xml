@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="JsonifyTest" project="concourse-integration-tests" tests="2" started="2" failures="0" errors="0" ignored="0">
+  <testsuite name="org.cinchapi.concourse.JsonifyTest" time="5.03">
+    <testcase name="testDoubleLinkJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="4.995"/>
+    <testcase name="testEmptyJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="0.035"/>
+  </testsuite>
+</testrun>

@@ -325,16 +325,22 @@ public class ConvertTest {
     public void testJsonArrayToJava() {
     	List<Map<String, Set<Object>>> data = new ArrayList<>();
     	Map<String, Set<Object>> mapping = new HashMap<>();
+    	
     	Set<Object> values = new HashSet<>();
-    	values.add(new HashMap<>());
     	values.add(1);
-    	values.add("{number one}");
+    	values.add("{\'number one\'}");
     	mapping.put("{One:1}}}", values);
     	data.add(mapping);
+    	
+    	Map<String, Set<Object>> mapping2 = new HashMap<>();
+    	Set<Object> values2 = new HashSet<>();
+    	values2.add(2);
+    	mapping2.put("value2", values2);
+    	data.add(mapping2);
+    	
     	String jsonString = Convert.javaToJson(data);
-    	System.out.println(jsonString);
-    	List<Map<String, Set<Object>>> result = Convert.jsonArrayToJava(jsonString);
-    	System.out.println(result);
+    	List<Multimap<String, Object>> result = Convert.jsonArrayToJava(jsonString);
+    	Assert.assertEquals(data.toString(), result.toString());
     }
     
     @Test

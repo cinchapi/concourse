@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="JsonifyTest" project="concourse-integration-tests" tests="6" started="6" failures="1" errors="1" ignored="0">
+  <testsuite name="org.cinchapi.concourse.JsonifyTest" time="2.933">
+    <testcase name="testJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="2.371"/>
+    <testcase name="testEmptyJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="0.048"/>
+    <testcase name="testStringToJavaAndBack" classname="org.cinchapi.concourse.JsonifyTest" time="0.154"/>
+    <testcase name="testDoubleAndLinkJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="0.101"/>
+    <testcase name="testJavaToStringAndBack" classname="org.cinchapi.concourse.JsonifyTest" time="0.085"/>
+    <testcase name="testJsonifyFalse" classname="org.cinchapi.concourse.JsonifyTest" time="0.174">
+      <error>
+        <expected>[{"c":[2,1,3]},{"b":[2,1,3],"a":[2,1,3]},{"d":[6,4,5]}]</expected>
+        <actual>[{"c":[2,1,3],"b":[2,1,3],"a":[2,1,3],"d":[6,4,5]}]</actual>org.junit.ComparisonFailure: expected:&lt;[{"c":[2,1,3][},{"b":[2,1,3],"a":[2,1,3]},{]"d":[6,4,5]}]&gt; but was:&lt;[{"c":[2,1,3][,"b":[2,1,3],"a":[2,1,3],]"d":[6,4,5]}]&gt;
+	at org.junit.Assert.assertEquals(Assert.java:115)
+	at org.junit.Assert.assertEquals(Assert.java:144)
+	at org.cinchapi.concourse.JsonifyTest.testJsonifyFalse(JsonifyTest.java:161)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)
+	at org.junit.rules.RunRules.evaluate(RunRules.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference.run(JUnit4TestReference.java:50)
+	at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:38)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:459)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:675)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:382)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:192)
+
+java.lang.RuntimeException: java.nio.file.NoSuchFileException: /home/root2/concourse_1425118624886000
+	at com.google.common.base.Throwables.propagate(Throwables.java:160)
+	at org.cinchapi.concourse.server.io.FileSystem.deleteDirectory(FileSystem.java:116)
+	at org.cinchapi.concourse.ConcourseIntegrationTest.stop(ConcourseIntegrationTest.java:206)
+	at org.cinchapi.concourse.ConcourseIntegrationTest.access$0(ConcourseIntegrationTest.java:203)
+	at org.cinchapi.concourse.ConcourseIntegrationTest$1.finished(ConcourseIntegrationTest.java:109)
+	at org.junit.rules.TestWatcher.finishedQuietly(TestWatcher.java:111)
+	at org.junit.rules.TestWatcher.access$400(TestWatcher.java:46)
+	at org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:64)
+	at org.junit.rules.RunRules.evaluate(RunRules.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference.run(JUnit4TestReference.java:50)
+	at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:38)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:459)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:675)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:382)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:192)
+Caused by: java.nio.file.NoSuchFileException: /home/root2/concourse_1425118624886000
+	at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)
+	at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)
+	at sun.nio.fs.UnixFileSystemProvider.newDirectoryStream(UnixFileSystemProvider.java:426)
+	at java.nio.file.Files.newDirectoryStream(Files.java:413)
+	at org.cinchapi.concourse.server.io.FileSystem.deleteDirectory(FileSystem.java:97)
+	... 22 more
+
+</error>
+    </testcase>
+  </testsuite>
+</testrun>

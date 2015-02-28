@@ -49,19 +49,14 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 	public void testEmptyJsonify() {
 		String expected = "[]";
 		List<Long> empty = new ArrayList<>();
-		//Multimap<String, Object> expectedMap = LinkedListMultimap.create();
-		//client.add("map", expectedMap, 1);
 		String actual = client.jsonify(empty);
-		//String test = client.jsonify(1, false);
-		//System.out.println(test);
-		//System.out.println(Convert.jsonToJava(test));
 		Assert.assertEquals(expected, actual);
 	}
 	
 	//Test for corner cases with Concourse data types
 	//Double and Link
 	@Test
-	public void testDoubleLinkJsonify() {
+	public void testDoubleAndLinkJsonify() {
 		String expectedDouble = "[{\"$primaryKey$\":[1],\"key\":[\"3.14D\"]}]";
 		String expectedLink = "[{\"$primaryKey$\":[2],\"key\":[\"@12345@\"]}]";
 
@@ -69,24 +64,23 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		client.add("key", Link.to(12345), 2);
 		String actualDouble = client.jsonify(1);
 		String actualLink = client.jsonify(2);
-		
-		System.out.println(actualDouble);
-		System.out.println(actualLink);
 
 		Assert.assertEquals(expectedDouble, actualDouble);
 		Assert.assertEquals(expectedLink, actualLink);
 	}
 	
+	@Test
 	public void testStringToJavaAndBack() {
 		String testStr = "{\"key1\": a, \"key2\": b, \"key3\": [c, d, e]}";
 		client.insert(testStr, 10L);
 		String resultStr = client.jsonify(10L);
-		System.out.println(resultStr);
+		
 		Assert.assertTrue(resultStr.contains("\"key1\":[\"a\"]"));
 		Assert.assertTrue(resultStr.contains("\"key2\":[\"b\"]"));
 		Assert.assertTrue(resultStr.contains("\"key3\":[\"d\",\"e\",\"c\"]"));
 	}
 	
+	@Test
 	public void testJavaToStringAndBack() {
 		Multimap<String, Object> expectedMap = LinkedListMultimap.create();
 		expectedMap.put("key1", Arrays.asList(1L, 2L, 3L));;
@@ -97,20 +91,21 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		client.add("key2", r2, 2L);
 		
 		String json = client.jsonify(Arrays.asList(1L, 2L), false);
-
-		Multimap<String, Object> actualMap = Convert.jsonToJava(json);
+		List<Multimap<String, Object>> actualMap
+							= Convert.jsonArrayToJava(json);
 		
 		String expectedkey1 = expectedMap.get("key1").toString();
-		String actualkey1 = actualMap.get("key1").toString();
+		String actualkey1 = actualMap.get(0).get("key1").toString();
 		String expectedkey2 = expectedMap.get("key2").toString();
-		String actualkey2 = actualMap.get("key2").toString();
+		String actualkey2 = actualMap.get(1).get("key2").toString();
 
-		Assert.assertTrue(expectedkey1.equals(actualkey1));
-		Assert.assertTrue(expectedkey2.equals(actualkey2));
+		Assert.assertEquals(expectedkey1, actualkey1);
+		Assert.assertEquals(expectedkey2, actualkey2);
 		
 	}
 	
 	//includePrimaryKey set as true
+	@Test
 	public void testJsonify() {
 		long record1 = 1;
 		long record2 = 2;
@@ -131,14 +126,15 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		client.add("d", 1, record3);
 		client.add("d", 2, record3);
 		client.add("d", 3, record3);
-		String expected = "{\"1\":{\"b\":[2,1,3],\"a\":[2,1,3]}," + 
-						  "\"2\":{\"c\":[2,1,3]}," + 
-						  "\"3\":{\"d\":[2,1,3]}}";
+		String expected = "[{\"$primaryKey$\":[1],\"b\":[2,1,3],\"a\":[2,1,3]}," + 
+						  "{\"$primaryKey$\":[2],\"c\":[2,1,3]}," + 
+						  "{\"d\":[2,1,3],\"$primaryKey$\":[3]}]";
 		String actual = client.jsonify(recordsList);
 		Assert.assertEquals(expected, actual);
 	}
 	
 	// PrimaryKey not included
+	@Test
 	public void testJsonifyFalse() {
 		long record1 = 1;
 		long record2 = 2;
@@ -160,8 +156,8 @@ public class JsonifyTest extends ConcourseIntegrationTest {
 		client.add("d", 5, record3);
 		client.add("d", 6, record3);
 		String actual = client.jsonify(recordsList, false);
-		String expected = "{\"c\":[2,1,3],\"b\":[2,1,3]," + 
-					"\"a\":[2,1,3],\"d\":[6,4,5]}";
+		String expected = "[{\"c\":[2,1,3]},{\"b\":[2,1,3]," + 
+					"\"a\":[2,1,3]},{\"d\":[6,4,5]}]";
 		Assert.assertEquals(actual, expected);
 	}
 }

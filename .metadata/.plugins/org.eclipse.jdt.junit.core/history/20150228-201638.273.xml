@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="JsonifyTest" project="concourse-integration-tests" tests="5" started="5" failures="0" errors="0" ignored="0">
+  <testsuite name="org.cinchapi.concourse.JsonifyTest" time="2.892">
+    <testcase name="testJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="2.48"/>
+    <testcase name="testEmptyJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="0.101"/>
+    <testcase name="testStringToJavaAndBack" classname="org.cinchapi.concourse.JsonifyTest" time="0.158"/>
+    <testcase name="testDoubleAndLinkJsonify" classname="org.cinchapi.concourse.JsonifyTest" time="0.08"/>
+    <testcase name="testJavaToStringAndBack" classname="org.cinchapi.concourse.JsonifyTest" time="0.073"/>
+  </testsuite>
+</testrun>
