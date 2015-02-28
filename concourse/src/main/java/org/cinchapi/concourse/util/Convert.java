@@ -221,7 +221,8 @@ public final class Convert {
     		char c = jsonArray.charAt(i);
     		
     		// Brackets within quotes shouldn't count as object's start or end.
-    		// Assuming single quotes are invalid in current JSON syntax.
+    		// Assuming single quotes are invalid for enclosing JSON key and 
+    		// values.
     		if (c == doubleQuote) {
     			quote = !quote;
     			obj += c;
