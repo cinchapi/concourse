@@ -46,6 +46,11 @@ JVMOPTS="
 -XX:CompileThreshold=500
 "
 
+# The following two lines are used by the chkconfig command. Change as is
+# appropriate for your application.  They should remain commented.
+# chkconfig: 2345 20 80
+# description: Concourse Server
+
 # Do not make any changes beyond this point
 #-------------------------------------------------------------------------------
 
