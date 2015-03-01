@@ -223,7 +223,7 @@ public final class Convert {
     		// Brackets within quotes shouldn't count as object's start or end.
     		// Assuming single quotes are invalid for enclosing JSON key and 
     		// values.
-    		if (c == doubleQuote) {
+    		if (c == doubleQuote && start == true) {
     			quote = !quote;
     			obj += c;
     		}
