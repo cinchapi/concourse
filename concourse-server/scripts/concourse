@@ -144,7 +144,8 @@ usage(){
   restart       Stop if running and then start.
   status        Query the current status.
   dump          Request a thread dump if running.
-  help          Print this message.
+  version       Display the Concourse Server version.
+  help          Display this message.
   "
 }
 
@@ -264,35 +265,35 @@ cd $APP_HOME
 COMMAND=$@
 shift 1
 case "$COMMAND" in
-  'start'*)
+  'start')
   start "$@"
   ;;
 
-  'stop'*)
+  'stop')
   stop "$@"
   ;;
 
-  'console'*)
+  'console')
   console "$@"
   ;;
 
-  'dump'*)
+  'dump')
   dump "$@"
   ;;
 
-  'status'*)
+  'status')
   status "$@"
   ;;
 
-  'restart'*)
+  'restart')
   stop "$@"
   start "$@"
   ;;
-  
-  'version'*)
+
+  'version' | -[Vv] | '--version' | "-version")
   version=`version`
-  echo "Concourse Server, version "$version
-  echo "Copyright (c) 2015 Cinchapi, Inc"
+  echo "Concourse Server "$version
+  echo "Copyright (c) 2015 Cinchapi, Inc."
   ;;
 
   *)
