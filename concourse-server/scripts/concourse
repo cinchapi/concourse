@@ -28,6 +28,7 @@
 # stop:     Stop the Concourse Server process
 # restart   Stop and start again
 # status    Check to see if Concourse Server is running
+# version   Display the Concourse Server version
 # dump      Take a thread dump
 
 # These options are passed to the JVM runtime. Only place option per line (for
@@ -86,7 +87,6 @@ OS=`uname -s | tr "[A-Z]" "[a-z]" | tr -d ' '`
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
 APP_HOME=`cd ${APP_HOME}; pwd`
-JVMOPTS="$JVMOPTS -Duser.dir=$APP_HOME"
 
 # The location of the concourse.prefs file that is used to configure the
 # application
@@ -237,6 +237,7 @@ dump(){
 
 startwait(){
   counter=15
+  sleep 1
   pid=`getpid`
   while [ "X$pid" = "X" -a $counter -gt 0 ] ; do
     echo "."
