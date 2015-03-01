@@ -102,6 +102,22 @@ fi
 JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
 JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
 
+DEBUG=`cat $PREFS | grep -e '^log_level\s*=\s*[Dd][Ee][Bb][Uu][Gg]'`
+if [ -n "$DEBUG" ]
+  then
+  JVMOPTS=$JVMOPTS"
+  -XX:+HeapDumpOnOutOfMemoryError
+  -XX:HeapDumpPath=$APP_HOME/log
+  -Xloggc:$APP_HOME/log/gc.log
+  -XX:+PrintGCDetails
+  -XX:+PrintGCDateStamps
+  -XX:+PrintGCTimeStamps
+  -XX:+UseGCLogFileRotation
+  -XX:NumberOfGCLogFiles=5
+  -XX:GCLogFileSize=5M
+  "
+fi
+
 # Determine the Java command to use to start the JVM.
 if [ "$OS" = "darwin" ]
   then
