@@ -22,6 +22,13 @@
 
 #-------------------------------------------------------------------------------
 # This script controls the lifecycle of Concourse Server.
+# Options:
+# console:  Run Concourse Server in the current console
+# start:    Start Concourse Server as a daemon in the backgrouund
+# stop:     Stop the Concourse Server process
+# restart   Stop and start again
+# status    Check to see if Concourse Server is running
+# dump      Take a thread dump
 
 # These options are passed to the JVM runtime. Only place option per line (for
 # the sake of readability).
@@ -127,6 +134,25 @@ else
 fi
 
 # Lifecycle functions
+usage(){
+  cat <<< "Usage: $APP_HOME/bin/concourse [ console | start | stop | restart | status | dump ]
+
+  Commands:
+  console       Launch in the current console.
+  start         Start in the background as a daemon process.
+  stop          Stop if running as a daemon or in another console.
+  restart       Stop if running and then start.
+  status        Query the current status.
+  dump          Request a thread dump if running.
+  help          Print this message.
+  "
+}
+
+version(){
+  local version=`ls $APP_HOME/lib | grep concourse-server | cut -d'-' -f3,4,5,6,7,8,9,10 | cut -d'.' -f1,2,3,4`
+  echo $version
+}
+
 getpid(){
   local pid=`$JPS | grep "ConcourseServer" | cut -d' ' -f1`
   echo $pid
@@ -190,12 +216,47 @@ startwait(){
   else
     echo "running PID:$pid"
   fi
+}
 
+stopwait(){
+  counter=15
+  sleep 1
+  pid=`getpid`
+  while [ "X$pid" != "X" -a $counter -gt 0 ] ; do
+    echo "."
+    sleep 1
+    pid=`getpid`
+    counter=`expr $counter - 1`
+  done
+  if [ "X$pid" != "X" ]
+    then
+    die "ERROR: Concourse Server may have failed to stop.
+    Please check the console log for more details."
+  else
+    echo "Stopped Concourse Server"
+  fi
 }
 
 stop(){
-  echo "Stopping Concourse Server..."
-  exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@"
+  pid=`getpid`
+  if [ "X$pid" = "X" ]
+    then
+    echo "Concourse Server is not running."
+  else
+    echo "Stopping Concourse Server..."
+    exec $JAVA -classpath "$CLASSPATH" org.cinchapi.concourse.server.ShutdownRunner "$@" &
+    stopwait
+  fi
+}
+
+status(){
+  pid=`getpid`
+  if [ "X$pid" = "X" ]
+    then
+    echo "Concourse Server is not running."
+  else
+    echo "Concourse Server is running PID:$pid"
+  fi
 }
 
 # Perform the specified action
@@ -203,24 +264,39 @@ cd $APP_HOME
 COMMAND=$@
 shift 1
 case "$COMMAND" in
-  'start')
+  'start'*)
   start "$@"
   ;;
 
-  'stop')
+  'stop'*)
   stop "$@"
   ;;
 
-  'console')
+  'console'*)
   console "$@"
   ;;
 
-  'dump')
+  'dump'*)
   dump "$@"
   ;;
 
+  'status'*)
+  status "$@"
+  ;;
+
+  'restart'*)
+  stop "$@"
+  start "$@"
+  ;;
+  
+  'version'*)
+  version=`version`
+  echo "Concourse Server, version "$version
+  echo "Copyright (c) 2015 Cinchapi, Inc"
+  ;;
+
   *)
-  # display help
+  usage "$@"
   ;;
 esac
 
