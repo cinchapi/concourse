@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script controls the lifecycle of Concourse Server on *nix systems.
+# See the usage() function for invocation details.
 #
 # Copyright (c) 2015 Jeff Nelson and Cinchapi, Inc.
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,21 +21,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
 #-------------------------------------------------------------------------------
-# This script controls the lifecycle of Concourse Server.
-# Options:
-# console:  Run Concourse Server in the current console
-# start:    Start Concourse Server as a daemon in the backgrouund
-# stop:     Stop the Concourse Server process
-# restart   Stop and start again
-# status    Check to see if Concourse Server is running
-# version   Display the Concourse Server version
-# dump      Take a thread dump
+# These settings can, in rare circumstances, be modified to fit the needs of
+# your deployment. Please contact Cinchapi support before changing any of
+# these values.
 
-# These options are passed to the JVM runtime. Only place option per line (for
-# the sake of readability).
-# DO NOT CHANGE THESE VALUES WITHOUT CONTACTING CINCHAPI SUPPORT!
+# IMPORTANT - Please always stop Concourse Server before making any changes to
+#             this file. Failure to do so may lead to operation failure.
+
+# Options that are passed to the Java to configure the Concourse Server runtime.
+# Before changing these parameters, please check the documentation for
+# concourse.prefs to see if the desired functionality is configured there (i.e
+# the Concourse Server heap size is specified using the `heap_size` preference)
+# because those take precedence.
 JVMOPTS="
 -Xms1024m
 -Xmx1024m
@@ -53,7 +53,7 @@ JVMOPTS="
 # description: Concourse Server
 
 # Initialization block for the install_initd and remove_initd scripts used by
-#  SUSE linux distributions.
+# SUSE linux distributions.
 ### BEGIN INIT INFO
 # Provides: Concourse Server
 # Required-Start: $local_fs $network $syslog
@@ -65,22 +65,28 @@ JVMOPTS="
 # Description: Concourse Server init script
 ### END INIT INFO
 
-# Do not make any changes beyond this point
+# DO NOT MAKE ANY CHANGES BEYOND THIS POINT
 #-------------------------------------------------------------------------------
 
-# Utility functions
-warn ( ) {
+# Random utility functions
+warn () {
   echo "$*"
 }
 
-die ( ) {
+die () {
   echo
   echo "$*"
   echo
   exit 1
 }
 
-# Get the OS
+# Get the name of the OS in case there is OS-specified configuration that needs
+# to occur. Variable values will generally correspond as follows:
+#
+# Value   | OS
+# -----------------
+# darwin  | OS X
+# linux   | CentOS
 OS=`uname -s | tr "[A-Z]" "[a-z]" | tr -d ' '`
 
 # Ensure that this script operates from the application root directory
@@ -167,7 +173,7 @@ else
   location of your Java installation."
 fi
 
-# Lifecycle functions
+# Print the usage message
 usage(){
   cat <<< "Usage: $APP_HOME/bin/concourse [ console | start | stop | restart | status | dump ]
 
@@ -183,16 +189,20 @@ usage(){
   "
 }
 
+# Figure of the version of Concourse Server by checking the name of the jar in
+# the $APP_HOME/lib directory
 version(){
   local version=`ls $APP_HOME/lib | grep concourse-server | cut -d'-' -f3,4,5,6,7,8,9,10 | cut -d'.' -f1,2,3,4`
   echo $version
 }
 
+# Get the PID for the Concourse Server process
 getpid(){
   local pid=`$JPS | grep "ConcourseServer" | cut -d' ' -f1`
   echo $pid
 }
 
+# Start Concourse Server as a daemon if it is not already running
 start(){
   pid=`getpid`
   if [ "X$pid" = "X" ]
@@ -206,6 +216,8 @@ start(){
   fi
 }
 
+# Start Concourse Server in the foreground of the current console if it is not
+# already running
 console(){
   pid=`getpid`
   if [ "X$pid" = "X" ]
@@ -218,6 +230,7 @@ console(){
   fi
 }
 
+# Take a thread dump of Concourse Server
 dump(){
   echo "Requesting thread dump of Concourse Server..."
   pid=`getpid`
@@ -235,6 +248,7 @@ dump(){
   fi
 }
 
+# Wait for Concourse Server to finish starting
 startwait(){
   counter=15
   sleep 1
@@ -254,6 +268,7 @@ startwait(){
   fi
 }
 
+# Wait for Concourse Server to finish stopping
 stopwait(){
   counter=15
   sleep 1
@@ -273,6 +288,7 @@ stopwait(){
   fi
 }
 
+# Stop Concourse Server if it is running
 stop(){
   pid=`getpid`
   if [ "X$pid" = "X" ]
@@ -285,6 +301,7 @@ stop(){
   fi
 }
 
+# Check to see if Concourse Server is running or not
 status(){
   pid=`getpid`
   if [ "X$pid" = "X" ]
@@ -295,11 +312,9 @@ status(){
   fi
 }
 
-# Perform the specified action
+# MAIN: Ensure that we are in the correct directory and do the requested action.
 cd $APP_HOME
-COMMAND=$@
-shift 1
-case "$COMMAND" in
+case "$1" in
   'start')
   start "$@"
   ;;
