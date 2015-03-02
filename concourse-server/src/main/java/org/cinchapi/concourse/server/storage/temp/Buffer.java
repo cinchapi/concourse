@@ -533,11 +533,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public boolean insert(Write write) {
+    public boolean insert(Write write, boolean sync) {
         writeLock.lock();
         try {
             boolean notify = pages.size() == 2 && currentPage.size == 0;
-            currentPage.append(write);
+            currentPage.append(write, sync);
             if(notify) {
                 synchronized (transportable) {
                     transportable.notify();
@@ -682,7 +682,7 @@ public final class Buffer extends Limbo {
             }
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {
-                addPage();
+                addPage(false);
             }
             else {
                 currentPage = pages.get(pages.size() - 1);
@@ -706,7 +706,9 @@ public final class Buffer extends Limbo {
      * buffer, in chronological order.
      */
     @Override
-    public void transport(PermanentStore destination) {
+    public void transport(PermanentStore destination, boolean sync) {
+        // NOTE: The #sync parameter is ignored because the Database does not
+        // support allowing the Buffer to control when syncs happen.
         if(pages.size() > 1
                 && !transportLock.writeLock().isHeldByCurrentThread()
                 && transportLock.writeLock().tryLock()) {
@@ -755,11 +757,13 @@ public final class Buffer extends Limbo {
     public boolean verify(Write write, long timestamp, boolean exists) {
         transportLock.readLock().lock();
         try {
-            scaleBackTransportRate();
-            for (Page page : pages) {
-                if(page.mightContain(write)
-                        && page.locallyContains(write, timestamp)) {
-                    exists ^= true; // toggle boolean
+            if(timestamp >= getOldestWriteTimstamp()) {
+                scaleBackTransportRate();
+                for (Page page : pages) {
+                    if(page.mightContain(write)
+                            && page.locallyContains(write, timestamp)) {
+                        exists ^= true; // toggle boolean
+                    }
                 }
             }
             return exists;
@@ -782,11 +786,11 @@ public final class Buffer extends Limbo {
     }
 
     /**
-     * Return {@code true} if the Buffer has more than 1 page and the
-     * first page has at least one element that can be transported. If this
-     * method returns {@code false} it means that the first page is the only
-     * page or that the Buffer would need to trigger a Database sync and remove
-     * the first page in order to transport.
+     * Return {@code true} if the Buffer has more than 1 page and the first page
+     * has at least one element that can be transported. If this method returns
+     * {@code false} it means that the first page is the only page or that the
+     * Buffer would need to trigger a Database sync and remove the first page in
+     * order to transport.
      * 
      * @return {@code true} if the Buffer can transport a Write.
      */
@@ -820,12 +824,39 @@ public final class Buffer extends Limbo {
         }
     }
 
+    @Override
+    protected long getOldestWriteTimstamp() {
+        Page oldestPage = pages.get(0);
+        Write oldestWrite = oldestPage.next();
+        // When there is no data in the buffer return the max possible timestamp
+        // so that no query's timestamp is less than this timestamp
+        return oldestWrite == null ? Long.MAX_VALUE : oldestWrite.getVersion();
+    }
+    
+    @Override
+    public void sync() {
+        currentPage.content.force();
+    }
+
     /**
      * Add a new Page to the Buffer.
      */
     private void addPage() {
+        addPage(true);
+    }
+
+    /**
+     * Add a new Page to the Buffer and optionally perform a {@code sync}.
+     * 
+     * @param sync - should only be false when called from the {@link #start()}
+     *            method.
+     */
+    private void addPage(boolean sync) {
         writeLock.lock();
         try {
+            if(sync) {
+                sync();
+            }
             currentPage = new Page(BUFFER_PAGE_SIZE);
             pages.add(currentPage);
             Logger.debug("Added page {} to Buffer", currentPage);
@@ -833,7 +864,6 @@ public final class Buffer extends Limbo {
         finally {
             writeLock.unlock();
         }
-
     }
 
     /**
@@ -972,10 +1002,11 @@ public final class Buffer extends Limbo {
          * read.
          * 
          * @param write
-         * @throws CapacityException - if the size of {@code write} is
-         *             greater than the remaining capacity of {@link #content}
+         * @throws CapacityException
+         *             - if the size of {@code write} is greater than the
+         *             remaining capacity of {@link #content}
          */
-        public void append(Write write) throws CapacityException {
+        public void append(Write write, boolean sync) throws CapacityException {
             Preconditions.checkState(this == currentPage, "Illegal attempt to "
                     + "append a Write to an inactive Page");
             pageLock.writeLock().lock();
@@ -984,7 +1015,9 @@ public final class Buffer extends Limbo {
                     index(write);
                     content.putInt(write.size());
                     write.copyTo(content);
-                    content.force();
+                    if(sync) {
+                        content.force();
+                    }
                 }
                 else {
                     throw CapacityException.INSTANCE;
@@ -1040,10 +1073,11 @@ public final class Buffer extends Limbo {
          */
         /*
          * (non-Javadoc)
-         * This iterator is only used for Limbo reads that traverse the
-         * collection of Writes. This iterator differs from the Page (which is
-         * also an Iterator over Write objects) by virtue of the fact that it
-         * does not allow removes and will detect concurrent modification.
+         * This iterator is only used for Limbo reads that
+         * traverse the collection of Writes. This iterator differs from the
+         * Page (which is also an Iterator over Write objects) by virtue of the
+         * fact that it does not allow removes and will detect concurrent
+         * modification.
          */
         @Override
         public Iterator<Write> iterator() {
@@ -1336,7 +1370,8 @@ public final class Buffer extends Limbo {
                 // The individual Write components are added instead of the
                 // entire Write so that version information is not factored into
                 // the bloom filter hashing
-                filter.putCached(write.getRecord(), write.getKey(), write.getValue());
+                filter.putCached(write.getRecord(), write.getKey(),
+                        write.getValue());
                 writes[size] = write;
                 ++size;
             }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,18 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.common.util;
+package org.cinchapi.concourse.server.concurrent;
+
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.cinchapi.concourse.annotate.PackagePrivate;
 
 /**
- * Unit tests for the {@link NonBlockingRangeMap}.
+ * A custom {@link ReentrantReadWriteLock} that is defined by a {@link Token}.
  * 
  * @author jnelson
  */
-public class NonBlockingRangeMapTest extends RangeMapTest {
+@SuppressWarnings("serial")
+final class TokenReadWriteLock extends ReferenceCountingLock {
 
-    @Override
-    protected RangeMap<Integer, String> getRangeMap() {
-        return NonBlockingRangeMap.create();
+    /**
+     * The token that represents the notion this lock controls
+     */
+    @PackagePrivate
+    final Token token;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param token
+     */
+    public TokenReadWriteLock(Token token) {
+        super(token.cardinality == 1 ? new ReadWriteSharedLock() : new ReentrantReadWriteLock());
+        this.token = token;
     }
 
 }

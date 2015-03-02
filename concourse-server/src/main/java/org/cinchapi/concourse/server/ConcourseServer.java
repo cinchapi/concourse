@@ -295,7 +295,7 @@ public class ConcourseServer implements
         args.maxWorkerThreads(NUM_WORKER_THREADS);
         args.executorService(Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-                        "Server" + "-%d").build()));
+                        "Client Worker" + " %d").build()));
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
@@ -662,7 +662,8 @@ public class ConcourseServer implements
 
     @Override
     public String listAllUserSessions() {
-        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+        return TCollections.toOrderedListString(manager
+                .describeAllAccessTokens());
     }
 
     @Override

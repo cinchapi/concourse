@@ -27,7 +27,7 @@ Concourse runs on Java 1.7.
 
 #### Versioning
 
-This is version 0.4.3 of Concourse.
+This is version 0.4.4 of Concourse.
 
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
 guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`

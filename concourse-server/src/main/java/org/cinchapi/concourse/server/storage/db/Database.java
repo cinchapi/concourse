@@ -246,6 +246,17 @@ public final class Database extends BaseStore implements
     }
 
     @Override
+    public void accept(Write write, boolean sync) {
+        // NOTE: The functionality to optionally sync when accepting writes is
+        // not really supported in the Database, but is implemented to conform
+        // with the PermanentStore interface.
+        accept(write);
+        if(sync) {
+            sync();
+        }
+    }
+
+    @Override
     public Map<Long, String> audit(long record) {
         return getPrimaryRecord(PrimaryKey.wrap(record)).audit();
     }
@@ -289,10 +300,10 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
+    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
+        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
         return Transformers.transformTreeMapSet(map,
@@ -301,10 +312,10 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
+    public Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
         SecondaryRecord record = getSecondaryRecord(Text.wrapCached(key));
-        Map<PrimaryKey, Set<Value>> map = record.explore(timestamp, operator,
+        Map<PrimaryKey, Set<Value>> map = record.explore(operator,
                 Transformers.transformArray(values, Functions.TOBJECT_TO_VALUE,
                         Value.class));
         return Transformers.transformTreeMapSet(map,
@@ -406,9 +417,9 @@ public final class Database extends BaseStore implements
         if(!running) {
             running = true;
             Logger.info("Database configured to store data in {}", backingStore);
-            ConcourseExecutors.executeAndAwaitTermination("Database",
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
+            ConcourseExecutors.executeAndAwaitTerminationAndShutdown(
+                    "Storage Block Loader", new BlockLoader<PrimaryBlock>(
+                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb),
                     new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
                             SECONDARY_BLOCK_DIRECTORY, csb),
                     new BlockLoader<SearchBlock>(SearchBlock.class,
@@ -436,6 +447,11 @@ public final class Database extends BaseStore implements
         if(running) {
             running = false;
         }
+    }
+
+    @Override
+    public void sync() {
+        triggerSync();
     }
 
     /**
@@ -573,7 +589,10 @@ public final class Database extends BaseStore implements
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
-     * @param doSync
+     * @param doSync - a flag that controls whether we actually perform a sync
+     *            or not. Sometimes this method is called when there is no data
+     *            to sync and we just want to create new blocks (e.g. on initial
+     *            startup).
      */
     private void triggerSync(boolean doSync) {
         masterLock.writeLock().lock();

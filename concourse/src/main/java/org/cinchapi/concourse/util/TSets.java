@@ -23,7 +23,10 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
 
 import com.google.common.collect.Sets;
 
@@ -45,15 +48,20 @@ public class TSets {
      * @return the intersection of the Sets
      */
     public static <T> Set<T> intersection(Set<T> a, Set<T> b) {
-        Set<T> intersection = Sets.newLinkedHashSet();
-        Set<T> smaller = a.size() <= b.size() ? a : b;
-        Set<T> larger = Sets.newHashSet(a.size() > b.size() ? a : b);
-        for (T element : smaller) {
-            if(larger.contains(element)) {
-                intersection.add(element);
-            }
+        if(a instanceof SortedSet && b instanceof SortedSet) {
+            return sortedIntersection((SortedSet<T>) a, (SortedSet<T>) b);
         }
-        return intersection;
+        else {
+            Set<T> intersection = Sets.newLinkedHashSet();
+            Set<T> smaller = a.size() <= b.size() ? a : b;
+            Set<T> larger = Sets.newHashSet(a.size() > b.size() ? a : b);
+            for (T element : smaller) {
+                if(larger.contains(element)) {
+                    intersection.add(element);
+                }
+            }
+            return intersection;
+        }
     }
 
     /**
@@ -68,6 +76,50 @@ public class TSets {
         Set<T> union = Sets.newLinkedHashSet(a);
         union.addAll(b);
         return union;
+    }
+
+    /**
+     * Perform an optimized intersection calculation, assuming that both
+     * {@code a} and {@code b} are sorted sets.
+     * 
+     * @param a
+     * @param b
+     * @return the intersection of the Sets
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> Set<T> sortedIntersection(SortedSet<T> a, SortedSet<T> b) {
+        Set<T> intersection = Sets.newLinkedHashSet();
+        if(a.isEmpty() || b.isEmpty()) {
+            return intersection;
+        }
+        Iterator<T> ait = a.iterator();
+        Iterator<T> bit = b.iterator();
+        Comparator<? super T> comp = a.comparator();
+        boolean ago = true;
+        boolean bgo = true;
+        T aelt = null;
+        T belt = null;
+        while (((ago && ait.hasNext()) || !ago)
+                && ((bgo && bit.hasNext()) || !bgo)) {
+            aelt = ago ? ait.next() : aelt;
+            belt = bgo ? bit.next() : belt;
+            int order = comp == null ? ((Comparable<T>) aelt).compareTo(belt)
+                    : comp.compare(aelt, belt);
+            if(order == 0) {
+                intersection.add(aelt);
+                ago = true;
+                bgo = true;
+            }
+            else if(order > 0) {
+                bgo = true;
+                ago = false;
+            }
+            else {
+                ago = true;
+                bgo = false;
+            }
+        }
+        return intersection;
     }
 
 }

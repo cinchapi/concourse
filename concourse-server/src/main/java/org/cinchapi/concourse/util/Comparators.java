@@ -25,6 +25,8 @@ package org.cinchapi.concourse.util;
 
 import java.util.Comparator;
 
+import com.google.common.collect.Ordering;
+
 /**
  * A collection of commonly used comparator instances. These comparator
  * instances are easy enough to make, but this class provides them so that there
@@ -34,6 +36,40 @@ import java.util.Comparator;
  * @author jnelson
  */
 public final class Comparators {
+
+    /**
+     * Return a {@link Comparator} that always returns {@code 0} when two
+     * objects are equal, but otherwise returns an arbitrary but consistent
+     * ordering for objects during the course of the JVM lifecycle.
+     * 
+     * @return the comparator
+     */
+    public static <T> Comparator<T> equalOrArbitrary() {
+        return new EqualOrArbitraryComparator<T>();
+    }
+
+    /**
+     * Return a {@link Comparator} that sorts elements by their natural order if
+     * they are {@link Comparable} and sorts them in an arbitrary, but per
+     * JVM-lifecycle consistent, order if they are not.
+     * 
+     * @return the comparator
+     */
+    public static <T> Comparator<T> naturalOrArbitrary() {
+        return new NaturalOrArbitraryComparator<T>();
+    }
+
+    /**
+     * Perform an arbitrary comparison between {@code o1} and {@code o2}. This
+     * method assumes that the two objects are not considered equal.
+     * 
+     * @param o1
+     * @param o2
+     * @return the comparison value
+     */
+    private static <T> int arbitraryCompare(T o1, T o2) {
+        return Ordering.arbitrary().compare(o1, o2);
+    }
 
     /**
      * A comparator that sorts strings lexicographically without regards to
@@ -61,5 +97,52 @@ public final class Comparators {
     };
 
     private Comparators() {/* noop */}
+
+    /**
+     * A {@link Comparator} that is similar to {@link Ordering#arbitrary()} in
+     * that in will return an arbitrary but consistent ordering of objects
+     * (during the duration of the JVM lifecycle), unless they are equal, in
+     * which case it returns 0.
+     * 
+     * @author jnelson
+     */
+    private static class EqualOrArbitraryComparator<T> implements Comparator<T> {
+
+        @Override
+        public int compare(T o1, T o2) {
+            if(o1 == o2 || o1.equals(o2)) {
+                return 0;
+            }
+            else {
+                return arbitraryCompare(o1, o2);
+            }
+        }
+
+    }
+
+/**
+     * A {@link Comparator} that uses the functionality of the {@link Ordering
+     * @natural()} comparator if the objects are {@link Comparable}. Otherwise,
+     * the functionality is similar to the {@link Ordering#arbitrary()}
+     * comparator.
+     * 
+     * 
+     * @author jnelson
+     */
+    private static class NaturalOrArbitraryComparator<T> implements
+            Comparator<T> {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public int compare(T o1, T o2) {
+            if(o1 instanceof Comparable) {
+                return ((Comparable<T>) o1).compareTo(o2);
+            }
+            else {
+                return arbitraryCompare(o1, o2);
+            }
+        }
+
+    }
 
 }

@@ -59,9 +59,9 @@ import com.google.common.collect.Sets;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 /**
- * {@link Limbo} is a lightweight in-memory proxy store that
- * is a suitable cache or fast, albeit temporary, store for data that will
- * eventually be persisted to a {@link PermanentStore}.
+ * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
+ * or fast, albeit temporary, store for data that will eventually be persisted
+ * to a {@link PermanentStore}.
  * <p>
  * The store is designed to write data very quickly <strong>
  * <em>at the expense of much slower read time.</em></strong> {@code Limbo} does
@@ -202,29 +202,31 @@ public abstract class Limbo extends BaseStore implements
      */
     public Map<String, Set<TObject>> browse(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(write.getRecord().longValue() == record
-                    && write.getVersion() <= timestamp) {
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getRecord().longValue() == record
+                        && write.getVersion() <= timestamp) {
+                    Set<TObject> values;
+                    values = context.get(write.getKey().toString());
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        context.put(write.getKey().toString(), values);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        values.add(write.getValue().getTObject());
+                    }
+                    else {
+                        values.remove(write.getValue().getTObject());
+                    }
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
+                else if(write.getVersion() > timestamp) {
+                    break;
                 }
                 else {
-                    values.remove(write.getValue().getTObject());
+                    continue;
                 }
-            }
-            else if(write.getVersion() > timestamp) {
-                break;
-            }
-            else {
-                continue;
             }
         }
         return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
@@ -254,28 +256,31 @@ public abstract class Limbo extends BaseStore implements
      */
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(write.getKey().toString().equals(key)
-                    && write.getVersion() <= timestamp) {
-                Set<Long> records = context.get(write.getValue().getTObject());
-                if(records == null) {
-                    records = Sets.newLinkedHashSet();
-                    context.put(write.getValue().getTObject(), records);
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getKey().toString().equals(key)
+                        && write.getVersion() <= timestamp) {
+                    Set<Long> records = context.get(write.getValue()
+                            .getTObject());
+                    if(records == null) {
+                        records = Sets.newLinkedHashSet();
+                        context.put(write.getValue().getTObject(), records);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        records.add(write.getRecord().longValue());
+                    }
+                    else {
+                        records.remove(write.getRecord().longValue());
+                    }
                 }
-                if(write.getType() == Action.ADD) {
-                    records.add(write.getRecord().longValue());
+                else if(write.getVersion() > timestamp) {
+                    break;
                 }
                 else {
-                    records.remove(write.getRecord().longValue());
+                    continue;
                 }
-            }
-            else if(write.getVersion() > timestamp) {
-                break;
-            }
-            else {
-                continue;
             }
         }
         return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
@@ -293,29 +298,31 @@ public abstract class Limbo extends BaseStore implements
      */
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(write.getRecord().longValue() == record
-                    && write.getVersion() <= timestamp) {
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getRecord().longValue() == record
+                        && write.getVersion() <= timestamp) {
+                    Set<TObject> values;
+                    values = context.get(write.getKey().toString());
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        context.put(write.getKey().toString(), values);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        values.add(write.getValue().getTObject());
+                    }
+                    else {
+                        values.remove(write.getValue().getTObject());
+                    }
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
+                else if(write.getVersion() > timestamp) {
+                    break;
                 }
                 else {
-                    values.remove(write.getValue().getTObject());
+                    continue;
                 }
-            }
-            else if(write.getVersion() > timestamp) {
-                break;
-            }
-            else {
-                continue;
             }
         }
         return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
@@ -338,25 +345,27 @@ public abstract class Limbo extends BaseStore implements
      */
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            long record = write.getRecord().longValue();
-            if(write.getVersion() <= timestamp) {
-                if(write.getKey().toString().equals(key)
-                        && matches(write.getValue(), operator, values)) {
-                    if(write.getType() == Action.ADD) {
-                        MultimapViews.put(context, record, write.getValue()
-                                .getTObject());
-                    }
-                    else {
-                        MultimapViews.remove(context, record, write.getValue()
-                                .getTObject());
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                long record = write.getRecord().longValue();
+                if(write.getVersion() <= timestamp) {
+                    if(write.getKey().toString().equals(key)
+                            && matches(write.getValue(), operator, values)) {
+                        if(write.getType() == Action.ADD) {
+                            MultimapViews.put(context, record, write.getValue()
+                                    .getTObject());
+                        }
+                        else {
+                            MultimapViews.remove(context, record, write
+                                    .getValue().getTObject());
+                        }
                     }
                 }
-            }
-            else {
-                break;
+                else {
+                    break;
+                }
             }
         }
         return TMaps.asSortedMap(context);
@@ -385,25 +394,37 @@ public abstract class Limbo extends BaseStore implements
      */
     public Set<TObject> fetch(String key, long record, long timestamp,
             Set<TObject> context) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(write.getVersion() <= timestamp) {
-                if(key.equals(write.getKey().toString())
-                        && record == write.getRecord().longValue()) {
-                    if(write.getType() == Action.ADD) {
-                        context.add(write.getValue().getTObject());
-                    }
-                    else {
-                        context.remove(write.getValue().getTObject());
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getVersion() <= timestamp) {
+                    if(key.equals(write.getKey().toString())
+                            && record == write.getRecord().longValue()) {
+                        if(write.getType() == Action.ADD) {
+                            context.add(write.getValue().getTObject());
+                        }
+                        else {
+                            context.remove(write.getValue().getTObject());
+                        }
                     }
                 }
-            }
-            else {
-                break;
+                else {
+                    break;
+                }
             }
         }
         return context;
+    }
+
+    /**
+     * Return the number of milliseconds that this store desires any back to
+     * back transport requests to pause in between.
+     * 
+     * @return the pause time
+     */
+    public int getDesiredTransportSleepTimeInMs() {
+        return 0;
     }
 
     @Override
@@ -439,6 +460,13 @@ public abstract class Limbo extends BaseStore implements
     }
 
     /**
+     * Return the timestamp for the oldest write available.
+     * 
+     * @return {@code timestamp}
+     */
+    protected abstract long getOldestWriteTimstamp();
+
+    /**
      * Insert {@code write} into the store <strong>without performing any
      * validity checks</strong>.
      * <p>
@@ -448,7 +476,24 @@ public abstract class Limbo extends BaseStore implements
      * @param write
      * @return {@code true}
      */
-    public abstract boolean insert(Write write);
+    public final boolean insert(Write write) {
+        return insert(write, true);
+    }
+
+    /**
+     * Insert {@code write} into the store <strong>without performing any
+     * validity checks</strong> and specify whether a {@code sync} should occur
+     * or not. By default, syncs are meaningless in {@link Limbo}, but some
+     * implementations may wish to provide guarantees that the write will be
+     * durably stored.
+     * <p>
+     * This method is <em>only</em> safe to call from a context that performs
+     * its own validity checks (i.e. a {@link BufferedStore}).
+     * 
+     * @param write
+     * @return {@code true}
+     */
+    public abstract boolean insert(Write write, boolean sync);
 
     /**
      * {@inheritDoc}
@@ -483,7 +528,7 @@ public abstract class Limbo extends BaseStore implements
                  * NOTE: It is not enough to merely check if the stored text
                  * contains the query because the Database does infix
                  * indexing/searching, which has some subtleties:
-                 * 1. Stop words are removed from the both stored indices and
+                 * 1. Stop words are removed from the both stored indices and 
                  * the search query
                  * 2. A query and document are considered to match if the
                  * document contains a sequence of terms where each term or a
@@ -519,17 +564,35 @@ public abstract class Limbo extends BaseStore implements
     }
 
     /**
+     * If the implementation supports durable storage, this method guarantees
+     * that all the data contained here-within is durably persisted. Otherwise,
+     * this method is meaningless and returns immediately.
+     */
+    public void sync() {/* noop */}
+
+    /**
      * Transport the content of this store to {@code destination}.
      * 
      * @param destination
      */
-    public void transport(PermanentStore destination) {
+    public final void transport(PermanentStore destination) {
+        transport(destination, true);
+    }
+
+    /**
+     * Transport the content of this store to {@code destination} with the
+     * directive to {@code sync} or not. A sync guarantees that the transported
+     * data is durably persisted within the {@link PermanentStore}.
+     * 
+     * @param destination
+     * @param sync
+     */
+    public void transport(PermanentStore destination, boolean sync) {
         Iterator<Write> it = iterator();
         while (it.hasNext()) {
-            destination.accept(it.next());
+            destination.accept(it.next(), sync);
             it.remove();
         }
-
     }
 
     @Override
@@ -589,16 +652,18 @@ public abstract class Limbo extends BaseStore implements
      *         {@code timestamp}
      */
     public boolean verify(Write write, long timestamp, boolean exists) {
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write stored = it.next();
-            if(stored.getVersion() <= timestamp) {
-                if(stored.equals(write)) {
-                    exists ^= true; // toggle boolean
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write stored = it.next();
+                if(stored.getVersion() <= timestamp) {
+                    if(stored.equals(write)) {
+                        exists ^= true; // toggle boolean
+                    }
                 }
-            }
-            else {
-                break;
+                else {
+                    break;
+                }
             }
         }
         return exists;
@@ -613,16 +678,6 @@ public abstract class Limbo extends BaseStore implements
         return; // do nothing because Limbo is assumed to always be
                 // transportable. But the Buffer will override this method with
                 // the appropriate conditions.
-    }
-
-    /**
-     * Return the number of milliseconds that this store desires any back to
-     * back transport requests to pause in between.
-     * 
-     * @return the pause time
-     */
-    public int getDesiredTransportSleepTimeInMs() {
-        return 0;
     }
 
     @Override

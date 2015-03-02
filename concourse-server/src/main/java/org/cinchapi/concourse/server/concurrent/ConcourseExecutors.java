@@ -28,10 +28,12 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.annotate.UtilityClass;
 import org.cinchapi.concourse.util.Logger;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -59,7 +61,31 @@ public final class ConcourseExecutors {
         }
         executor.execute(commands);
     }
-    
+
+    /**
+     * Create a temporary {@link ExecutorService} thread pool with enough
+     * threads to execute {@code commands} and block until all the tasks have
+     * completed. Afterwards, the thread pool is shutdown.
+     * 
+     * @param threadNamePrefix
+     * @param commands
+     */
+    public static void executeAndAwaitTerminationAndShutdown(
+            String threadNamePrefix, Runnable... commands) {
+        ExecutorService executor = Executors.newFixedThreadPool(
+                commands.length, getThreadFactory(threadNamePrefix));
+        for (Runnable command : commands) {
+            executor.execute(command);
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        }
+        catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
     public static ExecutorService newCachedThreadPool(String threadNamePrefix) {
         return Executors
                 .newCachedThreadPool(getThreadFactory(threadNamePrefix));
@@ -87,7 +113,7 @@ public final class ConcourseExecutors {
      */
     private static ThreadFactory getThreadFactory(String threadNamePrefix) {
         return new ThreadFactoryBuilder()
-                .setNameFormat(threadNamePrefix + "-%d")
+                .setNameFormat(threadNamePrefix + " #%d")
                 .setUncaughtExceptionHandler(uncaughtExceptionHandler).build();
     }
 

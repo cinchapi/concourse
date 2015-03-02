@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.cinchapi.concourse.ConcourseBaseTest;
 import org.cinchapi.concourse.server.model.Text;
@@ -51,6 +53,19 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
     }
 
     @Test
+    public void testWriteIsRangeBlockedIfReadingAllValues() {
+        ReadLock readLock = rangeLockService.getReadLock(RangeToken.forReading(
+                Text.wrapCached("foo"), Operator.BETWEEN,
+                Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY));
+        readLock.lock();
+        Assert.assertTrue(rangeLockService.isRangeBlocked(
+                LockType.RANGE_WRITE,
+                RangeToken.forWriting(Text.wrapCached("foo"),
+                        TestData.getValue())));
+        readLock.unlock();
+    }
+
+    @Test
     public void testLockServiceDoesNotEvictLocksThatAreBeingUsed()
             throws InterruptedException {
 
@@ -62,10 +77,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getReadLock("foo", Operator.EQUALS,
-                                Convert.javaToThrift(1)).unlock();
+                        ReadLock readLock = rangeLockService.getReadLock("foo",
+                                Operator.EQUALS, Convert.javaToThrift(1));
+                        readLock.lock();
+                        readLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -84,10 +99,10 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
             public void run() {
                 while (!done.get()) {
                     try {
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).lock();
-                        rangeLockService.getWriteLock("foo",
-                                Convert.javaToThrift(1)).unlock();
+                        WriteLock writeLock = rangeLockService.getWriteLock(
+                                "foo", Convert.javaToThrift(1));
+                        writeLock.lock();
+                        writeLock.unlock();
                     }
                     catch (IllegalMonitorStateException e) {
                         e.printStackTrace();
@@ -820,6 +835,18 @@ public class RangeLockServiceTest extends ConcourseBaseTest {
         Assert.assertTrue(rangeLockService.isRangeBlocked(LockType.WRITE,
                 RangeToken.forWriting(key, value)));
         finishLatch.countDown();
+    }
+
+    @Test
+    public void testSameThreadNotRangeBlockedIfReadingRangeThatCoversHeldWrite() {
+        WriteLock lock = rangeLockService.getWriteLock("foo",
+                Convert.javaToThrift(10));
+        lock.lock();
+        Assert.assertFalse(rangeLockService.isRangeBlocked(LockType.WRITE,
+                RangeToken.forReading(Text.wrapCached("foo"), Operator.BETWEEN,
+                        Value.wrap(Convert.javaToThrift(5)),
+                        Value.wrap(Convert.javaToThrift(15)))));
+        lock.unlock();
     }
 
     @Test

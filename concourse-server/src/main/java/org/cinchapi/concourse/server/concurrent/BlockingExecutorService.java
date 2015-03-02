@@ -25,6 +25,7 @@ package org.cinchapi.concourse.server.concurrent;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.cinchapi.concourse.time.Time;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -96,14 +98,12 @@ public class BlockingExecutorService {
      * @param futures
      */
     private static void waitForCompletion(Future<?>... futures) {
-        boolean spin = true;
-        while (spin) {
-            spin = false;
-            for (Future<?> future : futures) {
-                if(!future.isDone()) {
-                    spin = true;
-                    break;
-                }
+        for (Future<?> future : futures) { 
+            try {
+                future.get();
+            }
+            catch (InterruptedException | ExecutionException e) {
+                throw Throwables.propagate(e);
             }
         }
     }

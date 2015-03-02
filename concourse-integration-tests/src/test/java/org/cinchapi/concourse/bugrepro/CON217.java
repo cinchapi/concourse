@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  * 
- * Copyright (c) 2013-2014 Jeff Nelson, Cinchapi Software Collective
+ * Copyright (c) 2013-2015 Jeff Nelson, Cinchapi Software Collective
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,25 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.cinchapi.concourse.server.storage;
+package org.cinchapi.concourse.bugrepro;
 
-import org.cinchapi.concourse.server.storage.db.DatabaseTest;
-import org.cinchapi.concourse.server.storage.temp.BufferTest;
-import org.cinchapi.concourse.server.storage.temp.QueueTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.util.Map;
+
+import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.server.storage.Transaction;
+import org.cinchapi.concourse.thrift.TransactionToken;
+import org.cinchapi.concourse.util.Reflection;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * 
+ * Unit test to reproduce the memory leak issue described in CON-217.
  * 
  * @author jnelson
  */
-@RunWith(Suite.class)
-@SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
-        EngineAtomicOperationTest.class, DatabaseTest.class,
-        TransactionTest.class, TransactionAtomicOperationTest.class,
-        StoresTest.class, TransactionGarbageCollectionTest.class })
-public class StoreSuite {
+public class CON217 extends ConcourseIntegrationTest {
+
+    @Test
+    public void repro() {
+        client.stage();
+        client.stage();
+        Map<TransactionToken, Transaction> transactions = Reflection.get(
+                "transactions", Reflection.get("server", this));
+        Assert.assertEquals(1, transactions.size());
+    }
 
 }
