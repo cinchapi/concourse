@@ -1079,7 +1079,7 @@ public class ConcourseServer implements
 				// Converting the set of Thrift objects to Java objects
 				for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
 					Set<Object> values = Transformers.transformSet(entry.getValue(), 
-							Functions.TOBJECT_TO_JAVA);
+							Functions.THRIFT_TO_JAVA);
 					rec.put(entry.getKey(), values);
 				}
 				if (includePrimaryKey) {
