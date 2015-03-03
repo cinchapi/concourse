@@ -1063,47 +1063,46 @@ public class ConcourseServer implements
      * @param jsonStr
      * @return the AtomicOperation
      */
-    private AtomicOperation doJsonify(List<Long> records, boolean 
-    		includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
-    	AtomicOperation operation = store.startAtomicOperation();
-    	try {
-	   		List<Map<String, Set<Object>>> result = Lists.newLinkedList();
-			Set<Map<String, Set<Object>>> resultNoKey = Sets.newHashSet();
-			
-			for (Long record: records) {
-				//For storing the converted thrift objects
-				Map<String, Set<Object>> rec = Maps.newHashMap();
-				Map<String, Set<TObject>> r = 
-						operation.browse(record);
-				
-				// Converting the set of Thrift objects to Java objects
-				for (Map.Entry<String, Set<TObject>> entry: r.entrySet()) {
-					Set<Object> values = Transformers.transformSet(entry.getValue(), 
-							Functions.THRIFT_TO_JAVA);
-					rec.put(entry.getKey(), values);
-				}
-				if (includePrimaryKey) {
-					Set<Object> recordSet = Sets.newHashSet();
-					recordSet.add(record);
-					rec.put("$primaryKey$", recordSet);
-					result.add(rec);
-				}
-				else {
-					resultNoKey.add(rec);
-				}
-			} // End for record loop
-			
-			if (includePrimaryKey) {
-				jsonStr.append(Convert.javaToJson(result));
-			} 
-			else {
-				jsonStr.append(Convert.javaToJson(resultNoKey));
-			}
-			return operation;
-    	} 
-    	catch (AtomicStateException e) {
-    		return null;
-    	}
+    private AtomicOperation doJsonify(List<Long> records,
+            boolean includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            List<Map<String, Set<Object>>> result = Lists.newLinkedList();
+            Set<Map<String, Set<Object>>> resultNoKey = Sets.newHashSet();
+
+            for (Long record : records) {
+                // For storing the converted thrift objects
+                Map<String, Set<Object>> rec = Maps.newHashMap();
+                Map<String, Set<TObject>> r = operation.browse(record);
+
+                // Converting the set of Thrift objects to Java objects
+                for (Map.Entry<String, Set<TObject>> entry : r.entrySet()) {
+                    Set<Object> values = Transformers.transformSet(
+                            entry.getValue(), Functions.THRIFT_TO_JAVA);
+                    rec.put(entry.getKey(), values);
+                }
+                if (includePrimaryKey) {
+                    Set<Object> recordSet = Sets.newHashSet();
+                    recordSet.add(record);
+                    rec.put("$primaryKey$", recordSet);
+                    result.add(rec);
+                }
+                else {
+                    resultNoKey.add(rec);
+                }
+            } // End for record loop
+
+            if (includePrimaryKey) {
+                jsonStr.append(Convert.javaToJson(result));
+            }
+            else {
+                jsonStr.append(Convert.javaToJson(resultNoKey));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
     }
 
     /**
@@ -1281,31 +1280,31 @@ public class ConcourseServer implements
     
     @Atomic
     @Override
-    public String jsonify(List<Long> records, boolean includePrimaryKey, AccessToken
-    		creds, TransactionToken transaction, String env) 
-    		throws TSecurityException, TException {
-    	checkAccess(creds, transaction);
-    	try {
-    		Compoundable store = getStore(transaction, env);
-    		boolean nullOk = true;
-    		boolean retryable = store instanceof Engine;
-    		AtomicOperation operation = null;
-    		StringBuilder jsonResult = new StringBuilder();
-    		while((operation == null && nullOk) || operation != null &&
-    				!operation.commit() && retryable) {
-    					jsonResult = new StringBuilder();
-    					nullOk = false;
-    					operation = doJsonify(records, includePrimaryKey, store, 
-    							jsonResult);
-    		}
-    		if (operation == null) {
-    			throw new TTransactionException();
-    		}
-    		return jsonResult.toString();
-    	}
-    	catch (TransactionStateException e) {
-    		throw new TTransactionException();
-    	}
+    public String jsonify(List<Long> records, boolean includePrimaryKey,
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TSecurityException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            StringBuilder jsonResult = new StringBuilder();
+            while ((operation == null && nullOk) || operation != null
+                    && !operation.commit() && retryable) {
+                jsonResult = new StringBuilder();
+                nullOk = false;
+                operation = doJsonify(records, includePrimaryKey, store,
+                        jsonResult);
+            }
+            if (operation == null) {
+                throw new TTransactionException();
+            }
+            return jsonResult.toString();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     /**

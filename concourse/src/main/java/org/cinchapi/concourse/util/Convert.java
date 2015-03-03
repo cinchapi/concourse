@@ -171,7 +171,7 @@ public final class Convert {
         }
         JsonObject object = (JsonObject) parser.parse(json);
         if (object.has("$primaryKey$")) {
-        	object.remove("$primaryKey$");
+            object.remove("$primaryKey$");
         }
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             String key = entry.getKey();
@@ -212,37 +212,37 @@ public final class Convert {
      */
     public static List<Multimap<String, Object>> jsonArrayToJava(String
     		jsonArray) {
-    	List<Multimap<String, Object>> result = new ArrayList<>();
-    	boolean start = false;
-    	boolean quote = false;
-    	char doubleQuote = '\"';
-    	String obj = "";
-    	for (int i = 0; i < jsonArray.length(); i++) {
-    		char c = jsonArray.charAt(i);
-    		
-    		// Brackets within quotes shouldn't count as object's start or end.
-    		// Assuming single quotes are invalid for enclosing JSON key and 
-    		// values.
-    		if (c == doubleQuote && start == true) {
-    			quote = !quote;
-    			obj += c;
-    		}
-    		else if (c == '{' && start == false && !quote) {
-    			start = true;
-    			obj += c;
-    		}
-    		else if (c == '}' && start == true && !quote) {
-    			start = false;
-    			obj += c;
-    			result.add(jsonToJava(obj));
-    			obj = "";
-    		}
-    		else if (start == true) {
-    			obj += c;
-    		}
-    	}
-    	
-    	return result;
+        List<Multimap<String, Object>> result = new ArrayList<>();
+        boolean start = false;
+        boolean quote = false;
+        char doubleQuote = '\"';
+        String obj = "";
+        for (int i = 0; i < jsonArray.length(); i++) {
+            char c = jsonArray.charAt(i);
+            
+            // Brackets within quotes shouldn't count as object's start or end.
+            // Assuming single quotes are invalid for enclosing JSON key and 
+            // values.
+            if (c == doubleQuote && start == true) {
+                quote = !quote;
+                obj += c; //Testing
+            }
+            else if (c == '{' && start == false && !quote) {
+                start = true;
+                obj += c;
+            }
+            else if (c == '}' && start == true && !quote) {
+                start = false;
+                obj += c;
+                result.add(jsonToJava(obj));
+                obj = "";
+            }
+            else if (start == true) {
+            	obj += c;
+            }
+        }
+        
+        return result;
     }
 
     /**
@@ -611,22 +611,22 @@ public final class Convert {
     }
     
     public static class DataTypeAdapter extends TypeAdapter<Object> {
-    	public Object read(JsonReader reader) throws IOException {
-    		return null;
-    	}
-    	
-    	public void write(JsonWriter writer, Object value) throws IOException {
-    		if (value instanceof Double) {
-    			value = (Double) value;
-    			writer.value(value.toString() + "D");
-    		}
-    		else if (value instanceof Link) {
-    			writer.value("@" + value.toString() + "@");
-    		}
-    		else if (value instanceof Tag) {
-    			writer.value("'" + value.toString() + "'");
-    		}
-    	}
+        public Object read(JsonReader reader) throws IOException {
+            return null;
+        }
+
+        public void write(JsonWriter writer, Object value) throws IOException {
+            if (value instanceof Double) {
+                value = (Double) value;
+                writer.value(value.toString() + "D");
+            }
+            else if (value instanceof Link) {
+                writer.value("@" + value.toString() + "@");
+            }
+            else if (value instanceof Tag) {
+                writer.value("'" + value.toString() + "'");
+            }
+        }
     }
 
 }

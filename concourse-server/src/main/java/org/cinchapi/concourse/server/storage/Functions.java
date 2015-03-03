@@ -39,16 +39,16 @@ import com.google.common.base.Function;
 public final class Functions {
 	
 	
-	/**
-	 * A function that transforms a {@link TObject} to a {@link Java Object}.
-	 */
-	public static final Function<TObject, Object> THRIFT_TO_JAVA = new Function<TObject, Object>() {
-		
+    /**
+     * A function that transforms a {@link TObject} to a {@link Java Object}.
+     */
+    public static final Function<TObject, Object> THRIFT_TO_JAVA = new Function<TObject, Object>() {
+
         @Override
         public Object apply(TObject input) {
             return Convert.thriftToJava(input);
         }
-	};
+    };
 
     /**
      * A function that transforms an {@link TObject} to a {@link Value}.

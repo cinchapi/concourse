@@ -2276,33 +2276,32 @@ public abstract class Concourse implements AutoCloseable {
         
         @Override
         public String jsonify(final long record) {
-        	return jsonify(record, true);
+            return jsonify(record, true);
         }
-        
-        public String jsonify(final long record, final boolean 
-        		includePrimaryKey) {
-        	List<Long> records = Lists.newLinkedList();
-        	records.add(record);
-        	return jsonify(records, includePrimaryKey);
+
+        public String jsonify(final long record, final boolean includePrimaryKey) {
+            List<Long> records = Lists.newLinkedList();
+            records.add(record);
+            return jsonify(records, includePrimaryKey);
         }
-        
+
         @Override
-        public String jsonify(final Collection<Long> records, final boolean 
-        		includePrimaryKey) {
-        	return execute(new Callable<String>() {
-        		
-        		@Override
-        		public String call() throws Exception {
-        			List<Long> recordsList = Lists.newArrayList(records);
-        			return client.jsonify(recordsList, includePrimaryKey, creds, transaction,
-        					environment);
-        		}
-        	});
+        public String jsonify(final Collection<Long> records,
+                final boolean includePrimaryKey) {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    List<Long> recordsList = Lists.newArrayList(records);
+                    return client.jsonify(recordsList, includePrimaryKey,
+                            creds, transaction, environment);
+                }
+            });
         }
-        
+
         @Override
         public String jsonify(final Collection<Long> records) {
-        	return jsonify(records, true);
+            return jsonify(records, true);
         }
 
         @Override
