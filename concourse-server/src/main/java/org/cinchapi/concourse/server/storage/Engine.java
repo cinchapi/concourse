@@ -636,6 +636,15 @@ public final class Engine extends BufferedStore implements
         return sb.toString();
     }
 
+    /**
+     * Public interface for the {@link browse()} method.
+     * 
+     * @return Set of records
+     */
+    public Set<Long> browse() {
+        return inventory.getAll();
+    }    
+    
     @Override
     public long getVersion(long record) {
         return Math.max(buffer.getVersion(record),

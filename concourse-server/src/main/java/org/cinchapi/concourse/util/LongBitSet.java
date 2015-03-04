@@ -203,7 +203,7 @@ public class LongBitSet {
      * 
      * @return the iterable
      */
-    private Iterable<Long> toIterable() {
+    public Iterable<Long> toIterable() {
         Set<Long> collection = Sets.newTreeSet();
         for (final Map.Entry<Long, BitSet> entry : m_sets.entrySet()) {
             final BitSet bs = entry.getValue();

@@ -400,6 +400,18 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Set<Long> browse2(AccessToken creds, TransactionToken transaction,
+            String env) throws TException {
+        checkAccess(creds, transaction);
+        try {
+        	return ((Engine) getStore(null, env)).browse();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     @Atomic
     public Map<Long, Set<TObject>> chronologize(long record, String key,
             AccessToken creds, TransactionToken transaction, String env)

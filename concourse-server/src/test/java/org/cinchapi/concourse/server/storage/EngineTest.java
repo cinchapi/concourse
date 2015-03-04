@@ -25,6 +25,8 @@ package org.cinchapi.concourse.server.storage;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -194,7 +196,31 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(Convert.javaToThrift("Yale University"),
                 Iterables.get(keys, 3));
     }
+    
+    @Test
+    public void testBrowseRecordIsCorrectAfterRemoves() {
+    	 Engine engine = (Engine) store;
+         Set<Long> collegeset = new  HashSet<Long>();
+         collegeset.add(new Long(1));
+         collegeset.add(new Long(2));
+         collegeset.add(new Long(3));
+         collegeset.add(new Long(4));
+         engine.add("name", Convert.javaToThrift("abc"), 1);
+         engine.add("name", Convert.javaToThrift("xyz"), 2);
+         engine.add("name", Convert.javaToThrift("abcd"), 3);
+         engine.add("name", Convert.javaToThrift("abce"), 4);
+         engine.remove("name", Convert.javaToThrift("xyz"), 2);
+         Set<Long> result = engine.browse();
+         Iterator<Long> it= result.iterator();
+         while(it.hasNext()) {
+        	 System.out.println("Iterator values: "+it.next());
+        	 
+         }
+         Assert.assertTrue(!result.isEmpty());
+         Assert.assertTrue(result.containsAll(collegeset));
+     }
 
+    
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
         int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
