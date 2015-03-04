@@ -211,11 +211,6 @@ public class EngineTest extends BufferedStoreTest {
          engine.add("name", Convert.javaToThrift("abce"), 4);
          engine.remove("name", Convert.javaToThrift("xyz"), 2);
          Set<Long> result = engine.browse();
-         Iterator<Long> it= result.iterator();
-         while(it.hasNext()) {
-        	 System.out.println("Iterator values: "+it.next());
-        	 
-         }
          Assert.assertTrue(!result.isEmpty());
          Assert.assertTrue(result.containsAll(collegeset));
      }
