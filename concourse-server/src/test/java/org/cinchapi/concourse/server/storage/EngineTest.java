@@ -52,6 +52,7 @@ import org.junit.runner.Description;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Engine}.
@@ -200,19 +201,13 @@ public class EngineTest extends BufferedStoreTest {
     @Test
     public void testBrowseRecordIsCorrectAfterRemoves() {
     	 Engine engine = (Engine) store;
-         Set<Long> collegeset = new  HashSet<Long>();
-         collegeset.add(new Long(1));
-         collegeset.add(new Long(2));
-         collegeset.add(new Long(3));
-         collegeset.add(new Long(4));
          engine.add("name", Convert.javaToThrift("abc"), 1);
          engine.add("name", Convert.javaToThrift("xyz"), 2);
          engine.add("name", Convert.javaToThrift("abcd"), 3);
          engine.add("name", Convert.javaToThrift("abce"), 4);
          engine.remove("name", Convert.javaToThrift("xyz"), 2);
-         Set<Long> result = engine.browse();
-         Assert.assertTrue(!result.isEmpty());
-         Assert.assertTrue(result.containsAll(collegeset));
+         Assert.assertTrue(engine.browse(2).isEmpty()); //assert record presently has no data
+         Assert.assertEquals(engine.browse(), Sets.<Long>newHashSet(new Long(1), new Long(2), new Long(3), new Long(4)));
      }
 
     
