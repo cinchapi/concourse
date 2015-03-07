@@ -1,6 +1,6 @@
 # Concourse
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like [automatic indexing](http://concoursedb.com/blog/index-all-the-things/), version control and distributed ACID transactions to provide a more intuitive approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
+[ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more intuitive approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
 ## Introduction
 The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
