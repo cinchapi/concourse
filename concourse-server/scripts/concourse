@@ -154,9 +154,11 @@ if [ -n "$JAVA_HOME" ] ; then
     # IBM's JDK on AIX uses strange locations for the executables
     JAVA="$JAVA_HOME/jre/sh/java"
     JPS="$JAVA_HOME/jre/sh/jps"
+    JMAP="$JAVA_HOME/jre/sh/jmap"
   else
     JAVA="$JAVA_HOME/bin/java"
     JPS="$JAVA_HOME/bin/jps"
+    JMAP="$JAVA_HOME/bin/jmap"
   fi
   if [ ! -x "$JAVA" ] ; then
     die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
@@ -167,6 +169,7 @@ if [ -n "$JAVA_HOME" ] ; then
 else
   JAVA="java"
   JPS="jps"
+  JMAP="jmap"
   which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
 
   Please set the JAVA_HOME variable in your environment to match the
@@ -199,6 +202,12 @@ version(){
 # Get the PID for the Concourse Server process
 getpid(){
   local pid=`$JPS | grep "ConcourseServer" | cut -d' ' -f1`
+  if [ "X$pid" = "X" ]
+    then
+    rm $PIDFILE 2>/dev/null
+  else
+    echo $pid > $PIDFILE
+  fi
   echo $pid
 }
 
@@ -231,7 +240,7 @@ console(){
 }
 
 # Take a thread dump of Concourse Server
-dump(){
+threaddump(){
   echo "Requesting thread dump of Concourse Server..."
   pid=`getpid`
   if [ "X$pid" = "X" ]
@@ -244,6 +253,26 @@ dump(){
       die "Failed to take thread dump of Concourse Server"
     else
       echo "Placed thread dump in the console log"
+    fi
+  fi
+}
+
+# Take a heap dump of Concourse Server using jmap
+heapdump(){
+  echo "Requesting heap dump of Concourse Server"
+  pid=`getpid`
+  if [ "X$pid" = "X" ]
+    then
+    die "Concourse Server is not running"
+  else
+    ts=`date +%Y-%m-%d_%H:%M:%S`
+    file="$APP_HOME/log/concourse-server-$ts.hprof"
+    $JMAP -dump:format=b,file=$file $pid
+    if [ $? -ne 0 ]
+      then
+      die "Failed to take heap dump of Concourse Server"
+    else
+      echo "Placed heap dump in $file"
     fi
   fi
 }
@@ -328,7 +357,11 @@ case "$1" in
   ;;
 
   'dump')
-  dump "$@"
+  threaddump "$@"
+  ;;
+
+  'hdump')
+  heapdump "$@"
   ;;
 
   'status')
