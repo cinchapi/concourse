@@ -184,7 +184,7 @@ fi
 
 # Print the usage message
 usage(){
-  cat <<< "Usage: $APP_HOME/bin/concourse [ console | start | stop | restart | status | dump ]
+  cat <<< "Usage: $APP_HOME/bin/concourse [ console | start | stop | restart | status | threaddump | heapdump | version ]
 
   Commands:
   console       Launch in the current console.
@@ -352,31 +352,31 @@ status(){
 # MAIN: Ensure that we are in the correct directory and do the requested action.
 cd $APP_HOME
 case "$1" in
-  'start')
+  'start' | '--start')
   start "$@"
   ;;
 
-  'stop')
+  'stop' | '--stop')
   stop "$@"
   ;;
 
-  'console')
+  'console' | '--console')
   console "$@"
   ;;
 
-  'dump' | 'threaddump' | 'tdump')
+  'dump' | 'threaddump' | 'tdump' | '--threaddump' | '--tdump')
   threaddump "$@"
   ;;
 
-  'heapdump' | 'hdump')
+  'heapdump' | 'hdump' | '--heapdump' | '--hdump')
   heapdump "$@"
   ;;
 
-  'status')
+  'status' | '--status')
   status "$@"
   ;;
 
-  'restart')
+  'restart' | '--restart')
   stop "$@"
   start "$@"
   ;;
