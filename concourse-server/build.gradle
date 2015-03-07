@@ -10,7 +10,6 @@ dependencies {
     compile ('org.cinchapi:concourse-cli:1.1.2'){
     	exclude group: 'org.cinchapi'
     }
-    compile fileTree(dir: 'wrapperlib', include: 'wrapper.jar')
     compile ('org.reflections:reflections:0.9.9-RC2'){
     	exclude group: 'org.javassist', module:'javassist'
     }
@@ -39,7 +38,6 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service + '/lib') {
 		from configurations.runtime
 		from jar.outputs
-		from 'wrapperlib'
 	}
 	into(service + '/log'){
 		from 'log/console.log'
@@ -55,9 +53,6 @@ task distZip(type: Zip, dependsOn: jar) {
 	}
 	into(service) {
 		from '../LICENSE'
-	}
-	into(service + '/wrapper') {
-		from 'wrapper'
 	}
 	into(service) {
 		from context.outputs
