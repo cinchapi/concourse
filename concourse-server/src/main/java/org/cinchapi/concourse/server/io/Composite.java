@@ -117,15 +117,20 @@ public final class Composite implements Byteable {
      * @param byteables
      */
     private Composite(Byteable... byteables) {
-        int size = 0;
-        for (Byteable byteable : byteables) {
-            size += byteable.size();
+        if(byteables.length == 1) {
+            bytes = byteables[0].getBytes();
         }
-        bytes = ByteBuffer.allocate(size);
-        for (Byteable byteable : byteables) {
-            byteable.copyTo(bytes);
+        else {
+            int size = 0;
+            for (Byteable byteable : byteables) {
+                size += byteable.size();
+            }
+            bytes = ByteBuffer.allocate(size);
+            for (Byteable byteable : byteables) {
+                byteable.copyTo(bytes);
+            }
+            bytes.rewind();
         }
-        bytes.rewind();
     }
 
     @Override

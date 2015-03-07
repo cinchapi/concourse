@@ -417,9 +417,9 @@ public final class Database extends BaseStore implements
         if(!running) {
             running = true;
             Logger.info("Database configured to store data in {}", backingStore);
-            ConcourseExecutors.executeAndAwaitTermination("Database",
-                    new BlockLoader<PrimaryBlock>(PrimaryBlock.class,
-                            PRIMARY_BLOCK_DIRECTORY, cpb),
+            ConcourseExecutors.executeAndAwaitTerminationAndShutdown(
+                    "Storage Block Loader", new BlockLoader<PrimaryBlock>(
+                            PrimaryBlock.class, PRIMARY_BLOCK_DIRECTORY, cpb),
                     new BlockLoader<SecondaryBlock>(SecondaryBlock.class,
                             SECONDARY_BLOCK_DIRECTORY, csb),
                     new BlockLoader<SearchBlock>(SearchBlock.class,

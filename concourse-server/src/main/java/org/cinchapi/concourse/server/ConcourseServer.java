@@ -296,7 +296,7 @@ public class ConcourseServer implements
         args.maxWorkerThreads(NUM_WORKER_THREADS);
         args.executorService(Executors
                 .newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat(
-                        "Server" + "-%d").build()));
+                        "Client Worker" + " %d").build()));
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
@@ -407,7 +407,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newPrettyLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);
@@ -687,7 +688,8 @@ public class ConcourseServer implements
 
     @Override
     public String listAllUserSessions() {
-        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+        return TCollections.toOrderedListString(manager
+                .describeAllAccessTokens());
     }
 
     @Override
