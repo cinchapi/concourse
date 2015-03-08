@@ -78,7 +78,7 @@ die () {
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
 
-# Get the name of the OS in case there is OS-specified configuration that needs
+# Get the name of the OS in case there is OS-spceific configuration that needs
 # to occur. Variable values will generally correspond as follows:
 #
 # Value   | OS
@@ -86,8 +86,6 @@ MAX_FD="maximum"
 # darwin  | OS X
 # linux   | CentOS
 OS=`uname -s | tr "[A-Z]" "[a-z]" | tr -d ' '`
-
-# OS specific support (must be 'true' or 'false').
 cygwin=false
 msys=false
 darwin=false
