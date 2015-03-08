@@ -26,7 +26,7 @@ import com.google.common.collect.Maps;
  * A {@link Record} that can return a browsable view of its data in the present
  * or a historical state.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 abstract class BrowsableRecord<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         extends Record<L, K, V> {

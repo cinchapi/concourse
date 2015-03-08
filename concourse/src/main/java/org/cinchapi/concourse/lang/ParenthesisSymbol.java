@@ -21,7 +21,7 @@ import java.text.MessageFormat;
  * A {@link Symbol} that represents either an open or close parenthesis in a
  * {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 enum ParenthesisSymbol implements Symbol {
     LEFT, RIGHT;

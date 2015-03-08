@@ -37,7 +37,7 @@ import com.google.gson.JsonParseException;
 /**
  * Unit tests for the {@link Convert} utility class
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ConvertTest {
 

@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * operates on an {@link #object}. Between reruns, you can specify the object to
  * use using the {@link #runWith(Object)} method.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @NotThreadSafe
 public abstract class ReRunnable<T> implements Runnable {

@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
  * the verifyAndSwap operation in Concourse and checks to make sure that the
  * counter is implemented correctly (e.g. no missed or duplicate updates)
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CounterTest extends ConcourseIntegrationTest {
 

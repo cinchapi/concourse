@@ -28,7 +28,7 @@ import com.google.common.io.BaseEncoding;
 /**
  * A {@link Token} wraps multiple other objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Token implements Byteable {
 

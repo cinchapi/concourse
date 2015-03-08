@@ -25,7 +25,7 @@ import com.google.common.hash.PrimitiveSink;
 /**
  * A {@link Funnel} for {@link Byteable} objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum ByteableFunnel implements Funnel<Composite> {
     INSTANCE;

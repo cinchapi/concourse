@@ -36,7 +36,7 @@ import com.google.common.primitives.Longs;
  * This class provides interoperability with Joda {@link DateTime} objects with
  * the {@link #fromJoda(DateTime)} and {@link #getJoda()} methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 @ThreadSafe

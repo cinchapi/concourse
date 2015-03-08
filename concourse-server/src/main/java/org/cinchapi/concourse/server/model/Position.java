@@ -31,7 +31,7 @@ import com.google.common.base.Preconditions;
  * relative location and a {@link PrimaryKey} that is used in a
  * {@link SearchRecord} to specify the location of a term in a record.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Position implements Byteable, Comparable<Position> {

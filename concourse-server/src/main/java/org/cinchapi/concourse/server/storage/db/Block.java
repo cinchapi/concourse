@@ -86,7 +86,7 @@ import com.google.common.collect.TreeMultiset;
  * </p>
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate
@@ -763,7 +763,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
      * A Comparator that sorts Revisions in a block. The sort order is
      * {@code locator} followed by {@code key} followed by {@code version}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     @SuppressWarnings("rawtypes")
     private enum Sorter implements Comparator<Revision> {

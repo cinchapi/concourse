@@ -27,7 +27,7 @@ import org.cinchapi.concourse.server.storage.Action;
 /**
  * A Block that stores PrimaryRevisions data to be used in a PrimaryRecord.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate

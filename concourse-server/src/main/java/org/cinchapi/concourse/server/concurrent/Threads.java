@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * {@link Thread} related tools that deal with exception handling.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Threads {
 

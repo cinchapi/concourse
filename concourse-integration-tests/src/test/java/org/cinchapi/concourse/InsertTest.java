@@ -25,7 +25,7 @@ import com.google.gson.JsonObject;
 /**
  * Unit tests for the {@code insert()} API methods
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class InsertTest extends ConcourseIntegrationTest {
 

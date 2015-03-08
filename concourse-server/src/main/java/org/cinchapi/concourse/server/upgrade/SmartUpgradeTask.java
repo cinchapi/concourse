@@ -24,7 +24,7 @@ import org.cinchapi.concourse.util.Versions;
  * {@code major_minor_patch_task} (i.e {{@code Upgrade0_4_1_1)} for upgrade task
  * 1 for version 0.4.1)
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class SmartUpgradeTask extends UpgradeTask {
 

@@ -19,7 +19,7 @@ package org.cinchapi.concourse.shell;
  * A throwable that is used to indicate that the evaluation of input merits a
  * graceful exit.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class ExitRequest extends IrregularEvaluationResult {

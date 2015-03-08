@@ -18,7 +18,7 @@ package org.cinchapi.concourse.lang;
 /**
  * A {@link Symbol} that represents a key in a {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class KeySymbol extends AbstractSymbol {
 

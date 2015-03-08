@@ -23,7 +23,7 @@ import org.cinchapi.concourse.lang.Expression;
  * A {@link ExpressionTree} is an {@link AST} that holds an {@link Expression}
  * symbol and does not have any children.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public class ExpressionTree extends AST {

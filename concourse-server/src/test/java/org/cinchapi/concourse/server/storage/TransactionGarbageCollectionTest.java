@@ -30,7 +30,7 @@ import org.junit.Test;
  * Unit tests to ensure that {@link Transaction transactions} are properly
  * garbaged collected (e.g there are no memory leaks).
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     

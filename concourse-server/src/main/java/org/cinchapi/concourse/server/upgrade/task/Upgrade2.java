@@ -33,7 +33,7 @@ import com.google.common.base.Throwables;
 /**
  * Migrate legacy (e.g. pre-environment) data to the default environment.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Upgrade2 extends UpgradeTask {
 

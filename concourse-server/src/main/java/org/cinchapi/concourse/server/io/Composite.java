@@ -31,7 +31,7 @@ import com.google.common.hash.Hashing;
  * A {@link Composite} is a single Byteable object that wraps multiple other
  * Byteable objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Composite implements Byteable {

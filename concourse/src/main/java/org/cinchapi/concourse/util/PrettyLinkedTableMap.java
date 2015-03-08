@@ -43,7 +43,7 @@ import com.google.common.collect.Maps;
  * multiple records or documents.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {

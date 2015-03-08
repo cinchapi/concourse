@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * A unit tests for the constraints of the {@link Tag} data type.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TagTest {
     

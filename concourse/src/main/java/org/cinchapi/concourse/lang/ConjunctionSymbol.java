@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * A {@link Symbol} the possible conjunctions that can relate clauses in a
  * {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum ConjunctionSymbol implements PostfixNotationSymbol {
     AND, OR

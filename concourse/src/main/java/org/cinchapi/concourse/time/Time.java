@@ -18,7 +18,7 @@ package org.cinchapi.concourse.time;
 /**
  * Time utilities.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Time {
 

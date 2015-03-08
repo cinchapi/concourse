@@ -22,7 +22,7 @@ import com.beust.jcommander.Parameter;
 /**
  * A set of Options for a CLI that interact with a server environment.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class EnvironmentOptions extends Options {
 

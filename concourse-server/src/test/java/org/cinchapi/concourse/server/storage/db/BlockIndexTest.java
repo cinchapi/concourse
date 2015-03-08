@@ -31,7 +31,7 @@ import org.junit.runner.Description;
 /**
  * Unit tests for {@link BlockIndex}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BlockIndexTest extends ConcourseBaseTest {
 

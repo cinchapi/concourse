@@ -26,7 +26,7 @@ import com.google.common.base.Throwables;
  * A collection of tools for using reflection to access or modify objects. Use
  * with caution.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Reflection {
 

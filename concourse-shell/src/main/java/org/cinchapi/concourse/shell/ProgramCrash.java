@@ -19,7 +19,7 @@ package org.cinchapi.concourse.shell;
  * An exception that indicates that the evaluation of some input has caused the
  * program to crash.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 class ProgramCrash extends IrregularEvaluationResult {

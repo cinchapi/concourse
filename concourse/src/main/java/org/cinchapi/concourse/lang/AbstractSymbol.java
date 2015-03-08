@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * An abstract implementation of the {@link Symbol} interface that provides
  * {@link #hashCode()} and {@link #equals(Object)}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 class AbstractSymbol implements Symbol {
 

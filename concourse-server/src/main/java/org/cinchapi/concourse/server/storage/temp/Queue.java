@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
  * data as a sequence of {@link Write} objects. New data is appended to the
  * sequence and the returned {@link Iterator} traverses the list.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Queue extends Limbo {
 

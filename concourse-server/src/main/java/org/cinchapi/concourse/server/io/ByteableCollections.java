@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
  * objects into a byte array and iterating over the sequences of bytes that
  * represent those objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ByteableCollections {
 
@@ -111,7 +111,7 @@ public class ByteableCollections {
      * element when its peek is less than 1 or the byte buffer has no more
      * elements.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class ByteableCollectionIterator implements
             Iterator<ByteBuffer> {
@@ -174,7 +174,7 @@ public class ByteableCollections {
      * the specified number of sequences or the capacity of its byte buffer is
      * less than the specified sequence size.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class FixedSizeByteableCollectionIterator extends
             ByteableCollectionIterator {

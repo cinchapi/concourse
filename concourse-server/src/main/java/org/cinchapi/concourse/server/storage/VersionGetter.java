@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.storage;
 /**
  * A class that can retrieve the version for a record or a key+record.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface VersionGetter {
 

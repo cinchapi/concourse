@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests that reproduces the issue found in CON-167.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON167 extends ConcourseIntegrationTest {
 

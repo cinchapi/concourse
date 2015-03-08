@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link ConcourseServer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ConcourseServerTest extends ConcourseBaseTest {
 

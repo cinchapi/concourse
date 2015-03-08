@@ -19,7 +19,7 @@ package org.cinchapi.concourse.server.storage;
  * An unchecked exception that is thrown when an attempt is made to operate on a
  * closed {@link AtomicOperation}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AtomicStateException extends RuntimeException {
 

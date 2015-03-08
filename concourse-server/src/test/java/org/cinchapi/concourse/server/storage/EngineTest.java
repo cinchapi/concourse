@@ -46,7 +46,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for {@link Engine}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class EngineTest extends BufferedStoreTest {
 

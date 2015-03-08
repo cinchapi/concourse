@@ -20,7 +20,7 @@ import org.cinchapi.concourse.lang.ConjunctionSymbol;
 /**
  * A {@link ConjunctionTree} that holds the AND {@link ConjunctionSymbol}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class OrTree extends ConjunctionTree {
 

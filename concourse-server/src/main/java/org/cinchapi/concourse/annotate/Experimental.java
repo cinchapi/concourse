@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * A feature that is under active development and should not be reliably used in
  * production code.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

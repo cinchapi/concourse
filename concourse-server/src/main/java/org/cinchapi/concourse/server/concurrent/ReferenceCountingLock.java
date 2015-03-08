@@ -27,7 +27,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
  * released. The subclass should increment the reference count when the lock is
  * considered to be <em>grabbed</em>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @PackagePrivate
 @SuppressWarnings("serial")
@@ -126,7 +126,7 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
     /**
      * A {@link WriteLock} that handles reference counting.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class DecoratedWriteLock extends WriteLock {
 
@@ -167,7 +167,7 @@ class ReferenceCountingLock extends ReentrantReadWriteLock {
     /**
      * A {@link ReadLock} that handles reference counting.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class DecoratedReadLock extends ReadLock {
 

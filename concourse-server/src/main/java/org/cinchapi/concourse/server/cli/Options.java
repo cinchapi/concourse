@@ -32,7 +32,7 @@ import com.beust.jcommander.Parameter;
  * See http://jcommander.org/ for more information.
  * <p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class Options {
 

@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link Value}
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public class ValueTest extends ByteableTest {

@@ -26,7 +26,7 @@ import org.cinchapi.concourse.util.TestData;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SecondaryBlockTest extends BlockTest<Text, Value, PrimaryKey> {
 

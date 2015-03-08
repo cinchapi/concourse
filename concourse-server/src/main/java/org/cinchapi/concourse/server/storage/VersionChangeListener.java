@@ -20,7 +20,7 @@ import org.cinchapi.concourse.server.concurrent.Token;
 /**
  * An object that listens for version changes and responds accordingly.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface VersionChangeListener {
 

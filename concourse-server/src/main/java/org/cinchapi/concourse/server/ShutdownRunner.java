@@ -23,7 +23,7 @@ import java.net.Socket;
  * Connects to the {@link ConcourseServer#SHUTDOWN_PORT} in order to
  * initiate a graceful shutdown.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ShutdownRunner {
 

@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Unit tests for the verifyOrSet method in {@link Concourse}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class VerifyOrSetTest extends ConcourseIntegrationTest {
 

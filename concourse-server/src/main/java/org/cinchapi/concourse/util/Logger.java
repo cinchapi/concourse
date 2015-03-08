@@ -32,7 +32,7 @@ import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 /**
  * Contains methods to print log messages in the appropriate files.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Logger {
 

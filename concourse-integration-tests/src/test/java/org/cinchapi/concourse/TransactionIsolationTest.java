@@ -28,7 +28,7 @@ import org.junit.Test;
  * transaction isolation levels at
  * http://en.wikipedia.org/wiki/Isolation_%28database_systems%29
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionIsolationTest extends ConcourseIntegrationTest {
 

@@ -69,7 +69,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * <sup>1</sup> - All reads are O(n) because {@code Limbo} uses an
  * {@link #iterator()} to traverse the {@link Write} objects that it stores.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @NotThreadSafe
 public abstract class Limbo extends BaseStore implements

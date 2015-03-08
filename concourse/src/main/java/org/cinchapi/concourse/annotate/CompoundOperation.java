@@ -19,7 +19,7 @@ package org.cinchapi.concourse.annotate;
  * A {@link Concourse} operation that combines two or more operations in a
  * <strong>non-atomic</strong> manner.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface CompoundOperation {
 

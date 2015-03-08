@@ -28,7 +28,7 @@ import org.cinchapi.concourse.server.storage.Action;
  * A {@link Revision} that is used in a {@link SearchBlock} and maps a key
  * to a term to a position.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class SearchRevision extends Revision<Text, Text, Position> {

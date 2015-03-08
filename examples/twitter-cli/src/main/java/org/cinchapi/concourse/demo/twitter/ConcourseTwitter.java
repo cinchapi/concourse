@@ -44,7 +44,7 @@ import org.cinchapi.concourse.time.Time;
  * functionality in Concourse and show off the simplicity of programming against
  * the schemaless database. DO NOT use this class in a real application.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ConcourseTwitter implements Twitter {
 

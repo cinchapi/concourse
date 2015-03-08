@@ -42,7 +42,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * A collection of integrations tests that deal with the client and server.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ TransactionWorkflowTest.class,

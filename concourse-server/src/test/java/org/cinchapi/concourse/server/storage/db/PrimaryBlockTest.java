@@ -30,7 +30,7 @@ import org.junit.Test;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class PrimaryBlockTest extends BlockTest<PrimaryKey, Text, Value> {
     

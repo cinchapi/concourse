@@ -27,7 +27,7 @@ import java.util.Random;
  * @see http
  *      ://stackoverflow.com/questions/41107/how-to-generate-a-random-alpha-
  *      numeric -string-in-java
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RandomStringGenerator {
 

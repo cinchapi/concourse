@@ -55,7 +55,7 @@ import com.google.common.primitives.Longs;
  * The {@link AccessManager} controls access to the server by keeping tracking
  * of valid credentials and handling authentication requests.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AccessManager {
 
@@ -538,7 +538,7 @@ public class AccessManager {
      * The {@link AccessTokenManager} handles the work necessary to create,
      * validate and delete AccessTokens for the {@link AccessManager}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final static class AccessTokenManager {
 
@@ -707,7 +707,7 @@ public class AccessManager {
      * of collection storage.
      * </p>
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class AccessTokenWrapper implements
             Comparable<AccessTokenWrapper> {

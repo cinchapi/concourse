@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
 /**
  * Utilities for Lists.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TLists {
 

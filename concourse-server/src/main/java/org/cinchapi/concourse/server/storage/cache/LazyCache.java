@@ -44,7 +44,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * sort of intern pool for immutable objects.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LazyCache<K, V> {
 
@@ -110,7 +110,7 @@ public class LazyCache<K, V> {
      * The {@link Runnable} that is passed to the {@link #executor} to add items
      * to the cache.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class PutRunnable implements Runnable {
 

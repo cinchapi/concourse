@@ -22,7 +22,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,

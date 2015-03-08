@@ -39,7 +39,7 @@ import com.google.common.base.Preconditions;
  * that is permanently stored in a {@link Block} or viewed in a {@link Record}.
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * @param <L> - the locator type
  * @param <K> - the key type
  * @param <V> - the value type

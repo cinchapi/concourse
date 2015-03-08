@@ -27,7 +27,7 @@ import org.junit.Test;
 /**
  * Unit test to reproduce the memory leak issue described in CON-217.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON217 extends ConcourseIntegrationTest {
 

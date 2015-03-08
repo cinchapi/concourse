@@ -26,7 +26,7 @@ import com.google.common.base.Stopwatch;
 /**
  * Test the speed of find queries
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * 
  */
 public class FindThroughputTest extends ConcourseIntegrationTest {

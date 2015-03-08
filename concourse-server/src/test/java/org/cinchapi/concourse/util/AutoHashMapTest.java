@@ -24,7 +24,7 @@ import com.google.common.base.Function;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Ignore("not in use")
 public class AutoHashMapTest extends AutoMapTest{

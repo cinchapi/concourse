@@ -24,7 +24,7 @@ import org.cinchapi.concourse.thrift.TObject;
 /**
  * A Compoundable store can perform AtomicOperations.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Compoundable extends
         PermanentStore,

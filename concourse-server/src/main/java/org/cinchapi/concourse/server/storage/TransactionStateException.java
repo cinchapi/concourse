@@ -23,7 +23,7 @@ package org.cinchapi.concourse.server.storage;
  * transaction cannot be auto retried.
  * transaction
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionStateException extends AtomicStateException {
 

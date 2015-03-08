@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  * Contains configuration and state that must be accessible to various parts of
  * the Server.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class GlobalState {
     // ========================================================================

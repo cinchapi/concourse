@@ -33,7 +33,7 @@ import org.junit.runner.Description;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BlockTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         extends ConcourseBaseTest {

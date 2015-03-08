@@ -22,7 +22,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
  * {@link Write} into a {@link Limbo} that does not have enough
  * capacity.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @PackagePrivate
 class CapacityException extends RuntimeException {

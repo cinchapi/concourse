@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * A collection of tools for dealing with syntax in the {@link ConcourseShell}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class SyntaxTools {
 

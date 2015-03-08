@@ -58,7 +58,7 @@ import com.google.common.hash.Hashing;
  * }
  * </pre></code>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * @param <T> - the cached object type.
  */
 public class ReferenceCache<T> {

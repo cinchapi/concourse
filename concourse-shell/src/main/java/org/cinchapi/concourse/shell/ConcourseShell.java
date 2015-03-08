@@ -66,7 +66,7 @@ import com.google.common.primitives.Longs;
  * connection to a ConcourseServer inside of a {@link GroovyShell}, which allows
  * for rich interaction with Concourse in a scripting environment.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class ConcourseShell {
 
@@ -544,7 +544,7 @@ public final class ConcourseShell {
     /**
      * The options that can be passed to the main method of this script.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class Options {
 

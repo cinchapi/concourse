@@ -25,7 +25,7 @@ import com.google.common.base.Stopwatch;
  * A {@link ReadWriteSharedLock} is a form of a reentrant lock that permits
  * either multiple concurrent readers OR multiple concurrent writers.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class ReadWriteSharedLock extends ReentrantReadWriteLock {
@@ -145,7 +145,7 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
      * An {@link WriteLock} that can be grabbed by multiple writers at the same
      * time while blocking all readers.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class SharedWriteLock extends WriteLock {
 
@@ -263,7 +263,7 @@ public class ReadWriteSharedLock extends ReentrantReadWriteLock {
      * An {@link ReadLock} that can be grabbed by multiple readers at the same
      * time while blocking all writers.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class SharedReadLock extends ReadLock {
 

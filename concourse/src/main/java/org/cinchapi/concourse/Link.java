@@ -26,7 +26,7 @@ import com.google.common.primitives.UnsignedLongs;
  * returned from the {@code #fetch} or {@code #get} methods in {@link Concourse}
  * if data was added using one of the {@code #link} operations.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 // NOTE: This class extends Number so that it can be treated like other
 // numerical Values during comparisons when the data is stored and sorted in a

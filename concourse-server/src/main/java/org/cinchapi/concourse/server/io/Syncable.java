@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.io;
 /**
  * An object that can be written to disk.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Syncable {
 

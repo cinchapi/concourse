@@ -47,7 +47,7 @@ import java.nio.ByteBuffer;
  * </p>
  * 
  * @see {@link #Byteables}
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Byteable {
 

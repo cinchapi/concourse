@@ -71,7 +71,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * mapped and the writes are always appended.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public final class Buffer extends Limbo {
@@ -971,7 +971,7 @@ public final class Buffer extends Limbo {
      * Pages differ from other iterators because they do not advance in the
      * sequence until the {@link #remove()} method is called.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class Page implements Iterator<Write>, Iterable<Write> {
 

@@ -42,7 +42,7 @@ import com.google.common.collect.Maps;
  * interface for querying.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate

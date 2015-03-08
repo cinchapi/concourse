@@ -24,7 +24,7 @@ import java.util.concurrent.locks.Lock;
  * A decorator {@link Lock} that compounds multiple sub locks and operates on
  * them atomically.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AtomicLock implements Lock {
 

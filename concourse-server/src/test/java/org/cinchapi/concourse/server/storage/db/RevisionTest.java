@@ -34,7 +34,7 @@ import com.google.common.base.Throwables;
 /**
  * Unit tests for all the subclasses of {@link Revision}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public class RevisionTest {

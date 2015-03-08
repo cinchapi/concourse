@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link PrimaryKey}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class PrimaryKeyTest extends ByteableTest {
 

@@ -119,7 +119,7 @@ import com.google.common.collect.Sets;
  * {@link ConnectionPool}.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
@@ -1285,7 +1285,7 @@ public abstract class Concourse implements AutoCloseable {
      * is a more user friendly wrapper around a Thrift
      * {@link ConcourseService.Client}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final static class Client extends Concourse {
 

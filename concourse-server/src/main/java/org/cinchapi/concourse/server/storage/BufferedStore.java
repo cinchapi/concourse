@@ -41,7 +41,7 @@ import com.google.common.collect.Sets;
  * read from the buffer and the destination.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BufferedStore extends BaseStore {
 

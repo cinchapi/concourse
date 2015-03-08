@@ -44,7 +44,7 @@ import com.google.common.primitives.Ints;
  * {@link UnsupportedOperationException}</em>.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
@@ -331,7 +331,7 @@ public class ConcurrentSkipListMultiset<T> implements SortedMultiset<T> {
     /**
      * An {@link Entry} that is used internally in the {@link #backing} map.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      *
      */
     public class SkipListEntry implements Entry<T> {

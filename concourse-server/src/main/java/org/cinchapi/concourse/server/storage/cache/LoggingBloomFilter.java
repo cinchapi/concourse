@@ -46,7 +46,7 @@ import com.google.common.hash.Hashing;
  * when writes will continue to occur after the filter has been synced to disk.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class LoggingBloomFilter {

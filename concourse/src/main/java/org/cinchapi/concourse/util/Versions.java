@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 /**
  * A collection of utility methods for dealing with version numbers.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Versions {
 

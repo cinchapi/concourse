@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
  * options available from each subsequently returned state.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Criteria implements Symbol {
 

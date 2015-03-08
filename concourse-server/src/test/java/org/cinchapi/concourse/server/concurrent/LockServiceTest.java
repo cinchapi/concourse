@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link LockService}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LockServiceTest extends ConcourseBaseTest {
 

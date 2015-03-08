@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.jmx;
 /**
  * Indicates that a method is an exposed JMX operation.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface ManagedOperation {
 

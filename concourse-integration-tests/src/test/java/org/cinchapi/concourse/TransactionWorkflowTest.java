@@ -26,7 +26,7 @@ import com.google.common.base.Strings;
 /**
  * ETE tests for transaction related workflows.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionWorkflowTest extends ConcourseIntegrationTest {
 

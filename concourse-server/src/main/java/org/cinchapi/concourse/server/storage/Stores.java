@@ -24,7 +24,7 @@ import org.cinchapi.concourse.util.TStrings;
 /**
  * {@link Store} based utility functions.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Stores {
 

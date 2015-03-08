@@ -22,7 +22,7 @@ import org.cinchapi.concourse.server.GlobalState;
 /**
  * An MXBean that defines managed operations for {@link ConcourseServer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @MXBean
 public interface ConcourseServerMXBean {

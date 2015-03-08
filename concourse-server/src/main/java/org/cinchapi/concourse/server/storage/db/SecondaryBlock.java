@@ -27,7 +27,7 @@ import org.cinchapi.concourse.server.storage.Action;
 /**
  * A Block that stores SecondaryRevision data to be used in a SecondaryRecord.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate

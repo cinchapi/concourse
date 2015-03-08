@@ -48,7 +48,7 @@ import com.google.common.collect.Maps;
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
  * that it is durable in the event of crash, power loss or failure.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Transaction extends AtomicOperation implements Compoundable {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call

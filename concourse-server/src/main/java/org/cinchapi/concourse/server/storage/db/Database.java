@@ -74,7 +74,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * in various {@link Block} objects, which provide indexed views for optimized
  * reads.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public final class Database extends BaseStore implements
@@ -614,7 +614,7 @@ public final class Database extends BaseStore implements
      * A runnable that traverses the appropriate directory for a block type
      * under {@link #backingStore} and loads the block metadata into memory.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      * @param <T> - the Block type
      */
     private final class BlockLoader<T extends Block<?, ?, ?>> implements
@@ -694,7 +694,7 @@ public final class Database extends BaseStore implements
     /**
      * A runnable that will sync a block to disk.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class BlockSyncer implements Runnable {
 
@@ -720,7 +720,7 @@ public final class Database extends BaseStore implements
     /**
      * A runnable that will insert a Writer into a block.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class BlockWriter implements Runnable {
 

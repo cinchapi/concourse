@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests that check the operational correctness of the Set API methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SetTest extends ConcourseIntegrationTest {
 

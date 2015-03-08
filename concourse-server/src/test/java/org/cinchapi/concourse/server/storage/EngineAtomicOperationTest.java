@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for an {@link AtomicOperation} that commits to the {@link Engine}
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class EngineAtomicOperationTest extends AtomicOperationTest {
 

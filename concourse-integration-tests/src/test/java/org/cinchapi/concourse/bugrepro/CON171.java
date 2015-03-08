@@ -26,7 +26,7 @@ import org.junit.Test;
  * Repro of issue described in CON-171 where a phantom read is possible when
  * using transactions.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON171 extends ConcourseIntegrationTest {
 

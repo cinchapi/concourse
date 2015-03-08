@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 /**
  * Tools for translating aspects of the language.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Translate {
 

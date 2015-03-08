@@ -20,7 +20,7 @@ package org.cinchapi.concourse.lang;
  * is important so that we don't allow the caller to build an empty criteria or
  * a criteria with a hanging conjunction.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BuildableStartState extends BuildableState {
 

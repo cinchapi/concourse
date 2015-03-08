@@ -27,7 +27,7 @@ import com.google.common.base.Strings;
 /**
  * Unit tests for {@link ByteBuffers} utility methods
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ByteBuffersTest {
     

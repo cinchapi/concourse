@@ -35,7 +35,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * keys, etc). This class implements the bulk of the logic for concurrently
  * dealing with the locks in a secure way.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class AbstractLockService<T extends Token, L extends ReferenceCountingLock> {
 
@@ -165,7 +165,7 @@ public abstract class AbstractLockService<T extends Token, L extends ReferenceCo
      * The internal garbage collector is a task that periodically checks the
      * {@link #locks} cache for entries with 0 references and removes them.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class GarbageCollector implements Runnable {
 

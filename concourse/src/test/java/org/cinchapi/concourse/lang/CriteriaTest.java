@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Unit tests for the {@link Criteria} building functionality.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CriteriaTest {
 

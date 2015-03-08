@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * The base class for a state that can build a complete and well-formed
  * {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BuildableState extends State {
 

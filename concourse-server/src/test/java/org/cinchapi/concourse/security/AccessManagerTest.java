@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link AccessManager}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AccessManagerTest extends ConcourseBaseTest {
 

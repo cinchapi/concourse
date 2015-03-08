@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Text}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TextTest extends ByteableTest {
 

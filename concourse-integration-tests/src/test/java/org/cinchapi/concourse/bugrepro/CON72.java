@@ -26,7 +26,7 @@ import org.junit.Test;
  * where a transaction deadlock would occur when writing a key as value before
  * range reading that key with the added value.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON72 extends ConcourseIntegrationTest {
 

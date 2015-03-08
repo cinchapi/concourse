@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * Unit tests for the constraints promised by the {@link TObject} class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TObjectTest {
 

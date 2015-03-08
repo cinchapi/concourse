@@ -20,7 +20,7 @@ import org.cinchapi.concourse.Timestamp;
 /**
  * A {@link Symbol} that represents a {@link Timestamp} in a {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TimestampSymbol extends AbstractSymbol {
 

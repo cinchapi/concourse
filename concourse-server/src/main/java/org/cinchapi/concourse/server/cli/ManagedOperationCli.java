@@ -35,7 +35,7 @@ import com.google.common.base.Strings;
  * A CLI that performs an operation on a {@link ConcourseServerMXBean}. Any CLI
  * that operates on a running {@link ConcourseServer} should extend this class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ManagedOperationCli {
 

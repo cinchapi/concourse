@@ -55,7 +55,7 @@ import com.google.common.collect.TreeRangeSet;
  * <em>just in time locking</em> where destination resources are only locked
  * when its time to commit the operation.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AtomicOperation extends BufferedStore implements
         VersionChangeListener {
@@ -523,7 +523,7 @@ public class AtomicOperation extends BufferedStore implements
      * Encapsulates the logic to efficiently associate keys with ranges for the
      * purposes of JIT range locking.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class RangeHolder {
 
@@ -599,7 +599,7 @@ public class AtomicOperation extends BufferedStore implements
      * metadata that can be serialized to disk. The AtomicOperation grabs a
      * collection of LockDescriptions when it goes to commit.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     protected static final class LockDescription implements Byteable {
         

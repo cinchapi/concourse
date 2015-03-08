@@ -24,7 +24,7 @@ import org.cinchapi.vendor.com.davekoelle.AlphanumSorter;
  * A {@link Comparator} that sorts files with strictly numerical names between 0
  * and 2^63 - 1 (i.e. a timestamp).
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum NaturalSorter implements Comparator<File> {
     INSTANCE;

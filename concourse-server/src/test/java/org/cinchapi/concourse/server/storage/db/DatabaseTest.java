@@ -34,7 +34,7 @@ import org.junit.Test;
 /**
  * Unit tests for the {@link Database}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class DatabaseTest extends StoreTest {
 

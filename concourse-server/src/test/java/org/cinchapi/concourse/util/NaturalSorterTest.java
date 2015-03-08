@@ -27,7 +27,7 @@ import org.junit.runner.Description;
 /**
  * Unit tests for {@link NaturalSorter}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class NaturalSorterTest {
 

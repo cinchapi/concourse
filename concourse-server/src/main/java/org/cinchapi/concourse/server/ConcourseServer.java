@@ -100,7 +100,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * Accepts requests from clients to read and write data in Concourse. The server
  * is configured with a {@code concourse.prefs} file.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ConcourseServer implements
         ConcourseService.Iface,

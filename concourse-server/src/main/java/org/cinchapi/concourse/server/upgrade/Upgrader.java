@@ -31,7 +31,7 @@ import static org.cinchapi.concourse.server.upgrade.UpgradeTask.getCurrentSystem
  * the storage directories. This script is typically called when a user upgrades
  * ConcourseServer from one version to the next.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Upgrader {
 

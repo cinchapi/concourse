@@ -38,7 +38,7 @@ import com.google.common.base.Throwables;
  * more convenient and interoperable with NIO utilities like file channels and
  * byte buffers.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Serializables {
 

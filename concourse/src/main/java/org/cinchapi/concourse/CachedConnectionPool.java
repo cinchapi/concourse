@@ -24,7 +24,7 @@ import org.cinchapi.concourse.util.ConcurrentLoadingQueue;
  * can managed, but will try to use previously requested connections, where
  * possible.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 class CachedConnectionPool extends ConnectionPool {
 

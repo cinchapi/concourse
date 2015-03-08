@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.storage;
 /**
  * A service that can initiate a {@link Transaction}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Transactional {
 

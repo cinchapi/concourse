@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * A collection of {@link String} related tools.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TStrings {
 

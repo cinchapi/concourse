@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
  * A collection of utility functions for dealing with {@link RangeToken}
  * objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class RangeTokens {
 

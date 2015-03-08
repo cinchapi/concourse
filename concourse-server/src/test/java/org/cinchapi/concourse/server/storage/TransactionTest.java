@@ -30,7 +30,7 @@ import org.junit.runner.Description;
 /**
  * Unit tests for {@link Transaction}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionTest extends AtomicOperationTest {
 

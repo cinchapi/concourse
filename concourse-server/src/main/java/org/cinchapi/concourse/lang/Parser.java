@@ -36,7 +36,7 @@ import com.google.common.collect.Lists;
  * The {@link Parser} is a tool that operates on various aspects of the
  * language.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Parser {
 

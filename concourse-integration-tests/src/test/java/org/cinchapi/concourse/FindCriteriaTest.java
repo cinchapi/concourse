@@ -37,7 +37,7 @@ import com.google.common.collect.Sets;
  * Unit tests to make sure that the find operation works with complex
  * {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class FindCriteriaTest extends ConcourseIntegrationTest {
 

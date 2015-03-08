@@ -46,7 +46,7 @@ import com.google.common.collect.Multiset;
  * and vice-versa.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class NonBlockingHashMultimap<K, V> implements Multimap<K, V> {

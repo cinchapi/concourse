@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Tests for {@link Position}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class PositionTest extends ByteableTest {
 

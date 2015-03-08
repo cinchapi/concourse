@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * A clock that gives as close to the current time as possible without
  * duplicates in microseconds.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * 
  */
 public class AtomicClock {

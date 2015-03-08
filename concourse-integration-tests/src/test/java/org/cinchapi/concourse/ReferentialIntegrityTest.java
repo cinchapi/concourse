@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Unit tests to verify referential integrity
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ReferentialIntegrityTest extends ConcourseIntegrationTest {
     

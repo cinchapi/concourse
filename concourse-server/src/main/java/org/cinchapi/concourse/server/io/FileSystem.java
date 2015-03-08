@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
  * exceptions or the awkward {@link Path} API. Using this class will help
  * produce more streamlined and readable code.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class FileSystem {
 

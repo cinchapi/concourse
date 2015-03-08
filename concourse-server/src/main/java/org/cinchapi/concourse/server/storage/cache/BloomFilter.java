@@ -42,7 +42,7 @@ import com.google.common.base.Throwables;
  * time while abstracting away the notion of funnels, etc.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class BloomFilter implements Syncable {

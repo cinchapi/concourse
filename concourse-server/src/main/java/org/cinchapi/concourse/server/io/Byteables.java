@@ -32,7 +32,7 @@ import com.google.common.collect.Maps;
  * Contains static factory methods to construct {@link Byteable} objects from
  * ByteBuffers.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class Byteables {
 

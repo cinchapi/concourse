@@ -24,7 +24,7 @@ import com.google.common.base.Function;
  * AutoMap with hash based sorting. Create using
  * {@link AutoMap#newAutoHashMap(Function, Function)}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Experimental
 public class AutoHashMap<K, V> extends AutoMap<K, V> {

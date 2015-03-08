@@ -21,7 +21,7 @@ import org.cinchapi.concourse.server.storage.temp.Queue;
 /**
  * Unit tests for {@link Queue}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class QueueTest extends LimboTest {
 

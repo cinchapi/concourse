@@ -32,7 +32,7 @@ import org.junit.Test;
  * Unit tests to to check to make sure that the necessary changes have been made
  * to the codebase after regenerating the thrift code.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ThriftComplianceTest extends ConcourseIntegrationTest {
 

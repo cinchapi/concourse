@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Test to make sure that {@link Operator#LINKS_TO} works.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LinksToTest extends ConcourseIntegrationTest {
     

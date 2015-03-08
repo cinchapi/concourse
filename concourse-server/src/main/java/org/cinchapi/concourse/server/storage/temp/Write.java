@@ -36,7 +36,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
  * a temporary representation of a revision before it is permanently stored and
  * indexed.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Write implements Byteable, Versioned {

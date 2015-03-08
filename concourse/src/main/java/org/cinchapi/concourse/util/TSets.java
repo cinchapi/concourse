@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
  * performance improvements over some of the operations in the Guava
  * {@link Sets} class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TSets {
 

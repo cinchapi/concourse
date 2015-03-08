@@ -21,7 +21,7 @@ import org.cinchapi.concourse.server.storage.cache.BloomFilter;
  * A special {@link Queue} that is used for {@link Transaction transactions}:
  * uses a local bloom filter to make verifies more efficient.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionQueue extends Queue {
 

@@ -19,7 +19,7 @@ package org.cinchapi.concourse.shell;
  * A throwable that indicates the user is trying to enter input over multiple
  * lines.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class MultiLineRequest extends IrregularEvaluationResult {

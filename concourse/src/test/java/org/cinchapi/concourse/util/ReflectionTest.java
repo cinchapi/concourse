@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Unit tests for the {@link Reflection} utility class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("unused")
 public class ReflectionTest {

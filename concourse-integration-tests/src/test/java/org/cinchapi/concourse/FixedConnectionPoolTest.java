@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for {@link FixedConnectionPool}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class FixedConnectionPoolTest extends ConnectionPoolTest {
 

@@ -21,7 +21,7 @@ import org.cinchapi.concourse.annotate.PackagePrivate;
 /**
  * A custom {@link ReentrantReadWriteLock} that is defined by a {@link Token}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 final class TokenReadWriteLock extends ReferenceCountingLock {

@@ -27,7 +27,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for {@link ConcurrentLoadingQueue}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ConcurrentLoadingQueueTest {
 

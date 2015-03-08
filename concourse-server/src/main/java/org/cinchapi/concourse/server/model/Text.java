@@ -28,7 +28,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 /**
  * A {@link Byteable} wrapper for a string of UTF-8 encoded characters.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Text implements Byteable, Comparable<Text> {

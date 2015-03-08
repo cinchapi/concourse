@@ -22,7 +22,7 @@ package org.cinchapi.concourse.annotate;
  * accessed by a resource in another package, but the resource is not meant for
  * broad consumption.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface Restricted {
 

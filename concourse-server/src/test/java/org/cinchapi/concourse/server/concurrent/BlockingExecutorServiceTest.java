@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link BlockingExecutorService}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BlockingExecutorServiceTest extends ConcourseBaseTest {
 

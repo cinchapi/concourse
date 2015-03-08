@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * immediately.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class PriorityReadWriteLock extends ReentrantReadWriteLock {
@@ -123,7 +123,7 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
     /**
      * An {@link ReadLock} that does not defer to writers.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class PriorityReadLock extends ReadLock {
 
@@ -166,7 +166,7 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
     /**
      * An {@link WriteLock} that does not defer to readers.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class PriorityWriteLock extends WriteLock {
 
@@ -208,7 +208,7 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
     /**
      * An {@link ReadLock} that defers to writers under contention.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class UnpriorityReadLock extends ReadLock {
 
@@ -260,7 +260,7 @@ public class PriorityReadWriteLock extends ReentrantReadWriteLock {
     /**
      * An {@link WriteLock} that defers to readers under contention.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class UnpriorityWriteLock extends WriteLock {
 

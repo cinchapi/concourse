@@ -25,7 +25,7 @@ import com.google.common.base.Throwables;
  * connections from the pool are active, subsequent request attempts will block
  * until a connection is returned.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 class FixedConnectionPool extends ConnectionPool {
 

@@ -27,7 +27,7 @@ import com.google.common.base.Strings;
 /**
  * Utility methods related to Environments.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Environments {
 

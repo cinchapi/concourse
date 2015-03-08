@@ -25,7 +25,7 @@ import com.google.common.base.Function;
 /**
  * A collection of {@link Function} objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Functions {
 

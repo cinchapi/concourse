@@ -28,7 +28,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for the {@link Inventory} class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class InventoryTest extends ConcourseBaseTest {
 

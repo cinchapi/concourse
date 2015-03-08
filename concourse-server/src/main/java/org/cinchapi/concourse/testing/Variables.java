@@ -25,7 +25,7 @@ import com.google.common.collect.Maps;
  * A static collection of variables. This class should be used to register test
  * variables so that they can be dumped in the event of a test failure.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Variables {
 

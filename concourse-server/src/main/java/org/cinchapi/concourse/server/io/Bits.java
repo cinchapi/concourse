@@ -21,7 +21,7 @@ package org.cinchapi.concourse.server.io;
  * necessary to perform bitwise operations on larger numbers (i.e. shorts, ints,
  * longs), the caller should build custom functions that leverage these.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Bits {
 

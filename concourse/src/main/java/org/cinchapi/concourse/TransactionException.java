@@ -42,7 +42,7 @@ package org.cinchapi.concourse;
  * API breaking release.</em>
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 // TODO change to extend Exception instead of RuntimeException
 public class TransactionException extends RuntimeException {

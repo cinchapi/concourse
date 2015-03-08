@@ -38,7 +38,7 @@ import org.mockito.Mockito;
 /**
  * Unit tests for {@link Buffer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BufferTest extends LimboTest {
 

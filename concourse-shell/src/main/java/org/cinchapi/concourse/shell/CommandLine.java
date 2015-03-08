@@ -18,7 +18,7 @@ package org.cinchapi.concourse.shell;
 /**
  * Console related utilities.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class CommandLine {
 

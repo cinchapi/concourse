@@ -26,7 +26,7 @@ package org.cinchapi.concourse.lang;
  * most recently consumed.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class State {
 

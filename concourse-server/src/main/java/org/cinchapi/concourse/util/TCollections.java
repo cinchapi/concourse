@@ -22,7 +22,7 @@ import com.google.common.collect.Iterables;
 /**
  * A collection of {@link Collection} related utility functions.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TCollections {
 

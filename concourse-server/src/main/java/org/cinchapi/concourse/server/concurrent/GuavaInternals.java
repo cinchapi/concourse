@@ -25,7 +25,7 @@ import com.google.common.collect.Multiset;
  * A collection of methods that perform hacks in order to access some helpful
  * internal methods in third party libraries like Guava.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class GuavaInternals {
 

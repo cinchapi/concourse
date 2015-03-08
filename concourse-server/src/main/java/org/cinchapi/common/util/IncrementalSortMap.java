@@ -55,7 +55,7 @@ import com.google.common.collect.Maps;
  * must happen.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class IncrementalSortMap<K, V> implements ConcurrentNavigableMap<K, V> {

@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link LongBitSet}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LongBitSetTest extends ConcourseBaseTest {
 

@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for the {@link SyntaxTools} methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SyntaxToolsTest {
 

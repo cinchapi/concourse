@@ -35,7 +35,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link SecondaryRecord}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SecondaryRecordTest extends
         BrowsableRecordTest<Text, Value, PrimaryKey> {

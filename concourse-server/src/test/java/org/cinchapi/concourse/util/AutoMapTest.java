@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class AutoMapTest extends ConcourseBaseTest {
 

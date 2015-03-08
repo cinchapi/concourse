@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link AtomicOperation}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class AtomicOperationTest extends BufferedStoreTest {
 

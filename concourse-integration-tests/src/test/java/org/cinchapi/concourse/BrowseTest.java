@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
  * is to add/remove some data and ensure browse(record) returns the same thing
  * as fetch(describe(record), record)
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BrowseTest extends ConcourseIntegrationTest {
 

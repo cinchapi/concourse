@@ -26,7 +26,7 @@ import com.google.common.collect.Range;
  * {@link RangeToken} and checks to see if it is "range" blocked before
  * grabbing a read of write lock.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 final class RangeReadWriteLock extends ReferenceCountingLock {

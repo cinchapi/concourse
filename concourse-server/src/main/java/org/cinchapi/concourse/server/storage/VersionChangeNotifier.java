@@ -21,7 +21,7 @@ import org.cinchapi.concourse.server.concurrent.Token;
  * An object that notifies listeners about a version change so that they can
  * respond appropriately.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface VersionChangeNotifier {
 

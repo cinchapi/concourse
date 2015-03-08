@@ -29,7 +29,7 @@ import com.google.common.base.Function;
  * AutoMap with sorting and navigation. Create using
  * {@link AutoMap#newAutoSkipListMap(Function, Function)}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Experimental
 public class AutoSkipListMap<K extends Comparable<K>, V> extends AutoMap<K, V> implements

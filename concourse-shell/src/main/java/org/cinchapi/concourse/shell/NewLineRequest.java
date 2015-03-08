@@ -18,7 +18,7 @@ package org.cinchapi.concourse.shell;
 /**
  * A throwable that indicates that a new line should be displayed (see CON-170).
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class NewLineRequest extends IrregularEvaluationResult {

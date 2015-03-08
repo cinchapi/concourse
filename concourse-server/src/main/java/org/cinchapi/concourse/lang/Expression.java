@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
  * Shunting-Yard algorithm.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Expression extends AbstractSymbol implements PostfixNotationSymbol {
 

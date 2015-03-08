@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 /**
  * Utilities for dealing with generic arrays.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TArrays {
 

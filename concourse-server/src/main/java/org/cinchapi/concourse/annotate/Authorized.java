@@ -19,7 +19,7 @@ package org.cinchapi.concourse.annotate;
  * Used to indicate that a resource is validly using a {@link Restricted}
  * resource.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface Authorized {
 

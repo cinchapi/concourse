@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
  * "leaf". This property can be checked by the {@link #isLeaf()} method.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public abstract class AST {

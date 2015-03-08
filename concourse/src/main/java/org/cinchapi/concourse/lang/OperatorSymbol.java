@@ -25,7 +25,7 @@ import org.cinchapi.concourse.util.Convert;
 /**
  * A {@link Symbol} that represents an {@link Operator} in a {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 class OperatorSymbol extends AbstractSymbol implements PostfixNotationSymbol {

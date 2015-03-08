@@ -26,7 +26,7 @@ import org.junit.Test;
  * Unit tests for an {@link AtomicOperation} that commits to a
  * {@link Transaction}
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionAtomicOperationTest extends AtomicOperationTest {
 

@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.*;
  * This class contains utility methods that provide interoperability for the
  * various {@link Number} types.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class Numbers {
 

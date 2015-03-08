@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for {@link ReardWriteSharedLock} objects
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ReadWriteSharedLockTest extends ConcourseBaseTest {
 

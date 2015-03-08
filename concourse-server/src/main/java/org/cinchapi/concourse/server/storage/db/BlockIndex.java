@@ -42,7 +42,7 @@ import com.google.common.collect.Maps;
  * where to look on disk for a particular {@code locator} or {@code locator}/
  * {@code key} pair.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class BlockIndex implements Byteable, Syncable {
 
@@ -345,7 +345,7 @@ public class BlockIndex implements Byteable, Syncable {
     /**
      * Represents a single entry in the Index.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class Entry implements Byteable {
 

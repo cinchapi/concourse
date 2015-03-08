@@ -27,7 +27,7 @@ import com.google.common.base.Throwables;
  * A collection of tools to deal with security on the client. <strong>These
  * functions are not suitable for server side security!!!</strong>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ClientSecurity {
 

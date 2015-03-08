@@ -35,7 +35,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
  * {@link RangeLockService#getWriteLock(Text, Value)}.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RangeToken extends Token {
 

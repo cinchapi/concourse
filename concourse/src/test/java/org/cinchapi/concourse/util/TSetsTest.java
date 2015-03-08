@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for the {@link TSets} utility class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TSetsTest {
 

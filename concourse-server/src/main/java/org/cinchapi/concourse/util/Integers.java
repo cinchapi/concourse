@@ -19,7 +19,7 @@ package org.cinchapi.concourse.util;
  * A collection of integer related utility functions that are not found in the
  * {@link Integer} or {@link Ints} classes.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Integers {
 

@@ -27,7 +27,7 @@ import com.google.common.base.Strings;
 /**
  * Unit tests for {@link ConnectionPool}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
 

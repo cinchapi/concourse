@@ -23,7 +23,7 @@ import org.junit.Test;
  * A collection of very quick and basic UAT tests to server as a sanity check
  * that things are functioning properly.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SmokeTest extends ConcourseIntegrationTest {
     

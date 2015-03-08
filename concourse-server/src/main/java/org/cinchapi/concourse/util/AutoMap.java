@@ -71,7 +71,7 @@ import com.google.common.base.Throwables;
  * on entries so it never interferes with overall map operations.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Experimental
 public abstract class AutoMap<K, V> extends AbstractMap<K, V> {

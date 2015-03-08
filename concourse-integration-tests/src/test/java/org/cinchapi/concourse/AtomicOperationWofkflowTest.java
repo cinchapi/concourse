@@ -38,7 +38,7 @@ import com.google.gson.JsonPrimitive;
 /**
  * Tests for atomic operations that are defined in {@link ConcourseServer}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 

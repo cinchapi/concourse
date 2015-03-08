@@ -27,7 +27,7 @@ import com.google.common.base.Throwables;
 /**
  * Tests for {@link Byteable} objects.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ByteableTest extends ConcourseBaseTest{
 

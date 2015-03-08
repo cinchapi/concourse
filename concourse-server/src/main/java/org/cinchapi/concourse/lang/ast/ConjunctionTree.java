@@ -28,7 +28,7 @@ import com.google.common.collect.Iterables;
  * an expression that connects two other expressions in a logical manner (e.g
  * AND/OR)
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public class ConjunctionTree extends AST {

@@ -26,7 +26,7 @@ import org.cinchapi.concourse.util.TestData;
 /**
  * Unit tests for {@link PrimaryRecord}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class PrimaryRecordTest extends BrowsableRecordTest<PrimaryKey, Text, Value> {
 

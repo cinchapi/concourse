@@ -41,7 +41,7 @@ import com.google.common.base.Strings;
  * about a single record or document.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class PrettyLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 

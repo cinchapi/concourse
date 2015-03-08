@@ -20,7 +20,7 @@ import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 /**
  * A tool that is used to manage the environments in Concourse Server.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class EnvToolCli extends ManagedOperationCli {
 
@@ -53,7 +53,7 @@ public class EnvToolCli extends ManagedOperationCli {
     /**
      * The options that can be passed to the main method of this script.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static final class EnvToolOptions extends Options {} // NOTE: not
                                                                  // extending

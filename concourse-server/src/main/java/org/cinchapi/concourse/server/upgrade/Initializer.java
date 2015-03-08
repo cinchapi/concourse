@@ -25,7 +25,7 @@ import org.reflections.Reflections;
  * The {@link Initializer} is responsible for setting the schema version during
  * a new installation.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Initializer {
 

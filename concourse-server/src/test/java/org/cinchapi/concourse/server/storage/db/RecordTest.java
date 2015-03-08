@@ -36,7 +36,7 @@ import com.google.common.collect.Sets;
  * Unit tests for {@link Record} and its subclasses.
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * @param <L>
  * @param <K>
  * @param <V>

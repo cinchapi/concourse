@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * A marker interface for a {@link Symbol} that can be used in an expression in
  * Reverse Polish or Postfix notation.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface PostfixNotationSymbol extends Symbol {
 

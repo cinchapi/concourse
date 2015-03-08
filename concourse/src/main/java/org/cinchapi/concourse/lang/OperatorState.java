@@ -18,7 +18,7 @@ package org.cinchapi.concourse.lang;
 /**
  * The {@link State} that expects the next token to be a value.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class OperatorState extends State {
 

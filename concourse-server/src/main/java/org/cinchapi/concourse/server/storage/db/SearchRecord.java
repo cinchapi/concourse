@@ -44,7 +44,7 @@ import com.google.common.collect.TreeMultimap;
  * {@link Position}. The entire SearchIndex contains a collection of these
  * mappings.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @PackagePrivate
 @ThreadSafe

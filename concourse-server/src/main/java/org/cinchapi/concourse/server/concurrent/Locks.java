@@ -25,7 +25,7 @@ import org.cinchapi.vendor.jsr166e.StampedLock;
 /**
  * Lock related utility methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Locks {
 

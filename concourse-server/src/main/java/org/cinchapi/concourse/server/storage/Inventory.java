@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
  * listing of all the records that exist within an environment (e.g. have data
  * or a history of data).
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class Inventory {

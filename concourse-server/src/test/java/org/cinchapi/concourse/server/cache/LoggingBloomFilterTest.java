@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for {@link LoggingBloomFilter}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LoggingBloomFilterTest extends ConcourseBaseTest {
 

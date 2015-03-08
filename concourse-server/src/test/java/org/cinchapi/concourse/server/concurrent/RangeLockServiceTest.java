@@ -33,7 +33,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link RangeLockService}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RangeLockServiceTest extends ConcourseBaseTest {
 

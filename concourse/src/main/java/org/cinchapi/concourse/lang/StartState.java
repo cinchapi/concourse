@@ -18,7 +18,7 @@ package org.cinchapi.concourse.lang;
 /**
  * The {@link StateState} marks the logical beginning of a new {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class StartState extends State {
 

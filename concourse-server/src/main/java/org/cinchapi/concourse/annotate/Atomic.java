@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * atomic operation that compounds multiple steps which must all succeed or fail
  * together.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)

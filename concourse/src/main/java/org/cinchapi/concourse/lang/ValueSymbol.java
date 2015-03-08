@@ -21,7 +21,7 @@ import org.cinchapi.concourse.util.Convert;
 /**
  * A {@link Symbol} that represents a value in a {@link Criteria}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 class ValueSymbol extends AbstractSymbol {
 

@@ -24,7 +24,7 @@ import com.google.common.base.Throwables;
 /**
  * A management CLI to add/modify/remove user access to the server.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ManageUsersCli extends ManagedOperationCli {
 
@@ -151,7 +151,7 @@ public class ManageUsersCli extends ManagedOperationCli {
     /**
      * The options that can be passed to the main method of this script.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class MyOptions extends Options {
 

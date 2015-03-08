@@ -47,7 +47,7 @@ import com.google.common.base.Strings;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SearchBlockTest extends BlockTest<Text, Text, Position> {
 

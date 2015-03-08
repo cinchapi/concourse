@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
 /**
  * Unit tests for the {@link Parser}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ParserTest {
 

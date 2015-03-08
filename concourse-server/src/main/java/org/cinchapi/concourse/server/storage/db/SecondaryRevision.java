@@ -29,7 +29,7 @@ import org.cinchapi.concourse.server.storage.Action;
  * A {@link Revision} that is used in a {@link SecondayBlock} and maps a key
  * to a value to a record.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class SecondaryRevision extends Revision<Text, Value, PrimaryKey> {

@@ -30,7 +30,7 @@ import com.google.common.collect.Range;
 /**
  * Unit tests for {@link RangeTokens}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RangeTokensTest extends ConcourseBaseTest {
 

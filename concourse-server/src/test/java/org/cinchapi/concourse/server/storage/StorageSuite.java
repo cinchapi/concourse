@@ -27,7 +27,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ RevisionTest.class, WriteTest.class, BlockSuite.class,

@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Numbers}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class NumbersTest {
 

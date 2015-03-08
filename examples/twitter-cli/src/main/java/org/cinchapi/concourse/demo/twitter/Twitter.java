@@ -30,7 +30,7 @@ import java.util.Map;
  * some of the functionality of Twitter. The implementing class is expected to
  * keep track of the current user session.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Twitter {
 

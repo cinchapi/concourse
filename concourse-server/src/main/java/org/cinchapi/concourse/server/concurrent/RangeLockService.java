@@ -57,7 +57,7 @@ import com.google.common.collect.TreeRangeSet;
  * <code>RangeLockService.getReadLock(key, operator, value).lock()</code>).
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class RangeLockService extends
         AbstractLockService<RangeToken, RangeReadWriteLock> {
@@ -235,7 +235,7 @@ public class RangeLockService extends
      * information is updated externally in {@link RangeReadWriteLock} whenever
      * locks are acquired and released.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     protected class RangeBlockingInfo {
 

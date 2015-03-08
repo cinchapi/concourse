@@ -48,7 +48,7 @@ import org.cinchapi.concourse.util.Numbers;
  * </ul>
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Value implements Byteable, Comparable<Value> {
@@ -266,7 +266,7 @@ public final class Value implements Byteable, Comparable<Value> {
     /**
      * A {@link Comparator} that is used to sort Values using weak typing.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     public static enum Sorter implements Comparator<Value> {
         INSTANCE;

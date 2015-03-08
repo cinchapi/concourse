@@ -24,7 +24,7 @@ import org.cinchapi.concourse.thrift.TObject;
 /**
  * The {@link Store} that provides basic functionality to all of its children.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BaseStore implements Store {
 

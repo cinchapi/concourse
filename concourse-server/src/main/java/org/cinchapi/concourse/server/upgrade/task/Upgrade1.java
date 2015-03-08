@@ -21,7 +21,7 @@ import org.cinchapi.concourse.server.upgrade.UpgradeTask;
  * "Bootstrap" the framework by adding the schema metadata in the appropriate
  * directories.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class Upgrade1 extends UpgradeTask {
 

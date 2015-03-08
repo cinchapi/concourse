@@ -27,7 +27,7 @@ import org.cinchapi.concourse.util.TestData;
 /**
  * Unit tests for {@link SearchIndex}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SearchRecordTest extends RecordTest<Text, Text, Position> {
 

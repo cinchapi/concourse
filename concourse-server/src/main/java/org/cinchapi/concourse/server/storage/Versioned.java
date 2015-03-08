@@ -21,7 +21,7 @@ package org.cinchapi.concourse.server.storage;
  * the object's storage context changes (i.e. buffer transport, data
  * replication, cluster rebalance, etc).
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Versioned {
 

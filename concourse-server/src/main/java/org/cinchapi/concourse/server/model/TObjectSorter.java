@@ -22,7 +22,7 @@ import org.cinchapi.concourse.thrift.TObject;
 /**
  * A {@link Comparator} that is used to sort TObjects using weak typing.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum TObjectSorter implements Comparator<TObject> {
     INSTANCE;

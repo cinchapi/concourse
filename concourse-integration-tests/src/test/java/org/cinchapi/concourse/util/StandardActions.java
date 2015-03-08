@@ -34,7 +34,7 @@ import com.google.common.base.Throwables;
  * useful to multiple tests. Every standard action operates on a specified
  * client connection.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class StandardActions {
 

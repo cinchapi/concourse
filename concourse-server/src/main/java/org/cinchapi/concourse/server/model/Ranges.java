@@ -30,7 +30,7 @@ import com.google.common.collect.Range;
  * A collection of utilities to augment the {@link Range} class with respect to
  * coverage of {@link Value Values}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Ranges {
 

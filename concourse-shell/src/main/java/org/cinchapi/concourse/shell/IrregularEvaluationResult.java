@@ -23,7 +23,7 @@ package org.cinchapi.concourse.shell;
  * ConcourseShell to do something different (i.e. display the HELP text when the
  * user enters "help"). d
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 abstract class IrregularEvaluationResult extends Throwable {

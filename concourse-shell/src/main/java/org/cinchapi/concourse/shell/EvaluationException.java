@@ -19,7 +19,7 @@ package org.cinchapi.concourse.shell;
  * An exception that indicates that there was some non-fatal error that occurred
  * while trying to evaluate some input.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class EvaluationException extends IrregularEvaluationResult {

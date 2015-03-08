@@ -65,7 +65,7 @@ import com.google.common.collect.TreeMultimap;
 /**
  * Base unit tests for {@link Store} services.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public abstract class StoreTest extends ConcourseBaseTest {
@@ -1845,7 +1845,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     /**
      * An item that is used in a search test
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class SearchTestItem {
 
@@ -1883,7 +1883,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     /**
      * List of search types
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private enum SearchType {
         PREFIX, INFIX, SUFFIX, FULL

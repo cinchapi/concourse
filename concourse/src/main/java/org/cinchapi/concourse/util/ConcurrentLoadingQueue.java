@@ -28,7 +28,7 @@ import com.google.common.base.Throwables;
  * {@link Callable} to dynamically loading elements into the queue when a read
  * request is made and the queue is empty.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class ConcurrentLoadingQueue<E> extends ConcurrentLinkedQueue<E> {

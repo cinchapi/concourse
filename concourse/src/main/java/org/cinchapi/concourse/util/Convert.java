@@ -45,7 +45,7 @@ import com.google.gson.JsonParser;
  * recognized by Thrift, so it is necessary to convert back and forth between
  * different representations.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @UtilityClass
 public final class Convert {
@@ -468,7 +468,7 @@ public final class Convert {
      * the raw data.
      * </p>
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     @Immutable
     public static final class ResolvableLink {

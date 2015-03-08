@@ -40,7 +40,7 @@ import com.google.common.base.Throwables;
 /**
  * A utility class for getting test data.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TestData extends Random {
 

@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.storage;
 /**
  * A list of actions that can generate a Write or Revision.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum Action {
     ADD, REMOVE, COMPARE

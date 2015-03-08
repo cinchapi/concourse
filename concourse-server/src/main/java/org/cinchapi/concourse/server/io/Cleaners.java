@@ -22,7 +22,7 @@ import java.nio.MappedByteBuffer;
  * An abstraction for the reflection hack that allows us to use internal JVM
  * cleaners to free memory "directly".
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Cleaners {
 

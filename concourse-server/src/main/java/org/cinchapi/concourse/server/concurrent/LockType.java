@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.concurrent;
 /**
  * The LockType describes the kind of lock (shared of exclusive) to use.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public enum LockType {
     READ, WRITE, RANGE_READ, RANGE_WRITE

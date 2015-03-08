@@ -22,7 +22,7 @@ import org.cinchapi.concourse.server.storage.temp.Write;
  * a {@link Limbo}. This service relies on rich indexing to offer optimal
  * read performance.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface PermanentStore extends Store {
 

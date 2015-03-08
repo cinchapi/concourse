@@ -19,7 +19,7 @@ package org.cinchapi.concourse.util;
  * A utility class that assists with extracting information about the underlying
  * platform (i.e. the operating system, architecture, etc)
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Platform {
 	

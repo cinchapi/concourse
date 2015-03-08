@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * An unchecked exception that indicates an error occurred while doing a
  * language parse operation.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class SyntaxException extends RuntimeException {

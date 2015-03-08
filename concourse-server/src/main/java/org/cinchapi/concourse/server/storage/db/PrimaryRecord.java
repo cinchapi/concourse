@@ -40,7 +40,7 @@ import com.google.common.collect.Maps;
  * direct/non-query reads.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate

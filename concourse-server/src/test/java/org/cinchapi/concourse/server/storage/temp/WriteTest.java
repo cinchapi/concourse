@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Write}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class WriteTest extends ByteableTest {
 

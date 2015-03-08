@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for all the compound api operations in {@link Concourse}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CompoundOperationTest extends ConcourseIntegrationTest {
 

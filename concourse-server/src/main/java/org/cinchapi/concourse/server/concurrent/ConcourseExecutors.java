@@ -32,7 +32,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 /**
  * A collection of thread and concurrency related utility methods.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @UtilityClass
 public final class ConcourseExecutors {

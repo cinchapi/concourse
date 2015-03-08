@@ -47,7 +47,7 @@ import com.google.common.collect.Sets;
  * allow efficient reads. All the Revisions in the Record must have the same
  * locator. They must also have the same key if the Revision is partial.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  * @param <L> - the locator type
  * @param <K> - the key type
  * @param <V> - value type
@@ -448,7 +448,7 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
      * values so that the caller can interact with the Set normally without
      * performing validity checks and while preserving data consistency.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private final class EmptyValueSet implements Set<V> {
 

@@ -28,7 +28,7 @@ import org.junit.Test;
  * transaction spins forever if the transaction fails unexpectedly due to a
  * version change.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON173 extends ConcourseIntegrationTest {
 

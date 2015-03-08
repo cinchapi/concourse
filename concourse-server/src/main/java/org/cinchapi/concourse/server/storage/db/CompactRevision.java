@@ -30,7 +30,7 @@ import org.cinchapi.concourse.server.storage.Versioned;
  * locator and key.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 class CompactRevision<V extends Comparable<V>> implements Versioned {

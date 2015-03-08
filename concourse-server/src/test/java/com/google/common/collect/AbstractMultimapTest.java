@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  * accidental naming collisions with tests in this class!
  * 
  * @author Jared Levy
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class AbstractMultimapTest extends ConcourseBaseTest {
 

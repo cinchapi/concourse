@@ -30,7 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ CON52.class, CON55.class, CON72.class, CON108.class,

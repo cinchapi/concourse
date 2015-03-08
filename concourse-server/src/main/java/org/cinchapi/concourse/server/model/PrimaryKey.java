@@ -32,7 +32,7 @@ import com.google.common.primitives.UnsignedLongs;
  * canonical identifier for a normalized {@link Record}. The pool of possible
  * keys ranges from 0 to 2^64 1 inclusive.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
@@ -168,7 +168,7 @@ public final class PrimaryKey implements Byteable, Comparable<PrimaryKey> {
     /**
      * A {@link Comparator} that is used to sort PrimaryKey objects.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     public static enum Sorter implements Comparator<PrimaryKey> {
         INSTANCE;

@@ -34,7 +34,7 @@ import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
  * safe (e.g <code>LockService.getReadLock(key, record).lock()</code>).
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class LockService extends AbstractLockService<Token, TokenReadWriteLock> {
 

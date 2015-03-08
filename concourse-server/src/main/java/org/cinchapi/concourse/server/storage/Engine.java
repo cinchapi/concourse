@@ -79,7 +79,7 @@ import static com.google.common.base.Preconditions.*;
  * performance. The buffering system provides full CD guarantees.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public final class Engine extends BufferedStore implements
@@ -1004,7 +1004,7 @@ public final class Engine extends BufferedStore implements
      * A thread that is responsible for transporting content from
      * {@link #buffer} to {@link #destination}.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private class BufferTransportThread extends Thread {
 

@@ -36,7 +36,7 @@ import com.google.common.base.Throwables;
  * Interaction with the server goes through the {@link #client} variable.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ConcourseIntegrationTest {
 

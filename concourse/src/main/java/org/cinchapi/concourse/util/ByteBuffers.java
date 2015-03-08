@@ -31,7 +31,7 @@ import com.google.common.io.BaseEncoding;
  * Additional utility methods for ByteBuffers that are not found in the
  * {@link ByteBuffer} class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ByteBuffers {
 

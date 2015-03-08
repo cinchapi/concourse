@@ -18,7 +18,7 @@ package org.cinchapi.concourse.annotate;
 /**
  * Indicates a variable that cannot be changed in the preferences file.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface NonPreference {
 

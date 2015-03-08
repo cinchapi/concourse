@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * Unit tests for the {@link Serializables} utility methods
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class SerializablesTest {
 

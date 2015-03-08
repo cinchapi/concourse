@@ -58,7 +58,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * <p>
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 @PackagePrivate

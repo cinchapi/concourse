@@ -44,7 +44,7 @@ import org.cinchapi.concourse.time.Time;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class MysqlTwitter implements Twitter {
 

@@ -21,7 +21,7 @@ import org.cinchapi.concourse.util.Convert;
 /**
  * The {@link State} that expects the next token to be an operator.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class KeyState extends State {
 

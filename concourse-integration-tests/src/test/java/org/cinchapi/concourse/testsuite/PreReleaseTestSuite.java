@@ -23,7 +23,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * ALWAYS RUN THIS TEST BEFORE RELEASING A NEW VERSION.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ GettingStartedTest.class, IntegrationTestSuite.class,

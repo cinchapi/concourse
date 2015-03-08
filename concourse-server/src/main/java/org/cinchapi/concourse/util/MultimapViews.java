@@ -30,7 +30,7 @@ import com.google.common.collect.Sets;
  * cleared on value removal, etc). This class is meant to be used
  * over Guava multimaps for performance gains.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class MultimapViews {
 

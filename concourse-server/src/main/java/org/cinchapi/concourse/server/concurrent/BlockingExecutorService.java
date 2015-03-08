@@ -56,7 +56,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * calling threads block while tasks are executing.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public class BlockingExecutorService {

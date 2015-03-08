@@ -28,7 +28,7 @@ import org.junit.Test;
  * data is being transported from the buffer to the database.
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON52 extends ConcourseIntegrationTest {
 

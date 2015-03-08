@@ -25,7 +25,7 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class StorageBenchmark extends AbstractBenchmark {
 

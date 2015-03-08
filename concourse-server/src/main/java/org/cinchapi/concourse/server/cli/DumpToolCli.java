@@ -22,7 +22,7 @@ import com.beust.jcommander.Parameter;
 /**
  * A debugging tool that dumps the contents of a specified {@link Block}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class DumpToolCli extends ManagedOperationCli {
 
@@ -68,7 +68,7 @@ public final class DumpToolCli extends ManagedOperationCli {
     /**
      * The options that can be passed to the main method of this script.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class DumpToolOptions extends EnvironmentOptions {
 

@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for the {@link NonBlockingHashMultimap} data structure.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class NonBlockingHashMultimapTest extends AbstractMultimapTest {
 

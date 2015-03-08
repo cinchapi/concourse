@@ -22,7 +22,7 @@ import com.google.common.base.Strings;
 /**
  * Random generators.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class Random {
 

@@ -28,7 +28,7 @@ import org.junit.Test;
  * Unit test to ensure that we do not encounter a
  * ConcurrentModificationException when expanding the Buffer during a read.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class CON75 extends ConcourseIntegrationTest {
 

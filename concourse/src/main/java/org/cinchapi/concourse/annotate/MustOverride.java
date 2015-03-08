@@ -18,7 +18,7 @@ package org.cinchapi.concourse.annotate;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public @interface MustOverride {
 

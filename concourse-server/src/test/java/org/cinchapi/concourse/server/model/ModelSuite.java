@@ -23,7 +23,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Suite.class)
 @SuiteClasses({ PositionTest.class, PrimaryKeyTest.class, TextTest.class,

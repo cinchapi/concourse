@@ -35,7 +35,7 @@ import org.junit.runner.Description;
  * 
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class ConcourseBaseTest {
 

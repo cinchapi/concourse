@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 /**
  * Unit tests for the {@link Stores} utilities.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public class StoresTest {

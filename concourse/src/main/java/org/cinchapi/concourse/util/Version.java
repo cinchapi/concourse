@@ -25,7 +25,7 @@ import com.google.common.primitives.Longs;
  * A class that encapsulates the version information for a class contained in a
  * concourse jar.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public final class Version implements Comparable<Version> {

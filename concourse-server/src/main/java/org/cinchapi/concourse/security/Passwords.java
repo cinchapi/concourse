@@ -26,7 +26,7 @@ import com.google.common.base.Throwables;
 /**
  * A collection of tools for dealing with passwords in a secure manner.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Passwords {
 

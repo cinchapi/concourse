@@ -25,7 +25,7 @@ import com.google.common.collect.Ordering;
  * is a canonical set, which allows us to avoid creating lots of temporary
  * objects just to do sorting.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class Comparators {
 
@@ -96,7 +96,7 @@ public final class Comparators {
      * (during the duration of the JVM lifecycle), unless they are equal, in
      * which case it returns 0.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class EqualOrArbitraryComparator<T> implements Comparator<T> {
 
@@ -119,7 +119,7 @@ public final class Comparators {
      * comparator.
      * 
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static class NaturalOrArbitraryComparator<T> implements
             Comparator<T> {

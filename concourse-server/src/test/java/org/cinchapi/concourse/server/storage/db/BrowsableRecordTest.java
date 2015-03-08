@@ -29,7 +29,7 @@ import com.google.common.collect.Multimap;
 /**
  * Unit tests for {@link BrowsableRecord}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BrowsableRecordTest<L extends Byteable & Comparable<L>, K extends Byteable & Comparable<K>, V extends Byteable & Comparable<V>>
         extends RecordTest<L, K, V> {

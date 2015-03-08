@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for {@link TCollections} until class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TCollectionsTest {
 

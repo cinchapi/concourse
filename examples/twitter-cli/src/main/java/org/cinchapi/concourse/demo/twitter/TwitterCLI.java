@@ -38,7 +38,7 @@ import org.cinchapi.concourse.time.Time;
  * {@link Twitter} back end that uses Concourse or some other database for data
  * storage.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TwitterCLI {
 

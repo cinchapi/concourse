@@ -30,7 +30,7 @@ import com.google.common.collect.Sets;
  * A collection of tools used to transform objects in a collection using a
  * transformation {@link Function}.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @UtilityClass
 public final class Transformers {

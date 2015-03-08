@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
  * pool.shutdown()
  * </pre>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @ThreadSafe
 public abstract class ConnectionPool implements AutoCloseable {

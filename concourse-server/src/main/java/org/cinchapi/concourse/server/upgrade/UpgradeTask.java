@@ -31,7 +31,7 @@ import org.cinchapi.concourse.util.Logger;
  * higher than the current system version are automatically run by the
  * {@link Upgrader} whenever the user upgrades the ConcourseServer.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class UpgradeTask implements Comparable<UpgradeTask> {
 

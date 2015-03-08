@@ -19,7 +19,7 @@ package org.cinchapi.concourse.shell;
  * A {@link Throwable} that is used to signal to the program that the evaluated
  * inputed merits the displaying of HELP text.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @SuppressWarnings("serial")
 public class HelpRequest extends IrregularEvaluationResult {

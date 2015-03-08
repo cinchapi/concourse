@@ -30,7 +30,7 @@ import com.google.common.base.Stopwatch;
 /**
  * 
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @RunWith(Theories.class)
 public class WritePerformanceTest extends ConcourseIntegrationTest {

@@ -33,7 +33,7 @@ import com.google.common.collect.Lists;
 /**
  * Base unit tests for {@link Limbo} services.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class LimboTest extends StoreTest {
 

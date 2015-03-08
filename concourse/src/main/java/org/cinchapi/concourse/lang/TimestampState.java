@@ -19,7 +19,7 @@ package org.cinchapi.concourse.lang;
  * The {@link State} that expects the current token to be the last or the next
  * token to be a conjunction specification.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TimestampState extends BuildableState {
 

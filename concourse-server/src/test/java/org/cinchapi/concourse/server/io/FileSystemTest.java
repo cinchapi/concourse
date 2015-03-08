@@ -27,7 +27,7 @@ import com.google.common.collect.Sets;
 /**
  * Unit tests for the {@link FileSystem} utility class
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class FileSystemTest extends ConcourseBaseTest {
 

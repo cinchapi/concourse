@@ -31,7 +31,7 @@ import com.google.common.collect.Lists;
 /**
  * A test of transaction throughput.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class TransactionThroughputTest extends ConcourseIntegrationTest {
 

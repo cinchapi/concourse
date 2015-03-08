@@ -46,7 +46,7 @@ import com.google.common.collect.Table;
  * Unit tests for {@link BufferedStore} that try to stress scenarios that occur
  * when data offsetting data is split between the destination and buffer.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BufferedStoreTest extends StoreTest {
     // NOTE: All tests names should use "Buffered" in the name so they do not
@@ -525,7 +525,7 @@ public abstract class BufferedStoreTest extends StoreTest {
      * A test class that encapsulates data that is added/removed to/from the
      * BufferedStore.
      * 
-     * @author jnelson
+     * @author Jeff Nelson
      */
     private static final class Data {
 

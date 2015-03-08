@@ -36,7 +36,7 @@ import org.cinchapi.concourse.thrift.TObject;
  * writes into a durable buffer before batch indexing them in the background.
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public interface Store {
 

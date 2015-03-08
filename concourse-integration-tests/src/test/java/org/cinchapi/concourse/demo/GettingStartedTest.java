@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  * A test that follows the Concourse Getting Started guide at
  * https://cinchapi.atlassian.net/wiki/display/CON/Getting+Started.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class GettingStartedTest extends ConcourseIntegrationTest {
 

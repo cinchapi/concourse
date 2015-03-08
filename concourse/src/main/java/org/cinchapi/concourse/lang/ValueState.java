@@ -21,7 +21,7 @@ import org.cinchapi.concourse.Timestamp;
  * The {@link State} that expects the current token to be the last or the next
  * token to be a value or conjunction specification.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public class ValueState extends BuildableState {
 

@@ -20,7 +20,7 @@ import javax.annotation.concurrent.Immutable;
 /**
  * A {@link Symbol} represents a terminal or non-terminal aspect of a grammar.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 @Immutable
 public interface Symbol {/* marker */}

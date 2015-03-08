@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  * Map based utility methods that are not found in the Guava
  * {@link com.google.collect.Maps} utility class.
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public final class TMaps {
 
