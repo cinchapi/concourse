@@ -24,7 +24,7 @@
 # IMPORTANT - Please always stop Concourse Server before making any changes to
 #             this file. Failure to do so may lead to operation failure.
 
-# Options that are passed to the Java to configure the Concourse Server runtime.
+# Options that are passed to Java to configure the Concourse Server runtime.
 # Before changing these parameters, please check the documentation for
 # concourse.prefs to see if the desired functionality is configured there (i.e
 # the Concourse Server heap size is specified using the `heap_size` preference)
