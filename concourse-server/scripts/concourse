@@ -3,7 +3,7 @@
 # This script controls the lifecycle of Concourse Server on *nix systems.
 # See the usage() function for invocation details.
 #
-# Copyright (c) 2015 Jeff Nelson and Cinchapi, Inc.
+# Copyright (c) 2015 Cinchapi, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
