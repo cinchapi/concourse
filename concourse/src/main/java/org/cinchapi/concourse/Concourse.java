@@ -731,10 +731,10 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
-    // case the caller
-    // forgets
-    // to called #build() on
-    // the CriteriaBuilder
+                                                     // case the caller
+                                                     // forgets
+                                                     // to called #build() on
+                                                     // the CriteriaBuilder
 
     /**
      * Find and return the set of records where {@code key} is equal to
