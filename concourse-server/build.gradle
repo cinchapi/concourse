@@ -15,7 +15,8 @@ dependencies {
     }
     compile 'org.javassist:javassist:3.18.2-GA'
     compile 'net.sf.trove4j:trove4j:3.0.3'
-    
+    compile 'com.sparkjava:spark-core:1.1.1'
+
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
@@ -62,4 +63,3 @@ task distZip(type: Zip, dependsOn: jar) {
 task installer(type: Exec, dependsOn: distZip) {
 	commandLine 'bash', '.installer.sh', version
 }
-
