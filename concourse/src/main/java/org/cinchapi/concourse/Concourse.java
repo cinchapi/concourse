@@ -65,6 +65,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -130,6 +131,17 @@ import com.google.common.collect.Lists;
  */
 @NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
+
+    /**
+     * Diff represent whether the {@code value} or {@code record} or both is
+     * Added or Removed
+     * 
+     * @author dubex
+     *
+     */
+    public enum Diff {
+        ADDED, REMOVED
+    }
 
     /**
      * Create a new Client connection to the environment of the Concourse Server
@@ -281,8 +293,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param end
      * @return a mapping from timestamp to a description of a revision
      */
-    public abstract Map<Timestamp, String> audit(long record,
-            Timestamp start, Timestamp end);  
+    public abstract Map<Timestamp, String> audit(long record, Timestamp start,
+            Timestamp end);
 
     /**
      * Audit {@code record} and return a log of revisions.
@@ -291,8 +303,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param start
      * @return a mapping from timestamp to a description of a revision
      */
-    public abstract Map<Timestamp, String> audit(long record,
-            Timestamp start);      
+    public abstract Map<Timestamp, String> audit(long record, Timestamp start);
 
     /**
      * Browse the {@code records} and return a mapping from each record to all
@@ -538,6 +549,62 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Set<String> describe(long record, Timestamp timestamp);
 
     /**
+     * Return all the changes (Addition and Deletion) of {@code key} and it's
+     * value between {@code start} and {@code end}.
+     * 
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     * @throws TSecurityException
+     * @throws TTransactionException
+     * @throws TException
+     */
+    public abstract Map<Object, Map<Diff, Set<Long>>> diff(String key,
+            Timestamp start, Timestamp end);
+
+    /**
+     * Return all the changes (Addition and Deletion) of {@code record} and
+     * {@code value} in {@code record} for all {@code key} between {@code start}
+     * and {@code end}.
+     * 
+     * @param record
+     * @param start
+     * @param end
+     * @return
+     * @throws TSecurityException
+     * @throws TTransactionException
+     * @throws TException
+     */
+    public abstract Map<String, Map<Diff, Set<Object>>> diff(long record,
+            Timestamp start, Timestamp end);
+
+    /**
+     * Return all the changes (Addition and Deletion) of {@code value} of
+     * {@code key} in {@code record} between {@code start} and current time.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @return
+     */
+    public abstract Map<Diff, Set<Object>> diff(String key, long record,
+            Timestamp start);
+
+    /**
+     * Return all the changes (Addition and Deletion) of {@code value} of
+     * {@code key} in {@code record} between {@code start} and {@code end}.
+     * 
+     * @param key
+     * @param record
+     * @param start
+     * @param end
+     * @return
+     */
+    public abstract Map<Diff, Set<Object>> diff(String key, long record,
+            Timestamp start, Timestamp end);
+
+    /**
      * Close the Client connection.
      */
     public abstract void exit();
@@ -664,10 +731,10 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
-                                                     // case the caller
-                                                     // forgets
-                                                     // to called #build() on
-                                                     // the CriteriaBuilder
+    // case the caller
+    // forgets
+    // to called #build() on
+    // the CriteriaBuilder
 
     /**
      * Find and return the set of records where {@code key} is equal to
@@ -1516,8 +1583,8 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Timestamp, String> audit(final String key, final long record,
-                final Timestamp start, final Timestamp end) {
+        public Map<Timestamp, String> audit(final String key,
+                final long record, final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
             Map<Timestamp, String> result = PrettyLinkedHashMap
@@ -1538,7 +1605,7 @@ public abstract class Concourse implements AutoCloseable {
                 result.put(entry.getKey(), entry.getValue());
             }
             return result;
-        }                                     
+        }
 
         @Override
         public Map<Timestamp, String> audit(final long record,
@@ -1547,7 +1614,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public  Map<Timestamp, String> audit(final long record,
+        public Map<Timestamp, String> audit(final long record,
                 final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
@@ -1791,6 +1858,118 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public long create() {
             return Time.now(); // TODO get a primary key using a plugin
+        }
+
+        @Override
+        public Map<Object, Map<Diff, Set<Long>>> diff(String key,
+                Timestamp start, Timestamp end) {
+            PrettyLinkedTableMap<Object, Diff, Set<Long>> result = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap();
+            result.setRowName("Value");
+            Map<Object, Set<Long>> startBrowse = browse(key, start);
+            Map<Object, Set<Long>> endBrowse = browse(key, end);
+            Set<Object> startBrowseKeySet = startBrowse.keySet();
+            Set<Object> endBrowseKeySet = endBrowse.keySet();
+            Set<Object> xor = Sets.symmetricDifference(startBrowseKeySet,
+                    endBrowseKeySet);
+            Set<Object> intersection = Sets.intersection(startBrowseKeySet,
+                    endBrowseKeySet);
+
+            for (Object current : xor) {
+                if(!startBrowseKeySet.contains(current))
+                    result.put(current, Diff.ADDED, endBrowse.get(current));
+                else {
+                    result.put(current, Diff.REMOVED, startBrowse.get(current));
+                }
+            }
+
+            for (Object currentKey : intersection) {
+                Set<Long> startValue = startBrowse.get(currentKey);
+                Set<Long> endValue = endBrowse.get(currentKey);
+                Set<Long> xorValue = Sets.symmetricDifference(startValue,
+                        endValue);
+                for (Long currentValue : xorValue) {
+                    if(!startValue.contains(currentValue))
+                        result.put(currentKey, Diff.ADDED,
+                                Sets.newHashSet(currentValue));
+                    else {
+                        result.put(currentKey, Diff.REMOVED,
+                                Sets.newHashSet(currentValue));
+                    }
+                }
+            }
+            return result;
+
+        }
+
+        @Override
+        public Map<String, Map<Diff, Set<Object>>> diff(long record,
+                Timestamp start, Timestamp end) {
+            PrettyLinkedTableMap<String, Diff, Set<Object>> result = PrettyLinkedTableMap
+                    .newPrettyLinkedTableMap();
+            result.setRowName("Value");
+            Map<String, Set<Object>> startBrowse = browse(record, start);
+            Map<String, Set<Object>> endBrowse = browse(record, end);
+            Set<String> startBrowseKeySet = startBrowse.keySet();
+            Set<String> endBrowseKeySet = endBrowse.keySet();
+            Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
+                    endBrowseKeySet);
+            Set<String> intersection = Sets.intersection(startBrowseKeySet,
+                    endBrowseKeySet);
+
+            for (String current : xor) {
+                if(!startBrowseKeySet.contains(current))
+                    result.put(current, Diff.ADDED, endBrowse.get(current));
+                else {
+                    result.put(current, Diff.REMOVED, startBrowse.get(current));
+                }
+            }
+
+            for (String currentKey : intersection) {
+                Set<Object> startValue = startBrowse.get(currentKey);
+                Set<Object> endValue = endBrowse.get(currentKey);
+                Set<Object> xorValue = Sets.symmetricDifference(startValue,
+                        endValue);
+                for (Object currentValue : xorValue) {
+                    if(!startValue.contains(currentValue))
+                        result.put(currentKey, Diff.ADDED,
+                                Sets.newHashSet(currentValue));
+                    else {
+                        result.put(currentKey, Diff.REMOVED,
+                                Sets.newHashSet(currentValue));
+                    }
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public Map<Diff, Set<Object>> diff(String key, long record,
+                Timestamp start) {
+            return diff(key, record, start, Timestamp.now());
+        }
+
+        @Override
+        public Map<Diff, Set<Object>> diff(String key, long record,
+                Timestamp start, Timestamp end) {
+            Map<Diff, Set<Object>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap("Status", "Value");
+            Set<Object> added = Sets.newHashSet();
+            Set<Object> removed = Sets.newHashSet();
+            Set<Object> startFetch = fetch(key, record, start);
+            Set<Object> endFetch = fetch(key, record, end);
+            Set<Object> xor = Sets.symmetricDifference(startFetch, endFetch);
+
+            for (Object current : xor) {
+                if(!startFetch.contains(current))
+                    added.add(current);
+                else {
+                    removed.add(current);
+                }
+            }
+            result.put(Diff.ADDED, added);
+            result.put(Diff.REMOVED, removed);
+            return result;
         }
 
         @Override
