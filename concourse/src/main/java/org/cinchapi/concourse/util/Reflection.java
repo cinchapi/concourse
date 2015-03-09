@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -105,11 +106,91 @@ public final class Reflection {
     @SuppressWarnings("unchecked")
     public static <T> T get(String variableName, Object obj) {
         try {
+            Field field = getField(variableName, obj);
+            return (T) field.get(obj);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return a new instance of the specified {@code clazz} by calling the
+     * appropriate constructor with the specified {@code args}.
+     * 
+     * @param clazz
+     * @param args
+     * @return the new instance
+     */
+    public static <T> T newInstance(Class<? extends T> clazz, Object... args) {
+        try {
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+            Class<?>[] altParameterTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                parameterTypes[i] = args[i].getClass();
+                altParameterTypes[i] = unbox(args[i].getClass());
+            }
+            Constructor<? extends T> constructor = null;
+            while (constructor == null) {
+                try {
+                    constructor = clazz.getConstructor(parameterTypes);
+                }
+                catch (NoSuchMethodException e) {
+                    // Attempt to find a method using the alt param types.
+                    // This will usually bear fruit in cases where a method
+                    // has a primitive type parameter and Java autoboxing
+                    // causes the passed in parameters to have a wrapper
+                    // type instead of the appropriate primitive type.
+                    constructor = clazz.getConstructor(altParameterTypes);
+                }
+            }
+            constructor.setAccessible(true);
+            return (T) constructor.newInstance(args);
+        }
+        catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Set the value of the field with {@code variableName} to {@code value} in
+     * {@code obj}.
+     * 
+     * @param variableName
+     * @param value
+     * @param obj
+     */
+    public static void set(String variableName, Object value, Object obj) {
+        try {
+            Field field = getField(variableName, obj);
+            field.set(obj, value);
+        }
+        catch (ReflectiveOperationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return the {@link Field} object} that holds the variable with
+     * {@code name} in {@code obj}, if it exists. Otherwise a
+     * NoSuchFieldException is thrown.
+     * <p>
+     * This method will take care of making the field accessible.
+     * </p>
+     * 
+     * @param name
+     * @param obj
+     * @return the Field object
+     * @throws NoSuchFieldException
+     */
+    private static Field getField(String name, Object obj) {
+        try {
             Class<?> clazz = obj.getClass();
             Field field = null;
             while (clazz != null && field == null) {
                 try {
-                    field = clazz.getDeclaredField(variableName);
+                    field = clazz.getDeclaredField(name);
                 }
                 catch (NoSuchFieldException e) { // check the parent to see if
                                                  // the field was defined there
@@ -118,7 +199,7 @@ public final class Reflection {
             }
             if(field != null) {
                 field.setAccessible(true);
-                return (T) field.get(obj);
+                return field;
             }
             else {
                 throw new NoSuchFieldException();
