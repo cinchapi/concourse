@@ -58,6 +58,7 @@ import org.cinchapi.concourse.lang.PostfixNotationSymbol;
 import org.cinchapi.concourse.lang.Symbol;
 import org.cinchapi.concourse.lang.Translate;
 import org.cinchapi.concourse.security.AccessManager;
+import org.cinchapi.concourse.server.http.HttpServer;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.jmx.ConcourseServerMXBean;
 import org.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -246,6 +247,9 @@ public class ConcourseServer implements
      */
     private final TServer server;
 
+    @Nullable
+    private final HttpServer httpServer;
+
     /**
      * The server maintains a collection of {@link Transaction} objects to
      * ensure that client requests are properly routed. When the client makes a
@@ -302,6 +306,8 @@ public class ConcourseServer implements
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
         this.manager = AccessManager.create(ACCESS_FILE);
+        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer
+                .create(this, GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
     }
 
@@ -842,6 +848,7 @@ public class ConcourseServer implements
         for (Engine engine : engines.values()) {
             engine.start();
         }
+        httpServer.start();
         System.out.println("The Concourse server has started");
         server.serve();
     }
@@ -852,6 +859,7 @@ public class ConcourseServer implements
     public void stop() {
         if(server.isServing()) {
             server.stop();
+            httpServer.stop();
             for (Engine engine : engines.values()) {
                 engine.stop();
             }
