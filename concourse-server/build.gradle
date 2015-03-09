@@ -15,7 +15,9 @@ dependencies {
     }
     compile 'org.javassist:javassist:3.18.2-GA'
     compile 'net.sf.trove4j:trove4j:3.0.3'
-    compile 'com.sparkjava:spark-core:1.1.1'
+    compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
+    compile 'org.eclipse.jetty:jetty-webapp:9.2.9.v20150224'
+    compile 'com.github.spullara.mustache.java:compiler:0.8.15'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
