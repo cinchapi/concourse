@@ -23,11 +23,14 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -42,10 +45,15 @@ import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * A collection of functions to convert objects. The public API defined in
@@ -110,6 +118,25 @@ public final class Convert {
         bytes.rewind();
         return new TObject(bytes, type);
     }
+    
+    /**
+     * Convert Java objects using toJson method from GSON library
+     * into a JSON formatted string.
+     * 
+     * @param object
+     * @return JSON string
+     */
+    public static String javaToJson(Object obj) {
+    	GsonBuilder builder = new GsonBuilder();
+    	builder.registerTypeAdapter(Double.class, 
+    			new DataTypeAdapter().nullSafe());
+    	builder.registerTypeAdapter(Link.class, 
+    			new DataTypeAdapter().nullSafe());
+
+    	Gson gson = builder.disableHtmlEscaping().create();
+    	return gson.toJson(obj);
+    }
+  
 
     /**
      * Convert a JSON formatted string to a mapping that associates each key
@@ -143,6 +170,9 @@ public final class Convert {
                     "The JSON string must encapsulate data within an object");
         }
         JsonObject object = (JsonObject) parser.parse(json);
+        if (object.has("$primaryKey$")) {
+            object.remove("$primaryKey$");
+        }
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             String key = entry.getKey();
             JsonElement val = entry.getValue();
@@ -171,6 +201,48 @@ public final class Convert {
             }
         }
         return data;
+    }
+    
+    /**
+     * Takes a JSON string representation of an array of JSON objects.
+     * Iterates the array and calls jsonToJava to each JSON object.
+     * 
+     * @param String jsonArray 
+     * @return A list of Java objects
+     */
+    public static List<Multimap<String, Object>> jsonArrayToJava(String
+    		jsonArray) {
+        List<Multimap<String, Object>> result = new ArrayList<>();
+        boolean start = false;
+        boolean quote = false;
+        char doubleQuote = '\"';
+        String obj = "";
+        for (int i = 0; i < jsonArray.length(); i++) {
+            char c = jsonArray.charAt(i);
+            
+            // Brackets within quotes shouldn't count as object's start or end.
+            // Assuming single quotes are invalid for enclosing JSON key and 
+            // values.
+            if (c == doubleQuote && start == true) {
+                quote = !quote;
+                obj += c; //Testing
+            }
+            else if (c == '{' && start == false && !quote) {
+                start = true;
+                obj += c;
+            }
+            else if (c == '}' && start == true && !quote) {
+                start = false;
+                obj += c;
+                result.add(jsonToJava(obj));
+                obj = "";
+            }
+            else if (start == true) {
+            	obj += c;
+            }
+        }
+        
+        return result;
     }
 
     /**
@@ -536,6 +608,25 @@ public final class Convert {
                     .getSimpleName(), key, value);
         }
 
+    }
+    
+    public static class DataTypeAdapter extends TypeAdapter<Object> {
+        public Object read(JsonReader reader) throws IOException {
+            return null;
+        }
+
+        public void write(JsonWriter writer, Object value) throws IOException {
+            if (value instanceof Double) {
+                value = (Double) value;
+                writer.value(value.toString() + "D");
+            }
+            else if (value instanceof Link) {
+                writer.value("@" + value.toString() + "@");
+            }
+            else if (value instanceof Tag) {
+                writer.value("'" + value.toString() + "'");
+            }
+        }
     }
 
 }

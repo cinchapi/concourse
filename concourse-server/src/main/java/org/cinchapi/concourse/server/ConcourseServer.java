@@ -66,6 +66,7 @@ import org.cinchapi.concourse.server.storage.AtomicStateException;
 import org.cinchapi.concourse.server.storage.BufferedStore;
 import org.cinchapi.concourse.server.storage.Compoundable;
 import org.cinchapi.concourse.server.storage.Engine;
+import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.server.storage.TransactionStateException;
 import org.cinchapi.concourse.shell.CommandLine;
@@ -87,6 +88,7 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
+import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
@@ -1052,6 +1054,58 @@ public class ConcourseServer implements
         }
         return operation;
     }
+    
+    /**
+     * Atomically convert list of {@code record} into {@code JSON} formatted
+     * string.
+     * 
+     * @param records
+     * @param includePrimaryKey
+     * @param store
+     * @param jsonStr
+     * @return the AtomicOperation
+     */
+    private AtomicOperation doJsonify(List<Long> records,
+            boolean includePrimaryKey, Compoundable store, StringBuilder jsonStr) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            List<Map<String, Set<Object>>> result = Lists.newLinkedList();
+            Set<Map<String, Set<Object>>> resultNoKey = Sets.newHashSet();
+
+            for (Long record : records) {
+                // For storing the converted thrift objects
+                Map<String, Set<Object>> rec = Maps.newHashMap();
+                Map<String, Set<TObject>> r = operation.browse(record);
+
+                // Converting the set of Thrift objects to Java objects
+                for (Map.Entry<String, Set<TObject>> entry : r.entrySet()) {
+                    Set<Object> values = Transformers.transformSet(
+                            entry.getValue(), Functions.THRIFT_TO_JAVA);
+                    rec.put(entry.getKey(), values);
+                }
+                if (includePrimaryKey) {
+                    Set<Object> recordSet = Sets.newHashSet();
+                    recordSet.add(record);
+                    rec.put("$primaryKey$", recordSet);
+                    result.add(rec);
+                }
+                else {
+                    resultNoKey.add(rec);
+                }
+            } // End for record loop
+
+            if (includePrimaryKey) {
+                jsonStr.append(Convert.javaToJson(result));
+            }
+            else {
+                jsonStr.append(Convert.javaToJson(resultNoKey));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
 
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
@@ -1224,6 +1278,35 @@ public class ConcourseServer implements
      */
     private boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
+    }
+    
+    @Atomic
+    @Override
+    public String jsonify(List<Long> records, boolean includePrimaryKey,
+            AccessToken creds, TransactionToken transaction, String env)
+            throws TSecurityException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, env);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            StringBuilder jsonResult = new StringBuilder();
+            while ((operation == null && nullOk) || operation != null
+                    && !operation.commit() && retryable) {
+                jsonResult = new StringBuilder();
+                nullOk = false;
+                operation = doJsonify(records, includePrimaryKey, store,
+                        jsonResult);
+            }
+            if (operation == null) {
+                throw new TTransactionException();
+            }
+            return jsonResult.toString();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     /**

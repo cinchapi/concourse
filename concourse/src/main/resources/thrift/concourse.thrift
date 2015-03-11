@@ -275,5 +275,13 @@ service ConcourseService {
 	i64 insert1(1: string json, 2: shared.AccessToken creds,
 		3: shared.TransactionToken token, 4: string environment)
 		throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
-
+	
+	/**
+	 * Atomically convert the list of records into JSON formatted string
+	 */
+	string jsonify(1: list<i64> records, 2: bool includePrimaryKey, 
+		3: shared.AccessToken creds,  4: shared.TransactionToken
+		token, 5: string environment) throws (
+		1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+	
 }
