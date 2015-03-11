@@ -21,7 +21,6 @@ package org.cinchapi.concourse.server.storage;
  * transaction from those in an atomic operation because it is possible that the
  * caller may want to auto retry a failed atomic operation whereas a failed
  * transaction cannot be auto retried.
- * transaction
  * 
  * @author Jeff Nelson
  */

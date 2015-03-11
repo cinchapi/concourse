@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,8 +24,10 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
@@ -42,7 +44,9 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.cinchapi.concourse.annotate.Alias;
 import org.cinchapi.concourse.annotate.Atomic;
+import org.cinchapi.concourse.annotate.AutoRetry;
 import org.cinchapi.concourse.lang.ConjunctionSymbol;
 import org.cinchapi.concourse.lang.Expression;
 import org.cinchapi.concourse.lang.Parser;
@@ -58,6 +62,7 @@ import org.cinchapi.concourse.server.storage.AtomicStateException;
 import org.cinchapi.concourse.server.storage.BufferedStore;
 import org.cinchapi.concourse.server.storage.Compoundable;
 import org.cinchapi.concourse.server.storage.Engine;
+import org.cinchapi.concourse.server.storage.Store;
 import org.cinchapi.concourse.server.storage.Transaction;
 import org.cinchapi.concourse.server.storage.TransactionStateException;
 import org.cinchapi.concourse.shell.CommandLine;
@@ -79,8 +84,10 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 import org.cinchapi.concourse.util.TSets;
+import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
@@ -305,192 +312,11 @@ public class ConcourseServer implements
     }
 
     @Override
-    public boolean add(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            if(value.getType() != Type.LINK
-                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
-                return ((BufferedStore) getStore(transaction, env)).add(key,
-                        value, record);
-            }
-            else {
-                return false;
-            }
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    @Atomic
-    public long add1(String key, TObject value, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        long record = 0;
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, env);
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && !operation.commit() && retryable)) {
-                nullOk = false;
-                record = Time.now();
-                operation = addToEmptyRecord(key, value, record, store);
-            }
-            return record;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Map<Long, String> audit(long record, String key, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return Strings.isNullOrEmpty(key) ? getStore(transaction, env)
-                    .audit(record) : getStore(transaction, env).audit(key,
-                    record);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-
-    }
-
-    @Override
-    public Map<String, Set<TObject>> browse0(long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return timestamp == 0 ? getStore(transaction, env).browse(record)
-                    : getStore(transaction, env).browse(record, timestamp);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Map<TObject, Set<Long>> browse1(String key, long timestamp,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TSecurityException, TException {
-        checkAccess(creds, transaction);
-        try {
-            return timestamp == 0 ? getStore(transaction, env).browse(key)
-                    : getStore(transaction, env).browse(key, timestamp);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    @Atomic
-    public Map<Long, Set<TObject>> chronologize(long record, String key,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap();
-            Map<Long, String> history = store.audit(key, record);
-            for (Long timestamp : history.keySet()) {
-                Set<TObject> values = store.fetch(key, record, timestamp);
-                if(!values.isEmpty()) {
-                    result.put(timestamp, values);
-                }
-            }
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && !operation.commit() && retryable)) {
-                nullOk = false;
-                operation = updateChronologizeResultSet(key, record, result,
-                        history, store);
-            }
-            return result;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Atomic
-    @Override
-    public void clear(String key, long record, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, env);
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && !operation.commit() && retryable)) {
-                nullOk = false;
-                operation = doClear(key, record, store);
-            }
-            if(operation == null) {
-                throw new TTransactionException();
-            }
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Atomic
-    @Override
-    public void clear1(long record, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, env);
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && !operation.commit() && retryable)) {
-                nullOk = false;
-                operation = doClear(record, store);
-            }
-            if(operation == null) {
-                throw new TTransactionException();
-            }
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
         checkAccess(creds, transaction);
         try {
             return transactions.remove(transaction).commit();
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Set<String> describe(long record, long timestamp, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return timestamp == 0 ? getStore(transaction, env).describe(record)
-                    : getStore(transaction, env).describe(record, timestamp);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -507,67 +333,6 @@ public class ConcourseServer implements
     @Override
     public String dump(String id, String env) {
         return getEngine(env).dump(id);
-    }
-
-    @Override
-    public Set<TObject> fetch(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return timestamp == 0 ? getStore(transaction, env).fetch(key,
-                    record) : getStore(transaction, env).fetch(key, record,
-                    timestamp);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Set<Long> find(String key, Operator operator, List<TObject> values,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            TObject[] tValues = values.toArray(new TObject[values.size()]);
-            return timestamp == 0 ? getStore(transaction, env).find(key,
-                    operator, tValues) : getStore(transaction, env).find(
-                    timestamp, key, operator, tValues);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Atomic
-    @Override
-    public Set<Long> find1(TCriteria tcriteria, AccessToken creds,
-            TransactionToken transaction, String env)
-            throws TSecurityException, TException {
-        checkAccess(creds, transaction);
-        try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : tcriteria.getSymbols()) {
-                symbols.add(Translate.fromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
-            Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
-            Compoundable store = getStore(transaction, env);
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && !operation.commit() && retryable)) {
-                nullOk = false;
-                operation = doFind1(queue, stack, store);
-            }
-            return Sets.newTreeSet(stack.pop());
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
     }
 
     @Override
@@ -608,67 +373,6 @@ public class ConcourseServer implements
     @ManagedOperation
     public boolean hasUser(byte[] username) {
         return manager.isExistingUsername(ByteBuffer.wrap(username));
-    }
-
-    @Atomic
-    @Override
-    public boolean insert(String json, long record, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        AtomicOperation operation = getStore(transaction, env)
-                .startAtomicOperation();
-        try {
-            Multimap<String, Object> data = Convert.jsonToJava(json);
-            for (String key : data.keySet()) {
-                for (Object value : data.get(key)) {
-                    if(value instanceof ResolvableLink) {
-                        ResolvableLink rl = (ResolvableLink) value;
-                        Set<Long> links = operation.find(rl.getKey(),
-                                Operator.EQUALS,
-                                Convert.javaToThrift(rl.getValue()));
-                        for (long link : links) {
-                            TObject t = Convert.javaToThrift(Link.to(link));
-                            if(!operation.add(key, t, record)) {
-                                return false;
-                            }
-                        }
-                    }
-                    else if(!operation.add(key, Convert.javaToThrift(value),
-                            record)) {
-                        return false;
-                    }
-                }
-            }
-            return operation.commit();
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-        catch (AtomicStateException e) {
-            return false;
-        }
-    }
-
-    @Atomic
-    @Override
-    public long insert1(String json, AccessToken creds,
-            TransactionToken transaction, String env)
-            throws TSecurityException, TException {
-        long record = 0;
-        checkAccess(creds, transaction);
-        try {
-            AtomicOperation operation = null;
-            while (operation == null || operation != null
-                    && !operation.commit()) {
-                record = Time.now();
-                operation = insertIntoEmptyRecord(json, record,
-                        getStore(transaction, env));
-            }
-            return record;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
     }
 
     @Override
@@ -725,64 +429,6 @@ public class ConcourseServer implements
     }
 
     @Override
-    public boolean ping(long record, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return !getStore(transaction, env).describe(record).isEmpty();
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public boolean remove(String key, TObject value, long record,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            if(value.getType() != Type.LINK
-                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
-                return ((BufferedStore) getStore(transaction, env)).remove(key,
-                        value, record);
-            }
-            else {
-                return false;
-            }
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Atomic
-    @Override
-    public void revert(String key, long record, long timestamp,
-            AccessToken creds, TransactionToken transaction, String env)
-            throws TException {
-        checkAccess(creds, transaction);
-        try {
-            Compoundable store = getStore(transaction, env);
-            boolean nullOk = true;
-            boolean retryable = store instanceof Engine;
-            AtomicOperation operation = null;
-            while ((operation == null && nullOk)
-                    || (operation != null && operation != null
-                            && !operation.commit() && retryable)) {
-                nullOk = false;
-                operation = doRevert(key, record, timestamp, store);
-            }
-            if(operation == null) {
-                throw new TTransactionException();
-            }
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
     @ManagedOperation
     public void revoke(byte[] username) {
         manager.deleteUser(ByteBuffer.wrap(username));
@@ -795,19 +441,6 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             return getStore(transaction, env).search(key, query);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public void set0(String key, TObject value, long record, AccessToken creds,
-            TransactionToken transaction, String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            ((BufferedStore) getStore(transaction, env))
-                    .set(key, value, record);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -848,21 +481,6 @@ public class ConcourseServer implements
                 engine.stop();
             }
             System.out.println("The Concourse server has stopped");
-        }
-    }
-
-    @Override
-    public boolean verify(String key, TObject value, long record,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String env) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return timestamp == 0 ? getStore(transaction, env).verify(key,
-                    value, record) : getStore(transaction, env).verify(key,
-                    value, record, timestamp);
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
         }
     }
 
@@ -981,6 +599,58 @@ public class ConcourseServer implements
         }
     }
 
+    private void clear0(long record, AtomicOperation operation)
+            throws AtomicStateException {
+        Map<String, Set<TObject>> values = operation.browse(record);
+        for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
+            String key = entry.getKey();
+            Set<TObject> valueSet = entry.getValue();
+            for (TObject value : valueSet) {
+                operation.remove(key, value, record);
+            }
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryClearRecords(List<Long> records,
+            Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            for (long record : records) {
+                Map<String, Set<TObject>> values = operation.browse(record);
+                for (Map.Entry<String, Set<TObject>> entry : values.entrySet()) {
+                    String key = entry.getKey();
+                    Set<TObject> valueSet = entry.getValue();
+                    for (TObject value : valueSet) {
+                        operation.remove(key, value, record);
+                    }
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryClearKeysRecord(List<String> keys, long record,
+            Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            for (String key : keys) {
+                Set<TObject> values = operation.fetch(key, record);
+                for (TObject value : values) {
+                    operation.remove(key, value, record);
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
+
     /**
      * Start an {@link AtomicOperation} with {@code store} as the destination
      * and do the work to clear {@code key} in {@code record}.
@@ -996,6 +666,52 @@ public class ConcourseServer implements
             Set<TObject> values = operation.fetch(key, record);
             for (TObject value : values) {
                 operation.remove(key, value, record);
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
+
+    private void clear0(String key, long record, AtomicOperation operation)
+            throws AtomicStateException {
+        Set<TObject> values = operation.fetch(key, record);
+        for (TObject value : values) {
+            operation.remove(key, value, record);
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryClearKeyRecords(String key, List<Long> records,
+            Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            for (long record : records) {
+                Set<TObject> values = operation.fetch(key, record);
+                for (TObject value : values) {
+                    operation.remove(key, value, record);
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryClearKeysRecords(List<String> keys,
+            List<Long> records, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        try {
+            for (long record : records) {
+                for (String key : keys) {
+                    Set<TObject> values = operation.fetch(key, record);
+                    for (TObject value : values) {
+                        operation.remove(key, value, record);
+                    }
+                }
             }
             return operation;
         }
@@ -1075,6 +791,21 @@ public class ConcourseServer implements
         }
         catch (AtomicStateException e) {
             return null;
+        }
+    }
+
+    private void revert0(String key, long record, long timestamp,
+            AtomicOperation operation) throws AtomicStateException {
+        Set<TObject> past = operation.fetch(key, record, timestamp);
+        Set<TObject> present = operation.fetch(key, record);
+        Set<TObject> xor = Sets.symmetricDifference(past, present);
+        for (TObject value : xor) {
+            if(present.contains(value)) {
+                operation.remove(key, value, record);
+            }
+            else {
+                operation.add(key, value, record);
+            }
         }
     }
 
@@ -1283,4 +1014,1554 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
+
+    @Override
+    public boolean addKeyValueRecord(String key, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            if(value.getType() != Type.LINK
+                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
+                BufferedStore store = ((BufferedStore) getStore(transaction,
+                        environment));
+                return store.add(key, value, record);
+            }
+            else {
+                return false;
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    @AutoRetry
+    public long addKeyValue(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        long record = 0;
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    addIfEmpty(key, value, Time.now(), operation);
+                }
+                catch (AtomicStateException e) {
+                    operation = null;
+                }
+            }
+            return record;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    /**
+     * Add {@code key} as {@code value} in {@code record} using the atomic
+     * {@code operation} if the record is empty. Otherwise, throw an
+     * {@link AtomicStateException}.
+     * <p>
+     * If another operation adds data to the record after the initial check,
+     * then an {@link AtomicStateException} will be thrown when an attempt is
+     * made to commit {@code operation}.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param operation
+     * @throws AtomicStateException
+     */
+    private void addIfEmpty(String key, TObject value, long record,
+            AtomicOperation operation) throws AtomicStateException {
+        if(operation.describe(record).isEmpty()) {
+            operation.add(key, value, record);
+        }
+        else {
+            throw new AtomicStateException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Boolean> addKeyValueRecords(String key, TObject value,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Boolean> result = Maps.newLinkedHashMap();
+            while (operation == null || (!operation.commit() && retryable)) {
+                result.clear();
+                try {
+                    for (long record : records) {
+                        result.put(record, operation.add(key, value, record));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    operation = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    @AutoRetry
+    public void clearRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    clear0(record, operation);
+                }
+                catch (AtomicStateException e) {
+                    operation = null;
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @AutoRetry
+    public void clearRecords(List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        clear0(record, operation);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    operation = null;
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+
+    }
+
+    @Override
+    @Atomic
+    @AutoRetry
+    public void clearKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    clear0(key, record, operation);
+                }
+                catch (AtomicStateException e) {
+                    operation = null;
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public void clearKeysRecord(List<String> keys, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryClearKeysRecord(keys, record, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public void clearKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryClearKeyRecords(key, records, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public void clearKeysRecords(List<String> keys, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryClearKeysRecords(keys, records, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public long insertJson(String json, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        long record = 0;
+        checkAccess(creds, transaction);
+        try {
+            AtomicOperation operation = null;
+            while (operation == null || operation != null
+                    && !operation.commit()) {
+                record = Time.now();
+                operation = insertIntoEmptyRecord(json, record,
+                        getStore(transaction, environment));
+            }
+            return record;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public boolean insertJsonRecord(String json, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = getStore(transaction, environment)
+                .startAtomicOperation();
+        try {
+            Multimap<String, Object> data = Convert.jsonToJava(json);
+            for (String key : data.keySet()) {
+                for (Object value : data.get(key)) {
+                    if(value instanceof ResolvableLink) {
+                        ResolvableLink rl = (ResolvableLink) value;
+                        Set<Long> links = operation.find(rl.getKey(),
+                                Operator.EQUALS,
+                                Convert.javaToThrift(rl.getValue()));
+                        for (long link : links) {
+                            TObject t = Convert.javaToThrift(Link.to(link));
+                            if(!operation.add(key, t, record)) {
+                                return false;
+                            }
+                        }
+                    }
+                    else if(!operation.add(key, Convert.javaToThrift(value),
+                            record)) {
+                        return false;
+                    }
+                }
+            }
+            return operation.commit();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (AtomicStateException e) {
+            return false;
+        }
+    }
+
+    @Override
+    @Atomic
+    // TODO: this seems to be not possible because insert is alread an atomic
+    // operation, and doing it in multiple records is also an atomic
+    // operation...
+    public Map<Long, Boolean> insertJsonRecords(String json,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        AtomicOperation operation = getStore(transaction, environment)
+                .startAtomicOperation();
+        try {
+            Map<Long, Boolean> result = Maps.newLinkedHashMap();
+            for (long record : records) {
+                Multimap<String, Object> data = Convert.jsonToJava(json);
+                for (String key : data.keySet()) {
+                    for (Object value : data.get(key)) {
+                        if(value instanceof ResolvableLink) {
+                            ResolvableLink rl = (ResolvableLink) value;
+                            Set<Long> links = operation.find(rl.getKey(),
+                                    Operator.EQUALS,
+                                    Convert.javaToThrift(rl.getValue()));
+                            for (long link : links) {
+                                TObject t = Convert.javaToThrift(Link.to(link));
+                                if(!operation.add(key, t, record)) {
+                                    result.put(record, false);
+                                }
+                                else {
+                                    result.put(record, true);
+                                }
+                            }
+                        }
+                        else if(!operation.add(key,
+                                Convert.javaToThrift(value), record)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return operation.commit();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (AtomicStateException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean removeKeyValueRecord(String key, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            if(value.getType() != Type.LINK
+                    || isValidLink((Link) Convert.thriftToJava(value), record)) {
+                return ((BufferedStore) getStore(transaction, environment))
+                        .remove(key, value, record);
+            }
+            else {
+                return false;
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Boolean> removeKeyValueRecords(String key, TObject value,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Boolean> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                result.clear();
+                for (long record : records) {
+                    result.put(record, operation.remove(key, value, record));
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public void setKeyValueRecord(String key, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            ((BufferedStore) getStore(transaction, environment)).set(key,
+                    value, record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+
+    }
+
+    @Override
+    public long setKeyValue(String key, TObject value, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return addKeyValue(key, value, creds, transaction, environment);
+    }
+
+    @Override
+    public void setKeyValueRecords(String key, TObject value,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                for (long record : records) {
+                    operation.set(key, value, record);
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.cinchapi.concourse.thrift.ConcourseService.Iface#browse(org.cinchapi
+     * .concourse.thrift.AccessToken,
+     * org.cinchapi.concourse.thrift.TransactionToken, java.lang.String)
+     */
+    @Override
+    public Set<Long> browse(AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browseRecord(long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).browse(record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> browseRecordTime(long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).browse(record, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browseKey(String key, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).browse(key);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<TObject, Set<Long>> browseKeyTime(String key, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).browse(key, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<String> describeRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).describe(record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<String> describeRecordTime(long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TSecurityException, TTransactionException, TException {
+        try {
+            return getStore(transaction, environment).describe(record,
+                    timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Set<String>> describeRecords(List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Set<String>> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryDescribeRecords(records, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryDescribeRecords(List<Long> records,
+            Map<Long, Set<String>> result, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (long record : records) {
+                result.put(record, operation.describe(record));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    @Override
+    public Map<Long, Set<String>> describeRecordsTime(List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Set<String>> result = Maps.newLinkedHashMap();
+            for (long record : records) {
+                result.put(record, store.describe(record, timestamp));
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<TObject> fetchKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).fetch(key, record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<TObject> fetchKeyRecordTime(String key, long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).fetch(key, record,
+                    timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<String, Set<TObject>> fetchKeysRecord(List<String> keys,
+            long record, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryFetchKeysRecord(keys, record, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryFetchKeysRecord(List<String> keys, long record,
+            Map<String, Set<TObject>> result, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (String key : keys) {
+                result.put(key, operation.fetch(key, record));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryGetKeysRecord(List<String> keys, long record,
+            Map<String, TObject> result, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (String key : keys) {
+                try {
+                    result.put(key, operation.fetch(key, record).iterator()
+                            .next());
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> fetchKeysRecordTime(List<String> keys,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
+            for (String key : keys) {
+                result.put(key, store.fetch(key, record, timestamp));
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Map<String, Set<TObject>>> fetchKeysRecords(
+            List<String> keys, List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryFetchKeysRecords(keys, records, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryFetchKeysRecords(List<String> keys,
+            List<Long> records, Map<Long, Map<String, Set<TObject>>> result,
+            Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = Maps.newLinkedHashMap();
+                for (String key : keys) {
+                    entry.put(key, operation.fetch(key, record));
+                }
+                result.put(record, entry);
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryGetKeysRecords(List<String> keys,
+            List<Long> records, Map<Long, Map<String, TObject>> result,
+            Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (long record : records) {
+                Map<String, TObject> entry = Maps.newLinkedHashMap();
+                for (String key : keys) {
+                    try {
+                        entry.put(key, operation.fetch(key, record).iterator()
+                                .next());
+                    }
+                    catch (NoSuchElementException e) {
+                        continue;
+                    }
+                }
+                result.put(record, entry);
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryFetchKeyRecords(String key, List<Long> records,
+            Map<Long, Set<TObject>> result, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (long record : records) {
+                result.put(record, operation.fetch(key, record));
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    // TODO documentation
+    private AtomicOperation tryGetKeyRecords(String key, List<Long> records,
+            Map<Long, TObject> result, Compoundable store) {
+        AtomicOperation operation = store.startAtomicOperation();
+        result.clear();
+        try {
+            for (long record : records) {
+                try {
+                    result.put(record, operation.fetch(key, record).iterator()
+                            .next());
+                }
+                catch (NoSuchElementException e) {
+                    continue;
+                }
+            }
+            return operation;
+        }
+        catch (AtomicStateException e) {
+            result.clear();
+            return null;
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Set<TObject>> fetchKeyRecords(String key,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryFetchKeyRecords(key, records, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> fetchKeyRecordsTime(String key,
+            List<Long> records, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            for (long record : records) {
+                result.put(record, store.fetch(key, record, timestamp));
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> fetchKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            for (long record : records) {
+                Map<String, Set<TObject>> entry = Maps.newHashMap();
+                for (String key : keys) {
+                    entry.put(key, store.fetch(key, record, timestamp));
+                }
+                result.put(record, entry);
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public TObject getKeyRecord(String key, long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return Iterables.getFirst(
+                    getStore(transaction, environment).fetch(key, record),
+                    TObject.NULL);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public TObject getKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return Iterables.getFirst(
+                    getStore(transaction, environment).fetch(key, record,
+                            timestamp), TObject.NULL);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<String, TObject> getKeysRecord(List<String> keys, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<String, TObject> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryGetKeysRecord(keys, record, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<String, TObject> getKeysRecordTime(List<String> keys,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Map<String, TObject> result = Maps.newLinkedHashMap();
+            Compoundable store = getStore(transaction, environment);
+            for (String key : keys) {
+                try {
+                    result.put(key, store.fetch(key, record, timestamp)
+                            .iterator().next());
+                }
+                catch (NoSuchElementException e) { // fetch was empty
+                    continue;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
+            List<Long> records, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryGetKeysRecords(keys, records, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = tryGetKeyRecords(key, records, result, store);
+            }
+            if(operation == null) {
+                throw new TTransactionException();
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Map<Long, TObject> result = Maps.newLinkedHashMap();
+            Compoundable store = getStore(transaction, environment);
+            for (long record : records) {
+                try {
+                    result.put(record, store.fetch(key, record, timestamp)
+                            .iterator().next());
+                }
+                catch (NoSuchElementException e) { // fetch was empty
+                    continue;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, TObject>> getKeysRecordsTime(
+            List<String> keys, List<Long> records, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            Compoundable store = getStore(transaction, environment);
+            for (long record : records) {
+                Map<String, TObject> entry = Maps.newLinkedHashMap();
+                for (String key : keys) {
+                    try {
+                        entry.put(key, store.fetch(key, record, timestamp)
+                                .iterator().next());
+                    }
+                    catch (NoSuchElementException e) { // fetch was empty
+                        continue;
+                    }
+                }
+                if(!entry.isEmpty()) {
+                    result.put(record, entry);
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public boolean verifyKeyValueRecord(String key, TObject value, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment)
+                    .verify(key, value, record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public boolean verifyKeyValueRecordTime(String key, TObject value,
+            long record, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getStore(transaction, environment).verify(key, value,
+                    record, timestamp);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            List<Symbol> symbols = Lists.newArrayList();
+            for (TSymbol tsymbol : criteria.getSymbols()) {
+                symbols.add(Translate.fromThrift(tsymbol));
+            }
+            Queue<PostfixNotationSymbol> queue = Parser
+                    .toPostfixNotation(symbols);
+            Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+            Compoundable store = getStore(transaction, environment);
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = doFind1(queue, stack, store);
+            }
+            return Sets.newTreeSet(stack.pop());
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<Long> findKeyOperatorValues(String key, Operator operator,
+            List<TObject> values, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            TObject[] tValues = values.toArray(new TObject[values.size()]);
+            return getStore(transaction, environment).find(key, operator,
+                    tValues);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Set<Long> findKeyOperatorValuesTime(String key, Operator operator,
+            List<TObject> values, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            TObject[] tValues = values.toArray(new TObject[values.size()]);
+            return getStore(transaction, environment).find(timestamp, key,
+                    operator, tValues);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Set<Long> findKeyStringOperatorValues(String key, String operator,
+            List<TObject> values, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return findKeyOperatorValues(key, Convert.stringToOperator(operator),
+                values, creds, transaction, environment);
+    }
+
+    @Override
+    @Alias
+    public Set<Long> findKeyStringOperatorValuesTime(String key,
+            String operator, List<TObject> values, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorValuesTime(key,
+                Convert.stringToOperator(operator), values, timestamp, creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, String> auditRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        try {
+            return getStore(transaction, environment).audit(record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, String> auditRecordStart(long record, long start,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return auditRecordStartEnd(record, start, Time.now(), creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, String> auditRecordStartEnd(long record, long start,
+            long end, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, String> result = Maps.newLinkedHashMap();
+            Map<Long, String> base = store.audit(record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    base.keySet(), start);
+            Entry<Long, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(base.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < base.size(); ++i) {
+                entry = Iterables.get(base.entrySet(), i);
+                if(entry.getKey() >= end) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, String> auditKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        try {
+            return getStore(transaction, environment).audit(key, record);
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, String> auditKeyRecordStart(String key, long record,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        return auditKeyRecordStartEnd(key, record, start, Time.now(), creds,
+                transaction, environment);
+    }
+
+    @Override
+    public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
+            long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, String> result = Maps.newLinkedHashMap();
+            Map<Long, String> base = store.audit(key, record);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    base.keySet(), start);
+            Entry<Long, String> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(base.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < base.size(); ++i) {
+                entry = Iterables.get(base.entrySet(), i);
+                if(entry.getKey() >= end) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Set<TObject>> chronologizeKeyRecord(String key,
+            long record, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap();
+            Map<Long, String> history = store.audit(key, record);
+            for (Long timestamp : history.keySet()) {
+                Set<TObject> values = store.fetch(key, record, timestamp);
+                if(!values.isEmpty()) {
+                    result.put(timestamp, values);
+                }
+            }
+            boolean nullOk = true;
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while ((operation == null && nullOk)
+                    || (operation != null && !operation.commit() && retryable)) {
+                nullOk = false;
+                operation = updateChronologizeResultSet(key, record, result,
+                        history, store);
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Alias
+    public Map<Long, Set<TObject>> chronologizeKeyRecordStart(String key,
+            long record, long start, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        return chronologizeKeyRecordStartEnd(key, record, start, Time.now(),
+                creds, transaction, environment);
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologizeKeyRecordStartEnd(String key,
+            long record, long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        try {
+            Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
+            Map<Long, Set<TObject>> base = chronologizeKeyRecord(key, record,
+                    creds, transaction, environment);
+            int index = Timestamps.findNearestSuccessorForTimestamp(
+                    base.keySet(), start);
+            Entry<Long, Set<TObject>> entry = null;
+            if(index > 0) {
+                entry = Iterables.get(base.entrySet(), index - 1);
+                result.put(entry.getKey(), entry.getValue());
+            }
+            for (int i = index; i < base.size(); ++i) {
+                entry = Iterables.get(base.entrySet(), i);
+                if(entry.getKey() >= end) {
+                    break;
+                }
+                result.put(entry.getKey(), entry.getValue());
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public void revertKeysRecordsTime(List<String> keys, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        for (String key : keys) {
+                            revert0(key, record, timestamp, operation);
+                        }
+                    }
+                }
+                catch (AtomicStateException e) {
+                    if(!retryable) {
+                        throw new TTransactionException();
+                    }
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public void revertKeysRecordTime(List<String> keys, long record,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    for (String key : keys) {
+                        revert0(key, record, timestamp, operation);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    if(!retryable) {
+                        throw new TTransactionException();
+                    }
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+
+    }
+
+    @Override
+    @Atomic
+    public void revertKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            while (operation == null || (!operation.commit() && retryable)) {
+                operation = store.startAtomicOperation();
+                try {
+                    for (long record : records) {
+                        revert0(key, record, timestamp, operation);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    if(!retryable) {
+                        throw new TTransactionException();
+                    }
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+
+    }
+
+    @Override
+    @Atomic
+    public void revertKeyRecordTime(String key, long record, long timestamp,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Boolean> result = Maps.newLinkedHashMap();
+            while (operation == null || (!operation.commit() && retryable)) {
+                result.clear();
+                try {
+                    revert0(key, record, timestamp, operation);
+                }
+                catch (AtomicStateException e) {
+                    if(!retryable) {
+                        throw new TTransactionException();
+                    }
+                }
+            }
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @Atomic
+    public Map<Long, Boolean> pingRecords(List<Long> records,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            boolean retryable = store instanceof Engine;
+            AtomicOperation operation = null;
+            Map<Long, Boolean> result = Maps.newLinkedHashMap();
+            while (operation == null || (!operation.commit() && retryable)) {
+                result.clear();
+                try {
+                    for (long record : records) {
+                        result.put(record, ping0(record, operation));
+                    }
+                }
+                catch (AtomicStateException e) {
+                    if(!retryable) {
+                        throw new TTransactionException();
+                    }
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    /**
+     * TODO documentation
+     */
+    private boolean ping0(long record, Store store) {
+        return !store.describe(record).isEmpty();
+    }
+
+    @Override
+    public boolean pingRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return ping0(record, getStore(transaction, environment));
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
 }

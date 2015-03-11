@@ -49,6 +49,15 @@ public class TObject implements
         java.io.Serializable,
         Cloneable,
         Comparable<TObject> {
+
+    /**
+     * Represents a null object that can be passed across the wire.
+     */
+    public static final TObject NULL = new TObject();
+    static {
+        NULL.setType(Type.NULL);
+    }
+
     // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
 
@@ -75,8 +84,7 @@ public class TObject implements
         tmpMap.put(_Fields.TYPE, new org.apache.thrift.meta_data.FieldMetaData(
                 "type", org.apache.thrift.TFieldRequirementType.REQUIRED,
                 new org.apache.thrift.meta_data.EnumMetaData(
-                        org.apache.thrift.protocol.TType.ENUM,
-                        Type.class)));
+                        org.apache.thrift.protocol.TType.ENUM, Type.class)));
         metaDataMap = Collections.unmodifiableMap(tmpMap);
         org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(
                 TObject.class, metaDataMap);
@@ -171,7 +179,7 @@ public class TObject implements
         }
         return false;
     }
-    
+
     public _Fields fieldForId(int fieldId) {
         return _Fields.findByThriftId(fieldId);
     }
@@ -476,8 +484,7 @@ public class TObject implements
                     break;
                 case 2: // TYPE
                     if(schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                        struct.type = Type
-                                .findByValue(iprot.readI32());
+                        struct.type = Type.findByValue(iprot.readI32());
                         struct.setTypeIsSet(true);
                     }
                     else {
@@ -533,8 +540,7 @@ public class TObject implements
             TTupleProtocol iprot = (TTupleProtocol) prot;
             struct.data = iprot.readBinary();
             struct.setDataIsSet(true);
-            struct.type = Type.findByValue(iprot
-                    .readI32());
+            struct.type = Type.findByValue(iprot.readI32());
             struct.setTypeIsSet(true);
         }
 
