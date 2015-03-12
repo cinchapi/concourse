@@ -12,7 +12,7 @@ cd $THRIFT_DIR
 thrift -out $TARGET -gen java concourse.thrift
 
 # Replace all instances of Hash* data structures with their LinkedHash
-# counterparts
+# counterparts (see THRIFT-2115)
 perl -p -i -e "s/Hash/LinkedHash/g" $PACKAGE"/ConcourseService.java"
 
 # Remove unnecessary files

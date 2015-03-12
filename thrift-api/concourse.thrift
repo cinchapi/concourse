@@ -12,17 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#-------------------------------------------------------------------------#
-# TODO IN ECLIPSE AFTER GENERATING (see THRIFT-2115)
-# 1. Run "./gradlew clean eclipse" at Concourse root directory and refresh
-#    the concourse project in Eclipse
-# 2. Run perl -p -i -e "s/Hash/LinkedHash/g" ../concourse/src/main/java/org/cinchapi/concourse/thrift/ConcourseService.java
-# 3. Replace shared.AccessToken with AccessToken
-# 4. Add @SuppressWarnings({ "rawtypes", "serial", "unchecked", "unused" })
-#    to class
-# 5. shift + command + F to format
-#-------------------------------------------------------------------------#
-
 #
 # Interface definition for the Concourse Server API.
 #
@@ -324,8 +313,23 @@ service ConcourseService {
     4: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<i64, map<string, set<data.TObject>>> browseRecords(
+    1: set<i64> records,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<string, set<data.TObject>> browseRecordTime(
     1: i64 record,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> browseRecordsTime(
+    1: set<i64> records,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
@@ -339,8 +343,23 @@ service ConcourseService {
     4: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<string, map<data.TObject, set<i64>>> browseKeys(
+    1: set<string> keys,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<data.TObject, set<i64>> browseKeyTime(
     1: string key,
+    2: i64 timestamp,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<string, map<data.TObject, set<i64>>> browseKeysTime(
+    1: set<string> keys,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
