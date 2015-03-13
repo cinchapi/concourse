@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package org.cinchapi.concourse;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -36,7 +37,7 @@ import org.cinchapi.concourse.annotate.CompoundOperation;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 import org.cinchapi.concourse.lang.BuildableState;
 import org.cinchapi.concourse.lang.Criteria;
-import org.cinchapi.concourse.lang.Translate;
+import org.cinchapi.concourse.lang.Language;
 import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
@@ -46,16 +47,15 @@ import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TTransactionException;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.Collections;
+import org.cinchapi.concourse.util.Conversions;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.PrettyLinkedTableMap;
-import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Transformers;
 import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -984,7 +984,7 @@ public abstract class Concourse implements AutoCloseable {
      * @return the primary key of the new record or {@code null} if the insert
      *         is unsuccessful
      */
-    public abstract long insert(String json);
+    public abstract Set<Long> insert(String json);
 
     /**
      * Insert the key/value mappings described in the {@code json} formated
@@ -1323,12 +1323,6 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         /**
-         * Represents a request to respond to a query using the current state as
-         * opposed to the history.
-         */
-        private static Timestamp now = Timestamp.fromMicros(0);
-
-        /**
          * An encrypted copy of the username passed to the constructor.
          */
         private final ByteBuffer username;
@@ -1470,16 +1464,36 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> add(String key, Object value,
-                Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Result");
-            for (long record : records) {
-                result.put(record, add(key, value, record));
+        public Map<Long, Boolean> add(final String key, final Object value,
+                final Collection<Long> records) {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Map<Long, Boolean>>() {
+
+                    @Override
+                    public Map<Long, Boolean> call() throws Exception {
+                        Map<Long, Boolean> raw = client.addKeyValueRecords(key,
+                                Convert.javaToThrift(value),
+                                Collections.toList(records), creds,
+                                transaction, environment);
+                        Map<Long, Boolean> pretty = PrettyLinkedHashMap
+                                .newPrettyLinkedHashMap("Record", "Result");
+                        for (long record : records) {
+                            pretty.put(record, raw.get(record));
+                        }
+                        return pretty;
+                    }
+
+                });
             }
-            return result;
+            else {
+                throw new IllegalArgumentException(
+                        "Either your key or value is empty");
+            }
         }
 
+        @Override
         public <T> long add(final String key, final T value) {
             if(!StringUtils.isBlank(key)
                     && (!(value instanceof String) || (value instanceof String && !StringUtils
@@ -1488,15 +1502,16 @@ public abstract class Concourse implements AutoCloseable {
 
                     @Override
                     public Long call() throws Exception {
-                        return client.add1(key, Convert.javaToThrift(value),
-                                creds, transaction, environment);
+                        return client.addKeyValue(key,
+                                Convert.javaToThrift(value), creds,
+                                transaction, environment);
                     }
 
                 });
             }
             else {
                 throw new IllegalArgumentException(
-                        "Either your key is blank or value");
+                        "Either your key or value is empty");
             }
 
         }
@@ -1511,8 +1526,9 @@ public abstract class Concourse implements AutoCloseable {
 
                     @Override
                     public Boolean call() throws Exception {
-                        return client.add(key, Convert.javaToThrift(value),
-                                record, creds, transaction, environment);
+                        return client.addKeyValueRecord(key,
+                                Convert.javaToThrift(value), record, creds,
+                                transaction, environment);
                     }
 
                 });
@@ -1526,19 +1542,12 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Timestamp, String> call() throws Exception {
-                    Map<Long, String> audit = client.audit(record, null, creds,
+                    Map<Long, String> audit = client.auditRecord(record, creds,
                             transaction, environment);
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
-                                    new Function<Long, Timestamp>() {
-
-                                        @Override
-                                        public Timestamp apply(Long input) {
-                                            return Timestamp.fromMicros(input);
-                                        }
-
-                                    })).setKeyName("DateTime").setValueName(
-                            "Revision");
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -1550,19 +1559,12 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Timestamp, String> call() throws Exception {
-                    Map<Long, String> audit = client.audit(record, key, creds,
-                            transaction, environment);
+                    Map<Long, String> audit = client.auditKeyRecord(key,
+                            record, creds, transaction, environment);
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
-                                    new Function<Long, Timestamp>() {
-
-                                        @Override
-                                        public Timestamp apply(Long input) {
-                                            return Timestamp.fromMicros(input);
-                                        }
-
-                                    })).setKeyName("DateTime").setValueName(
-                            "Revision");
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -1571,7 +1573,22 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Timestamp, String> audit(final String key,
                 final long record, final Timestamp start) {
-            return audit(key, record, start, Timestamp.now());
+            Preconditions.checkArgument(start.getMicros() <= Time.now(),
+                    "Start of range cannot be greater than the present");
+            return execute(new Callable<Map<Timestamp, String>>() {
+
+                @Override
+                public Map<Timestamp, String> call() throws Exception {
+                    Map<Long, String> audit = client.auditKeyRecordStart(key,
+                            record, start.getMicros(), creds, transaction,
+                            environment);
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
+                            .transformMap(audit,
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
+                }
+
+            });
         }
 
         @Override
@@ -1579,30 +1596,40 @@ public abstract class Concourse implements AutoCloseable {
                 final long record, final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
-            Map<Timestamp, String> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
-            Map<Timestamp, String> audited = audit(key, record);
-            int index = Timestamps.findNearestSuccessorForTimestamp(
-                    audited.keySet(), start);
-            Entry<Timestamp, String> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(audited.entrySet(), index - 1);
-                result.put(entry.getKey(), entry.getValue());
-            }
-            for (int i = index; i < audited.size(); ++i) {
-                entry = Iterables.get(audited.entrySet(), i);
-                if(entry.getKey().getMicros() >= end.getMicros()) {
-                    break;
+            return execute(new Callable<Map<Timestamp, String>>() {
+
+                @Override
+                public Map<Timestamp, String> call() throws Exception {
+                    Map<Long, String> audit = client.auditKeyRecordStartEnd(
+                            key, record, start.getMicros(), end.getMicros(),
+                            creds, transaction, environment);
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
+                            .transformMap(audit,
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
-                result.put(entry.getKey(), entry.getValue());
-            }
-            return result;
+
+            });
         }
 
         @Override
         public Map<Timestamp, String> audit(final long record,
                 final Timestamp start) {
-            return audit(record, start, Timestamp.now());
+            Preconditions.checkArgument(start.getMicros() <= Time.now(),
+                    "Start of range cannot be greater than the present");
+            return execute(new Callable<Map<Timestamp, String>>() {
+
+                @Override
+                public Map<Timestamp, String> call() throws Exception {
+                    Map<Long, String> audit = client.auditRecordStart(record,
+                            start.getMicros(), creds, transaction, environment);
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
+                            .transformMap(audit,
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
+                }
+
+            });
         }
 
         @Override
@@ -1610,53 +1637,90 @@ public abstract class Concourse implements AutoCloseable {
                 final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
-            Map<Timestamp, String> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
-            Map<Timestamp, String> audited = audit(record);
-            int index = Timestamps.findNearestSuccessorForTimestamp(
-                    audited.keySet(), start);
-            Entry<Timestamp, String> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(audited.entrySet(), index - 1);
-                result.put(entry.getKey(), entry.getValue());
-            }
-            for (int i = index; i < audited.size(); ++i) {
-                entry = Iterables.get(audited.entrySet(), i);
-                if(entry.getKey().getMicros() >= end.getMicros()) {
-                    break;
+            return execute(new Callable<Map<Timestamp, String>>() {
+
+                @Override
+                public Map<Timestamp, String> call() throws Exception {
+                    Map<Long, String> audit = client.auditRecordStartEnd(
+                            record, start.getMicros(), end.getMicros(), creds,
+                            transaction, environment);
+                    return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
+                            .transformMap(audit,
+                                    Conversions.timestampToMicros()))
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
-                result.put(entry.getKey(), entry.getValue());
-            }
-            return result;
+
+            });
         }
 
-        @CompoundOperation
         @Override
         public Map<Long, Map<String, Set<Object>>> browse(
-                Collection<Long> records) {
-            Map<Long, Map<String, Set<Object>>> data = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                data.put(record, browse(record, now));
-            }
-            return data;
+                final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Map<String, Set<Object>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<Object>>> call()
+                        throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .browseRecords(Collections.toList(records), creds,
+                                    transaction, environment);
+                    Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+            });
         }
 
-        @CompoundOperation
         @Override
         public Map<Long, Map<String, Set<Object>>> browse(
-                Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Map<String, Set<Object>>> data = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                data.put(record, browse(record, timestamp));
-            }
-            return data;
+                final Collection<Long> records, final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Map<String, Set<Object>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<Object>>> call()
+                        throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .browseRecordsTime(Collections.toList(records),
+                                    timestamp.getMicros(), creds, transaction,
+                                    environment);
+                    Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
-        public Map<String, Set<Object>> browse(long record) {
-            return browse(record, now);
+        public Map<String, Set<Object>> browse(final long record) {
+            return execute(new Callable<Map<String, Set<Object>>>() {
+
+                @Override
+                public Map<String, Set<Object>> call() throws Exception {
+                    Map<String, Set<TObject>> raw = client.browseRecord(record,
+                            creds, transaction, environment);
+                    Map<String, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
@@ -1666,31 +1730,37 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<String, Set<Object>> call() throws Exception {
-                    Map<String, Set<Object>> data = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Key", "Values");
-                    for (Entry<String, Set<TObject>> entry : client.browse0(
+                    Map<String, Set<TObject>> raw = client.browseRecordTime(
                             record, timestamp.getMicros(), creds, transaction,
-                            environment).entrySet()) {
-                        data.put(entry.getKey(), Transformers.transformSet(
-                                entry.getValue(),
-                                new Function<TObject, Object>() {
-
-                                    @Override
-                                    public Object apply(TObject input) {
-                                        return Convert.thriftToJava(input);
-                                    }
-
-                                }));
+                            environment);
+                    Map<String, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
                     }
-                    return data;
+                    return pretty;
                 }
-
             });
         }
 
         @Override
-        public Map<Object, Set<Long>> browse(String key) {
-            return browse(key, now);
+        public Map<Object, Set<Long>> browse(final String key) {
+            return execute(new Callable<Map<Object, Set<Long>>>() {
+
+                @Override
+                public Map<Object, Set<Long>> call() throws Exception {
+                    Map<TObject, Set<Long>> raw = client.browseKey(key, creds,
+                            transaction, environment);
+                    Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<TObject, Set<Long>> entry : raw.entrySet()) {
+                        pretty.put(Convert.thriftToJava(entry.getKey()),
+                                entry.getValue());
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
@@ -1700,17 +1770,17 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Object, Set<Long>> call() throws Exception {
-                    Map<Object, Set<Long>> data = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap(key, "Records");
-                    for (Entry<TObject, Set<Long>> entry : client.browse1(key,
+                    Map<TObject, Set<Long>> raw = client.browseKeyTime(key,
                             timestamp.getMicros(), creds, transaction,
-                            environment).entrySet()) {
-                        data.put(Convert.thriftToJava(entry.getKey()),
+                            environment);
+                    Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<TObject, Set<Long>> entry : raw.entrySet()) {
+                        pretty.put(Convert.thriftToJava(entry.getKey()),
                                 entry.getValue());
                     }
-                    return data;
+                    return pretty;
                 }
-
             });
         }
 
@@ -1721,25 +1791,16 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Timestamp, Set<Object>> call() throws Exception {
-                    Map<Long, Set<TObject>> chronologize = client.chronologize(
-                            record, key, creds, transaction, environment);
-                    Map<Timestamp, Set<Object>> result = PrettyLinkedHashMap
+                    Map<Long, Set<TObject>> raw = client.chronologizeKeyRecord(
+                            key, record, creds, transaction, environment);
+                    Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("DateTime", "Values");
-                    for (Entry<Long, Set<TObject>> entry : chronologize
-                            .entrySet()) {
-                        result.put(Timestamp.fromMicros(entry.getKey()),
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(Timestamp.fromMicros(entry.getKey()),
                                 Transformers.transformSet(entry.getValue(),
-                                        new Function<TObject, Object>() {
-
-                                            @Override
-                                            public Object apply(TObject input) {
-                                                return Convert
-                                                        .thriftToJava(input);
-                                            }
-
-                                        }));
+                                        Conversions.thriftToJava()));
                     }
-                    return result;
+                    return pretty;
                 }
 
             });
@@ -1748,7 +1809,26 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Timestamp, Set<Object>> chronologize(final String key,
                 final long record, final Timestamp start) {
-            return chronologize(key, record, start, Timestamp.now());
+            Preconditions.checkArgument(start.getMicros() <= Time.now(),
+                    "Start of range cannot be greater than the present");
+            return execute(new Callable<Map<Timestamp, Set<Object>>>() {
+
+                @Override
+                public Map<Timestamp, Set<Object>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client
+                            .chronologizeKeyRecordStart(key, record,
+                                    start.getMicros(), creds, transaction,
+                                    environment);
+                    Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("DateTime", "Values");
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(Timestamp.fromMicros(entry.getKey()),
+                                Transformers.transformSet(entry.getValue(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
@@ -1756,47 +1836,68 @@ public abstract class Concourse implements AutoCloseable {
                 final long record, final Timestamp start, final Timestamp end) {
             Preconditions.checkArgument(start.getMicros() <= end.getMicros(),
                     "Start of range cannot be greater than the end");
-            Map<Timestamp, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("DateTime", "Values");
-            Map<Timestamp, Set<Object>> chronology = chronologize(key, record);
-            int index = Timestamps.findNearestSuccessorForTimestamp(
-                    chronology.keySet(), start);
-            Entry<Timestamp, Set<Object>> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(chronology.entrySet(), index - 1);
-                result.put(entry.getKey(), entry.getValue());
-            }
-            for (int i = index; i < chronology.size(); ++i) {
-                entry = Iterables.get(chronology.entrySet(), i);
-                if(entry.getKey().getMicros() >= end.getMicros()) {
-                    break;
+            return execute(new Callable<Map<Timestamp, Set<Object>>>() {
+
+                @Override
+                public Map<Timestamp, Set<Object>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client
+                            .chronologizeKeyRecordStartEnd(key, record,
+                                    start.getMicros(), end.getMicros(), creds,
+                                    transaction, environment);
+                    Map<Timestamp, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("DateTime", "Values");
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(Timestamp.fromMicros(entry.getKey()),
+                                Transformers.transformSet(entry.getValue(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
                 }
-                result.put(entry.getKey(), entry.getValue());
-            }
-            return result;
+            });
         }
 
         @Override
         public void clear(final Collection<Long> records) {
-            for (Long record : records) {
-                clear(record);
-            }
-        }
+            execute(new Callable<Void>() {
 
-        @Override
-        public void clear(Collection<String> keys, Collection<Long> records) {
-            for (long record : records) {
-                for (String key : keys) {
-                    clear(key, record);
+                @Override
+                public Void call() throws Exception {
+                    client.clearRecords(Collections.toList(records), creds,
+                            transaction, environment);
+                    return null;
                 }
-            }
+
+            });
         }
 
         @Override
-        public void clear(Collection<String> keys, long record) {
-            for (String key : keys) {
-                clear(key, record);
-            }
+        public void clear(final Collection<String> keys,
+                final Collection<Long> records) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clearKeysRecords(Collections.toList(keys),
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                    return null;
+                }
+
+            });
+        }
+
+        @Override
+        public void clear(final Collection<String> keys, final long record) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clearKeysRecord(Collections.toList(keys), record,
+                            creds, transaction, environment);
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -1805,7 +1906,7 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clear1(record, creds, transaction, environment);
+                    client.clearRecord(record, creds, transaction, environment);
                     return null;
                 }
 
@@ -1814,10 +1915,17 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public void clear(String key, Collection<Long> records) {
-            for (long record : records) {
-                clear(key, record);
-            }
+        public void clear(final String key, final Collection<Long> records) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.clearKeyRecords(key, Collections.toList(records),
+                            creds, transaction, environment);
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -1826,7 +1934,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clear(key, record, creds, transaction, environment);
+                    client.clearKeyRecord(key, record, creds, transaction,
+                            environment);
                     return null;
                 }
 
@@ -1848,8 +1957,9 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        @Deprecated
         public long create() {
-            return Time.now(); // TODO get a primary key using a plugin
+            return Time.now();
         }
 
         @Override
@@ -1965,29 +2075,55 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Set<String>> describe(Collection<Long> records) {
-            Map<Long, Set<String>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Keys");
-            for (long record : records) {
-                result.put(record, describe(record));
-            }
-            return result;
+        public Map<Long, Set<String>> describe(final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Set<String>>>() {
+
+                @Override
+                public Map<Long, Set<String>> call() throws Exception {
+                    Map<Long, Set<String>> raw = client.describeRecords(
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                    Map<Long, Set<String>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Keys");
+                    for (Entry<Long, Set<String>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), entry.getValue());
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
-        public Map<Long, Set<String>> describe(Collection<Long> records,
-                Timestamp timestamp) {
-            Map<Long, Set<String>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Keys");
-            for (long record : records) {
-                result.put(record, describe(record, timestamp));
-            }
-            return result;
+        public Map<Long, Set<String>> describe(final Collection<Long> records,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Set<String>>>() {
+
+                @Override
+                public Map<Long, Set<String>> call() throws Exception {
+                    Map<Long, Set<String>> raw = client.describeRecordsTime(
+                            Collections.toList(records), timestamp.getMicros(),
+                            creds, transaction, environment);
+                    Map<Long, Set<String>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Keys");
+                    for (Entry<Long, Set<String>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), entry.getValue());
+                    }
+                    return pretty;
+                }
+            });
         }
 
         @Override
-        public Set<String> describe(long record) {
-            return describe(record, now);
+        public Set<String> describe(final long record) {
+            return execute(new Callable<Set<String>>() {
+
+                @Override
+                public Set<String> call() throws Exception {
+                    Set<String> result = client.describeRecord(record, creds,
+                            transaction, environment);
+                    return result;
+                }
+            });
         }
 
         @Override
@@ -1996,10 +2132,11 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Set<String> call() throws Exception {
-                    return client.describe(record, timestamp.getMicros(),
-                            creds, transaction, environment);
+                    Set<String> result = client.describeRecordTime(record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    return result;
                 }
-
             });
         }
 
@@ -2024,77 +2161,163 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Map<Long, Map<String, Set<Object>>> fetch(
-                Collection<String> keys, Collection<Long> records) {
-            PrettyLinkedTableMap<Long, String, Set<Object>> result = PrettyLinkedTableMap
-                    .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, fetch(key, record));
+                final Collection<String> keys, final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Map<String, Set<Object>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<Object>>> call()
+                        throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .fetchKeysRecords(Collections.toList(keys),
+                                    Collections.toList(records), creds,
+                                    transaction, environment);
+                    PrettyLinkedTableMap<Long, String, Set<Object>> pretty = PrettyLinkedTableMap
+                            .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
         public Map<Long, Map<String, Set<Object>>> fetch(
-                Collection<String> keys, Collection<Long> records,
-                Timestamp timestamp) {
-            PrettyLinkedTableMap<Long, String, Set<Object>> result = PrettyLinkedTableMap
-                    .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    result.put(record, key, fetch(key, record, timestamp));
+                final Collection<String> keys, final Collection<Long> records,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Map<String, Set<Object>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<Object>>> call()
+                        throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .fetchKeysRecordsTime(Collections.toList(keys),
+                                    Collections.toList(records),
+                                    timestamp.getMicros(), creds, transaction,
+                                    environment);
+                    PrettyLinkedTableMap<Long, String, Set<Object>> pretty = PrettyLinkedTableMap
+                            .<Long, String, Set<Object>> newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
-        public Map<String, Set<Object>> fetch(Collection<String> keys,
-                long record) {
-            Map<String, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
-            for (String key : keys) {
-                result.put(key, fetch(key, record));
-            }
-            return result;
+        public Map<String, Set<Object>> fetch(final Collection<String> keys,
+                final long record) {
+            return execute(new Callable<Map<String, Set<Object>>>() {
+
+                @Override
+                public Map<String, Set<Object>> call() throws Exception {
+                    Map<String, Set<TObject>> raw = client.fetchKeysRecord(
+                            Collections.toList(keys), record, creds,
+                            transaction, environment);
+                    Map<String, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+
+            });
         }
 
         @Override
-        public Map<String, Set<Object>> fetch(Collection<String> keys,
-                long record, Timestamp timestamp) {
-            Map<String, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Values");
-            for (String key : keys) {
-                result.put(key, fetch(key, record, timestamp));
-            }
-            return result;
+        public Map<String, Set<Object>> fetch(final Collection<String> keys,
+                final long record, final Timestamp timestamp) {
+            return execute(new Callable<Map<String, Set<Object>>>() {
+
+                @Override
+                public Map<String, Set<Object>> call() throws Exception {
+                    Map<String, Set<TObject>> raw = client.fetchKeysRecordTime(
+                            Collections.toList(keys), record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    Map<String, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<String, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+
+            });
         }
 
         @Override
-        public Map<Long, Set<Object>> fetch(String key, Collection<Long> records) {
-            Map<Long, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (long record : records) {
-                result.put(record, fetch(key, record));
-            }
-            return result;
+        public Map<Long, Set<Object>> fetch(final String key,
+                final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Set<Object>>>() {
+
+                @Override
+                public Map<Long, Set<Object>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client.fetchKeyRecords(key,
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                    Map<Long, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+
+            });
         }
 
         @Override
-        public Map<Long, Set<Object>> fetch(String key,
-                Collection<Long> records, Timestamp timestamp) {
-            Map<Long, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (long record : records) {
-                result.put(record, fetch(key, record, timestamp));
-            }
-            return result;
+        public Map<Long, Set<Object>> fetch(final String key,
+                final Collection<Long> records, final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Set<Object>>>() {
+
+                @Override
+                public Map<Long, Set<Object>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client.fetchKeyRecordsTime(
+                            key, Collections.toList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    Map<Long, Set<Object>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Values");
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(), Conversions.thriftToJava()));
+                    }
+                    return pretty;
+                }
+
+            });
         }
 
         @Override
-        public Set<Object> fetch(String key, long record) {
-            return fetch(key, record, now);
+        public Set<Object> fetch(final String key, final long record) {
+            return execute(new Callable<Set<Object>>() {
+
+                @Override
+                public Set<Object> call() throws Exception {
+                    Set<TObject> values = client.fetchKeyRecord(key, record,
+                            creds, transaction, environment);
+                    return Transformers.transformSet(values,
+                            Conversions.thriftToJava());
+                }
+
+            });
         }
 
         @Override
@@ -2104,18 +2327,11 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Set<Object> call() throws Exception {
-                    Set<TObject> values = client.fetch(key, record,
-                            timestamp.getMicros(), creds, transaction,
+                    Set<TObject> values = client.fetchKeyRecordTime(key,
+                            record, timestamp.getMicros(), creds, transaction,
                             environment);
                     return Transformers.transformSet(values,
-                            new Function<TObject, Object>() {
-
-                                @Override
-                                public Object apply(TObject input) {
-                                    return Convert.thriftToJava(input);
-                                }
-
-                            });
+                            Conversions.thriftToJava());
                 }
 
             });
@@ -2127,8 +2343,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Set<Long> call() throws Exception {
-                    return client.find1(Translate.toThrift(criteria), creds,
-                            transaction, environment);
+                    return client.findCriteria(
+                            Language.translateToThriftCriteria(criteria),
+                            creds, transaction, environment);
                 }
 
             });
@@ -2147,196 +2364,307 @@ public abstract class Concourse implements AutoCloseable {
 
         @Override
         public Set<Long> find(String key, Object value) {
-            return find(key, Operator.EQUALS, value);
+            return find0(key, Operator.EQUALS, value);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value) {
-            return find(key, operator, value, now);
+            return find0(key, operator, value);
         }
 
         @Override
         public Set<Long> find(String key, Operator operator, Object value,
                 Object value2) {
-            return find(key, operator, value, value2, now);
+            return find0(key, operator, value, value2);
         }
 
-        @Override
-        public Set<Long> find(final String key, final Operator operator,
-                final Object value, final Object value2,
-                final Timestamp timestamp) {
+        /**
+         * Perform an old-school/simple find operation where {@code key}
+         * satisfied {@code operation} in relation to the specified
+         * {@code values}.
+         * 
+         * @param key
+         * @param operator
+         * @param values
+         * @return the records that match the criteria.
+         */
+        private Set<Long> find0(final String key, final Object operator,
+                final Object... values) {
+            final List<TObject> tValues = Lists.transform(
+                    Lists.newArrayList(values), Conversions.javaToThrift());
             return execute(new Callable<Set<Long>>() {
 
                 @Override
                 public Set<Long> call() throws Exception {
-                    return client.find(key, operator, Lists.transform(
-                            Lists.newArrayList(value, value2),
-                            new Function<Object, TObject>() {
+                    if(operator instanceof Operator) {
+                        return client.findKeyOperatorValues(key,
+                                (Operator) operator, tValues, creds,
+                                transaction, environment);
+                    }
+                    else {
+                        return client.findKeyStringOperatorValues(key,
+                                operator.toString(), tValues, creds,
+                                transaction, environment);
+                    }
 
-                                @Override
-                                public TObject apply(Object input) {
-                                    return Convert.javaToThrift(input);
-                                }
-
-                            }), timestamp.getMicros(), creds, transaction,
-                            environment);
                 }
 
             });
+        }
+
+        /**
+         * Perform an old-school/simple find operation where {@code key}
+         * satisfied {@code operation} in relation to the specified
+         * {@code values} at {@code timestamp}.
+         * 
+         * @param key
+         * @param operator
+         * @param values
+         * @param timestamp
+         * @return the records that match the criteria.
+         */
+        private Set<Long> find0(final Timestamp timestamp, final String key,
+                final Object operator, final Object... values) {
+            final List<TObject> tValues = Lists.transform(
+                    Lists.newArrayList(values), Conversions.javaToThrift());
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    if(operator instanceof Operator) {
+                        return client.findKeyOperatorValuesTime(key,
+                                (Operator) operator, tValues,
+                                timestamp.getMicros(), creds, transaction,
+                                environment);
+                    }
+                    else {
+                        return client.findKeyStringOperatorValuesTime(key,
+                                operator.toString(), tValues,
+                                timestamp.getMicros(), creds, transaction,
+                                environment);
+                    }
+
+                }
+
+            });
+        }
+
+        @Override
+        public Set<Long> find(String key, Operator operator, Object value,
+                Object value2, Timestamp timestamp) {
+            return find0(timestamp, key, operator, value, value2);
         }
 
         @Override
         public Set<Long> find(final String key, final Operator operator,
                 final Object value, final Timestamp timestamp) {
-            return execute(new Callable<Set<Long>>() {
+            return find0(timestamp, key, operator, value);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value) {
+            return find0(key, operator, value);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
+                final Object value2) {
+            return find0(key, operator, value, value2);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
+                final Object value2, Timestamp timestamp) {
+            return find0(timestamp, key, operator, value, value2);
+        }
+
+        @Override
+        public Set<Long> find(String key, String operator, Object value,
+                Timestamp timestamp) {
+            return find0(timestamp, key, operator, value);
+        }
+
+        @Override
+        public Map<Long, Map<String, Object>> get(
+                final Collection<String> keys, final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Map<String, Object>>>() {
 
                 @Override
-                public Set<Long> call() throws Exception {
-                    return client.find(key, operator, Lists.transform(
-                            Lists.newArrayList(value),
-                            new Function<Object, TObject>() {
-
-                                @Override
-                                public TObject apply(Object input) {
-                                    return Convert.javaToThrift(input);
-                                }
-
-                            }), timestamp.getMicros(), creds, transaction,
-                            environment);
+                public Map<Long, Map<String, Object>> call() throws Exception {
+                    Map<Long, Map<String, TObject>> raw = client
+                            .getKeysRecords(Collections.toList(keys),
+                                    Collections.toList(records), creds,
+                                    transaction, environment);
+                    PrettyLinkedTableMap<Long, String, Object> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, TObject>> entry : raw
+                            .entrySet()) {
+                        pretty.put(
+                                entry.getKey(),
+                                Transformers.transformMapValues(
+                                        entry.getValue(),
+                                        Conversions.thriftToJava()));
+                    }
+                    return pretty;
                 }
 
             });
         }
 
         @Override
-        public Set<Long> find(final String key, final String operator,
-                final Object value) {
-            Operator parsedOp = Convert.stringToOperator(operator);
-            return find(key, parsedOp, value);
-        }
+        public Map<Long, Map<String, Object>> get(
+                final Collection<String> keys, final Collection<Long> records,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Map<String, Object>>>() {
 
-        @Override
-        public Set<Long> find(final String key, final String operator,
-                final Object value, final Object value2) {
-            Operator parsedOp = Convert.stringToOperator(operator);
-            return find(key, parsedOp, value, value2);
-        }
-
-        @Override
-        public Set<Long> find(final String key, final String operator,
-                final Object value, final Object value2, Timestamp timestamp) {
-            Operator parsedOp = Convert.stringToOperator(operator);
-            return find(key, parsedOp, value, value2, timestamp);
-        }
-
-        @Override
-        public Set<Long> find(final String key, final String operator,
-                final Object value, Timestamp timestamp) {
-            Operator parsedOp = Convert.stringToOperator(operator);
-            return find(key, parsedOp, value, timestamp);
-        }
-
-        @Override
-        public Map<Long, Map<String, Object>> get(Collection<String> keys,
-                Collection<Long> records) {
-            PrettyLinkedTableMap<Long, String, Object> result = PrettyLinkedTableMap
-                    .<Long, String, Object> newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    Object value = get(key, record);
-                    if(value != null) {
-                        result.put(record, key, value);
+                @Override
+                public Map<Long, Map<String, Object>> call() throws Exception {
+                    Map<Long, Map<String, TObject>> raw = client
+                            .getKeysRecordsTime(Collections.toList(keys),
+                                    Collections.toList(records),
+                                    timestamp.getMicros(), creds, transaction,
+                                    environment);
+                    Map<Long, Map<String, Object>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, TObject>> entry : raw
+                            .entrySet()) {
+                        pretty.put(
+                                entry.getKey(),
+                                Transformers.transformMapValues(
+                                        entry.getValue(),
+                                        Conversions.thriftToJava()));
                     }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
-        public Map<Long, Map<String, Object>> get(Collection<String> keys,
-                Collection<Long> records, Timestamp timestamp) {
-            PrettyLinkedTableMap<Long, String, Object> result = PrettyLinkedTableMap
-                    .<Long, String, Object> newPrettyLinkedTableMap("Record");
-            for (long record : records) {
-                for (String key : keys) {
-                    Object value = get(key, record, timestamp);
-                    if(value != null) {
-                        result.put(record, key, value);
+        public Map<String, Object> get(final Collection<String> keys,
+                final long record) {
+            return execute(new Callable<Map<String, Object>>() {
+
+                @Override
+                public Map<String, Object> call() throws Exception {
+                    Map<String, TObject> raw = client.getKeysRecord(
+                            Collections.toList(keys), record, creds,
+                            transaction, environment);
+                    Map<String, Object> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Value");
+                    for (Entry<String, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                Convert.thriftToJava(entry.getValue()));
                     }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
-        public Map<String, Object> get(Collection<String> keys, long record) {
-            Map<String, Object> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Value");
-            for (String key : keys) {
-                Object value = get(key, record);
-                if(value != null) {
-                    result.put(key, value);
+        public Map<String, Object> get(final Collection<String> keys,
+                final long record, final Timestamp timestamp) {
+            return execute(new Callable<Map<String, Object>>() {
+
+                @Override
+                public Map<String, Object> call() throws Exception {
+                    Map<String, TObject> raw = client.getKeysRecordTime(
+                            Collections.toList(keys), record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    Map<String, Object> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Key", "Value");
+                    for (Entry<String, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                Convert.thriftToJava(entry.getValue()));
+                    }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
-        public Map<String, Object> get(Collection<String> keys, long record,
-                Timestamp timestamp) {
-            Map<String, Object> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Key", "Value");
-            for (String key : keys) {
-                Object value = get(key, record, timestamp);
-                if(value != null) {
-                    result.put(key, value);
+        public Map<Long, Object> get(final String key,
+                final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Object>>() {
+
+                @Override
+                public Map<Long, Object> call() throws Exception {
+                    Map<Long, TObject> raw = client.getKeyRecords(key,
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                    Map<Long, Object> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Value");
+                    for (Entry<Long, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                Convert.thriftToJava(entry.getValue()));
+                    }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
-        public Map<Long, Object> get(String key, Collection<Long> records) {
-            Map<Long, Object> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (long record : records) {
-                Object value = get(key, record);
-                if(value != null) {
-                    result.put(record, value);
-                }
-            }
-            return result;
-        }
+        public Map<Long, Object> get(final String key,
+                final Collection<Long> records, final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Object>>() {
 
-        @Override
-        public Map<Long, Object> get(String key, Collection<Long> records,
-                Timestamp timestamp) {
-            Map<Long, Object> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", key);
-            for (long record : records) {
-                Object value = get(key, record, timestamp);
-                if(value != null) {
-                    result.put(record, value);
+                @Override
+                public Map<Long, Object> call() throws Exception {
+                    Map<Long, TObject> raw = client.getKeyRecordsTime(key,
+                            Collections.toList(records), timestamp.getMicros(),
+                            creds, transaction, environment);
+                    Map<Long, Object> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Value");
+                    for (Entry<Long, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                Convert.thriftToJava(entry.getValue()));
+                    }
+                    return pretty;
                 }
-            }
-            return result;
+
+            });
         }
 
         @Override
         @Nullable
-        public <T> T get(String key, long record) {
-            return get(key, record, now);
+        public <T> T get(final String key, final long record) {
+            return execute(new Callable<T>() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public T call() throws Exception {
+                    TObject raw = client.getKeyRecord(key, record, creds,
+                            transaction, environment);
+                    return raw == TObject.NULL ? null : (T) Convert
+                            .thriftToJava(raw);
+
+                }
+
+            });
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         @Nullable
-        public <T> T get(String key, long record, Timestamp timestamp) {
-            Set<Object> values = fetch(key, record, timestamp);
-            if(!values.isEmpty()) {
-                return (T) values.iterator().next();
-            }
-            return null;
+        public <T> T get(final String key, final long record,
+                final Timestamp timestamp) {
+            return execute(new Callable<T>() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public T call() throws Exception {
+                    TObject raw = client.getKeyRecordTime(key, record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    return raw == TObject.NULL ? null : (T) Convert
+                            .thriftToJava(raw);
+
+                }
+
+            });
         }
 
         @Override
@@ -2365,13 +2693,13 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public long insert(final String json) {
-            return execute(new Callable<Long>() {
+        public Set<Long> insert(final String json) {
+            return execute(new Callable<Set<Long>>() {
 
                 @Override
-                public Long call() throws Exception {
-                    return client
-                            .insert1(json, creds, transaction, environment);
+                public Set<Long> call() throws Exception {
+                    return client.insertJson(json, creds, transaction,
+                            environment);
                 }
 
             });
@@ -2379,13 +2707,18 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> insert(String json, Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Result");
-            for (long record : records) {
-                result.put(record, insert(json, record));
-            }
-            return result;
+        public Map<Long, Boolean> insert(final String json,
+                final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Boolean>>() {
+
+                @Override
+                public Map<Long, Boolean> call() throws Exception {
+                    return client.insertJsonRecords(json,
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                }
+
+            });
         }
 
         @Override
@@ -2394,8 +2727,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Boolean call() throws Exception {
-                    return client.insert(json, record, creds, transaction,
-                            environment);
+                    return client.insertJsonRecord(json, record, creds,
+                            transaction, environment);
                 }
 
             });
@@ -2418,13 +2751,16 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> ping(Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Result");
-            for (long record : records) {
-                result.put(record, ping(record));
-            }
-            return result;
+        public Map<Long, Boolean> ping(final Collection<Long> records) {
+            return execute(new Callable<Map<Long, Boolean>>() {
+
+                @Override
+                public Map<Long, Boolean> call() throws Exception {
+                    return client.pingRecords(Collections.toList(records),
+                            creds, transaction, environment);
+                }
+
+            });
         }
 
         @Override
@@ -2433,21 +2769,41 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Boolean call() throws Exception {
-                    return client.ping(record, creds, transaction, environment);
+                    return client.pingRecord(record, creds, transaction,
+                            environment);
                 }
 
             });
         }
 
         @Override
-        public Map<Long, Boolean> remove(String key, Object value,
-                Collection<Long> records) {
-            Map<Long, Boolean> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Record", "Result");
-            for (long record : records) {
-                result.put(record, remove(key, value, record));
+        public Map<Long, Boolean> remove(final String key, final Object value,
+                final Collection<Long> records) {
+            if(!StringUtils.isBlank(key)
+                    && (!(value instanceof String) || (value instanceof String && !StringUtils
+                            .isBlank((String) value)))) { // CON-21
+                return execute(new Callable<Map<Long, Boolean>>() {
+
+                    @Override
+                    public Map<Long, Boolean> call() throws Exception {
+                        Map<Long, Boolean> raw = client.removeKeyValueRecords(
+                                key, Convert.javaToThrift(value),
+                                Collections.toList(records), creds,
+                                transaction, environment);
+                        Map<Long, Boolean> pretty = PrettyLinkedHashMap
+                                .newPrettyLinkedHashMap("Record", "Result");
+                        for (long record : records) {
+                            pretty.put(record, raw.get(record));
+                        }
+                        return pretty;
+                    }
+
+                });
             }
-            return result;
+            else {
+                throw new IllegalArgumentException(
+                        "Either your key or value is empty");
+            }
         }
 
         @Override
@@ -2460,8 +2816,9 @@ public abstract class Concourse implements AutoCloseable {
 
                     @Override
                     public Boolean call() throws Exception {
-                        return client.remove(key, Convert.javaToThrift(value),
-                                record, creds, transaction, environment);
+                        return client.removeKeyValueRecord(key,
+                                Convert.javaToThrift(value), record, creds,
+                                transaction, environment);
                     }
 
                 });
@@ -2470,30 +2827,52 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public void revert(Collection<String> keys, Collection<Long> records,
-                Timestamp timestamp) {
-            for (long record : records) {
-                for (String key : keys) {
-                    revert(key, record, timestamp);
+        public void revert(final Collection<String> keys,
+                final Collection<Long> records, final Timestamp timestamp) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.revertKeysRecordsTime(Collections.toList(keys),
+                            Collections.toList(records), timestamp.getMicros(),
+                            creds, transaction, environment);
+                    return null;
                 }
-            }
+
+            });
         }
 
         @Override
-        public void revert(Collection<String> keys, long record,
-                Timestamp timestamp) {
-            for (String key : keys) {
-                revert(key, record, timestamp);
-            }
+        public void revert(final Collection<String> keys, final long record,
+                final Timestamp timestamp) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.revertKeysRecordTime(Collections.toList(keys),
+                            record, timestamp.getMicros(), creds, transaction,
+                            environment);
+                    return null;
+                }
+
+            });
 
         }
 
         @Override
-        public void revert(String key, Collection<Long> records,
-                Timestamp timestamp) {
-            for (long record : records) {
-                revert(key, record, timestamp);
-            }
+        public void revert(final String key, final Collection<Long> records,
+                final Timestamp timestamp) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.revertKeyRecordsTime(key,
+                            Collections.toList(records), timestamp.getMicros(),
+                            creds, transaction, environment);
+                    return null;
+                }
+
+            });
 
         }
 
@@ -2504,8 +2883,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.revert(key, record, timestamp.getMicros(), creds,
-                            transaction, environment);
+                    client.revertKeyRecordTime(key, record,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return null;
                 }
 
@@ -2527,10 +2907,19 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public void set(String key, Object value, Collection<Long> records) {
-            for (long record : records) {
-                set(key, value, record);
-            }
+        public void set(final String key, final Object value,
+                final Collection<Long> records) {
+            execute(new Callable<Void>() {
+
+                @Override
+                public Void call() throws Exception {
+                    client.setKeyValueRecords(key, Convert.javaToThrift(value),
+                            Collections.toList(records), creds, transaction,
+                            environment);
+                    return null;
+                }
+
+            });
         }
 
         @Override
@@ -2539,8 +2928,8 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.set0(key, Convert.javaToThrift(value), record,
-                            creds, transaction, environment);
+                    client.setKeyValueRecord(key, Convert.javaToThrift(value),
+                            record, creds, transaction, environment);
                     return null;
                 }
 
@@ -2572,8 +2961,18 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public boolean verify(String key, Object value, long record) {
-            return verify(key, value, record, now);
+        public boolean verify(final String key, final Object value,
+                final long record) {
+            return execute(new Callable<Boolean>() {
+
+                @Override
+                public Boolean call() throws Exception {
+                    return client.verifyKeyValueRecord(key,
+                            Convert.javaToThrift(value), record, creds,
+                            transaction, environment);
+                }
+
+            });
         }
 
         @Override
@@ -2583,8 +2982,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Boolean call() throws Exception {
-                    return client.verify(key, Convert.javaToThrift(value),
-                            record, timestamp.getMicros(), creds, transaction,
+                    return client.verifyKeyValueRecordTime(key,
+                            Convert.javaToThrift(value), record,
+                            timestamp.getMicros(), creds, transaction,
                             environment);
                 }
 

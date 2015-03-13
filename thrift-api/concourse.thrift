@@ -51,8 +51,8 @@ service ConcourseService {
   # ~~~~~~~~ Authentication ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	/**
-	 * Login to the service and receive an AccessToken, which is required for
+  /**
+   * Login to the service and receive an AccessToken, which is required for
    * all CRUD operations. The AccessToken has an undocumented TTL, so clients
    * must be prepared to handle token expiration for active clients.
    *
@@ -61,57 +61,57 @@ service ConcourseService {
    * @param environment
    * @return AccessToken
    * @throws TSecurityException
-	 */
-	shared.AccessToken login(
+   */
+  shared.AccessToken login(
     1: binary username,
     2: binary password,
-	  3: string environment)
+    3: string environment)
   throws (1: shared.TSecurityException ex);
 
-	/**
-	 * Logout of the service and immediately expire the access token. For
+  /**
+   * Logout of the service and immediately expire the access token. For
    * optimal security, the client should also discard the token after
    * invoking this method.
    *
    * @param token
    * @param environment
    * @throws TSecurityException
-	 */
-	void logout(
+   */
+  void logout(
     1: shared.AccessToken token,
     2: string environment)
-	throws (1: shared.TSecurityException ex);
+  throws (1: shared.TSecurityException ex);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Transactions ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	/**
-	 * Start a new transaction.
+  /**
+   * Start a new transaction.
    *
    * This method will turn on STAGING mode so that all subsequent changes are
    * collected in an isolated buffer before possibly being committed to the
    * database. Staged operations are guaranteed to be reliable, all or nothing
    * units of work that allow correct  recovery from failures and provide
    * isolation between clients so the database is always in a consistent state.
-	 *
-	 * After this method returns, all subsequent operations will be done in
-	 * {@code staging} mode until either #abort(shared.AccessToken) or
-	 * #commit(shared.AccessToken) is invoked.
-	 *
+   *
+   * After this method returns, all subsequent operations will be done in
+   * {@code staging} mode until either #abort(shared.AccessToken) or
+   * #commit(shared.AccessToken) is invoked.
+   *
    *
    * @param token
    * @param environment
    * @return TransactionToken
    * @throws TSecurityException
-	 */
-	shared.TransactionToken stage(
+   */
+  shared.TransactionToken stage(
     1: shared.AccessToken token,
     2: string environment)
-	throws (1: shared.TSecurityException ex);
+  throws (1: shared.TSecurityException ex);
 
-	/**
-	 * Abort the current transaction, if one exists.
+  /**
+   * Abort the current transaction, if one exists.
    *
    * This method will discard any changes that are currently sitting in the
    * staging area. After this function returns, all subsequent operations will
@@ -122,35 +122,35 @@ service ConcourseService {
    * @param transaction
    * @param environment
    * @throws TSecurityException
-	 */
-	void abort(
+   */
+  void abort(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-		3: string environment)
+    3: string environment)
   throws (1: shared.TSecurityException ex);
 
-	/**
-	 * Commit the current transaction, if one exists.
+  /**
+   * Commit the current transaction, if one exists.
    *
    * This method will attempt to permanently commit all the changes that are
    * currently sitting in the staging area. This function only returns TRUE
-	 * if all the changes can be successfully applied to the database. Otherwise,
-	 * this function returns FALSE and all the changes are discarded.
-	 *
-	 * After this function returns, all subsequent operations will commit to the
-	 * database immediately until #stage(shared.AccessToken) is invoked.
-	 *
+   * if all the changes can be successfully applied to the database. Otherwise,
+   * this function returns FALSE and all the changes are discarded.
+   *
+   * After this function returns, all subsequent operations will commit to the
+   * database immediately until #stage(shared.AccessToken) is invoked.
+   *
    * @param creds
    * @param transaction
    * @param environment
    * @return boolean
    * @throws TSecurityException
    * @throws TTransactionException
-	 */
-	bool commit(
+   */
+  bool commit(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
-	 	3: string environment)
+     3: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
