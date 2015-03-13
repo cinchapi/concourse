@@ -56,6 +56,7 @@ public class TObject implements
     public static final TObject NULL = new TObject();
     static {
         NULL.setType(Type.NULL);
+        NULL.setData(ByteBuffer.allocate(1));
     }
 
     // isset id assignments
