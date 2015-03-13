@@ -15,15 +15,15 @@ namespace java org.cinchapi.concourse.thrift
  * as binary data.
  */
 struct TObject {
-	1:required binary data,
-	2:required shared.Type type = shared.Type.STRING
+  1:required binary data,
+  2:required shared.Type type = shared.Type.STRING
 }
 
 /**
  * A representation for an enum that declares the type of a TSymbol.
  */
 enum TSymbolType {
-	CONJUNCTION = 1,
+  CONJUNCTION = 1,
     KEY = 2,
     VALUE = 3,
     PARENTHESIS = 4,
