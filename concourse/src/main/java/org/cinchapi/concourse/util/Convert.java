@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.annotation.concurrent.Immutable;
@@ -33,6 +34,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -49,6 +51,49 @@ import com.google.gson.JsonParser;
  */
 @UtilityClass
 public final class Convert {
+
+    /**
+     * Takes a JSON string representation of an object or an array of JSON
+     * objects and returns a list of {@link Mutlimap multimaps} with the
+     * corresponding data. Unlike {@link #jsonToJava(String)}, this method will
+     * allow the top level element to be an array in the {@link json} string.
+     * 
+     * @param json
+     * @return A list of Java objects
+     * @author hyin
+     */
+    public static List<Multimap<String, Object>> anyJsonToJava(String json) {
+        List<Multimap<String, Object>> result = Lists.newArrayList();
+        boolean start = false;
+        boolean quote = false;
+        char doubleQuote = '\"';
+        String obj = "";
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+
+            // Brackets within quotes shouldn't count as object's start or end.
+            // Assuming single quotes are invalid for enclosing JSON key and
+            // values.
+            if(c == doubleQuote && start == true) {
+                quote = !quote;
+                obj += c; // Testing
+            }
+            else if(c == '{' && start == false && !quote) {
+                start = true;
+                obj += c;
+            }
+            else if(c == '}' && start == true && !quote) {
+                start = false;
+                obj += c;
+                result.add(jsonToJava(obj));
+                obj = "";
+            }
+            else if(start == true) {
+                obj += c;
+            }
+        }
+        return result;
+    }
 
     /**
      * Return the Thrift Object that represents {@code object}.
@@ -166,34 +211,6 @@ public final class Convert {
     }
 
     /**
-     * Convert a {@link JsonElement} to a a Java object and respect the desire
-     * to force a numeric string to a double.
-     * 
-     * @param element
-     * @return the java object
-     */
-    private static Object jsonElementToJava(JsonElement element) {
-        if(element.getAsString().matches("-?[0-9]+\\.[0-9]+D")) {
-            return stringToJava(element.getAsString()); // respect desire
-                                                        // to force double
-        }
-        else if(element.getAsString().matches("`([^`]+)`")) {
-            return stringToJava(element.getAsString()); // CON-137
-        }
-        else if(element.getAsString().matches(
-                MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                        "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
-            return stringToJava(element.getAsString()); // respect resolvable
-                                                        // link specification
-
-        }
-        else {
-            return stringToJava(element.toString());
-        }
-    }
-
-    /**
      * Convert the {@code operator} to a string representation.
      * 
      * @param operator
@@ -229,49 +246,6 @@ public final class Convert {
 
         }
         return string;
-    }
-
-    /**
-     * Convert the {@code symbol} to the corresponding {@link Operator}.
-     * These include strings such as (=, >, >=, etc), and CaSH symbols (eq, gt,
-     * gte, etc).
-     * 
-     * @param symbol
-     * @return
-     */
-    public static Operator stringToOperator(String symbol) {
-        switch (symbol) {
-        case "=":
-        case "eq":
-            return Operator.EQUALS;
-        case "!=":
-        case "ne":
-            return Operator.NOT_EQUALS;
-        case ">":
-        case "gt":
-            return Operator.GREATER_THAN;
-        case ">=":
-        case "gte":
-            return Operator.GREATER_THAN_OR_EQUALS;
-        case "<":
-        case "lt":
-            return Operator.LESS_THAN;
-        case "<=":
-        case "lte":
-            return Operator.LESS_THAN_OR_EQUALS;
-        case "><":
-        case "bw":
-            return Operator.BETWEEN;
-        case "->":
-        case "lnk2":
-            return Operator.LINKS_TO;
-        case "regex":
-            return Operator.REGEX;
-        case "nregex":
-            return Operator.NOT_REGEX;
-        default:
-            throw new IllegalArgumentException();
-        }
     }
 
     /**
@@ -361,6 +335,49 @@ public final class Convert {
     }
 
     /**
+     * Convert the {@code symbol} to the corresponding {@link Operator}.
+     * These include strings such as (=, >, >=, etc), and CaSH symbols (eq, gt,
+     * gte, etc).
+     * 
+     * @param symbol
+     * @return
+     */
+    public static Operator stringToOperator(String symbol) {
+        switch (symbol) {
+        case "=":
+        case "eq":
+            return Operator.EQUALS;
+        case "!=":
+        case "ne":
+            return Operator.NOT_EQUALS;
+        case ">":
+        case "gt":
+            return Operator.GREATER_THAN;
+        case ">=":
+        case "gte":
+            return Operator.GREATER_THAN_OR_EQUALS;
+        case "<":
+        case "lt":
+            return Operator.LESS_THAN;
+        case "<=":
+        case "lte":
+            return Operator.LESS_THAN_OR_EQUALS;
+        case "><":
+        case "bw":
+            return Operator.BETWEEN;
+        case "->":
+        case "lnk2":
+            return Operator.LINKS_TO;
+        case "regex":
+            return Operator.REGEX;
+        case "nregex":
+            return Operator.NOT_REGEX;
+        default:
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /**
      * <p>
      * <strong>USE WITH CAUTION: </strong> This conversation is only necessary
      * for applications that import raw data but cannot use the Concourse API
@@ -433,13 +450,32 @@ public final class Convert {
     }
 
     /**
-     * The component of a resolvable link symbol that comes before the
-     * resolvable key specification in the raw data.
+     * Convert a {@link JsonElement} to a a Java object and respect the desire
+     * to force a numeric string to a double.
+     * 
+     * @param element
+     * @return the java object
      */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
-                                                                   // for
-                                                                   // testing
+    private static Object jsonElementToJava(JsonElement element) {
+        if(element.getAsString().matches("-?[0-9]+\\.[0-9]+D")) {
+            return stringToJava(element.getAsString()); // respect desire
+                                                        // to force double
+        }
+        else if(element.getAsString().matches("`([^`]+)`")) {
+            return stringToJava(element.getAsString()); // CON-137
+        }
+        else if(element.getAsString().matches(
+                MessageFormat.format("{0}{1}{0}", MessageFormat.format(
+                        "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
+            return stringToJava(element.getAsString()); // respect resolvable
+                                                        // link specification
+
+        }
+        else {
+            return stringToJava(element.toString());
+        }
+    }
 
     /**
      * The component of a resolvable link symbol that comes after the
@@ -449,6 +485,15 @@ public final class Convert {
     static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
                                                                   // for
                                                                   // testing
+
+    /**
+     * The component of a resolvable link symbol that comes before the
+     * resolvable key specification in the raw data.
+     */
+    @PackagePrivate
+    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
+                                                                   // for
+                                                                   // testing
 
     private Convert() {/* Utility Class */}
 
