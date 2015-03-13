@@ -135,6 +135,7 @@ public class TransactionTest extends AtomicOperationTest {
         Assert.assertTrue(transaction.commit());
     }
 
+    @Test
     public void testFailedAtomicOperationWillThrowAtomicStateExceptionButTransactionWontFail() {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
@@ -149,5 +150,7 @@ public class TransactionTest extends AtomicOperationTest {
             Assert.assertTrue(transaction.commit());
         }
     }
+    
+    
 
 }
