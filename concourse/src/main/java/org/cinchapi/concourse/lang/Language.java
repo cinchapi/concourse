@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public final class Translate {
+public final class Language {
 
     /**
      * Translate the {@link tsymbol} to its Java analog.
@@ -37,7 +37,7 @@ public final class Translate {
      * @param tsymbol
      * @return the analogous Symbol
      */
-    public static Symbol fromThrift(TSymbol tsymbol) {
+    public static Symbol translateFromThrift(TSymbol tsymbol) {
         if(tsymbol.getType() == TSymbolType.CONJUNCTION) {
             return ConjunctionSymbol.valueOf(tsymbol.getSymbol().toUpperCase());
         }
@@ -68,10 +68,10 @@ public final class Translate {
      * @param criteria
      * @return the analogous TCriteria
      */
-    public static TCriteria toThrift(Criteria criteria) {
+    public static TCriteria translateToThriftCriteria(Criteria criteria) {
         List<TSymbol> symbols = Lists.newArrayList();
         for (Symbol symbol : criteria.getSymbols()) {
-            symbols.add(toThrift(symbol));
+            symbols.add(translateToThriftSymbol(symbol));
         }
         return new TCriteria(symbols);
     }
@@ -82,7 +82,7 @@ public final class Translate {
      * @param symbol
      * @return The analogous TSymbol
      */
-    public static TSymbol toThrift(Symbol symbol) {
+    public static TSymbol translateToThriftSymbol(Symbol symbol) {
         if(symbol.getClass() == ConjunctionSymbol.class) {
             return new TSymbol(TSymbolType.CONJUNCTION, symbol.toString());
         }
@@ -129,6 +129,6 @@ public final class Translate {
         }
     }
 
-    private Translate() {/* noop */}
+    private Language() {/* noop */}
 
 }
