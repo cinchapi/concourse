@@ -135,4 +135,19 @@ public class TransactionTest extends AtomicOperationTest {
         Assert.assertTrue(transaction.commit());
     }
 
+    public void testFailedAtomicOperationWillThrowAtomicStateExceptionButTransactionWontFail() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation operation = transaction.startAtomicOperation();
+        operation.fetch("foo", 1);
+        transaction.destination.accept(Write.add("foo",
+                Convert.javaToThrift(1), 1));
+        try {
+            operation.browse(2);
+            Assert.fail();
+        }
+        catch (AtomicStateException e) {
+            Assert.assertTrue(transaction.commit());
+        }
+    }
+
 }
