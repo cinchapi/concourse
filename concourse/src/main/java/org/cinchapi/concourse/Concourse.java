@@ -368,6 +368,13 @@ public abstract class Concourse implements AutoCloseable {
     public abstract Map<Object, Set<Long>> browse(String key);
 
     /**
+     * Browse and return all the records that ever had data.
+     * 
+     * @return a Set of records that contained any data.
+     */
+    public abstract Set<Long> browse();    
+    
+    /**
      * Browse {@code key} at {@code timestamp} and return all the data that was
      * indexed as a mapping from value to the set of records that contained the
      * value for {@code key} .
@@ -1699,6 +1706,11 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Object, Set<Long>> browse(String key) {
             return browse(key, now);
+        }
+        
+        @Override
+        public Set<Long> browse() {
+            return browse();
         }
 
         @Override
