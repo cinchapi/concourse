@@ -1,0 +1,18 @@
+Concourse
+Copyright (c) 2013-2015 Cinchapi, Inc
+
+Implementations of common encoders and decoders such a Base64,
+Hex, Phonetic and URLs provided by Apache Commons from http://commons.apache.org/proper/commons-codec/
+
+A generic configuration framework for Java applications to read
+configuration data from a variety of sources provided by Apache
+Commons from http://commons.apache.org/proper/commons-configuration/
+
+A library to provide alphanumeric sorting of numeric strings that
+is consistent with human logic provided by Dave Koelle from http://www.davekoelle.com/alphanum.html
+
+Alternative collection types provided by google-collections from
+http://code.google.com/p/google-collections/.
+Copyright (C) 2007 Google Inc.
+
+TODO: finish me

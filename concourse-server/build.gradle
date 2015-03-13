@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':concourse')
+    compile project(':concourse-driver-java')
     compile project(':concourse-shell')
     compile 'com.google.guava:guava:15.0'
     compile 'com.beust:jcommander:1.32'
@@ -15,7 +15,7 @@ dependencies {
     }
     compile 'org.javassist:javassist:3.18.2-GA'
     compile 'net.sf.trove4j:trove4j:3.0.3'
-    
+
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
 }
 
@@ -62,4 +62,3 @@ task distZip(type: Zip, dependsOn: jar) {
 task installer(type: Exec, dependsOn: distZip) {
 	commandLine 'bash', '.installer.sh', version
 }
-

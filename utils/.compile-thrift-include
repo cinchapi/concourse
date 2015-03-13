@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# This file should be included with all thrift compile scripts
+
+# The directory where the thrift files are stored
+THRIFT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../thrift-api && pwd)

@@ -3,14 +3,12 @@ apply plugin: 'executable-jar'
 ext.mainClass = 'org.cinchapi.concourse.shell.ConcourseShell'
 
 dependencies {
-    compile project(':concourse')
+    compile project(':concourse-driver-java')
     compile 'com.google.guava:guava:15.0'
     compile 'org.codehaus.groovy:groovy-all:2.1.8'
-    compile 'jline:jline:2.11' 
-    compile 'com.beust:jcommander:1.32' 
+    compile 'jline:jline:2.11'
+    compile 'com.beust:jcommander:1.32'
     compile fileTree(dir: 'libs', include: '*.jar')
-    
-    testCompile 'junit:junit:4.11' 
+
+    testCompile 'junit:junit:4.11'
 }
-
-

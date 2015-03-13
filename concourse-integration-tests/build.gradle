@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    testCompile project(':concourse')
+    testCompile project(':concourse-driver-java')
     testCompile project(':concourse-server')
     testCompile 'junit:junit:4.11'
     testCompile 'org.xerial:sqlite-jdbc:3.7.2'

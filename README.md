@@ -5,7 +5,7 @@
 ## Introduction
 The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
 ### Connecting to Concourse
-Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`. 
+Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`.
 
 The easiest way to connect is to use the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
 ```java
@@ -20,7 +20,7 @@ Concourse concourse = Concourse.connect("staging");
 
 Finally, you can specify all the connection parameters to override the default values. For instance, you can connect to the production environment on remote server as a non-admin user.
 ```java
-Concourse concourse = Concourse.connect("http://remote-server.com", 11345, "myusername", 
+Concourse concourse = Concourse.connect("http://remote-server.com", 11345, "myusername",
   "mycomplexpassword", "production");
 ```
 
@@ -74,7 +74,7 @@ concourse.audit(1);
 // return all the revisions to just the "name" key in the record
 concourse.audit("name", 1);
 
-// Return a timeseries for all the changes to the "name" key in 
+// Return a timeseries for all the changes to the "name" key in
 // the record between last month and last week
 concourse.chronologize("name", 1, Timestamp.parse("last month"), Timestamp.parse("last week"));
 ```
@@ -149,7 +149,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ### License
 
-Copyright © 2013-2015 Jeff Nelson, Cinchapi Software Collective.
+Copyright © 2013-2015 Cinchapi, Inc.
 
-Concourse is released under the MIT License. For more information see LICENSE, which is included with this package.
-
+Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.
