@@ -157,7 +157,7 @@ public abstract class ByteBuffers {
      * advance the position of the source buffer.
      * 
      * @param buffer
-     * @param bytes
+     * @param length
      * @return a ByteBuffer that has {@code length} bytes from {@code buffer}
      */
     public static ByteBuffer get(ByteBuffer buffer, int length) {
@@ -198,7 +198,6 @@ public abstract class ByteBuffers {
      * the current position in {@code buffer}.
      * 
      * @param buffer
-     * @param charset
      * @return the string value at the current position
      */
     public static String getString(ByteBuffer buffer) {

@@ -54,9 +54,9 @@ public final class Convert {
 
     /**
      * Takes a JSON string representation of an object or an array of JSON
-     * objects and returns a list of {@link Mutlimap multimaps} with the
+     * objects and returns a list of {@link Multimap multimaps} with the
      * corresponding data. Unlike {@link #jsonToJava(String)}, this method will
-     * allow the top level element to be an array in the {@link json} string.
+     * allow the top level element to be an array in the {code json} string.
      * 
      * @param json
      * @return A list of Java objects
@@ -273,7 +273,7 @@ public final class Convert {
      * and ends with matching (`) quotes</li>
      * <li><strong>Integer, Long, Float</strong> - the value is converted to a
      * non double number depending upon whether it is a standard integer (e.g.
-     * less than {@value Integer#MAX_VALUE}), a long, or a floating point
+     * less than {@value java.lang.Integer#MAX_VALUE}), a long, or a floating point
      * decimal</li>
      * </ul>
      * </p>
@@ -396,7 +396,7 @@ public final class Convert {
      * method to get the object.
      * </p>
      * 
-     * @param resolvableKey
+     * @param key
      * @param rawValue
      * @return the transformed value.
      */

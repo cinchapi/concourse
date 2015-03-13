@@ -7,8 +7,7 @@
 namespace java org.cinchapi.concourse.thrift
 
 /**
- * Enumerates the list of operators that can be used in
- {@link ConcourseService#find(String, Operator, List<TObject>, long)}.
+ * Enumerates the list of operators that can be used in criteria specifications.
  */
 enum Operator {
   REGEX = 1,

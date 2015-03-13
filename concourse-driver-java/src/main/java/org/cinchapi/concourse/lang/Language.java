@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 public final class Language {
 
     /**
-     * Translate the {@link tsymbol} to its Java analog.
+     * Translate the {@link TSymbol} to its Java analog.
      * 
      * @param tsymbol
      * @return the analogous Symbol

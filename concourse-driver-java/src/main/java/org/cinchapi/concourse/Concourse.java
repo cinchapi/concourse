@@ -154,7 +154,7 @@ public abstract class Concourse implements AutoCloseable {
      * to facilitate database interaction.
      * 
      * @param environment
-     * @return
+     * @return the handle
      */
     public static Concourse connect(String environment) {
         return new Client(environment);
@@ -169,7 +169,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param port
      * @param username
      * @param password
-     * @return the database handler
+     * @return the handle
      */
     public static Concourse connect(String host, int port, String username,
             String password) {
@@ -547,10 +547,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param key
      * @param start
      * @param end
-     * @return
-     * @throws TSecurityException
-     * @throws TTransactionException
-     * @throws TException
+     * @return the changes map to the key within the range
      */
     public abstract Map<Object, Map<Diff, Set<Long>>> diff(String key,
             Timestamp start, Timestamp end);
@@ -563,10 +560,7 @@ public abstract class Concourse implements AutoCloseable {
      * @param record
      * @param start
      * @param end
-     * @return
-     * @throws TSecurityException
-     * @throws TTransactionException
-     * @throws TException
+     * @return the changes made to the record within the range
      */
     public abstract Map<String, Map<Diff, Set<Object>>> diff(long record,
             Timestamp start, Timestamp end);
@@ -578,7 +572,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param key
      * @param record
      * @param start
-     * @return
+     * @return the changes made to the {@code key}/{@code record} within the
+     *         range
      */
     public abstract Map<Diff, Set<Object>> diff(String key, long record,
             Timestamp start);
@@ -591,7 +586,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param record
      * @param start
      * @param end
-     * @return
+     * @return the changes made to the {@code key}/{@coee record} within the
+     *         range
      */
     public abstract Map<Diff, Set<Object>> diff(String key, long record,
             Timestamp start, Timestamp end);
