@@ -20,3 +20,7 @@ rm $PACKAGE"/concourseConstants.java"
 
 # Supress all the necessary warnings
 perl -p -i -e 's/"cast", "rawtypes", "serial", "unchecked"/"cast", "rawtypes", "serial", "unchecked", "unused"/g' $PACKAGE"/ConcourseService.java"
+
+echo "Finished compiling the Thrift API for Java to "$(cd $PACKAGE && pwd)
+
+exit 0
