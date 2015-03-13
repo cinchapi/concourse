@@ -314,7 +314,7 @@ service ConcourseService {
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> browseRecords(
-    1: set<i64> records,
+    1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
@@ -329,7 +329,7 @@ service ConcourseService {
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   map<i64, map<string, set<data.TObject>>> browseRecordsTime(
-    1: set<i64> records,
+    1: list<i64> records,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
@@ -344,7 +344,7 @@ service ConcourseService {
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   map<string, map<data.TObject, set<i64>>> browseKeys(
-    1: set<string> keys,
+    1: list<string> keys,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
@@ -359,7 +359,7 @@ service ConcourseService {
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
   map<string, map<data.TObject, set<i64>>> browseKeysTime(
-    1: set<string> keys,
+    1: list<string> keys,
     2: i64 timestamp,
     3: shared.AccessToken creds,
     4: shared.TransactionToken transaction,
