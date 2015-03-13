@@ -325,10 +325,9 @@ public class ConcourseServer implements
                 operation = store.startAtomicOperation();
                 try {
                     addIfEmpty(key, value, Time.now(), operation);
-                    // TODO add ability for transaction to forget about a read
-                    // it is listening for?
                 }
                 catch (AtomicStateException e) {
+                    operation.abort();
                     operation = null;
                 }
             }
