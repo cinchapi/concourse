@@ -213,6 +213,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     public AtomicOperation startAtomicOperation() {
+        checkState();
         AtomicOperation operation = AtomicOperation.start(this);
         operation.lockService = LockService.noOp();
         operation.rangeLockService = RangeLockService.noOp();
