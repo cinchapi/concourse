@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -96,10 +96,28 @@ public final class Transformers {
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformMapSet(
             Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
             Function<? super V, ? extends V2> values) {
-        Map<K2, Set<V2>> transformed = PrettyLinkedHashMap.newPrettyLinkedHashMap();
+        Map<K2, Set<V2>> transformed = PrettyLinkedHashMap
+                .newPrettyLinkedHashMap();
         for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
             transformed.put(keys.apply(entry.getKey()),
                     transformSet(entry.getValue(), values));
+        }
+        return transformed;
+    }
+
+    /**
+     * Transform each of the values in the {@code original} with the
+     * {@code function}.
+     * 
+     * @param original
+     * @param function
+     * @return the transformed Map
+     */
+    public static <K, V, V2> Map<K, V2> transformMapValues(Map<K, V> original,
+            Function<V, V2> function) {
+        Map<K, V2> transformed = Maps.newLinkedHashMap();
+        for (Map.Entry<K, V> entry : original.entrySet()) {
+            transformed.put(entry.getKey(), function.apply(entry.getValue()));
         }
         return transformed;
     }
