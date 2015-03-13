@@ -27,6 +27,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -160,6 +161,15 @@ public class Inventory {
                 lock.unlockRead(stamp);
             }
         }
+    }
+
+    /**
+     * Return {@code Set<Long>} if records that ever had data exist.
+     * 
+     * @return {@code Set<Long>}
+     */
+    public Set<Long> getAll() {
+        return (Set<Long>) bitSet.toIterable();
     }
 
     /**

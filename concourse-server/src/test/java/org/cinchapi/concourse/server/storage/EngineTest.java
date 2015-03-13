@@ -50,6 +50,7 @@ import org.junit.runner.Description;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link Engine}.
@@ -194,7 +195,20 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(Convert.javaToThrift("Yale University"),
                 Iterables.get(keys, 3));
     }
+    
+    @Test
+    public void testBrowseRecordIsCorrectAfterRemoves() {
+    	 Engine engine = (Engine) store;
+         engine.add("name", Convert.javaToThrift("abc"), 1);
+         engine.add("name", Convert.javaToThrift("xyz"), 2);
+         engine.add("name", Convert.javaToThrift("abcd"), 3);
+         engine.add("name", Convert.javaToThrift("abce"), 4);
+         engine.remove("name", Convert.javaToThrift("xyz"), 2);
+         Assert.assertTrue(engine.browse(2).isEmpty()); //assert record presently has no data
+         Assert.assertEquals(engine.browse(), Sets.<Long>newHashSet(new Long(1), new Long(2), new Long(3), new Long(4)));
+     }
 
+    
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
         int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;

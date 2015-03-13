@@ -254,6 +254,14 @@ service ConcourseService {
 		2: shared.TTransactionException ex2);
 
 	/**
+	 * Returns a list of all the records that have ever had data.
+	 */
+	set<i64> browse2(1: shared.AccessToken creds,
+	    2: shared.TransactionToken token,
+		3: string environment) throws (1: shared.TSecurityException ex, 
+		4: shared.TTransactionException ex2);	
+
+	/**
 	* Atomically clear all the keys in {@code record} by removing every value that
 	* currently exists for each key.
 	*/
