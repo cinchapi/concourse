@@ -150,7 +150,22 @@ public class TransactionTest extends AtomicOperationTest {
             Assert.assertTrue(transaction.commit());
         }
     }
-    
-    
+
+    @Test
+    public void testTransactionIsntEverPenalizedForFailedAtomicOperationThatDidntCommit() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation operation = transaction.startAtomicOperation();
+        operation.fetch("foo", 1);
+        transaction.destination.accept(Write.add("foo",
+                Convert.javaToThrift(1), 1));
+        transaction.destination.accept(Write.add("foo",
+                Convert.javaToThrift(2), 1));
+        int count = TestData.getScaleCount();
+        for(int i = 0; i < count; i++){
+            transaction.destination.accept(Write.add("foo",
+                    Convert.javaToThrift(i), 1));
+        }
+        Assert.assertTrue(transaction.commit());
+    }
 
 }
