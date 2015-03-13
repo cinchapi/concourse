@@ -26,6 +26,7 @@ package org.cinchapi.concourse.server.storage;
 import java.io.File;
 
 import org.cinchapi.concourse.server.io.FileSystem;
+import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.TestData;
@@ -73,26 +74,26 @@ public class TransactionTest extends AtomicOperationTest {
         destination = getDestination();
         return Transaction.start((Engine) destination);
     }
-    
+
     @Test(expected = TransactionStateException.class)
-    public void testAtomicOperationFromTransactionFailsIfVersionChangesWithCommit(){
+    public void testAtomicOperationFromTransactionFailsIfVersionChangesWithCommit() {
         Transaction txn = (Transaction) this.store;
         AtomicOperation operation = txn.startAtomicOperation();
         operation.fetch("foo", 1);
         Engine engine = (Engine) this.destination;
-        engine.add("foo", Convert.javaToThrift("bar"), 1);
         operation.commit();
+        engine.add("foo", Convert.javaToThrift("bar"), 1);
         Assert.assertFalse(txn.commit());
     }
-    
-    @Test(expected = TransactionStateException.class)
-    public void testAtomicOperationFromTransactionFailsIfVersionChangesWithoutCommit(){
+
+    public void testAtomicOperationFromTransactionWontFailIfVersionChangesWithoutCommit() {
         Transaction txn = (Transaction) this.store;
         AtomicOperation operation = txn.startAtomicOperation();
         operation.fetch("foo", 1);
         Engine engine = (Engine) this.destination;
         engine.add("foo", Convert.javaToThrift("bar"), 1);
-        Assert.assertFalse(txn.commit());
+        operation.abort();
+        Assert.assertTrue(txn.commit());
     }
 
     @Test(expected = TransactionStateException.class)
@@ -115,6 +116,23 @@ public class TransactionTest extends AtomicOperationTest {
     public void testFailureIfWriteToKeyInRecordThatIsRead()
             throws InterruptedException {
         super.testFailureIfWriteToKeyInRecordThatIsRead();
+    }
+
+    @Test
+    public void testFailedAtomicOperationDoesNotKillTransaction() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation operation = transaction.startAtomicOperation();
+        operation.browse(1);
+        transaction.destination.accept(Write.add("foo",
+                Convert.javaToThrift(1), 1));
+        try {
+            Assert.assertFalse(operation.commit());
+            operation.abort();
+        }
+        catch (AtomicStateException e) {
+            operation.abort();
+        }
+        Assert.assertTrue(transaction.commit());
     }
 
 }

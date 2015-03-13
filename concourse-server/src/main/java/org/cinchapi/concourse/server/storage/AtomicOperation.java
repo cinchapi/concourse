@@ -257,6 +257,9 @@ public class AtomicOperation extends BufferedStore implements
             if(grabLocks() && finalizing.compareAndSet(false, true)) {
                 doCommit();
                 releaseLocks();
+                if(destination instanceof Transaction){
+                    ((Transaction) destination).onCommit(this);
+                }
                 return true;
             }
             else {
@@ -610,7 +613,7 @@ public class AtomicOperation extends BufferedStore implements
      * @author jnelson
      */
     protected static final class LockDescription implements Byteable {
-        
+
         /**
          * Return the appropriate {@link LockDescription} that will provide
          * coverage for {@code token}

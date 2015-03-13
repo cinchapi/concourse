@@ -50,7 +50,9 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -101,6 +103,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     public static Transaction start(Engine engine) {
         return new Transaction(engine);
     }
+
+    /**
+     * The Transaction "manages" the version change listeners for each of its
+     * Atomic Operations. Since the Transaction is registered with the Engine
+     * for version change notifications for each action of each of its atomic
+     * operations, the Transaction must intercept any notifications that would
+     * affect an atomic operation that has not committed.
+     */
+    private Multimap<AtomicOperation, Token> managedVersionChangeListeners = HashMultimap
+            .create();
 
     /**
      * The unique Transaction id.
@@ -154,34 +166,14 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     @Restricted
     public void addVersionChangeListener(Token token,
-            VersionChangeListener listener) {}
-
-    @Override
-    public long getVersion(long record) {
-        return Math.max(buffer.getVersion(record),
-                ((Engine) destination).getVersion(record));
+            VersionChangeListener listener) {
+        // The Transaction is added as a version change listener for each of its
+        // atomic operation reads/writes by virtue of the fact that the atomic
+        // operations (via BufferedStore) call the analogous read/write methods
+        // in the Transaction, which registers the Transaction with
+        // the Engine as a version change listener.
+        managedVersionChangeListeners.put((AtomicOperation) listener, token);
     }
-
-    @Override
-    public long getVersion(String key) {
-        return Math.max(buffer.getVersion(key),
-                ((Engine) destination).getVersion(key));
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        return Math.max(buffer.getVersion(key, record),
-                ((Engine) destination).getVersion(key, record));
-    }
-
-    @Override
-    @Restricted
-    public void notifyVersionChange(Token token) {}
-
-    @Override
-    @Restricted
-    public void removeVersionChangeListener(Token token,
-            VersionChangeListener listener) {}
 
     @Override
     public Map<Long, String> auditUnsafe(long record) {
@@ -215,9 +207,49 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public boolean verifyUnsafe(String key, TObject value, long record) {
-        return verify(key, value, record);
+    public long getVersion(long record) {
+        return Math.max(buffer.getVersion(record),
+                ((Engine) destination).getVersion(record));
     }
+
+    @Override
+    public long getVersion(String key) {
+        return Math.max(buffer.getVersion(key),
+                ((Engine) destination).getVersion(key));
+    }
+
+    @Override
+    public long getVersion(String key, long record) {
+        return Math.max(buffer.getVersion(key, record),
+                ((Engine) destination).getVersion(key, record));
+    }
+
+    @Override
+    @Restricted
+    public void notifyVersionChange(Token token) {}
+
+    @Override
+    public void onVersionChange(Token token) {
+        boolean callSuper = true;
+        for (AtomicOperation operation : managedVersionChangeListeners.keySet()) {
+            for (Token tok : managedVersionChangeListeners.get(operation)) {
+                if(tok.equals(token)) {
+                    operation.onVersionChange(tok);
+                    managedVersionChangeListeners.remove(operation, tok);
+                    callSuper = false;
+                    break;
+                }
+            }
+        }
+        if(callSuper) {
+            super.onVersionChange(token);
+        }
+    }
+
+    @Override
+    @Restricted
+    public void removeVersionChangeListener(Token token,
+            VersionChangeListener listener) {}
 
     @Override
     public AtomicOperation startAtomicOperation() {
@@ -233,6 +265,11 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    public boolean verifyUnsafe(String key, TObject value, long record) {
+        return verify(key, value, record);
     }
 
     /**
@@ -317,6 +354,16 @@ public final class Transaction extends AtomicOperation implements Compoundable {
         finally {
             FileSystem.closeFileChannel(channel);
         }
+    }
+
+    /**
+     * Perform cleanup for the atomic {@code operation} that was birthed from
+     * this transaction and has successfully committed.
+     * 
+     * @param operation
+     */
+    protected void onCommit(AtomicOperation operation) {
+        managedVersionChangeListeners.removeAll(operation);
     }
 
 }
