@@ -162,6 +162,15 @@ public final class Engine extends BufferedStore implements
                                                 // ExecutorService.
 
     /**
+     * A flag that indicates whether the {@link BufferTransportThread} is
+     * actively doing work at the moment. This flag is necessary so we don't
+     * interrupt the thread if it appears to be hung when it is actually just
+     * busy doing a lot of work.
+     */
+    private final AtomicBoolean bufferTransportThreadIsDoingWork = new AtomicBoolean(
+            false);
+
+    /**
      * A flag that indicates that the {@link BufferTransportThread} is currently
      * paused due to inactivity (e.g. no writes).
      */
@@ -242,15 +251,6 @@ public final class Engine extends BufferedStore implements
      * the buffer suggests. This is mainly used for testing.
      */
     protected int bufferTransportThreadSleepInMs = 0; // visible for testing
-
-    /**
-     * A flag that indicates whether the {@link BufferTransportThread} is
-     * actively doing work at the moment. This flag is necessary so we don't
-     * interrupt the thread if it appears to be hung when it is actually just
-     * busy doing a lot of work.
-     */
-    private final AtomicBoolean bufferTransportThreadIsDoingWork = new AtomicBoolean(
-            false);
 
     /**
      * The inventory contains a collection of all the records that have ever
@@ -480,6 +480,15 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    /**
+     * Public interface for the {@link browse()} method.
+     * 
+     * @return Set of records
+     */
+    public Set<Long> browse() {
+        return inventory.getAll();
+    }
+
     @Override
     public Map<String, Set<TObject>> browse(long record) {
         transportLock.readLock().lock();
@@ -634,15 +643,6 @@ public final class Engine extends BufferedStore implements
             sb.append(System.getProperty("line.separator"));
         }
         return sb.toString();
-    }
-
-    /**
-     * Public interface for the {@link browse()} method.
-     * 
-     * @return Set of records
-     */
-    public Set<Long> browse() {
-        return inventory.getAll();
     }    
     
     @Override

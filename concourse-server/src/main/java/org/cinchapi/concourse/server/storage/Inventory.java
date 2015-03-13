@@ -165,10 +165,11 @@ public class Inventory {
 
     /**
      * Return {@code Set<Long>} if records that ever had data exist.
-     * @return {@code Set<Long>} 
+     * 
+     * @return {@code Set<Long>}
      */
     public Set<Long> getAll() {
-        return (Set<Long>)bitSet.toIterable();
+        return (Set<Long>) bitSet.toIterable();
     }
 
     /**

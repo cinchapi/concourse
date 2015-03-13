@@ -404,7 +404,7 @@ public class ConcourseServer implements
             String env) throws TException {
         checkAccess(creds, transaction);
         try {
-        	return ((Engine) getStore(null, env)).browse();
+            return ((Engine) getStore(null, env)).browse();
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -419,7 +419,8 @@ public class ConcourseServer implements
         checkAccess(creds, transaction);
         try {
             Compoundable store = getStore(transaction, env);
-            Map<Long, Set<TObject>> result = PrettyLinkedHashMap.newPrettyLinkedHashMap();
+            Map<Long, Set<TObject>> result = PrettyLinkedHashMap
+                    .newPrettyLinkedHashMap();
             Map<Long, String> history = store.audit(key, record);
             for (Long timestamp : history.keySet()) {
                 Set<TObject> values = store.fetch(key, record, timestamp);
@@ -699,7 +700,8 @@ public class ConcourseServer implements
 
     @Override
     public String listAllUserSessions() {
-        return TCollections.toOrderedListString(manager.describeAllAccessTokens());
+        return TCollections.toOrderedListString(manager
+                .describeAllAccessTokens());
     }
 
     @Override
