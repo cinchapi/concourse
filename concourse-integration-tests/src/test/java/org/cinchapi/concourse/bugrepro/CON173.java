@@ -154,7 +154,7 @@ public class CON173 extends ConcourseIntegrationTest {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.verifyAndSwap("foo", "bar", 1, "baz");
+            Assert.assertFalse(client.verifyAndSwap("foo", "bar", 1, "baz"));
             Assert.assertTrue(true); // this means we did not timeout
         }
         catch (Exception e) {
