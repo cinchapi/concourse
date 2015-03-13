@@ -12,7 +12,7 @@ else
 	COUNTER_FILE=".counter"
 fi
 
-if [ -z "$1" ] ; then 
+if [ -z "$1" ] ; then
 	VERSION=`cat $BASE_VERSION_FILE`
 	BRANCH=`git rev-parse --abbrev-ref HEAD`
 	COMMIT=`git rev-parse HEAD | cut -c1-10`
@@ -25,7 +25,7 @@ if [ -z "$1" ] ; then
 	((COUNTER++))
 	echo $COUNTER > $COUNTER_FILE
 	VERSION=$VERSION.$COUNTER
-	case $BRANCH in 
+	case $BRANCH in
 		develop )
 			EXTRA="-SNAPSHOT"
 			;;
@@ -52,8 +52,8 @@ else
 		echo $NEW_VERSION > $BASE_VERSION_FILE
 		rm $COUNTER_FILE
 		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" README.md
-		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse/README.md
-		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse/build.gradle
+		sed -i '' -E "s/[0-9]+\.[0-9]+\.[0-9]+/$NEW_VERSION/g" concourse-driver-java/README.md
+		sed -i '' -E "s/pom.version = '[0-9]+\.[0-9]+\.[0-9]'+/pom.version = '$NEW_VERSION'/g" concourse-driver-java/build.gradle
 		echo "The version has been set to $NEW_VERSION"
 	else
 		echo "Please specify a valid version <major>.<minor>.<patch>"
@@ -61,6 +61,3 @@ else
 	fi
 fi
 exit 0
-
-
-

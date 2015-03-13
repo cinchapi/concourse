@@ -3,7 +3,7 @@
 
 . "`dirname "$0"`/.compile-thrift-include"
 
-TARGET="../concourse/src/main/java"
+TARGET="../concourse-driver-java/src/main/java"
 PACKAGE=$TARGET"/org/cinchapi/concourse/thrift"
 
 cd $THRIFT_DIR

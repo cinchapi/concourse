@@ -5,6 +5,7 @@ dependencies {
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
     compile ('org.cinchapi:concourse-config:1.0.5'){
     	exclude group: 'org.cinchapi', module:'concourse'
+      exclude group: 'org.cinchapi', module:'concourse-driver-java'
     }
     compile 'com.google.code.gson:gson:2.2.4'
 }
@@ -39,8 +40,8 @@ uploadArchives {
             pom.project {
                name 'Concourse'
                packaging 'jar'
-               description 'This is the api to interact with Concourse, a schemaless and distributed version control database with optimistic availability, serializable transactions and full-text search. Concourse provides a more intuitive approach to data management that is easy to deploy, access and scale with minimal tuning while also maintaining the referential integrity and ACID characteristics of traditional database systems.'
-               url 'http://cinchapi.org/concourse'
+               description 'Concourse is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems. Learn more at http://concoursedb.com'
+               url 'http://concoursedb.com'
 
                scm {
                    url 'git@github.com:cinchapi/concourse.git'
@@ -50,8 +51,8 @@ uploadArchives {
 
                licenses {
                    license {
-                       name 'The MIT License'
-                       url 'http://opensource.org/licenses/MIT'
+                       name 'The Apache License, Version 2.0'
+                       url 'http://opensource.org/licenses/Apache-2.0'
                        distribution 'repo'
                    }
                }
