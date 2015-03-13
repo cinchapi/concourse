@@ -13,14 +13,14 @@ The concourse jar is available at [Maven Central](http://search.maven.org/#searc
 
 	dependencies {
     	compile 'org.cinchapi:concourse:0.5.0+'
-	} 
-	
+	}
+
 If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
-	
+
 	GroupId: org.cinchapi
-	ArtifactId: concourse
+	ArtifactId: concourse-driver-java
 	Version: 0.5.0+
-	
+
 Alternatively, you can [download](http://cinchapi.org/concourse/download-api) the latest jar and manually add it to your project's classpath.
 
 ### Data Model
@@ -157,7 +157,7 @@ Audit *record* and return a log of revisions.
 a mapping from timestamp to a description of a revision
 ###### Example
 	concourse.audit(1);
-	
+
 ##### `Map<Timestamp, String> audit(String key, long record)`
 Audit *key* in *record* and return a log of revisions.
 ###### Parameters
@@ -179,7 +179,7 @@ Clear each of the *keys* in each of the *records* by removing every value for ea
 
 ###### Example
 	concourse.clear(concourse.describe(1), concourse.find("count", Operator.GREATER_THAN", 0));
-	
+
 ##### `void clear(Collection<String> keys, long record)`
 Clear each of the *keys* in *record* by removing every value for each key.
 ###### Parameters
@@ -188,7 +188,7 @@ Clear each of the *keys* in *record* by removing every value for each key.
 
 ###### Example
 	concourse.clear(concourse.describe(1), 1);
-	
+
 ##### `void clear(String key, Collection<Long> records)`
 Clear *key* in each of the *records* by removing every value for key in each record.
 ###### Parameters
@@ -197,7 +197,7 @@ Clear *key* in each of the *records* by removing every value for key in each rec
 
 ###### Example
 	concourse.clear("foo", concourse.search("foo", "bar"));
-	
+
 ##### `void clear(String key, long record)`
 Atomically clear *key* in *record* by removing each contained value.
 ###### Parameters
@@ -218,9 +218,9 @@ After this function returns, Concourse will return to `autocommit` mode and all 
 `true` if all staged changes are successfully committed
 ###### Example
 	concourse.stage();
-	
+
 	// make some changes
-	
+
 	if(concourse.commit()){
 		System.out.println("yay");
 	}
@@ -243,7 +243,7 @@ the populated keys in each record
 	records.add(2);
 	records.add(3);
 	concourse.describe(records);
-	
+
 ##### `Map<Long, Set<String>> describe(Collection<Long> records, Timestamp timestamp)`
 Describe each of the *records* at *timestamp* and return a mapping from each record to the keys that currently have at least one value.
 ###### Parameters
@@ -258,7 +258,7 @@ the populated keys in each record at *timestamp*
 	records.add(2);
 	records.add(3);
 	concourse.describe(records, Timestamp.fromJoda(Timestamp.now().getJoda().minusDays(3)));
-	
+
 ##### `Set<String> describe(long record)`
 Describe *record* and return the keys that currently have at least one value.
 ###### Parameters
@@ -268,7 +268,7 @@ Describe *record* and return the keys that currently have at least one value.
 the populated keys in *record*
 ###### Example
 	concourse.describe(1);
-	
+
 ##### `Set<String> describe(long record, Timestamp timestamp)`
 Describe *record* at *timestamp* and return the keys that currently have at least one value.
 ###### Parameters
@@ -302,14 +302,14 @@ the contained values for each of the keys in each of the *records*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Map<String, Set<Object>>> data = concourse.fetch(keys, records);
-	
+
 ##### `Map<Long, Map<String, Set<Object>>> fetch(Collection<String> keys, Collection<Long> records, Timestamp timestamp)`
 Fetch each of the *keys* from each of the *records* at *timestamp* and return a mapping from each record to a mapping from each key to the contained values.
 ###### Parameters
@@ -324,14 +324,14 @@ the contained values for each of the keys in each of the *records* at *timestamp
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Map<String, Set<Object>>> data = concourse.fetch(keys, records, Timestamp.fromJoda(DateTime.now().minusYears(4)));
-	
+
 ##### `Map<String, Set<Object>> fetch(Collection<String> keys, long record)`
 Fetch each of the *keys* from *record* and return a mapping from each key to the contained values.
 ###### Parameters
@@ -345,9 +345,9 @@ the contained values for each of the keys in *record*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Map<String, Set<Object>> data = concourse.fetch(keys, 1);
-	
+
 ##### `Map<String, Set<Object>> fetch(Collection<String> keys, long record, Timestamp timestamp)`
 Fetch each of the *keys* from *record* at *timestamp* and return a mapping from each key to the contained values.
 ###### Parameters
@@ -362,9 +362,9 @@ the contained values for each of the keys in *record* at *timestamp*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Map<String, Set<Object>> data = concourse.fetch(keys, 1, Timestamp.fromJoda(DateTime.now().minusYears(4)));
-	
+
 ##### `Map<Long, Set<Object>> fetch(String key, Collection<Long> records)`
 Fetch each of the *keys* from *record* and return a mapping from each key to the contained values.
 ###### Parameters
@@ -378,9 +378,9 @@ the contained values for *key* in each of the *records*
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Set<Object>> data = concourse.fetch("foo", records);
-	
+
 ##### `Map<Long, Set<Object>> fetch(String key, Collection<Long> records, Timestamp timestamp)`
 Fetch each of the *keys* from *record* at *timestamp* and return a mapping from each key to the contained values.
 ###### Parameters
@@ -395,7 +395,7 @@ the contained values for *key* in each of the *records* at *timestamp*
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Set<Object>> data = concourse.fetch("foo", records, Timestamp.fromMicros(13889604150000));
 ---
 ### find
@@ -410,7 +410,7 @@ Find *key* *operator* *value* and return the set of records that satisfy the cri
 the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20);
-	
+
 ##### `Set<Long> find(String key, Operator operator, Object value, Timestamp timestamp)`
 Find *key* *operator* *value* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
@@ -423,7 +423,7 @@ Find *key* *operator* *value* at *timestamp* and return the set of records that 
 the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.GREATHER_THAN_OR_EQUALS, 20, Timestamp.fromJoda(DateTime.now().minusYears(1)));
-	
+
 ##### `Set<Long> find(String key, Operator operator, Object value, Object value2)`
 Find *key* *operator* *value* and *value2* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
@@ -436,7 +436,7 @@ Find *key* *operator* *value* and *value2* and return the set of records that sa
 the records that match the criteria
 ###### Example
 	concourse.find("age", Operator.BETWEEN, 20, 40);
-	
+
 ##### `Set<Long> find(String key, Operator operator, Object value, Object value2, Timestamp timestamp)`
 Find *key* *operator* *value* and *value2* at *timestamp* and return the set of records that satisfy the criteria. This is analogous to the SELECT action in SQL.
 ###### Parameters
@@ -466,14 +466,14 @@ the first contained value for each of the keys in each of the *records*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Map<String, Object>> data = concourse.fetch(keys, records);
-	
+
 ##### `Map<Long, Map<String, Object>> get(Collection<String> keys, Collection<Long> records, Timestamp timestamp)`
 Get each of the *keys* from each of the *records* at *timestamp* and return a mapping from each record to a mapping from each key to the first contained value.
 ###### Parameters
@@ -488,14 +488,14 @@ the first contained value for each of the keys in each of the *records* at *time
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Map<String, Object> data = concourse.fetch(keys, records, Timestamp.fromJoda(DateTime.now().minusYears(4)));
-	
+
 ##### `Map<Long, Map<String, Object>> get(Collection<String> keys, long record)`
 Get each of the *keys* from *record* and return a mapping from each key to the first contained value.
 ###### Parameters
@@ -509,9 +509,9 @@ the first contained value for each of the keys in *record*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Map<String, Object> data = concourse.fetch(keys, 1);
-	
+
 ##### `Map<Long, Map<String, Object>> get(Collection<String> keys, long record, Timestamp timestamp)`
 Get each of the *keys* from *record* at *timestamp* and return a mapping from each key to the first contained value.
 ###### Parameters
@@ -526,9 +526,9 @@ the first contained value for each of the keys in *record* at *timestamp*
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Map<String, Object> data = concourse.fetch(keys, 1, Timestamp.fromJoda(DateTime.now().minusYears(4)));
-	
+
 ##### `Map<Long, Map<String, Object>> get(String key, Collection<Long> records)`
 Get each of the *keys* from *record* and return a mapping from each key to the first contained value.
 ###### Parameters
@@ -542,9 +542,9 @@ the contained value for *key* in each of the *records*
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Object> data = concourse.fetch("foo", records);
-	
+
 ##### `Map<Long, Map<String, Object>> get(String key, Collection<Long> records, Timestamp timestamp)`
 Get each of the *keys* from *record* at *timestamp* and return a mapping from each key to the first contained value.
 ###### Parameters
@@ -559,7 +559,7 @@ the first contained value for *key* in each of the *records* at *timestamp*
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	Map<Long, Object> data = concourse.fetch("foo", records, Timestamp.fromMicros(13889604150000));
 
 ---
@@ -581,7 +581,7 @@ the primary key of the newly created record
 ###### Example
 	String json = "{\"array\":[1,2,3],\"boolean\":true,\"number\":123,\"string\":\"Hello World\"}";
 	concourse.insert(json);
- 
+
 #### `Map<Long, Boolean> insert(String json, Collection<Long> records)`
 Insert they key/value mappings described in the *json* formatted string into each of the *records*. The JSON formatted string must describe a JSON object that contains one or more keys, each of which maps to a JSON primitive or array of primitives.
 
@@ -612,7 +612,7 @@ Add a link from *key* in *source* to *destination*.
 *true* if the link is added
 ###### Example
 	concourse.link("following", 1, 2);
-	
+
 ##### `Map<Long, Boolean> link(String key, long source, Collection<Long> destinations)`
 Add a link from *key* in *source* to each of the *destinations*.
 ###### Parameters
@@ -635,7 +635,7 @@ Ping *record*.
 *true* if *record* currently has at least one populated key
 ###### Example
 	concourse.ping(1);
-	
+
 ##### `boolean ping(Collection<Long> records)`
 Ping each of the *records*.
 ###### Parameters
@@ -686,7 +686,7 @@ Atomically revert *key* in *record* to *timestamp* by creating new revisions tha
 
 ###### Example
 	concourse.revert("foo", 1, Timestamp.fromJoda(DateTime.now().minusDays(1))));
-	
+
 ##### `void revert(Collection<String> keys, Collection<Long> records, Timestamp timestamp)`
 Revert each of the *keys* in each of the *records* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
 ###### Parameters
@@ -699,14 +699,14 @@ Revert each of the *keys* in each of the *records* to *timestamp* by creating ne
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	Set<Long> records = new HashSet<Long>();
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	concourse.revert(keys, records, Timestamp.fromJoda(DateTime.now().minusDays(1))));
-	
+
 ##### `void revert(Collection<String> keys, long record, Timestamp timestamp)`
 Revert each of the *keys* in *record* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
 ###### Parameters
@@ -719,9 +719,9 @@ Revert each of the *keys* in *record* to *timestamp* by creating new revisions t
 	keys.add("foo");
 	keys.add("bar");
 	keys.add("baz");
-	
+
 	concourse.revert(keys, 1, Timestamp.fromJoda(DateTime.now().minusDays(1))));
-	
+
 ##### `void revert(String key, Collection<Long> records, Timestamp timestamp)`
 Revert *key* in each of the *records* to *timestamp* by creating new revisions that undo the relevant changes that have occurred since *timestamp*.
 ###### Parameters
@@ -734,7 +734,7 @@ Revert *key* in each of the *records* to *timestamp* by creating new revisions t
 	records.add(1);
 	records.add(2);
 	records.add(3);
-	
+
 	concourse.revert("foo", records, Timestamp.fromJoda(DateTime.now().minusDays(1))));
 
 ---
@@ -848,7 +848,7 @@ Atomically verify *key* as *expected* in *record* and swap with *replacement*.
 	concourse.verifyAndSwap("count", count, 1, count++);
 
 ---
-	
+
 ### verifyOrSet
 ##### `void verifyOrSet(String key, Object value, long record)`
 Atomically verify *key* as *value* in *record* or set *key* as *value* in *record*.
