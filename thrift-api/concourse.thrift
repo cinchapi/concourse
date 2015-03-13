@@ -229,7 +229,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  i64 insertJson(
+  set<i64> insertJson(
     1: string json
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
