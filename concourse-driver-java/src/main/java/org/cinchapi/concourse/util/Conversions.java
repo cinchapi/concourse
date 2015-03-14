@@ -59,6 +59,24 @@ public final class Conversions {
     }
 
     /**
+     * Return a function to perform a casted conversion from {@link TObject} to
+     * a java object of the parameterized type.
+     * 
+     * @return the conversion function
+     */
+    public static <T> Function<TObject, T> thriftToJavaCasted() {
+        return new Function<TObject, T>() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public T apply(TObject input) {
+                return (T) thriftToJava().apply(input);
+            }
+
+        };
+    }
+
+    /**
      * Return a function to perform a conversion from an {@link Timestamp} to a
      * long value that represents the corresponding unix timestamp with
      * microsecond precision.
