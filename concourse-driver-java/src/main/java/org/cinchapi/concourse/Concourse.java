@@ -1670,7 +1670,7 @@ public abstract class Concourse implements AutoCloseable {
                     public Map<Long, Boolean> call() throws Exception {
                         Map<Long, Boolean> raw = client.addKeyValueRecords(key,
                                 Convert.javaToThrift(value),
-                                Collections.toList(records), creds,
+                                Collections.toLongList(records), creds,
                                 transaction, environment);
                         Map<Long, Boolean> pretty = PrettyLinkedHashMap
                                 .newPrettyLinkedHashMap("Record", "Result");
@@ -2017,7 +2017,7 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clearRecords(Collections.toList(records), creds,
+                    client.clearRecords(Collections.toLongList(records), creds,
                             transaction, environment);
                     return null;
                 }
@@ -2033,8 +2033,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Void call() throws Exception {
                     client.clearKeysRecords(Collections.toList(keys),
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     return null;
                 }
 
@@ -2075,8 +2075,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Void call() throws Exception {
-                    client.clearKeyRecords(key, Collections.toList(records),
-                            creds, transaction, environment);
+                    client.clearKeyRecords(key,
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     return null;
                 }
 
@@ -2123,8 +2124,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, Set<String>> call() throws Exception {
                     Map<Long, Set<String>> raw = client.describeRecords(
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     Map<Long, Set<String>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", "Keys");
                     for (Entry<Long, Set<String>> entry : raw.entrySet()) {
@@ -2143,8 +2144,9 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, Set<String>> call() throws Exception {
                     Map<Long, Set<String>> raw = client.describeRecordsTime(
-                            Collections.toList(records), timestamp.getMicros(),
-                            creds, transaction, environment);
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     Map<Long, Set<String>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", "Keys");
                     for (Entry<Long, Set<String>> entry : raw.entrySet()) {
@@ -2398,7 +2400,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, T>> call() throws Exception {
                     Map<Long, Map<String, TObject>> raw = client
                             .getKeysRecords(Collections.toList(keys),
-                                    Collections.toList(records), creds,
+                                    Collections.toLongList(records), creds,
                                     transaction, environment);
                     Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap("Record");
@@ -2425,7 +2427,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, T>> call() throws Exception {
                     Map<Long, Map<String, TObject>> raw = client
                             .getKeysRecordsTime(Collections.toList(keys),
-                                    Collections.toList(records),
+                                    Collections.toLongList(records),
                                     timestamp.getMicros(), creds, transaction,
                                     environment);
                     Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
@@ -2580,8 +2582,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, T> call() throws Exception {
                     Map<Long, TObject> raw = client.getKeyRecords(key,
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     Map<Long, T> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", "Value");
                     for (Entry<Long, TObject> entry : raw.entrySet()) {
@@ -2603,8 +2605,9 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, T> call() throws Exception {
                     Map<Long, TObject> raw = client.getKeyRecordsTime(key,
-                            Collections.toList(records), timestamp.getMicros(),
-                            creds, transaction, environment);
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     Map<Long, T> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", "Value");
                     for (Entry<Long, TObject> entry : raw.entrySet()) {
@@ -2771,8 +2774,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, Boolean> call() throws Exception {
                     return client.insertJsonRecords(json,
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                 }
 
             });
@@ -2813,7 +2816,7 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<Long, Boolean> call() throws Exception {
-                    return client.pingRecords(Collections.toList(records),
+                    return client.pingRecords(Collections.toLongList(records),
                             creds, transaction, environment);
                 }
 
@@ -2845,7 +2848,7 @@ public abstract class Concourse implements AutoCloseable {
                     public Map<Long, Boolean> call() throws Exception {
                         Map<Long, Boolean> raw = client.removeKeyValueRecords(
                                 key, Convert.javaToThrift(value),
-                                Collections.toList(records), creds,
+                                Collections.toLongList(records), creds,
                                 transaction, environment);
                         Map<Long, Boolean> pretty = PrettyLinkedHashMap
                                 .newPrettyLinkedHashMap("Record", "Result");
@@ -2891,8 +2894,9 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Void call() throws Exception {
                     client.revertKeysRecordsTime(Collections.toList(keys),
-                            Collections.toList(records), timestamp.getMicros(),
-                            creds, transaction, environment);
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return null;
                 }
 
@@ -2924,8 +2928,9 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Void call() throws Exception {
                     client.revertKeyRecordsTime(key,
-                            Collections.toList(records), timestamp.getMicros(),
-                            creds, transaction, environment);
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
                     return null;
                 }
 
@@ -2972,8 +2977,8 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, Set<Object>>> call()
                         throws Exception {
                     Map<Long, Map<String, Set<TObject>>> raw = client
-                            .selectRecords(Collections.toList(records), creds,
-                                    transaction, environment);
+                            .selectRecords(Collections.toLongList(records),
+                                    creds, transaction, environment);
                     Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap("Record");
                     for (Entry<Long, Map<String, Set<TObject>>> entry : raw
@@ -2997,7 +3002,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, Set<Object>>> call()
                         throws Exception {
                     Map<Long, Map<String, Set<TObject>>> raw = client
-                            .selectRecordsTime(Collections.toList(records),
+                            .selectRecordsTime(Collections.toLongList(records),
                                     timestamp.getMicros(), creds, transaction,
                                     environment);
                     Map<Long, Map<String, Set<Object>>> pretty = PrettyLinkedTableMap
@@ -3023,7 +3028,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, Set<T>>> call() throws Exception {
                     Map<Long, Map<String, Set<TObject>>> raw = client
                             .selectKeysRecords(Collections.toList(keys),
-                                    Collections.toList(records), creds,
+                                    Collections.toLongList(records), creds,
                                     transaction, environment);
                     Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap("Record");
@@ -3050,7 +3055,7 @@ public abstract class Concourse implements AutoCloseable {
                 public Map<Long, Map<String, Set<T>>> call() throws Exception {
                     Map<Long, Map<String, Set<TObject>>> raw = client
                             .selectKeysRecordsTime(Collections.toList(keys),
-                                    Collections.toList(records),
+                                    Collections.toLongList(records),
                                     timestamp.getMicros(), creds, transaction,
                                     environment);
                     Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
@@ -3244,8 +3249,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, Set<T>> call() throws Exception {
                     Map<Long, Set<TObject>> raw = client.selectKeyRecords(key,
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
                             .newPrettyLinkedHashMap("Record", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
@@ -3267,7 +3272,7 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Map<Long, Set<T>> call() throws Exception {
                     Map<Long, Set<TObject>> raw = client.selectKeyRecordsTime(
-                            key, Collections.toList(records),
+                            key, Collections.toLongList(records),
                             timestamp.getMicros(), creds, transaction,
                             environment);
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
@@ -3394,8 +3399,8 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public Void call() throws Exception {
                     client.setKeyValueRecords(key, Convert.javaToThrift(value),
-                            Collections.toList(records), creds, transaction,
-                            environment);
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
                     return null;
                 }
 

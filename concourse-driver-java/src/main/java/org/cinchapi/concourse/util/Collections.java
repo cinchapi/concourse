@@ -16,6 +16,7 @@
 package org.cinchapi.concourse.util;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -36,6 +37,37 @@ public final class Collections {
     public static <T> List<T> toList(Collection<T> collection) {
         return collection instanceof List ? (List<T>) collection : Lists
                 .newArrayList(collection);
+    }
+
+    /**
+     * Convert the given {@code collection} to a {@link List} of {@link Long}
+     * values, if necessary. The client must attempt to do this for every
+     * collection of records because CaSH always passes user input in as a
+     * collection of {@link Integer integers}.
+     * 
+     * @param collection
+     * @return a List that contains Long values
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<Long> toLongList(Collection<T> collection) {
+        if(collection instanceof List && collection.size() > 0
+                && collection.iterator().next() instanceof Long) {
+            return (List<Long>) collection;
+        }
+        else {
+            List<Long> list = Lists.newArrayList();
+            Iterator<T> it = collection.iterator();
+            while (it.hasNext()) {
+                T elt = it.next();
+                if(elt instanceof Number) {
+                    list.add(((Number) elt).longValue());
+                }
+                else {
+                    list.add((long) elt);
+                }
+            }
+            return list;
+        }
     }
 
     private Collections() {/* noop */}
