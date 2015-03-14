@@ -12,7 +12,7 @@ The concourse jar is available at [Maven Central](http://search.maven.org/#searc
 	}
 
 	dependencies {
-    	compile 'org.cinchapi:concourse:0.5.0+'
+    	compile 'org.cinchapi:concourse-driver-java:0.5.0+'
 	}
 
 If you prefer to use another dependency manager like Maven or Ivy, then use the following project information when declaring the dependency:
