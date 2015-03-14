@@ -15,64 +15,58 @@ import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.collect.Iterables;
 
-public class QuickStart {
+public static void main(String... args) {
+    Concourse concourse = Concourse.connect();
 
-    public static void main(String... args) {
-        Concourse concourse = Concourse.connect();
+    // Insert some JSON data for quick analysis. Notice that I don't have to
+    // declare a schema, create any structure or configure any indexes.
+    String json = "[{\"name\": \"Lebron James\",\"age\": 30,\"team\": \"Cleveland Cavaliers\"},"
+            + "{\"name\": \"Kevin Durant\",\"age\": 26,\"team\": \"OKC Thunder\"},"
+            + "{\"name\": \"Kobe Bryant\",\"age\": 36,\"team\": \"LA Lakers\"}]";
+            
+    Set<Long> records = concourse.insert(json);
+    long lebron = Iterables.get(records, 0);
+    long durant = Iterables.get(records, 1);
+    long kobe = Iterables.get(records, 2);
 
-        // Insert some JSON data for quick analysis. Notice that I don't have to
-        // declare a schema, create any structure or configure any indexes.
-        String json = "[{\"name\": \"Lebron James\",\"age\": 30,\"team\": \"Cleveland Cavaliers\"},"
-                + "{\"name\": \"Kevin Durant\",\"age\": 26,\"team\": \"OKC Thunder\"},"
-                + "{\"name\": \"Kobe Bryant\",\"age\": 36,\"team\": \"LA Lakers\"}]";
-                
-        Set<Long> records = concourse.insert(json);
-        long lebron = Iterables.get(records, 0);
-        long durant = Iterables.get(records, 1);
-        long kobe = Iterables.get(records, 2);
+    // I can get or modify individual attributes for each record without
+    // loading the entire data set
+    concourse.get("age", kobe);
+    concourse.add("name", "KD", durant);
+    concourse.remove("jersey_number", 6, lebron);
 
-        // I can get or modify individual attributes for each record without
-        // loading the entire data set
-        concourse.get("age", kobe);
-        concourse.add("name", "KD", durant);
-        concourse.remove("jersey_number", 6, lebron);
+    // Since data is automatically indexed, I can easily find records that
+    // match a criteria
+    concourse.find("team", "=", "Chicago Bulls");
+    concourse.find("age", Operator.BETWEEN, 22, 29);
 
-        // Since data is automatically indexed, I can easily find records that
-        // match a criteria
-        concourse.find("team", "=", "Chicago Bulls");
-        concourse.find("age", Operator.BETWEEN, 22, 29);
+    // If I'm curious about how the data looked in the past, I can perform
+    // historical reads
+    concourse.get("age", durant, Timestamp.parse("04/2009"));
+    concourse.find("team", Operator.EQUALS, "Chicago Bulls",
+            Timestamp.parse("2011"));
+    concourse.find("age", Operator.BETWEEN, 22, 29,
+            Timestamp.parse("2 years ago"));
 
-        // If I'm curious about how the data looked in the past, I can perform
-        // historical reads
-        concourse.get("age", durant, Timestamp.parse("04/2009"));
-        concourse.find("team", Operator.EQUALS, "Chicago Bulls",
-                Timestamp.parse("2011"));
-        concourse.find("age", Operator.BETWEEN, 22, 29,
-                Timestamp.parse("2 years ago"));
+    // I can also analyze how data has changed over time and restore
+    // previous states.
+    concourse.audit("team", lebron);
+    concourse.revert("jersey_number", kobe, Timestamp.parse("10 years ago"));
 
-        // I can also analyze how data has changed over time and restore
-        // previous states.
-        concourse.audit("team", lebron);
-        concourse
-                .revert("jersey_number", kobe, Timestamp.parse("10 years ago"));
-
-        // I can also rely on transactions if any changes across records need
-        // ACID guarantees.
-        concourse.stage();
-        try {
-            concourse.set("current_team", "OKC Thunder", lebron);
-            concourse.set("current_team", "Cleveland Cavs", durant);
-            concourse.commit();
-        }
-        catch (TransactionException e) {
-            concourse.abort();
-        }
-
+    // I can also rely on transactions if any changes across records need
+    // ACID guarantees.
+    concourse.stage();
+    try {
+        concourse.set("current_team", "OKC Thunder", lebron);
+        concourse.set("current_team", "Cleveland Cavs", durant);
+        concourse.commit();
     }
-
+    catch (TransactionException e) {
+        concourse.abort();
+    }
 }
 ```
-You can find more examples in the examples[examples] directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
+You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
 Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing the database.
