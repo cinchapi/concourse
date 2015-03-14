@@ -96,8 +96,7 @@ public final class Transformers {
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformMapSet(
             Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
             Function<? super V, ? extends V2> values) {
-        Map<K2, Set<V2>> transformed = PrettyLinkedHashMap
-                .newPrettyLinkedHashMap();
+        Map<K2, Set<V2>> transformed = Maps.newLinkedHashMap();
         for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
             transformed.put(keys.apply(entry.getKey()),
                     transformSet(entry.getValue(), values));

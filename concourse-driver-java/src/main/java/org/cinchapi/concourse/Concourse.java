@@ -341,7 +341,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     public abstract Map<Timestamp, Set<Object>> chronologize(String key,
             long record);
-    
+
     /**
      * Chronologize non-empty sets of values in {@code key} from {@code record}
      * from {@code start} timestamp inclusively to present and return a mapping
@@ -2112,7 +2112,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public long create(){
+        public long create() {
             return Time.now();
         }
 
@@ -2455,8 +2455,8 @@ public abstract class Concourse implements AutoCloseable {
                             .getKeysCriteria(Collections.toList(keys), Language
                                     .translateToThriftCriteria(criteria),
                                     creds, transaction, environment);
-                    Map<Long, Map<String, T>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Record", "Value");
+                    Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
                     for (Entry<Long, Map<String, TObject>> entry : raw
                             .entrySet()) {
                         pretty.put(
@@ -2484,8 +2484,8 @@ public abstract class Concourse implements AutoCloseable {
                                     Language.translateToThriftCriteria(criteria),
                                     timestamp.getMicros(), creds, transaction,
                                     environment);
-                    Map<Long, Map<String, T>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Record", "Value");
+                    Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
                     for (Entry<Long, Map<String, TObject>> entry : raw
                             .entrySet()) {
                         pretty.put(
@@ -3068,12 +3068,6 @@ public abstract class Concourse implements AutoCloseable {
             });
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.cinchapi.concourse.Concourse#select(java.util.Collection,
-         * org.cinchapi.concourse.lang.Criteria)
-         */
         @Override
         public <T> Map<Long, Map<String, Set<T>>> select(
                 final Collection<String> keys, final Criteria criteria) {
@@ -3086,8 +3080,8 @@ public abstract class Concourse implements AutoCloseable {
                                     Collections.toList(keys),
                                     Language.translateToThriftCriteria(criteria),
                                     creds, transaction, environment);
-                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Record", "Value");
+                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
                     for (Entry<Long, Map<String, Set<TObject>>> entry : raw
                             .entrySet()) {
                         pretty.put(entry.getKey(), Transformers
@@ -3115,8 +3109,8 @@ public abstract class Concourse implements AutoCloseable {
                                     Language.translateToThriftCriteria(criteria),
                                     timestamp.getMicros(), creds, transaction,
                                     environment);
-                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Record", "Value");
+                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
                     for (Entry<Long, Map<String, Set<TObject>>> entry : raw
                             .entrySet()) {
                         pretty.put(entry.getKey(), Transformers
@@ -3253,7 +3247,7 @@ public abstract class Concourse implements AutoCloseable {
                             Collections.toList(records), creds, transaction,
                             environment);
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Key", "Values");
+                            .newPrettyLinkedHashMap("Record", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(entry.getKey(), Transformers.transformSet(
                                 entry.getValue(),
@@ -3277,7 +3271,7 @@ public abstract class Concourse implements AutoCloseable {
                             timestamp.getMicros(), creds, transaction,
                             environment);
                     Map<Long, Set<T>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Key", "Values");
+                            .newPrettyLinkedHashMap("Record", "Values");
                     for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
                         pretty.put(entry.getKey(), Transformers.transformSet(
                                 entry.getValue(),
@@ -3492,7 +3486,7 @@ public abstract class Concourse implements AutoCloseable {
 
             });
         }
-        
+
         @Override
         public void verifyOrSet(final String key, final Object value,
                 final long record) {
