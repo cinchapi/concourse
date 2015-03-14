@@ -38,8 +38,6 @@ Since Concourse makes very few assumptions about data, it integrates with your a
 ###### Search
 Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
 
----
-
 ## Usage
 
 #### Connecting to Concourse
