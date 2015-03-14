@@ -674,8 +674,7 @@ public class ConcourseServer implements
 
     @Override
     public Set<Long> browse(AccessToken creds, TransactionToken transaction,
-            String environment) throws TSecurityException,
-            TTransactionException, TException {
+            String environment) throws TException {
         checkAccess(creds, transaction);
         try {
             return getEngine(environment).browse();
