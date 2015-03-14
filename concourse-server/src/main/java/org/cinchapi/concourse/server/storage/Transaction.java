@@ -179,7 +179,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     public Map<String, Set<TObject>> browseUnsafe(long record) {
-        return browse(record);
+        return select(record);
     }
 
     @Override
@@ -195,7 +195,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     public Set<TObject> fetchUnsafe(String key, long record) {
-        return fetch(key, record);
+        return select(key, record);
     }
 
     @Override

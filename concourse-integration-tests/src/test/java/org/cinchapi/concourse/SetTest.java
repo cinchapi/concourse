@@ -51,7 +51,7 @@ public class SetTest extends ConcourseIntegrationTest {
         }
         client.set(key, value, record);
         Assert.assertEquals(value, client.get(key, record));
-        Assert.assertEquals(1, client.fetch(key, record).size());  
+        Assert.assertEquals(1, client.select(key, record).size());  
     }
     
     @Test
@@ -70,7 +70,7 @@ public class SetTest extends ConcourseIntegrationTest {
         Assert.assertTrue(client.verify(key, value, record));
         client.set(key, value, record);
         Assert.assertEquals(value, client.get(key, record));
-        Assert.assertEquals(1, client.fetch(key, record).size());
+        Assert.assertEquals(1, client.select(key, record).size());
     }
 
 }

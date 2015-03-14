@@ -306,21 +306,21 @@ service ConcourseService {
     3: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<string, set<data.TObject>> browseRecord(
+  map<string, set<data.TObject>> selectRecord(
     1: i64 record,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, map<string, set<data.TObject>>> browseRecords(
+  map<i64, map<string, set<data.TObject>>> selectRecords(
     1: list<i64> records,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<string, set<data.TObject>> browseRecordTime(
+  map<string, set<data.TObject>> selectRecordTime(
     1: i64 record,
     2: i64 timestamp,
     3: shared.AccessToken creds,
@@ -328,7 +328,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, map<string, set<data.TObject>>> browseRecordsTime(
+  map<i64, map<string, set<data.TObject>>> selectRecordsTime(
     1: list<i64> records,
     2: i64 timestamp,
     3: shared.AccessToken creds,
@@ -396,7 +396,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<data.TObject> fetchKeyRecord(
+  set<data.TObject> selectKeyRecord(
     1: string key,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -404,7 +404,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  set<data.TObject> fetchKeyRecordTime(
+  set<data.TObject> selectKeyRecordTime(
     1: string key,
     2: i64 record,
     3: i64 timestamp,
@@ -413,7 +413,7 @@ service ConcourseService {
     6: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<string, set<data.TObject>> fetchKeysRecord(
+  map<string, set<data.TObject>> selectKeysRecord(
     1: list<string> keys,
     2: i64 record,
     3: shared.AccessToken creds,
@@ -421,7 +421,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<string, set<data.TObject>> fetchKeysRecordTime(
+  map<string, set<data.TObject>> selectKeysRecordTime(
     1: list<string> keys,
     2: i64 record,
     3: i64 timestamp,
@@ -430,7 +430,7 @@ service ConcourseService {
     6: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, map<string, set<data.TObject>>> fetchKeysRecords(
+  map<i64, map<string, set<data.TObject>>> selectKeysRecords(
     1: list<string> keys,
     2: list<i64> records,
     3: shared.AccessToken creds,
@@ -438,7 +438,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, set<data.TObject>> fetchKeyRecords(
+  map<i64, set<data.TObject>> selectKeyRecords(
     1: string key,
     2: list<i64> records,
     3: shared.AccessToken creds,
@@ -446,7 +446,7 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, set<data.TObject>> fetchKeyRecordsTime(
+  map<i64, set<data.TObject>> selectKeyRecordsTime(
     1: string key,
     2: list<i64> records,
     3: i64 timestamp,
@@ -455,9 +455,43 @@ service ConcourseService {
     6: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
-  map<i64, map<string, set<data.TObject>>> fetchKeysRecordsTime(
+  map<i64, map<string, set<data.TObject>>> selectKeysRecordsTime(
     1: list<string> keys,
     2: list<i64> records,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, set<data.TObject>> selectKeyCriteria(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, set<data.TObject>> selectKeyCriteriaTime(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteria(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTime(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
@@ -526,6 +560,40 @@ service ConcourseService {
   map<i64, map<string, data.TObject>> getKeysRecordsTime(
     1: list<string> keys,
     2: list<i64> records,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, data.TObject> getKeyCriteria(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, data.TObject> getKeyCriteriaTime(
+    1: string key,
+    2: data.TCriteria criteria,
+    3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, data.TObject>> getKeysCriteria(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, data.TObject>> getKeysCriteriaTime(
+    1: list<string> keys,
+    2: data.TCriteria criteria,
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,

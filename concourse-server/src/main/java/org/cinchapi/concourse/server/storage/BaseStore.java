@@ -30,12 +30,12 @@ public abstract class BaseStore implements Store {
 
     @Override
     public final Set<String> describe(long record) {
-        return browse(record).keySet();
+        return select(record).keySet();
     }
 
     @Override
     public final Set<String> describe(long record, long timestamp) {
-        return browse(record, timestamp).keySet();
+        return select(record, timestamp).keySet();
     }
 
     @Override

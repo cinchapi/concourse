@@ -198,7 +198,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record)
+    public Map<String, Set<TObject>> select(long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
@@ -208,10 +208,10 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp)
+    public Map<String, Set<TObject>> select(long record, long timestamp)
             throws AtomicStateException {
         checkState();
-        return super.browse(record, timestamp);
+        return super.select(record, timestamp);
     }
 
     @Override
@@ -276,7 +276,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record)
+    public Set<TObject> select(String key, long record)
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
@@ -286,10 +286,10 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp)
+    public Set<TObject> select(String key, long record, long timestamp)
             throws AtomicStateException {
         checkState();
-        return super.fetch(key, record, timestamp);
+        return super.select(key, record, timestamp);
     }
 
     @Override

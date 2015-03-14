@@ -55,7 +55,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
 
         // Fetch
         Assert.assertEquals(Sets.newHashSet("John Doe", "Johnny Doe",
-                "Jonathan Doe", "J. Doe"), client.fetch("name", 1));
+                "Jonathan Doe", "J. Doe"), client.select("name", 1));
 
         // Get
         Assert.assertEquals("John Doe", client.get("name", 1));
@@ -65,9 +65,9 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
             client.add("baz", i, 1);
         }
         Assert.assertEquals(Sets.newHashSet(0, 1, 2, 3, 4),
-                client.fetch("baz", 1));
+                client.select("baz", 1));
         client.set("baz", 6, 1);
-        Assert.assertEquals(Sets.newHashSet(6), client.fetch("baz", 1));
+        Assert.assertEquals(Sets.newHashSet(6), client.select("baz", 1));
 
         // Describe
         Assert.assertEquals(Sets.newHashSet("name", "age", "baz"),
@@ -136,7 +136,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         Timestamp t1 = it2.next();
 
         client.revert("baz", 1, t1);
-        Assert.assertEquals(Sets.newHashSet(0, 1, 2), client.fetch("baz", 1));
+        Assert.assertEquals(Sets.newHashSet(0, 1, 2), client.select("baz", 1));
 
         // Historical Describe
         Assert.assertTrue(client.describe(1,
@@ -157,7 +157,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         };
         t1 = it2.next();
         Assert.assertEquals(Sets.newHashSet("John Doe", "Johnny Doe"),
-                client.fetch("name", 1, t1));
+                client.select("name", 1, t1));
 
         // Historical Find
         t1 = client.audit(50).keySet().iterator().next();

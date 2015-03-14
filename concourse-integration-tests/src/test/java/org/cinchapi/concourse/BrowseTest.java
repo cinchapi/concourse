@@ -26,7 +26,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for {@link Concourse#browse(long)} API method. Basically the idea
+ * Unit tests for {@link Concourse#select(long)} API method. Basically the idea
  * is to add/remove some data and ensure browse(record) returns the same thing
  * as fetch(describe(record), record)
  * 
@@ -36,7 +36,7 @@ public class BrowseTest extends ConcourseIntegrationTest {
 
     @Test
     public void testBrowseEmptyRecord() {
-        Assert.assertTrue(client.browse(1).isEmpty());
+        Assert.assertTrue(client.select(1).isEmpty());
     }
 
     @Test
@@ -59,8 +59,8 @@ public class BrowseTest extends ConcourseIntegrationTest {
             client.add(key, TestData.getObject(), record);
             Variables.register(key + "_" + i, value);
         }
-        Assert.assertEquals(client.browse(record),
-                client.fetch(client.describe(record), record));
+        Assert.assertEquals(client.select(record),
+                client.select(client.describe(record), record));
     }
 
     @Test
@@ -73,8 +73,8 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.add("b", 2, record);
         client.add("b", 3, record);
         client.remove("a", 2, record);
-        Assert.assertEquals(client.browse(record),
-                client.fetch(client.describe(record), record));
+        Assert.assertEquals(client.select(record),
+                client.select(client.describe(record), record));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class BrowseTest extends ConcourseIntegrationTest {
         client.add("d", 2, record);
         client.add("d", 3, record);
         client.remove("c", 2, record);
-        Assert.assertEquals(client.browse(record, timestamp), client.fetch(
+        Assert.assertEquals(client.select(record, timestamp), client.select(
                 client.describe(record, timestamp), record, timestamp));
     }
 

@@ -71,10 +71,10 @@ public class DatabaseTest extends StoreTest {
         for (int i = 0; i < count; i++) {
             db.accept(Write.add(key, Convert.javaToThrift(i), record));
         }
-        db.fetch(key, record);
+        db.select(key, record);
         int increase = TestData.getScaleCount();
         db.accept(Write.add(key, Convert.javaToThrift(count * increase), record));
-        Assert.assertTrue(db.fetch(key, record).contains(
+        Assert.assertTrue(db.select(key, record).contains(
                 Convert.javaToThrift(count * increase)));
     }
 

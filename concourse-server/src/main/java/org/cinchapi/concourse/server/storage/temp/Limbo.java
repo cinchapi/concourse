@@ -165,12 +165,12 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
-        return browse(record, Time.now());
+    public Map<String, Set<TObject>> select(long record) {
+        return select(record, Time.now());
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
         Map<String, Set<TObject>> context = Maps
                 .newTreeMap(new Comparator<String>() {
 
@@ -364,12 +364,12 @@ public abstract class Limbo extends BaseStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
-        return fetch(key, record, Time.now());
+    public Set<TObject> select(String key, long record) {
+        return select(key, record, Time.now());
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
+    public Set<TObject> select(String key, long record, long timestamp) {
         return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
     }
 

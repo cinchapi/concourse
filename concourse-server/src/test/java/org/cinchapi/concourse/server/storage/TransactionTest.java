@@ -71,7 +71,7 @@ public class TransactionTest extends AtomicOperationTest {
     public void testAtomicOperationFromTransactionFailsIfVersionChangesWithCommit() {
         Transaction txn = (Transaction) this.store;
         AtomicOperation operation = txn.startAtomicOperation();
-        operation.fetch("foo", 1);
+        operation.select("foo", 1);
         Engine engine = (Engine) this.destination;
         operation.commit();
         engine.add("foo", Convert.javaToThrift("bar"), 1);
@@ -81,7 +81,7 @@ public class TransactionTest extends AtomicOperationTest {
     public void testAtomicOperationFromTransactionWontFailIfVersionChangesWithoutCommit() {
         Transaction txn = (Transaction) this.store;
         AtomicOperation operation = txn.startAtomicOperation();
-        operation.fetch("foo", 1);
+        operation.select("foo", 1);
         Engine engine = (Engine) this.destination;
         engine.add("foo", Convert.javaToThrift("bar"), 1);
         operation.abort();
@@ -114,7 +114,7 @@ public class TransactionTest extends AtomicOperationTest {
     public void testFailedAtomicOperationDoesNotKillTransaction() {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
-        operation.browse(1);
+        operation.select(1);
         transaction.destination.accept(Write.add("foo",
                 Convert.javaToThrift(1), 1));
         try {
@@ -131,11 +131,11 @@ public class TransactionTest extends AtomicOperationTest {
     public void testFailedAtomicOperationWillThrowAtomicStateExceptionButTransactionWontFail() {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
-        operation.fetch("foo", 1);
+        operation.select("foo", 1);
         transaction.destination.accept(Write.add("foo",
                 Convert.javaToThrift(1), 1));
         try {
-            operation.browse(2);
+            operation.select(2);
             Assert.fail();
         }
         catch (AtomicStateException e) {
@@ -147,7 +147,7 @@ public class TransactionTest extends AtomicOperationTest {
     public void testTransactionIsntEverPenalizedForFailedAtomicOperationThatDidntCommit() {
         Transaction transaction = (Transaction) store;
         AtomicOperation operation = transaction.startAtomicOperation();
-        operation.fetch("foo", 1);
+        operation.select("foo", 1);
         transaction.destination.accept(Write.add("foo",
                 Convert.javaToThrift(1), 1));
         transaction.destination.accept(Write.add("foo",

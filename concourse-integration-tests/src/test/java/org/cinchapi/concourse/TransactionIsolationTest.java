@@ -51,9 +51,9 @@ public class TransactionIsolationTest extends ConcourseIntegrationTest {
     public void testNoNonRepeatableRead() {
         client.add("name", "Jeff Nelson", 1);
         client.stage();
-        client.browse(1);
+        client.select(1);
         client2.add("age", 100, 1);
-        System.out.println(client.browse(1));
+        System.out.println(client.select(1));
     }
 
     @Test(expected = TransactionException.class)

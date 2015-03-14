@@ -482,12 +482,12 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
+    public Map<String, Set<TObject>> select(long record) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(record);
         read.lock();
         try {
-            return super.browse(record);
+            return super.select(record);
         }
         finally {
             read.unlock();
@@ -496,10 +496,10 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.browse(record, timestamp);
+            return super.select(record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -537,7 +537,7 @@ public final class Engine extends BufferedStore implements
     public Map<String, Set<TObject>> browseUnsafe(long record) {
         transportLock.readLock().lock();
         try {
-            return super.browse(record);
+            return super.select(record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -582,12 +582,12 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
+    public Set<TObject> select(String key, long record) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(key, record);
         read.lock();
         try {
-            return super.fetch(key, record);
+            return super.select(key, record);
         }
         finally {
             read.unlock();
@@ -596,10 +596,10 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
+    public Set<TObject> select(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
-            return super.fetch(key, record, timestamp);
+            return super.select(key, record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -610,7 +610,7 @@ public final class Engine extends BufferedStore implements
     public Set<TObject> fetchUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
-            return super.fetch(key, record);
+            return super.select(key, record);
         }
         finally {
             transportLock.readLock().unlock();

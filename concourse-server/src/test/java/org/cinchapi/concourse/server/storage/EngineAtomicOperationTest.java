@@ -101,7 +101,7 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
                     AtomicOperation operation = destination
                             .startAtomicOperation();
                     operations.add(operation);
-                    operation.fetch(key, record);
+                    operation.select(key, record);
                 }
                 bDone.set(true);
             }

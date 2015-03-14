@@ -149,12 +149,12 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         client.clear(key, record);
-        Assert.assertTrue(client.fetch(key, record).isEmpty());
+        Assert.assertTrue(client.select(key, record).isEmpty());
     }
 
     @Test
     public void testInserMultiValuesForKeyFailsIfOneOfTheMappingsExists() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getString();
@@ -173,7 +173,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertFailsIfSomeDataAlreadyExists() {
-        long record = client.create();
+        long record = Time.now();
         String key0 = TestData.getString();
         Object value0 = TestData.getObject();
         Multimap<String, Object> data = Variables.register("data",
@@ -207,7 +207,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertMultiValuesForKey() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getString();
@@ -223,7 +223,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertSucceedsIfAllDataIsNew() {
-        long record = client.create();
+        long record = Time.now();
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData());
         String json = Variables.register("json", toJsonString(data));
@@ -270,7 +270,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add(key, value, record);
         }
         client.revert(key, record, timestamp);
-        Assert.assertEquals(initValues, client.fetch(key, record));
+        Assert.assertEquals(initValues, client.select(key, record));
     }
 
     // TODO testClearCompletesEvenIfInterrupted
@@ -324,7 +324,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
             client.add("foo", i, 1);
         }
         client.set("foo", -1, 1);
-        Assert.assertEquals(Sets.newHashSet(-1), client.fetch("foo", 1));
+        Assert.assertEquals(Sets.newHashSet(-1), client.select("foo", 1));
     }
 
     @Test
@@ -341,8 +341,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         client.verifyAndSwap(key, expected, record, replacement);
         client.abort();
-        Assert.assertTrue(client.fetch(key, record).contains(expected));
-        Assert.assertFalse(client.fetch(key, record).contains(replacement));
+        Assert.assertTrue(client.select(key, record).contains(expected));
+        Assert.assertFalse(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -359,8 +359,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         client.verifyAndSwap(key, expected, record, replacement);
         client.commit();
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -386,8 +386,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
                 values.toArray()[TestData.getScaleCount() % values.size()]);
         Assert.assertTrue(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
     }
 
     @Test
@@ -408,8 +408,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         client.add(key, actual, record);
         Assert.assertFalse(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(replacement));
-        Assert.assertTrue(client.fetch(key, record).contains(actual));
+        Assert.assertFalse(client.select(key, record).contains(replacement));
+        Assert.assertTrue(client.select(key, record).contains(actual));
     }
 
     @Test
@@ -425,8 +425,8 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
         Assert.assertTrue(client.verifyAndSwap(key, expected, record,
                 replacement));
-        Assert.assertTrue(client.fetch(key, record).contains(replacement));
-        Assert.assertFalse(client.fetch(key, record).contains(expected));
+        Assert.assertTrue(client.select(key, record).contains(replacement));
+        Assert.assertFalse(client.select(key, record).contains(expected));
     }
 
     // TODO more insert tests!

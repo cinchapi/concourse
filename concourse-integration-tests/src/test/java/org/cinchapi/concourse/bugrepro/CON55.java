@@ -17,6 +17,7 @@ package org.cinchapi.concourse.bugrepro;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,7 +35,7 @@ public class CON55 extends ConcourseIntegrationTest {
     public void repro() {
         client.stage();
         client.find("ipeds_id", Operator.EQUALS, Convert.stringToJava("1"));
-        long record = client.create();
+        long record = Time.now();
         client.add("ipeds_id", Convert.stringToJava("1"), record);
         client.add("avg_net_price_income_below_30000",
                 Convert.stringToJava("15759"), record);

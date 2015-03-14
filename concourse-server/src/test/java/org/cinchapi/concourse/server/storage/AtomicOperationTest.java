@@ -123,7 +123,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         final String key = TestData.getString();
         final long record = TestData.getLong();
         AtomicOperation operation = (AtomicOperation) store;
-        operation.fetch(key, record);
+        operation.select(key, record);
         Thread thread = new Thread(new Runnable() {
 
             @Override
@@ -172,9 +172,9 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             values.add(value);
             add(key, value, record);
         }
-        Assert.assertEquals(Sets.newHashSet(), destination.fetch(key, record));
+        Assert.assertEquals(Sets.newHashSet(), destination.select(key, record));
         ((AtomicOperation) store).commit();
-        Assert.assertEquals(values, destination.fetch(key, record));
+        Assert.assertEquals(values, destination.select(key, record));
     }
 
     @Test
@@ -263,7 +263,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         final String key = TestData.getString();
         final long record = TestData.getLong();
         AtomicOperation operation = (AtomicOperation) store;
-        operation.fetch(key, record);
+        operation.select(key, record);
         Thread thread = new Thread(new Runnable() {
 
             @Override

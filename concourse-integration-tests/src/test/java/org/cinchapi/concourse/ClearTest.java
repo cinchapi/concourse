@@ -47,7 +47,7 @@ public class ClearTest extends ConcourseIntegrationTest {
 		client.add("d", 2, record);
 		client.add("d", 3, record);
 		client.clear(record);
-		Assert.assertTrue(client.browse(record).isEmpty());
+		Assert.assertTrue(client.select(record).isEmpty());
 	}
 
 	@Test
@@ -71,9 +71,9 @@ public class ClearTest extends ConcourseIntegrationTest {
 		client.add("d", 2, record3);
 		client.add("d", 3, record3);
 		client.clear(recordsList);
-		Assert.assertEquals(client.browse(record).isEmpty(),
-				client.browse(record2).isEmpty());
-		Assert.assertFalse(client.browse(record3).isEmpty());
+		Assert.assertEquals(client.select(record).isEmpty(),
+				client.select(record2).isEmpty());
+		Assert.assertFalse(client.select(record3).isEmpty());
 	}
 
 }

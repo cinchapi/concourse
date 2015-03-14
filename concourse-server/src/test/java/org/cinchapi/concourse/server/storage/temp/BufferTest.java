@@ -94,7 +94,7 @@ public class BufferTest extends LimboTest {
             @Override
             public void run() {
                 try {
-                    store.fetch("foo", 1);
+                    store.select("foo", 1);
                 }
                 catch (ConcurrentModificationException e) {
                     caughtException.set(true);

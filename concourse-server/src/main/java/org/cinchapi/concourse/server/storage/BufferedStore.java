@@ -132,13 +132,13 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
+    public Map<String, Set<TObject>> select(long record) {
         return browse(record, false);
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
-        Map<String, Set<TObject>> context = destination.browse(record,
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        Map<String, Set<TObject>> context = destination.select(record,
                 timestamp);
         return buffer.browse(record, timestamp, context);
     }
@@ -155,13 +155,13 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
+    public Set<TObject> select(String key, long record) {
         return fetch(key, record, false);
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
-        Set<TObject> context = destination.fetch(key, record, timestamp);
+    public Set<TObject> select(String key, long record, long timestamp) {
+        Set<TObject> context = destination.select(key, record, timestamp);
         return buffer.fetch(key, record, timestamp, context);
     }
 
@@ -203,7 +203,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
-        Set<TObject> values = fetch(key, record);
+        Set<TObject> values = select(key, record);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */
         }
@@ -333,7 +333,7 @@ public abstract class BufferedStore extends BaseStore {
             context = ((Compoundable) (destination)).browseUnsafe(record);
         }
         else {
-            context = destination.browse(record);
+            context = destination.select(record);
         }
         return buffer.browse(record, Time.now(), context);
     }
@@ -419,7 +419,7 @@ public abstract class BufferedStore extends BaseStore {
             context = ((Compoundable) (destination)).fetchUnsafe(key, record);
         }
         else {
-            context = destination.fetch(key, record);
+            context = destination.select(key, record);
         }
         return buffer.fetch(key, record, Time.now(), context);
     }
@@ -480,7 +480,7 @@ public abstract class BufferedStore extends BaseStore {
      * <p>
      * This method checks that there is <em>currently</em> a mapping from
      * {@code key} to {@code value} in {@code record}. This method has the same
-     * affect as calling {@link #fetch(String, long)}
+     * affect as calling {@link #select(String, long)}
      * {@link Set#contains(Object)}.
      * </p>
      * 

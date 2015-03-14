@@ -44,7 +44,6 @@ package org.cinchapi.concourse;
  * 
  * @author Jeff Nelson
  */
-// TODO change to extend Exception instead of RuntimeException
 public class TransactionException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;

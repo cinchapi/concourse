@@ -196,7 +196,7 @@ public class EngineTest extends BufferedStoreTest {
          engine.add("name", Convert.javaToThrift("abcd"), 3);
          engine.add("name", Convert.javaToThrift("abce"), 4);
          engine.remove("name", Convert.javaToThrift("xyz"), 2);
-         Assert.assertTrue(engine.browse(2).isEmpty()); //assert record presently has no data
+         Assert.assertTrue(engine.select(2).isEmpty()); //assert record presently has no data
          Assert.assertEquals(engine.browse(), Sets.<Long>newHashSet(new Long(1), new Long(2), new Long(3), new Long(4)));
      }
 
@@ -277,9 +277,9 @@ public class EngineTest extends BufferedStoreTest {
             @Override
             public void run() {
                 go.set(true);
-                Map<String, Set<TObject>> data = engine.browse(1);
+                Map<String, Set<TObject>> data = engine.select(1);
                 done.set(true);
-                Map<String, Set<TObject>> data1 = engine.browse(1);
+                Map<String, Set<TObject>> data1 = engine.select(1);
                 Variables.register("data_size", data.size());
                 Variables.register("data1_size", data1.size());
                 succeeded.set(data.size() == data1.size()

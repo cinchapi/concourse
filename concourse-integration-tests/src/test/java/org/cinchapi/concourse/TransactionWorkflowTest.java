@@ -169,7 +169,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.browse(1);
+            client.select(1);
         }
         finally {
             client.abort();
@@ -260,7 +260,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.fetch("foo", 1);
+            client.select("foo", 1);
         }
         finally {
             client.abort();

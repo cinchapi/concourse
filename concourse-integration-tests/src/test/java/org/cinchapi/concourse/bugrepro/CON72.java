@@ -16,8 +16,10 @@
 package org.cinchapi.concourse.bugrepro;
 
 import java.io.IOException;
+
 import org.cinchapi.concourse.ConcourseIntegrationTest;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.time.Time;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +35,7 @@ public class CON72 extends ConcourseIntegrationTest {
     @Test
     public void repro() throws IOException {
         client.stage();
-        long record = client.create();
+        long record = Time.now();
         client.set("__table__", "com.blavity.server.model.App", record);
         client.find("__table__", Operator.EQUALS,
                 "com.blavity.server.model.App");

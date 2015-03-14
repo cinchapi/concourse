@@ -359,11 +359,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
+    public Map<String, Set<TObject>> select(long record) {
         transportLock.readLock().lock();
         try {
             scaleBackTransportRate();
-            return super.browse(record);
+            return super.select(record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -371,11 +371,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
         transportLock.readLock().lock();
         try {
             scaleBackTransportRate();
-            return super.browse(record, timestamp);
+            return super.select(record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();
@@ -460,11 +460,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
+    public Set<TObject> select(String key, long record) {
         transportLock.readLock().lock();
         try {
             scaleBackTransportRate();
-            return super.fetch(key, record);
+            return super.select(key, record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -472,11 +472,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
+    public Set<TObject> select(String key, long record, long timestamp) {
         transportLock.readLock().lock();
         try {
             scaleBackTransportRate();
-            return super.fetch(key, record, timestamp);
+            return super.select(key, record, timestamp);
         }
         finally {
             transportLock.readLock().unlock();

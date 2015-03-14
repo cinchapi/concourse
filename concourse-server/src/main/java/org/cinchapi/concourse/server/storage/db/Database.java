@@ -261,7 +261,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record) {
+    public Map<String, Set<TObject>> select(long record) {
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
                 Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
@@ -269,7 +269,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> browse(long record, long timestamp) {
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
         return Transformers.transformTreeMapSet(
                 getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
                 Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
@@ -340,7 +340,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record) {
+    public Set<TObject> select(String key, long record) {
         Text key0 = Text.wrapCached(key);
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
@@ -348,7 +348,7 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp) {
+    public Set<TObject> select(String key, long record, long timestamp) {
         Text key0 = Text.wrapCached(key);
         return Transformers.transformSet(
                 getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,

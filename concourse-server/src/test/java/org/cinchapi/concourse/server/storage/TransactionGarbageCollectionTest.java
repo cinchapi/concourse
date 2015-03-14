@@ -53,7 +53,7 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     @Test
     public void testGCAfterCommit(){
         Transaction transaction = engine.startTransaction();
-        transaction.browse(1);
+        transaction.select(1);
         transaction.add("foo", TestData.getTObject(), 1);
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
@@ -69,12 +69,12 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     public void testGCAfterFailure(){
         Transaction a = engine.startTransaction();
         Transaction b = engine.startTransaction();
-        a.browse(1);
+        a.select(1);
         a.add("foo", TestData.getTObject(), 1);
         a.browse("foo");
         a.find("foo", Operator.GREATER_THAN, TestData.getTObject());
         a.commit();
-        b.browse(1);
+        b.select(1);
         b.add("foo", TestData.getTObject(), 1);
         b.browse("foo");
         b.find("foo", Operator.GREATER_THAN, TestData.getTObject());  
@@ -93,7 +93,7 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     @Test
     public void testGCAfterAbort(){
         Transaction transaction = engine.startTransaction();
-        transaction.browse(1);
+        transaction.select(1);
         transaction.add("foo", TestData.getTObject(), 1);
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());

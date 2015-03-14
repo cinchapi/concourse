@@ -70,7 +70,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
         }
         client.verifyOrSet(key, value, record);
         Assert.assertEquals(value, client.get(key, record));
-        Assert.assertEquals(1, client.fetch(key, record).size());
+        Assert.assertEquals(1, client.select(key, record).size());
     }
 
     @Test

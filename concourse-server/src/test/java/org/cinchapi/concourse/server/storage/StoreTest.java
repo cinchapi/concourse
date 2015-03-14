@@ -381,7 +381,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 }
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record));
+        Assert.assertEquals(data.asMap(), store.select(record));
     }
 
     @Test
@@ -406,7 +406,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(entry.getKey(), entry.getValue(), record);
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record));
+        Assert.assertEquals(data.asMap(), store.select(record));
     }
 
     @Test
@@ -447,7 +447,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(entry.getKey(), entry.getValue(), record);
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+        Assert.assertEquals(data.asMap(), store.select(record, timestamp));
 
     }
 
@@ -466,7 +466,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             }
         }
         Map<String, Set<TObject>> result = Variables.register("data",
-                store.browse(record));
+                store.select(record));
         String previous = null;
         for (String current : result.keySet()) {
             if(previous != null) {
@@ -501,7 +501,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 }
             }
         }
-        Assert.assertEquals(data.asMap(), store.browse(record, timestamp));
+        Assert.assertEquals(data.asMap(), store.select(record, timestamp));
     }
 
     @Test
@@ -684,7 +684,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long record = TestData.getLong();
         add(key, value, record);
         remove(key, value, record);
-        Assert.assertFalse(store.fetch(key, record).contains(value));
+        Assert.assertFalse(store.select(key, record).contains(value));
     }
 
     @Test
@@ -695,7 +695,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         add(key, value, record);
         long timestamp = Time.now();
         remove(key, value, record);
-        Assert.assertTrue(store.fetch(key, record, timestamp).contains(value));
+        Assert.assertTrue(store.select(key, record, timestamp).contains(value));
     }
 
     @Test
@@ -706,7 +706,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (TObject value : values) {
             add(key, value, record);
         }
-        Assert.assertEquals(values, store.fetch(key, record));
+        Assert.assertEquals(values, store.select(key, record));
     }
 
     @Test
@@ -725,7 +725,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 remove(key, value, record);
             }
         }
-        Assert.assertEquals(values, store.fetch(key, record));
+        Assert.assertEquals(values, store.select(key, record));
     }
 
     @Test
@@ -762,7 +762,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 valuesCopy.remove(value);
             }
         }
-        Assert.assertEquals(values, store.fetch(key, record, timestamp));
+        Assert.assertEquals(values, store.select(key, record, timestamp));
     }
 
     @Test
@@ -782,7 +782,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             otherValues.add(value);
             add(key, value, record);
         }
-        Assert.assertEquals(values, store.fetch(key, record, timestamp));
+        Assert.assertEquals(values, store.select(key, record, timestamp));
     }
 
     @Test
@@ -791,7 +791,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         TObject value = TestData.getTObject();
         long record = TestData.getLong();
         add(key, value, record);
-        Assert.assertTrue(store.fetch(key, record).contains(value));
+        Assert.assertTrue(store.select(key, record).contains(value));
     }
 
     @Test
@@ -801,12 +801,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
         long record = TestData.getLong();
         long timestamp = Time.now();
         add(key, value, record);
-        Assert.assertFalse(store.fetch(key, record, timestamp).contains(value));
+        Assert.assertFalse(store.select(key, record, timestamp).contains(value));
     }
 
     @Test
     public void testFetchEmpty() {
-        Assert.assertTrue(store.fetch(TestData.getString(), TestData.getLong())
+        Assert.assertTrue(store.select(TestData.getString(), TestData.getLong())
                 .isEmpty());
     }
 
@@ -954,8 +954,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
         value = "string3";
         add(key, Convert.javaToThrift(Tag.create(value)), record);
         add(key, Convert.javaToThrift(Tag.create(value)), record);
-        Variables.register("test", store.fetch(key, record));
-        Assert.assertEquals(3, store.fetch(key, record).size());
+        Variables.register("test", store.select(key, record));
+        Assert.assertEquals(3, store.select(key, record).size());
     }
 
     @Test
@@ -1642,7 +1642,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         while (it.hasNext()) {
             long record = it.next();
             if(TestData.getInt() % 3 == 0) {
-                TObject value = store.fetch(key, record).iterator().next();
+                TObject value = store.select(key, record).iterator().next();
                 it.remove();
                 remove(key, value, record);
             }

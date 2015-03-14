@@ -160,7 +160,7 @@ public abstract class BufferedStoreTest extends StoreTest {
                 }
             }
         }
-        Assert.assertEquals(values, store.fetch(d.key, d.record));
+        Assert.assertEquals(values, store.select(d.key, d.record));
     }
 
     @Test
@@ -260,7 +260,7 @@ public abstract class BufferedStoreTest extends StoreTest {
                 data.get(TestData.getScaleCount() % data.size()));
         ((BufferedStore) store).set(d.key, d.value, d.record);
         Assert.assertTrue(store.verify(d.key, d.value, d.record));
-        Assert.assertEquals(1, store.fetch(d.key, d.record).size());
+        Assert.assertEquals(1, store.select(d.key, d.record).size());
     }
 
     @Test
@@ -273,8 +273,8 @@ public abstract class BufferedStoreTest extends StoreTest {
         data.add(Data.positive("foo", Convert.javaToThrift(Tag.create("B")), 1));
         data.add(Data.negative(d));
         insertData(data, 2);
-        Assert.assertFalse(store.fetch("foo", 1).contains(string));
-        Assert.assertFalse(store.fetch("foo", 1).contains(tag));
+        Assert.assertFalse(store.select("foo", 1).contains(string));
+        Assert.assertFalse(store.select("foo", 1).contains(tag));
 
     }
 
