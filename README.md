@@ -2,6 +2,16 @@
 
 [ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
+This is version 0.5.0 of Concourse.
+
+Concourse will be maintained under the [Semantic Versioning](http://semver.org)
+guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
+where
+
+* breaking backward compatibility bumps the major,
+* new additions while maintaining backward compatibility bumps the minor, and
+* bug fixes or miscellaneous changes bumps the patch.
+
 ## Quickstart
 ```java
 package org.cinchapi.concourse.examples;
@@ -123,28 +133,6 @@ Concourse is only supported on Linux and Mac OS X operating systems. Things _sho
 
 #### Java
 Concourse runs on Java 1.7.
-
-### General Information
-
-#### Versioning
-
-This is version 0.5.0 of Concourse.
-
-Concourse will be maintained under the [Semantic Versioning](http://semver.org)
-guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
-where
-
-* breaking backward compatibility bumps the major,
-* new additions while maintaining backward compatibility bumps the minor, and
-* bug fixes or miscellaneous changes bumps the patch.
-
-#### Modules
-This repository contains several modules that form the concourse-core.
-
-* The **concourse-driver-java** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
-* The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse api.
-* The **concourse-shell** project contains the code for the Concourse Action SHell (CaSH), which is shipped with concourse-server.
-* The **concourse-integration-tests** project contains long running end-to-end tests that should be run separately from the build process.
 
 ## Contributing
 Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone regardless of skill level :)
