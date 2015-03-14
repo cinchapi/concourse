@@ -17,7 +17,7 @@ You have more users and more data. Now the database needs more resources. Sure, 
 ###### Optimizing
 Your database is mission critical, but as you can see, it needs a babysitter. This forces you to allocate an abundance of resources just to figure out which settings to tweak each time your app grows. Time and money wasted.
 
-## The solution.
+## The Solution
 Concourse is an entirely new kind of database that is designed to automatically adapt to any workload or data scale.
 
 ###### Automatic Indexing
@@ -40,7 +40,9 @@ Concourse supports rich full text search right out the box, so you don't need to
 
 ---
 
-### Connecting to Concourse
+## Usage
+
+#### Connecting to Concourse
 Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`.
 
 The easiest way to connect is to use the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
@@ -60,7 +62,7 @@ Concourse concourse = Concourse.connect("http://remote-server.com", 11345, "myus
   "mycomplexpassword", "production");
 ```
 
-### Writing to Concourse
+#### Writing to Concourse
 Concourse allows you to write data immediately without specifying a schema or creating any explicit structure.
 ```java
 // Insert a value for the "name" key in record 1
@@ -73,7 +75,7 @@ concourse.add("name", "John Doe", 1);
 concourse.remove("name", "Jeff Nelson", 1)
 ```
 
-### Reading from Concourse
+#### Reading from Concourse
 Concourse automatically creates primary, secondary and fulltext indexes for all of your data so you can perform efficient predicate, range, and search queries on anything at anytime.
 ```java
 // Get the oldest value for the "name" key in record 1
@@ -86,7 +88,7 @@ concourse.fetch("name", 1);
 concourse.find("name", Operator.EQUALS, "Jeff Nelson");
 ```
 
-### Transactions
+#### Transactions
 Concourse provides cross-record transactions that are fully ACID compliant: all operations succeed or fail together; writes are visible to all readers only after being successfully committed; serializable isolation with [just-in-time locking ](http://concoursedb.com/blog/just-in-time-locking/) prevents all read or write phenomena and committed transactions are immediately stored to disk so they persist in the event of power loss, crash or error.
 ```java
 try {
@@ -101,7 +103,7 @@ catch (TransactionException e) {
 }
 ```
 
-### Version Control
+#### Version Control
 Concourse automatically and efficiently tracks revisions to your data. This means that you can easily audit changes and rever to previous states without downtime.
 ```java
 // return all the revisions to the record
@@ -115,7 +117,7 @@ concourse.audit("name", 1);
 concourse.chronologize("name", 1, Timestamp.parse("last month"), Timestamp.parse("last week"));
 ```
 
-### Reading from the past
+#### Reading from the past
 Version control in Concourse also  means that you have the power to query and fetch data from any point in the past, which makes it  possible to build applications that know what was known when and can analyze real-time changes over time.
 ```java
 // Find data matching criteria in the past
@@ -164,7 +166,7 @@ where
 #### Modules
 This repository contains several modules that form the concourse-core.
 
-* The **concourse** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
+* The **concourse-driver-java** project contains the core API, which is the foundation for everything in Concourse. This API is public and should be used in third-party applications to interact with Concourse.
 * The **concourse-server** project contains all the server-side logic for data storage and retrieval. You should __*never*__ include this code in a third-party application, but should install the concourse-server distribution and interact with it using the concourse api.
 * The **concourse-shell** project contains the code for the Concourse Action SHell (CaSH), which is shipped with concourse-server.
 * The **concourse-integration-tests** project contains long running end-to-end tests that should be run separately from the build process.
