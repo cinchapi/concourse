@@ -676,8 +676,7 @@ public class ConcourseServer implements
     public Set<Long> browse(AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TException {
-        // return getEngine(environment).browse();
-        return null;
+        return getEngine(environment).browse();
     }
 
     @Override
@@ -1733,7 +1732,7 @@ public class ConcourseServer implements
                         else {
                             throw new AtomicStateException();
                         }
-                    }                     
+                    }
                 }
                 catch (AtomicStateException e) {
                     atomic = null;
