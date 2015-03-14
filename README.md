@@ -40,8 +40,8 @@ import com.google.common.collect.Iterables;
 
 public static void main(String... args) {
     Concourse concourse = Concourse.connect();
-            
-    Set<Long> records = concourse.insert(json);
+    
+    Set<Long> records = concourse.insert(json); // Each object is added to a distinct record 
     long lebron = Iterables.get(records, 0);
     long durant = Iterables.get(records, 1);
     long kobe = Iterables.get(records, 2);
