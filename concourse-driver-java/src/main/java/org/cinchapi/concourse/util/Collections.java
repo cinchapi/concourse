@@ -63,7 +63,8 @@ public final class Collections {
                     list.add(((Number) elt).longValue());
                 }
                 else {
-                    list.add((long) elt);
+                    throw new ClassCastException("Cant convert object of type"
+                            + elt.getClass() + " to java.lang.Long");
                 }
             }
             return list;
