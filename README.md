@@ -108,7 +108,7 @@ Concourse supports rich full text search right out the box, so you don't need to
 
 ## Overview
 ##### System Requirements
-* >= 256 MB heap
+* At least 256 mb of available memory
 * Linux or OS X
 * Java 1.7+
 
