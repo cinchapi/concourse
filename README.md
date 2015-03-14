@@ -107,12 +107,12 @@ Since Concourse makes very few assumptions about data, it integrates with your a
 Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
 
 ## Overview
-#### System Requirements
+##### System Requirements
 * >= 256 MB heap
 * Linux or OS X
 * Java 1.7+
 
-#### Versioning
+##### Versioning
 Concourse will be maintained under the [Semantic Versioning](http://semver.org)
 guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
 where
@@ -121,7 +121,7 @@ where
 * new additions while maintaining backward compatibility bumps the minor, and
 * bug fixes or miscellaneous changes bumps the patch.
 
-#### Additional Resources
+##### Additional Resources
 * [Installation](http://concoursedb.com/guide/installation)
 * [Tutorial](http://concoursedb.com/guide/tutorial)
 * [API](concourse/README.md)
@@ -133,17 +133,17 @@ where
 ## Contributing
 Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone regardless of skill level :)
 
-#### Mailing Lists
+##### Mailing Lists
 
 * [concourse-devs](https://groups.google.com/forum/#!forum/concourse-devs)
 * [concourse-users](https://groups.google.com/forum/#!forum/concourse-users)
 
 ## Credits
-#### Author
+##### Author
 
 * Jeff Nelson
 
-#### License
+##### License
 
 Copyright © 2013-2015 Cinchapi, Inc.
 
