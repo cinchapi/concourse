@@ -3,7 +3,46 @@
 [ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
 ## Introduction
-The Concourse data model is lightweight and flexible. Unlike other databases, Concourse is completely schemaless and does not hold data in tables or collections. Instead, Concourse is simply a distributed graph of records. Each record has multiple keys. And each key has one or more distinct values. Like any graph, you can link records to one another. And the structure of one record does not affect the structure of another.
+Concourse is a self-tuning database that practically runs itself.
+
+### The Problem
+Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing the database.
+
+###### Planning
+You have an awesome idea for a product? Great! But before you start building, you've got to figure out how to translate that idea into a rigid database structure. And if you want to change a feature down the line, you've got to migrate your existing data. This slows down your ability to prototype, iterate and pivot.
+
+###### Profiling
+Got performance problems? Well, now you have to spend time finding the culprit. Did you index the data correctly? Are your queries properly structured? Do you have an external cache in place? Meanwhile, your competitors are busy gaining traction.
+
+###### Scaling
+You have more users and more data. Now the database needs more resources. Sure, the popular NoSQL solutions make this easier, but eventual consistency forces you to figure out what to do when the database can't be trusted.
+
+###### Optimizing
+Your database is mission critical, but as you can see, it needs a babysitter. This forces you to allocate an abundance of resources just to figure out which settings to tweak each time your app grows. Time and money wasted.
+
+### Concourse is the solution.
+Concourse is an entirely new kind of database that is designed to automatically adapt to any workload or data scale.
+
+###### Automatic Indexing
+You no longer need to plan queries in advance because Concourse automatically **indexes all of your data** while guaranteeing **constant time writes** that are super fast. Concourse fully supports ad-hoc range and predicate queries and automatically caches frequently requested data for optimal performance.
+
+###### Version Control
+Concourse automatically **tracks changes to your data**, just like Git does for source code. Of course this means that you can easily audit changes and revert to previous states without downtime; but it also means that you have the power to **query data from the past**. Version control in Concourse makes it possible to build applications that know what was known when and can analyze real-time changes over time.
+
+###### ACID Transactions
+Concourse supports truly distributed ACID transactions without restriction. And we use dynamic resource management with **just-in-time locking** to ensure that they deliver both the highest performance and strongest consistency. So no need to guess when your data will eventually become consistent. When distributed Concourse responds to a query, you can **trust the results immediately**.
+
+###### Simple Data Model
+Concourse's **document-graph** structure is lightweight and flexible–it supports any kind of data and very large scales. Data about each person, place or thing is stored in a record, which is simply a collection of key/value pairs. And you can create links among records to easily **model all the relationships within your data**.
+
+###### Schemaless
+Since Concourse makes very few assumptions about data, it integrates with your application seamlessly and never needs a translator (goodbye object-relational impedance mismatch)! You **never have to declare structure up front**–no schema, tables, or indexes–or specify value types because Concourse is smart enough to figure it out. Concourse **dynamically adapts to your application** so that you can focus on building value without having to drag the database along.
+
+###### Search
+Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
+
+---
+
 ### Connecting to Concourse
 Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`.
 
