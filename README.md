@@ -2,6 +2,77 @@
 
 [ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
+## Quickstart
+```java
+package org.cinchapi.concourse.examples;
+
+import java.util.Set;
+
+import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.Timestamp;
+import org.cinchapi.concourse.TransactionException;
+import org.cinchapi.concourse.thrift.Operator;
+
+import com.google.common.collect.Iterables;
+
+public class QuickStart {
+
+    public static void main(String... args) {
+        Concourse concourse = Concourse.connect();
+
+        // Insert some JSON data for quick analysis. Notice that I don't have to
+        // declare a schema, create any structure or configure any indexes.
+        String json = "[{\"name\": \"Lebron James\",\"age\": 30,\"team\": \"Cleveland Cavaliers\"},"
+                + "{\"name\": \"Kevin Durant\",\"age\": 26,\"team\": \"OKC Thunder\"},"
+                + "{\"name\": \"Kobe Bryant\",\"age\": 36,\"team\": \"LA Lakers\"}]";
+                
+        Set<Long> records = concourse.insert(json);
+        long lebron = Iterables.get(records, 0);
+        long durant = Iterables.get(records, 1);
+        long kobe = Iterables.get(records, 2);
+
+        // I can get or modify individual attributes for each record without
+        // loading the entire data set
+        concourse.get("age", kobe);
+        concourse.add("name", "KD", durant);
+        concourse.remove("jersey_number", 6, lebron);
+
+        // Since data is automatically indexed, I can easily find records that
+        // match a criteria
+        concourse.find("team", "=", "Chicago Bulls");
+        concourse.find("age", Operator.BETWEEN, 22, 29);
+
+        // If I'm curious about how the data looked in the past, I can perform
+        // historical reads
+        concourse.find("team", Operator.EQUALS, "Chicago Bulls",
+                Timestamp.parse("2011"));
+        concourse.find("age", Operator.BETWEEN, 22, 29,
+                Timestamp.parse("2 years ago"));
+
+        // I can also analyze how data has changed over time and restore
+        // previous states.
+        concourse.audit("team", lebron);
+        concourse
+                .revert("jersey_number", kobe, Timestamp.parse("10 years ago"));
+
+        // I can also rely on transactions if any changes across records need
+        // ACID guarantees.
+        concourse.stage();
+        try {
+            concourse.set("current_team", "OKC Thunder", lebron);
+            concourse.set("current_team", "Cleveland Cavs", durant);
+            concourse.commit();
+        }
+        catch (TransactionException e) {
+            concourse.abort();
+        }
+
+    }
+
+}
+```
+You can find more examples in the examples[examples] directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
+
 ## Motivation
 Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing the database.
 
@@ -38,96 +109,7 @@ Since Concourse makes very few assumptions about data, it integrates with your a
 ###### Search
 Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
 
-## Usage
-
-#### Connecting to Concourse
-Each Concourse client connects to a Concourse Server environment on behalf of a user. Concourse Server can accomodate many concurrent connections. While there is a 1:1 mapping between each client connection and the environment to which it is connected, a user can have multiple concurrent client connections to the same environment or different environments. You connect to Concourse using one of the `connect` methods in the `Concourse` class by specifying some combination of a `host`, `port`, `username`, `password` and `environment`.
-
-The easiest way to connect is to use the default parameters. This attempts to connect to the default environment of the local server listening on port 17171.
-```java
-Concourse concourse = Concourse.connect();
-```
-
-Of course, you can always specify an environment other than the default one when connecting to Concourse Server. For instance, you can connect to the "staging" environment of the default local server.
-```java
-Concourse concourse = Concourse.connect("staging");
-```
-*You can always connect to an existing environment. If you try to create a client connection with an environment that doesn't exist, it will be dynamically created. There is never a need to explicitly define environments in Concourse*
-
-Finally, you can specify all the connection parameters to override the default values. For instance, you can connect to the production environment on remote server as a non-admin user.
-```java
-Concourse concourse = Concourse.connect("http://remote-server.com", 11345, "myusername",
-  "mycomplexpassword", "production");
-```
-
-#### Writing to Concourse
-Concourse allows you to write data immediately without specifying a schema or creating any explicit structure.
-```java
-// Insert a value for the "name" key in record 1
-concourse.set("name", "Jeff Nelson", 1);
-
-// Append an additional value for the "name" key in record 1
-concourse.add("name", "John Doe", 1);
-
-// Remove a value for the "name" key in record 1
-concourse.remove("name", "Jeff Nelson", 1)
-```
-
-#### Reading from Concourse
-Concourse automatically creates primary, secondary and fulltext indexes for all of your data so you can perform efficient predicate, range, and search queries on anything at anytime.
-```java
-// Get the oldest value for the "name" key in record 1
-concourse.get("name", 1);
-
-// Fetch all the values for the "name" key in record 1
-concourse.fetch("name", 1);
-
-// Find all the records that have a value of "Jeff Nelson" for the "name" key
-concourse.find("name", Operator.EQUALS, "Jeff Nelson");
-```
-
-#### Transactions
-Concourse provides cross-record transactions that are fully ACID compliant: all operations succeed or fail together; writes are visible to all readers only after being successfully committed; serializable isolation with [just-in-time locking ](http://concoursedb.com/blog/just-in-time-locking/) prevents all read or write phenomena and committed transactions are immediately stored to disk so they persist in the event of power loss, crash or error.
-```java
-try {
-  // Transfer $50 from acct1 to acct2
-  concourse.stage(); //start transaction
-  concourse.set("balance", concourse.get("balance", acct1) - 50), acct1);
-  concourse.set("balance", concourse.get("balance", acct2) + 50), acct2);
-  concourse.commit();
-}
-catch (TransactionException e) {
-  concourse.abort();
-}
-```
-
-#### Version Control
-Concourse automatically and efficiently tracks revisions to your data. This means that you can easily audit changes and rever to previous states without downtime.
-```java
-// return all the revisions to the record
-concourse.audit(1);
-
-// return all the revisions to just the "name" key in the record
-concourse.audit("name", 1);
-
-// Return a timeseries for all the changes to the "name" key in
-// the record between last month and last week
-concourse.chronologize("name", 1, Timestamp.parse("last month"), Timestamp.parse("last week"));
-```
-
-#### Reading from the past
-Version control in Concourse also  means that you have the power to query and fetch data from any point in the past, which makes it  possible to build applications that know what was known when and can analyze real-time changes over time.
-```java
-// Find data matching criteria in the past
-concourse.find("age", Operator.LESS_THAN, 50, Timestamp.parse("last year"));
-
-// Fetch data in a previous state from a record
-concourse.get("name", 1, Timestamp.parse("yesterday"));
-```
-
-For more usage information please review the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
-
-## Overview
+## Resources
 * [Installation](http://concoursedb.com/guide/installation)
 * [Tutorial](http://concoursedb.com/guide/tutorial)
 * [API](concourse/README.md)
