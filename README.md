@@ -1,16 +1,8 @@
 # Concourse
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
+[Concourse](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide a more efficient approach to data management that is easy to deploy, access and scale while maintaining the strong consistency of traditional database systems.
 
 This is version 0.5.0 of Concourse.
-
-Concourse will be maintained under the [Semantic Versioning](http://semver.org)
-guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
-where
-
-* breaking backward compatibility bumps the major,
-* new additions while maintaining backward compatibility bumps the minor, and
-* bug fixes or miscellaneous changes bumps the patch.
 
 ## Quickstart
 ```java
@@ -114,7 +106,22 @@ Since Concourse makes very few assumptions about data, it integrates with your a
 ###### Search
 Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
 
-## Resources
+## Overview
+#### System Requirements
+* >= 256 MB heap
+* Linux or OS X
+* Java 1.7+
+
+#### Versioning
+Concourse will be maintained under the [Semantic Versioning](http://semver.org)
+guidelines such that release versions will be formatted as `<major>.<minor>.<patch>`
+where
+
+* breaking backward compatibility bumps the major,
+* new additions while maintaining backward compatibility bumps the minor, and
+* bug fixes or miscellaneous changes bumps the patch.
+
+#### Additional Resources
 * [Installation](http://concoursedb.com/guide/installation)
 * [Tutorial](http://concoursedb.com/guide/tutorial)
 * [API](concourse/README.md)
@@ -123,32 +130,20 @@ Concourse supports rich full text search right out the box, so you don't need to
 * [Data Model](http://concoursedb.com/guide/data-model/)
 * [Storage Model](http://concoursedb.com/guide/storage-model/)
 
-### System Requirements
-
-#### Memory
-Concourse immediately writes all data to disk, but also keeps recently written and read content in memory. Since memory operations are faster, having more on hand is great, but you can operate Concourse safely with a minimum 256 MB heap.
-
-#### Operating System
-Concourse is only supported on Linux and Mac OS X operating systems. Things _should_ also work on Windows, but we can't make any guarantees.
-
-#### Java
-Concourse runs on Java 1.7.
-
 ## Contributing
 Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved in the community. We value and welcome constructive contributions from anyone regardless of skill level :)
 
-### Mailing Lists
+#### Mailing Lists
 
 * [concourse-devs](https://groups.google.com/forum/#!forum/concourse-devs)
 * [concourse-users](https://groups.google.com/forum/#!forum/concourse-users)
 
-
 ## Credits
-### Author
+#### Author
 
 * Jeff Nelson
 
-### License
+#### License
 
 Copyright © 2013-2015 Cinchapi, Inc.
 
