@@ -44,6 +44,7 @@ public class QuickStart {
 
         // If I'm curious about how the data looked in the past, I can perform
         // historical reads
+        concourse.get("age", durant, Timestamp.parse("04/2009"));
         concourse.find("team", Operator.EQUALS, "Chicago Bulls",
                 Timestamp.parse("2011"));
         concourse.find("age", Operator.BETWEEN, 22, 29,
