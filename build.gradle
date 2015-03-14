@@ -60,6 +60,10 @@ subprojects {
     	from sourceSets.main.allSource
     }
 
+    javadoc {
+      exclude "**/thrift/**"
+    }
+
     task javadocJar(type: Jar, dependsOn: javadoc) {
     	classifier = 'javadoc'
     	from javadoc.destinationDir
