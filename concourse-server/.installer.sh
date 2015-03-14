@@ -35,7 +35,7 @@ cat << EOF > $SCRIPT
 files=\$(ls ../lib/concourse*.jar 2> /dev/null | wc -l)
 
 # --- copy upgrade files
-if [ \$files -gt 0 ]; then 
+if [ \$files -gt 0 ]; then
 	echo 'Upgrading Concourse Server..........................................................................'
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
@@ -43,10 +43,8 @@ if [ \$files -gt 0 ]; then
 	cp -fR licenses/ ../licenses/
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
-        rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
-        mkdir -p ../wrapper
-        cp -R wrapper/* ../wrapper
-	cp -f conf/.concourse.conf ../conf/.concourse.conf
+  rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
+	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
 
 	# --- run upgrade tasks
 	echo
