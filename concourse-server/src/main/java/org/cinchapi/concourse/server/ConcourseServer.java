@@ -676,7 +676,13 @@ public class ConcourseServer implements
     public Set<Long> browse(AccessToken creds, TransactionToken transaction,
             String environment) throws TSecurityException,
             TTransactionException, TException {
-        return getEngine(environment).browse();
+        checkAccess(creds, transaction);
+        try {
+            return getEngine(environment).browse();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
