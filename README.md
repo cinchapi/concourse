@@ -5,6 +5,27 @@
 This is version 0.5.0 of Concourse.
 
 ## Quickstart
+Let's assume we have the following array of JSON objects:
+```json
+[
+  {
+    "name": "Lebron James",
+    "age": 30,
+    "team": "Cleveland Cavaliers"
+  },
+  {
+    "name": "Kevin Durant",
+    "age": 26,
+    "team": "OKC Thunder"
+  },
+  {
+    "name": "Kobe Bryant",
+    "age": 36,
+    "team": "LA Lakers"
+  }
+]
+```
+We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
 ```java
 package org.cinchapi.concourse.examples;
 
@@ -19,12 +40,6 @@ import com.google.common.collect.Iterables;
 
 public static void main(String... args) {
     Concourse concourse = Concourse.connect();
-
-    // Insert some JSON data for quick analysis. Notice that I don't have to
-    // declare a schema, create any structure or configure any indexes.
-    String json = "[{\"name\": \"Lebron James\",\"age\": 30,\"team\": \"Cleveland Cavaliers\"},"
-            + "{\"name\": \"Kevin Durant\",\"age\": 26,\"team\": \"OKC Thunder\"},"
-            + "{\"name\": \"Kobe Bryant\",\"age\": 36,\"team\": \"LA Lakers\"}]";
             
     Set<Long> records = concourse.insert(json);
     long lebron = Iterables.get(records, 0);
