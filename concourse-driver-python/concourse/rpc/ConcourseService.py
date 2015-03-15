@@ -321,7 +321,7 @@ class Iface:
     """
     pass
 
-  def browse(self, creds, transaction, environment):
+  def find(self, creds, transaction, environment):
     """
     Parameters:
      - creds
@@ -2016,19 +2016,19 @@ class Client(Iface):
       raise result.ex2
     return
 
-  def browse(self, creds, transaction, environment):
+  def find(self, creds, transaction, environment):
     """
     Parameters:
      - creds
      - transaction
      - environment
     """
-    self.send_browse(creds, transaction, environment)
-    return self.recv_browse()
+    self.send_find(creds, transaction, environment)
+    return self.recv_find()
 
-  def send_browse(self, creds, transaction, environment):
-    self._oprot.writeMessageBegin('browse', TMessageType.CALL, self._seqid)
-    args = browse_args()
+  def send_find(self, creds, transaction, environment):
+    self._oprot.writeMessageBegin('find', TMessageType.CALL, self._seqid)
+    args = find_args()
     args.creds = creds
     args.transaction = transaction
     args.environment = environment
@@ -2036,7 +2036,7 @@ class Client(Iface):
     self._oprot.writeMessageEnd()
     self._oprot.trans.flush()
 
-  def recv_browse(self):
+  def recv_find(self):
     iprot = self._iprot
     (fname, mtype, rseqid) = iprot.readMessageBegin()
     if mtype == TMessageType.EXCEPTION:
@@ -2044,7 +2044,7 @@ class Client(Iface):
       x.read(iprot)
       iprot.readMessageEnd()
       raise x
-    result = browse_result()
+    result = find_result()
     result.read(iprot)
     iprot.readMessageEnd()
     if result.success is not None:
@@ -2053,7 +2053,7 @@ class Client(Iface):
       raise result.ex
     if result.ex2 is not None:
       raise result.ex2
-    raise TApplicationException(TApplicationException.MISSING_RESULT, "browse failed: unknown result");
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "find failed: unknown result");
 
   def selectRecord(self, record, creds, transaction, environment):
     """
@@ -4814,7 +4814,7 @@ class Processor(Iface, TProcessor):
     self._processMap["setKeyValueRecord"] = Processor.process_setKeyValueRecord
     self._processMap["setKeyValue"] = Processor.process_setKeyValue
     self._processMap["setKeyValueRecords"] = Processor.process_setKeyValueRecords
-    self._processMap["browse"] = Processor.process_browse
+    self._processMap["find"] = Processor.process_find
     self._processMap["selectRecord"] = Processor.process_selectRecord
     self._processMap["selectRecords"] = Processor.process_selectRecords
     self._processMap["selectRecordTime"] = Processor.process_selectRecordTime
@@ -5238,18 +5238,18 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
-  def process_browse(self, seqid, iprot, oprot):
-    args = browse_args()
+  def process_find(self, seqid, iprot, oprot):
+    args = find_args()
     args.read(iprot)
     iprot.readMessageEnd()
-    result = browse_result()
+    result = find_result()
     try:
-      result.success = self._handler.browse(args.creds, args.transaction, args.environment)
+      result.success = self._handler.find(args.creds, args.transaction, args.environment)
     except concourse.rpc.shared.ttypes.TSecurityException, ex:
       result.ex = ex
     except concourse.rpc.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
-    oprot.writeMessageBegin("browse", TMessageType.REPLY, seqid)
+    oprot.writeMessageBegin("find", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -10730,7 +10730,7 @@ class setKeyValueRecords_result:
   def __ne__(self, other):
     return not (self == other)
 
-class browse_args:
+class find_args:
   """
   Attributes:
    - creds
@@ -10785,7 +10785,7 @@ class browse_args:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('browse_args')
+    oprot.writeStructBegin('find_args')
     if self.creds is not None:
       oprot.writeFieldBegin('creds', TType.STRUCT, 1)
       self.creds.write(oprot)
@@ -10823,7 +10823,7 @@ class browse_args:
   def __ne__(self, other):
     return not (self == other)
 
-class browse_result:
+class find_result:
   """
   Attributes:
    - success
@@ -10882,7 +10882,7 @@ class browse_result:
     if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
       oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
       return
-    oprot.writeStructBegin('browse_result')
+    oprot.writeStructBegin('find_result')
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))

@@ -152,9 +152,8 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Create a new Client connection to the default environment of the
-     * specified Concourse Server and return a handler to facilitate database
-     * interaction.
+     * Create a new connection to the default environment of the specified
+     * Concourse Server and return a handle to facilitate interaction.
      * 
      * @param host
      * @param port
@@ -168,16 +167,15 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
-     * Create a new Client connection to the specified {@code environment} of
-     * the specified Concourse Server and return a handler to facilitate
-     * database interaction.
+     * Create a new connection to the specified {@code environment} of the
+     * specified Concourse Server and return a handle to facilitate interaction.
      * 
      * @param host
      * @param port
      * @param username
      * @param password
      * @param environment
-     * @return the database handler
+     * @return the handle
      */
     public static Concourse connect(String host, int port, String username,
             String password, String environment) {
@@ -553,6 +551,13 @@ public abstract class Concourse implements AutoCloseable {
      * Close the Client connection.
      */
     public abstract void exit();
+
+    /**
+     * Return a list of all the records that have ever contained data.
+     * 
+     * @return the full list of records
+     */
+    public abstract Set<Long> find();
 
     /**
      * Find and return the set of records that satisfy the {@code criteria}.
@@ -1352,11 +1357,15 @@ public abstract class Concourse implements AutoCloseable {
     public abstract <T> void set(String key, T value, long record);
 
     /**
-     * Turn on {@code staging} mode so that all subsequent changes are collected
-     * in a staging area before possibly being committed. Staged operations are
-     * guaranteed to be reliable, all or nothing units of work that allow
-     * correct recovery from failures and provide isolation between clients so
-     * that Concourse is always in a consistent state (e.g. a transaction).
+     * Start a new transaction.
+     * <p>
+     * This method will turn on STAGING mode so that all subsequent changes are
+     * collected in an isolated buffer before possibly being committed to the
+     * database. Staged operations are guaranteed to be reliable, all or nothing
+     * units of work that allow correct recovery from failures and provide
+     * isolation between clients so the database is always in a consistent
+     * state.
+     * </p>
      * <p>
      * After this method returns, all subsequent operations will be done in
      * {@code staging} mode until either {@link #abort()} or {@link #commit()}
@@ -1368,8 +1377,8 @@ public abstract class Concourse implements AutoCloseable {
      * transaction can be properly aborted.
      * 
      * <pre>
+     * concourse.stage();
      * try {
-     *     concourse.stage();
      *     concourse.get(&quot;foo&quot;, 1);
      *     concourse.add(&quot;foo&quot;, &quot;bar&quot;, 1);
      *     concourse.commit();
@@ -2315,6 +2324,18 @@ public abstract class Concourse implements AutoCloseable {
             catch (Exception e) {
                 throw Throwables.propagate(e);
             }
+        }
+
+        @Override
+        public Set<Long> find() {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.find(creds, transaction, environment);
+                }
+
+            });
         }
 
         @Override

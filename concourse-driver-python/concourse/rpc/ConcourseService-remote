@@ -46,7 +46,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('  void setKeyValueRecord(string key, TObject value, i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('  i64 setKeyValue(string key, TObject value, AccessToken creds, TransactionToken transaction, string environment)')
   print('  void setKeyValueRecords(string key, TObject value,  records, AccessToken creds, TransactionToken transaction, string environment)')
-  print('   browse(AccessToken creds, TransactionToken transaction, string environment)')
+  print('   find(AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecord(i64 record, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecords( records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectRecordTime(i64 record, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
@@ -298,11 +298,11 @@ elif cmd == 'setKeyValueRecords':
     sys.exit(1)
   pp.pprint(client.setKeyValueRecords(args[0],eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
-elif cmd == 'browse':
+elif cmd == 'find':
   if len(args) != 3:
-    print('browse requires 3 args')
+    print('find requires 3 args')
     sys.exit(1)
-  pp.pprint(client.browse(eval(args[0]),eval(args[1]),args[2],))
+  pp.pprint(client.find(eval(args[0]),eval(args[1]),args[2],))
 
 elif cmd == 'selectRecord':
   if len(args) != 4:

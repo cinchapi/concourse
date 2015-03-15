@@ -305,7 +305,7 @@ service ConcourseService {
   # ~~~~~~~~ Read Methods ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  set<i64> browse(
+  set<i64> find(
     1: shared.AccessToken creds,
     2: shared.TransactionToken transaction,
     3: string environment)

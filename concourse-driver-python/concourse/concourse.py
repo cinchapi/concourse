@@ -79,4 +79,44 @@ class Concourse:
         else:
             raise ValueError
 
+    def audit(self, key=None, record=None, start=None, end=None):
+        """
+
+        :param kwargs:
+        :return:
+        """
+        if key and record and start and end:
+            return self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+                                                      self.environment)
+        elif key and record and start:
+            return self.client.auditKeyRecordStart(key, record, start, self.creds, self.transaction, self.environment)
+        elif key and record:
+            return self.client.auditKeyRecord(key, record, self.creds, self.transaction, self.environment)
+        elif record and start and end:
+            return self.client.auditKeyRecordStartEnd(record, start, end, self.creds, self.transaction,
+                                                      self.environment)
+        elif record and start:
+            return self.client.auditKeyRecordStart(record, start, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.auditRecord(record, self.creds, self.transaction, self.environment)
+
+    def browse(self, keys, timestamp=None):
+        """
+
+        :param keys:
+        :param timestamp:
+        :return:
+        """
+        # todo need to transform values
+        if isinstance(keys, list):
+            if timestamp:
+                return self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
+            else:
+                return self.client.browseKeys(keys, self.creds, self.transaction, self.environment)
+        else:
+            if timestamp:
+                return self.client.browseKeyTime(keys, self.creds, self.transaction, self.environment)
+            else:
+                return self.client.browseKey(keys, self.creds, self.transaction, self.environment)
+
 

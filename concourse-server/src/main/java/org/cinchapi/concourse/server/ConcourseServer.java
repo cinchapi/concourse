@@ -673,7 +673,7 @@ public class ConcourseServer implements
     }
 
     @Override
-    public Set<Long> browse(AccessToken creds, TransactionToken transaction,
+    public Set<Long> find(AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         checkAccess(creds, transaction);
         try {
