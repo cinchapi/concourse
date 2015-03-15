@@ -121,6 +121,14 @@ public final class GlobalState {
                                                        // server starts
 
     /**
+     * The listener port (1-65535) for HTTP/S connections. Choose a
+     * port between 49152 and 65535 to minimize the possibility of conflicts
+     * with other services on this host. A value of 0 indicates that the
+     * Concourse HTTP Server is disabled.
+     */
+    public static int HTTP_PORT = 0;
+
+    /**
      * The default environment that is automatically loaded when the server
      * starts and is used whenever a client does not specify an environment for
      * its connection.
@@ -188,6 +196,8 @@ public final class GlobalState {
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
+            
+            HTTP_PORT = config.getInt("http_port", HTTP_PORT);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
                     LOG_LEVEL.toString()));
