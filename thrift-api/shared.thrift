@@ -5,6 +5,7 @@
 # thrift -out ../../java -gen java shared.thrift
 
 namespace java org.cinchapi.concourse.thrift
+namespace py concourse.rpc.shared
 
 /**
  * Enumerates the list of operators that can be used in criteria specifications.
