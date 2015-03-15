@@ -33,11 +33,12 @@ namespace java org.cinchapi.concourse.thrift
 # - Patch: Incremented for bug fixes.
 #
 # As much as possible, try to preserve backward compatibility so that
-# Concourse Server can always talk to older drivers. It is not necessary
+# Concourse Server can always talk to older drivers. But it is not necessary
 # to ensure that drivers can talk to older Concourse Server instances.
 const string VERSION = "0.5.0"
 
-#
+# This value is passed over the wire to represent a null value, usually
+# for get/select methods where a key/record has no data.
 const data.TObject NULL = {'type': shared.Type.NULL}
 
 /**

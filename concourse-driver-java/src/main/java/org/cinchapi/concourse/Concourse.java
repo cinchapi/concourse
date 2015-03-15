@@ -61,25 +61,27 @@ import com.google.common.collect.Sets;
 
 /**
  * <p>
- * Concourse is a distributed self-tuning database with automatic indexing,
- * version control, and ACID transactions. Concourse provides a more intuitive
- * approach to data management that is easy to deploy, access and scale while
- * maintaining the strong consistency of traditional database systems.
+ * ConcourseDB is a self-tuning database that practically runs itself. Concourse
+ * offers features like automatic indexing, version control and distributed ACID
+ * transactions to provide a more efficient approach to data management that is
+ * easy to deploy, access and scale while maintaining the strong consistency of
+ * traditional database systems
  * </p>
  * <h2>Data Model</h2>
  * <p>
  * The Concourse data model is lightweight and flexible. Unlike other databases,
  * Concourse is completely schemaless and does not hold data in tables or
- * collections. Instead, Concourse is simply a distributed graph of records.
- * Each record has multiple keys. And each key has one or more distinct values.
- * Like any graph, you can link records to one another. And the structure of one
- * record does not affect the structure of another.
+ * collections. Instead, Concourse is simply a distributed document-graph. Each
+ * record/document has multiple keys. And each key has one or more distinct
+ * values. Like any graph, you can link records to one another. And the
+ * structure of one record does not affect the structure of another.
  * </p>
  * <p>
  * <ul>
  * <li><strong>Record</strong> &mdash; A logical grouping of data about a single
  * person, place, or thing (i.e. an object). Each {@code record} is a collection
- * of key/value pairs that are together identified by a unique primary key.
+ * of key/value pairs that are together identified by a unique
+ * <em>primary key</em>.
  * <li><strong>Key</strong> &mdash; An attribute that maps to a set of
  * <em>one or more</em> distinct {@code values}. A {@code record} can have many
  * different {@code keys}, and the {@code keys} in one {@code record} do not
@@ -125,22 +127,22 @@ import com.google.common.collect.Sets;
 public abstract class Concourse implements AutoCloseable {
 
     /**
-     * Create a new Client connection to the environment of the Concourse Server
-     * described in {@code concourse_client.prefs} (or the default environment
-     * and server if the prefs file does not exist) and return a handler to
-     * facilitate database interaction.
+     * Create a new connection to the environment of the Concourse Server
+     * described in {@code concourse_client.prefs} (or, if the file does
+     * not exist, the default environment of the server at localhost:1717) and
+     * return a handle to facilitate interaction.
      * 
-     * @return the database handler
+     * @return the handle
      */
     public static Concourse connect() {
         return new Client();
     }
 
     /**
-     * /** Create a new Client connection to the specified {@code environment}
-     * of the Concourse Server described in {@code concourse_client.prefs} (or
-     * the default server if the prefs file does not exist) and return a handler
-     * to facilitate database interaction.
+     * Create a new connection to the specified {@code environment} of the
+     * Concourse Server described in {@code concourse_client.prefs} (or, if the
+     * file does not exist, the server at localhost:1717) and return a handle
+     * to facilitate interaction.
      * 
      * @param environment
      * @return the handle
