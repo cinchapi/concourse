@@ -74,7 +74,7 @@ class Concourse:
             return self.client.addKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
             return self.client.addKeyValueRecords(key, value, records, self.creds, self.transaction, self.environment)
-        elif isinstance(records, int):
+        elif isinstance(records, (int, long)):
             return self.client.addKeyValueRecord(key, value, records, self.creds, self.transaction, self.environment)
         else:
             raise ValueError
