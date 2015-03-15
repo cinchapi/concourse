@@ -25,7 +25,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper; 
+import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.cinchapi.vendor.spark.Access;
 import org.cinchapi.vendor.spark.route.RouteMatcherFactory;
