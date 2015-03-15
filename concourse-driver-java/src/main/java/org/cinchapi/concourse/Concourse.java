@@ -1919,7 +1919,7 @@ public abstract class Concourse implements AutoCloseable {
                     Map<TObject, Set<Long>> raw = client.browseKey(key, creds,
                             transaction, environment);
                     Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Value", "Records");
+                            .newPrettyLinkedHashMap(key, "Records");
                     for (Entry<TObject, Set<Long>> entry : raw.entrySet()) {
                         pretty.put(Convert.thriftToJava(entry.getKey()),
                                 entry.getValue());
@@ -1940,7 +1940,7 @@ public abstract class Concourse implements AutoCloseable {
                             timestamp.getMicros(), creds, transaction,
                             environment);
                     Map<Object, Set<Long>> pretty = PrettyLinkedHashMap
-                            .newPrettyLinkedHashMap("Value", "Records");
+                            .newPrettyLinkedHashMap(key, "Records");
                     for (Entry<TObject, Set<Long>> entry : raw.entrySet()) {
                         pretty.put(Convert.thriftToJava(entry.getKey()),
                                 entry.getValue());

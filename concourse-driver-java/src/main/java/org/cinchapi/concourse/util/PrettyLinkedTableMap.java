@@ -142,7 +142,7 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>> {
     @Override
     public String toString() {
         int total = 0;
-        Object[] header = new String[columns.size() + 1];
+        Object[] header = new Object[columns.size() + 1];
         header[0] = rowName;
         String format = "| %-" + rowLength + "s | ";
         int i = 1;
