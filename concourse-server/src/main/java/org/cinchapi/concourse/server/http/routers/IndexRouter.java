@@ -17,7 +17,6 @@ package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
 
-import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
@@ -28,6 +27,7 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.DataServices;
 
+import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -117,8 +117,8 @@ public class IndexRouter extends Router {
                 Long timestamp = ts == null ? null : Timestamp.parse(ts)
                         .getMicros();
                 Object data;
-                if(StringUtils.isNumeric(arg1)) {
-                    long record = Long.parseLong(arg1);
+                Long record;
+                if((record = Longs.tryParse(arg1)) != null) {
                     data = timestamp == null ? concourse.selectRecord(record,
                             accessToken, null, environment) : concourse
                             .selectRecordTime(record, timestamp, accessToken,

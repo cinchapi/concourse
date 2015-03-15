@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,12 +54,10 @@ import org.codehaus.groovy.control.CompilationFailedException;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.clutch.dates.StringToTime;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Longs;
 
 /**
  * The main program runner for the ConcourseShell client. ConcourseShell wraps a
@@ -308,15 +306,7 @@ public final class ConcourseShell {
 
         @Override
         public Timestamp call(Object arg) {
-            if(Longs.tryParse(arg.toString()) != null) {
-                // We should assume that the timestamp is in microseconds since
-                // that is the output format used in ConcourseShell
-                return Timestamp.fromMicros(Long.parseLong(arg.toString()));
-            }
-            else {
-                return Timestamp.fromJoda(StringToTime.parseDateTime(arg
-                        .toString()));
-            }
+            return Timestamp.parse(arg.toString());
         }
 
     };

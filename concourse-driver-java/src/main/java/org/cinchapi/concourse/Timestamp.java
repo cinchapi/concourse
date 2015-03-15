@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.cinchapi.concourse.time.StringToTime;
 import org.cinchapi.concourse.time.Time;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
@@ -67,7 +68,7 @@ public final class Timestamp {
     public static Timestamp fromMicros(long microseconds) {
         return new Timestamp(microseconds);
     }
-    
+
     /**
      * Return a {@code Timestamp} that corresponds to the system
      * epoch timestamp with microsecond precision.
@@ -125,8 +126,14 @@ public final class Timestamp {
      * @return the parsed timestamp
      */
     public static Timestamp parse(String str) {
-        return new Timestamp(DateTime.parse(str, ISODateTimeFormat
-                .dateTimeParser().withOffsetParsed()));
+        if(Longs.tryParse(str) != null) {
+            // We should assume that the timestamp is in microseconds since
+            // that is the output format used in ConcourseShell
+            return fromMicros(Long.parseLong(str));
+        }
+        else {
+            return fromJoda(StringToTime.parseDateTime(str));
+        }
     }
 
     /**
@@ -211,7 +218,8 @@ public final class Timestamp {
 
     @Override
     public String toString() {
-        return joda.toString(DateTimeFormat.forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z"));
+        return joda.toString(DateTimeFormat
+                .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z"));
     }
 
 }
