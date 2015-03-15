@@ -38,26 +38,7 @@ import com.google.common.io.BaseEncoding;
  * @author Jeff Nelson
  */
 public class HttpRequests {
-
-    /**
-     * Encode an auth token. The encoded token embeds information about the
-     * {@code environment} so that we can perform sanity checks that ensure the
-     * environment specified in the URL is one that the auth token was actually
-     * designed to access.
-     * 
-     * @param token
-     * @param environment
-     * @return the encoded auth token
-     */
-    public static String encodeAuthToken(AccessToken token, String environment) {
-        String base32Token = BaseEncoding.base32Hex().encode(token.getData());
-        String pack = base32Token + "|" + environment;
-        ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
-        String base64CryptPack = BaseEncoding.base64Url().encode(
-                ByteBuffers.toByteArray(cryptPack));
-        return base64CryptPack;
-    }
-
+    
     /**
      * Decode an auth token.
      * 
@@ -79,6 +60,25 @@ public class HttpRequests {
         parts[1] = toks[1];
         return parts;
 
+    }
+    
+    /**
+     * Encode an auth token. The encoded token embeds information about the
+     * {@code environment} so that we can perform sanity checks that ensure the
+     * environment specified in the URL is one that the auth token was actually
+     * designed to access.
+     * 
+     * @param token
+     * @param environment
+     * @return the encoded auth token
+     */
+    public static String encodeAuthToken(AccessToken token, String environment) {
+        String base32Token = BaseEncoding.base32Hex().encode(token.getData());
+        String pack = base32Token + "|" + environment;
+        ByteBuffer cryptPack = ClientSecurity.encrypt(pack);
+        String base64CryptPack = BaseEncoding.base64Url().encode(
+                ByteBuffers.toByteArray(cryptPack));
+        return base64CryptPack;
     }
 
     /**
@@ -190,4 +190,5 @@ public class HttpRequests {
             }
         }
     }
+    
 }

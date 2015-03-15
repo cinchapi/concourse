@@ -17,6 +17,8 @@ package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
 
+import org.apache.commons.lang.StringUtils;
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Endpoint;
@@ -24,6 +26,7 @@ import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.DataServices;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -43,9 +46,7 @@ public class IndexRouter extends Router {
      */
     public IndexRouter(ConcourseServer concourse) {
         super(concourse);
-        // TODO Auto-generated constructor stub
     }
-
 
     @Override
     public void routes() {
@@ -74,8 +75,9 @@ public class IndexRouter extends Router {
                             environment);
                     String token = HttpRequests.encodeAuthToken(access,
                             environment);
-                    this.response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE,
-                            token, 900, false);
+                    this.response.cookie("/",
+                            GlobalState.HTTP_AUTH_TOKEN_COOKIE, token, 900,
+                            false);
                     JsonObject response = new JsonObject();
                     response.add("token", new JsonPrimitive(token));
                     response.add("environment", new JsonPrimitive(environment));
@@ -98,12 +100,40 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                JsonElement payload = new JsonPrimitive(environment);
+                JsonObject payload = new JsonObject();
+                payload.addProperty("environment", environment);
                 return payload;
             }
 
         });
 
-    }
+        get(new Endpoint("/:arg1") {
 
+            @Override
+            protected JsonElement serve() throws Exception {
+                // TODO what about transaction
+                String arg1 = getParamValue(":arg1");
+                String ts = getParamValue("timestamp");
+                Long timestamp = ts == null ? null : Timestamp.parse(ts)
+                        .getMicros();
+                Object data;
+                if(StringUtils.isNumeric(arg1)) {
+                    long record = Long.parseLong(arg1);
+                    data = timestamp == null ? concourse.selectRecord(record,
+                            accessToken, null, environment) : concourse
+                            .selectRecordTime(record, timestamp, accessToken,
+                                    null, environment);
+                }
+                else {
+                    data = timestamp == null ? concourse.browseKey(arg1,
+                            accessToken, null, environment) : concourse
+                            .browseKeyTime(arg1, timestamp, accessToken,
+                                    null, environment);
+                }          
+                return DataServices.gson().toJsonTree(data);
+            }
+
+        });
+
+    }
 }
