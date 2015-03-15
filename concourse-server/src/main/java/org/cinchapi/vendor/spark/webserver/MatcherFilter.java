@@ -75,7 +75,6 @@ public class MatcherFilter implements Filter {
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, // NOSONAR
                     FilterChain chain) throws IOException, ServletException { // NOSONAR
-        long t0 = System.currentTimeMillis();
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest; // NOSONAR
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
 
@@ -143,7 +142,6 @@ public class MatcherFilter implements Filter {
                     if (result != null) {
                         bodyContent = result;
                     }
-                    long t1 = System.currentTimeMillis() - t0;
                 } catch (HaltException hEx) { // NOSONAR
                     throw hEx; // NOSONAR
                 } catch (Exception e) {                 

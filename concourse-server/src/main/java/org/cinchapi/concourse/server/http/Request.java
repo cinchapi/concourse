@@ -24,7 +24,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * A {@link Request} is processed by a Controller in order to return a JSON
+ * A {@link Request} is processed by a Route in order to return a JSON
  * payload. In particular, this class takes care of some scaffolding,
  * error handling, etc.
  * <p>
@@ -36,7 +36,7 @@ import com.google.gson.JsonObject;
  * </ul>
  * </p>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class Request extends Route implements Rewritable {
 

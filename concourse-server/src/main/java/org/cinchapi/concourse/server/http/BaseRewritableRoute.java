@@ -49,7 +49,7 @@ import org.cinchapi.vendor.spark.Response;
  * method to trigger a browser redirect to another location</li>
  * </ul>
  * 
- * @author jnelson
+ * @author Jeff Nelson
  */
 public abstract class BaseRewritableRoute extends RewritableRoute {
 
@@ -139,9 +139,15 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
      */
     protected abstract Object handle();
 
+    /**
+     * The verified {@link AccessToken} that is associated with the request.
+     */
     @Nullable
     protected AccessToken accessToken;
 
+    /**
+     * The verified environment that is associated with the request.
+     */
     @Nullable
     protected String environment;
 
@@ -150,9 +156,10 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
         this.request = request;
         this.response = response;
         this.accessToken = (AccessToken) request
-                .attribute(HttpRequests.ACCESS_TOKEN_ATTRIBUTE);
+                .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
         this.environment = Objects.firstNonNull((String) request
-                .attribute(HttpRequests.ENVIRONMENT_ATTRIBUTE), GlobalState.DEFAULT_ENVIRONMENT);
+                .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
+                GlobalState.DEFAULT_ENVIRONMENT);
         return handle();
     }
 }

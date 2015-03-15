@@ -30,7 +30,8 @@ import ch.qos.logback.classic.Level;
 import com.google.common.base.Throwables;
 
 /**
- * 
+ * An server that can handle HTTP requests and delegate calls to a
+ * {@link ConcourseServer} instance.
  * 
  * @author Jeff Nelson
  */

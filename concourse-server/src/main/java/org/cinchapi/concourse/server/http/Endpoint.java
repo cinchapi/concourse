@@ -24,17 +24,8 @@ import com.google.gson.JsonObject;
 
 /**
  * An {@link Endpoint} is processed by a {@link Router} in order to return a
- * JSON
- * payload. In particular, this class takes care of some scaffolding,
+ * JSON payload. In particular, this class takes care of some scaffolding,
  * error handling, etc.
- * <p>
- * Each {@link Endpoint} will return a JSON response with the following members:
- * <ul>
- * <li>status - success or failed</li>
- * <li>payload - the relevant data returned from the request or an error message
- * </li>
- * </ul>
- * </p>
  * 
  * @author Jeff Nelson
  */
@@ -68,12 +59,12 @@ public abstract class Endpoint extends BaseRewritableRoute {
             if(e instanceof TSecurityException
                     || e instanceof SecurityException) {
                 response.status(401);
-                //TODO remove auth token cookie
+                // TODO remove auth token cookie
             }
-            else if(e instanceof IllegalArgumentException){
+            else if(e instanceof IllegalArgumentException) {
                 response.status(400);
             }
-            else{
+            else {
                 response.status(500);
             }
             JsonObject json = new JsonObject();

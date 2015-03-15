@@ -17,24 +17,20 @@ package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
 
-import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Endpoint;
-import org.cinchapi.concourse.server.http.HttpConstants;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.util.ByteBuffers;
 
-import com.google.common.base.Objects;
-import com.google.common.io.BaseEncoding;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 /**
- * 
+ * The core/default router.
  * 
  * @author Jeff Nelson
  */
@@ -78,7 +74,7 @@ public class IndexRouter extends Router {
                             environment);
                     String token = HttpRequests.encodeAuthToken(access,
                             environment);
-                    this.response.cookie("/", HttpRequests.AUTH_TOKEN_COOKIE,
+                    this.response.cookie("/", GlobalState.HTTP_AUTH_TOKEN_COOKIE,
                             token, 900, false);
                     JsonObject response = new JsonObject();
                     response.add("token", new JsonPrimitive(token));

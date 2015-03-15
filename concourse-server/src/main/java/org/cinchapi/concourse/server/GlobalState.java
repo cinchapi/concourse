@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -196,7 +196,7 @@ public final class GlobalState {
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
             HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
-            
+
             HTTP_PORT = config.getInt("http_port", HTTP_PORT);
 
             LOG_LEVEL = Level.valueOf(config.getString("log_level",
@@ -239,6 +239,28 @@ public final class GlobalState {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
+
+    /**
+     * The name of the cookie where the HTTP auth token is stored.
+     */
+    @NonPreference
+    public static String HTTP_AUTH_TOKEN_COOKIE = "concoursedb_auth_token";
+
+    /**
+     * The name of the attribute where the {@link AccessToken} component of an
+     * AuthToken is temporarily stored for each HTTP Request. This information
+     * is used for validation after URL rewriting occurs.
+     */
+    @NonPreference
+    public static final String HTTP_ACCESS_TOKEN_ATTRIBUTE = "org.cinchapi.concourse.server.http.AccessTokenAttribute";
+
+    /**
+     * The name of the attribute where the environment component of an
+     * AuthToken is temporarily stored for each HTTP Request. This information
+     * is used for validation after URL rewriting occurs.
+     */
+    @NonPreference
+    public static final String HTTP_ENVIRONMENT_ATTRIBUTE = "org.cinchapi.concourse.server.http.EnvironmentAttribute";
 
     // ========================================================================
 

@@ -33,16 +33,22 @@ import com.google.common.base.Throwables;
 import com.google.common.io.BaseEncoding;
 
 /**
- * 
+ * A collection of utility methods for dealing with HTTP requests.
  * 
  * @author Jeff Nelson
  */
 public class HttpRequests {
 
-    public static final String AUTH_TOKEN_COOKIE = "concoursedb_auth_token";
-    public static final String ACCESS_TOKEN_ATTRIBUTE = "org.cinchapi.concourse.server.http.AuthTokenAttribute";
-    public static final String ENVIRONMENT_ATTRIBUTE = "org.cinchapi.concourse.server.http.EnvironmentAttribute";
-
+    /**
+     * Encode an auth token. The encoded token embeds information about the
+     * {@code environment} so that we can perform sanity checks that ensure the
+     * environment specified in the URL is one that the auth token was actually
+     * designed to access.
+     * 
+     * @param token
+     * @param environment
+     * @return the encoded auth token
+     */
     public static String encodeAuthToken(AccessToken token, String environment) {
         String base32Token = BaseEncoding.base32Hex().encode(token.getData());
         String pack = base32Token + "|" + environment;
@@ -52,6 +58,15 @@ public class HttpRequests {
         return base64CryptPack;
     }
 
+    /**
+     * Decode an auth token.
+     * 
+     * @param token
+     * @return an array with two elements: the first contains the actual
+     *         {@link AccessToken} and the second contains the environment that
+     *         the token was encoded with
+     * @throws GeneralSecurityException
+     */
     public static Object[] decodeAuthToken(String token)
             throws GeneralSecurityException {
         ByteBuffer cryptPack = ByteBuffer.wrap(BaseEncoding.base64Url().decode(
@@ -66,6 +81,14 @@ public class HttpRequests {
 
     }
 
+    /**
+     * Search through the {@code request} for the value of the {@code name}
+     * cookie, if it exists.
+     * 
+     * @param name
+     * @param request
+     * @return the cookie value or {@code null}
+     */
     @Nullable
     public static String findCookieValue(String name, HttpServletRequest request) {
         if(request.getCookies() != null) {
@@ -111,7 +134,8 @@ public class HttpRequests {
                 // Rewrite all requests to drop the declared environment from
                 // the path and use the request attributes to specify meta
                 // information
-                String token = findCookieValue(AUTH_TOKEN_COOKIE, request);
+                String token = findCookieValue(
+                        GlobalState.HTTP_AUTH_TOKEN_COOKIE, request);
                 if(token != null) {
                     try {
                         Object[] auth = decodeAuthToken(token);
@@ -122,7 +146,8 @@ public class HttpRequests {
                                     .replaceAll("//", "/");
                             rewrite = true;
                         }
-                        request.setAttribute(ACCESS_TOKEN_ATTRIBUTE, access);
+                        request.setAttribute(
+                                GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
                     }
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
@@ -136,7 +161,8 @@ public class HttpRequests {
                 }
             }
             if(rewrite) {
-                request.setAttribute(ENVIRONMENT_ATTRIBUTE, targetEnv);
+                request.setAttribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE,
+                        targetEnv);
                 Reflection.set("_requestURI", target, request);
                 Reflection.set("_pathInfo", target, request);
                 HttpURI uri = Reflection.get("_uri", request);
@@ -144,12 +170,14 @@ public class HttpRequests {
             }
         }
         else {
-            String token = findCookieValue(AUTH_TOKEN_COOKIE, request);
+            String token = findCookieValue(GlobalState.HTTP_AUTH_TOKEN_COOKIE,
+                    request);
             if(token != null) {
                 try {
                     Object[] auth = decodeAuthToken(token);
                     AccessToken access = (AccessToken) auth[0];
-                    request.setAttribute(ACCESS_TOKEN_ATTRIBUTE, access);
+                    request.setAttribute(
+                            GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
                 }
                 catch (Exception e) {
                     if(e instanceof GeneralSecurityException
