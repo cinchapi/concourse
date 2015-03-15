@@ -46,32 +46,27 @@ public static void main(String... args) {
     long durant = Iterables.get(records, 1);
     long kobe = Iterables.get(records, 2);
 
-    // I can get or modify individual attributes for each record without
-    // loading the entire data set
+    // Read and modify individual attributes without loading the entire record
     concourse.get("age", kobe);
     concourse.add("name", "KD", durant);
     concourse.remove("jersey_number", 6, lebron);
 
-    // Since data is automatically indexed, I can easily find records that
-    // match a criteria
+    // Easily find records that match a criteria since data is automatically indexed
     concourse.find("team", "=", "Chicago Bulls");
     concourse.find("age", Operator.BETWEEN, 22, 29);
 
-    // If I'm curious about how the data looked in the past, I can perform
-    // historical reads
+    // You can even query data from the pasr
     concourse.get("age", durant, Timestamp.parse("04/2009"));
     concourse.find("team", Operator.EQUALS, "Chicago Bulls",
             Timestamp.parse("2011"));
     concourse.find("age", Operator.BETWEEN, 22, 29,
             Timestamp.parse("2 years ago"));
 
-    // I can also analyze how data has changed over time and restore
-    // previous states.
+    // Analyze how data has changed over time and restore previous states.
     concourse.audit("team", lebron);
     concourse.revert("jersey_number", kobe, Timestamp.parse("10 years ago"));
 
-    // I can also rely on transactions if any changes across records need
-    // ACID guarantees.
+    // ACID Transactions are available for import cross-record changes
     concourse.stage();
     try {
         concourse.set("current_team", "OKC Thunder", lebron);
