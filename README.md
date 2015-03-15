@@ -55,7 +55,7 @@ public static void main(String... args) {
     concourse.find("team", "=", "Chicago Bulls");
     concourse.find("age", Operator.BETWEEN, 22, 29);
 
-    // You can even query data from the pasr
+    // You can even query data from the past
     concourse.get("age", durant, Timestamp.parse("04/2009"));
     concourse.find("team", Operator.EQUALS, "Chicago Bulls",
             Timestamp.parse("2011"));
