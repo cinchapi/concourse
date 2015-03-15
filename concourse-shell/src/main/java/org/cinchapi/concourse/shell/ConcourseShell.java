@@ -463,9 +463,10 @@ public final class ConcourseShell {
                 Object value = groovy.evaluate(input, "ConcourseShell");
                 watch.stop();
                 long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+                double seconds = elapsed / 1000.0;
                 if(value != null) {
-                    result.append("Returned '" + value + "' in " + elapsed
-                            + " ms");
+                    result.append("Returned '" + value + "' in " + seconds
+                            + " sec");
                 }
                 else {
                     result.append(format("Completed in {0} ms", elapsed));
