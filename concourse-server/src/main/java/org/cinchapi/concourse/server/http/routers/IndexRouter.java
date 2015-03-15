@@ -107,6 +107,10 @@ public class IndexRouter extends Router {
 
         });
 
+        /**
+         * GET /record[?timestamp=<ts>]
+         * GET /key[?timestamp=<ts>]
+         */
         get(new Endpoint("/:arg1") {
 
             @Override
@@ -116,9 +120,9 @@ public class IndexRouter extends Router {
                 String ts = getParamValue("timestamp");
                 Long timestamp = ts == null ? null : Timestamp.parse(ts)
                         .getMicros();
+                Long record = Longs.tryParse(arg1);
                 Object data;
-                Long record;
-                if((record = Longs.tryParse(arg1)) != null) {
+                if(record != null) {
                     data = timestamp == null ? concourse.selectRecord(record,
                             accessToken, null, environment) : concourse
                             .selectRecordTime(record, timestamp, accessToken,
@@ -127,9 +131,45 @@ public class IndexRouter extends Router {
                 else {
                     data = timestamp == null ? concourse.browseKey(arg1,
                             accessToken, null, environment) : concourse
-                            .browseKeyTime(arg1, timestamp, accessToken,
-                                    null, environment);
-                }          
+                            .browseKeyTime(arg1, timestamp, accessToken, null,
+                                    environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
+
+        });
+
+        /**
+         * GET /key/record[?timestamp=<ts>]
+         * GET /record/key[?timestamp=<ts>]
+         */
+        get(new Endpoint("/:arg1/:arg2") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String ts = getParamValue("timestamp");
+                Long timestamp = ts == null ? null : Timestamp.parse(ts)
+                        .getMicros();
+                Long record = Longs.tryParse(arg1);
+                String key;
+                Object data;
+                if(record != null) {
+                    key = arg2;
+                }
+                else {
+                    key = arg1;
+                    record = Long.parseLong(arg2);
+                }
+                if(timestamp == null) {
+                    data = concourse.selectKeyRecord(key, record, accessToken,
+                            null, environment);
+                }
+                else {
+                    data = concourse.selectKeyRecordTime(key, record,
+                            timestamp, accessToken, null, environment);
+                }
                 return DataServices.gson().toJsonTree(data);
             }
 
