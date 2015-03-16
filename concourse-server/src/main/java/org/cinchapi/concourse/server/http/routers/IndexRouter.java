@@ -92,6 +92,20 @@ public class IndexRouter extends Router {
             }
 
         });
+        
+        /**
+         * POST /logout
+         */
+        post(new Endpoint("/logout"){
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                concourse.logout(creds, environment);
+                response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
+                return NO_DATA;
+            }
+            
+        });
 
         /**
          * GET /
