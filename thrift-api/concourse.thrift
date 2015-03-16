@@ -24,8 +24,12 @@ include "shared.thrift"
 namespace java org.cinchapi.concourse.thrift
 
 # To generate python source code run:
-#
+# utils/thrift-compile-python.sh
 namespace py concourse.rpc
+
+# To generate PHP source code run:
+# utils/thrift-compile-php.sh
+namespace php thrift
 
 # The API/Product version is maintained under the Semantic Versioning
 # guidelines such that versions are formatted <major>.<minor>.<patch>

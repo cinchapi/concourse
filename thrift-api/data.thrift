@@ -10,6 +10,7 @@ include "shared.thrift"
 
 namespace java org.cinchapi.concourse.thrift
 namespace py concourse.rpc
+namespace php thrift.data
 
 /**
  * A lightweight wrapper for a typed Object that has been encoded

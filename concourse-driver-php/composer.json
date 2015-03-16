@@ -1,0 +1,25 @@
+{
+  "name": "cinchapi/concourse-driver-php",
+  "description": "PHP Driver for ConcourseDB – the self-tuning database that practically runs itself.",
+  "version": "0.5.0",
+  "type": "library",
+  "keywords": ["concourse", "nosql", "bigdata"],
+  "homepage": "http://concoursedb.com",
+  "license": "Apache",
+  "authors":[
+    {
+      "name": "Jeff Nelson",
+      "email": "jeff@cinchapi.com",
+      "homepage": "http://cinchapi.com",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "support@cinchapi.com",
+    "issues": "http://issues.cinchapi.org",
+    "source": "https://github.com/cinchapi/concourse"
+  },
+  "require": {
+    "apache/thrift": "0.9.2"
+  }
+}

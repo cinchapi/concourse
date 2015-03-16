@@ -6,6 +6,7 @@
 
 namespace java org.cinchapi.concourse.thrift
 namespace py concourse.rpc.shared
+namespace php thrift.shared
 
 /**
  * Enumerates the list of operators that can be used in criteria specifications.
