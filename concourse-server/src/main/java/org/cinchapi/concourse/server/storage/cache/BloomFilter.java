@@ -139,7 +139,7 @@ public class BloomFilter implements Syncable {
     /**
      * The file where the content is stored.
      */
-    private String file;
+    protected String file;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -150,7 +150,7 @@ public class BloomFilter implements Syncable {
     /**
      * The wrapped bloom filter. This is where the data is actually stored.
      */
-    private final com.google.common.hash.BloomFilter<Composite> source;
+    protected final com.google.common.hash.BloomFilter<Composite> source;
 
     /**
      * Construct a new instance.
@@ -158,7 +158,7 @@ public class BloomFilter implements Syncable {
      * @param file
      * @param source
      */
-    private BloomFilter(String file,
+    protected BloomFilter(String file,
             com.google.common.hash.BloomFilter<Composite> source) {
         this.source = source;
         this.file = file;
@@ -169,7 +169,7 @@ public class BloomFilter implements Syncable {
      * 
      * @param expectedInsertions
      */
-    private BloomFilter(String file, int expectedInsertions) {
+    protected BloomFilter(String file, int expectedInsertions) {
         this.source = com.google.common.hash.BloomFilter.create(
                 ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
                                                               // positive
@@ -260,10 +260,10 @@ public class BloomFilter implements Syncable {
         Preconditions.checkState(file != null, "Cannot sync a "
                 + "BloomFilter that does not have an associated file");
         FileChannel channel = FileSystem.getFileChannel(file);
-        long stamp = lock.tryOptimisticRead();
+        long stamp = tryOptimisticRead();
         Serializables.write(source, channel); // CON-164
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
+        if(!validate(stamp)) {
+            stamp = readLock();
             try {
                 channel.position(0);
                 Serializables.write(source, channel); // CON-164
@@ -272,7 +272,7 @@ public class BloomFilter implements Syncable {
                 throw Throwables.propagate(e);
             }
             finally {
-                lock.unlockRead(stamp);
+                unlockRead(stamp);
             }
         }
         FileSystem.closeFileChannel(channel);
@@ -286,15 +286,15 @@ public class BloomFilter implements Syncable {
      * @return {@code true} if the composite might exist
      */
     private boolean mightContain(Composite composite) {
-        long stamp = lock.tryOptimisticRead();
+        long stamp = tryOptimisticRead();
         boolean mightContain = source.mightContain(composite);
-        if(!lock.validate(stamp)) {
-            stamp = lock.readLock();
+        if(!validate(stamp)) {
+            stamp = readLock();
             try {
                 mightContain = source.mightContain(composite);
             }
             finally {
-                lock.unlockRead(stamp);
+                unlockRead(stamp);
             }
         }
         return mightContain;
@@ -308,12 +308,72 @@ public class BloomFilter implements Syncable {
      *         of the {@code composite}
      */
     private boolean put(Composite composite) {
-        long stamp = lock.writeLock();
+        long stamp = writeLock();
         try {
             return source.put(composite);
         }
         finally {
-            lock.unlockWrite(stamp);
+            unlockWrite(stamp);
         }
     }
+
+    /**
+     * Grabs the write {@link StampedLock} {@code lock} and return the
+     * {@code stamp}.
+     * 
+     * @return {@code stamp}
+     */
+    protected long writeLock() {
+        return lock.writeLock();
+    }
+
+    /**
+     * Release the write {@link StampedLock} {@code lock} for {@code stamp}.
+     * 
+     * @param {@code stamp}
+     */
+    protected void unlockWrite(long stamp) {
+        lock.unlockWrite(stamp);
+    }
+
+    /**
+     * Returns stamp using {@link #tryOptimisticRead() tryOptimisticRead()}
+     * 
+     * @return {@code stamp}
+     */
+    protected long tryOptimisticRead() {
+        return lock.tryOptimisticRead();
+    }
+
+    /**
+     * Checks whether the lock has not been exclusively acquired since issuance
+     * of the given stamp using {@link #validate(long) validate(long stamp)}
+     * method.
+     * 
+     * @param {@code stamp}
+     * @return boolean
+     */
+    protected boolean validate(long stamp) {
+        return lock.validate(stamp);
+    }
+
+    /**
+     * Grabs the read {@link StampedLock} {@code lock} and return the
+     * {@code stamp}.
+     * 
+     * @return {@code stamp}
+     */
+    protected long readLock() {
+        return lock.readLock();
+    }
+
+    /**
+     * Release the read {@link StampedLock} {@code lock} for {@code stamp}.
+     * 
+     * @param {@code stamp}
+     */
+    protected void unlockRead(long stamp) {
+        lock.unlockRead(stamp);
+    }
+
 }
