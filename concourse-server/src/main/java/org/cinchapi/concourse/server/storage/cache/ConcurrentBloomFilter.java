@@ -1,17 +1,8 @@
 package org.cinchapi.concourse.server.storage.cache;
 
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-
 import org.cinchapi.concourse.server.concurrent.ReadWriteSharedLock;
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
-import org.cinchapi.concourse.server.io.FileSystem;
-import org.cinchapi.concourse.server.io.Serializables;
-import org.cinchapi.vendor.jsr166e.StampedLock;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 /**
  * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods to
