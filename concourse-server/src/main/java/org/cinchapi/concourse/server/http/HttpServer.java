@@ -73,7 +73,7 @@ public class HttpServer {
 
             @Override
             public void start() {
-                Logger.info("Ability to accept HTTP requests is DISABLED");
+                Logger.info("The HTTP Server is turned OFF");
             };
 
             @Override
