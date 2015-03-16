@@ -1,38 +1,28 @@
 package org.cinchapi.concourse.server.storage.cache;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.cinchapi.concourse.server.concurrent.ReadWriteSharedLock;
 import org.cinchapi.concourse.server.io.Byteable;
-import org.cinchapi.concourse.server.io.Composite;
 
 /**
- * A wrapper around a {@link com.google.common.hash.BloomFilter} with methods to
- * make it easier to add one or more {@link Byteable} objects
+ * A concurrent wrapper around a {@link com.google.common.hash.BloomFilter} with
+ * methods to make it easier to add one or more {@link Byteable} objects
  * to the filter at a time while abstracting away the notion of
  * funnels, etc.
  * </p>
  * 
  * @author dubex
- *
  */
+@ThreadSafe
 public class ConcurrentBloomFilter extends BloomFilter {
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param file
-     * @param source
-     */
-    private ConcurrentBloomFilter(String file,
-            com.google.common.hash.BloomFilter<Composite> source) {
-        super(file, source);
-    }
 
     /**
      * Construct a new instance.
      * 
      * @param expectedInsertions
      */
-    private ConcurrentBloomFilter(String file, int expectedInsertions) {
+    protected ConcurrentBloomFilter(String file, int expectedInsertions) {
         super(file, expectedInsertions);
     }
 

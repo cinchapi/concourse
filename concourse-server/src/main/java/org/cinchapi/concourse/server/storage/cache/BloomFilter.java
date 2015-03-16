@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -83,6 +83,42 @@ public class BloomFilter implements Syncable {
     }
 
     /**
+     * Create a new concurrent BloomFilter with enough capacity for
+     * {@code expectedInsertions}.
+     * <p>
+     * Note that overflowing a BloomFilter with significantly more elements than
+     * specified, will result in its saturation, and a sharp deterioration of
+     * its false positive probability (source:
+     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
+     * <p>
+     * 
+     * @param expectedInsertions
+     * @return the BloomFilter
+     */
+    public static BloomFilter createConcurrent(int expectedInsertions) {
+        return new ConcurrentBloomFilter(null, expectedInsertions);
+    }
+
+    /**
+     * Create a new concurrent BloomFilter with enough capacity for
+     * {@code expectedInsertions}.
+     * <p>
+     * Note that overflowing a BloomFilter with significantly more elements than
+     * specified, will result in its saturation, and a sharp deterioration of
+     * its false positive probability (source:
+     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
+     * <p>
+     * 
+     * @param file
+     * @param expectedInsertions
+     * @return the BloomFilter
+     */
+    public static BloomFilter createConcurrent(String file,
+            int expectedInsertions) {
+        return new ConcurrentBloomFilter(file, expectedInsertions);
+    }
+
+    /**
      * Return the BloomFilter that is stored on disk in {@code file}.
      * 
      * @param file
@@ -131,7 +167,7 @@ public class BloomFilter implements Syncable {
     /**
      * The file where the content is stored.
      */
-    protected String file;
+    private String file;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -142,7 +178,7 @@ public class BloomFilter implements Syncable {
     /**
      * The wrapped bloom filter. This is where the data is actually stored.
      */
-    protected final com.google.common.hash.BloomFilter<Composite> source;
+    private final com.google.common.hash.BloomFilter<Composite> source;
 
     /**
      * Construct a new instance.
@@ -310,22 +346,13 @@ public class BloomFilter implements Syncable {
     }
 
     /**
-     * Grabs the write {@link StampedLock} {@code lock} and return the
+     * Grabs the read {@link StampedLock} {@code lock} and return the
      * {@code stamp}.
      * 
      * @return {@code stamp}
      */
-    protected long writeLock() {
-        return lock.writeLock();
-    }
-
-    /**
-     * Release the write {@link StampedLock} {@code lock} for {@code stamp}.
-     * 
-     * @param {@code stamp}
-     */
-    protected void unlockWrite(long stamp) {
-        lock.unlockWrite(stamp);
+    protected long readLock() {
+        return lock.readLock();
     }
 
     /**
@@ -338,11 +365,29 @@ public class BloomFilter implements Syncable {
     }
 
     /**
+     * Release the read {@link StampedLock} {@code lock} for {@code stamp}.
+     * 
+     * @param stamp
+     */
+    protected void unlockRead(long stamp) {
+        lock.unlockRead(stamp);
+    }
+
+    /**
+     * Release the write {@link StampedLock} {@code lock} for {@code stamp}.
+     * 
+     * @param stamp
+     */
+    protected void unlockWrite(long stamp) {
+        lock.unlockWrite(stamp);
+    }
+
+    /**
      * Checks whether the lock has not been exclusively acquired since issuance
      * of the given stamp using {@link #validate(long) validate(long stamp)}
      * method.
      * 
-     * @param {@code stamp}
+     * @param stamp
      * @return boolean
      */
     protected boolean validate(long stamp) {
@@ -350,22 +395,13 @@ public class BloomFilter implements Syncable {
     }
 
     /**
-     * Grabs the read {@link StampedLock} {@code lock} and return the
+     * Grabs the write {@link StampedLock} {@code lock} and return the
      * {@code stamp}.
      * 
      * @return {@code stamp}
      */
-    protected long readLock() {
-        return lock.readLock();
-    }
-
-    /**
-     * Release the read {@link StampedLock} {@code lock} for {@code stamp}.
-     * 
-     * @param {@code stamp}
-     */
-    protected void unlockRead(long stamp) {
-        lock.unlockRead(stamp);
+    protected long writeLock() {
+        return lock.writeLock();
     }
 
 }
