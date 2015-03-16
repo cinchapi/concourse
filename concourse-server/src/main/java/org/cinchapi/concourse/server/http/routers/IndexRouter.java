@@ -100,9 +100,8 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                JsonObject payload = new JsonObject();
-                payload.addProperty("environment", environment);
-                return payload;
+                Object data = concourse.find(creds, null, environment);
+                return DataServices.gson().toJsonTree(data);
             }
 
         });
@@ -124,14 +123,14 @@ public class IndexRouter extends Router {
                 Object data;
                 if(record != null) {
                     data = timestamp == null ? concourse.selectRecord(record,
-                            accessToken, null, environment) : concourse
-                            .selectRecordTime(record, timestamp, accessToken,
+                            creds, null, environment) : concourse
+                            .selectRecordTime(record, timestamp, creds,
                                     null, environment);
                 }
                 else {
                     data = timestamp == null ? concourse.browseKey(arg1,
-                            accessToken, null, environment) : concourse
-                            .browseKeyTime(arg1, timestamp, accessToken, null,
+                            creds, null, environment) : concourse
+                            .browseKeyTime(arg1, timestamp, creds, null,
                                     environment);
                 }
                 return DataServices.gson().toJsonTree(data);
@@ -163,12 +162,12 @@ public class IndexRouter extends Router {
                     record = Long.parseLong(arg2);
                 }
                 if(timestamp == null) {
-                    data = concourse.selectKeyRecord(key, record, accessToken,
+                    data = concourse.selectKeyRecord(key, record, creds,
                             null, environment);
                 }
                 else {
                     data = concourse.selectKeyRecordTime(key, record,
-                            timestamp, accessToken, null, environment);
+                            timestamp, creds, null, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }

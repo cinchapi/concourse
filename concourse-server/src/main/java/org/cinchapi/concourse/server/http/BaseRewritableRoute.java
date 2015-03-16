@@ -143,7 +143,7 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
      * The verified {@link AccessToken} that is associated with the request.
      */
     @Nullable
-    protected AccessToken accessToken;
+    protected AccessToken creds;
 
     /**
      * The verified environment that is associated with the request.
@@ -155,7 +155,7 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
     public final Object handle(Request request, Response response) {
         this.request = request;
         this.response = response;
-        this.accessToken = (AccessToken) request
+        this.creds = (AccessToken) request
                 .attribute(GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE);
         this.environment = Objects.firstNonNull((String) request
                 .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
