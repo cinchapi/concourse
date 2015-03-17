@@ -13,6 +13,7 @@ import org.junit.Test;
  * 
  * @author Jeff Nelson
  */
+@Ignore
 public class StringToTimeTest {
 
     @Test
