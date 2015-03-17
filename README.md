@@ -81,7 +81,7 @@ public static void main(String... args) {
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
-Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing the database.
+Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing databases.
 
 ###### Planning
 You have an awesome idea for a product? Great! But before you start building, you've got to figure out how to translate that idea into a rigid database structure. And if you want to change a feature down the line, you've got to migrate your existing data. This slows down your ability to prototype, iterate and pivot.
