@@ -962,6 +962,87 @@ public abstract class Concourse implements AutoCloseable {
     public abstract boolean insert(String json, long record);
 
     /**
+     * Dump each of the {@code records} to a JSON string.
+     * 
+     * @param records
+     * @return the json string dump
+     */
+    public abstract String jsonify(Collection<Long> records);
+
+    /**
+     * Dump each of the {@code records} to a JSON string that optionally
+     * includes an {@code identifier} for each {@code record}.
+     * 
+     * @param records
+     * @param identifier
+     * @return the json string dump
+     */
+    public abstract String jsonify(Collection<Long> records, boolean identifier);
+
+    /**
+     * Dump the state of each of the {@code records} at {@code timestamp} to a
+     * JSON string.
+     * 
+     * @param records
+     * @param timestamp
+     * @return the json string dump
+     */
+    public abstract String jsonify(Collection<Long> records, Timestamp timestamp);
+
+    /**
+     * Dump the state of each of the {@code records} at {@code timestamp} to a
+     * JSON string that optionally includes an {@code identifier} for each
+     * {@code record}.
+     * 
+     * @param records
+     * @param timestamp
+     * @param identifier
+     * @return the json string dump
+     */
+    public abstract String jsonify(Collection<Long> records,
+            Timestamp timestamp, boolean identifier);
+
+    /**
+     * Dump {@code record} to a JSON string.
+     * 
+     * @param record
+     * @return the json string dump
+     */
+    public abstract String jsonify(long record);
+
+    /**
+     * Dump the {@code record} to a JSON string that optionally includes an
+     * {@code identifier} for the record.
+     * 
+     * @param record
+     * @param identifier
+     * @return the json string dump
+     */
+    public abstract String jsonify(long record, boolean identifier);
+
+    /**
+     * Dump the state of the {@code record} at {@code timestamp} to a JSON
+     * string.
+     * 
+     * @param record
+     * @param timestamp
+     * @return the json string dump
+     */
+    public abstract String jsonify(long record, Timestamp timestamp);
+
+    /**
+     * Dump the state of the {@code record} at {@code timestamp} to a JSON
+     * string that optionally includes an {@code identifier} for the record.
+     * 
+     * @param record
+     * @param timestamp
+     * @param identifier
+     * @return the json string dump
+     */
+    public abstract String jsonify(long record, Timestamp timestamp,
+            boolean identifier);
+
+    /**
      * Link {@code key} in {@code source} to each of the {@code destinations}.
      * 
      * @param key
@@ -2791,6 +2872,66 @@ public abstract class Concourse implements AutoCloseable {
                 }
 
             });
+        }
+
+        @Override
+        public String jsonify(Collection<Long> records) {
+            return jsonify(records, true);
+        }
+
+        @Override
+        public String jsonify(final Collection<Long> records,
+                final boolean identifier) {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.jsonifyRecords(Collections.toLongList(records),
+                            identifier, creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public String jsonify(Collection<Long> records, Timestamp timestamp) {
+            return jsonify(records, timestamp, true);
+        }
+
+        @Override
+        public String jsonify(final Collection<Long> records,
+                final Timestamp timestamp, final boolean identifier) {
+            return execute(new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return client.jsonifyRecordsTime(
+                            Collections.toLongList(records), timestamp.getMicros(),
+                            identifier, creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
+        public String jsonify(long record) {
+            return jsonify(Lists.newArrayList(record), true);
+        }
+
+        @Override
+        public String jsonify(long record, boolean identifier) {
+            return jsonify(Lists.newArrayList(record), identifier);
+        }
+
+        @Override
+        public String jsonify(long record, Timestamp timestamp) {
+            return jsonify(Lists.newArrayList(record), timestamp, true);
+        }
+
+        @Override
+        public String jsonify(long record, Timestamp timestamp,
+                boolean identifier) {
+            return jsonify(Lists.newArrayList(record), timestamp, identifier);
         }
 
         @Override

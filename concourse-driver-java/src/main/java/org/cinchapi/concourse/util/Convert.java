@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.PackagePrivate;
@@ -164,6 +165,9 @@ public final class Convert {
                     "The JSON string must encapsulate data within an object");
         }
         JsonObject object = (JsonObject) parser.parse(json);
+        if(object.has(Constants.JSON_RESERVED_IDENTIFIER_NAME)){
+            object.remove(Constants.JSON_RESERVED_IDENTIFIER_NAME);
+        }
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             String key = entry.getKey();
             JsonElement val = entry.getValue();

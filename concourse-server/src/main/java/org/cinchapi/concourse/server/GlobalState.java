@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Set;
 
+import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
 
@@ -35,7 +36,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public final class GlobalState {
+public final class GlobalState extends Constants {
     // ========================================================================
     // =========================== SYSTEM METADATA ============================
     /**
@@ -239,7 +240,7 @@ public final class GlobalState {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
-
+    
     /**
      * The name of the cookie where the HTTP auth token is stored.
      */

@@ -92,10 +92,13 @@ public class DataServices {
      * @author hyin
      */
     private static class JavaTypeAdapter extends TypeAdapter<Object> {
+        
+        @Override
         public Object read(JsonReader reader) throws IOException {
             return null;
         }
 
+        @Override
         public void write(JsonWriter writer, Object value) throws IOException {
             if(value instanceof Double) {
                 value = (Double) value;

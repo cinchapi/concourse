@@ -83,6 +83,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
+import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.TCollections;
@@ -102,6 +103,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -331,6 +334,38 @@ public class ConcourseServer implements
     }
 
     /**
+     * Do the work to atomically insert all of the {@code data} into
+     * {@code record} and return {@code true} if the operation is successful.
+     * 
+     * @param data
+     * @param record
+     * @param atomic
+     * @return {@code true} if all the data is atomically inserted
+     */
+    private static boolean insert0(Multimap<String, Object> data, long record,
+            AtomicOperation atomic) {
+        for (String key : data.keySet()) {
+            for (Object value : data.get(key)) {
+                if(value instanceof ResolvableLink) {
+                    ResolvableLink rl = (ResolvableLink) value;
+                    Set<Long> links = atomic.find(rl.getKey(), Operator.EQUALS,
+                            Convert.javaToThrift(rl.getValue()));
+                    for (long link : links) {
+                        TObject t = Convert.javaToThrift(Link.to(link));
+                        if(!atomic.add(key, t, record)) {
+                            return false;
+                        }
+                    }
+                }
+                else if(!atomic.add(key, Convert.javaToThrift(value), record)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Return {@code true} if adding {@code link} to {@code record} is valid.
      * This method is used to enforce referential integrity (i.e. record cannot
      * link to itself) before the data makes it way to the Engine.
@@ -341,6 +376,34 @@ public class ConcourseServer implements
      */
     private static boolean isValidLink(Link link, long record) {
         return link.longValue() != record;
+    }
+
+    /**
+     * Do the work to jsonify (dump to json string) each of the {@code records},
+     * possibly at {@code timestamp} (if it is greater than 0) using the
+     * {@code store}.
+     * 
+     * @param records
+     * @param timestamp
+     * @param identifier - will include the primary key for each record in the
+     *            dump, if set to {@code true}
+     * @param store
+     * @return the json string dump
+     */
+    private static String jsonify0(List<Long> records, long timestamp,
+            boolean identifier, Store store) {
+        JsonArray array = new JsonArray();
+        for (long record : records) {
+            Map<String, Set<TObject>> data = timestamp == 0 ? store
+                    .select(record) : store.select(record, timestamp);
+            JsonElement object = DataServices.gson().toJsonTree(data);
+            if(identifier) {
+                object.getAsJsonObject().addProperty(
+                        GlobalState.JSON_RESERVED_IDENTIFIER_NAME, record);
+            }
+            array.add(object);
+        }
+        return array.toString();
     }
 
     /**
@@ -410,6 +473,9 @@ public class ConcourseServer implements
      */
     private final Map<String, Engine> engines;
 
+    @Nullable
+    private final HttpServer httpServer;
+
     /**
      * The AccessManager controls access to the server.
      */
@@ -421,9 +487,6 @@ public class ConcourseServer implements
      * a reference.
      */
     private final TServer server;
-
-    @Nullable
-    private final HttpServer httpServer;
 
     /**
      * The server maintains a collection of {@link Transaction} objects to
@@ -481,8 +544,8 @@ public class ConcourseServer implements
         this.dbStore = dbStore;
         this.engines = Maps.newConcurrentMap();
         this.manager = AccessManager.create(ACCESS_FILE);
-        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer
-                .create(this, GlobalState.HTTP_PORT) : HttpServer.disabled();
+        this.httpServer = GlobalState.HTTP_PORT > 0 ? HttpServer.create(this,
+                GlobalState.HTTP_PORT) : HttpServer.disabled();
         getEngine(); // load the default engine
     }
 
@@ -672,18 +735,6 @@ public class ConcourseServer implements
                 result.put(entry.getKey(), entry.getValue());
             }
             return result;
-        }
-        catch (TransactionStateException e) {
-            throw new TTransactionException();
-        }
-    }
-
-    @Override
-    public Set<Long> find(AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        checkAccess(creds, transaction);
-        try {
-            return getEngine(environment).browse();
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -1098,6 +1149,18 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Set<Long> find(AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return getEngine(environment).browse();
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     @Atomic
     @Batch
     public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
@@ -1284,9 +1347,8 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            return Iterables.getFirst(
-                    getStore(transaction, environment).select(key, record),
-                    TObject.NULL);
+            return Iterables.getFirst(getStore(transaction, environment)
+                    .select(key, record), TObject.NULL);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -1362,9 +1424,8 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            return Iterables.getFirst(
-                    getStore(transaction, environment).select(key, record,
-                            timestamp), TObject.NULL);
+            return Iterables.getFirst(getStore(transaction, environment)
+                    .select(key, record, timestamp), TObject.NULL);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -1723,6 +1784,48 @@ public class ConcourseServer implements
     }
 
     @Override
+    @Atomic
+    @AutoRetry
+    public String jsonifyRecords(List<Long> records, boolean identifier,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            String json = "";
+            Compoundable store = getStore(transaction, environment);
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    json = jsonify0(records, 0L, identifier, atomic);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
+            }
+            return json;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    @HistoricalRead
+    public String jsonifyRecordsTime(List<Long> records, long timestamp,
+            boolean identifier, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            return jsonify0(records, timestamp, identifier,
+                    getStore(transaction, environment));
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     public String listAllEnvironments() {
         return TCollections.toOrderedListString(TSets.intersection(
                 FileSystem.getSubDirs(BUFFER_DIRECTORY),
@@ -2062,7 +2165,8 @@ public class ConcourseServer implements
                     find0(queue, stack, atomic);
                     Set<Long> records = stack.pop();
                     for (long record : records) {
-                        result.put(record, atomic.select(key, record, timestamp));
+                        result.put(record,
+                                atomic.select(key, record, timestamp));
                     }
                 }
                 catch (AtomicStateException e) {
@@ -2224,7 +2328,8 @@ public class ConcourseServer implements
                     for (long record : records) {
                         Map<String, Set<TObject>> entry = Maps.newHashMap();
                         for (String key : keys) {
-                            entry.put(key, atomic.select(key, record, timestamp));
+                            entry.put(key,
+                                    atomic.select(key, record, timestamp));
                         }
                         result.put(record, entry);
                     }
@@ -2682,38 +2787,6 @@ public class ConcourseServer implements
     }
 
     /**
-     * Do the work to atomically insert all of the {@code data} into
-     * {@code record} and return {@code true} if the operation is successful.
-     * 
-     * @param data
-     * @param record
-     * @param atomic
-     * @return {@code true} if all the data is atomically inserted
-     */
-    private boolean insert0(Multimap<String, Object> data, long record,
-            AtomicOperation atomic) {
-        for (String key : data.keySet()) {
-            for (Object value : data.get(key)) {
-                if(value instanceof ResolvableLink) {
-                    ResolvableLink rl = (ResolvableLink) value;
-                    Set<Long> links = atomic.find(rl.getKey(), Operator.EQUALS,
-                            Convert.javaToThrift(rl.getValue()));
-                    for (long link : links) {
-                        TObject t = Convert.javaToThrift(Link.to(link));
-                        if(!atomic.add(key, t, record)) {
-                            return false;
-                        }
-                    }
-                }
-                else if(!atomic.add(key, Convert.javaToThrift(value), record)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
      * A version of the login routine that handles the case when no environment
      * has been specified. The is most common when authenticating a user for
      * managed operations.
@@ -2743,5 +2816,4 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
-
 }
