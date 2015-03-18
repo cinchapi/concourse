@@ -1,6 +1,6 @@
 # Concourse
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that practically runs itself. Concourse offers features like automatic indexing, version control and distributed ACID transactions to provide an intuitive data platform that automatically adjusts to any workload or data scale
+[ConcourseDB](http://concoursedb.com) is a self-tuning database that automatically adapts to your application at every stage: when you're just getting started, adding new features and scaling out. Concourse offers features like automatic indexing, version control and ACID transactions to provide a more intuitive data platform that manages itself and reduces operational costs.
 
 This is version 0.5.0 of Concourse.
 
