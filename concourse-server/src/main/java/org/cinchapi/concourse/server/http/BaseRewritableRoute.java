@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.ObjectUtils;
 import org.cinchapi.vendor.spark.Request;
 
@@ -150,6 +151,13 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
      */
     @Nullable
     protected String environment;
+
+    /**
+     * The verified {@link TransactionToken} that is associated with the
+     * request.
+     */
+    @Nullable
+    protected TransactionToken transaction = null;
 
     @Override
     public final Object handle(Request request, Response response) {

@@ -66,7 +66,7 @@ public class SmokeTest extends ConcourseIntegrationTest {
         Assert.assertFalse(client.add(key, value, record));
     }
     
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testCannotAddEmptyKey(){
         Assert.assertFalse(client.add("", "foo", 1));
         String string = "";
@@ -76,7 +76,7 @@ public class SmokeTest extends ConcourseIntegrationTest {
         Assert.assertFalse(client.add(string, "foo", 1));
     }
     
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testCannotAddEmptyStringValue(){
         Assert.assertFalse(client.add("foo", "", 1));
         String string = "";

@@ -26,7 +26,6 @@ import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -1672,74 +1671,51 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> add(final String key, final Object value,
                 final Collection<Long> records) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Map<Long, Boolean>>() {
+            return execute(new Callable<Map<Long, Boolean>>() {
 
-                    @Override
-                    public Map<Long, Boolean> call() throws Exception {
-                        Map<Long, Boolean> raw = client.addKeyValueRecords(key,
-                                Convert.javaToThrift(value),
-                                Collections.toLongList(records), creds,
-                                transaction, environment);
-                        Map<Long, Boolean> pretty = PrettyLinkedHashMap
-                                .newPrettyLinkedHashMap("Record", "Successful");
-                        for (long record : records) {
-                            pretty.put(record, raw.get(record));
-                        }
-                        return pretty;
+                @Override
+                public Map<Long, Boolean> call() throws Exception {
+                    Map<Long, Boolean> raw = client.addKeyValueRecords(key,
+                            Convert.javaToThrift(value),
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
+                    Map<Long, Boolean> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Successful");
+                    for (long record : records) {
+                        pretty.put(record, raw.get(record));
                     }
+                    return pretty;
+                }
 
-                });
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Either your key or value is empty");
-            }
+            });
         }
 
         @Override
         public <T> long add(final String key, final T value) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Long>() {
+            return execute(new Callable<Long>() {
 
-                    @Override
-                    public Long call() throws Exception {
-                        return client.addKeyValue(key,
-                                Convert.javaToThrift(value), creds,
-                                transaction, environment);
-                    }
+                @Override
+                public Long call() throws Exception {
+                    return client.addKeyValue(key, Convert.javaToThrift(value),
+                            creds, transaction, environment);
+                }
 
-                });
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Either your key or value is empty");
-            }
-
+            });
         }
 
         @Override
         public <T> boolean add(final String key, final T value,
                 final long record) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Boolean>() {
+            return execute(new Callable<Boolean>() {
 
-                    @Override
-                    public Boolean call() throws Exception {
-                        return client.addKeyValueRecord(key,
-                                Convert.javaToThrift(value), record, creds,
-                                transaction, environment);
-                    }
+                @Override
+                public Boolean call() throws Exception {
+                    return client.addKeyValueRecord(key,
+                            Convert.javaToThrift(value), record, creds,
+                            transaction, environment);
+                }
 
-                });
-            }
-            return false;
+            });
         }
 
         @Override
@@ -2862,51 +2838,38 @@ public abstract class Concourse implements AutoCloseable {
         @Override
         public Map<Long, Boolean> remove(final String key, final Object value,
                 final Collection<Long> records) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Map<Long, Boolean>>() {
+            return execute(new Callable<Map<Long, Boolean>>() {
 
-                    @Override
-                    public Map<Long, Boolean> call() throws Exception {
-                        Map<Long, Boolean> raw = client.removeKeyValueRecords(
-                                key, Convert.javaToThrift(value),
-                                Collections.toLongList(records), creds,
-                                transaction, environment);
-                        Map<Long, Boolean> pretty = PrettyLinkedHashMap
-                                .newPrettyLinkedHashMap("Record", "Result");
-                        for (long record : records) {
-                            pretty.put(record, raw.get(record));
-                        }
-                        return pretty;
+                @Override
+                public Map<Long, Boolean> call() throws Exception {
+                    Map<Long, Boolean> raw = client.removeKeyValueRecords(key,
+                            Convert.javaToThrift(value),
+                            Collections.toLongList(records), creds,
+                            transaction, environment);
+                    Map<Long, Boolean> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", "Result");
+                    for (long record : records) {
+                        pretty.put(record, raw.get(record));
                     }
+                    return pretty;
+                }
 
-                });
-            }
-            else {
-                throw new IllegalArgumentException(
-                        "Either your key or value is empty");
-            }
+            });
         }
 
         @Override
         public <T> boolean remove(final String key, final T value,
                 final long record) {
-            if(!StringUtils.isBlank(key)
-                    && (!(value instanceof String) || (value instanceof String && !StringUtils
-                            .isBlank((String) value)))) { // CON-21
-                return execute(new Callable<Boolean>() {
+            return execute(new Callable<Boolean>() {
 
-                    @Override
-                    public Boolean call() throws Exception {
-                        return client.removeKeyValueRecord(key,
-                                Convert.javaToThrift(value), record, creds,
-                                transaction, environment);
-                    }
+                @Override
+                public Boolean call() throws Exception {
+                    return client.removeKeyValueRecord(key,
+                            Convert.javaToThrift(value), record, creds,
+                            transaction, environment);
+                }
 
-                });
-            }
-            return false;
+            });
         }
 
         @Override

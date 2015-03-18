@@ -225,7 +225,7 @@ public class Request {
     }
     
     public JsonElement bodyAsJson(){
-        JsonParser parser = new JsonParser(); //todo make this static and thread safe?
+        JsonParser parser = new JsonParser(); //TODO make this static
         return parser.parse(body());
     }
     

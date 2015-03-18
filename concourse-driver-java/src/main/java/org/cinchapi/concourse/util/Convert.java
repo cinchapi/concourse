@@ -36,6 +36,7 @@ import org.cinchapi.concourse.thrift.Type;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -60,37 +61,20 @@ public final class Convert {
      * 
      * @param json
      * @return A list of Java objects
-     * @author hyin
      */
     public static List<Multimap<String, Object>> anyJsonToJava(String json) {
         List<Multimap<String, Object>> result = Lists.newArrayList();
-        boolean start = false;
-        boolean quote = false;
-        char doubleQuote = '\"';
-        String obj = "";
-        for (int i = 0; i < json.length(); i++) {
-            char c = json.charAt(i);
-
-            // Brackets within quotes shouldn't count as object's start or end.
-            // Assuming single quotes are invalid for enclosing JSON key and
-            // values.
-            if(c == doubleQuote && start == true) {
-                quote = !quote;
-                obj += c; // Testing
+        JsonParser parser = new JsonParser();
+        JsonElement top = parser.parse(json);
+        if(top.isJsonArray()) {
+            JsonArray array = (JsonArray) top;
+            Iterator<JsonElement> it = array.iterator();
+            while (it.hasNext()) {
+                result.add(jsonToJava(it.next().toString()));
             }
-            else if(c == '{' && start == false && !quote) {
-                start = true;
-                obj += c;
-            }
-            else if(c == '}' && start == true && !quote) {
-                start = false;
-                obj += c;
-                result.add(jsonToJava(obj));
-                obj = "";
-            }
-            else if(start == true) {
-                obj += c;
-            }
+        }
+        else {
+            result.add(jsonToJava(top.toString()));
         }
         return result;
     }
@@ -273,8 +257,8 @@ public final class Convert {
      * and ends with matching (`) quotes</li>
      * <li><strong>Integer, Long, Float</strong> - the value is converted to a
      * non double number depending upon whether it is a standard integer (e.g.
-     * less than {@value java.lang.Integer#MAX_VALUE}), a long, or a floating point
-     * decimal</li>
+     * less than {@value java.lang.Integer#MAX_VALUE}), a long, or a floating
+     * point decimal</li>
      * </ul>
      * </p>
      * 

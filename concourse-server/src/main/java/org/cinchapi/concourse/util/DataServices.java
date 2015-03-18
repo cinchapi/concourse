@@ -17,9 +17,11 @@ package org.cinchapi.concourse.util;
 
 import java.io.IOException;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,6 +43,23 @@ public class DataServices {
      */
     public static Gson gson() {
         return GSON;
+    }
+
+    /**
+     * Perform sanity checks on the {@code key} and {@code value} and throw an
+     * exception if necessary.
+     * 
+     * @param key
+     * @param value
+     */
+    public static void sanityCheck(String key, TObject value) { // CON-21
+        if(StringUtils.isBlank(key)) {
+            throw new IllegalArgumentException("Cannot use a blank key");
+        }
+        else if(value.getType() == Type.STRING
+                && StringUtils.isBlank((String) Convert.thriftToJava(value))) {
+            throw new IllegalArgumentException("Cannot use a blank value");
+        }
     }
 
     /**
@@ -88,13 +107,13 @@ public class DataServices {
             else if(value instanceof Tag) {
                 writer.value("'" + value.toString() + "'");
             }
-            else if(value instanceof Number){
+            else if(value instanceof Number) {
                 writer.value((Number) value);
             }
-            else if(value instanceof Boolean){
+            else if(value instanceof Boolean) {
                 writer.value((Boolean) value);
             }
-            else{
+            else {
                 writer.value(value.toString());
             }
         }

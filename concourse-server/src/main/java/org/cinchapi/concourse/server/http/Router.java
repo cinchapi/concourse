@@ -135,6 +135,17 @@ public abstract class Router {
     }
 
     /**
+     * Perform a POST or PUT request and process the {@code route}.
+     * 
+     * @param route
+     */
+    public void upsert(final RewritableRoute route) {
+        route.prepend(namespace);
+        Spark.post(route);
+        Spark.put(route);
+    }
+
+    /**
      * Perform a PUT request and process the {@link RewritableRoute}.
      * 
      * @param route

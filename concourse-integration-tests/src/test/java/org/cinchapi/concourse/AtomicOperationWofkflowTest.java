@@ -235,7 +235,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         }
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testInsertFailsForNonJsonString() {
         Assert.assertTrue(client.insert(TestData.getString()).isEmpty());
     }

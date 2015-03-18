@@ -16,6 +16,7 @@
 package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
+import java.util.Set;
 
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
@@ -24,7 +25,9 @@ import org.cinchapi.concourse.server.http.Endpoint;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.thrift.AccessToken;
+import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
+import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 
 import com.google.common.primitives.Longs;
@@ -38,6 +41,28 @@ import com.google.gson.JsonPrimitive;
  * @author Jeff Nelson
  */
 public class IndexRouter extends Router {
+
+    /**
+     * Given two arguments, figure out which is the key and which is the record.
+     * This method returns an array where the first element is the key and the
+     * second is the record.
+     * 
+     * @param arg1
+     * @param arg2
+     * @return an array with the key followed by the record
+     */
+    private static Object[] specifyKeyAndRecord(String arg1, String arg2) {
+        Long record = Longs.tryParse(arg1);
+        String key;
+        if(record != null) {
+            key = arg2;
+        }
+        else {
+            key = arg1;
+            record = Long.parseLong(arg2);
+        }
+        return new Object[] { key, record };
+    }
 
     /**
      * Construct a new instance.
@@ -92,11 +117,11 @@ public class IndexRouter extends Router {
             }
 
         });
-        
+
         /**
          * POST /logout
          */
-        post(new Endpoint("/logout"){
+        post(new Endpoint("/logout") {
 
             @Override
             protected JsonElement serve() throws Exception {
@@ -104,7 +129,7 @@ public class IndexRouter extends Router {
                 response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
                 return NO_DATA;
             }
-            
+
         });
 
         /**
@@ -121,6 +146,22 @@ public class IndexRouter extends Router {
         });
 
         /**
+         * POST /
+         * PUT /
+         */
+        upsert(new Endpoint("/") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String json = request.body();
+                Set<Long> records = concourse.insertJson(json, creds,
+                        transaction, environment);
+                return DataServices.gson().toJsonTree(records);
+            }
+
+        });
+
+        /**
          * GET /record[?timestamp=<ts>]
          * GET /key[?timestamp=<ts>]
          */
@@ -128,7 +169,6 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                // TODO what about transaction
                 String arg1 = getParamValue(":arg1");
                 String ts = getParamValue("timestamp");
                 Long timestamp = ts == null ? null : Timestamp.parse(ts)
@@ -139,15 +179,31 @@ public class IndexRouter extends Router {
                     data = timestamp == null ? concourse.selectRecord(record,
                             creds, null, environment) : concourse
                             .selectRecordTime(record, timestamp, creds,
-                                    null, environment);
+                                    transaction, environment);
                 }
                 else {
-                    data = timestamp == null ? concourse.browseKey(arg1,
-                            creds, null, environment) : concourse
-                            .browseKeyTime(arg1, timestamp, creds, null,
-                                    environment);
+                    data = timestamp == null ? concourse.browseKey(arg1, creds,
+                            null, environment) : concourse.browseKeyTime(arg1,
+                            timestamp, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
+            }
+
+        });
+
+        /**
+         * POST /record
+         * PUT /record
+         */
+        upsert(new Endpoint("/:record") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                long record = Long.parseLong(getParamValue(":record"));
+                String json = request.body();
+                boolean result = concourse.insertJsonRecord(json, record,
+                        creds, transaction, environment);
+                return DataServices.gson().toJsonTree(result);
             }
 
         });
@@ -160,32 +216,69 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String arg2 = getParamValue(":arg2");
                 String ts = getParamValue("timestamp");
                 Long timestamp = ts == null ? null : Timestamp.parse(ts)
                         .getMicros();
-                Long record = Longs.tryParse(arg1);
-                String key;
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
                 Object data;
-                if(record != null) {
-                    key = arg2;
-                }
-                else {
-                    key = arg1;
-                    record = Long.parseLong(arg2);
-                }
                 if(timestamp == null) {
                     data = concourse.selectKeyRecord(key, record, creds,
-                            null, environment);
+                            transaction, environment);
                 }
                 else {
                     data = concourse.selectKeyRecordTime(key, record,
-                            timestamp, creds, null, environment);
+                            timestamp, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
 
+        });
+
+        /**
+         * POST /record/key
+         * POST /key/record
+         */
+        post(new Endpoint("/:arg1/:arg2") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                boolean result = concourse.addKeyValueRecord(key, value,
+                        record, creds, transaction, environment);
+                return DataServices.gson().toJsonTree(result);
+            }
+
+        });
+        
+        /**
+         * PUT /record/key
+         * PUT /key/record
+         */
+        put(new Endpoint("/:arg1/:arg2"){
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                concourse.setKeyValueRecord(key, value, record, creds, transaction, environment);
+                return NO_DATA;
+            }
+            
         });
 
     }

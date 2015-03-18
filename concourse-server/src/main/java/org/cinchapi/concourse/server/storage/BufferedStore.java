@@ -25,6 +25,7 @@ import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.time.Time;
+import org.cinchapi.concourse.util.DataServices;
 
 import com.google.common.collect.Sets;
 
@@ -203,6 +204,7 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      */
     public void set(String key, TObject value, long record) {
+        DataServices.sanityCheck(key, value);
         Set<TObject> values = select(key, record);
         for (TObject val : values) {
             buffer.insert(Write.remove(key, val, record)); /* Authorized */
@@ -244,6 +246,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
             boolean validate) {
+        DataServices.sanityCheck(key, value);
         Write write = Write.add(key, value, record);
         if(!validate || !verify(write)) {
             return buffer.insert(write, sync); /* Authorized */
@@ -434,28 +437,6 @@ public abstract class BufferedStore extends BaseStore {
      * {@code record}, if that mapping <em>currently</em> exists (i.e.
      * {@link #verify(String, Object, long)} is {@code true}. No other mappings
      * from {@code key} in {@code record} are affected.
-     * 
-     * @return {@code true} if the mapping is removed
-     */
-    protected boolean remove(String key, TObject value, long record,
-            boolean sync) {
-        Write write = Write.remove(key, value, record);
-        if(verify(write)) {
-            return buffer.insert(write, sync); /* Authorized */
-        }
-        return false;
-    }
-
-    /**
-     * Remove {@code key} as {@code value} from {@code record} with the
-     * directive to {@code sync} the data or not. Depending upon the
-     * implementation of the {@link #buffer}, a sync may guarantee that the data
-     * is durably stored.
-     * <p>
-     * This method deletes the mapping from {@code key} to {@code value} in
-     * {@code record}, if that mapping <em>currently</em> exists (i.e.
-     * {@link #verify(String, Object, long)} is {@code true}. No other mappings
-     * from {@code key} in {@code record} are affected.
      * </p>
      * 
      * @param key
@@ -467,6 +448,7 @@ public abstract class BufferedStore extends BaseStore {
      */
     protected boolean remove(String key, TObject value, long record,
             boolean sync, boolean validate) {
+        DataServices.sanityCheck(key, value);
         Write write = Write.remove(key, value, record);
         if(!validate || verify(write)) {
             return buffer.insert(write, sync); /* Authorized */
