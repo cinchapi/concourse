@@ -194,15 +194,27 @@ public class IndexRouter extends Router {
         /**
          * POST /record
          * PUT /record
+         * POST /key
+         * PUT /key
          */
-        upsert(new Endpoint("/:record") {
+        upsert(new Endpoint("/:arg1") {
 
             @Override
             protected JsonElement serve() throws Exception {
-                long record = Long.parseLong(getParamValue(":record"));
-                String json = request.body();
-                boolean result = concourse.insertJsonRecord(json, record,
-                        creds, transaction, environment);
+                String arg1 = getParamValue(":arg1");
+                Long record = Longs.tryParse(arg1);
+                Object result;
+                if(record != null) {
+                    String json = request.body();
+                    result = concourse.insertJsonRecord(json, record, creds,
+                            transaction, environment);
+                }
+                else {
+                    TObject value = Convert.javaToThrift(Convert
+                            .stringToJava(request.body()));
+                    result = concourse.addKeyValue(arg1, value, creds,
+                            transaction, environment);
+                }
                 return DataServices.gson().toJsonTree(result);
             }
 
@@ -259,12 +271,12 @@ public class IndexRouter extends Router {
             }
 
         });
-        
+
         /**
          * PUT /record/key
          * PUT /key/record
          */
-        put(new Endpoint("/:arg1/:arg2"){
+        put(new Endpoint("/:arg1/:arg2") {
 
             @Override
             protected JsonElement serve() throws Exception {
@@ -275,10 +287,11 @@ public class IndexRouter extends Router {
                 Long record = (Long) args[1];
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
-                concourse.setKeyValueRecord(key, value, record, creds, transaction, environment);
+                concourse.setKeyValueRecord(key, value, record, creds,
+                        transaction, environment);
                 return NO_DATA;
             }
-            
+
         });
 
     }
