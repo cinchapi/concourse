@@ -628,6 +628,23 @@ service ConcourseService {
     7: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  string jsonifyRecords(
+    1: list<i64> records,
+    2: bool identifier,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  string jsonifyRecordsTime(
+    1: list<i64> records,
+    2: i64 timestamp
+    3: bool identifier,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~~~~~~~~ Query Methods ~~~~~~~~
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

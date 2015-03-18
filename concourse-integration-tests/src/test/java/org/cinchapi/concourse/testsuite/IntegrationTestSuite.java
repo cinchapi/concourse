@@ -26,6 +26,7 @@ import org.cinchapi.concourse.CompoundOperationTest;
 import org.cinchapi.concourse.CounterTest;
 import org.cinchapi.concourse.FindCriteriaTest;
 import org.cinchapi.concourse.InsertTest;
+import org.cinchapi.concourse.JsonifyTest;
 import org.cinchapi.concourse.ReferentialIntegrityTest;
 import org.cinchapi.concourse.SecurityExceptionTest;
 import org.cinchapi.concourse.SmokeTest;
@@ -53,7 +54,7 @@ import org.junit.runners.Suite.SuiteClasses;
         SecurityExceptionTest.class, ThriftComplianceTest.class,
         FindCriteriaTest.class, VerifyOrSetTest.class, AddTest.class,
         InsertTest.class, TransactionIsolationTest.class, CounterTest.class,
-        FindOperatorConversionTest.class, AuditTest.class })
+        FindOperatorConversionTest.class, AuditTest.class, JsonifyTest.class })
 public class IntegrationTestSuite {
 
 }
