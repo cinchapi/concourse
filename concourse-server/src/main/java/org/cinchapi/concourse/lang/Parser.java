@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Queue;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.lang.ast.AST;
 import org.cinchapi.concourse.lang.ast.AndTree;
 import org.cinchapi.concourse.lang.ast.ExpressionTree;
 import org.cinchapi.concourse.lang.ast.OrTree;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Strings;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -157,6 +159,83 @@ public final class Parser {
     }
 
     /**
+     * Convert a valid and well-formed CCL string into aQueue in postfix
+     * notation.
+     * <p>
+     * NOTE: This method will group non-conjunctive symbols into
+     * {@link Expression} objects.
+     * </p>
+     * 
+     * @param ccl
+     * @return the queue in postfix notation
+     */
+    public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
+        ccl = ccl.replace("(", "( ");
+        ccl = ccl.replace(")", " )");
+        String[] toks = Strings.splitButRespectQuotes(ccl);
+        List<Symbol> symbols = Lists.newArrayListWithExpectedSize(toks.length);
+        GuessState guess = GuessState.KEY;
+        for (String tok : toks) {
+            if(tok.equals("(") || tok.equals(")")) {
+                symbols.add(ParenthesisSymbol.parse(tok));
+            }
+            else if(tok.equalsIgnoreCase("and")) {
+                symbols.add(ConjunctionSymbol.AND);
+                guess = GuessState.KEY;
+            }
+            else if(tok.equalsIgnoreCase("or")) {
+                symbols.add(ConjunctionSymbol.OR);
+                guess = GuessState.KEY;
+            }
+            else if(tok.equalsIgnoreCase("at")) {
+                guess = GuessState.TIMESTAMP;
+            }
+            else if(tok.equalsIgnoreCase("where")) {
+                continue;
+            }
+            else if(StringUtils.isBlank(tok)) {
+                continue;
+            }
+            else if(guess == GuessState.KEY) {
+                symbols.add(KeySymbol.parse(tok));
+                guess = GuessState.OPERATOR;
+            }
+            else if(guess == GuessState.OPERATOR) {
+                symbols.add(OperatorSymbol.parse(tok));
+                guess = GuessState.VALUE;
+            }
+            else if(guess == GuessState.VALUE) {
+                symbols.add(ValueSymbol.parse(tok));
+            }
+            else if(guess == GuessState.TIMESTAMP) {
+                symbols.add(TimestampSymbol.parse(tok));
+            }
+            else {
+                throw new IllegalStateException();
+            }
+        }
+        return toPostfixNotation(symbols);
+    }
+
+    /**
+     * An the appropriate {@link AST} node to the {@code stack} based on
+     * {@code operator}.
+     * 
+     * @param stack
+     * @param operator
+     */
+    private static void addASTNode(Deque<AST> stack, Symbol operator) {
+        AST right = stack.pop();
+        AST left = stack.pop();
+        if(operator == ConjunctionSymbol.AND) {
+            stack.push(AndTree.create(left, right));
+        }
+        else {
+            stack.push(OrTree.create(left, right));
+        }
+    }
+
+    /**
      * Go through a list of symbols and group the expressions together in a
      * {@link Expression} object.
      * 
@@ -209,24 +288,16 @@ public final class Parser {
         }
     }
 
-    /**
-     * An the appropriate {@link AST} node to the {@code stack} based on
-     * {@code operator}.
-     * 
-     * @param stack
-     * @param operator
-     */
-    private static void addASTNode(Deque<AST> stack, Symbol operator) {
-        AST right = stack.pop();
-        AST left = stack.pop();
-        if(operator == ConjunctionSymbol.AND) {
-            stack.push(AndTree.create(left, right));
-        }
-        else {
-            stack.push(OrTree.create(left, right));
-        }
-    }
-
     private Parser() {/* noop */}
+
+    /**
+     * An enum that tracks what the parser guesses the next token to be in the
+     * {@link #toPostfixNotation(String)} method.
+     * 
+     * @author Jeff Nelson
+     */
+    private enum GuessState {
+        KEY, OPERATOR, TIMESTAMP, VALUE
+    }
 
 }

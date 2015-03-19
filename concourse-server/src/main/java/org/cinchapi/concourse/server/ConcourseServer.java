@@ -407,6 +407,23 @@ public class ConcourseServer implements
     }
 
     /**
+     * Parse the thrift represented {@code criteria} into an {@link Queue} of
+     * {@link PostfixNotationSymbol postfix notation symbols} that can be used
+     * within the {@link #find0(Queue, Deque, AtomicOperation)} method.
+     * 
+     * @param criteria
+     * @return
+     */
+    private static Queue<PostfixNotationSymbol> parse0(TCriteria criteria) {
+        List<Symbol> symbols = Lists.newArrayList();
+        for (TSymbol tsymbol : criteria.getSymbols()) {
+            symbols.add(Language.translateFromThrift(tsymbol));
+        }
+        Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(symbols);
+        return queue;
+    }
+
+    /**
      * Perform a ping of the {@code record} (e.g check to see if the record
      * currently has any data) from the perspective of the specified
      * {@code store}.
@@ -1167,12 +1184,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
             Compoundable store = getStore(transaction, environment);
             AtomicOperation atomic = null;
@@ -1261,12 +1273,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1304,12 +1311,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, TObject> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1438,12 +1440,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -1488,12 +1485,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2112,12 +2104,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2149,12 +2136,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Set<TObject>> result = Maps.newLinkedHashMap();
             AtomicOperation atomic = null;
@@ -2266,12 +2248,7 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
@@ -2309,12 +2286,7 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            List<Symbol> symbols = Lists.newArrayList();
-            for (TSymbol tsymbol : criteria.getSymbols()) {
-                symbols.add(Language.translateFromThrift(tsymbol));
-            }
-            Queue<PostfixNotationSymbol> queue = Parser
-                    .toPostfixNotation(symbols);
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
             Compoundable store = getStore(transaction, environment);
             Map<Long, Map<String, Set<TObject>>> result = Maps
                     .newLinkedHashMap();
