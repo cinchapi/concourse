@@ -7,7 +7,7 @@
 #
 
 from thrift.Thrift import TType, TMessageType, TException, TApplicationException
-import concourse.rpc.shared.ttypes
+import concourse.thriftapi.shared.ttypes
 
 
 from thrift.transport import TTransport

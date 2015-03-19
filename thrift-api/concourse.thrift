@@ -25,7 +25,7 @@ namespace java org.cinchapi.concourse.thrift
 
 # To generate python source code run:
 # utils/thrift-compile-python.sh
-namespace py concourse.rpc
+namespace py concourse.thriftapi
 
 # To generate PHP source code run:
 # utils/thrift-compile-php.sh

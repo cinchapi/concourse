@@ -10,6 +10,6 @@ from thrift.Thrift import TType, TMessageType, TException, TApplicationException
 from ttypes import *
 
 VERSION = "0.5.0"
-NULL = concourse.rpc.ttypes.TObject(**{
+NULL = concourse.thriftapi.data.ttypes.TObject(**{
   "type" :   9,
 })

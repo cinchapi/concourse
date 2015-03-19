@@ -2,14 +2,17 @@
 # post thrift generation. Therefore, it is advisable to compare any
 # regenerated versions of these structs with previous versions to
 # make sure that any additional custom logic is retained.
-#
-# To generate java source code run:
-# thrift -out ../../java -gen java data.thrift
 
 include "shared.thrift"
 
+# To generate java source code run:
+# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/data.thrift
 namespace java org.cinchapi.concourse.thrift
-namespace py concourse.rpc.data
+
+# To generate python source code run:
+# thrift -out concourse-driver-python -gen py thrift-api/data.thrift
+namespace py concourse.thriftapi.data
+
 namespace php thrift.data
 
 /**

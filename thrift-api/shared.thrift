@@ -1,11 +1,15 @@
 # This file contains shared definitions that are unlikely to be modified
 # post thrift generation.
-#
-# To generate java source code run:
-# thrift -out ../../java -gen java shared.thrift
 
+
+# To generate java source code run:
+# thrift -out concourse-driver-java/src/main/java -gen java thrift-api/ shared.thrift
 namespace java org.cinchapi.concourse.thrift
-namespace py concourse.rpc.shared
+
+# To generate python source code run:
+# thrift -out concourse-driver-python -gen py thrift-api/shared.thrift
+namespace py concourse.thriftapi.shared
+
 namespace php thrift.shared
 
 /**

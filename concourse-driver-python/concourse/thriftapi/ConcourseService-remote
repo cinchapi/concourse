@@ -16,8 +16,8 @@ from thrift.transport import TSSLSocket
 from thrift.transport import THttpClient
 from thrift.protocol import TBinaryProtocol
 
-from concourse.rpc import ConcourseService
-from concourse.rpc.ttypes import *
+from concourse.thriftapi import ConcourseService
+from concourse.thriftapi.ttypes import *
 
 if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('')

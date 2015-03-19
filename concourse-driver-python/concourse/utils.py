@@ -1,7 +1,6 @@
 __author__ = 'jnelson'
-
-from rpc.shared.ttypes import Type
-from rpc.data.ttypes import TObject
+from thriftapi.shared.ttypes import Type
+from thriftapi.data.ttypes import TObject
 from types import *
 import struct
 

@@ -1,9 +1,9 @@
 from thrift import Thrift
 from thrift.transport import TSocket, TTransport
 from thrift.protocol import TBinaryProtocol
-from rpc import ConcourseService
-from rpc.ttypes import *
-from rpc.shared.ttypes import *
+from thriftapi import ConcourseService
+from thriftapi.ttypes import *
+from thriftapi.shared.ttypes import *
 from utils import *
 
 
