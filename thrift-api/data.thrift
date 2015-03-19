@@ -9,7 +9,7 @@
 include "shared.thrift"
 
 namespace java org.cinchapi.concourse.thrift
-namespace py concourse.rpc
+namespace py concourse.rpc.data
 namespace php thrift.data
 
 /**

@@ -1,7 +1,7 @@
 __author__ = 'jnelson'
 
 from rpc.shared.ttypes import Type
-from rpc.ttypes import TObject
+from rpc.data.ttypes import TObject
 from types import *
 import struct
 

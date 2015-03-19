@@ -68,7 +68,7 @@
 # connections on Concourse Server will be disabled.
 #
 # DEFAULT: 0 (disabled)
-#http_port = 8817
+http_port = 8817
 
 # The listener port (1-65535) for management commands via JMX. Choose a port
 # between 49152 and 65535 to minimize the possibility of conflicts with other

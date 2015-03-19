@@ -7241,7 +7241,7 @@ class addKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -7272,7 +7272,7 @@ class addKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -7465,7 +7465,7 @@ class addKeyValue_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -7494,7 +7494,7 @@ class addKeyValue_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -7678,7 +7678,7 @@ class addKeyValueRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -7709,7 +7709,7 @@ class addKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -9775,7 +9775,7 @@ class removeKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -9806,7 +9806,7 @@ class removeKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -10000,7 +10000,7 @@ class removeKeyValueRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -10031,7 +10031,7 @@ class removeKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -10243,7 +10243,7 @@ class setKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -10274,7 +10274,7 @@ class setKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -10455,7 +10455,7 @@ class setKeyValue_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -10484,7 +10484,7 @@ class setKeyValue_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -10668,7 +10668,7 @@ class setKeyValueRecords_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.LIST, 'records', (TType.I64,None), None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -10699,7 +10699,7 @@ class setKeyValueRecords_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -11183,7 +11183,7 @@ class selectRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -11211,7 +11211,7 @@ class selectRecord_result:
             _val110 = set()
             (_etype114, _size111) = iprot.readSetBegin()
             for _i115 in xrange(_size111):
-              _elem116 = concourse.rpc.ttypes.TObject()
+              _elem116 = concourse.rpc.data.ttypes.TObject()
               _elem116.read(iprot)
               _val110.add(_elem116)
             iprot.readSetEnd()
@@ -11408,7 +11408,7 @@ class selectRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -11440,7 +11440,7 @@ class selectRecords_result:
               _val140 = set()
               (_etype144, _size141) = iprot.readSetBegin()
               for _i145 in xrange(_size141):
-                _elem146 = concourse.rpc.ttypes.TObject()
+                _elem146 = concourse.rpc.data.ttypes.TObject()
                 _elem146.read(iprot)
                 _val140.add(_elem146)
               iprot.readSetEnd()
@@ -11648,7 +11648,7 @@ class selectRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -11676,7 +11676,7 @@ class selectRecordTime_result:
             _val158 = set()
             (_etype162, _size159) = iprot.readSetBegin()
             for _i163 in xrange(_size159):
-              _elem164 = concourse.rpc.ttypes.TObject()
+              _elem164 = concourse.rpc.data.ttypes.TObject()
               _elem164.read(iprot)
               _val158.add(_elem164)
             iprot.readSetEnd()
@@ -11886,7 +11886,7 @@ class selectRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -11918,7 +11918,7 @@ class selectRecordsTime_result:
               _val188 = set()
               (_etype192, _size189) = iprot.readSetBegin()
               for _i193 in xrange(_size189):
-                _elem194 = concourse.rpc.ttypes.TObject()
+                _elem194 = concourse.rpc.data.ttypes.TObject()
                 _elem194.read(iprot)
                 _val188.add(_elem194)
               iprot.readSetEnd()
@@ -12113,7 +12113,7 @@ class browseKey_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -12137,7 +12137,7 @@ class browseKey_result:
           self.success = {}
           (_ktype201, _vtype202, _size200 ) = iprot.readMapBegin()
           for _i204 in xrange(_size200):
-            _key205 = concourse.rpc.ttypes.TObject()
+            _key205 = concourse.rpc.data.ttypes.TObject()
             _key205.read(iprot)
             _val206 = set()
             (_etype210, _size207) = iprot.readSetBegin()
@@ -12338,7 +12338,7 @@ class browseKeys_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -12366,7 +12366,7 @@ class browseKeys_result:
             _val229 = {}
             (_ktype231, _vtype232, _size230 ) = iprot.readMapBegin()
             for _i234 in xrange(_size230):
-              _key235 = concourse.rpc.ttypes.TObject()
+              _key235 = concourse.rpc.data.ttypes.TObject()
               _key235.read(iprot)
               _val236 = set()
               (_etype240, _size237) = iprot.readSetBegin()
@@ -12578,7 +12578,7 @@ class browseKeyTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -12602,7 +12602,7 @@ class browseKeyTime_result:
           self.success = {}
           (_ktype249, _vtype250, _size248 ) = iprot.readMapBegin()
           for _i252 in xrange(_size248):
-            _key253 = concourse.rpc.ttypes.TObject()
+            _key253 = concourse.rpc.data.ttypes.TObject()
             _key253.read(iprot)
             _val254 = set()
             (_etype258, _size255) = iprot.readSetBegin()
@@ -12816,7 +12816,7 @@ class browseKeysTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec),TType.SET,(TType.I64,None))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -12844,7 +12844,7 @@ class browseKeysTime_result:
             _val277 = {}
             (_ktype279, _vtype280, _size278 ) = iprot.readMapBegin()
             for _i282 in xrange(_size278):
-              _key283 = concourse.rpc.ttypes.TObject()
+              _key283 = concourse.rpc.data.ttypes.TObject()
               _key283.read(iprot)
               _val284 = set()
               (_etype288, _size285) = iprot.readSetBegin()
@@ -13942,7 +13942,7 @@ class selectKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.SET, 'success', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -13966,7 +13966,7 @@ class selectKeyRecord_result:
           self.success = set()
           (_etype359, _size356) = iprot.readSetBegin()
           for _i360 in xrange(_size356):
-            _elem361 = concourse.rpc.ttypes.TObject()
+            _elem361 = concourse.rpc.data.ttypes.TObject()
             _elem361.read(iprot)
             self.success.add(_elem361)
           iprot.readSetEnd()
@@ -14175,7 +14175,7 @@ class selectKeyRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.SET, 'success', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.SET, 'success', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -14199,7 +14199,7 @@ class selectKeyRecordTime_result:
           self.success = set()
           (_etype366, _size363) = iprot.readSetBegin()
           for _i367 in xrange(_size363):
-            _elem368 = concourse.rpc.ttypes.TObject()
+            _elem368 = concourse.rpc.data.ttypes.TObject()
             _elem368.read(iprot)
             self.success.add(_elem368)
           iprot.readSetEnd()
@@ -14403,7 +14403,7 @@ class selectKeysRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -14431,7 +14431,7 @@ class selectKeysRecord_result:
             _val383 = set()
             (_etype387, _size384) = iprot.readSetBegin()
             for _i388 in xrange(_size384):
-              _elem389 = concourse.rpc.ttypes.TObject()
+              _elem389 = concourse.rpc.data.ttypes.TObject()
               _elem389.read(iprot)
               _val383.add(_elem389)
             iprot.readSetEnd()
@@ -14654,7 +14654,7 @@ class selectKeysRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -14682,7 +14682,7 @@ class selectKeysRecordTime_result:
             _val406 = set()
             (_etype410, _size407) = iprot.readSetBegin()
             for _i411 in xrange(_size407):
-              _elem412 = concourse.rpc.ttypes.TObject()
+              _elem412 = concourse.rpc.data.ttypes.TObject()
               _elem412.read(iprot)
               _val406.add(_elem412)
             iprot.readSetEnd()
@@ -14900,7 +14900,7 @@ class selectKeysRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -14932,7 +14932,7 @@ class selectKeysRecords_result:
               _val443 = set()
               (_etype447, _size444) = iprot.readSetBegin()
               for _i448 in xrange(_size444):
-                _elem449 = concourse.rpc.ttypes.TObject()
+                _elem449 = concourse.rpc.data.ttypes.TObject()
                 _elem449.read(iprot)
                 _val443.add(_elem449)
               iprot.readSetEnd()
@@ -15148,7 +15148,7 @@ class selectKeyRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -15176,7 +15176,7 @@ class selectKeyRecords_result:
             _val468 = set()
             (_etype472, _size469) = iprot.readSetBegin()
             for _i473 in xrange(_size469):
-              _elem474 = concourse.rpc.ttypes.TObject()
+              _elem474 = concourse.rpc.data.ttypes.TObject()
               _elem474.read(iprot)
               _val468.add(_elem474)
             iprot.readSetEnd()
@@ -15399,7 +15399,7 @@ class selectKeyRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -15427,7 +15427,7 @@ class selectKeyRecordsTime_result:
             _val491 = set()
             (_etype495, _size492) = iprot.readSetBegin()
             for _i496 in xrange(_size492):
-              _elem497 = concourse.rpc.ttypes.TObject()
+              _elem497 = concourse.rpc.data.ttypes.TObject()
               _elem497.read(iprot)
               _val491.add(_elem497)
             iprot.readSetEnd()
@@ -15658,7 +15658,7 @@ class selectKeysRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -15690,7 +15690,7 @@ class selectKeysRecordsTime_result:
               _val528 = set()
               (_etype532, _size529) = iprot.readSetBegin()
               for _i533 in xrange(_size529):
-                _elem534 = concourse.rpc.ttypes.TObject()
+                _elem534 = concourse.rpc.data.ttypes.TObject()
                 _elem534.read(iprot)
                 _val528.add(_elem534)
               iprot.readSetEnd()
@@ -15783,7 +15783,7 @@ class selectKeyCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -15812,7 +15812,7 @@ class selectKeyCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -15899,7 +15899,7 @@ class selectKeyCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -15927,7 +15927,7 @@ class selectKeyCriteria_result:
             _val546 = set()
             (_etype550, _size547) = iprot.readSetBegin()
             for _i551 in xrange(_size547):
-              _elem552 = concourse.rpc.ttypes.TObject()
+              _elem552 = concourse.rpc.data.ttypes.TObject()
               _elem552.read(iprot)
               _val546.add(_elem552)
             iprot.readSetEnd()
@@ -16015,7 +16015,7 @@ class selectKeyCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -16046,7 +16046,7 @@ class selectKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16143,7 +16143,7 @@ class selectKeyCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -16171,7 +16171,7 @@ class selectKeyCriteriaTime_result:
             _val562 = set()
             (_etype566, _size563) = iprot.readSetBegin()
             for _i567 in xrange(_size563):
-              _elem568 = concourse.rpc.ttypes.TObject()
+              _elem568 = concourse.rpc.data.ttypes.TObject()
               _elem568.read(iprot)
               _val562.add(_elem568)
             iprot.readSetEnd()
@@ -16258,7 +16258,7 @@ class selectKeysCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -16292,7 +16292,7 @@ class selectKeysCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16382,7 +16382,7 @@ class selectKeysCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -16414,7 +16414,7 @@ class selectKeysCriteria_result:
               _val592 = set()
               (_etype596, _size593) = iprot.readSetBegin()
               for _i597 in xrange(_size593):
-                _elem598 = concourse.rpc.ttypes.TObject()
+                _elem598 = concourse.rpc.data.ttypes.TObject()
                 _elem598.read(iprot)
                 _val592.add(_elem598)
               iprot.readSetEnd()
@@ -16508,7 +16508,7 @@ class selectKeysCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -16544,7 +16544,7 @@ class selectKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -16644,7 +16644,7 @@ class selectKeysCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -16676,7 +16676,7 @@ class selectKeysCriteriaTime_result:
               _val624 = set()
               (_etype628, _size625) = iprot.readSetBegin()
               for _i629 in xrange(_size625):
-                _elem630 = concourse.rpc.ttypes.TObject()
+                _elem630 = concourse.rpc.data.ttypes.TObject()
                 _elem630.read(iprot)
                 _val624.add(_elem630)
               iprot.readSetEnd()
@@ -16884,7 +16884,7 @@ class getKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 0
+    (0, TType.STRUCT, 'success', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -16905,7 +16905,7 @@ class getKeyRecord_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.rpc.ttypes.TObject()
+          self.success = concourse.rpc.data.ttypes.TObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17109,7 +17109,7 @@ class getKeyRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.STRUCT, 'success', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 0
+    (0, TType.STRUCT, 'success', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -17130,7 +17130,7 @@ class getKeyRecordTime_result:
         break
       if fid == 0:
         if ftype == TType.STRUCT:
-          self.success = concourse.rpc.ttypes.TObject()
+          self.success = concourse.rpc.data.ttypes.TObject()
           self.success.read(iprot)
         else:
           iprot.skip(ftype)
@@ -17329,7 +17329,7 @@ class getKeysRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -17354,7 +17354,7 @@ class getKeysRecord_result:
           (_ktype644, _vtype645, _size643 ) = iprot.readMapBegin()
           for _i647 in xrange(_size643):
             _key648 = iprot.readString();
-            _val649 = concourse.rpc.ttypes.TObject()
+            _val649 = concourse.rpc.data.ttypes.TObject()
             _val649.read(iprot)
             self.success[_key648] = _val649
           iprot.readMapEnd()
@@ -17572,7 +17572,7 @@ class getKeysRecordTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -17597,7 +17597,7 @@ class getKeysRecordTime_result:
           (_ktype660, _vtype661, _size659 ) = iprot.readMapBegin()
           for _i663 in xrange(_size659):
             _key664 = iprot.readString();
-            _val665 = concourse.rpc.ttypes.TObject()
+            _val665 = concourse.rpc.data.ttypes.TObject()
             _val665.read(iprot)
             self.success[_key664] = _val665
           iprot.readMapEnd()
@@ -17810,7 +17810,7 @@ class getKeysRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -17839,7 +17839,7 @@ class getKeysRecords_result:
             (_ktype690, _vtype691, _size689 ) = iprot.readMapBegin()
             for _i693 in xrange(_size689):
               _key694 = iprot.readString();
-              _val695 = concourse.rpc.ttypes.TObject()
+              _val695 = concourse.rpc.data.ttypes.TObject()
               _val695.read(iprot)
               _val688[_key694] = _val695
             iprot.readMapEnd()
@@ -18050,7 +18050,7 @@ class getKeyRecords_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -18075,7 +18075,7 @@ class getKeyRecords_result:
           (_ktype708, _vtype709, _size707 ) = iprot.readMapBegin()
           for _i711 in xrange(_size707):
             _key712 = iprot.readI64();
-            _val713 = concourse.rpc.ttypes.TObject()
+            _val713 = concourse.rpc.data.ttypes.TObject()
             _val713.read(iprot)
             self.success[_key712] = _val713
           iprot.readMapEnd()
@@ -18293,7 +18293,7 @@ class getKeyRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -18318,7 +18318,7 @@ class getKeyRecordsTime_result:
           (_ktype724, _vtype725, _size723 ) = iprot.readMapBegin()
           for _i727 in xrange(_size723):
             _key728 = iprot.readI64();
-            _val729 = concourse.rpc.ttypes.TObject()
+            _val729 = concourse.rpc.data.ttypes.TObject()
             _val729.read(iprot)
             self.success[_key728] = _val729
           iprot.readMapEnd()
@@ -18544,7 +18544,7 @@ class getKeysRecordsTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -18573,7 +18573,7 @@ class getKeysRecordsTime_result:
             (_ktype754, _vtype755, _size753 ) = iprot.readMapBegin()
             for _i757 in xrange(_size753):
               _key758 = iprot.readString();
-              _val759 = concourse.rpc.ttypes.TObject()
+              _val759 = concourse.rpc.data.ttypes.TObject()
               _val759.read(iprot)
               _val752[_key758] = _val759
             iprot.readMapEnd()
@@ -18661,7 +18661,7 @@ class getKeyCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -18690,7 +18690,7 @@ class getKeyCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -18777,7 +18777,7 @@ class getKeyCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -18802,7 +18802,7 @@ class getKeyCriteria_result:
           (_ktype765, _vtype766, _size764 ) = iprot.readMapBegin()
           for _i768 in xrange(_size764):
             _key769 = iprot.readI64();
-            _val770 = concourse.rpc.ttypes.TObject()
+            _val770 = concourse.rpc.data.ttypes.TObject()
             _val770.read(iprot)
             self.success[_key769] = _val770
           iprot.readMapEnd()
@@ -18885,7 +18885,7 @@ class getKeyCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -18916,7 +18916,7 @@ class getKeyCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19013,7 +19013,7 @@ class getKeyCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -19038,7 +19038,7 @@ class getKeyCriteriaTime_result:
           (_ktype774, _vtype775, _size773 ) = iprot.readMapBegin()
           for _i777 in xrange(_size773):
             _key778 = iprot.readI64();
-            _val779 = concourse.rpc.ttypes.TObject()
+            _val779 = concourse.rpc.data.ttypes.TObject()
             _val779.read(iprot)
             self.success[_key778] = _val779
           iprot.readMapEnd()
@@ -19120,7 +19120,7 @@ class getKeysCriteria_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
     (4, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
     (5, TType.STRING, 'environment', None, None, ), # 5
@@ -19154,7 +19154,7 @@ class getKeysCriteria_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19244,7 +19244,7 @@ class getKeysCriteria_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -19273,7 +19273,7 @@ class getKeysCriteria_result:
             (_ktype797, _vtype798, _size796 ) = iprot.readMapBegin()
             for _i800 in xrange(_size796):
               _key801 = iprot.readString();
-              _val802 = concourse.rpc.ttypes.TObject()
+              _val802 = concourse.rpc.data.ttypes.TObject()
               _val802.read(iprot)
               _val795[_key801] = _val802
             iprot.readMapEnd()
@@ -19362,7 +19362,7 @@ class getKeysCriteriaTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
-    (2, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 2
     (3, TType.I64, 'timestamp', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -19398,7 +19398,7 @@ class getKeysCriteriaTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19498,7 +19498,7 @@ class getKeysCriteriaTime_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -19527,7 +19527,7 @@ class getKeysCriteriaTime_result:
             (_ktype822, _vtype823, _size821 ) = iprot.readMapBegin()
             for _i825 in xrange(_size821):
               _key826 = iprot.readString();
-              _val827 = concourse.rpc.ttypes.TObject()
+              _val827 = concourse.rpc.data.ttypes.TObject()
               _val827.read(iprot)
               _val820[_key826] = _val827
             iprot.readMapEnd()
@@ -19616,7 +19616,7 @@ class verifyKeyValueRecord_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -19647,7 +19647,7 @@ class verifyKeyValueRecord_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -19842,7 +19842,7 @@ class verifyKeyValueRecordTime_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
     (5, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
@@ -19875,7 +19875,7 @@ class verifyKeyValueRecordTime_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20527,7 +20527,7 @@ class findCriteria_args:
 
   thrift_spec = (
     None, # 0
-    (1, TType.STRUCT, 'criteria', (concourse.rpc.ttypes.TCriteria, concourse.rpc.ttypes.TCriteria.thrift_spec), None, ), # 1
+    (1, TType.STRUCT, 'criteria', (concourse.rpc.data.ttypes.TCriteria, concourse.rpc.data.ttypes.TCriteria.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
     (3, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
     (4, TType.STRING, 'environment', None, None, ), # 4
@@ -20550,7 +20550,7 @@ class findCriteria_args:
         break
       if fid == 1:
         if ftype == TType.STRUCT:
-          self.criteria = concourse.rpc.ttypes.TCriteria()
+          self.criteria = concourse.rpc.data.ttypes.TCriteria()
           self.criteria.read(iprot)
         else:
           iprot.skip(ftype)
@@ -20738,7 +20738,7 @@ class findKeyOperatorValues_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I32, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
@@ -20776,7 +20776,7 @@ class findKeyOperatorValues_args:
           self.values = []
           (_etype856, _size853) = iprot.readListBegin()
           for _i857 in xrange(_size853):
-            _elem858 = concourse.rpc.ttypes.TObject()
+            _elem858 = concourse.rpc.data.ttypes.TObject()
             _elem858.read(iprot)
             self.values.append(_elem858)
           iprot.readListEnd()
@@ -20980,7 +20980,7 @@ class findKeyOperatorValuesTime_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.I32, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
     (5, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
     (6, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
@@ -21020,7 +21020,7 @@ class findKeyOperatorValuesTime_args:
           self.values = []
           (_etype870, _size867) = iprot.readListBegin()
           for _i871 in xrange(_size867):
-            _elem872 = concourse.rpc.ttypes.TObject()
+            _elem872 = concourse.rpc.data.ttypes.TObject()
             _elem872.read(iprot)
             self.values.append(_elem872)
           iprot.readListEnd()
@@ -21233,7 +21233,7 @@ class findKeyStringOperatorValues_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
     (6, TType.STRING, 'environment', None, None, ), # 6
@@ -21271,7 +21271,7 @@ class findKeyStringOperatorValues_args:
           self.values = []
           (_etype884, _size881) = iprot.readListBegin()
           for _i885 in xrange(_size881):
-            _elem886 = concourse.rpc.ttypes.TObject()
+            _elem886 = concourse.rpc.data.ttypes.TObject()
             _elem886.read(iprot)
             self.values.append(_elem886)
           iprot.readListEnd()
@@ -21475,7 +21475,7 @@ class findKeyStringOperatorValuesTime_args:
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
     (2, TType.STRING, 'operator', None, None, ), # 2
-    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec)), None, ), # 3
+    (3, TType.LIST, 'values', (TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec)), None, ), # 3
     (4, TType.I64, 'timestamp', None, None, ), # 4
     (5, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
     (6, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
@@ -21515,7 +21515,7 @@ class findKeyStringOperatorValuesTime_args:
           self.values = []
           (_etype898, _size895) = iprot.readListBegin()
           for _i899 in xrange(_size895):
-            _elem900 = concourse.rpc.ttypes.TObject()
+            _elem900 = concourse.rpc.data.ttypes.TObject()
             _elem900.read(iprot)
             self.values.append(_elem900)
           iprot.readListEnd()
@@ -23425,7 +23425,7 @@ class chronologizeKeyRecord_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -23453,7 +23453,7 @@ class chronologizeKeyRecord_result:
             _val976 = set()
             (_etype980, _size977) = iprot.readSetBegin()
             for _i981 in xrange(_size977):
-              _elem982 = concourse.rpc.ttypes.TObject()
+              _elem982 = concourse.rpc.data.ttypes.TObject()
               _elem982.read(iprot)
               _val976.add(_elem982)
             iprot.readSetEnd()
@@ -23668,7 +23668,7 @@ class chronologizeKeyRecordStart_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -23696,7 +23696,7 @@ class chronologizeKeyRecordStart_result:
             _val992 = set()
             (_etype996, _size993) = iprot.readSetBegin()
             for _i997 in xrange(_size993):
-              _elem998 = concourse.rpc.ttypes.TObject()
+              _elem998 = concourse.rpc.data.ttypes.TObject()
               _elem998.read(iprot)
               _val992.add(_elem998)
             iprot.readSetEnd()
@@ -23924,7 +23924,7 @@ class chronologizeKeyRecordStartEnd_result:
   """
 
   thrift_spec = (
-    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec))), None, ), # 0
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec))), None, ), # 0
     (1, TType.STRUCT, 'ex', (concourse.rpc.shared.ttypes.TSecurityException, concourse.rpc.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
     (2, TType.STRUCT, 'ex2', (concourse.rpc.shared.ttypes.TTransactionException, concourse.rpc.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
   )
@@ -23952,7 +23952,7 @@ class chronologizeKeyRecordStartEnd_result:
             _val1008 = set()
             (_etype1012, _size1009) = iprot.readSetBegin()
             for _i1013 in xrange(_size1009):
-              _elem1014 = concourse.rpc.ttypes.TObject()
+              _elem1014 = concourse.rpc.data.ttypes.TObject()
               _elem1014.read(iprot)
               _val1008.add(_elem1014)
             iprot.readSetEnd()
@@ -25335,9 +25335,9 @@ class verifyAndSwap_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'expected', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'expected', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
-    (4, TType.STRUCT, 'replacement', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 4
+    (4, TType.STRUCT, 'replacement', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
     (6, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
     (7, TType.STRING, 'environment', None, None, ), # 7
@@ -25368,7 +25368,7 @@ class verifyAndSwap_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.expected = concourse.rpc.ttypes.TObject()
+          self.expected = concourse.rpc.data.ttypes.TObject()
           self.expected.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25379,7 +25379,7 @@ class verifyAndSwap_args:
           iprot.skip(ftype)
       elif fid == 4:
         if ftype == TType.STRUCT:
-          self.replacement = concourse.rpc.ttypes.TObject()
+          self.replacement = concourse.rpc.data.ttypes.TObject()
           self.replacement.read(iprot)
         else:
           iprot.skip(ftype)
@@ -25573,7 +25573,7 @@ class verifyOrSet_args:
   thrift_spec = (
     None, # 0
     (1, TType.STRING, 'key', None, None, ), # 1
-    (2, TType.STRUCT, 'value', (concourse.rpc.ttypes.TObject, concourse.rpc.ttypes.TObject.thrift_spec), None, ), # 2
+    (2, TType.STRUCT, 'value', (concourse.rpc.data.ttypes.TObject, concourse.rpc.data.ttypes.TObject.thrift_spec), None, ), # 2
     (3, TType.I64, 'record', None, None, ), # 3
     (4, TType.STRUCT, 'creds', (concourse.rpc.shared.ttypes.AccessToken, concourse.rpc.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
     (5, TType.STRUCT, 'transaction', (concourse.rpc.shared.ttypes.TransactionToken, concourse.rpc.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
@@ -25604,7 +25604,7 @@ class verifyOrSet_args:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.STRUCT:
-          self.value = concourse.rpc.ttypes.TObject()
+          self.value = concourse.rpc.data.ttypes.TObject()
           self.value.read(iprot)
         else:
           iprot.skip(ftype)
