@@ -1285,8 +1285,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
-                            result.put(record, atomic.select(key, record)
-                                    .iterator().next());
+                            result.put(record, Iterables.getLast(atomic.select(
+                                    key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1323,9 +1323,8 @@ public class ConcourseServer implements
                     Set<Long> records = stack.pop();
                     for (long record : records) {
                         try {
-                            result.put(record,
-                                    atomic.select(key, record, timestamp)
-                                            .iterator().next());
+                            result.put(record, Iterables.getLast(atomic.select(
+                                    key, record, timestamp)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1349,8 +1348,9 @@ public class ConcourseServer implements
             TransactionToken transaction, String environment) throws TException {
         checkAccess(creds, transaction);
         try {
-            return Iterables.getFirst(getStore(transaction, environment)
-                    .select(key, record), TObject.NULL);
+            return Iterables.getLast(
+                    getStore(transaction, environment).select(key, record),
+                    TObject.NULL);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -1373,8 +1373,8 @@ public class ConcourseServer implements
                 try {
                     for (long record : records) {
                         try {
-                            result.put(record, atomic.select(key, record)
-                                    .iterator().next());
+                            result.put(record, Iterables.getLast(atomic.select(
+                                    key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1405,8 +1405,8 @@ public class ConcourseServer implements
             Compoundable store = getStore(transaction, environment);
             for (long record : records) {
                 try {
-                    result.put(record, store.select(key, record, timestamp)
-                            .iterator().next());
+                    result.put(record, Iterables.getLast(store.select(key,
+                            record, timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
@@ -1426,8 +1426,9 @@ public class ConcourseServer implements
             throws TException {
         checkAccess(creds, transaction);
         try {
-            return Iterables.getFirst(getStore(transaction, environment)
-                    .select(key, record, timestamp), TObject.NULL);
+            return Iterables.getLast(
+                    getStore(transaction, environment).select(key, record,
+                            timestamp), TObject.NULL);
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -1454,8 +1455,8 @@ public class ConcourseServer implements
                         Map<String, TObject> entry = Maps.newHashMap();
                         for (String key : keys) {
                             try {
-                                entry.put(key, atomic.select(key, record)
-                                        .iterator().next());
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -1499,9 +1500,8 @@ public class ConcourseServer implements
                         Map<String, TObject> entry = Maps.newHashMap();
                         for (String key : keys) {
                             try {
-                                entry.put(key,
-                                        atomic.select(key, record, timestamp)
-                                                .iterator().next());
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record, timestamp)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -1540,8 +1540,8 @@ public class ConcourseServer implements
                 try {
                     for (String key : keys) {
                         try {
-                            result.put(key, atomic.select(key, record)
-                                    .iterator().next());
+                            result.put(key, Iterables.getLast(atomic.select(
+                                    key, record)));
                         }
                         catch (NoSuchElementException e) {
                             continue;
@@ -1577,8 +1577,8 @@ public class ConcourseServer implements
                         Map<String, TObject> entry = Maps.newHashMap();
                         for (String key : keys) {
                             try {
-                                entry.put(key, atomic.select(key, record)
-                                        .iterator().next());
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record)));
                             }
                             catch (NoSuchElementException e) {
                                 continue;
@@ -1615,8 +1615,8 @@ public class ConcourseServer implements
                 Map<String, TObject> entry = Maps.newLinkedHashMap();
                 for (String key : keys) {
                     try {
-                        entry.put(key, store.select(key, record, timestamp)
-                                .iterator().next());
+                        entry.put(key, Iterables.getLast(store.select(key,
+                                record, timestamp)));
                     }
                     catch (NoSuchElementException e) {
                         continue;
@@ -1645,8 +1645,8 @@ public class ConcourseServer implements
             Compoundable store = getStore(transaction, environment);
             for (String key : keys) {
                 try {
-                    result.put(key, store.select(key, record, timestamp)
-                            .iterator().next());
+                    result.put(key, Iterables.getLast(store.select(key, record,
+                            timestamp)));
                 }
                 catch (NoSuchElementException e) {
                     continue;
