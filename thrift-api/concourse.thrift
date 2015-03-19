@@ -481,9 +481,26 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<i64, set<data.TObject>> selectKeyCcl(
+    1: string key,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<i64, set<data.TObject>> selectKeyCriteriaTime(
     1: string key,
     2: data.TCriteria criteria,
+    3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, set<data.TObject>> selectKeyCclTime(
+    1: string key,
+    2: string ccl,
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
@@ -498,9 +515,26 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<i64, map<string, set<data.TObject>>> selectKeysCcl(
+    1: list<string> keys,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<i64, map<string, set<data.TObject>>> selectKeysCriteriaTime(
     1: list<string> keys,
     2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, set<data.TObject>>> selectKeysCclTime(
+    1: list<string> keys,
+    2: string ccl,
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
@@ -583,9 +617,26 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<i64, data.TObject> getKeyCcl(
+    1: string key,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<i64, data.TObject> getKeyCriteriaTime(
     1: string key,
     2: data.TCriteria criteria,
+    3: i64 timestamp
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, data.TObject> getKeyCclTime(
+    1: string key,
+    2: string ccl,
     3: i64 timestamp
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
@@ -600,9 +651,26 @@ service ConcourseService {
     5: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<i64, map<string, data.TObject>> getKeysCcl(
+    1: list<string> keys,
+    2: string ccl,
+    3: shared.AccessToken creds,
+    4: shared.TransactionToken transaction,
+    5: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   map<i64, map<string, data.TObject>> getKeysCriteriaTime(
     1: list<string> keys,
     2: data.TCriteria criteria,
+    3: i64 timestamp,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<i64, map<string, data.TObject>> getKeysCclTime(
+    1: list<string> keys,
+    2: string ccl,
     3: i64 timestamp,
     4: shared.AccessToken creds,
     5: shared.TransactionToken transaction,
@@ -651,6 +719,13 @@ service ConcourseService {
 
   set<i64> findCriteria(
     1: data.TCriteria criteria,
+    2: shared.AccessToken creds,
+    3: shared.TransactionToken transaction,
+    4: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  set<i64> findCcl(
+    1: string ccl,
     2: shared.AccessToken creds,
     3: shared.TransactionToken transaction,
     4: string environment)

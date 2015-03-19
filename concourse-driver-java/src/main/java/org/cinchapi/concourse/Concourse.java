@@ -581,6 +581,14 @@ public abstract class Concourse implements AutoCloseable {
                                                      // the CriteriaBuilder
 
     /**
+     * Find and return the set of records that satisfy the {@code ccl} criteria.
+     * 
+     * @param ccl
+     * @return the records that match the criteria
+     */
+    public abstract Set<Long> find(String ccl);
+
+    /**
      * Find and return the set of records where {@code key} is equal to
      * {@code value}. This method is a shortcut for calling
      * {@link #find(String, Operator, Object)} with {@link Operator#EQUALS}.
@@ -801,6 +809,29 @@ public abstract class Concourse implements AutoCloseable {
             Object criteria, Timestamp timestamp);
 
     /**
+     * Get the most recently added value for each of the {@code keys} in all the
+     * records that match {@code ccl} criteria.
+     * 
+     * @param keys
+     * @param ccl
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl);
+
+    /**
+     * Get the most recently added value for each of the {@code keys} at
+     * {@code timestamp} in all the records that match {@code ccl} criteria.
+     * 
+     * @param keys
+     * @param ccl
+     * @param timestamp
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Map<String, T>> get(Collection<String> keys,
+            String ccl, Timestamp timestamp);
+
+    /**
      * Get {@code key} from each of the {@code records} and return a mapping
      * from each record to the first contained value.
      * 
@@ -895,6 +926,28 @@ public abstract class Concourse implements AutoCloseable {
      * @return the result set
      */
     public abstract <T> Map<Long, T> get(String key, Object criteria,
+            Timestamp timestamp);
+
+    /**
+     * Get the most recently added value for {@code key} in all the records that
+     * match {@code ccl} criteria.
+     * 
+     * @param key
+     * @param ccl
+     * @return the result set
+     */
+    public abstract <T> Map<Long, T> get(String key, String ccl);
+
+    /**
+     * Get the most recently added value for {@code key} at {@code timestamp}
+     * for all the records that match the {@code ccl} criteria.
+     * 
+     * @param key
+     * @param ccl
+     * @param timestamp
+     * @return the result set
+     */
+    public abstract <T> Map<Long, T> get(String key, String ccl,
             Timestamp timestamp);
 
     /**
@@ -1295,6 +1348,29 @@ public abstract class Concourse implements AutoCloseable {
             Collection<String> keys, Object criteria, Timestamp timestamp);
 
     /**
+     * Select all of the values for each of the {@code keys} in all the records
+     * that match {@code ccl} criteria.
+     * 
+     * @param keys
+     * @param ccl
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, String ccl);
+
+    /**
+     * Select all of the values for each of the {@code keys} at
+     * {@code timestamp} in all the records that match {@code ccl} criteria.
+     * 
+     * @param keys
+     * @param ccl
+     * @param timestamp
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Map<String, Set<T>>> select(
+            Collection<String> keys, String ccl, Timestamp timestamp);
+
+    /**
      * Select {@code record} and return all the data that is presently contained
      * as a mapping from key name to value set.
      * <p>
@@ -1413,6 +1489,28 @@ public abstract class Concourse implements AutoCloseable {
      * @return the result set
      */
     public abstract <T> Map<Long, Set<T>> select(String key, Object criteria,
+            Timestamp timestamp);
+
+    /**
+     * Select all of the values for {@code key} in all the records that match
+     * {@code ccl} criteria.
+     * 
+     * @param key
+     * @param ccl
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, String ccl);
+
+    /**
+     * Select all of the values for {@code key} at {@code timestamp} in all the
+     * records that match {@code ccl} criteria.
+     * 
+     * @param key
+     * @param ccl
+     * @param timestamp
+     * @return the result set
+     */
+    public abstract <T> Map<Long, Set<T>> select(String key, String ccl,
             Timestamp timestamp);
 
     /**
@@ -2421,6 +2519,18 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public Set<Long> find(final String ccl) {
+            return execute(new Callable<Set<Long>>() {
+
+                @Override
+                public Set<Long> call() throws Exception {
+                    return client.findCcl(ccl, creds, transaction, environment);
+                }
+
+            });
+        }
+
+        @Override
         public Set<Long> find(String key, Object value) {
             return find0(key, Operator.EQUALS, value);
         }
@@ -2654,6 +2764,59 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public <T> Map<Long, Map<String, T>> get(final Collection<String> keys,
+                final String ccl) {
+            return execute(new Callable<Map<Long, Map<String, T>>>() {
+
+                @Override
+                public Map<Long, Map<String, T>> call() throws Exception {
+                    Map<Long, Map<String, TObject>> raw = client.getKeysCcl(
+                            Collections.toList(keys), ccl, creds, transaction,
+                            environment);
+                    Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, TObject>> entry : raw
+                            .entrySet()) {
+                        pretty.put(
+                                entry.getKey(),
+                                Transformers.transformMapValues(
+                                        entry.getValue(),
+                                        Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, T>> get(final Collection<String> keys,
+                final String ccl, final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Map<String, T>>>() {
+
+                @Override
+                public Map<Long, Map<String, T>> call() throws Exception {
+                    Map<Long, Map<String, TObject>> raw = client
+                            .getKeysCclTime(Collections.toList(keys), ccl,
+                                    timestamp.getMicros(), creds, transaction,
+                                    environment);
+                    Map<Long, Map<String, T>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, TObject>> entry : raw
+                            .entrySet()) {
+                        pretty.put(
+                                entry.getKey(),
+                                Transformers.transformMapValues(
+                                        entry.getValue(),
+                                        Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
         public <T> Map<Long, T> get(final String key,
                 final Collection<Long> records) {
             return execute(new Callable<Map<Long, T>>() {
@@ -2808,6 +2971,50 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public <T> Map<Long, T> get(final String key, final String ccl) {
+            return execute(new Callable<Map<Long, T>>() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public Map<Long, T> call() throws Exception {
+                    Map<Long, TObject> raw = client.getKeyCcl(key, ccl, creds,
+                            transaction, environment);
+                    Map<Long, T> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", key);
+                    for (Entry<Long, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                (T) Convert.thriftToJava(entry.getValue()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public <T> Map<Long, T> get(final String key, final String ccl,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, T>>() {
+
+                @SuppressWarnings("unchecked")
+                @Override
+                public Map<Long, T> call() throws Exception {
+                    Map<Long, TObject> raw = client.getKeyCclTime(key, ccl,
+                            timestamp.getMicros(), creds, transaction,
+                            environment);
+                    Map<Long, T> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", key);
+                    for (Entry<Long, TObject> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(),
+                                (T) Convert.thriftToJava(entry.getValue()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
         public String getServerEnvironment() {
             return execute(new Callable<String>() {
 
@@ -2886,8 +3093,9 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public String call() throws Exception {
-                    return client.jsonifyRecords(Collections.toLongList(records),
-                            identifier, creds, transaction, environment);
+                    return client.jsonifyRecords(
+                            Collections.toLongList(records), identifier, creds,
+                            transaction, environment);
                 }
 
             });
@@ -2906,8 +3114,9 @@ public abstract class Concourse implements AutoCloseable {
                 @Override
                 public String call() throws Exception {
                     return client.jsonifyRecordsTime(
-                            Collections.toLongList(records), timestamp.getMicros(),
-                            identifier, creds, transaction, environment);
+                            Collections.toLongList(records),
+                            timestamp.getMicros(), identifier, creds,
+                            transaction, environment);
                 }
 
             });
@@ -3329,6 +3538,58 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                final Collection<String> keys, final String ccl) {
+            return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<T>>> call() throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .selectKeysCcl(Collections.toList(keys), ccl,
+                                    creds, transaction, environment);
+                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public <T> Map<Long, Map<String, Set<T>>> select(
+                final Collection<String> keys, final String ccl,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Map<String, Set<T>>>>() {
+
+                @Override
+                public Map<Long, Map<String, Set<T>>> call() throws Exception {
+                    Map<Long, Map<String, Set<TObject>>> raw = client
+                            .selectKeysCclTime(Collections.toList(keys), ccl,
+                                    timestamp.getMicros(), creds, transaction,
+                                    environment);
+                    Map<Long, Map<String, Set<T>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap("Record");
+                    for (Entry<Long, Map<String, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<String> none(),
+                                        Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
         public Map<String, Set<Object>> select(final long record) {
             return execute(new Callable<Map<String, Set<Object>>>() {
 
@@ -3516,6 +3777,50 @@ public abstract class Concourse implements AutoCloseable {
                 throw new IllegalArgumentException(criteria
                         + " is not a valid argument for the select method");
             }
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(final String key, final String ccl) {
+            return execute(new Callable<Map<Long, Set<T>>>() {
+
+                @Override
+                public Map<Long, Set<T>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client.selectKeyCcl(key, ccl,
+                            creds, transaction, environment);
+                    Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", key);
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
+        }
+
+        @Override
+        public <T> Map<Long, Set<T>> select(final String key, final String ccl,
+                final Timestamp timestamp) {
+            return execute(new Callable<Map<Long, Set<T>>>() {
+
+                @Override
+                public Map<Long, Set<T>> call() throws Exception {
+                    Map<Long, Set<TObject>> raw = client.selectKeyCclTime(key,
+                            ccl, timestamp.getMicros(), creds, transaction,
+                            environment);
+                    Map<Long, Set<T>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Record", key);
+                    for (Entry<Long, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
+                }
+
+            });
         }
 
         @Override

@@ -559,11 +559,34 @@ class Iface:
     """
     pass
 
+  def selectKeyCcl(self, key, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def selectKeyCriteriaTime(self, key, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
      - criteria
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def selectKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
      - timestamp
      - creds
      - transaction
@@ -582,11 +605,34 @@ class Iface:
     """
     pass
 
+  def selectKeysCcl(self, keys, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def selectKeysCriteriaTime(self, keys, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
      - keys
      - criteria
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def selectKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
      - timestamp
      - creds
      - transaction
@@ -697,11 +743,34 @@ class Iface:
     """
     pass
 
+  def getKeyCcl(self, key, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def getKeyCriteriaTime(self, key, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
      - key
      - criteria
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def getKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
      - timestamp
      - creds
      - transaction
@@ -720,11 +789,34 @@ class Iface:
     """
     pass
 
+  def getKeysCcl(self, keys, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def getKeysCriteriaTime(self, keys, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
      - keys
      - criteria
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def getKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
      - timestamp
      - creds
      - transaction
@@ -784,6 +876,16 @@ class Iface:
     """
     Parameters:
      - criteria
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def findCcl(self, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - ccl
      - creds
      - transaction
      - environment
@@ -2977,6 +3079,49 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyCriteria failed: unknown result");
 
+  def selectKeyCcl(self, key, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_selectKeyCcl(key, ccl, creds, transaction, environment)
+    return self.recv_selectKeyCcl()
+
+  def send_selectKeyCcl(self, key, ccl, creds, transaction, environment):
+    self._oprot.writeMessageBegin('selectKeyCcl', TMessageType.CALL, self._seqid)
+    args = selectKeyCcl_args()
+    args.key = key
+    args.ccl = ccl
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_selectKeyCcl(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = selectKeyCcl_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyCcl failed: unknown result");
+
   def selectKeyCriteriaTime(self, key, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
@@ -3022,6 +3167,51 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyCriteriaTime failed: unknown result");
 
+  def selectKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_selectKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
+    return self.recv_selectKeyCclTime()
+
+  def send_selectKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('selectKeyCclTime', TMessageType.CALL, self._seqid)
+    args = selectKeyCclTime_args()
+    args.key = key
+    args.ccl = ccl
+    args.timestamp = timestamp
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_selectKeyCclTime(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = selectKeyCclTime_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeyCclTime failed: unknown result");
+
   def selectKeysCriteria(self, keys, criteria, creds, transaction, environment):
     """
     Parameters:
@@ -3064,6 +3254,49 @@ class Client(Iface):
     if result.ex2 is not None:
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysCriteria failed: unknown result");
+
+  def selectKeysCcl(self, keys, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_selectKeysCcl(keys, ccl, creds, transaction, environment)
+    return self.recv_selectKeysCcl()
+
+  def send_selectKeysCcl(self, keys, ccl, creds, transaction, environment):
+    self._oprot.writeMessageBegin('selectKeysCcl', TMessageType.CALL, self._seqid)
+    args = selectKeysCcl_args()
+    args.keys = keys
+    args.ccl = ccl
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_selectKeysCcl(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = selectKeysCcl_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysCcl failed: unknown result");
 
   def selectKeysCriteriaTime(self, keys, criteria, timestamp, creds, transaction, environment):
     """
@@ -3109,6 +3342,51 @@ class Client(Iface):
     if result.ex2 is not None:
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysCriteriaTime failed: unknown result");
+
+  def selectKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_selectKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
+    return self.recv_selectKeysCclTime()
+
+  def send_selectKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('selectKeysCclTime', TMessageType.CALL, self._seqid)
+    args = selectKeysCclTime_args()
+    args.keys = keys
+    args.ccl = ccl
+    args.timestamp = timestamp
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_selectKeysCclTime(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = selectKeysCclTime_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "selectKeysCclTime failed: unknown result");
 
   def getKeyRecord(self, key, record, creds, transaction, environment):
     """
@@ -3505,6 +3783,49 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyCriteria failed: unknown result");
 
+  def getKeyCcl(self, key, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_getKeyCcl(key, ccl, creds, transaction, environment)
+    return self.recv_getKeyCcl()
+
+  def send_getKeyCcl(self, key, ccl, creds, transaction, environment):
+    self._oprot.writeMessageBegin('getKeyCcl', TMessageType.CALL, self._seqid)
+    args = getKeyCcl_args()
+    args.key = key
+    args.ccl = ccl
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getKeyCcl(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = getKeyCcl_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyCcl failed: unknown result");
+
   def getKeyCriteriaTime(self, key, criteria, timestamp, creds, transaction, environment):
     """
     Parameters:
@@ -3550,6 +3871,51 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyCriteriaTime failed: unknown result");
 
+  def getKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - ccl
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_getKeyCclTime(key, ccl, timestamp, creds, transaction, environment)
+    return self.recv_getKeyCclTime()
+
+  def send_getKeyCclTime(self, key, ccl, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('getKeyCclTime', TMessageType.CALL, self._seqid)
+    args = getKeyCclTime_args()
+    args.key = key
+    args.ccl = ccl
+    args.timestamp = timestamp
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getKeyCclTime(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = getKeyCclTime_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeyCclTime failed: unknown result");
+
   def getKeysCriteria(self, keys, criteria, creds, transaction, environment):
     """
     Parameters:
@@ -3592,6 +3958,49 @@ class Client(Iface):
     if result.ex2 is not None:
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysCriteria failed: unknown result");
+
+  def getKeysCcl(self, keys, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_getKeysCcl(keys, ccl, creds, transaction, environment)
+    return self.recv_getKeysCcl()
+
+  def send_getKeysCcl(self, keys, ccl, creds, transaction, environment):
+    self._oprot.writeMessageBegin('getKeysCcl', TMessageType.CALL, self._seqid)
+    args = getKeysCcl_args()
+    args.keys = keys
+    args.ccl = ccl
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getKeysCcl(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = getKeysCcl_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysCcl failed: unknown result");
 
   def getKeysCriteriaTime(self, keys, criteria, timestamp, creds, transaction, environment):
     """
@@ -3637,6 +4046,51 @@ class Client(Iface):
     if result.ex2 is not None:
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysCriteriaTime failed: unknown result");
+
+  def getKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    """
+    Parameters:
+     - keys
+     - ccl
+     - timestamp
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_getKeysCclTime(keys, ccl, timestamp, creds, transaction, environment)
+    return self.recv_getKeysCclTime()
+
+  def send_getKeysCclTime(self, keys, ccl, timestamp, creds, transaction, environment):
+    self._oprot.writeMessageBegin('getKeysCclTime', TMessageType.CALL, self._seqid)
+    args = getKeysCclTime_args()
+    args.keys = keys
+    args.ccl = ccl
+    args.timestamp = timestamp
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_getKeysCclTime(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = getKeysCclTime_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "getKeysCclTime failed: unknown result");
 
   def verifyKeyValueRecord(self, key, value, record, creds, transaction, environment):
     """
@@ -3858,6 +4312,47 @@ class Client(Iface):
     if result.ex2 is not None:
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "findCriteria failed: unknown result");
+
+  def findCcl(self, ccl, creds, transaction, environment):
+    """
+    Parameters:
+     - ccl
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_findCcl(ccl, creds, transaction, environment)
+    return self.recv_findCcl()
+
+  def send_findCcl(self, ccl, creds, transaction, environment):
+    self._oprot.writeMessageBegin('findCcl', TMessageType.CALL, self._seqid)
+    args = findCcl_args()
+    args.ccl = ccl
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_findCcl(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = findCcl_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "findCcl failed: unknown result");
 
   def findKeyOperatorValues(self, key, operator, values, creds, transaction, environment):
     """
@@ -4947,9 +5442,13 @@ class Processor(Iface, TProcessor):
     self._processMap["selectKeyRecordsTime"] = Processor.process_selectKeyRecordsTime
     self._processMap["selectKeysRecordsTime"] = Processor.process_selectKeysRecordsTime
     self._processMap["selectKeyCriteria"] = Processor.process_selectKeyCriteria
+    self._processMap["selectKeyCcl"] = Processor.process_selectKeyCcl
     self._processMap["selectKeyCriteriaTime"] = Processor.process_selectKeyCriteriaTime
+    self._processMap["selectKeyCclTime"] = Processor.process_selectKeyCclTime
     self._processMap["selectKeysCriteria"] = Processor.process_selectKeysCriteria
+    self._processMap["selectKeysCcl"] = Processor.process_selectKeysCcl
     self._processMap["selectKeysCriteriaTime"] = Processor.process_selectKeysCriteriaTime
+    self._processMap["selectKeysCclTime"] = Processor.process_selectKeysCclTime
     self._processMap["getKeyRecord"] = Processor.process_getKeyRecord
     self._processMap["getKeyRecordTime"] = Processor.process_getKeyRecordTime
     self._processMap["getKeysRecord"] = Processor.process_getKeysRecord
@@ -4959,14 +5458,19 @@ class Processor(Iface, TProcessor):
     self._processMap["getKeyRecordsTime"] = Processor.process_getKeyRecordsTime
     self._processMap["getKeysRecordsTime"] = Processor.process_getKeysRecordsTime
     self._processMap["getKeyCriteria"] = Processor.process_getKeyCriteria
+    self._processMap["getKeyCcl"] = Processor.process_getKeyCcl
     self._processMap["getKeyCriteriaTime"] = Processor.process_getKeyCriteriaTime
+    self._processMap["getKeyCclTime"] = Processor.process_getKeyCclTime
     self._processMap["getKeysCriteria"] = Processor.process_getKeysCriteria
+    self._processMap["getKeysCcl"] = Processor.process_getKeysCcl
     self._processMap["getKeysCriteriaTime"] = Processor.process_getKeysCriteriaTime
+    self._processMap["getKeysCclTime"] = Processor.process_getKeysCclTime
     self._processMap["verifyKeyValueRecord"] = Processor.process_verifyKeyValueRecord
     self._processMap["verifyKeyValueRecordTime"] = Processor.process_verifyKeyValueRecordTime
     self._processMap["jsonifyRecords"] = Processor.process_jsonifyRecords
     self._processMap["jsonifyRecordsTime"] = Processor.process_jsonifyRecordsTime
     self._processMap["findCriteria"] = Processor.process_findCriteria
+    self._processMap["findCcl"] = Processor.process_findCcl
     self._processMap["findKeyOperatorValues"] = Processor.process_findKeyOperatorValues
     self._processMap["findKeyOperatorValuesTime"] = Processor.process_findKeyOperatorValuesTime
     self._processMap["findKeyStringOperatorValues"] = Processor.process_findKeyStringOperatorValues
@@ -5703,6 +6207,22 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_selectKeyCcl(self, seqid, iprot, oprot):
+    args = selectKeyCcl_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = selectKeyCcl_result()
+    try:
+      result.success = self._handler.selectKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("selectKeyCcl", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_selectKeyCriteriaTime(self, seqid, iprot, oprot):
     args = selectKeyCriteriaTime_args()
     args.read(iprot)
@@ -5715,6 +6235,22 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeyCriteriaTime", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_selectKeyCclTime(self, seqid, iprot, oprot):
+    args = selectKeyCclTime_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = selectKeyCclTime_result()
+    try:
+      result.success = self._handler.selectKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("selectKeyCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -5735,6 +6271,22 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_selectKeysCcl(self, seqid, iprot, oprot):
+    args = selectKeysCcl_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = selectKeysCcl_result()
+    try:
+      result.success = self._handler.selectKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("selectKeysCcl", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_selectKeysCriteriaTime(self, seqid, iprot, oprot):
     args = selectKeysCriteriaTime_args()
     args.read(iprot)
@@ -5747,6 +6299,22 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("selectKeysCriteriaTime", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_selectKeysCclTime(self, seqid, iprot, oprot):
+    args = selectKeysCclTime_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = selectKeysCclTime_result()
+    try:
+      result.success = self._handler.selectKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("selectKeysCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -5895,6 +6463,22 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_getKeyCcl(self, seqid, iprot, oprot):
+    args = getKeyCcl_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getKeyCcl_result()
+    try:
+      result.success = self._handler.getKeyCcl(args.key, args.ccl, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("getKeyCcl", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_getKeyCriteriaTime(self, seqid, iprot, oprot):
     args = getKeyCriteriaTime_args()
     args.read(iprot)
@@ -5907,6 +6491,22 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeyCriteriaTime", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_getKeyCclTime(self, seqid, iprot, oprot):
+    args = getKeyCclTime_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getKeyCclTime_result()
+    try:
+      result.success = self._handler.getKeyCclTime(args.key, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("getKeyCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -5927,6 +6527,22 @@ class Processor(Iface, TProcessor):
     oprot.writeMessageEnd()
     oprot.trans.flush()
 
+  def process_getKeysCcl(self, seqid, iprot, oprot):
+    args = getKeysCcl_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getKeysCcl_result()
+    try:
+      result.success = self._handler.getKeysCcl(args.keys, args.ccl, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("getKeysCcl", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
   def process_getKeysCriteriaTime(self, seqid, iprot, oprot):
     args = getKeysCriteriaTime_args()
     args.read(iprot)
@@ -5939,6 +6555,22 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("getKeysCriteriaTime", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_getKeysCclTime(self, seqid, iprot, oprot):
+    args = getKeysCclTime_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = getKeysCclTime_result()
+    try:
+      result.success = self._handler.getKeysCclTime(args.keys, args.ccl, args.timestamp, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("getKeysCclTime", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -6019,6 +6651,22 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("findCriteria", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_findCcl(self, seqid, iprot, oprot):
+    args = findCcl_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = findCcl_result()
+    try:
+      result.success = self._handler.findCcl(args.ccl, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("findCcl", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -16001,6 +16649,236 @@ class selectKeyCriteria_result:
   def __ne__(self, other):
     return not (self == other)
 
+class selectKeyCcl_args:
+  """
+  Attributes:
+   - key
+   - ccl
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, key=None, ccl=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.ccl = ccl
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeyCcl_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeyCcl_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype557, _vtype558, _size556 ) = iprot.readMapBegin()
+          for _i560 in xrange(_size556):
+            _key561 = iprot.readI64();
+            _val562 = set()
+            (_etype566, _size563) = iprot.readSetBegin()
+            for _i567 in xrange(_size563):
+              _elem568 = concourse.thriftapi.data.ttypes.TObject()
+              _elem568.read(iprot)
+              _val562.add(_elem568)
+            iprot.readSetEnd()
+            self.success[_key561] = _val562
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeyCcl_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
+      for kiter569,viter570 in self.success.items():
+        oprot.writeI64(kiter569)
+        oprot.writeSetBegin(TType.STRUCT, len(viter570))
+        for iter571 in viter570:
+          iter571.write(oprot)
+        oprot.writeSetEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class selectKeyCriteriaTime_args:
   """
   Attributes:
@@ -16165,17 +17043,17 @@ class selectKeyCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype557, _vtype558, _size556 ) = iprot.readMapBegin()
-          for _i560 in xrange(_size556):
-            _key561 = iprot.readI64();
-            _val562 = set()
-            (_etype566, _size563) = iprot.readSetBegin()
-            for _i567 in xrange(_size563):
-              _elem568 = concourse.thriftapi.data.ttypes.TObject()
-              _elem568.read(iprot)
-              _val562.add(_elem568)
+          (_ktype573, _vtype574, _size572 ) = iprot.readMapBegin()
+          for _i576 in xrange(_size572):
+            _key577 = iprot.readI64();
+            _val578 = set()
+            (_etype582, _size579) = iprot.readSetBegin()
+            for _i583 in xrange(_size579):
+              _elem584 = concourse.thriftapi.data.ttypes.TObject()
+              _elem584.read(iprot)
+              _val578.add(_elem584)
             iprot.readSetEnd()
-            self.success[_key561] = _val562
+            self.success[_key577] = _val578
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -16204,11 +17082,254 @@ class selectKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter569,viter570 in self.success.items():
-        oprot.writeI64(kiter569)
-        oprot.writeSetBegin(TType.STRUCT, len(viter570))
-        for iter571 in viter570:
-          iter571.write(oprot)
+      for kiter585,viter586 in self.success.items():
+        oprot.writeI64(kiter585)
+        oprot.writeSetBegin(TType.STRUCT, len(viter586))
+        for iter587 in viter586:
+          iter587.write(oprot)
+        oprot.writeSetEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeyCclTime_args:
+  """
+  Attributes:
+   - key
+   - ccl
+   - timestamp
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.I64, 'timestamp', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, ccl=None, timestamp=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.ccl = ccl
+    self.timestamp = timestamp
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.timestamp = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeyCclTime_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.timestamp is not None:
+      oprot.writeFieldBegin('timestamp', TType.I64, 3)
+      oprot.writeI64(self.timestamp)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.timestamp)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeyCclTime_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype589, _vtype590, _size588 ) = iprot.readMapBegin()
+          for _i592 in xrange(_size588):
+            _key593 = iprot.readI64();
+            _val594 = set()
+            (_etype598, _size595) = iprot.readSetBegin()
+            for _i599 in xrange(_size595):
+              _elem600 = concourse.thriftapi.data.ttypes.TObject()
+              _elem600.read(iprot)
+              _val594.add(_elem600)
+            iprot.readSetEnd()
+            self.success[_key593] = _val594
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeyCclTime_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
+      for kiter601,viter602 in self.success.items():
+        oprot.writeI64(kiter601)
+        oprot.writeSetBegin(TType.STRUCT, len(viter602))
+        for iter603 in viter602:
+          iter603.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -16283,10 +17404,10 @@ class selectKeysCriteria_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype575, _size572) = iprot.readListBegin()
-          for _i576 in xrange(_size572):
-            _elem577 = iprot.readString();
-            self.keys.append(_elem577)
+          (_etype607, _size604) = iprot.readListBegin()
+          for _i608 in xrange(_size604):
+            _elem609 = iprot.readString();
+            self.keys.append(_elem609)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -16326,8 +17447,8 @@ class selectKeysCriteria_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter578 in self.keys:
-        oprot.writeString(iter578)
+      for iter610 in self.keys:
+        oprot.writeString(iter610)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -16404,23 +17525,23 @@ class selectKeysCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype580, _vtype581, _size579 ) = iprot.readMapBegin()
-          for _i583 in xrange(_size579):
-            _key584 = iprot.readI64();
-            _val585 = {}
-            (_ktype587, _vtype588, _size586 ) = iprot.readMapBegin()
-            for _i590 in xrange(_size586):
-              _key591 = iprot.readString();
-              _val592 = set()
-              (_etype596, _size593) = iprot.readSetBegin()
-              for _i597 in xrange(_size593):
-                _elem598 = concourse.thriftapi.data.ttypes.TObject()
-                _elem598.read(iprot)
-                _val592.add(_elem598)
+          (_ktype612, _vtype613, _size611 ) = iprot.readMapBegin()
+          for _i615 in xrange(_size611):
+            _key616 = iprot.readI64();
+            _val617 = {}
+            (_ktype619, _vtype620, _size618 ) = iprot.readMapBegin()
+            for _i622 in xrange(_size618):
+              _key623 = iprot.readString();
+              _val624 = set()
+              (_etype628, _size625) = iprot.readSetBegin()
+              for _i629 in xrange(_size625):
+                _elem630 = concourse.thriftapi.data.ttypes.TObject()
+                _elem630.read(iprot)
+                _val624.add(_elem630)
               iprot.readSetEnd()
-              _val585[_key591] = _val592
+              _val617[_key623] = _val624
             iprot.readMapEnd()
-            self.success[_key584] = _val585
+            self.success[_key616] = _val617
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -16449,14 +17570,262 @@ class selectKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter599,viter600 in self.success.items():
-        oprot.writeI64(kiter599)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter600))
-        for kiter601,viter602 in viter600.items():
-          oprot.writeString(kiter601)
-          oprot.writeSetBegin(TType.STRUCT, len(viter602))
-          for iter603 in viter602:
-            iter603.write(oprot)
+      for kiter631,viter632 in self.success.items():
+        oprot.writeI64(kiter631)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter632))
+        for kiter633,viter634 in viter632.items():
+          oprot.writeString(kiter633)
+          oprot.writeSetBegin(TType.STRUCT, len(viter634))
+          for iter635 in viter634:
+            iter635.write(oprot)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeysCcl_args:
+  """
+  Attributes:
+   - keys
+   - ccl
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, keys=None, ccl=None, creds=None, transaction=None, environment=None,):
+    self.keys = keys
+    self.ccl = ccl
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.keys = []
+          (_etype639, _size636) = iprot.readListBegin()
+          for _i640 in xrange(_size636):
+            _elem641 = iprot.readString();
+            self.keys.append(_elem641)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeysCcl_args')
+    if self.keys is not None:
+      oprot.writeFieldBegin('keys', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.keys))
+      for iter642 in self.keys:
+        oprot.writeString(iter642)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.keys)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeysCcl_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype644, _vtype645, _size643 ) = iprot.readMapBegin()
+          for _i647 in xrange(_size643):
+            _key648 = iprot.readI64();
+            _val649 = {}
+            (_ktype651, _vtype652, _size650 ) = iprot.readMapBegin()
+            for _i654 in xrange(_size650):
+              _key655 = iprot.readString();
+              _val656 = set()
+              (_etype660, _size657) = iprot.readSetBegin()
+              for _i661 in xrange(_size657):
+                _elem662 = concourse.thriftapi.data.ttypes.TObject()
+                _elem662.read(iprot)
+                _val656.add(_elem662)
+              iprot.readSetEnd()
+              _val649[_key655] = _val656
+            iprot.readMapEnd()
+            self.success[_key648] = _val649
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeysCcl_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
+      for kiter663,viter664 in self.success.items():
+        oprot.writeI64(kiter663)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter664))
+        for kiter665,viter666 in viter664.items():
+          oprot.writeString(kiter665)
+          oprot.writeSetBegin(TType.STRUCT, len(viter666))
+          for iter667 in viter666:
+            iter667.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -16535,10 +17904,10 @@ class selectKeysCriteriaTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype607, _size604) = iprot.readListBegin()
-          for _i608 in xrange(_size604):
-            _elem609 = iprot.readString();
-            self.keys.append(_elem609)
+          (_etype671, _size668) = iprot.readListBegin()
+          for _i672 in xrange(_size668):
+            _elem673 = iprot.readString();
+            self.keys.append(_elem673)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -16583,8 +17952,8 @@ class selectKeysCriteriaTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter610 in self.keys:
-        oprot.writeString(iter610)
+      for iter674 in self.keys:
+        oprot.writeString(iter674)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -16666,23 +18035,23 @@ class selectKeysCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype612, _vtype613, _size611 ) = iprot.readMapBegin()
-          for _i615 in xrange(_size611):
-            _key616 = iprot.readI64();
-            _val617 = {}
-            (_ktype619, _vtype620, _size618 ) = iprot.readMapBegin()
-            for _i622 in xrange(_size618):
-              _key623 = iprot.readString();
-              _val624 = set()
-              (_etype628, _size625) = iprot.readSetBegin()
-              for _i629 in xrange(_size625):
-                _elem630 = concourse.thriftapi.data.ttypes.TObject()
-                _elem630.read(iprot)
-                _val624.add(_elem630)
+          (_ktype676, _vtype677, _size675 ) = iprot.readMapBegin()
+          for _i679 in xrange(_size675):
+            _key680 = iprot.readI64();
+            _val681 = {}
+            (_ktype683, _vtype684, _size682 ) = iprot.readMapBegin()
+            for _i686 in xrange(_size682):
+              _key687 = iprot.readString();
+              _val688 = set()
+              (_etype692, _size689) = iprot.readSetBegin()
+              for _i693 in xrange(_size689):
+                _elem694 = concourse.thriftapi.data.ttypes.TObject()
+                _elem694.read(iprot)
+                _val688.add(_elem694)
               iprot.readSetEnd()
-              _val617[_key623] = _val624
+              _val681[_key687] = _val688
             iprot.readMapEnd()
-            self.success[_key616] = _val617
+            self.success[_key680] = _val681
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -16711,14 +18080,275 @@ class selectKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter631,viter632 in self.success.items():
-        oprot.writeI64(kiter631)
-        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter632))
-        for kiter633,viter634 in viter632.items():
-          oprot.writeString(kiter633)
-          oprot.writeSetBegin(TType.STRUCT, len(viter634))
-          for iter635 in viter634:
-            iter635.write(oprot)
+      for kiter695,viter696 in self.success.items():
+        oprot.writeI64(kiter695)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter696))
+        for kiter697,viter698 in viter696.items():
+          oprot.writeString(kiter697)
+          oprot.writeSetBegin(TType.STRUCT, len(viter698))
+          for iter699 in viter698:
+            iter699.write(oprot)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeysCclTime_args:
+  """
+  Attributes:
+   - keys
+   - ccl
+   - timestamp
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.I64, 'timestamp', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, keys=None, ccl=None, timestamp=None, creds=None, transaction=None, environment=None,):
+    self.keys = keys
+    self.ccl = ccl
+    self.timestamp = timestamp
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.keys = []
+          (_etype703, _size700) = iprot.readListBegin()
+          for _i704 in xrange(_size700):
+            _elem705 = iprot.readString();
+            self.keys.append(_elem705)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.timestamp = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeysCclTime_args')
+    if self.keys is not None:
+      oprot.writeFieldBegin('keys', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.keys))
+      for iter706 in self.keys:
+        oprot.writeString(iter706)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.timestamp is not None:
+      oprot.writeFieldBegin('timestamp', TType.I64, 3)
+      oprot.writeI64(self.timestamp)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.keys)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.timestamp)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class selectKeysCclTime_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype708, _vtype709, _size707 ) = iprot.readMapBegin()
+          for _i711 in xrange(_size707):
+            _key712 = iprot.readI64();
+            _val713 = {}
+            (_ktype715, _vtype716, _size714 ) = iprot.readMapBegin()
+            for _i718 in xrange(_size714):
+              _key719 = iprot.readString();
+              _val720 = set()
+              (_etype724, _size721) = iprot.readSetBegin()
+              for _i725 in xrange(_size721):
+                _elem726 = concourse.thriftapi.data.ttypes.TObject()
+                _elem726.read(iprot)
+                _val720.add(_elem726)
+              iprot.readSetEnd()
+              _val713[_key719] = _val720
+            iprot.readMapEnd()
+            self.success[_key712] = _val713
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('selectKeysCclTime_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
+      for kiter727,viter728 in self.success.items():
+        oprot.writeI64(kiter727)
+        oprot.writeMapBegin(TType.STRING, TType.SET, len(viter728))
+        for kiter729,viter730 in viter728.items():
+          oprot.writeString(kiter729)
+          oprot.writeSetBegin(TType.STRUCT, len(viter730))
+          for iter731 in viter730:
+            iter731.write(oprot)
           oprot.writeSetEnd()
         oprot.writeMapEnd()
       oprot.writeMapEnd()
@@ -17231,10 +18861,10 @@ class getKeysRecord_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype639, _size636) = iprot.readListBegin()
-          for _i640 in xrange(_size636):
-            _elem641 = iprot.readString();
-            self.keys.append(_elem641)
+          (_etype735, _size732) = iprot.readListBegin()
+          for _i736 in xrange(_size732):
+            _elem737 = iprot.readString();
+            self.keys.append(_elem737)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -17273,8 +18903,8 @@ class getKeysRecord_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter642 in self.keys:
-        oprot.writeString(iter642)
+      for iter738 in self.keys:
+        oprot.writeString(iter738)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -17351,12 +18981,12 @@ class getKeysRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype644, _vtype645, _size643 ) = iprot.readMapBegin()
-          for _i647 in xrange(_size643):
-            _key648 = iprot.readString();
-            _val649 = concourse.thriftapi.data.ttypes.TObject()
-            _val649.read(iprot)
-            self.success[_key648] = _val649
+          (_ktype740, _vtype741, _size739 ) = iprot.readMapBegin()
+          for _i743 in xrange(_size739):
+            _key744 = iprot.readString();
+            _val745 = concourse.thriftapi.data.ttypes.TObject()
+            _val745.read(iprot)
+            self.success[_key744] = _val745
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -17385,9 +19015,9 @@ class getKeysRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter650,viter651 in self.success.items():
-        oprot.writeString(kiter650)
-        viter651.write(oprot)
+      for kiter746,viter747 in self.success.items():
+        oprot.writeString(kiter746)
+        viter747.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -17464,10 +19094,10 @@ class getKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype655, _size652) = iprot.readListBegin()
-          for _i656 in xrange(_size652):
-            _elem657 = iprot.readString();
-            self.keys.append(_elem657)
+          (_etype751, _size748) = iprot.readListBegin()
+          for _i752 in xrange(_size748):
+            _elem753 = iprot.readString();
+            self.keys.append(_elem753)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -17511,8 +19141,8 @@ class getKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter658 in self.keys:
-        oprot.writeString(iter658)
+      for iter754 in self.keys:
+        oprot.writeString(iter754)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -17594,12 +19224,12 @@ class getKeysRecordTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype660, _vtype661, _size659 ) = iprot.readMapBegin()
-          for _i663 in xrange(_size659):
-            _key664 = iprot.readString();
-            _val665 = concourse.thriftapi.data.ttypes.TObject()
-            _val665.read(iprot)
-            self.success[_key664] = _val665
+          (_ktype756, _vtype757, _size755 ) = iprot.readMapBegin()
+          for _i759 in xrange(_size755):
+            _key760 = iprot.readString();
+            _val761 = concourse.thriftapi.data.ttypes.TObject()
+            _val761.read(iprot)
+            self.success[_key760] = _val761
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -17628,9 +19258,9 @@ class getKeysRecordTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.success))
-      for kiter666,viter667 in self.success.items():
-        oprot.writeString(kiter666)
-        viter667.write(oprot)
+      for kiter762,viter763 in self.success.items():
+        oprot.writeString(kiter762)
+        viter763.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -17704,20 +19334,20 @@ class getKeysRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype671, _size668) = iprot.readListBegin()
-          for _i672 in xrange(_size668):
-            _elem673 = iprot.readString();
-            self.keys.append(_elem673)
+          (_etype767, _size764) = iprot.readListBegin()
+          for _i768 in xrange(_size764):
+            _elem769 = iprot.readString();
+            self.keys.append(_elem769)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype677, _size674) = iprot.readListBegin()
-          for _i678 in xrange(_size674):
-            _elem679 = iprot.readI64();
-            self.records.append(_elem679)
+          (_etype773, _size770) = iprot.readListBegin()
+          for _i774 in xrange(_size770):
+            _elem775 = iprot.readI64();
+            self.records.append(_elem775)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -17751,15 +19381,15 @@ class getKeysRecords_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter680 in self.keys:
-        oprot.writeString(iter680)
+      for iter776 in self.keys:
+        oprot.writeString(iter776)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter681 in self.records:
-        oprot.writeI64(iter681)
+      for iter777 in self.records:
+        oprot.writeI64(iter777)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -17832,18 +19462,18 @@ class getKeysRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype683, _vtype684, _size682 ) = iprot.readMapBegin()
-          for _i686 in xrange(_size682):
-            _key687 = iprot.readI64();
-            _val688 = {}
-            (_ktype690, _vtype691, _size689 ) = iprot.readMapBegin()
-            for _i693 in xrange(_size689):
-              _key694 = iprot.readString();
-              _val695 = concourse.thriftapi.data.ttypes.TObject()
-              _val695.read(iprot)
-              _val688[_key694] = _val695
+          (_ktype779, _vtype780, _size778 ) = iprot.readMapBegin()
+          for _i782 in xrange(_size778):
+            _key783 = iprot.readI64();
+            _val784 = {}
+            (_ktype786, _vtype787, _size785 ) = iprot.readMapBegin()
+            for _i789 in xrange(_size785):
+              _key790 = iprot.readString();
+              _val791 = concourse.thriftapi.data.ttypes.TObject()
+              _val791.read(iprot)
+              _val784[_key790] = _val791
             iprot.readMapEnd()
-            self.success[_key687] = _val688
+            self.success[_key783] = _val784
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -17872,12 +19502,12 @@ class getKeysRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter696,viter697 in self.success.items():
-        oprot.writeI64(kiter696)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter697))
-        for kiter698,viter699 in viter697.items():
-          oprot.writeString(kiter698)
-          viter699.write(oprot)
+      for kiter792,viter793 in self.success.items():
+        oprot.writeI64(kiter792)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter793))
+        for kiter794,viter795 in viter793.items():
+          oprot.writeString(kiter794)
+          viter795.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -17957,10 +19587,10 @@ class getKeyRecords_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype703, _size700) = iprot.readListBegin()
-          for _i704 in xrange(_size700):
-            _elem705 = iprot.readI64();
-            self.records.append(_elem705)
+          (_etype799, _size796) = iprot.readListBegin()
+          for _i800 in xrange(_size796):
+            _elem801 = iprot.readI64();
+            self.records.append(_elem801)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -17998,8 +19628,8 @@ class getKeyRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter706 in self.records:
-        oprot.writeI64(iter706)
+      for iter802 in self.records:
+        oprot.writeI64(iter802)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -18072,12 +19702,12 @@ class getKeyRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype708, _vtype709, _size707 ) = iprot.readMapBegin()
-          for _i711 in xrange(_size707):
-            _key712 = iprot.readI64();
-            _val713 = concourse.thriftapi.data.ttypes.TObject()
-            _val713.read(iprot)
-            self.success[_key712] = _val713
+          (_ktype804, _vtype805, _size803 ) = iprot.readMapBegin()
+          for _i807 in xrange(_size803):
+            _key808 = iprot.readI64();
+            _val809 = concourse.thriftapi.data.ttypes.TObject()
+            _val809.read(iprot)
+            self.success[_key808] = _val809
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -18106,9 +19736,9 @@ class getKeyRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter714,viter715 in self.success.items():
-        oprot.writeI64(kiter714)
-        viter715.write(oprot)
+      for kiter810,viter811 in self.success.items():
+        oprot.writeI64(kiter810)
+        viter811.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -18190,10 +19820,10 @@ class getKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype719, _size716) = iprot.readListBegin()
-          for _i720 in xrange(_size716):
-            _elem721 = iprot.readI64();
-            self.records.append(_elem721)
+          (_etype815, _size812) = iprot.readListBegin()
+          for _i816 in xrange(_size812):
+            _elem817 = iprot.readI64();
+            self.records.append(_elem817)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -18236,8 +19866,8 @@ class getKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter722 in self.records:
-        oprot.writeI64(iter722)
+      for iter818 in self.records:
+        oprot.writeI64(iter818)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -18315,12 +19945,12 @@ class getKeyRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype724, _vtype725, _size723 ) = iprot.readMapBegin()
-          for _i727 in xrange(_size723):
-            _key728 = iprot.readI64();
-            _val729 = concourse.thriftapi.data.ttypes.TObject()
-            _val729.read(iprot)
-            self.success[_key728] = _val729
+          (_ktype820, _vtype821, _size819 ) = iprot.readMapBegin()
+          for _i823 in xrange(_size819):
+            _key824 = iprot.readI64();
+            _val825 = concourse.thriftapi.data.ttypes.TObject()
+            _val825.read(iprot)
+            self.success[_key824] = _val825
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -18349,9 +19979,9 @@ class getKeyRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter730,viter731 in self.success.items():
-        oprot.writeI64(kiter730)
-        viter731.write(oprot)
+      for kiter826,viter827 in self.success.items():
+        oprot.writeI64(kiter826)
+        viter827.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -18428,20 +20058,20 @@ class getKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype735, _size732) = iprot.readListBegin()
-          for _i736 in xrange(_size732):
-            _elem737 = iprot.readString();
-            self.keys.append(_elem737)
+          (_etype831, _size828) = iprot.readListBegin()
+          for _i832 in xrange(_size828):
+            _elem833 = iprot.readString();
+            self.keys.append(_elem833)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype741, _size738) = iprot.readListBegin()
-          for _i742 in xrange(_size738):
-            _elem743 = iprot.readI64();
-            self.records.append(_elem743)
+          (_etype837, _size834) = iprot.readListBegin()
+          for _i838 in xrange(_size834):
+            _elem839 = iprot.readI64();
+            self.records.append(_elem839)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -18480,15 +20110,15 @@ class getKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter744 in self.keys:
-        oprot.writeString(iter744)
+      for iter840 in self.keys:
+        oprot.writeString(iter840)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter745 in self.records:
-        oprot.writeI64(iter745)
+      for iter841 in self.records:
+        oprot.writeI64(iter841)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -18566,18 +20196,18 @@ class getKeysRecordsTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype747, _vtype748, _size746 ) = iprot.readMapBegin()
-          for _i750 in xrange(_size746):
-            _key751 = iprot.readI64();
-            _val752 = {}
-            (_ktype754, _vtype755, _size753 ) = iprot.readMapBegin()
-            for _i757 in xrange(_size753):
-              _key758 = iprot.readString();
-              _val759 = concourse.thriftapi.data.ttypes.TObject()
-              _val759.read(iprot)
-              _val752[_key758] = _val759
+          (_ktype843, _vtype844, _size842 ) = iprot.readMapBegin()
+          for _i846 in xrange(_size842):
+            _key847 = iprot.readI64();
+            _val848 = {}
+            (_ktype850, _vtype851, _size849 ) = iprot.readMapBegin()
+            for _i853 in xrange(_size849):
+              _key854 = iprot.readString();
+              _val855 = concourse.thriftapi.data.ttypes.TObject()
+              _val855.read(iprot)
+              _val848[_key854] = _val855
             iprot.readMapEnd()
-            self.success[_key751] = _val752
+            self.success[_key847] = _val848
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -18606,12 +20236,12 @@ class getKeysRecordsTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter760,viter761 in self.success.items():
-        oprot.writeI64(kiter760)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter761))
-        for kiter762,viter763 in viter761.items():
-          oprot.writeString(kiter762)
-          viter763.write(oprot)
+      for kiter856,viter857 in self.success.items():
+        oprot.writeI64(kiter856)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter857))
+        for kiter858,viter859 in viter857.items():
+          oprot.writeString(kiter858)
+          viter859.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -18799,12 +20429,12 @@ class getKeyCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype765, _vtype766, _size764 ) = iprot.readMapBegin()
-          for _i768 in xrange(_size764):
-            _key769 = iprot.readI64();
-            _val770 = concourse.thriftapi.data.ttypes.TObject()
-            _val770.read(iprot)
-            self.success[_key769] = _val770
+          (_ktype861, _vtype862, _size860 ) = iprot.readMapBegin()
+          for _i864 in xrange(_size860):
+            _key865 = iprot.readI64();
+            _val866 = concourse.thriftapi.data.ttypes.TObject()
+            _val866.read(iprot)
+            self.success[_key865] = _val866
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -18833,9 +20463,231 @@ class getKeyCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter771,viter772 in self.success.items():
-        oprot.writeI64(kiter771)
-        viter772.write(oprot)
+      for kiter867,viter868 in self.success.items():
+        oprot.writeI64(kiter867)
+        viter868.write(oprot)
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeyCcl_args:
+  """
+  Attributes:
+   - key
+   - ccl
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, key=None, ccl=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.ccl = ccl
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeyCcl_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeyCcl_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype870, _vtype871, _size869 ) = iprot.readMapBegin()
+          for _i873 in xrange(_size869):
+            _key874 = iprot.readI64();
+            _val875 = concourse.thriftapi.data.ttypes.TObject()
+            _val875.read(iprot)
+            self.success[_key874] = _val875
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeyCcl_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
+      for kiter876,viter877 in self.success.items():
+        oprot.writeI64(kiter876)
+        viter877.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -19035,12 +20887,12 @@ class getKeyCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype774, _vtype775, _size773 ) = iprot.readMapBegin()
-          for _i777 in xrange(_size773):
-            _key778 = iprot.readI64();
-            _val779 = concourse.thriftapi.data.ttypes.TObject()
-            _val779.read(iprot)
-            self.success[_key778] = _val779
+          (_ktype879, _vtype880, _size878 ) = iprot.readMapBegin()
+          for _i882 in xrange(_size878):
+            _key883 = iprot.readI64();
+            _val884 = concourse.thriftapi.data.ttypes.TObject()
+            _val884.read(iprot)
+            self.success[_key883] = _val884
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -19069,9 +20921,244 @@ class getKeyCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
-      for kiter780,viter781 in self.success.items():
-        oprot.writeI64(kiter780)
-        viter781.write(oprot)
+      for kiter885,viter886 in self.success.items():
+        oprot.writeI64(kiter885)
+        viter886.write(oprot)
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeyCclTime_args:
+  """
+  Attributes:
+   - key
+   - ccl
+   - timestamp
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.I64, 'timestamp', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, ccl=None, timestamp=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.ccl = ccl
+    self.timestamp = timestamp
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.timestamp = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeyCclTime_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.timestamp is not None:
+      oprot.writeFieldBegin('timestamp', TType.I64, 3)
+      oprot.writeI64(self.timestamp)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.timestamp)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeyCclTime_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype888, _vtype889, _size887 ) = iprot.readMapBegin()
+          for _i891 in xrange(_size887):
+            _key892 = iprot.readI64();
+            _val893 = concourse.thriftapi.data.ttypes.TObject()
+            _val893.read(iprot)
+            self.success[_key892] = _val893
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeyCclTime_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.STRUCT, len(self.success))
+      for kiter894,viter895 in self.success.items():
+        oprot.writeI64(kiter894)
+        viter895.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -19145,10 +21232,10 @@ class getKeysCriteria_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype785, _size782) = iprot.readListBegin()
-          for _i786 in xrange(_size782):
-            _elem787 = iprot.readString();
-            self.keys.append(_elem787)
+          (_etype899, _size896) = iprot.readListBegin()
+          for _i900 in xrange(_size896):
+            _elem901 = iprot.readString();
+            self.keys.append(_elem901)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -19188,8 +21275,8 @@ class getKeysCriteria_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter788 in self.keys:
-        oprot.writeString(iter788)
+      for iter902 in self.keys:
+        oprot.writeString(iter902)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -19266,18 +21353,18 @@ class getKeysCriteria_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype790, _vtype791, _size789 ) = iprot.readMapBegin()
-          for _i793 in xrange(_size789):
-            _key794 = iprot.readI64();
-            _val795 = {}
-            (_ktype797, _vtype798, _size796 ) = iprot.readMapBegin()
-            for _i800 in xrange(_size796):
-              _key801 = iprot.readString();
-              _val802 = concourse.thriftapi.data.ttypes.TObject()
-              _val802.read(iprot)
-              _val795[_key801] = _val802
+          (_ktype904, _vtype905, _size903 ) = iprot.readMapBegin()
+          for _i907 in xrange(_size903):
+            _key908 = iprot.readI64();
+            _val909 = {}
+            (_ktype911, _vtype912, _size910 ) = iprot.readMapBegin()
+            for _i914 in xrange(_size910):
+              _key915 = iprot.readString();
+              _val916 = concourse.thriftapi.data.ttypes.TObject()
+              _val916.read(iprot)
+              _val909[_key915] = _val916
             iprot.readMapEnd()
-            self.success[_key794] = _val795
+            self.success[_key908] = _val909
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -19306,12 +21393,252 @@ class getKeysCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter803,viter804 in self.success.items():
-        oprot.writeI64(kiter803)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter804))
-        for kiter805,viter806 in viter804.items():
-          oprot.writeString(kiter805)
-          viter806.write(oprot)
+      for kiter917,viter918 in self.success.items():
+        oprot.writeI64(kiter917)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter918))
+        for kiter919,viter920 in viter918.items():
+          oprot.writeString(kiter919)
+          viter920.write(oprot)
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeysCcl_args:
+  """
+  Attributes:
+   - keys
+   - ccl
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, keys=None, ccl=None, creds=None, transaction=None, environment=None,):
+    self.keys = keys
+    self.ccl = ccl
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.keys = []
+          (_etype924, _size921) = iprot.readListBegin()
+          for _i925 in xrange(_size921):
+            _elem926 = iprot.readString();
+            self.keys.append(_elem926)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeysCcl_args')
+    if self.keys is not None:
+      oprot.writeFieldBegin('keys', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.keys))
+      for iter927 in self.keys:
+        oprot.writeString(iter927)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.keys)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeysCcl_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype929, _vtype930, _size928 ) = iprot.readMapBegin()
+          for _i932 in xrange(_size928):
+            _key933 = iprot.readI64();
+            _val934 = {}
+            (_ktype936, _vtype937, _size935 ) = iprot.readMapBegin()
+            for _i939 in xrange(_size935):
+              _key940 = iprot.readString();
+              _val941 = concourse.thriftapi.data.ttypes.TObject()
+              _val941.read(iprot)
+              _val934[_key940] = _val941
+            iprot.readMapEnd()
+            self.success[_key933] = _val934
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeysCcl_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
+      for kiter942,viter943 in self.success.items():
+        oprot.writeI64(kiter942)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter943))
+        for kiter944,viter945 in viter943.items():
+          oprot.writeString(kiter944)
+          viter945.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -19389,10 +21716,10 @@ class getKeysCriteriaTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype810, _size807) = iprot.readListBegin()
-          for _i811 in xrange(_size807):
-            _elem812 = iprot.readString();
-            self.keys.append(_elem812)
+          (_etype949, _size946) = iprot.readListBegin()
+          for _i950 in xrange(_size946):
+            _elem951 = iprot.readString();
+            self.keys.append(_elem951)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -19437,8 +21764,8 @@ class getKeysCriteriaTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter813 in self.keys:
-        oprot.writeString(iter813)
+      for iter952 in self.keys:
+        oprot.writeString(iter952)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.criteria is not None:
@@ -19520,18 +21847,18 @@ class getKeysCriteriaTime_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype815, _vtype816, _size814 ) = iprot.readMapBegin()
-          for _i818 in xrange(_size814):
-            _key819 = iprot.readI64();
-            _val820 = {}
-            (_ktype822, _vtype823, _size821 ) = iprot.readMapBegin()
-            for _i825 in xrange(_size821):
-              _key826 = iprot.readString();
-              _val827 = concourse.thriftapi.data.ttypes.TObject()
-              _val827.read(iprot)
-              _val820[_key826] = _val827
+          (_ktype954, _vtype955, _size953 ) = iprot.readMapBegin()
+          for _i957 in xrange(_size953):
+            _key958 = iprot.readI64();
+            _val959 = {}
+            (_ktype961, _vtype962, _size960 ) = iprot.readMapBegin()
+            for _i964 in xrange(_size960):
+              _key965 = iprot.readString();
+              _val966 = concourse.thriftapi.data.ttypes.TObject()
+              _val966.read(iprot)
+              _val959[_key965] = _val966
             iprot.readMapEnd()
-            self.success[_key819] = _val820
+            self.success[_key958] = _val959
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -19560,12 +21887,265 @@ class getKeysCriteriaTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
-      for kiter828,viter829 in self.success.items():
-        oprot.writeI64(kiter828)
-        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter829))
-        for kiter830,viter831 in viter829.items():
-          oprot.writeString(kiter830)
-          viter831.write(oprot)
+      for kiter967,viter968 in self.success.items():
+        oprot.writeI64(kiter967)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter968))
+        for kiter969,viter970 in viter968.items():
+          oprot.writeString(kiter969)
+          viter970.write(oprot)
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeysCclTime_args:
+  """
+  Attributes:
+   - keys
+   - ccl
+   - timestamp
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.LIST, 'keys', (TType.STRING,None), None, ), # 1
+    (2, TType.STRING, 'ccl', None, None, ), # 2
+    (3, TType.I64, 'timestamp', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, keys=None, ccl=None, timestamp=None, creds=None, transaction=None, environment=None,):
+    self.keys = keys
+    self.ccl = ccl
+    self.timestamp = timestamp
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.LIST:
+          self.keys = []
+          (_etype974, _size971) = iprot.readListBegin()
+          for _i975 in xrange(_size971):
+            _elem976 = iprot.readString();
+            self.keys.append(_elem976)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.timestamp = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeysCclTime_args')
+    if self.keys is not None:
+      oprot.writeFieldBegin('keys', TType.LIST, 1)
+      oprot.writeListBegin(TType.STRING, len(self.keys))
+      for iter977 in self.keys:
+        oprot.writeString(iter977)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 2)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.timestamp is not None:
+      oprot.writeFieldBegin('timestamp', TType.I64, 3)
+      oprot.writeI64(self.timestamp)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.keys)
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.timestamp)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class getKeysCclTime_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I64,None,TType.MAP,(TType.STRING,None,TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype979, _vtype980, _size978 ) = iprot.readMapBegin()
+          for _i982 in xrange(_size978):
+            _key983 = iprot.readI64();
+            _val984 = {}
+            (_ktype986, _vtype987, _size985 ) = iprot.readMapBegin()
+            for _i989 in xrange(_size985):
+              _key990 = iprot.readString();
+              _val991 = concourse.thriftapi.data.ttypes.TObject()
+              _val991.read(iprot)
+              _val984[_key990] = _val991
+            iprot.readMapEnd()
+            self.success[_key983] = _val984
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('getKeysCclTime_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I64, TType.MAP, len(self.success))
+      for kiter992,viter993 in self.success.items():
+        oprot.writeI64(kiter992)
+        oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(viter993))
+        for kiter994,viter995 in viter993.items():
+          oprot.writeString(kiter994)
+          viter995.write(oprot)
         oprot.writeMapEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -20103,10 +22683,10 @@ class jsonifyRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype835, _size832) = iprot.readListBegin()
-          for _i836 in xrange(_size832):
-            _elem837 = iprot.readI64();
-            self.records.append(_elem837)
+          (_etype999, _size996) = iprot.readListBegin()
+          for _i1000 in xrange(_size996):
+            _elem1001 = iprot.readI64();
+            self.records.append(_elem1001)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -20145,8 +22725,8 @@ class jsonifyRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter838 in self.records:
-        oprot.writeI64(iter838)
+      for iter1002 in self.records:
+        oprot.writeI64(iter1002)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.identifier is not None:
@@ -20325,10 +22905,10 @@ class jsonifyRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype842, _size839) = iprot.readListBegin()
-          for _i843 in xrange(_size839):
-            _elem844 = iprot.readI64();
-            self.records.append(_elem844)
+          (_etype1006, _size1003) = iprot.readListBegin()
+          for _i1007 in xrange(_size1003):
+            _elem1008 = iprot.readI64();
+            self.records.append(_elem1008)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -20372,8 +22952,8 @@ class jsonifyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter845 in self.records:
-        oprot.writeI64(iter845)
+      for iter1009 in self.records:
+        oprot.writeI64(iter1009)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -20654,10 +23234,10 @@ class findCriteria_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype849, _size846) = iprot.readSetBegin()
-          for _i850 in xrange(_size846):
-            _elem851 = iprot.readI64();
-            self.success.add(_elem851)
+          (_etype1013, _size1010) = iprot.readSetBegin()
+          for _i1014 in xrange(_size1010):
+            _elem1015 = iprot.readI64();
+            self.success.add(_elem1015)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -20686,8 +23266,214 @@ class findCriteria_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter852 in self.success:
-        oprot.writeI64(iter852)
+      for iter1016 in self.success:
+        oprot.writeI64(iter1016)
+      oprot.writeSetEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findCcl_args:
+  """
+  Attributes:
+   - ccl
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'ccl', None, None, ), # 1
+    (2, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 2
+    (3, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 3
+    (4, TType.STRING, 'environment', None, None, ), # 4
+  )
+
+  def __init__(self, ccl=None, creds=None, transaction=None, environment=None,):
+    self.ccl = ccl
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.ccl = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findCcl_args')
+    if self.ccl is not None:
+      oprot.writeFieldBegin('ccl', TType.STRING, 1)
+      oprot.writeString(self.ccl)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 2)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 3)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 4)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.ccl)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class findCcl_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.SET, 'success', (TType.I64,None), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.SET:
+          self.success = set()
+          (_etype1020, _size1017) = iprot.readSetBegin()
+          for _i1021 in xrange(_size1017):
+            _elem1022 = iprot.readI64();
+            self.success.add(_elem1022)
+          iprot.readSetEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('findCcl_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.SET, 0)
+      oprot.writeSetBegin(TType.I64, len(self.success))
+      for iter1023 in self.success:
+        oprot.writeI64(iter1023)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -20774,11 +23560,11 @@ class findKeyOperatorValues_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype856, _size853) = iprot.readListBegin()
-          for _i857 in xrange(_size853):
-            _elem858 = concourse.thriftapi.data.ttypes.TObject()
-            _elem858.read(iprot)
-            self.values.append(_elem858)
+          (_etype1027, _size1024) = iprot.readListBegin()
+          for _i1028 in xrange(_size1024):
+            _elem1029 = concourse.thriftapi.data.ttypes.TObject()
+            _elem1029.read(iprot)
+            self.values.append(_elem1029)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -20820,8 +23606,8 @@ class findKeyOperatorValues_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter859 in self.values:
-        iter859.write(oprot)
+      for iter1030 in self.values:
+        iter1030.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -20895,10 +23681,10 @@ class findKeyOperatorValues_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype863, _size860) = iprot.readSetBegin()
-          for _i864 in xrange(_size860):
-            _elem865 = iprot.readI64();
-            self.success.add(_elem865)
+          (_etype1034, _size1031) = iprot.readSetBegin()
+          for _i1035 in xrange(_size1031):
+            _elem1036 = iprot.readI64();
+            self.success.add(_elem1036)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -20927,8 +23713,8 @@ class findKeyOperatorValues_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter866 in self.success:
-        oprot.writeI64(iter866)
+      for iter1037 in self.success:
+        oprot.writeI64(iter1037)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -21018,11 +23804,11 @@ class findKeyOperatorValuesTime_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype870, _size867) = iprot.readListBegin()
-          for _i871 in xrange(_size867):
-            _elem872 = concourse.thriftapi.data.ttypes.TObject()
-            _elem872.read(iprot)
-            self.values.append(_elem872)
+          (_etype1041, _size1038) = iprot.readListBegin()
+          for _i1042 in xrange(_size1038):
+            _elem1043 = concourse.thriftapi.data.ttypes.TObject()
+            _elem1043.read(iprot)
+            self.values.append(_elem1043)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -21069,8 +23855,8 @@ class findKeyOperatorValuesTime_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter873 in self.values:
-        iter873.write(oprot)
+      for iter1044 in self.values:
+        iter1044.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -21149,10 +23935,10 @@ class findKeyOperatorValuesTime_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype877, _size874) = iprot.readSetBegin()
-          for _i878 in xrange(_size874):
-            _elem879 = iprot.readI64();
-            self.success.add(_elem879)
+          (_etype1048, _size1045) = iprot.readSetBegin()
+          for _i1049 in xrange(_size1045):
+            _elem1050 = iprot.readI64();
+            self.success.add(_elem1050)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21181,8 +23967,8 @@ class findKeyOperatorValuesTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter880 in self.success:
-        oprot.writeI64(iter880)
+      for iter1051 in self.success:
+        oprot.writeI64(iter1051)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -21269,11 +24055,11 @@ class findKeyStringOperatorValues_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype884, _size881) = iprot.readListBegin()
-          for _i885 in xrange(_size881):
-            _elem886 = concourse.thriftapi.data.ttypes.TObject()
-            _elem886.read(iprot)
-            self.values.append(_elem886)
+          (_etype1055, _size1052) = iprot.readListBegin()
+          for _i1056 in xrange(_size1052):
+            _elem1057 = concourse.thriftapi.data.ttypes.TObject()
+            _elem1057.read(iprot)
+            self.values.append(_elem1057)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -21315,8 +24101,8 @@ class findKeyStringOperatorValues_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter887 in self.values:
-        iter887.write(oprot)
+      for iter1058 in self.values:
+        iter1058.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -21390,10 +24176,10 @@ class findKeyStringOperatorValues_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype891, _size888) = iprot.readSetBegin()
-          for _i892 in xrange(_size888):
-            _elem893 = iprot.readI64();
-            self.success.add(_elem893)
+          (_etype1062, _size1059) = iprot.readSetBegin()
+          for _i1063 in xrange(_size1059):
+            _elem1064 = iprot.readI64();
+            self.success.add(_elem1064)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21422,8 +24208,8 @@ class findKeyStringOperatorValues_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter894 in self.success:
-        oprot.writeI64(iter894)
+      for iter1065 in self.success:
+        oprot.writeI64(iter1065)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -21513,11 +24299,11 @@ class findKeyStringOperatorValuesTime_args:
       elif fid == 3:
         if ftype == TType.LIST:
           self.values = []
-          (_etype898, _size895) = iprot.readListBegin()
-          for _i899 in xrange(_size895):
-            _elem900 = concourse.thriftapi.data.ttypes.TObject()
-            _elem900.read(iprot)
-            self.values.append(_elem900)
+          (_etype1069, _size1066) = iprot.readListBegin()
+          for _i1070 in xrange(_size1066):
+            _elem1071 = concourse.thriftapi.data.ttypes.TObject()
+            _elem1071.read(iprot)
+            self.values.append(_elem1071)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -21564,8 +24350,8 @@ class findKeyStringOperatorValuesTime_args:
     if self.values is not None:
       oprot.writeFieldBegin('values', TType.LIST, 3)
       oprot.writeListBegin(TType.STRUCT, len(self.values))
-      for iter901 in self.values:
-        iter901.write(oprot)
+      for iter1072 in self.values:
+        iter1072.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -21644,10 +24430,10 @@ class findKeyStringOperatorValuesTime_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype905, _size902) = iprot.readSetBegin()
-          for _i906 in xrange(_size902):
-            _elem907 = iprot.readI64();
-            self.success.add(_elem907)
+          (_etype1076, _size1073) = iprot.readSetBegin()
+          for _i1077 in xrange(_size1073):
+            _elem1078 = iprot.readI64();
+            self.success.add(_elem1078)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21676,8 +24462,8 @@ class findKeyStringOperatorValuesTime_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter908 in self.success:
-        oprot.writeI64(iter908)
+      for iter1079 in self.success:
+        oprot.writeI64(iter1079)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -21863,10 +24649,10 @@ class search_result:
       if fid == 0:
         if ftype == TType.SET:
           self.success = set()
-          (_etype912, _size909) = iprot.readSetBegin()
-          for _i913 in xrange(_size909):
-            _elem914 = iprot.readI64();
-            self.success.add(_elem914)
+          (_etype1083, _size1080) = iprot.readSetBegin()
+          for _i1084 in xrange(_size1080):
+            _elem1085 = iprot.readI64();
+            self.success.add(_elem1085)
           iprot.readSetEnd()
         else:
           iprot.skip(ftype)
@@ -21895,8 +24681,8 @@ class search_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.SET, 0)
       oprot.writeSetBegin(TType.I64, len(self.success))
-      for iter915 in self.success:
-        oprot.writeI64(iter915)
+      for iter1086 in self.success:
+        oprot.writeI64(iter1086)
       oprot.writeSetEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -22069,11 +24855,11 @@ class auditRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype917, _vtype918, _size916 ) = iprot.readMapBegin()
-          for _i920 in xrange(_size916):
-            _key921 = iprot.readI64();
-            _val922 = iprot.readString();
-            self.success[_key921] = _val922
+          (_ktype1088, _vtype1089, _size1087 ) = iprot.readMapBegin()
+          for _i1091 in xrange(_size1087):
+            _key1092 = iprot.readI64();
+            _val1093 = iprot.readString();
+            self.success[_key1092] = _val1093
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -22102,9 +24888,9 @@ class auditRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter923,viter924 in self.success.items():
-        oprot.writeI64(kiter923)
-        oprot.writeString(viter924)
+      for kiter1094,viter1095 in self.success.items():
+        oprot.writeI64(kiter1094)
+        oprot.writeString(viter1095)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -22290,11 +25076,11 @@ class auditRecordStart_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype926, _vtype927, _size925 ) = iprot.readMapBegin()
-          for _i929 in xrange(_size925):
-            _key930 = iprot.readI64();
-            _val931 = iprot.readString();
-            self.success[_key930] = _val931
+          (_ktype1097, _vtype1098, _size1096 ) = iprot.readMapBegin()
+          for _i1100 in xrange(_size1096):
+            _key1101 = iprot.readI64();
+            _val1102 = iprot.readString();
+            self.success[_key1101] = _val1102
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -22323,9 +25109,9 @@ class auditRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter932,viter933 in self.success.items():
-        oprot.writeI64(kiter932)
-        oprot.writeString(viter933)
+      for kiter1103,viter1104 in self.success.items():
+        oprot.writeI64(kiter1103)
+        oprot.writeString(viter1104)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -22524,11 +25310,11 @@ class auditRecordStartEnd_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype935, _vtype936, _size934 ) = iprot.readMapBegin()
-          for _i938 in xrange(_size934):
-            _key939 = iprot.readI64();
-            _val940 = iprot.readString();
-            self.success[_key939] = _val940
+          (_ktype1106, _vtype1107, _size1105 ) = iprot.readMapBegin()
+          for _i1109 in xrange(_size1105):
+            _key1110 = iprot.readI64();
+            _val1111 = iprot.readString();
+            self.success[_key1110] = _val1111
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -22557,9 +25343,9 @@ class auditRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter941,viter942 in self.success.items():
-        oprot.writeI64(kiter941)
-        oprot.writeString(viter942)
+      for kiter1112,viter1113 in self.success.items():
+        oprot.writeI64(kiter1112)
+        oprot.writeString(viter1113)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -22745,11 +25531,11 @@ class auditKeyRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype944, _vtype945, _size943 ) = iprot.readMapBegin()
-          for _i947 in xrange(_size943):
-            _key948 = iprot.readI64();
-            _val949 = iprot.readString();
-            self.success[_key948] = _val949
+          (_ktype1115, _vtype1116, _size1114 ) = iprot.readMapBegin()
+          for _i1118 in xrange(_size1114):
+            _key1119 = iprot.readI64();
+            _val1120 = iprot.readString();
+            self.success[_key1119] = _val1120
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -22778,9 +25564,9 @@ class auditKeyRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter950,viter951 in self.success.items():
-        oprot.writeI64(kiter950)
-        oprot.writeString(viter951)
+      for kiter1121,viter1122 in self.success.items():
+        oprot.writeI64(kiter1121)
+        oprot.writeString(viter1122)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -22979,11 +25765,11 @@ class auditKeyRecordStart_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype953, _vtype954, _size952 ) = iprot.readMapBegin()
-          for _i956 in xrange(_size952):
-            _key957 = iprot.readI64();
-            _val958 = iprot.readString();
-            self.success[_key957] = _val958
+          (_ktype1124, _vtype1125, _size1123 ) = iprot.readMapBegin()
+          for _i1127 in xrange(_size1123):
+            _key1128 = iprot.readI64();
+            _val1129 = iprot.readString();
+            self.success[_key1128] = _val1129
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -23012,9 +25798,9 @@ class auditKeyRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter959,viter960 in self.success.items():
-        oprot.writeI64(kiter959)
-        oprot.writeString(viter960)
+      for kiter1130,viter1131 in self.success.items():
+        oprot.writeI64(kiter1130)
+        oprot.writeString(viter1131)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -23226,11 +26012,11 @@ class auditKeyRecordStartEnd_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype962, _vtype963, _size961 ) = iprot.readMapBegin()
-          for _i965 in xrange(_size961):
-            _key966 = iprot.readI64();
-            _val967 = iprot.readString();
-            self.success[_key966] = _val967
+          (_ktype1133, _vtype1134, _size1132 ) = iprot.readMapBegin()
+          for _i1136 in xrange(_size1132):
+            _key1137 = iprot.readI64();
+            _val1138 = iprot.readString();
+            self.success[_key1137] = _val1138
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -23259,9 +26045,9 @@ class auditKeyRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.STRING, len(self.success))
-      for kiter968,viter969 in self.success.items():
-        oprot.writeI64(kiter968)
-        oprot.writeString(viter969)
+      for kiter1139,viter1140 in self.success.items():
+        oprot.writeI64(kiter1139)
+        oprot.writeString(viter1140)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
@@ -23447,17 +26233,17 @@ class chronologizeKeyRecord_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype971, _vtype972, _size970 ) = iprot.readMapBegin()
-          for _i974 in xrange(_size970):
-            _key975 = iprot.readI64();
-            _val976 = set()
-            (_etype980, _size977) = iprot.readSetBegin()
-            for _i981 in xrange(_size977):
-              _elem982 = concourse.thriftapi.data.ttypes.TObject()
-              _elem982.read(iprot)
-              _val976.add(_elem982)
+          (_ktype1142, _vtype1143, _size1141 ) = iprot.readMapBegin()
+          for _i1145 in xrange(_size1141):
+            _key1146 = iprot.readI64();
+            _val1147 = set()
+            (_etype1151, _size1148) = iprot.readSetBegin()
+            for _i1152 in xrange(_size1148):
+              _elem1153 = concourse.thriftapi.data.ttypes.TObject()
+              _elem1153.read(iprot)
+              _val1147.add(_elem1153)
             iprot.readSetEnd()
-            self.success[_key975] = _val976
+            self.success[_key1146] = _val1147
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -23486,11 +26272,11 @@ class chronologizeKeyRecord_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter983,viter984 in self.success.items():
-        oprot.writeI64(kiter983)
-        oprot.writeSetBegin(TType.STRUCT, len(viter984))
-        for iter985 in viter984:
-          iter985.write(oprot)
+      for kiter1154,viter1155 in self.success.items():
+        oprot.writeI64(kiter1154)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1155))
+        for iter1156 in viter1155:
+          iter1156.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -23690,17 +26476,17 @@ class chronologizeKeyRecordStart_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype987, _vtype988, _size986 ) = iprot.readMapBegin()
-          for _i990 in xrange(_size986):
-            _key991 = iprot.readI64();
-            _val992 = set()
-            (_etype996, _size993) = iprot.readSetBegin()
-            for _i997 in xrange(_size993):
-              _elem998 = concourse.thriftapi.data.ttypes.TObject()
-              _elem998.read(iprot)
-              _val992.add(_elem998)
+          (_ktype1158, _vtype1159, _size1157 ) = iprot.readMapBegin()
+          for _i1161 in xrange(_size1157):
+            _key1162 = iprot.readI64();
+            _val1163 = set()
+            (_etype1167, _size1164) = iprot.readSetBegin()
+            for _i1168 in xrange(_size1164):
+              _elem1169 = concourse.thriftapi.data.ttypes.TObject()
+              _elem1169.read(iprot)
+              _val1163.add(_elem1169)
             iprot.readSetEnd()
-            self.success[_key991] = _val992
+            self.success[_key1162] = _val1163
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -23729,11 +26515,11 @@ class chronologizeKeyRecordStart_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter999,viter1000 in self.success.items():
-        oprot.writeI64(kiter999)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1000))
-        for iter1001 in viter1000:
-          iter1001.write(oprot)
+      for kiter1170,viter1171 in self.success.items():
+        oprot.writeI64(kiter1170)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1171))
+        for iter1172 in viter1171:
+          iter1172.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -23946,17 +26732,17 @@ class chronologizeKeyRecordStartEnd_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1003, _vtype1004, _size1002 ) = iprot.readMapBegin()
-          for _i1006 in xrange(_size1002):
-            _key1007 = iprot.readI64();
-            _val1008 = set()
-            (_etype1012, _size1009) = iprot.readSetBegin()
-            for _i1013 in xrange(_size1009):
-              _elem1014 = concourse.thriftapi.data.ttypes.TObject()
-              _elem1014.read(iprot)
-              _val1008.add(_elem1014)
+          (_ktype1174, _vtype1175, _size1173 ) = iprot.readMapBegin()
+          for _i1177 in xrange(_size1173):
+            _key1178 = iprot.readI64();
+            _val1179 = set()
+            (_etype1183, _size1180) = iprot.readSetBegin()
+            for _i1184 in xrange(_size1180):
+              _elem1185 = concourse.thriftapi.data.ttypes.TObject()
+              _elem1185.read(iprot)
+              _val1179.add(_elem1185)
             iprot.readSetEnd()
-            self.success[_key1007] = _val1008
+            self.success[_key1178] = _val1179
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -23985,11 +26771,11 @@ class chronologizeKeyRecordStartEnd_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.SET, len(self.success))
-      for kiter1015,viter1016 in self.success.items():
-        oprot.writeI64(kiter1015)
-        oprot.writeSetBegin(TType.STRUCT, len(viter1016))
-        for iter1017 in viter1016:
-          iter1017.write(oprot)
+      for kiter1186,viter1187 in self.success.items():
+        oprot.writeI64(kiter1186)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1187))
+        for iter1188 in viter1187:
+          iter1188.write(oprot)
         oprot.writeSetEnd()
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
@@ -24067,20 +26853,20 @@ class revertKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1021, _size1018) = iprot.readListBegin()
-          for _i1022 in xrange(_size1018):
-            _elem1023 = iprot.readString();
-            self.keys.append(_elem1023)
+          (_etype1192, _size1189) = iprot.readListBegin()
+          for _i1193 in xrange(_size1189):
+            _elem1194 = iprot.readString();
+            self.keys.append(_elem1194)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1027, _size1024) = iprot.readListBegin()
-          for _i1028 in xrange(_size1024):
-            _elem1029 = iprot.readI64();
-            self.records.append(_elem1029)
+          (_etype1198, _size1195) = iprot.readListBegin()
+          for _i1199 in xrange(_size1195):
+            _elem1200 = iprot.readI64();
+            self.records.append(_elem1200)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -24119,15 +26905,15 @@ class revertKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1030 in self.keys:
-        oprot.writeString(iter1030)
+      for iter1201 in self.keys:
+        oprot.writeString(iter1201)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1031 in self.records:
-        oprot.writeI64(iter1031)
+      for iter1202 in self.records:
+        oprot.writeI64(iter1202)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -24295,10 +27081,10 @@ class revertKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1035, _size1032) = iprot.readListBegin()
-          for _i1036 in xrange(_size1032):
-            _elem1037 = iprot.readString();
-            self.keys.append(_elem1037)
+          (_etype1206, _size1203) = iprot.readListBegin()
+          for _i1207 in xrange(_size1203):
+            _elem1208 = iprot.readString();
+            self.keys.append(_elem1208)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -24342,8 +27128,8 @@ class revertKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1038 in self.keys:
-        oprot.writeString(iter1038)
+      for iter1209 in self.keys:
+        oprot.writeString(iter1209)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -24520,10 +27306,10 @@ class revertKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1042, _size1039) = iprot.readListBegin()
-          for _i1043 in xrange(_size1039):
-            _elem1044 = iprot.readI64();
-            self.records.append(_elem1044)
+          (_etype1213, _size1210) = iprot.readListBegin()
+          for _i1214 in xrange(_size1210):
+            _elem1215 = iprot.readI64();
+            self.records.append(_elem1215)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -24566,8 +27352,8 @@ class revertKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1045 in self.records:
-        oprot.writeI64(iter1045)
+      for iter1216 in self.records:
+        oprot.writeI64(iter1216)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -24941,10 +27727,10 @@ class pingRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1049, _size1046) = iprot.readListBegin()
-          for _i1050 in xrange(_size1046):
-            _elem1051 = iprot.readI64();
-            self.records.append(_elem1051)
+          (_etype1220, _size1217) = iprot.readListBegin()
+          for _i1221 in xrange(_size1217):
+            _elem1222 = iprot.readI64();
+            self.records.append(_elem1222)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -24978,8 +27764,8 @@ class pingRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1052 in self.records:
-        oprot.writeI64(iter1052)
+      for iter1223 in self.records:
+        oprot.writeI64(iter1223)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -25051,11 +27837,11 @@ class pingRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1054, _vtype1055, _size1053 ) = iprot.readMapBegin()
-          for _i1057 in xrange(_size1053):
-            _key1058 = iprot.readI64();
-            _val1059 = iprot.readBool();
-            self.success[_key1058] = _val1059
+          (_ktype1225, _vtype1226, _size1224 ) = iprot.readMapBegin()
+          for _i1228 in xrange(_size1224):
+            _key1229 = iprot.readI64();
+            _val1230 = iprot.readBool();
+            self.success[_key1229] = _val1230
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -25084,9 +27870,9 @@ class pingRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter1060,viter1061 in self.success.items():
-        oprot.writeI64(kiter1060)
-        oprot.writeBool(viter1061)
+      for kiter1231,viter1232 in self.success.items():
+        oprot.writeI64(kiter1231)
+        oprot.writeBool(viter1232)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:

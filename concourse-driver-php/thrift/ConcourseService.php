@@ -550,6 +550,17 @@ interface ConcourseServiceIf {
   public function selectKeyCriteria($key, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
+   * @param string $ccl
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function selectKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
    * @param \thrift\data\TCriteria $criteria
    * @param int $timestamp
    * @param \thrift\shared\AccessToken $creds
@@ -560,6 +571,18 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TTransactionException
    */
   public function selectKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param string $ccl
+   * @param int $timestamp
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function selectKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string[] $keys
    * @param \thrift\data\TCriteria $criteria
@@ -573,6 +596,17 @@ interface ConcourseServiceIf {
   public function selectKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string[] $keys
+   * @param string $ccl
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function selectKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string[] $keys
    * @param \thrift\data\TCriteria $criteria
    * @param int $timestamp
    * @param \thrift\shared\AccessToken $creds
@@ -583,6 +617,18 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TTransactionException
    */
   public function selectKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string[] $keys
+   * @param string $ccl
+   * @param int $timestamp
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function selectKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param int $record
@@ -692,6 +738,17 @@ interface ConcourseServiceIf {
   public function getKeyCriteria($key, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
+   * @param string $ccl
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function getKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
    * @param \thrift\data\TCriteria $criteria
    * @param int $timestamp
    * @param \thrift\shared\AccessToken $creds
@@ -702,6 +759,18 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TTransactionException
    */
   public function getKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param string $ccl
+   * @param int $timestamp
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function getKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string[] $keys
    * @param \thrift\data\TCriteria $criteria
@@ -715,6 +784,17 @@ interface ConcourseServiceIf {
   public function getKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string[] $keys
+   * @param string $ccl
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function getKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string[] $keys
    * @param \thrift\data\TCriteria $criteria
    * @param int $timestamp
    * @param \thrift\shared\AccessToken $creds
@@ -725,6 +805,18 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TTransactionException
    */
   public function getKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string[] $keys
+   * @param string $ccl
+   * @param int $timestamp
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function getKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param \thrift\data\TObject $value
@@ -783,6 +875,16 @@ interface ConcourseServiceIf {
    * @throws \thrift\shared\TTransactionException
    */
   public function findCriteria(\thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $ccl
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return int[]
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function findCcl($ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
    * @param string $key
    * @param int $operator
@@ -3694,6 +3796,67 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     throw new \Exception("selectKeyCriteria failed: unknown result");
   }
 
+  public function selectKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_selectKeyCcl($key, $ccl, $creds, $transaction, $environment);
+    return $this->recv_selectKeyCcl();
+  }
+
+  public function send_selectKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_selectKeyCcl_args();
+    $args->key = $key;
+    $args->ccl = $ccl;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'selectKeyCcl', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('selectKeyCcl', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_selectKeyCcl()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_selectKeyCcl_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_selectKeyCcl_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("selectKeyCcl failed: unknown result");
+  }
+
   public function selectKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
     $this->send_selectKeyCriteriaTime($key, $criteria, $timestamp, $creds, $transaction, $environment);
@@ -3754,6 +3917,68 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("selectKeyCriteriaTime failed: unknown result");
+  }
+
+  public function selectKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_selectKeyCclTime($key, $ccl, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_selectKeyCclTime();
+  }
+
+  public function send_selectKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_selectKeyCclTime_args();
+    $args->key = $key;
+    $args->ccl = $ccl;
+    $args->timestamp = $timestamp;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'selectKeyCclTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('selectKeyCclTime', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_selectKeyCclTime()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_selectKeyCclTime_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_selectKeyCclTime_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("selectKeyCclTime failed: unknown result");
   }
 
   public function selectKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -3817,6 +4042,67 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     throw new \Exception("selectKeysCriteria failed: unknown result");
   }
 
+  public function selectKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_selectKeysCcl($keys, $ccl, $creds, $transaction, $environment);
+    return $this->recv_selectKeysCcl();
+  }
+
+  public function send_selectKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_selectKeysCcl_args();
+    $args->keys = $keys;
+    $args->ccl = $ccl;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'selectKeysCcl', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('selectKeysCcl', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_selectKeysCcl()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_selectKeysCcl_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_selectKeysCcl_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("selectKeysCcl failed: unknown result");
+  }
+
   public function selectKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
     $this->send_selectKeysCriteriaTime($keys, $criteria, $timestamp, $creds, $transaction, $environment);
@@ -3877,6 +4163,68 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("selectKeysCriteriaTime failed: unknown result");
+  }
+
+  public function selectKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_selectKeysCclTime($keys, $ccl, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_selectKeysCclTime();
+  }
+
+  public function send_selectKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_selectKeysCclTime_args();
+    $args->keys = $keys;
+    $args->ccl = $ccl;
+    $args->timestamp = $timestamp;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'selectKeysCclTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('selectKeysCclTime', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_selectKeysCclTime()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_selectKeysCclTime_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_selectKeysCclTime_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("selectKeysCclTime failed: unknown result");
   }
 
   public function getKeyRecord($key, $record, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -4432,6 +4780,67 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     throw new \Exception("getKeyCriteria failed: unknown result");
   }
 
+  public function getKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_getKeyCcl($key, $ccl, $creds, $transaction, $environment);
+    return $this->recv_getKeyCcl();
+  }
+
+  public function send_getKeyCcl($key, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_getKeyCcl_args();
+    $args->key = $key;
+    $args->ccl = $ccl;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'getKeyCcl', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('getKeyCcl', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_getKeyCcl()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_getKeyCcl_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_getKeyCcl_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("getKeyCcl failed: unknown result");
+  }
+
   public function getKeyCriteriaTime($key, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
     $this->send_getKeyCriteriaTime($key, $criteria, $timestamp, $creds, $transaction, $environment);
@@ -4492,6 +4901,68 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("getKeyCriteriaTime failed: unknown result");
+  }
+
+  public function getKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_getKeyCclTime($key, $ccl, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_getKeyCclTime();
+  }
+
+  public function send_getKeyCclTime($key, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_getKeyCclTime_args();
+    $args->key = $key;
+    $args->ccl = $ccl;
+    $args->timestamp = $timestamp;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'getKeyCclTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('getKeyCclTime', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_getKeyCclTime()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_getKeyCclTime_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_getKeyCclTime_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("getKeyCclTime failed: unknown result");
   }
 
   public function getKeysCriteria(array $keys, \thrift\data\TCriteria $criteria, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -4555,6 +5026,67 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
     throw new \Exception("getKeysCriteria failed: unknown result");
   }
 
+  public function getKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_getKeysCcl($keys, $ccl, $creds, $transaction, $environment);
+    return $this->recv_getKeysCcl();
+  }
+
+  public function send_getKeysCcl(array $keys, $ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_getKeysCcl_args();
+    $args->keys = $keys;
+    $args->ccl = $ccl;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'getKeysCcl', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('getKeysCcl', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_getKeysCcl()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_getKeysCcl_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_getKeysCcl_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("getKeysCcl failed: unknown result");
+  }
+
   public function getKeysCriteriaTime(array $keys, \thrift\data\TCriteria $criteria, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
   {
     $this->send_getKeysCriteriaTime($keys, $criteria, $timestamp, $creds, $transaction, $environment);
@@ -4615,6 +5147,68 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("getKeysCriteriaTime failed: unknown result");
+  }
+
+  public function getKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_getKeysCclTime($keys, $ccl, $timestamp, $creds, $transaction, $environment);
+    return $this->recv_getKeysCclTime();
+  }
+
+  public function send_getKeysCclTime(array $keys, $ccl, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_getKeysCclTime_args();
+    $args->keys = $keys;
+    $args->ccl = $ccl;
+    $args->timestamp = $timestamp;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'getKeysCclTime', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('getKeysCclTime', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_getKeysCclTime()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_getKeysCclTime_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_getKeysCclTime_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("getKeysCclTime failed: unknown result");
   }
 
   public function verifyKeyValueRecord($key, \thrift\data\TObject $value, $record, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -4923,6 +5517,66 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("findCriteria failed: unknown result");
+  }
+
+  public function findCcl($ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_findCcl($ccl, $creds, $transaction, $environment);
+    return $this->recv_findCcl();
+  }
+
+  public function send_findCcl($ccl, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_findCcl_args();
+    $args->ccl = $ccl;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'findCcl', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('findCcl', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_findCcl()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_findCcl_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_findCcl_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("findCcl failed: unknown result");
   }
 
   public function findKeyOperatorValues($key, $operator, array $values, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -21311,6 +21965,375 @@ class ConcourseService_selectKeyCriteria_result {
 
 }
 
+class ConcourseService_selectKeyCcl_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeyCcl_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeyCcl_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeyCcl_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::SET,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::SET,
+            'etype' => TType::STRUCT,
+            'elem' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeyCcl_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size579 = 0;
+            $_ktype580 = 0;
+            $_vtype581 = 0;
+            $xfer += $input->readMapBegin($_ktype580, $_vtype581, $_size579);
+            for ($_i583 = 0; $_i583 < $_size579; ++$_i583)
+            {
+              $key584 = 0;
+              $val585 = array();
+              $xfer += $input->readI64($key584);
+              $val585 = array();
+              $_size586 = 0;
+              $_etype589 = 0;
+              $xfer += $input->readSetBegin($_etype589, $_size586);
+              for ($_i590 = 0; $_i590 < $_size586; ++$_i590)
+              {
+                $elem591 = null;
+                $elem591 = new \thrift\data\TObject();
+                $xfer += $elem591->read($input);
+                if (is_scalar($elem591)) {
+                  $val585[$elem591] = true;
+                } else {
+                  $val585 []= $elem591;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[$key584] = $val585;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeyCcl_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
+        {
+          foreach ($this->success as $kiter592 => $viter593)
+          {
+            $xfer += $output->writeI64($kiter592);
+            {
+              $output->writeSetBegin(TType::STRUCT, count($viter593));
+              {
+                foreach ($viter593 as $iter594 => $iter595)
+                {
+                  if (is_scalar($iter595)) {
+                  $xfer += $iter594->write($output);
+                  } else {
+                  $xfer += $iter595->write($output);
+                  }
+                }
+              }
+              $output->writeSetEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class ConcourseService_selectKeyCriteriaTime_args {
   static $_TSPEC;
 
@@ -21599,32 +22622,32 @@ class ConcourseService_selectKeyCriteriaTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size579 = 0;
-            $_ktype580 = 0;
-            $_vtype581 = 0;
-            $xfer += $input->readMapBegin($_ktype580, $_vtype581, $_size579);
-            for ($_i583 = 0; $_i583 < $_size579; ++$_i583)
+            $_size596 = 0;
+            $_ktype597 = 0;
+            $_vtype598 = 0;
+            $xfer += $input->readMapBegin($_ktype597, $_vtype598, $_size596);
+            for ($_i600 = 0; $_i600 < $_size596; ++$_i600)
             {
-              $key584 = 0;
-              $val585 = array();
-              $xfer += $input->readI64($key584);
-              $val585 = array();
-              $_size586 = 0;
-              $_etype589 = 0;
-              $xfer += $input->readSetBegin($_etype589, $_size586);
-              for ($_i590 = 0; $_i590 < $_size586; ++$_i590)
+              $key601 = 0;
+              $val602 = array();
+              $xfer += $input->readI64($key601);
+              $val602 = array();
+              $_size603 = 0;
+              $_etype606 = 0;
+              $xfer += $input->readSetBegin($_etype606, $_size603);
+              for ($_i607 = 0; $_i607 < $_size603; ++$_i607)
               {
-                $elem591 = null;
-                $elem591 = new \thrift\data\TObject();
-                $xfer += $elem591->read($input);
-                if (is_scalar($elem591)) {
-                  $val585[$elem591] = true;
+                $elem608 = null;
+                $elem608 = new \thrift\data\TObject();
+                $xfer += $elem608->read($input);
+                if (is_scalar($elem608)) {
+                  $val602[$elem608] = true;
                 } else {
-                  $val585 []= $elem591;
+                  $val602 []= $elem608;
                 }
               }
               $xfer += $input->readSetEnd();
-              $this->success[$key584] = $val585;
+              $this->success[$key601] = $val602;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -21668,18 +22691,410 @@ class ConcourseService_selectKeyCriteriaTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
         {
-          foreach ($this->success as $kiter592 => $viter593)
+          foreach ($this->success as $kiter609 => $viter610)
           {
-            $xfer += $output->writeI64($kiter592);
+            $xfer += $output->writeI64($kiter609);
             {
-              $output->writeSetBegin(TType::STRUCT, count($viter593));
+              $output->writeSetBegin(TType::STRUCT, count($viter610));
               {
-                foreach ($viter593 as $iter594 => $iter595)
+                foreach ($viter610 as $iter611 => $iter612)
                 {
-                  if (is_scalar($iter595)) {
-                  $xfer += $iter594->write($output);
+                  if (is_scalar($iter612)) {
+                  $xfer += $iter611->write($output);
                   } else {
-                  $xfer += $iter595->write($output);
+                  $xfer += $iter612->write($output);
+                  }
+                }
+              }
+              $output->writeSetEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeyCclTime_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var int
+   */
+  public $timestamp = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'timestamp',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['timestamp'])) {
+        $this->timestamp = $vals['timestamp'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeyCclTime_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->timestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeyCclTime_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->timestamp !== null) {
+      $xfer += $output->writeFieldBegin('timestamp', TType::I64, 3);
+      $xfer += $output->writeI64($this->timestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeyCclTime_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::SET,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::SET,
+            'etype' => TType::STRUCT,
+            'elem' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeyCclTime_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size613 = 0;
+            $_ktype614 = 0;
+            $_vtype615 = 0;
+            $xfer += $input->readMapBegin($_ktype614, $_vtype615, $_size613);
+            for ($_i617 = 0; $_i617 < $_size613; ++$_i617)
+            {
+              $key618 = 0;
+              $val619 = array();
+              $xfer += $input->readI64($key618);
+              $val619 = array();
+              $_size620 = 0;
+              $_etype623 = 0;
+              $xfer += $input->readSetBegin($_etype623, $_size620);
+              for ($_i624 = 0; $_i624 < $_size620; ++$_i624)
+              {
+                $elem625 = null;
+                $elem625 = new \thrift\data\TObject();
+                $xfer += $elem625->read($input);
+                if (is_scalar($elem625)) {
+                  $val619[$elem625] = true;
+                } else {
+                  $val619 []= $elem625;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[$key618] = $val619;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeyCclTime_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
+        {
+          foreach ($this->success as $kiter626 => $viter627)
+          {
+            $xfer += $output->writeI64($kiter626);
+            {
+              $output->writeSetBegin(TType::STRUCT, count($viter627));
+              {
+                foreach ($viter627 as $iter628 => $iter629)
+                {
+                  if (is_scalar($iter629)) {
+                  $xfer += $iter628->write($output);
+                  } else {
+                  $xfer += $iter629->write($output);
                   }
                 }
               }
@@ -21805,14 +23220,14 @@ class ConcourseService_selectKeysCriteria_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size596 = 0;
-            $_etype599 = 0;
-            $xfer += $input->readListBegin($_etype599, $_size596);
-            for ($_i600 = 0; $_i600 < $_size596; ++$_i600)
+            $_size630 = 0;
+            $_etype633 = 0;
+            $xfer += $input->readListBegin($_etype633, $_size630);
+            for ($_i634 = 0; $_i634 < $_size630; ++$_i634)
             {
-              $elem601 = null;
-              $xfer += $input->readString($elem601);
-              $this->keys []= $elem601;
+              $elem635 = null;
+              $xfer += $input->readString($elem635);
+              $this->keys []= $elem635;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -21871,9 +23286,9 @@ class ConcourseService_selectKeysCriteria_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter602)
+          foreach ($this->keys as $iter636)
           {
-            $xfer += $output->writeString($iter602);
+            $xfer += $output->writeString($iter636);
           }
         }
         $output->writeListEnd();
@@ -22007,45 +23422,45 @@ class ConcourseService_selectKeysCriteria_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size603 = 0;
-            $_ktype604 = 0;
-            $_vtype605 = 0;
-            $xfer += $input->readMapBegin($_ktype604, $_vtype605, $_size603);
-            for ($_i607 = 0; $_i607 < $_size603; ++$_i607)
+            $_size637 = 0;
+            $_ktype638 = 0;
+            $_vtype639 = 0;
+            $xfer += $input->readMapBegin($_ktype638, $_vtype639, $_size637);
+            for ($_i641 = 0; $_i641 < $_size637; ++$_i641)
             {
-              $key608 = 0;
-              $val609 = array();
-              $xfer += $input->readI64($key608);
-              $val609 = array();
-              $_size610 = 0;
-              $_ktype611 = 0;
-              $_vtype612 = 0;
-              $xfer += $input->readMapBegin($_ktype611, $_vtype612, $_size610);
-              for ($_i614 = 0; $_i614 < $_size610; ++$_i614)
+              $key642 = 0;
+              $val643 = array();
+              $xfer += $input->readI64($key642);
+              $val643 = array();
+              $_size644 = 0;
+              $_ktype645 = 0;
+              $_vtype646 = 0;
+              $xfer += $input->readMapBegin($_ktype645, $_vtype646, $_size644);
+              for ($_i648 = 0; $_i648 < $_size644; ++$_i648)
               {
-                $key615 = '';
-                $val616 = array();
-                $xfer += $input->readString($key615);
-                $val616 = array();
-                $_size617 = 0;
-                $_etype620 = 0;
-                $xfer += $input->readSetBegin($_etype620, $_size617);
-                for ($_i621 = 0; $_i621 < $_size617; ++$_i621)
+                $key649 = '';
+                $val650 = array();
+                $xfer += $input->readString($key649);
+                $val650 = array();
+                $_size651 = 0;
+                $_etype654 = 0;
+                $xfer += $input->readSetBegin($_etype654, $_size651);
+                for ($_i655 = 0; $_i655 < $_size651; ++$_i655)
                 {
-                  $elem622 = null;
-                  $elem622 = new \thrift\data\TObject();
-                  $xfer += $elem622->read($input);
-                  if (is_scalar($elem622)) {
-                    $val616[$elem622] = true;
+                  $elem656 = null;
+                  $elem656 = new \thrift\data\TObject();
+                  $xfer += $elem656->read($input);
+                  if (is_scalar($elem656)) {
+                    $val650[$elem656] = true;
                   } else {
-                    $val616 []= $elem622;
+                    $val650 []= $elem656;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val609[$key615] = $val616;
+                $val643[$key649] = $val650;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key608] = $val609;
+              $this->success[$key642] = $val643;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22089,24 +23504,450 @@ class ConcourseService_selectKeysCriteria_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter623 => $viter624)
+          foreach ($this->success as $kiter657 => $viter658)
           {
-            $xfer += $output->writeI64($kiter623);
+            $xfer += $output->writeI64($kiter657);
             {
-              $output->writeMapBegin(TType::STRING, TType::SET, count($viter624));
+              $output->writeMapBegin(TType::STRING, TType::SET, count($viter658));
               {
-                foreach ($viter624 as $kiter625 => $viter626)
+                foreach ($viter658 as $kiter659 => $viter660)
                 {
-                  $xfer += $output->writeString($kiter625);
+                  $xfer += $output->writeString($kiter659);
                   {
-                    $output->writeSetBegin(TType::STRUCT, count($viter626));
+                    $output->writeSetBegin(TType::STRUCT, count($viter660));
                     {
-                      foreach ($viter626 as $iter627 => $iter628)
+                      foreach ($viter660 as $iter661 => $iter662)
                       {
-                        if (is_scalar($iter628)) {
-                        $xfer += $iter627->write($output);
+                        if (is_scalar($iter662)) {
+                        $xfer += $iter661->write($output);
                         } else {
-                        $xfer += $iter628->write($output);
+                        $xfer += $iter662->write($output);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeysCcl_args {
+  static $_TSPEC;
+
+  /**
+   * @var string[]
+   */
+  public $keys = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'keys',
+          'type' => TType::LST,
+          'etype' => TType::STRING,
+          'elem' => array(
+            'type' => TType::STRING,
+            ),
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['keys'])) {
+        $this->keys = $vals['keys'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeysCcl_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::LST) {
+            $this->keys = array();
+            $_size663 = 0;
+            $_etype666 = 0;
+            $xfer += $input->readListBegin($_etype666, $_size663);
+            for ($_i667 = 0; $_i667 < $_size663; ++$_i667)
+            {
+              $elem668 = null;
+              $xfer += $input->readString($elem668);
+              $this->keys []= $elem668;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeysCcl_args');
+    if ($this->keys !== null) {
+      if (!is_array($this->keys)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('keys', TType::LST, 1);
+      {
+        $output->writeListBegin(TType::STRING, count($this->keys));
+        {
+          foreach ($this->keys as $iter669)
+          {
+            $xfer += $output->writeString($iter669);
+          }
+        }
+        $output->writeListEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeysCcl_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::STRING,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::STRING,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::STRUCT,
+              'elem' => array(
+                'type' => TType::STRUCT,
+                'class' => '\thrift\data\TObject',
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeysCcl_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size670 = 0;
+            $_ktype671 = 0;
+            $_vtype672 = 0;
+            $xfer += $input->readMapBegin($_ktype671, $_vtype672, $_size670);
+            for ($_i674 = 0; $_i674 < $_size670; ++$_i674)
+            {
+              $key675 = 0;
+              $val676 = array();
+              $xfer += $input->readI64($key675);
+              $val676 = array();
+              $_size677 = 0;
+              $_ktype678 = 0;
+              $_vtype679 = 0;
+              $xfer += $input->readMapBegin($_ktype678, $_vtype679, $_size677);
+              for ($_i681 = 0; $_i681 < $_size677; ++$_i681)
+              {
+                $key682 = '';
+                $val683 = array();
+                $xfer += $input->readString($key682);
+                $val683 = array();
+                $_size684 = 0;
+                $_etype687 = 0;
+                $xfer += $input->readSetBegin($_etype687, $_size684);
+                for ($_i688 = 0; $_i688 < $_size684; ++$_i688)
+                {
+                  $elem689 = null;
+                  $elem689 = new \thrift\data\TObject();
+                  $xfer += $elem689->read($input);
+                  if (is_scalar($elem689)) {
+                    $val683[$elem689] = true;
+                  } else {
+                    $val683 []= $elem689;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val676[$key682] = $val683;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key675] = $val676;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeysCcl_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter690 => $viter691)
+          {
+            $xfer += $output->writeI64($kiter690);
+            {
+              $output->writeMapBegin(TType::STRING, TType::SET, count($viter691));
+              {
+                foreach ($viter691 as $kiter692 => $viter693)
+                {
+                  $xfer += $output->writeString($kiter692);
+                  {
+                    $output->writeSetBegin(TType::STRUCT, count($viter693));
+                    {
+                      foreach ($viter693 as $iter694 => $iter695)
+                      {
+                        if (is_scalar($iter695)) {
+                        $xfer += $iter694->write($output);
+                        } else {
+                        $xfer += $iter695->write($output);
                         }
                       }
                     }
@@ -22247,14 +24088,14 @@ class ConcourseService_selectKeysCriteriaTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size629 = 0;
-            $_etype632 = 0;
-            $xfer += $input->readListBegin($_etype632, $_size629);
-            for ($_i633 = 0; $_i633 < $_size629; ++$_i633)
+            $_size696 = 0;
+            $_etype699 = 0;
+            $xfer += $input->readListBegin($_etype699, $_size696);
+            for ($_i700 = 0; $_i700 < $_size696; ++$_i700)
             {
-              $elem634 = null;
-              $xfer += $input->readString($elem634);
-              $this->keys []= $elem634;
+              $elem701 = null;
+              $xfer += $input->readString($elem701);
+              $this->keys []= $elem701;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -22320,9 +24161,9 @@ class ConcourseService_selectKeysCriteriaTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter635)
+          foreach ($this->keys as $iter702)
           {
-            $xfer += $output->writeString($iter635);
+            $xfer += $output->writeString($iter702);
           }
         }
         $output->writeListEnd();
@@ -22461,45 +24302,45 @@ class ConcourseService_selectKeysCriteriaTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size636 = 0;
-            $_ktype637 = 0;
-            $_vtype638 = 0;
-            $xfer += $input->readMapBegin($_ktype637, $_vtype638, $_size636);
-            for ($_i640 = 0; $_i640 < $_size636; ++$_i640)
+            $_size703 = 0;
+            $_ktype704 = 0;
+            $_vtype705 = 0;
+            $xfer += $input->readMapBegin($_ktype704, $_vtype705, $_size703);
+            for ($_i707 = 0; $_i707 < $_size703; ++$_i707)
             {
-              $key641 = 0;
-              $val642 = array();
-              $xfer += $input->readI64($key641);
-              $val642 = array();
-              $_size643 = 0;
-              $_ktype644 = 0;
-              $_vtype645 = 0;
-              $xfer += $input->readMapBegin($_ktype644, $_vtype645, $_size643);
-              for ($_i647 = 0; $_i647 < $_size643; ++$_i647)
+              $key708 = 0;
+              $val709 = array();
+              $xfer += $input->readI64($key708);
+              $val709 = array();
+              $_size710 = 0;
+              $_ktype711 = 0;
+              $_vtype712 = 0;
+              $xfer += $input->readMapBegin($_ktype711, $_vtype712, $_size710);
+              for ($_i714 = 0; $_i714 < $_size710; ++$_i714)
               {
-                $key648 = '';
-                $val649 = array();
-                $xfer += $input->readString($key648);
-                $val649 = array();
-                $_size650 = 0;
-                $_etype653 = 0;
-                $xfer += $input->readSetBegin($_etype653, $_size650);
-                for ($_i654 = 0; $_i654 < $_size650; ++$_i654)
+                $key715 = '';
+                $val716 = array();
+                $xfer += $input->readString($key715);
+                $val716 = array();
+                $_size717 = 0;
+                $_etype720 = 0;
+                $xfer += $input->readSetBegin($_etype720, $_size717);
+                for ($_i721 = 0; $_i721 < $_size717; ++$_i721)
                 {
-                  $elem655 = null;
-                  $elem655 = new \thrift\data\TObject();
-                  $xfer += $elem655->read($input);
-                  if (is_scalar($elem655)) {
-                    $val649[$elem655] = true;
+                  $elem722 = null;
+                  $elem722 = new \thrift\data\TObject();
+                  $xfer += $elem722->read($input);
+                  if (is_scalar($elem722)) {
+                    $val716[$elem722] = true;
                   } else {
-                    $val649 []= $elem655;
+                    $val716 []= $elem722;
                   }
                 }
                 $xfer += $input->readSetEnd();
-                $val642[$key648] = $val649;
+                $val709[$key715] = $val716;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key641] = $val642;
+              $this->success[$key708] = $val709;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -22543,24 +24384,473 @@ class ConcourseService_selectKeysCriteriaTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter656 => $viter657)
+          foreach ($this->success as $kiter723 => $viter724)
           {
-            $xfer += $output->writeI64($kiter656);
+            $xfer += $output->writeI64($kiter723);
             {
-              $output->writeMapBegin(TType::STRING, TType::SET, count($viter657));
+              $output->writeMapBegin(TType::STRING, TType::SET, count($viter724));
               {
-                foreach ($viter657 as $kiter658 => $viter659)
+                foreach ($viter724 as $kiter725 => $viter726)
                 {
-                  $xfer += $output->writeString($kiter658);
+                  $xfer += $output->writeString($kiter725);
                   {
-                    $output->writeSetBegin(TType::STRUCT, count($viter659));
+                    $output->writeSetBegin(TType::STRUCT, count($viter726));
                     {
-                      foreach ($viter659 as $iter660 => $iter661)
+                      foreach ($viter726 as $iter727 => $iter728)
                       {
-                        if (is_scalar($iter661)) {
-                        $xfer += $iter660->write($output);
+                        if (is_scalar($iter728)) {
+                        $xfer += $iter727->write($output);
                         } else {
-                        $xfer += $iter661->write($output);
+                        $xfer += $iter728->write($output);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeysCclTime_args {
+  static $_TSPEC;
+
+  /**
+   * @var string[]
+   */
+  public $keys = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var int
+   */
+  public $timestamp = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'keys',
+          'type' => TType::LST,
+          'etype' => TType::STRING,
+          'elem' => array(
+            'type' => TType::STRING,
+            ),
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'timestamp',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['keys'])) {
+        $this->keys = $vals['keys'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['timestamp'])) {
+        $this->timestamp = $vals['timestamp'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeysCclTime_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::LST) {
+            $this->keys = array();
+            $_size729 = 0;
+            $_etype732 = 0;
+            $xfer += $input->readListBegin($_etype732, $_size729);
+            for ($_i733 = 0; $_i733 < $_size729; ++$_i733)
+            {
+              $elem734 = null;
+              $xfer += $input->readString($elem734);
+              $this->keys []= $elem734;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->timestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeysCclTime_args');
+    if ($this->keys !== null) {
+      if (!is_array($this->keys)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('keys', TType::LST, 1);
+      {
+        $output->writeListBegin(TType::STRING, count($this->keys));
+        {
+          foreach ($this->keys as $iter735)
+          {
+            $xfer += $output->writeString($iter735);
+          }
+        }
+        $output->writeListEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->timestamp !== null) {
+      $xfer += $output->writeFieldBegin('timestamp', TType::I64, 3);
+      $xfer += $output->writeI64($this->timestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_selectKeysCclTime_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::STRING,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::STRING,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::STRUCT,
+              'elem' => array(
+                'type' => TType::STRUCT,
+                'class' => '\thrift\data\TObject',
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_selectKeysCclTime_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size736 = 0;
+            $_ktype737 = 0;
+            $_vtype738 = 0;
+            $xfer += $input->readMapBegin($_ktype737, $_vtype738, $_size736);
+            for ($_i740 = 0; $_i740 < $_size736; ++$_i740)
+            {
+              $key741 = 0;
+              $val742 = array();
+              $xfer += $input->readI64($key741);
+              $val742 = array();
+              $_size743 = 0;
+              $_ktype744 = 0;
+              $_vtype745 = 0;
+              $xfer += $input->readMapBegin($_ktype744, $_vtype745, $_size743);
+              for ($_i747 = 0; $_i747 < $_size743; ++$_i747)
+              {
+                $key748 = '';
+                $val749 = array();
+                $xfer += $input->readString($key748);
+                $val749 = array();
+                $_size750 = 0;
+                $_etype753 = 0;
+                $xfer += $input->readSetBegin($_etype753, $_size750);
+                for ($_i754 = 0; $_i754 < $_size750; ++$_i754)
+                {
+                  $elem755 = null;
+                  $elem755 = new \thrift\data\TObject();
+                  $xfer += $elem755->read($input);
+                  if (is_scalar($elem755)) {
+                    $val749[$elem755] = true;
+                  } else {
+                    $val749 []= $elem755;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val742[$key748] = $val749;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key741] = $val742;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_selectKeysCclTime_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter756 => $viter757)
+          {
+            $xfer += $output->writeI64($kiter756);
+            {
+              $output->writeMapBegin(TType::STRING, TType::SET, count($viter757));
+              {
+                foreach ($viter757 as $kiter758 => $viter759)
+                {
+                  $xfer += $output->writeString($kiter758);
+                  {
+                    $output->writeSetBegin(TType::STRUCT, count($viter759));
+                    {
+                      foreach ($viter759 as $iter760 => $iter761)
+                      {
+                        if (is_scalar($iter761)) {
+                        $xfer += $iter760->write($output);
+                        } else {
+                        $xfer += $iter761->write($output);
                         }
                       }
                     }
@@ -23326,14 +25616,14 @@ class ConcourseService_getKeysRecord_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size662 = 0;
-            $_etype665 = 0;
-            $xfer += $input->readListBegin($_etype665, $_size662);
-            for ($_i666 = 0; $_i666 < $_size662; ++$_i666)
+            $_size762 = 0;
+            $_etype765 = 0;
+            $xfer += $input->readListBegin($_etype765, $_size762);
+            for ($_i766 = 0; $_i766 < $_size762; ++$_i766)
             {
-              $elem667 = null;
-              $xfer += $input->readString($elem667);
-              $this->keys []= $elem667;
+              $elem767 = null;
+              $xfer += $input->readString($elem767);
+              $this->keys []= $elem767;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -23391,9 +25681,9 @@ class ConcourseService_getKeysRecord_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter668)
+          foreach ($this->keys as $iter768)
           {
-            $xfer += $output->writeString($iter668);
+            $xfer += $output->writeString($iter768);
           }
         }
         $output->writeListEnd();
@@ -23512,18 +25802,18 @@ class ConcourseService_getKeysRecord_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size669 = 0;
-            $_ktype670 = 0;
-            $_vtype671 = 0;
-            $xfer += $input->readMapBegin($_ktype670, $_vtype671, $_size669);
-            for ($_i673 = 0; $_i673 < $_size669; ++$_i673)
+            $_size769 = 0;
+            $_ktype770 = 0;
+            $_vtype771 = 0;
+            $xfer += $input->readMapBegin($_ktype770, $_vtype771, $_size769);
+            for ($_i773 = 0; $_i773 < $_size769; ++$_i773)
             {
-              $key674 = '';
-              $val675 = new \thrift\data\TObject();
-              $xfer += $input->readString($key674);
-              $val675 = new \thrift\data\TObject();
-              $xfer += $val675->read($input);
-              $this->success[$key674] = $val675;
+              $key774 = '';
+              $val775 = new \thrift\data\TObject();
+              $xfer += $input->readString($key774);
+              $val775 = new \thrift\data\TObject();
+              $xfer += $val775->read($input);
+              $this->success[$key774] = $val775;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -23567,10 +25857,10 @@ class ConcourseService_getKeysRecord_result {
       {
         $output->writeMapBegin(TType::STRING, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter676 => $viter677)
+          foreach ($this->success as $kiter776 => $viter777)
           {
-            $xfer += $output->writeString($kiter676);
-            $xfer += $viter677->write($output);
+            $xfer += $output->writeString($kiter776);
+            $xfer += $viter777->write($output);
           }
         }
         $output->writeMapEnd();
@@ -23701,14 +25991,14 @@ class ConcourseService_getKeysRecordTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size678 = 0;
-            $_etype681 = 0;
-            $xfer += $input->readListBegin($_etype681, $_size678);
-            for ($_i682 = 0; $_i682 < $_size678; ++$_i682)
+            $_size778 = 0;
+            $_etype781 = 0;
+            $xfer += $input->readListBegin($_etype781, $_size778);
+            for ($_i782 = 0; $_i782 < $_size778; ++$_i782)
             {
-              $elem683 = null;
-              $xfer += $input->readString($elem683);
-              $this->keys []= $elem683;
+              $elem783 = null;
+              $xfer += $input->readString($elem783);
+              $this->keys []= $elem783;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -23773,9 +26063,9 @@ class ConcourseService_getKeysRecordTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter684)
+          foreach ($this->keys as $iter784)
           {
-            $xfer += $output->writeString($iter684);
+            $xfer += $output->writeString($iter784);
           }
         }
         $output->writeListEnd();
@@ -23899,18 +26189,18 @@ class ConcourseService_getKeysRecordTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size685 = 0;
-            $_ktype686 = 0;
-            $_vtype687 = 0;
-            $xfer += $input->readMapBegin($_ktype686, $_vtype687, $_size685);
-            for ($_i689 = 0; $_i689 < $_size685; ++$_i689)
+            $_size785 = 0;
+            $_ktype786 = 0;
+            $_vtype787 = 0;
+            $xfer += $input->readMapBegin($_ktype786, $_vtype787, $_size785);
+            for ($_i789 = 0; $_i789 < $_size785; ++$_i789)
             {
-              $key690 = '';
-              $val691 = new \thrift\data\TObject();
-              $xfer += $input->readString($key690);
-              $val691 = new \thrift\data\TObject();
-              $xfer += $val691->read($input);
-              $this->success[$key690] = $val691;
+              $key790 = '';
+              $val791 = new \thrift\data\TObject();
+              $xfer += $input->readString($key790);
+              $val791 = new \thrift\data\TObject();
+              $xfer += $val791->read($input);
+              $this->success[$key790] = $val791;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -23954,10 +26244,10 @@ class ConcourseService_getKeysRecordTime_result {
       {
         $output->writeMapBegin(TType::STRING, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter692 => $viter693)
+          foreach ($this->success as $kiter792 => $viter793)
           {
-            $xfer += $output->writeString($kiter692);
-            $xfer += $viter693->write($output);
+            $xfer += $output->writeString($kiter792);
+            $xfer += $viter793->write($output);
           }
         }
         $output->writeMapEnd();
@@ -24081,14 +26371,14 @@ class ConcourseService_getKeysRecords_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size694 = 0;
-            $_etype697 = 0;
-            $xfer += $input->readListBegin($_etype697, $_size694);
-            for ($_i698 = 0; $_i698 < $_size694; ++$_i698)
+            $_size794 = 0;
+            $_etype797 = 0;
+            $xfer += $input->readListBegin($_etype797, $_size794);
+            for ($_i798 = 0; $_i798 < $_size794; ++$_i798)
             {
-              $elem699 = null;
-              $xfer += $input->readString($elem699);
-              $this->keys []= $elem699;
+              $elem799 = null;
+              $xfer += $input->readString($elem799);
+              $this->keys []= $elem799;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24098,14 +26388,14 @@ class ConcourseService_getKeysRecords_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size700 = 0;
-            $_etype703 = 0;
-            $xfer += $input->readListBegin($_etype703, $_size700);
-            for ($_i704 = 0; $_i704 < $_size700; ++$_i704)
+            $_size800 = 0;
+            $_etype803 = 0;
+            $xfer += $input->readListBegin($_etype803, $_size800);
+            for ($_i804 = 0; $_i804 < $_size800; ++$_i804)
             {
-              $elem705 = null;
-              $xfer += $input->readI64($elem705);
-              $this->records []= $elem705;
+              $elem805 = null;
+              $xfer += $input->readI64($elem805);
+              $this->records []= $elem805;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24156,9 +26446,9 @@ class ConcourseService_getKeysRecords_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter706)
+          foreach ($this->keys as $iter806)
           {
-            $xfer += $output->writeString($iter706);
+            $xfer += $output->writeString($iter806);
           }
         }
         $output->writeListEnd();
@@ -24173,9 +26463,9 @@ class ConcourseService_getKeysRecords_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter707)
+          foreach ($this->records as $iter807)
           {
-            $xfer += $output->writeI64($iter707);
+            $xfer += $output->writeI64($iter807);
           }
         }
         $output->writeListEnd();
@@ -24297,31 +26587,31 @@ class ConcourseService_getKeysRecords_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size708 = 0;
-            $_ktype709 = 0;
-            $_vtype710 = 0;
-            $xfer += $input->readMapBegin($_ktype709, $_vtype710, $_size708);
-            for ($_i712 = 0; $_i712 < $_size708; ++$_i712)
+            $_size808 = 0;
+            $_ktype809 = 0;
+            $_vtype810 = 0;
+            $xfer += $input->readMapBegin($_ktype809, $_vtype810, $_size808);
+            for ($_i812 = 0; $_i812 < $_size808; ++$_i812)
             {
-              $key713 = 0;
-              $val714 = array();
-              $xfer += $input->readI64($key713);
-              $val714 = array();
-              $_size715 = 0;
-              $_ktype716 = 0;
-              $_vtype717 = 0;
-              $xfer += $input->readMapBegin($_ktype716, $_vtype717, $_size715);
-              for ($_i719 = 0; $_i719 < $_size715; ++$_i719)
+              $key813 = 0;
+              $val814 = array();
+              $xfer += $input->readI64($key813);
+              $val814 = array();
+              $_size815 = 0;
+              $_ktype816 = 0;
+              $_vtype817 = 0;
+              $xfer += $input->readMapBegin($_ktype816, $_vtype817, $_size815);
+              for ($_i819 = 0; $_i819 < $_size815; ++$_i819)
               {
-                $key720 = '';
-                $val721 = new \thrift\data\TObject();
-                $xfer += $input->readString($key720);
-                $val721 = new \thrift\data\TObject();
-                $xfer += $val721->read($input);
-                $val714[$key720] = $val721;
+                $key820 = '';
+                $val821 = new \thrift\data\TObject();
+                $xfer += $input->readString($key820);
+                $val821 = new \thrift\data\TObject();
+                $xfer += $val821->read($input);
+                $val814[$key820] = $val821;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key713] = $val714;
+              $this->success[$key813] = $val814;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -24365,16 +26655,16 @@ class ConcourseService_getKeysRecords_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter722 => $viter723)
+          foreach ($this->success as $kiter822 => $viter823)
           {
-            $xfer += $output->writeI64($kiter722);
+            $xfer += $output->writeI64($kiter822);
             {
-              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter723));
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter823));
               {
-                foreach ($viter723 as $kiter724 => $viter725)
+                foreach ($viter823 as $kiter824 => $viter825)
                 {
-                  $xfer += $output->writeString($kiter724);
-                  $xfer += $viter725->write($output);
+                  $xfer += $output->writeString($kiter824);
+                  $xfer += $viter825->write($output);
                 }
               }
               $output->writeMapEnd();
@@ -24505,14 +26795,14 @@ class ConcourseService_getKeyRecords_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size726 = 0;
-            $_etype729 = 0;
-            $xfer += $input->readListBegin($_etype729, $_size726);
-            for ($_i730 = 0; $_i730 < $_size726; ++$_i730)
+            $_size826 = 0;
+            $_etype829 = 0;
+            $xfer += $input->readListBegin($_etype829, $_size826);
+            for ($_i830 = 0; $_i830 < $_size826; ++$_i830)
             {
-              $elem731 = null;
-              $xfer += $input->readI64($elem731);
-              $this->records []= $elem731;
+              $elem831 = null;
+              $xfer += $input->readI64($elem831);
+              $this->records []= $elem831;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24568,9 +26858,9 @@ class ConcourseService_getKeyRecords_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter732)
+          foreach ($this->records as $iter832)
           {
-            $xfer += $output->writeI64($iter732);
+            $xfer += $output->writeI64($iter832);
           }
         }
         $output->writeListEnd();
@@ -24684,18 +26974,18 @@ class ConcourseService_getKeyRecords_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size733 = 0;
-            $_ktype734 = 0;
-            $_vtype735 = 0;
-            $xfer += $input->readMapBegin($_ktype734, $_vtype735, $_size733);
-            for ($_i737 = 0; $_i737 < $_size733; ++$_i737)
+            $_size833 = 0;
+            $_ktype834 = 0;
+            $_vtype835 = 0;
+            $xfer += $input->readMapBegin($_ktype834, $_vtype835, $_size833);
+            for ($_i837 = 0; $_i837 < $_size833; ++$_i837)
             {
-              $key738 = 0;
-              $val739 = new \thrift\data\TObject();
-              $xfer += $input->readI64($key738);
-              $val739 = new \thrift\data\TObject();
-              $xfer += $val739->read($input);
-              $this->success[$key738] = $val739;
+              $key838 = 0;
+              $val839 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key838);
+              $val839 = new \thrift\data\TObject();
+              $xfer += $val839->read($input);
+              $this->success[$key838] = $val839;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -24739,10 +27029,10 @@ class ConcourseService_getKeyRecords_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter740 => $viter741)
+          foreach ($this->success as $kiter840 => $viter841)
           {
-            $xfer += $output->writeI64($kiter740);
-            $xfer += $viter741->write($output);
+            $xfer += $output->writeI64($kiter840);
+            $xfer += $viter841->write($output);
           }
         }
         $output->writeMapEnd();
@@ -24880,14 +27170,14 @@ class ConcourseService_getKeyRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size742 = 0;
-            $_etype745 = 0;
-            $xfer += $input->readListBegin($_etype745, $_size742);
-            for ($_i746 = 0; $_i746 < $_size742; ++$_i746)
+            $_size842 = 0;
+            $_etype845 = 0;
+            $xfer += $input->readListBegin($_etype845, $_size842);
+            for ($_i846 = 0; $_i846 < $_size842; ++$_i846)
             {
-              $elem747 = null;
-              $xfer += $input->readI64($elem747);
-              $this->records []= $elem747;
+              $elem847 = null;
+              $xfer += $input->readI64($elem847);
+              $this->records []= $elem847;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24950,9 +27240,9 @@ class ConcourseService_getKeyRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter748)
+          foreach ($this->records as $iter848)
           {
-            $xfer += $output->writeI64($iter748);
+            $xfer += $output->writeI64($iter848);
           }
         }
         $output->writeListEnd();
@@ -25071,18 +27361,18 @@ class ConcourseService_getKeyRecordsTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size749 = 0;
-            $_ktype750 = 0;
-            $_vtype751 = 0;
-            $xfer += $input->readMapBegin($_ktype750, $_vtype751, $_size749);
-            for ($_i753 = 0; $_i753 < $_size749; ++$_i753)
+            $_size849 = 0;
+            $_ktype850 = 0;
+            $_vtype851 = 0;
+            $xfer += $input->readMapBegin($_ktype850, $_vtype851, $_size849);
+            for ($_i853 = 0; $_i853 < $_size849; ++$_i853)
             {
-              $key754 = 0;
-              $val755 = new \thrift\data\TObject();
-              $xfer += $input->readI64($key754);
-              $val755 = new \thrift\data\TObject();
-              $xfer += $val755->read($input);
-              $this->success[$key754] = $val755;
+              $key854 = 0;
+              $val855 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key854);
+              $val855 = new \thrift\data\TObject();
+              $xfer += $val855->read($input);
+              $this->success[$key854] = $val855;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25126,10 +27416,10 @@ class ConcourseService_getKeyRecordsTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter756 => $viter757)
+          foreach ($this->success as $kiter856 => $viter857)
           {
-            $xfer += $output->writeI64($kiter756);
-            $xfer += $viter757->write($output);
+            $xfer += $output->writeI64($kiter856);
+            $xfer += $viter857->write($output);
           }
         }
         $output->writeMapEnd();
@@ -25264,14 +27554,14 @@ class ConcourseService_getKeysRecordsTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size758 = 0;
-            $_etype761 = 0;
-            $xfer += $input->readListBegin($_etype761, $_size758);
-            for ($_i762 = 0; $_i762 < $_size758; ++$_i762)
+            $_size858 = 0;
+            $_etype861 = 0;
+            $xfer += $input->readListBegin($_etype861, $_size858);
+            for ($_i862 = 0; $_i862 < $_size858; ++$_i862)
             {
-              $elem763 = null;
-              $xfer += $input->readString($elem763);
-              $this->keys []= $elem763;
+              $elem863 = null;
+              $xfer += $input->readString($elem863);
+              $this->keys []= $elem863;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -25281,14 +27571,14 @@ class ConcourseService_getKeysRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size764 = 0;
-            $_etype767 = 0;
-            $xfer += $input->readListBegin($_etype767, $_size764);
-            for ($_i768 = 0; $_i768 < $_size764; ++$_i768)
+            $_size864 = 0;
+            $_etype867 = 0;
+            $xfer += $input->readListBegin($_etype867, $_size864);
+            for ($_i868 = 0; $_i868 < $_size864; ++$_i868)
             {
-              $elem769 = null;
-              $xfer += $input->readI64($elem769);
-              $this->records []= $elem769;
+              $elem869 = null;
+              $xfer += $input->readI64($elem869);
+              $this->records []= $elem869;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -25346,9 +27636,9 @@ class ConcourseService_getKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter770)
+          foreach ($this->keys as $iter870)
           {
-            $xfer += $output->writeString($iter770);
+            $xfer += $output->writeString($iter870);
           }
         }
         $output->writeListEnd();
@@ -25363,9 +27653,9 @@ class ConcourseService_getKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter771)
+          foreach ($this->records as $iter871)
           {
-            $xfer += $output->writeI64($iter771);
+            $xfer += $output->writeI64($iter871);
           }
         }
         $output->writeListEnd();
@@ -25492,31 +27782,31 @@ class ConcourseService_getKeysRecordsTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size772 = 0;
-            $_ktype773 = 0;
-            $_vtype774 = 0;
-            $xfer += $input->readMapBegin($_ktype773, $_vtype774, $_size772);
-            for ($_i776 = 0; $_i776 < $_size772; ++$_i776)
+            $_size872 = 0;
+            $_ktype873 = 0;
+            $_vtype874 = 0;
+            $xfer += $input->readMapBegin($_ktype873, $_vtype874, $_size872);
+            for ($_i876 = 0; $_i876 < $_size872; ++$_i876)
             {
-              $key777 = 0;
-              $val778 = array();
-              $xfer += $input->readI64($key777);
-              $val778 = array();
-              $_size779 = 0;
-              $_ktype780 = 0;
-              $_vtype781 = 0;
-              $xfer += $input->readMapBegin($_ktype780, $_vtype781, $_size779);
-              for ($_i783 = 0; $_i783 < $_size779; ++$_i783)
+              $key877 = 0;
+              $val878 = array();
+              $xfer += $input->readI64($key877);
+              $val878 = array();
+              $_size879 = 0;
+              $_ktype880 = 0;
+              $_vtype881 = 0;
+              $xfer += $input->readMapBegin($_ktype880, $_vtype881, $_size879);
+              for ($_i883 = 0; $_i883 < $_size879; ++$_i883)
               {
-                $key784 = '';
-                $val785 = new \thrift\data\TObject();
-                $xfer += $input->readString($key784);
-                $val785 = new \thrift\data\TObject();
-                $xfer += $val785->read($input);
-                $val778[$key784] = $val785;
+                $key884 = '';
+                $val885 = new \thrift\data\TObject();
+                $xfer += $input->readString($key884);
+                $val885 = new \thrift\data\TObject();
+                $xfer += $val885->read($input);
+                $val878[$key884] = $val885;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key777] = $val778;
+              $this->success[$key877] = $val878;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25560,16 +27850,16 @@ class ConcourseService_getKeysRecordsTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter786 => $viter787)
+          foreach ($this->success as $kiter886 => $viter887)
           {
-            $xfer += $output->writeI64($kiter786);
+            $xfer += $output->writeI64($kiter886);
             {
-              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter787));
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter887));
               {
-                foreach ($viter787 as $kiter788 => $viter789)
+                foreach ($viter887 as $kiter888 => $viter889)
                 {
-                  $xfer += $output->writeString($kiter788);
-                  $xfer += $viter789->write($output);
+                  $xfer += $output->writeString($kiter888);
+                  $xfer += $viter889->write($output);
                 }
               }
               $output->writeMapEnd();
@@ -25858,18 +28148,18 @@ class ConcourseService_getKeyCriteria_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size790 = 0;
-            $_ktype791 = 0;
-            $_vtype792 = 0;
-            $xfer += $input->readMapBegin($_ktype791, $_vtype792, $_size790);
-            for ($_i794 = 0; $_i794 < $_size790; ++$_i794)
+            $_size890 = 0;
+            $_ktype891 = 0;
+            $_vtype892 = 0;
+            $xfer += $input->readMapBegin($_ktype891, $_vtype892, $_size890);
+            for ($_i894 = 0; $_i894 < $_size890; ++$_i894)
             {
-              $key795 = 0;
-              $val796 = new \thrift\data\TObject();
-              $xfer += $input->readI64($key795);
-              $val796 = new \thrift\data\TObject();
-              $xfer += $val796->read($input);
-              $this->success[$key795] = $val796;
+              $key895 = 0;
+              $val896 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key895);
+              $val896 = new \thrift\data\TObject();
+              $xfer += $val896->read($input);
+              $this->success[$key895] = $val896;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -25913,10 +28203,348 @@ class ConcourseService_getKeyCriteria_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter797 => $viter798)
+          foreach ($this->success as $kiter897 => $viter898)
           {
-            $xfer += $output->writeI64($kiter797);
-            $xfer += $viter798->write($output);
+            $xfer += $output->writeI64($kiter897);
+            $xfer += $viter898->write($output);
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeyCcl_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeyCcl_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeyCcl_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeyCcl_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::STRUCT,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::STRUCT,
+            'class' => '\thrift\data\TObject',
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeyCcl_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size899 = 0;
+            $_ktype900 = 0;
+            $_vtype901 = 0;
+            $xfer += $input->readMapBegin($_ktype900, $_vtype901, $_size899);
+            for ($_i903 = 0; $_i903 < $_size899; ++$_i903)
+            {
+              $key904 = 0;
+              $val905 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key904);
+              $val905 = new \thrift\data\TObject();
+              $xfer += $val905->read($input);
+              $this->success[$key904] = $val905;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeyCcl_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
+        {
+          foreach ($this->success as $kiter906 => $viter907)
+          {
+            $xfer += $output->writeI64($kiter906);
+            $xfer += $viter907->write($output);
           }
         }
         $output->writeMapEnd();
@@ -26224,18 +28852,18 @@ class ConcourseService_getKeyCriteriaTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size799 = 0;
-            $_ktype800 = 0;
-            $_vtype801 = 0;
-            $xfer += $input->readMapBegin($_ktype800, $_vtype801, $_size799);
-            for ($_i803 = 0; $_i803 < $_size799; ++$_i803)
+            $_size908 = 0;
+            $_ktype909 = 0;
+            $_vtype910 = 0;
+            $xfer += $input->readMapBegin($_ktype909, $_vtype910, $_size908);
+            for ($_i912 = 0; $_i912 < $_size908; ++$_i912)
             {
-              $key804 = 0;
-              $val805 = new \thrift\data\TObject();
-              $xfer += $input->readI64($key804);
-              $val805 = new \thrift\data\TObject();
-              $xfer += $val805->read($input);
-              $this->success[$key804] = $val805;
+              $key913 = 0;
+              $val914 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key913);
+              $val914 = new \thrift\data\TObject();
+              $xfer += $val914->read($input);
+              $this->success[$key913] = $val914;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -26279,10 +28907,371 @@ class ConcourseService_getKeyCriteriaTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $kiter806 => $viter807)
+          foreach ($this->success as $kiter915 => $viter916)
           {
-            $xfer += $output->writeI64($kiter806);
-            $xfer += $viter807->write($output);
+            $xfer += $output->writeI64($kiter915);
+            $xfer += $viter916->write($output);
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeyCclTime_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var int
+   */
+  public $timestamp = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'timestamp',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['timestamp'])) {
+        $this->timestamp = $vals['timestamp'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeyCclTime_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->timestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeyCclTime_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->timestamp !== null) {
+      $xfer += $output->writeFieldBegin('timestamp', TType::I64, 3);
+      $xfer += $output->writeI64($this->timestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeyCclTime_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::STRUCT,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::STRUCT,
+            'class' => '\thrift\data\TObject',
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeyCclTime_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size917 = 0;
+            $_ktype918 = 0;
+            $_vtype919 = 0;
+            $xfer += $input->readMapBegin($_ktype918, $_vtype919, $_size917);
+            for ($_i921 = 0; $_i921 < $_size917; ++$_i921)
+            {
+              $key922 = 0;
+              $val923 = new \thrift\data\TObject();
+              $xfer += $input->readI64($key922);
+              $val923 = new \thrift\data\TObject();
+              $xfer += $val923->read($input);
+              $this->success[$key922] = $val923;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeyCclTime_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::STRUCT, count($this->success));
+        {
+          foreach ($this->success as $kiter924 => $viter925)
+          {
+            $xfer += $output->writeI64($kiter924);
+            $xfer += $viter925->write($output);
           }
         }
         $output->writeMapEnd();
@@ -26403,14 +29392,14 @@ class ConcourseService_getKeysCriteria_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size808 = 0;
-            $_etype811 = 0;
-            $xfer += $input->readListBegin($_etype811, $_size808);
-            for ($_i812 = 0; $_i812 < $_size808; ++$_i812)
+            $_size926 = 0;
+            $_etype929 = 0;
+            $xfer += $input->readListBegin($_etype929, $_size926);
+            for ($_i930 = 0; $_i930 < $_size926; ++$_i930)
             {
-              $elem813 = null;
-              $xfer += $input->readString($elem813);
-              $this->keys []= $elem813;
+              $elem931 = null;
+              $xfer += $input->readString($elem931);
+              $this->keys []= $elem931;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26469,9 +29458,9 @@ class ConcourseService_getKeysCriteria_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter814)
+          foreach ($this->keys as $iter932)
           {
-            $xfer += $output->writeString($iter814);
+            $xfer += $output->writeString($iter932);
           }
         }
         $output->writeListEnd();
@@ -26601,31 +29590,31 @@ class ConcourseService_getKeysCriteria_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size815 = 0;
-            $_ktype816 = 0;
-            $_vtype817 = 0;
-            $xfer += $input->readMapBegin($_ktype816, $_vtype817, $_size815);
-            for ($_i819 = 0; $_i819 < $_size815; ++$_i819)
+            $_size933 = 0;
+            $_ktype934 = 0;
+            $_vtype935 = 0;
+            $xfer += $input->readMapBegin($_ktype934, $_vtype935, $_size933);
+            for ($_i937 = 0; $_i937 < $_size933; ++$_i937)
             {
-              $key820 = 0;
-              $val821 = array();
-              $xfer += $input->readI64($key820);
-              $val821 = array();
-              $_size822 = 0;
-              $_ktype823 = 0;
-              $_vtype824 = 0;
-              $xfer += $input->readMapBegin($_ktype823, $_vtype824, $_size822);
-              for ($_i826 = 0; $_i826 < $_size822; ++$_i826)
+              $key938 = 0;
+              $val939 = array();
+              $xfer += $input->readI64($key938);
+              $val939 = array();
+              $_size940 = 0;
+              $_ktype941 = 0;
+              $_vtype942 = 0;
+              $xfer += $input->readMapBegin($_ktype941, $_vtype942, $_size940);
+              for ($_i944 = 0; $_i944 < $_size940; ++$_i944)
               {
-                $key827 = '';
-                $val828 = new \thrift\data\TObject();
-                $xfer += $input->readString($key827);
-                $val828 = new \thrift\data\TObject();
-                $xfer += $val828->read($input);
-                $val821[$key827] = $val828;
+                $key945 = '';
+                $val946 = new \thrift\data\TObject();
+                $xfer += $input->readString($key945);
+                $val946 = new \thrift\data\TObject();
+                $xfer += $val946->read($input);
+                $val939[$key945] = $val946;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key820] = $val821;
+              $this->success[$key938] = $val939;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -26669,16 +29658,411 @@ class ConcourseService_getKeysCriteria_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter829 => $viter830)
+          foreach ($this->success as $kiter947 => $viter948)
           {
-            $xfer += $output->writeI64($kiter829);
+            $xfer += $output->writeI64($kiter947);
             {
-              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter830));
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter948));
               {
-                foreach ($viter830 as $kiter831 => $viter832)
+                foreach ($viter948 as $kiter949 => $viter950)
                 {
-                  $xfer += $output->writeString($kiter831);
-                  $xfer += $viter832->write($output);
+                  $xfer += $output->writeString($kiter949);
+                  $xfer += $viter950->write($output);
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeysCcl_args {
+  static $_TSPEC;
+
+  /**
+   * @var string[]
+   */
+  public $keys = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'keys',
+          'type' => TType::LST,
+          'etype' => TType::STRING,
+          'elem' => array(
+            'type' => TType::STRING,
+            ),
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['keys'])) {
+        $this->keys = $vals['keys'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeysCcl_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::LST) {
+            $this->keys = array();
+            $_size951 = 0;
+            $_etype954 = 0;
+            $xfer += $input->readListBegin($_etype954, $_size951);
+            for ($_i955 = 0; $_i955 < $_size951; ++$_i955)
+            {
+              $elem956 = null;
+              $xfer += $input->readString($elem956);
+              $this->keys []= $elem956;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeysCcl_args');
+    if ($this->keys !== null) {
+      if (!is_array($this->keys)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('keys', TType::LST, 1);
+      {
+        $output->writeListBegin(TType::STRING, count($this->keys));
+        {
+          foreach ($this->keys as $iter957)
+          {
+            $xfer += $output->writeString($iter957);
+          }
+        }
+        $output->writeListEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeysCcl_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::STRING,
+            'vtype' => TType::STRUCT,
+            'key' => array(
+              'type' => TType::STRING,
+            ),
+            'val' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeysCcl_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size958 = 0;
+            $_ktype959 = 0;
+            $_vtype960 = 0;
+            $xfer += $input->readMapBegin($_ktype959, $_vtype960, $_size958);
+            for ($_i962 = 0; $_i962 < $_size958; ++$_i962)
+            {
+              $key963 = 0;
+              $val964 = array();
+              $xfer += $input->readI64($key963);
+              $val964 = array();
+              $_size965 = 0;
+              $_ktype966 = 0;
+              $_vtype967 = 0;
+              $xfer += $input->readMapBegin($_ktype966, $_vtype967, $_size965);
+              for ($_i969 = 0; $_i969 < $_size965; ++$_i969)
+              {
+                $key970 = '';
+                $val971 = new \thrift\data\TObject();
+                $xfer += $input->readString($key970);
+                $val971 = new \thrift\data\TObject();
+                $xfer += $val971->read($input);
+                $val964[$key970] = $val971;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key963] = $val964;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeysCcl_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter972 => $viter973)
+          {
+            $xfer += $output->writeI64($kiter972);
+            {
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter973));
+              {
+                foreach ($viter973 as $kiter974 => $viter975)
+                {
+                  $xfer += $output->writeString($kiter974);
+                  $xfer += $viter975->write($output);
                 }
               }
               $output->writeMapEnd();
@@ -26814,14 +30198,14 @@ class ConcourseService_getKeysCriteriaTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size833 = 0;
-            $_etype836 = 0;
-            $xfer += $input->readListBegin($_etype836, $_size833);
-            for ($_i837 = 0; $_i837 < $_size833; ++$_i837)
+            $_size976 = 0;
+            $_etype979 = 0;
+            $xfer += $input->readListBegin($_etype979, $_size976);
+            for ($_i980 = 0; $_i980 < $_size976; ++$_i980)
             {
-              $elem838 = null;
-              $xfer += $input->readString($elem838);
-              $this->keys []= $elem838;
+              $elem981 = null;
+              $xfer += $input->readString($elem981);
+              $this->keys []= $elem981;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26887,9 +30271,9 @@ class ConcourseService_getKeysCriteriaTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter839)
+          foreach ($this->keys as $iter982)
           {
-            $xfer += $output->writeString($iter839);
+            $xfer += $output->writeString($iter982);
           }
         }
         $output->writeListEnd();
@@ -27024,31 +30408,31 @@ class ConcourseService_getKeysCriteriaTime_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size840 = 0;
-            $_ktype841 = 0;
-            $_vtype842 = 0;
-            $xfer += $input->readMapBegin($_ktype841, $_vtype842, $_size840);
-            for ($_i844 = 0; $_i844 < $_size840; ++$_i844)
+            $_size983 = 0;
+            $_ktype984 = 0;
+            $_vtype985 = 0;
+            $xfer += $input->readMapBegin($_ktype984, $_vtype985, $_size983);
+            for ($_i987 = 0; $_i987 < $_size983; ++$_i987)
             {
-              $key845 = 0;
-              $val846 = array();
-              $xfer += $input->readI64($key845);
-              $val846 = array();
-              $_size847 = 0;
-              $_ktype848 = 0;
-              $_vtype849 = 0;
-              $xfer += $input->readMapBegin($_ktype848, $_vtype849, $_size847);
-              for ($_i851 = 0; $_i851 < $_size847; ++$_i851)
+              $key988 = 0;
+              $val989 = array();
+              $xfer += $input->readI64($key988);
+              $val989 = array();
+              $_size990 = 0;
+              $_ktype991 = 0;
+              $_vtype992 = 0;
+              $xfer += $input->readMapBegin($_ktype991, $_vtype992, $_size990);
+              for ($_i994 = 0; $_i994 < $_size990; ++$_i994)
               {
-                $key852 = '';
-                $val853 = new \thrift\data\TObject();
-                $xfer += $input->readString($key852);
-                $val853 = new \thrift\data\TObject();
-                $xfer += $val853->read($input);
-                $val846[$key852] = $val853;
+                $key995 = '';
+                $val996 = new \thrift\data\TObject();
+                $xfer += $input->readString($key995);
+                $val996 = new \thrift\data\TObject();
+                $xfer += $val996->read($input);
+                $val989[$key995] = $val996;
               }
               $xfer += $input->readMapEnd();
-              $this->success[$key845] = $val846;
+              $this->success[$key988] = $val989;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -27092,16 +30476,434 @@ class ConcourseService_getKeysCriteriaTime_result {
       {
         $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
         {
-          foreach ($this->success as $kiter854 => $viter855)
+          foreach ($this->success as $kiter997 => $viter998)
           {
-            $xfer += $output->writeI64($kiter854);
+            $xfer += $output->writeI64($kiter997);
             {
-              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter855));
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter998));
               {
-                foreach ($viter855 as $kiter856 => $viter857)
+                foreach ($viter998 as $kiter999 => $viter1000)
                 {
-                  $xfer += $output->writeString($kiter856);
-                  $xfer += $viter857->write($output);
+                  $xfer += $output->writeString($kiter999);
+                  $xfer += $viter1000->write($output);
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeysCclTime_args {
+  static $_TSPEC;
+
+  /**
+   * @var string[]
+   */
+  public $keys = null;
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var int
+   */
+  public $timestamp = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'keys',
+          'type' => TType::LST,
+          'etype' => TType::STRING,
+          'elem' => array(
+            'type' => TType::STRING,
+            ),
+          ),
+        2 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'timestamp',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['keys'])) {
+        $this->keys = $vals['keys'];
+      }
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['timestamp'])) {
+        $this->timestamp = $vals['timestamp'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeysCclTime_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::LST) {
+            $this->keys = array();
+            $_size1001 = 0;
+            $_etype1004 = 0;
+            $xfer += $input->readListBegin($_etype1004, $_size1001);
+            for ($_i1005 = 0; $_i1005 < $_size1001; ++$_i1005)
+            {
+              $elem1006 = null;
+              $xfer += $input->readString($elem1006);
+              $this->keys []= $elem1006;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->timestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeysCclTime_args');
+    if ($this->keys !== null) {
+      if (!is_array($this->keys)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('keys', TType::LST, 1);
+      {
+        $output->writeListBegin(TType::STRING, count($this->keys));
+        {
+          foreach ($this->keys as $iter1007)
+          {
+            $xfer += $output->writeString($iter1007);
+          }
+        }
+        $output->writeListEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 2);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->timestamp !== null) {
+      $xfer += $output->writeFieldBegin('timestamp', TType::I64, 3);
+      $xfer += $output->writeI64($this->timestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_getKeysCclTime_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I64,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::I64,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::STRING,
+            'vtype' => TType::STRUCT,
+            'key' => array(
+              'type' => TType::STRING,
+            ),
+            'val' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_getKeysCclTime_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1008 = 0;
+            $_ktype1009 = 0;
+            $_vtype1010 = 0;
+            $xfer += $input->readMapBegin($_ktype1009, $_vtype1010, $_size1008);
+            for ($_i1012 = 0; $_i1012 < $_size1008; ++$_i1012)
+            {
+              $key1013 = 0;
+              $val1014 = array();
+              $xfer += $input->readI64($key1013);
+              $val1014 = array();
+              $_size1015 = 0;
+              $_ktype1016 = 0;
+              $_vtype1017 = 0;
+              $xfer += $input->readMapBegin($_ktype1016, $_vtype1017, $_size1015);
+              for ($_i1019 = 0; $_i1019 < $_size1015; ++$_i1019)
+              {
+                $key1020 = '';
+                $val1021 = new \thrift\data\TObject();
+                $xfer += $input->readString($key1020);
+                $val1021 = new \thrift\data\TObject();
+                $xfer += $val1021->read($input);
+                $val1014[$key1020] = $val1021;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key1013] = $val1014;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_getKeysCclTime_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I64, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter1022 => $viter1023)
+          {
+            $xfer += $output->writeI64($kiter1022);
+            {
+              $output->writeMapBegin(TType::STRING, TType::STRUCT, count($viter1023));
+              {
+                foreach ($viter1023 as $kiter1024 => $viter1025)
+                {
+                  $xfer += $output->writeString($kiter1024);
+                  $xfer += $viter1025->write($output);
                 }
               }
               $output->writeMapEnd();
@@ -27908,14 +31710,14 @@ class ConcourseService_jsonifyRecords_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size858 = 0;
-            $_etype861 = 0;
-            $xfer += $input->readListBegin($_etype861, $_size858);
-            for ($_i862 = 0; $_i862 < $_size858; ++$_i862)
+            $_size1026 = 0;
+            $_etype1029 = 0;
+            $xfer += $input->readListBegin($_etype1029, $_size1026);
+            for ($_i1030 = 0; $_i1030 < $_size1026; ++$_i1030)
             {
-              $elem863 = null;
-              $xfer += $input->readI64($elem863);
-              $this->records []= $elem863;
+              $elem1031 = null;
+              $xfer += $input->readI64($elem1031);
+              $this->records []= $elem1031;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -27973,9 +31775,9 @@ class ConcourseService_jsonifyRecords_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter864)
+          foreach ($this->records as $iter1032)
           {
-            $xfer += $output->writeI64($iter864);
+            $xfer += $output->writeI64($iter1032);
           }
         }
         $output->writeListEnd();
@@ -28247,14 +32049,14 @@ class ConcourseService_jsonifyRecordsTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size865 = 0;
-            $_etype868 = 0;
-            $xfer += $input->readListBegin($_etype868, $_size865);
-            for ($_i869 = 0; $_i869 < $_size865; ++$_i869)
+            $_size1033 = 0;
+            $_etype1036 = 0;
+            $xfer += $input->readListBegin($_etype1036, $_size1033);
+            for ($_i1037 = 0; $_i1037 < $_size1033; ++$_i1037)
             {
-              $elem870 = null;
-              $xfer += $input->readI64($elem870);
-              $this->records []= $elem870;
+              $elem1038 = null;
+              $xfer += $input->readI64($elem1038);
+              $this->records []= $elem1038;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -28319,9 +32121,9 @@ class ConcourseService_jsonifyRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter871)
+          foreach ($this->records as $iter1039)
           {
-            $xfer += $output->writeI64($iter871);
+            $xfer += $output->writeI64($iter1039);
           }
         }
         $output->writeListEnd();
@@ -28724,17 +32526,17 @@ class ConcourseService_findCriteria_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size872 = 0;
-            $_etype875 = 0;
-            $xfer += $input->readSetBegin($_etype875, $_size872);
-            for ($_i876 = 0; $_i876 < $_size872; ++$_i876)
+            $_size1040 = 0;
+            $_etype1043 = 0;
+            $xfer += $input->readSetBegin($_etype1043, $_size1040);
+            for ($_i1044 = 0; $_i1044 < $_size1040; ++$_i1044)
             {
-              $elem877 = null;
-              $xfer += $input->readI64($elem877);
-              if (is_scalar($elem877)) {
-                $this->success[$elem877] = true;
+              $elem1045 = null;
+              $xfer += $input->readI64($elem1045);
+              if (is_scalar($elem1045)) {
+                $this->success[$elem1045] = true;
               } else {
-                $this->success []= $elem877;
+                $this->success []= $elem1045;
               }
             }
             $xfer += $input->readSetEnd();
@@ -28779,12 +32581,325 @@ class ConcourseService_findCriteria_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter878 => $iter879)
+          foreach ($this->success as $iter1046 => $iter1047)
           {
-            if (is_scalar($iter879)) {
-            $xfer += $output->writeI64($iter878);
+            if (is_scalar($iter1047)) {
+            $xfer += $output->writeI64($iter1046);
             } else {
-            $xfer += $output->writeI64($iter879);
+            $xfer += $output->writeI64($iter1047);
+            }
+          }
+        }
+        $output->writeSetEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_findCcl_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $ccl = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'ccl',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        3 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        4 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['ccl'])) {
+        $this->ccl = $vals['ccl'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_findCcl_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->ccl);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_findCcl_args');
+    if ($this->ccl !== null) {
+      $xfer += $output->writeFieldBegin('ccl', TType::STRING, 1);
+      $xfer += $output->writeString($this->ccl);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 2);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 3);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 4);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_findCcl_result {
+  static $_TSPEC;
+
+  /**
+   * @var int[]
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::SET,
+          'etype' => TType::I64,
+          'elem' => array(
+            'type' => TType::I64,
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_findCcl_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::SET) {
+            $this->success = array();
+            $_size1048 = 0;
+            $_etype1051 = 0;
+            $xfer += $input->readSetBegin($_etype1051, $_size1048);
+            for ($_i1052 = 0; $_i1052 < $_size1048; ++$_i1052)
+            {
+              $elem1053 = null;
+              $xfer += $input->readI64($elem1053);
+              if (is_scalar($elem1053)) {
+                $this->success[$elem1053] = true;
+              } else {
+                $this->success []= $elem1053;
+              }
+            }
+            $xfer += $input->readSetEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_findCcl_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::SET, 0);
+      {
+        $output->writeSetBegin(TType::I64, count($this->success));
+        {
+          foreach ($this->success as $iter1054 => $iter1055)
+          {
+            if (is_scalar($iter1055)) {
+            $xfer += $output->writeI64($iter1054);
+            } else {
+            $xfer += $output->writeI64($iter1055);
             }
           }
         }
@@ -28931,15 +33046,15 @@ class ConcourseService_findKeyOperatorValues_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->values = array();
-            $_size880 = 0;
-            $_etype883 = 0;
-            $xfer += $input->readListBegin($_etype883, $_size880);
-            for ($_i884 = 0; $_i884 < $_size880; ++$_i884)
+            $_size1056 = 0;
+            $_etype1059 = 0;
+            $xfer += $input->readListBegin($_etype1059, $_size1056);
+            for ($_i1060 = 0; $_i1060 < $_size1056; ++$_i1060)
             {
-              $elem885 = null;
-              $elem885 = new \thrift\data\TObject();
-              $xfer += $elem885->read($input);
-              $this->values []= $elem885;
+              $elem1061 = null;
+              $elem1061 = new \thrift\data\TObject();
+              $xfer += $elem1061->read($input);
+              $this->values []= $elem1061;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -29000,9 +33115,9 @@ class ConcourseService_findKeyOperatorValues_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->values));
         {
-          foreach ($this->values as $iter886)
+          foreach ($this->values as $iter1062)
           {
-            $xfer += $iter886->write($output);
+            $xfer += $iter1062->write($output);
           }
         }
         $output->writeListEnd();
@@ -29111,17 +33226,17 @@ class ConcourseService_findKeyOperatorValues_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size887 = 0;
-            $_etype890 = 0;
-            $xfer += $input->readSetBegin($_etype890, $_size887);
-            for ($_i891 = 0; $_i891 < $_size887; ++$_i891)
+            $_size1063 = 0;
+            $_etype1066 = 0;
+            $xfer += $input->readSetBegin($_etype1066, $_size1063);
+            for ($_i1067 = 0; $_i1067 < $_size1063; ++$_i1067)
             {
-              $elem892 = null;
-              $xfer += $input->readI64($elem892);
-              if (is_scalar($elem892)) {
-                $this->success[$elem892] = true;
+              $elem1068 = null;
+              $xfer += $input->readI64($elem1068);
+              if (is_scalar($elem1068)) {
+                $this->success[$elem1068] = true;
               } else {
-                $this->success []= $elem892;
+                $this->success []= $elem1068;
               }
             }
             $xfer += $input->readSetEnd();
@@ -29166,12 +33281,12 @@ class ConcourseService_findKeyOperatorValues_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter893 => $iter894)
+          foreach ($this->success as $iter1069 => $iter1070)
           {
-            if (is_scalar($iter894)) {
-            $xfer += $output->writeI64($iter893);
+            if (is_scalar($iter1070)) {
+            $xfer += $output->writeI64($iter1069);
             } else {
-            $xfer += $output->writeI64($iter894);
+            $xfer += $output->writeI64($iter1070);
             }
           }
         }
@@ -29329,15 +33444,15 @@ class ConcourseService_findKeyOperatorValuesTime_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->values = array();
-            $_size895 = 0;
-            $_etype898 = 0;
-            $xfer += $input->readListBegin($_etype898, $_size895);
-            for ($_i899 = 0; $_i899 < $_size895; ++$_i899)
+            $_size1071 = 0;
+            $_etype1074 = 0;
+            $xfer += $input->readListBegin($_etype1074, $_size1071);
+            for ($_i1075 = 0; $_i1075 < $_size1071; ++$_i1075)
             {
-              $elem900 = null;
-              $elem900 = new \thrift\data\TObject();
-              $xfer += $elem900->read($input);
-              $this->values []= $elem900;
+              $elem1076 = null;
+              $elem1076 = new \thrift\data\TObject();
+              $xfer += $elem1076->read($input);
+              $this->values []= $elem1076;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -29405,9 +33520,9 @@ class ConcourseService_findKeyOperatorValuesTime_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->values));
         {
-          foreach ($this->values as $iter901)
+          foreach ($this->values as $iter1077)
           {
-            $xfer += $iter901->write($output);
+            $xfer += $iter1077->write($output);
           }
         }
         $output->writeListEnd();
@@ -29521,17 +33636,17 @@ class ConcourseService_findKeyOperatorValuesTime_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size902 = 0;
-            $_etype905 = 0;
-            $xfer += $input->readSetBegin($_etype905, $_size902);
-            for ($_i906 = 0; $_i906 < $_size902; ++$_i906)
+            $_size1078 = 0;
+            $_etype1081 = 0;
+            $xfer += $input->readSetBegin($_etype1081, $_size1078);
+            for ($_i1082 = 0; $_i1082 < $_size1078; ++$_i1082)
             {
-              $elem907 = null;
-              $xfer += $input->readI64($elem907);
-              if (is_scalar($elem907)) {
-                $this->success[$elem907] = true;
+              $elem1083 = null;
+              $xfer += $input->readI64($elem1083);
+              if (is_scalar($elem1083)) {
+                $this->success[$elem1083] = true;
               } else {
-                $this->success []= $elem907;
+                $this->success []= $elem1083;
               }
             }
             $xfer += $input->readSetEnd();
@@ -29576,12 +33691,12 @@ class ConcourseService_findKeyOperatorValuesTime_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter908 => $iter909)
+          foreach ($this->success as $iter1084 => $iter1085)
           {
-            if (is_scalar($iter909)) {
-            $xfer += $output->writeI64($iter908);
+            if (is_scalar($iter1085)) {
+            $xfer += $output->writeI64($iter1084);
             } else {
-            $xfer += $output->writeI64($iter909);
+            $xfer += $output->writeI64($iter1085);
             }
           }
         }
@@ -29728,15 +33843,15 @@ class ConcourseService_findKeyStringOperatorValues_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->values = array();
-            $_size910 = 0;
-            $_etype913 = 0;
-            $xfer += $input->readListBegin($_etype913, $_size910);
-            for ($_i914 = 0; $_i914 < $_size910; ++$_i914)
+            $_size1086 = 0;
+            $_etype1089 = 0;
+            $xfer += $input->readListBegin($_etype1089, $_size1086);
+            for ($_i1090 = 0; $_i1090 < $_size1086; ++$_i1090)
             {
-              $elem915 = null;
-              $elem915 = new \thrift\data\TObject();
-              $xfer += $elem915->read($input);
-              $this->values []= $elem915;
+              $elem1091 = null;
+              $elem1091 = new \thrift\data\TObject();
+              $xfer += $elem1091->read($input);
+              $this->values []= $elem1091;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -29797,9 +33912,9 @@ class ConcourseService_findKeyStringOperatorValues_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->values));
         {
-          foreach ($this->values as $iter916)
+          foreach ($this->values as $iter1092)
           {
-            $xfer += $iter916->write($output);
+            $xfer += $iter1092->write($output);
           }
         }
         $output->writeListEnd();
@@ -29908,17 +34023,17 @@ class ConcourseService_findKeyStringOperatorValues_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size917 = 0;
-            $_etype920 = 0;
-            $xfer += $input->readSetBegin($_etype920, $_size917);
-            for ($_i921 = 0; $_i921 < $_size917; ++$_i921)
+            $_size1093 = 0;
+            $_etype1096 = 0;
+            $xfer += $input->readSetBegin($_etype1096, $_size1093);
+            for ($_i1097 = 0; $_i1097 < $_size1093; ++$_i1097)
             {
-              $elem922 = null;
-              $xfer += $input->readI64($elem922);
-              if (is_scalar($elem922)) {
-                $this->success[$elem922] = true;
+              $elem1098 = null;
+              $xfer += $input->readI64($elem1098);
+              if (is_scalar($elem1098)) {
+                $this->success[$elem1098] = true;
               } else {
-                $this->success []= $elem922;
+                $this->success []= $elem1098;
               }
             }
             $xfer += $input->readSetEnd();
@@ -29963,12 +34078,12 @@ class ConcourseService_findKeyStringOperatorValues_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter923 => $iter924)
+          foreach ($this->success as $iter1099 => $iter1100)
           {
-            if (is_scalar($iter924)) {
-            $xfer += $output->writeI64($iter923);
+            if (is_scalar($iter1100)) {
+            $xfer += $output->writeI64($iter1099);
             } else {
-            $xfer += $output->writeI64($iter924);
+            $xfer += $output->writeI64($iter1100);
             }
           }
         }
@@ -30126,15 +34241,15 @@ class ConcourseService_findKeyStringOperatorValuesTime_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->values = array();
-            $_size925 = 0;
-            $_etype928 = 0;
-            $xfer += $input->readListBegin($_etype928, $_size925);
-            for ($_i929 = 0; $_i929 < $_size925; ++$_i929)
+            $_size1101 = 0;
+            $_etype1104 = 0;
+            $xfer += $input->readListBegin($_etype1104, $_size1101);
+            for ($_i1105 = 0; $_i1105 < $_size1101; ++$_i1105)
             {
-              $elem930 = null;
-              $elem930 = new \thrift\data\TObject();
-              $xfer += $elem930->read($input);
-              $this->values []= $elem930;
+              $elem1106 = null;
+              $elem1106 = new \thrift\data\TObject();
+              $xfer += $elem1106->read($input);
+              $this->values []= $elem1106;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -30202,9 +34317,9 @@ class ConcourseService_findKeyStringOperatorValuesTime_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->values));
         {
-          foreach ($this->values as $iter931)
+          foreach ($this->values as $iter1107)
           {
-            $xfer += $iter931->write($output);
+            $xfer += $iter1107->write($output);
           }
         }
         $output->writeListEnd();
@@ -30318,17 +34433,17 @@ class ConcourseService_findKeyStringOperatorValuesTime_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size932 = 0;
-            $_etype935 = 0;
-            $xfer += $input->readSetBegin($_etype935, $_size932);
-            for ($_i936 = 0; $_i936 < $_size932; ++$_i936)
+            $_size1108 = 0;
+            $_etype1111 = 0;
+            $xfer += $input->readSetBegin($_etype1111, $_size1108);
+            for ($_i1112 = 0; $_i1112 < $_size1108; ++$_i1112)
             {
-              $elem937 = null;
-              $xfer += $input->readI64($elem937);
-              if (is_scalar($elem937)) {
-                $this->success[$elem937] = true;
+              $elem1113 = null;
+              $xfer += $input->readI64($elem1113);
+              if (is_scalar($elem1113)) {
+                $this->success[$elem1113] = true;
               } else {
-                $this->success []= $elem937;
+                $this->success []= $elem1113;
               }
             }
             $xfer += $input->readSetEnd();
@@ -30373,12 +34488,12 @@ class ConcourseService_findKeyStringOperatorValuesTime_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter938 => $iter939)
+          foreach ($this->success as $iter1114 => $iter1115)
           {
-            if (is_scalar($iter939)) {
-            $xfer += $output->writeI64($iter938);
+            if (is_scalar($iter1115)) {
+            $xfer += $output->writeI64($iter1114);
             } else {
-            $xfer += $output->writeI64($iter939);
+            $xfer += $output->writeI64($iter1115);
             }
           }
         }
@@ -30654,17 +34769,17 @@ class ConcourseService_search_result {
         case 0:
           if ($ftype == TType::SET) {
             $this->success = array();
-            $_size940 = 0;
-            $_etype943 = 0;
-            $xfer += $input->readSetBegin($_etype943, $_size940);
-            for ($_i944 = 0; $_i944 < $_size940; ++$_i944)
+            $_size1116 = 0;
+            $_etype1119 = 0;
+            $xfer += $input->readSetBegin($_etype1119, $_size1116);
+            for ($_i1120 = 0; $_i1120 < $_size1116; ++$_i1120)
             {
-              $elem945 = null;
-              $xfer += $input->readI64($elem945);
-              if (is_scalar($elem945)) {
-                $this->success[$elem945] = true;
+              $elem1121 = null;
+              $xfer += $input->readI64($elem1121);
+              if (is_scalar($elem1121)) {
+                $this->success[$elem1121] = true;
               } else {
-                $this->success []= $elem945;
+                $this->success []= $elem1121;
               }
             }
             $xfer += $input->readSetEnd();
@@ -30709,12 +34824,12 @@ class ConcourseService_search_result {
       {
         $output->writeSetBegin(TType::I64, count($this->success));
         {
-          foreach ($this->success as $iter946 => $iter947)
+          foreach ($this->success as $iter1122 => $iter1123)
           {
-            if (is_scalar($iter947)) {
-            $xfer += $output->writeI64($iter946);
+            if (is_scalar($iter1123)) {
+            $xfer += $output->writeI64($iter1122);
             } else {
-            $xfer += $output->writeI64($iter947);
+            $xfer += $output->writeI64($iter1123);
             }
           }
         }
@@ -30971,17 +35086,17 @@ class ConcourseService_auditRecord_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size948 = 0;
-            $_ktype949 = 0;
-            $_vtype950 = 0;
-            $xfer += $input->readMapBegin($_ktype949, $_vtype950, $_size948);
-            for ($_i952 = 0; $_i952 < $_size948; ++$_i952)
+            $_size1124 = 0;
+            $_ktype1125 = 0;
+            $_vtype1126 = 0;
+            $xfer += $input->readMapBegin($_ktype1125, $_vtype1126, $_size1124);
+            for ($_i1128 = 0; $_i1128 < $_size1124; ++$_i1128)
             {
-              $key953 = 0;
-              $val954 = '';
-              $xfer += $input->readI64($key953);
-              $xfer += $input->readString($val954);
-              $this->success[$key953] = $val954;
+              $key1129 = 0;
+              $val1130 = '';
+              $xfer += $input->readI64($key1129);
+              $xfer += $input->readString($val1130);
+              $this->success[$key1129] = $val1130;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -31025,10 +35140,10 @@ class ConcourseService_auditRecord_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter955 => $viter956)
+          foreach ($this->success as $kiter1131 => $viter1132)
           {
-            $xfer += $output->writeI64($kiter955);
-            $xfer += $output->writeString($viter956);
+            $xfer += $output->writeI64($kiter1131);
+            $xfer += $output->writeString($viter1132);
           }
         }
         $output->writeMapEnd();
@@ -31307,17 +35422,17 @@ class ConcourseService_auditRecordStart_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size957 = 0;
-            $_ktype958 = 0;
-            $_vtype959 = 0;
-            $xfer += $input->readMapBegin($_ktype958, $_vtype959, $_size957);
-            for ($_i961 = 0; $_i961 < $_size957; ++$_i961)
+            $_size1133 = 0;
+            $_ktype1134 = 0;
+            $_vtype1135 = 0;
+            $xfer += $input->readMapBegin($_ktype1134, $_vtype1135, $_size1133);
+            for ($_i1137 = 0; $_i1137 < $_size1133; ++$_i1137)
             {
-              $key962 = 0;
-              $val963 = '';
-              $xfer += $input->readI64($key962);
-              $xfer += $input->readString($val963);
-              $this->success[$key962] = $val963;
+              $key1138 = 0;
+              $val1139 = '';
+              $xfer += $input->readI64($key1138);
+              $xfer += $input->readString($val1139);
+              $this->success[$key1138] = $val1139;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -31361,10 +35476,10 @@ class ConcourseService_auditRecordStart_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter964 => $viter965)
+          foreach ($this->success as $kiter1140 => $viter1141)
           {
-            $xfer += $output->writeI64($kiter964);
-            $xfer += $output->writeString($viter965);
+            $xfer += $output->writeI64($kiter1140);
+            $xfer += $output->writeString($viter1141);
           }
         }
         $output->writeMapEnd();
@@ -31666,17 +35781,17 @@ class ConcourseService_auditRecordStartEnd_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size966 = 0;
-            $_ktype967 = 0;
-            $_vtype968 = 0;
-            $xfer += $input->readMapBegin($_ktype967, $_vtype968, $_size966);
-            for ($_i970 = 0; $_i970 < $_size966; ++$_i970)
+            $_size1142 = 0;
+            $_ktype1143 = 0;
+            $_vtype1144 = 0;
+            $xfer += $input->readMapBegin($_ktype1143, $_vtype1144, $_size1142);
+            for ($_i1146 = 0; $_i1146 < $_size1142; ++$_i1146)
             {
-              $key971 = 0;
-              $val972 = '';
-              $xfer += $input->readI64($key971);
-              $xfer += $input->readString($val972);
-              $this->success[$key971] = $val972;
+              $key1147 = 0;
+              $val1148 = '';
+              $xfer += $input->readI64($key1147);
+              $xfer += $input->readString($val1148);
+              $this->success[$key1147] = $val1148;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -31720,10 +35835,10 @@ class ConcourseService_auditRecordStartEnd_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter973 => $viter974)
+          foreach ($this->success as $kiter1149 => $viter1150)
           {
-            $xfer += $output->writeI64($kiter973);
-            $xfer += $output->writeString($viter974);
+            $xfer += $output->writeI64($kiter1149);
+            $xfer += $output->writeString($viter1150);
           }
         }
         $output->writeMapEnd();
@@ -32002,17 +36117,17 @@ class ConcourseService_auditKeyRecord_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size975 = 0;
-            $_ktype976 = 0;
-            $_vtype977 = 0;
-            $xfer += $input->readMapBegin($_ktype976, $_vtype977, $_size975);
-            for ($_i979 = 0; $_i979 < $_size975; ++$_i979)
+            $_size1151 = 0;
+            $_ktype1152 = 0;
+            $_vtype1153 = 0;
+            $xfer += $input->readMapBegin($_ktype1152, $_vtype1153, $_size1151);
+            for ($_i1155 = 0; $_i1155 < $_size1151; ++$_i1155)
             {
-              $key980 = 0;
-              $val981 = '';
-              $xfer += $input->readI64($key980);
-              $xfer += $input->readString($val981);
-              $this->success[$key980] = $val981;
+              $key1156 = 0;
+              $val1157 = '';
+              $xfer += $input->readI64($key1156);
+              $xfer += $input->readString($val1157);
+              $this->success[$key1156] = $val1157;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -32056,10 +36171,10 @@ class ConcourseService_auditKeyRecord_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter982 => $viter983)
+          foreach ($this->success as $kiter1158 => $viter1159)
           {
-            $xfer += $output->writeI64($kiter982);
-            $xfer += $output->writeString($viter983);
+            $xfer += $output->writeI64($kiter1158);
+            $xfer += $output->writeString($viter1159);
           }
         }
         $output->writeMapEnd();
@@ -32361,17 +36476,17 @@ class ConcourseService_auditKeyRecordStart_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size984 = 0;
-            $_ktype985 = 0;
-            $_vtype986 = 0;
-            $xfer += $input->readMapBegin($_ktype985, $_vtype986, $_size984);
-            for ($_i988 = 0; $_i988 < $_size984; ++$_i988)
+            $_size1160 = 0;
+            $_ktype1161 = 0;
+            $_vtype1162 = 0;
+            $xfer += $input->readMapBegin($_ktype1161, $_vtype1162, $_size1160);
+            for ($_i1164 = 0; $_i1164 < $_size1160; ++$_i1164)
             {
-              $key989 = 0;
-              $val990 = '';
-              $xfer += $input->readI64($key989);
-              $xfer += $input->readString($val990);
-              $this->success[$key989] = $val990;
+              $key1165 = 0;
+              $val1166 = '';
+              $xfer += $input->readI64($key1165);
+              $xfer += $input->readString($val1166);
+              $this->success[$key1165] = $val1166;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -32415,10 +36530,10 @@ class ConcourseService_auditKeyRecordStart_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter991 => $viter992)
+          foreach ($this->success as $kiter1167 => $viter1168)
           {
-            $xfer += $output->writeI64($kiter991);
-            $xfer += $output->writeString($viter992);
+            $xfer += $output->writeI64($kiter1167);
+            $xfer += $output->writeString($viter1168);
           }
         }
         $output->writeMapEnd();
@@ -32743,17 +36858,17 @@ class ConcourseService_auditKeyRecordStartEnd_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size993 = 0;
-            $_ktype994 = 0;
-            $_vtype995 = 0;
-            $xfer += $input->readMapBegin($_ktype994, $_vtype995, $_size993);
-            for ($_i997 = 0; $_i997 < $_size993; ++$_i997)
+            $_size1169 = 0;
+            $_ktype1170 = 0;
+            $_vtype1171 = 0;
+            $xfer += $input->readMapBegin($_ktype1170, $_vtype1171, $_size1169);
+            for ($_i1173 = 0; $_i1173 < $_size1169; ++$_i1173)
             {
-              $key998 = 0;
-              $val999 = '';
-              $xfer += $input->readI64($key998);
-              $xfer += $input->readString($val999);
-              $this->success[$key998] = $val999;
+              $key1174 = 0;
+              $val1175 = '';
+              $xfer += $input->readI64($key1174);
+              $xfer += $input->readString($val1175);
+              $this->success[$key1174] = $val1175;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -32797,10 +36912,10 @@ class ConcourseService_auditKeyRecordStartEnd_result {
       {
         $output->writeMapBegin(TType::I64, TType::STRING, count($this->success));
         {
-          foreach ($this->success as $kiter1000 => $viter1001)
+          foreach ($this->success as $kiter1176 => $viter1177)
           {
-            $xfer += $output->writeI64($kiter1000);
-            $xfer += $output->writeString($viter1001);
+            $xfer += $output->writeI64($kiter1176);
+            $xfer += $output->writeString($viter1177);
           }
         }
         $output->writeMapEnd();
@@ -33084,32 +37199,32 @@ class ConcourseService_chronologizeKeyRecord_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size1002 = 0;
-            $_ktype1003 = 0;
-            $_vtype1004 = 0;
-            $xfer += $input->readMapBegin($_ktype1003, $_vtype1004, $_size1002);
-            for ($_i1006 = 0; $_i1006 < $_size1002; ++$_i1006)
+            $_size1178 = 0;
+            $_ktype1179 = 0;
+            $_vtype1180 = 0;
+            $xfer += $input->readMapBegin($_ktype1179, $_vtype1180, $_size1178);
+            for ($_i1182 = 0; $_i1182 < $_size1178; ++$_i1182)
             {
-              $key1007 = 0;
-              $val1008 = array();
-              $xfer += $input->readI64($key1007);
-              $val1008 = array();
-              $_size1009 = 0;
-              $_etype1012 = 0;
-              $xfer += $input->readSetBegin($_etype1012, $_size1009);
-              for ($_i1013 = 0; $_i1013 < $_size1009; ++$_i1013)
+              $key1183 = 0;
+              $val1184 = array();
+              $xfer += $input->readI64($key1183);
+              $val1184 = array();
+              $_size1185 = 0;
+              $_etype1188 = 0;
+              $xfer += $input->readSetBegin($_etype1188, $_size1185);
+              for ($_i1189 = 0; $_i1189 < $_size1185; ++$_i1189)
               {
-                $elem1014 = null;
-                $elem1014 = new \thrift\data\TObject();
-                $xfer += $elem1014->read($input);
-                if (is_scalar($elem1014)) {
-                  $val1008[$elem1014] = true;
+                $elem1190 = null;
+                $elem1190 = new \thrift\data\TObject();
+                $xfer += $elem1190->read($input);
+                if (is_scalar($elem1190)) {
+                  $val1184[$elem1190] = true;
                 } else {
-                  $val1008 []= $elem1014;
+                  $val1184 []= $elem1190;
                 }
               }
               $xfer += $input->readSetEnd();
-              $this->success[$key1007] = $val1008;
+              $this->success[$key1183] = $val1184;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33153,18 +37268,18 @@ class ConcourseService_chronologizeKeyRecord_result {
       {
         $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
         {
-          foreach ($this->success as $kiter1015 => $viter1016)
+          foreach ($this->success as $kiter1191 => $viter1192)
           {
-            $xfer += $output->writeI64($kiter1015);
+            $xfer += $output->writeI64($kiter1191);
             {
-              $output->writeSetBegin(TType::STRUCT, count($viter1016));
+              $output->writeSetBegin(TType::STRUCT, count($viter1192));
               {
-                foreach ($viter1016 as $iter1017 => $iter1018)
+                foreach ($viter1192 as $iter1193 => $iter1194)
                 {
-                  if (is_scalar($iter1018)) {
-                  $xfer += $iter1017->write($output);
+                  if (is_scalar($iter1194)) {
+                  $xfer += $iter1193->write($output);
                   } else {
-                  $xfer += $iter1018->write($output);
+                  $xfer += $iter1194->write($output);
                   }
                 }
               }
@@ -33476,32 +37591,32 @@ class ConcourseService_chronologizeKeyRecordStart_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size1019 = 0;
-            $_ktype1020 = 0;
-            $_vtype1021 = 0;
-            $xfer += $input->readMapBegin($_ktype1020, $_vtype1021, $_size1019);
-            for ($_i1023 = 0; $_i1023 < $_size1019; ++$_i1023)
+            $_size1195 = 0;
+            $_ktype1196 = 0;
+            $_vtype1197 = 0;
+            $xfer += $input->readMapBegin($_ktype1196, $_vtype1197, $_size1195);
+            for ($_i1199 = 0; $_i1199 < $_size1195; ++$_i1199)
             {
-              $key1024 = 0;
-              $val1025 = array();
-              $xfer += $input->readI64($key1024);
-              $val1025 = array();
-              $_size1026 = 0;
-              $_etype1029 = 0;
-              $xfer += $input->readSetBegin($_etype1029, $_size1026);
-              for ($_i1030 = 0; $_i1030 < $_size1026; ++$_i1030)
+              $key1200 = 0;
+              $val1201 = array();
+              $xfer += $input->readI64($key1200);
+              $val1201 = array();
+              $_size1202 = 0;
+              $_etype1205 = 0;
+              $xfer += $input->readSetBegin($_etype1205, $_size1202);
+              for ($_i1206 = 0; $_i1206 < $_size1202; ++$_i1206)
               {
-                $elem1031 = null;
-                $elem1031 = new \thrift\data\TObject();
-                $xfer += $elem1031->read($input);
-                if (is_scalar($elem1031)) {
-                  $val1025[$elem1031] = true;
+                $elem1207 = null;
+                $elem1207 = new \thrift\data\TObject();
+                $xfer += $elem1207->read($input);
+                if (is_scalar($elem1207)) {
+                  $val1201[$elem1207] = true;
                 } else {
-                  $val1025 []= $elem1031;
+                  $val1201 []= $elem1207;
                 }
               }
               $xfer += $input->readSetEnd();
-              $this->success[$key1024] = $val1025;
+              $this->success[$key1200] = $val1201;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33545,18 +37660,18 @@ class ConcourseService_chronologizeKeyRecordStart_result {
       {
         $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
         {
-          foreach ($this->success as $kiter1032 => $viter1033)
+          foreach ($this->success as $kiter1208 => $viter1209)
           {
-            $xfer += $output->writeI64($kiter1032);
+            $xfer += $output->writeI64($kiter1208);
             {
-              $output->writeSetBegin(TType::STRUCT, count($viter1033));
+              $output->writeSetBegin(TType::STRUCT, count($viter1209));
               {
-                foreach ($viter1033 as $iter1034 => $iter1035)
+                foreach ($viter1209 as $iter1210 => $iter1211)
                 {
-                  if (is_scalar($iter1035)) {
-                  $xfer += $iter1034->write($output);
+                  if (is_scalar($iter1211)) {
+                  $xfer += $iter1210->write($output);
                   } else {
-                  $xfer += $iter1035->write($output);
+                  $xfer += $iter1211->write($output);
                   }
                 }
               }
@@ -33891,32 +38006,32 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size1036 = 0;
-            $_ktype1037 = 0;
-            $_vtype1038 = 0;
-            $xfer += $input->readMapBegin($_ktype1037, $_vtype1038, $_size1036);
-            for ($_i1040 = 0; $_i1040 < $_size1036; ++$_i1040)
+            $_size1212 = 0;
+            $_ktype1213 = 0;
+            $_vtype1214 = 0;
+            $xfer += $input->readMapBegin($_ktype1213, $_vtype1214, $_size1212);
+            for ($_i1216 = 0; $_i1216 < $_size1212; ++$_i1216)
             {
-              $key1041 = 0;
-              $val1042 = array();
-              $xfer += $input->readI64($key1041);
-              $val1042 = array();
-              $_size1043 = 0;
-              $_etype1046 = 0;
-              $xfer += $input->readSetBegin($_etype1046, $_size1043);
-              for ($_i1047 = 0; $_i1047 < $_size1043; ++$_i1047)
+              $key1217 = 0;
+              $val1218 = array();
+              $xfer += $input->readI64($key1217);
+              $val1218 = array();
+              $_size1219 = 0;
+              $_etype1222 = 0;
+              $xfer += $input->readSetBegin($_etype1222, $_size1219);
+              for ($_i1223 = 0; $_i1223 < $_size1219; ++$_i1223)
               {
-                $elem1048 = null;
-                $elem1048 = new \thrift\data\TObject();
-                $xfer += $elem1048->read($input);
-                if (is_scalar($elem1048)) {
-                  $val1042[$elem1048] = true;
+                $elem1224 = null;
+                $elem1224 = new \thrift\data\TObject();
+                $xfer += $elem1224->read($input);
+                if (is_scalar($elem1224)) {
+                  $val1218[$elem1224] = true;
                 } else {
-                  $val1042 []= $elem1048;
+                  $val1218 []= $elem1224;
                 }
               }
               $xfer += $input->readSetEnd();
-              $this->success[$key1041] = $val1042;
+              $this->success[$key1217] = $val1218;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -33960,18 +38075,18 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
       {
         $output->writeMapBegin(TType::I64, TType::SET, count($this->success));
         {
-          foreach ($this->success as $kiter1049 => $viter1050)
+          foreach ($this->success as $kiter1225 => $viter1226)
           {
-            $xfer += $output->writeI64($kiter1049);
+            $xfer += $output->writeI64($kiter1225);
             {
-              $output->writeSetBegin(TType::STRUCT, count($viter1050));
+              $output->writeSetBegin(TType::STRUCT, count($viter1226));
               {
-                foreach ($viter1050 as $iter1051 => $iter1052)
+                foreach ($viter1226 as $iter1227 => $iter1228)
                 {
-                  if (is_scalar($iter1052)) {
-                  $xfer += $iter1051->write($output);
+                  if (is_scalar($iter1228)) {
+                  $xfer += $iter1227->write($output);
                   } else {
-                  $xfer += $iter1052->write($output);
+                  $xfer += $iter1228->write($output);
                   }
                 }
               }
@@ -34111,14 +38226,14 @@ class ConcourseService_revertKeysRecordsTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size1053 = 0;
-            $_etype1056 = 0;
-            $xfer += $input->readListBegin($_etype1056, $_size1053);
-            for ($_i1057 = 0; $_i1057 < $_size1053; ++$_i1057)
+            $_size1229 = 0;
+            $_etype1232 = 0;
+            $xfer += $input->readListBegin($_etype1232, $_size1229);
+            for ($_i1233 = 0; $_i1233 < $_size1229; ++$_i1233)
             {
-              $elem1058 = null;
-              $xfer += $input->readString($elem1058);
-              $this->keys []= $elem1058;
+              $elem1234 = null;
+              $xfer += $input->readString($elem1234);
+              $this->keys []= $elem1234;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -34128,14 +38243,14 @@ class ConcourseService_revertKeysRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1059 = 0;
-            $_etype1062 = 0;
-            $xfer += $input->readListBegin($_etype1062, $_size1059);
-            for ($_i1063 = 0; $_i1063 < $_size1059; ++$_i1063)
+            $_size1235 = 0;
+            $_etype1238 = 0;
+            $xfer += $input->readListBegin($_etype1238, $_size1235);
+            for ($_i1239 = 0; $_i1239 < $_size1235; ++$_i1239)
             {
-              $elem1064 = null;
-              $xfer += $input->readI64($elem1064);
-              $this->records []= $elem1064;
+              $elem1240 = null;
+              $xfer += $input->readI64($elem1240);
+              $this->records []= $elem1240;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -34193,9 +38308,9 @@ class ConcourseService_revertKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter1065)
+          foreach ($this->keys as $iter1241)
           {
-            $xfer += $output->writeString($iter1065);
+            $xfer += $output->writeString($iter1241);
           }
         }
         $output->writeListEnd();
@@ -34210,9 +38325,9 @@ class ConcourseService_revertKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1066)
+          foreach ($this->records as $iter1242)
           {
-            $xfer += $output->writeI64($iter1066);
+            $xfer += $output->writeI64($iter1242);
           }
         }
         $output->writeListEnd();
@@ -34461,14 +38576,14 @@ class ConcourseService_revertKeysRecordTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size1067 = 0;
-            $_etype1070 = 0;
-            $xfer += $input->readListBegin($_etype1070, $_size1067);
-            for ($_i1071 = 0; $_i1071 < $_size1067; ++$_i1071)
+            $_size1243 = 0;
+            $_etype1246 = 0;
+            $xfer += $input->readListBegin($_etype1246, $_size1243);
+            for ($_i1247 = 0; $_i1247 < $_size1243; ++$_i1247)
             {
-              $elem1072 = null;
-              $xfer += $input->readString($elem1072);
-              $this->keys []= $elem1072;
+              $elem1248 = null;
+              $xfer += $input->readString($elem1248);
+              $this->keys []= $elem1248;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -34533,9 +38648,9 @@ class ConcourseService_revertKeysRecordTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter1073)
+          foreach ($this->keys as $iter1249)
           {
-            $xfer += $output->writeString($iter1073);
+            $xfer += $output->writeString($iter1249);
           }
         }
         $output->writeListEnd();
@@ -34796,14 +38911,14 @@ class ConcourseService_revertKeyRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1074 = 0;
-            $_etype1077 = 0;
-            $xfer += $input->readListBegin($_etype1077, $_size1074);
-            for ($_i1078 = 0; $_i1078 < $_size1074; ++$_i1078)
+            $_size1250 = 0;
+            $_etype1253 = 0;
+            $xfer += $input->readListBegin($_etype1253, $_size1250);
+            for ($_i1254 = 0; $_i1254 < $_size1250; ++$_i1254)
             {
-              $elem1079 = null;
-              $xfer += $input->readI64($elem1079);
-              $this->records []= $elem1079;
+              $elem1255 = null;
+              $xfer += $input->readI64($elem1255);
+              $this->records []= $elem1255;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -34866,9 +38981,9 @@ class ConcourseService_revertKeyRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1080)
+          foreach ($this->records as $iter1256)
           {
-            $xfer += $output->writeI64($iter1080);
+            $xfer += $output->writeI64($iter1256);
           }
         }
         $output->writeListEnd();
@@ -35397,14 +39512,14 @@ class ConcourseService_pingRecords_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1081 = 0;
-            $_etype1084 = 0;
-            $xfer += $input->readListBegin($_etype1084, $_size1081);
-            for ($_i1085 = 0; $_i1085 < $_size1081; ++$_i1085)
+            $_size1257 = 0;
+            $_etype1260 = 0;
+            $xfer += $input->readListBegin($_etype1260, $_size1257);
+            for ($_i1261 = 0; $_i1261 < $_size1257; ++$_i1261)
             {
-              $elem1086 = null;
-              $xfer += $input->readI64($elem1086);
-              $this->records []= $elem1086;
+              $elem1262 = null;
+              $xfer += $input->readI64($elem1262);
+              $this->records []= $elem1262;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -35455,9 +39570,9 @@ class ConcourseService_pingRecords_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1087)
+          foreach ($this->records as $iter1263)
           {
-            $xfer += $output->writeI64($iter1087);
+            $xfer += $output->writeI64($iter1263);
           }
         }
         $output->writeListEnd();
@@ -35570,17 +39685,17 @@ class ConcourseService_pingRecords_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size1088 = 0;
-            $_ktype1089 = 0;
-            $_vtype1090 = 0;
-            $xfer += $input->readMapBegin($_ktype1089, $_vtype1090, $_size1088);
-            for ($_i1092 = 0; $_i1092 < $_size1088; ++$_i1092)
+            $_size1264 = 0;
+            $_ktype1265 = 0;
+            $_vtype1266 = 0;
+            $xfer += $input->readMapBegin($_ktype1265, $_vtype1266, $_size1264);
+            for ($_i1268 = 0; $_i1268 < $_size1264; ++$_i1268)
             {
-              $key1093 = 0;
-              $val1094 = false;
-              $xfer += $input->readI64($key1093);
-              $xfer += $input->readBool($val1094);
-              $this->success[$key1093] = $val1094;
+              $key1269 = 0;
+              $val1270 = false;
+              $xfer += $input->readI64($key1269);
+              $xfer += $input->readBool($val1270);
+              $this->success[$key1269] = $val1270;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -35624,10 +39739,10 @@ class ConcourseService_pingRecords_result {
       {
         $output->writeMapBegin(TType::I64, TType::BOOL, count($this->success));
         {
-          foreach ($this->success as $kiter1095 => $viter1096)
+          foreach ($this->success as $kiter1271 => $viter1272)
           {
-            $xfer += $output->writeI64($kiter1095);
-            $xfer += $output->writeBool($viter1096);
+            $xfer += $output->writeI64($kiter1271);
+            $xfer += $output->writeBool($viter1272);
           }
         }
         $output->writeMapEnd();
