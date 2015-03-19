@@ -69,7 +69,7 @@ class Concourse:
         :param records:
         :return:
         """
-        value = Convert.python_to_thrift(value)
+        value = python_to_thrift(value)
         if records is None:
             return self.client.addKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
