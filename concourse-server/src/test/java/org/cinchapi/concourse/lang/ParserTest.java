@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -195,6 +195,16 @@ public class ParserTest {
     }
 
     @Test
+    public void testParseCclSimple() {
+        Criteria criteria = Criteria.where().key("foo")
+                .operator(Operator.EQUALS).value("bar").build();
+        String ccl = "where foo = bar";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+
+    }
+
+    @Test
     public void testToPostfixNotationSimpleBetween() {
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.BETWEEN).value("bar").value("baz").build();
@@ -211,6 +221,18 @@ public class ParserTest {
         Assert.assertEquals(
                 ((Expression) Iterables.getOnlyElement(pfn)).getOperator(),
                 OperatorSymbol.create(Operator.BETWEEN));
+    }
+
+    @Test
+    public void testParseCclBetween() {
+        Criteria criteria = Criteria.where().key("foo")
+                .operator(Operator.BETWEEN).value("bar").value("baz").build();
+        String ccl = "where foo bw bar baz";
+        String ccl2 = "where foo >< bar baz";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl2));
     }
 
     @Test
@@ -235,6 +257,16 @@ public class ParserTest {
     }
 
     @Test
+    public void testParseCclSimpleAnd() {
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).and().key("b").operator(Operator.EQUALS).value(2)
+                .build();
+        String ccl = "a = 1 and b = 2";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+    }
+
+    @Test
     public void testToPostfixNotationSimpleOr() {
         Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
                 .value(1).or().key("b").operator(Operator.EQUALS).value(2)
@@ -253,6 +285,16 @@ public class ParserTest {
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(2)));
         Assert.assertEquals(Iterables.get(pfn, 2), ConjunctionSymbol.OR);
+    }
+
+    @Test
+    public void testParseCclSimpleOr() {
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value(1).or().key("b").operator(Operator.EQUALS).value(2)
+                .build();
+        String ccl = "a = 1 or b = 2";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
     }
 
     @Test
@@ -280,6 +322,16 @@ public class ParserTest {
                         OperatorSymbol.create(Operator.EQUALS),
                         ValueSymbol.create(3)));
         Assert.assertEquals(Iterables.get(pfn, 4), ConjunctionSymbol.OR);
+    }
+
+    @Test
+    public void testParseCclAndOr() {
+        Criteria criteria = Criteria.where().key("a").operator(Operator.EQUALS)
+                .value("1").and().key("b").operator(Operator.EQUALS).value(2)
+                .or().key("c").operator(Operator.EQUALS).value(3).build();
+        String ccl = "a = 1 and b = 2 or c = 3";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
     }
 
     @Test
@@ -313,6 +365,22 @@ public class ParserTest {
         Assert.assertEquals(Iterables.get(pfn, 3), ConjunctionSymbol.OR);
         Assert.assertEquals(Iterables.get(pfn, 4), ConjunctionSymbol.AND);
 
+    }
+
+    @Test
+    public void testPostfixNotationAndGroupOr() {
+        Criteria criteria = Criteria
+                .where()
+                .key("a")
+                .operator(Operator.EQUALS)
+                .value(1)
+                .and()
+                .group(Criteria.where().key("b").operator(Operator.EQUALS)
+                        .value(2).or().key("c").operator(Operator.EQUALS)
+                        .value(3).build()).build();
+        String ccl = "a = 1 and (b = 2 or c = 3)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
     }
 
     @Test
@@ -355,6 +423,22 @@ public class ParserTest {
     }
 
     @Test
+    public void testParseCclGroupOrAndGroupOr() {
+        Criteria criteria = Criteria
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
+                        .value(1).or().key("b").operator(Operator.EQUALS)
+                        .value(2).build())
+                .and()
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
+                        .value(3).or().key("d").operator(Operator.EQUALS)
+                        .value(4).build()).build();
+        String ccl = "(a = 1 or b = 2) AND (c = 3 or d = 4)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
+    }
+
+    @Test
     public void testToPostfixNotationGroupOrOrGroupOr() {
         Criteria criteria = Criteria
                 .where()
@@ -391,6 +475,22 @@ public class ParserTest {
         Assert.assertEquals(Iterables.get(pfn, 5), ConjunctionSymbol.OR);
         Assert.assertEquals(Iterables.get(pfn, 6), ConjunctionSymbol.OR);
 
+    }
+
+    @Test
+    public void testParseCclGroupOrOrGroupOr() {
+        Criteria criteria = Criteria
+                .where()
+                .group(Criteria.where().key("a").operator(Operator.EQUALS)
+                        .value(1).or().key("b").operator(Operator.EQUALS)
+                        .value(2).build())
+                .or()
+                .group(Criteria.where().key("c").operator(Operator.EQUALS)
+                        .value(3).or().key("d").operator(Operator.EQUALS)
+                        .value(4).build()).build();
+        String ccl = "(a = 1 or b = 2) or (c = 3 or d = 4)";
+        Assert.assertEquals(Parser.toPostfixNotation(criteria.getSymbols()),
+                Parser.toPostfixNotation(ccl));
     }
 
 }

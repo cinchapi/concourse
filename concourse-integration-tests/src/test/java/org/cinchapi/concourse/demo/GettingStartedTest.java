@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +58,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
                 "Jonathan Doe", "J. Doe"), client.select("name", 1));
 
         // Get
-        Assert.assertEquals("John Doe", client.get("name", 1));
+        Assert.assertEquals("J. Doe", client.get("name", 1));
 
         // Set
         for (int i = 0; i < 5; i++) {
@@ -182,17 +182,17 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         String[] strings = { "The Cat in the Hat", "Green Eggs and Ham",
                 "Horton Hears a Who", "The Cat in the Hat Comes Back",
                 "Scrambled Eggs Super" };
-        
-        Set<Long> expected = Sets.newHashSet();       
+
+        Set<Long> expected = Sets.newHashSet();
         for (int i = 0; i < 1000; i++) {
             String value = strings[i % strings.length];
             client.add("title", value, i);
-            if(value.contains("eggs")){
+            if(value.contains("eggs")) {
                 expected.add((long) i);
             }
-        }      
+        }
         Set<Long> actual = client.search("title", "eggs");
-        for(Long record : expected){
+        for (Long record : expected) {
             Assert.assertTrue(actual.contains(record));
         }
 

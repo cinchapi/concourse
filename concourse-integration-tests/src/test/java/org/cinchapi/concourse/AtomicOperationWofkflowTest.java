@@ -312,9 +312,12 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
         t1.join();
         t2.join();
 
-        Assert.assertEquals(-1, client.get("foo", 1)); // this shows that the
-                                                       // atomic operation has
-                                                       // retry logic
+        Assert.assertTrue(client.select("foo", 1).contains(-1)); // this shows
+                                                                 // that the
+                                                                 // atomic
+                                                                 // operation
+                                                                 // has retry
+                                                                 // logic
 
     }
 

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,7 @@ import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -234,9 +235,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         Map<Long, Map<String, Object>> result = client.get(keys, records);
         for (long record : records) {
             for (String key : keys) {
-                Assert.assertEquals(
-                        data.get(record).get(key).iterator().next(), result
-                                .get(record).get(key));
+                Assert.assertEquals(Iterables
+                        .getLast(data.get(record).get(key)), result.get(record)
+                        .get(key));
             }
         }
     }
@@ -258,9 +259,9 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
                 timestamp);
         for (long record : records) {
             for (String key : keys) {
-                Assert.assertEquals(
-                        data.get(record).get(key).iterator().next(), result
-                                .get(record).get(key));
+                Assert.assertEquals(Iterables
+                        .getLast(data.get(record).get(key)), result.get(record)
+                        .get(key));
             }
         }
     }
@@ -273,7 +274,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
                 record);
         Map<String, Object> result = client.get(keys, record);
         for (String key : keys) {
-            Assert.assertEquals(data.get(record).get(key).iterator().next(),
+            Assert.assertEquals(Iterables.getLast(data.get(record).get(key)),
                     result.get(key));
         }
 
@@ -292,7 +293,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         }
         Map<String, Object> result = client.get(keys, record, timestamp);
         for (String key : keys) {
-            Assert.assertEquals(data.get(record).get(key).iterator().next(),
+            Assert.assertEquals(Iterables.getLast(data.get(record).get(key)),
                     result.get(key));
         }
     }
@@ -305,7 +306,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
                 records);
         Map<Long, Object> result = client.get(key, records);
         for (long record : records) {
-            Assert.assertEquals(data.get(record).get(key).iterator().next(),
+            Assert.assertEquals(Iterables.getLast(data.get(record).get(key)),
                     result.get(record));
         }
     }
@@ -323,7 +324,7 @@ public class CompoundOperationTest extends ConcourseIntegrationTest {
         }
         Map<Long, Object> result = client.get(key, records, timestamp);
         for (long record : records) {
-            Assert.assertEquals(data.get(record).get(key).iterator().next(),
+            Assert.assertEquals(Iterables.getLast(data.get(record).get(key)),
                     result.get(record));
         }
     }
