@@ -184,7 +184,7 @@ public class IndexRouter extends Router {
                 else {
                     data = timestamp == null ? concourse.browseKey(arg1, creds,
                             null, environment) : concourse.browseKeyTime(arg1,
-                            timestamp, creds, transaction, environment);
+                                    timestamp, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
@@ -249,7 +249,7 @@ public class IndexRouter extends Router {
             }
 
         });
-        
+
         get(new Endpoint("/:arg1/audit") {
 
             @Override
@@ -258,12 +258,12 @@ public class IndexRouter extends Router {
                 String ts = getParamValue("start");
                 ts = Objects.firstNonNull(ts, getParamValue(timestamp));
                 Long record = Longs.tryParse(arg1);
-                Object data = concourse.auditRecord(record, creds, null, environment);
+                Object data = concourse.auditRecord(record, creds, null,
+                        environment);
                 return DataServices.gson().toJsonTree(data);
             }
 
         });
-
 
         /**
          * POST /record/key
@@ -287,47 +287,52 @@ public class IndexRouter extends Router {
 
         });
 
-		/**
-		 * PUT /record/key PUT /key/record
-		 */
-		put(new Endpoint("/:arg1/:arg2") {
+        /**
+         * PUT /record/key PUT /key/record
+         */
+        put(new Endpoint("/:arg1/:arg2") {
 
-			@Override
-			protected JsonElement serve() throws Exception {
-				String arg1 = getParamValue(":arg1");
-				String arg2 = getParamValue(":arg2");
-				Object[] args = specifyKeyAndRecord(arg1, arg2);
-				String key = (String) args[0];
-				Long record = (Long) args[1];
-				TObject value = Convert.javaToThrift(Convert
-						.stringToJava(request.body()));
-				concourse.setKeyValueRecord(key, value, record, creds,
-						transaction, environment);
-				return NO_DATA;
-			}
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                TObject value = Convert.javaToThrift(Convert
+                        .stringToJava(request.body()));
+                concourse.setKeyValueRecord(key, value, record, creds,
+                        transaction, environment);
+                return NO_DATA;
+            }
 
-		});
+        });
 
-		get(new Endpoint("/:arg1/audit") {
+        /**
+         * GET /
+         */
 
-			@Override
-			protected JsonElement serve() throws Exception {
-				String arg1 = getParamValue(":arg1");
-				String ts = getParamValue("start");
-				ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
-				Long record = Longs.tryParse(arg1);
-				Object data;
-				if (ts == null) {
-					data = concourse.auditRecord(record, creds, null,
-							environment);
-				} else {
-					data = concourse.auditRecordStart(record, ts, creds,
-							transaction, environment);
-				}
-				return DataServices.gson().toJsonTree(data);
-			}
+        get(new Endpoint("/:arg1/audit") {
 
-		});
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String ts = getParamValue("start");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Long record = Longs.tryParse(arg1);
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditRecord(record, creds, null,
+                            environment);
+                }
+                else {
+                    data = concourse.auditRecordStart(record, ts, creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
 
-	}
+        });
+
+    }
 }
