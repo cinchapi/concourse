@@ -67,6 +67,10 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('   selectKeyRecords(string key,  records, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyRecordsTime(string key,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeysRecordsTime( keys,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCriteria(TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCcl(string ccl, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCriteriaTime(TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   selectCclTime(string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCriteria(string key, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCcl(string key, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   selectKeyCriteriaTime(string key, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
@@ -84,6 +88,10 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('   getKeyRecordsTime(string key,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeysRecordsTime( keys,  records, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCriteria(string key, TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCriteria(TCriteria criteria, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCcl(string ccl, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCriteriaTime(TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
+  print('   getCclTime(string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCcl(string key, string ccl, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCriteriaTime(string key, TCriteria criteria, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
   print('   getKeyCclTime(string key, string ccl, i64 timestamp, AccessToken creds, TransactionToken transaction, string environment)')
@@ -435,6 +443,30 @@ elif cmd == 'selectKeysRecordsTime':
     sys.exit(1)
   pp.pprint(client.selectKeysRecordsTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),eval(args[4]),args[5],))
 
+elif cmd == 'selectCriteria':
+  if len(args) != 4:
+    print('selectCriteria requires 4 args')
+    sys.exit(1)
+  pp.pprint(client.selectCriteria(eval(args[0]),eval(args[1]),eval(args[2]),args[3],))
+
+elif cmd == 'selectCcl':
+  if len(args) != 4:
+    print('selectCcl requires 4 args')
+    sys.exit(1)
+  pp.pprint(client.selectCcl(args[0],eval(args[1]),eval(args[2]),args[3],))
+
+elif cmd == 'selectCriteriaTime':
+  if len(args) != 5:
+    print('selectCriteriaTime requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'selectCclTime':
+  if len(args) != 5:
+    print('selectCclTime requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.selectCclTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
 elif cmd == 'selectKeyCriteria':
   if len(args) != 5:
     print('selectKeyCriteria requires 5 args')
@@ -536,6 +568,30 @@ elif cmd == 'getKeyCriteria':
     print('getKeyCriteria requires 5 args')
     sys.exit(1)
   pp.pprint(client.getKeyCriteria(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'getCriteria':
+  if len(args) != 4:
+    print('getCriteria requires 4 args')
+    sys.exit(1)
+  pp.pprint(client.getCriteria(eval(args[0]),eval(args[1]),eval(args[2]),args[3],))
+
+elif cmd == 'getCcl':
+  if len(args) != 4:
+    print('getCcl requires 4 args')
+    sys.exit(1)
+  pp.pprint(client.getCcl(args[0],eval(args[1]),eval(args[2]),args[3],))
+
+elif cmd == 'getCriteriaTime':
+  if len(args) != 5:
+    print('getCriteriaTime requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.getCriteriaTime(eval(args[0]),eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
+
+elif cmd == 'getCclTime':
+  if len(args) != 5:
+    print('getCclTime requires 5 args')
+    sys.exit(1)
+  pp.pprint(client.getCclTime(args[0],eval(args[1]),eval(args[2]),eval(args[3]),args[4],))
 
 elif cmd == 'getKeyCcl':
   if len(args) != 5:

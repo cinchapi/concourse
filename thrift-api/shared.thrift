@@ -75,3 +75,11 @@ exception TSecurityException {
  * transaction related exception occurs.
  */
 exception TTransactionException {}
+
+/**
+ * The exception that is thrown from the server when an
+ * error occurs while parsing a string.
+ */
+exception TParseException {
+  1: string message
+}

@@ -76,6 +76,7 @@ import org.cinchapi.concourse.thrift.TCriteria;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.ConcourseService.Iface;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.thrift.TParseException;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.thrift.TSymbol;
 import org.cinchapi.concourse.thrift.TTransactionException;
@@ -1200,6 +1201,9 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -1281,6 +1285,188 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Map<Long, Map<String, TObject>> getCcl(String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, TObject> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record)) {
+                            try {
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, TObject>> getCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, TObject> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record, timestamp)) {
+                            try {
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record, timestamp)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, TObject> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record)) {
+                            try {
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, TObject>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, TObject> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record, timestamp)) {
+                            try {
+                                entry.put(key, Iterables.getLast(atomic.select(
+                                        key, record)));
+                            }
+                            catch (NoSuchElementException e) {
+                                continue;
+                            }
+                        }
+                        if(!entry.isEmpty()) {
+                            result.put(record, entry);
+                        }
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     @ManagedOperation
     @Deprecated
     public String getDumpList() {
@@ -1328,6 +1514,9 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -1365,6 +1554,9 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
         }
     }
 
@@ -1578,6 +1770,9 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -1621,6 +1816,9 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
         }
     }
 
@@ -2288,6 +2486,162 @@ public class ConcourseServer implements
     }
 
     @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record)) {
+                            entry.put(key, atomic.select(key, record));
+                        }
+                        result.put(record, entry);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = Parser.toPostfixNotation(ccl);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record, timestamp)) {
+                            entry.put(key,
+                                    atomic.select(key, record, timestamp));
+                        }
+                        result.put(record, entry);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteria(
+            TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record)) {
+                            entry.put(key, atomic.select(key, record));
+                        }
+                        result.put(record, entry);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTime(
+            TCriteria criteria, long timestamp, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Queue<PostfixNotationSymbol> queue = parse0(criteria);
+            Compoundable store = getStore(transaction, environment);
+            Map<Long, Map<String, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    Deque<Set<Long>> stack = new ArrayDeque<Set<Long>>();
+                    find0(queue, stack, atomic);
+                    Set<Long> records = stack.pop();
+                    for (long record : records) {
+                        Map<String, Set<TObject>> entry = Maps.newHashMap();
+                        for (String key : atomic.describe(record, timestamp)) {
+                            entry.put(key,
+                                    atomic.select(key, record, timestamp));
+                        }
+                        result.put(record, entry);
+                    }
+                }
+                catch (AtomicStateException e) {
+                    result.clear();
+                    atomic = null;
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
     public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
@@ -2316,6 +2670,9 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
         }
     }
 
@@ -2349,6 +2706,9 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
         }
     }
 
@@ -2531,6 +2891,9 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
+        }
     }
 
     @Override
@@ -2568,6 +2931,9 @@ public class ConcourseServer implements
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
+        }
+        catch (Exception e) {
+            throw new TParseException(e.getMessage());
         }
     }
 
@@ -3117,4 +3483,5 @@ public class ConcourseServer implements
                     "Invalid username/password combination.");
         }
     }
+
 }
