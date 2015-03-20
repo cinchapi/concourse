@@ -170,24 +170,35 @@ public final class Parser {
      * @return the queue in postfix notation
      */
     public static Queue<PostfixNotationSymbol> toPostfixNotation(String ccl) {
+        // This method uses a value buffer to correct cases when a string value
+        // is specified without quotes (because its a common mistake to make).
+        // If an operator other than BETWEEN is specified, we use logic that
+        // will buffer all the subsequent tokens until we reach a (parenthesis),
+        // (conjunction) or (at) and assume that the tokens belong to the same
+        // value.
         ccl = ccl.replace("(", "( ");
         ccl = ccl.replace(")", " )");
         String[] toks = Strings.splitButRespectQuotes(ccl);
         List<Symbol> symbols = Lists.newArrayListWithExpectedSize(toks.length);
         GuessState guess = GuessState.KEY;
+        StringBuilder buffer = null;
         for (String tok : toks) {
             if(tok.equals("(") || tok.equals(")")) {
+                addBufferedValue(buffer, symbols);
                 symbols.add(ParenthesisSymbol.parse(tok));
             }
             else if(tok.equalsIgnoreCase("and")) {
+                addBufferedValue(buffer, symbols);
                 symbols.add(ConjunctionSymbol.AND);
                 guess = GuessState.KEY;
             }
             else if(tok.equalsIgnoreCase("or")) {
+                addBufferedValue(buffer, symbols);
                 symbols.add(ConjunctionSymbol.OR);
                 guess = GuessState.KEY;
             }
             else if(tok.equalsIgnoreCase("at")) {
+                addBufferedValue(buffer, symbols);
                 guess = GuessState.TIMESTAMP;
             }
             else if(tok.equalsIgnoreCase("where")) {
@@ -201,11 +212,20 @@ public final class Parser {
                 guess = GuessState.OPERATOR;
             }
             else if(guess == GuessState.OPERATOR) {
-                symbols.add(OperatorSymbol.parse(tok));
+                OperatorSymbol symbol = OperatorSymbol.parse(tok);
+                symbols.add(symbol);
+                if(symbol.getOperator() != Operator.BETWEEN) {
+                    buffer = new StringBuilder();
+                }
                 guess = GuessState.VALUE;
             }
             else if(guess == GuessState.VALUE) {
-                symbols.add(ValueSymbol.parse(tok));
+                if(buffer != null) {
+                    buffer.append(tok).append(" ");
+                }
+                else {
+                    symbols.add(ValueSymbol.parse(tok));
+                }
             }
             else if(guess == GuessState.TIMESTAMP) {
                 symbols.add(TimestampSymbol.parse(tok));
@@ -214,6 +234,7 @@ public final class Parser {
                 throw new IllegalStateException();
             }
         }
+        addBufferedValue(buffer, symbols);
         return toPostfixNotation(symbols);
     }
 
@@ -232,6 +253,21 @@ public final class Parser {
         }
         else {
             stack.push(OrTree.create(left, right));
+        }
+    }
+
+    /**
+     * This is a helper method for {@link #toPostfixNotation(String)} that
+     * contains the logic to create a ValueSymbol from a buffered value.
+     * @param buffer
+     * @param symbols
+     */
+    private static void addBufferedValue(StringBuilder buffer,
+            List<Symbol> symbols) {
+        if(buffer != null && buffer.length() > 0) {
+            buffer.delete(buffer.length() - 1, buffer.length());
+            symbols.add(ValueSymbol.parse(buffer.toString()));
+            buffer.delete(0, buffer.length());
         }
     }
 
