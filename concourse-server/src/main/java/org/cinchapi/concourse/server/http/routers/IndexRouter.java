@@ -356,8 +356,5 @@ public class IndexRouter extends Router {
                 
             }
         });
-        
-       
-
-    }
+     }
 }
