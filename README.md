@@ -1,6 +1,6 @@
 # Concourse
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easier for developers to quickly build reliable and scalable systems. Concourse dynamically adapts on a per-application basis and offers features such as automatic indexing, version control, and distributed ACID transactions. Concourse, in essence, abstracts away the management and tuning aspects of the database and allows developers to focus on what really matters.
+[ConcourseDB](http://concoursedb.com) is a self-tuning database that makes it easier for developers to quickly build robust and scalable systems. Concourse dynamically adapts on a per-application basis and offers features such as automatic indexing, version control, and distributed ACID transactions. Concourse, in essence, abstracts away the management and tuning aspects of the database and allows developers to focus on what really matters.
 
 This is version 0.5.0 of Concourse.
 
@@ -83,7 +83,7 @@ You can find more examples in the [examples](examples) directory. More informati
 ## Motivation
 Concourse was built in response to the fact that the existing landscape of storage technologies are simply unfit to meet the requirements of developers today.
 
-Whether you use SQL or NoSQL, the existing data storage solutions are incredibly time intensive to manage. Administrators and developers are constantly forced to reevaluate decisions, profile the system, and perform manual optimizations. Even systems that claim to address this problem only do so by trading off critical features like ACID transactions. This slows down development and introduces operational complexity and unnecessary scaling costs.
+Whether you use SQL or NoSQL, the existing data storage solutions are incredibly time intensive to manage. Administrators and developers are constantly forced to reevaluate decisions, profile the system, and perform manual optimizations. Even systems that claim to address this problem only do so by trading off critical features like ACID transactions. These requirements slow down development and introduce operational complexity and unnecessary scaling costs.
 
 ###### Planning
 You have an awesome idea for a product? Great! But before you start building, you've got to figure out how to translate that idea into a rigid database structure. And if you want to change a feature down the line, you've got to migrate your existing data. This slows down your ability to prototype, iterate and pivot.
