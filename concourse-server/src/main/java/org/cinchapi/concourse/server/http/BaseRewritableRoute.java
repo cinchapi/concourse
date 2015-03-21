@@ -15,7 +15,6 @@
  */
 package org.cinchapi.concourse.server.http;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -103,11 +102,17 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
             List<String> list = Lists.newArrayList(request.queryMap(param)
                     .values());
             list.removeAll(EMPTY_STRING_COLLECTION);
+            if(list.size() == 1){
+                String elt = list.get(0);
+                elt.replaceAll(", ", ",");
+                String[] elts = elt.split(",");
+                list = Lists.newArrayList(elts);
+            }
             return list;
         }
         catch (NullPointerException e) { // the param is not in the map, so
                                          // return an empty array
-            return Collections.unmodifiableList(EMPTY_STRING_COLLECTION);
+            return Lists.newArrayListWithCapacity(0);
         }
     }
 
