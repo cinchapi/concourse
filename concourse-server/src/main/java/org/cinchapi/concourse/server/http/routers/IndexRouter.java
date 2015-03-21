@@ -16,6 +16,7 @@
 package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Set;
 
 import org.cinchapi.concourse.Timestamp;
@@ -30,6 +31,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 
+import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -139,7 +141,29 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                Object data = concourse.find(creds, null, environment);
+                String ccl = getParamValue("query");
+                Object data;
+                if(!Strings.isNullOrEmpty(ccl)) {
+                    List<String> keys = getParamValues("select");
+                    String ts = getParamValue("timestamp");
+                    Long timestamp = ts != null ? Longs.tryParse(ts) : null;
+                    if(keys.isEmpty()) {
+                        data = timestamp == null ? concourse.selectCcl(ccl,
+                                creds, transaction, environment) : concourse
+                                .selectCclTime(ccl, timestamp, creds,
+                                        transaction, environment);
+                    }
+                    else {
+                        data = timestamp == null ? concourse.selectKeysCcl(
+                                keys, ccl, creds, transaction, environment)
+                                : concourse.selectKeysCclTime(keys, ccl,
+                                        timestamp, creds, transaction,
+                                        environment);
+                    }
+                }
+                else {
+                    data = concourse.find(creds, null, environment);
+                }
                 return DataServices.gson().toJsonTree(data);
             }
 
