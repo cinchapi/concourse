@@ -1,6 +1,6 @@
 # Concourse
 
-[ConcourseDB](http://concoursedb.com) is a self-tuning database that automatically adapts to your application. Whether you’re just getting started, adding new features, or scaling out, Concourse provides tools like automatic indexing, version control and distributed ACID transactions as part of a big data platform that manages itself and reduces operational costs.
+[ConcourseDB](http://concoursedb.com) makes it easier for developers, regardless of skillset or goals, to quickly build a functioning and scalable system. Concourse dynamically adapts on a per-application basis and offers features such as automatic indexing, version control, and distributed ACID transactions. Concourse, in essence, abstracts away the management and tuning aspects of the system and allows developers to focus on what really matters.
 
 This is version 0.5.0 of Concourse.
 
@@ -81,7 +81,9 @@ public static void main(String... args) {
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
 ## Motivation
-Whether you use SQL or NoSQL, building data driven software forces you to spend too much time managing databases. At each step, you're constantly forced to plan, profile, and optimize. This slows down your ability to prototype, adds operational complexity when you iterate, and costs lots of money when you scale.
+Concourse was built in response to the fact that the existing landscape of storage technologies are simply unfit to meet the requirements of developers today.
+
+Whether you use SQL or NoSQL, the existing data storage solutions are incredibly time intensive to manage. Administrators and developers are constantly forced to reevaluate decisions, profile the system, and perform manual optimizations. Even systems that claim to address this problem only do so by trading off critical features like ACID transactions. This slows down development and introduces operational complexity and unnecessary scaling costs.
 
 ###### Planning
 You have an awesome idea for a product? Great! But before you start building, you've got to figure out how to translate that idea into a rigid database structure. And if you want to change a feature down the line, you've got to migrate your existing data. This slows down your ability to prototype, iterate and pivot.
@@ -96,7 +98,7 @@ You have more users and more data. Now the database needs more resources. Sure, 
 Your database is mission critical, but as you can see, it needs a babysitter. This forces you to allocate an abundance of resources just to figure out which settings to tweak each time your app grows. Time and money wasted.
 
 ## The Solution
-Concourse is an entirely new kind of database that is designed to automatically adapt to any workload or data scale.
+With Concourse, we have re-imagined the concept of a database from the ground up. We've created a solution that is flexible, easy to use, provides strong consistency, and optimizes itself in real-time.
 
 ###### Automatic Indexing
 You no longer need to plan queries in advance because Concourse automatically **indexes all of your data** while guaranteeing **constant time writes** that are super fast. Concourse fully supports ad-hoc range and predicate queries and automatically caches frequently requested data for optimal performance.
