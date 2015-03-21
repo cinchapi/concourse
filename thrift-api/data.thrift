@@ -13,7 +13,12 @@ namespace java org.cinchapi.concourse.thrift
 # thrift -out concourse-driver-python -gen py thrift-api/data.thrift
 namespace py concourse.thriftapi.data
 
+# To generate PHP source code run:
+# thrift -out concourse-driver-php -gen php thrift-api/data.thrift
 namespace php thrift.data
+
+# To generate Ruby source code run:
+# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/data.thrift
 
 /**
  * A lightweight wrapper for a typed Object that has been encoded

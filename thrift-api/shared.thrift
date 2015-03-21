@@ -1,7 +1,6 @@
 # This file contains shared definitions that are unlikely to be modified
 # post thrift generation.
 
-
 # To generate java source code run:
 # thrift -out concourse-driver-java/src/main/java -gen java thrift-api/ shared.thrift
 namespace java org.cinchapi.concourse.thrift
@@ -10,7 +9,12 @@ namespace java org.cinchapi.concourse.thrift
 # thrift -out concourse-driver-python -gen py thrift-api/shared.thrift
 namespace py concourse.thriftapi.shared
 
+# To generate PHP source code run:
+# thrift -out concourse-driver-php -gen php thrift-api/shared.thrift
 namespace php thrift.shared
+
+# To generate Ruby source code run:
+# thrift -out concourse-driver-ruby/lib/thrift_api -gen rb thrift-api/shared.thrift
 
 /**
  * Enumerates the list of operators that can be used in criteria specifications.

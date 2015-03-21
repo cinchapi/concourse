@@ -31,6 +31,9 @@ namespace py concourse.thriftapi
 # utils/thrift-compile-php.sh
 namespace php thrift
 
+# To generate Ruby source code run:
+# utils/thrift-compile-ruby.sh
+
 # The API/Product version is maintained under the Semantic Versioning
 # guidelines such that versions are formatted <major>.<minor>.<patch>
 #
