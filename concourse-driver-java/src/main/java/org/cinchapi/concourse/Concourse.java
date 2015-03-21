@@ -1207,7 +1207,7 @@ public abstract class Concourse implements AutoCloseable {
      *         {@code value} is removed
      */
     @CompoundOperation
-    public abstract Map<Long, Boolean> remove(String key, Object value,
+    public abstract <T> Map<Long, Boolean> remove(String key, T value,
             Collection<Long> records);
 
     /**
@@ -3438,7 +3438,7 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<Long, Boolean> remove(final String key, final Object value,
+        public <T> Map<Long, Boolean> remove(final String key, final T value,
                 final Collection<Long> records) {
             return execute(new Callable<Map<Long, Boolean>>() {
 
