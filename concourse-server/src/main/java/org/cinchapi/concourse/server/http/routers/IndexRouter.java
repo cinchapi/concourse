@@ -30,6 +30,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 
+import com.google.common.base.Objects;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -184,7 +185,7 @@ public class IndexRouter extends Router {
                 else {
                     data = timestamp == null ? concourse.browseKey(arg1, creds,
                             null, environment) : concourse.browseKeyTime(arg1,
-                            timestamp, creds, transaction, environment);
+                                    timestamp, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
@@ -250,6 +251,7 @@ public class IndexRouter extends Router {
 
         });
 
+
         /**
          * POST /record/key
          * POST /key/record
@@ -273,7 +275,7 @@ public class IndexRouter extends Router {
         });
 
         /**
-         * PUT /record/key
+         * PUT /record/key 
          * PUT /key/record
          */
         put(new Endpoint("/:arg1/:arg2") {
@@ -294,5 +296,65 @@ public class IndexRouter extends Router {
 
         });
 
-    }
+        /**
+         * GET /record/audit?timestamp=<ts>
+         * GET /record/audit?start=<ts>&end=<ts>
+         */
+        get(new Endpoint("/:arg1/audit") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Long record = Longs.tryParse(arg1);
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditRecord(record, creds, null,
+                            environment);
+                }
+                else if (te == null) {
+                    data = concourse.auditRecordStart(record, ts, creds,
+                            transaction, environment);
+                } else {
+                    data = concourse.auditKeyRecordStartEnd(key, record, ts, te, creds, transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
+
+        });
+        
+        /**
+         * GET /record/audit?timestamp=<ts>
+         * GET /record/audit?start=<ts>&end=<ts>
+         * GET /audit/record?timestamp=<ts>
+         * GET /audit/record?start=<ts>&end=<ts>
+         */
+        get(new EndPoint("/:arg1/:arg2/audit") {
+           
+            @Override
+            protected Json Element serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditKeyRecord(key, record, creds, transaction, environment)
+                }
+                else if (te == null) {
+                    data = concourse.auditKeyRecordStart(key, record, ts, creds, transaction, environment)
+                } else {
+                    data = concourse.auditKeyRecordStartEnd(key, record, ts, te, creds, transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+                
+            }
+        });
+     }
 }
