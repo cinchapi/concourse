@@ -20,6 +20,9 @@ class Tag:
     def __str__(self):
         return self.value
 
+    def __repr__(self):
+        return self.__str__()
+
     def __eq__(self, other):
         return self.value == other
 
@@ -39,4 +42,10 @@ class Link:
     def __init__(self, record):
         if not isinstance(record, int):
             raise ValueError
-        self.record = record;
+        self.record = record
+
+    def __str__(self):
+        return "@" + self.record.__str__() + "@"
+
+    def __repr__(self):
+        return self.__str__()
