@@ -17,8 +17,8 @@ package org.cinchapi.concourse.shell;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -56,6 +56,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -137,14 +138,17 @@ public final class ConcourseShell {
                         }
                     }
                     catch (HelpRequest e) {
-                        Process p = Runtime.getRuntime().exec(
-                                new String[] {
-                                        "sh",
-                                        "-c",
-                                        "echo \"" + HELP_TEXT
-                                                + "\" | less > /dev/tty" });
-                        p.waitFor();
-                        cash.console.getHistory().removeLast();
+                        String text = getHelpText(e.topic);
+                        if(!Strings.isNullOrEmpty(text)) {
+                            Process p = Runtime.getRuntime().exec(
+                                    new String[] {
+                                            "sh",
+                                            "-c",
+                                            "echo \"" + text
+                                                    + "\" | less > /dev/tty" });
+                            p.waitFor();
+                            cash.console.getHistory().removeLast();
+                        }
                     }
                     catch (ExitRequest e) {
                         running = false;
@@ -258,6 +262,40 @@ public final class ConcourseShell {
     }
 
     /**
+     * Return the help text for a given {@code topic}.
+     * 
+     * @param topic
+     * @return the help text
+     */
+    private static String getHelpText(String topic) {
+        topic = Strings.isNullOrEmpty(topic) ? "man" : topic;
+        InputStream in = ConcourseShell.class.getResourceAsStream("/" + topic);
+        if(in == null) {
+            System.err.println("No help entry for " + topic);
+            return null;
+        }
+        else {
+            try {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(in));
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.replaceAll("\"", "\\\\\"");
+                    builder.append(line).append(
+                            System.getProperty("line.separator"));
+                }
+                String text = builder.toString().trim();
+                reader.close();
+                return text;
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
+    /**
      * A cache of the API methods that are accessible in CaSH.
      */
     private static String[] ACCESSIBLE_API_METHODS = null;
@@ -269,11 +307,6 @@ public final class ConcourseShell {
     private static List<String> BANNED_CHAR_SEQUENCES = Lists.newArrayList(
             "concourse.exit()", "concourse.username", "concourse.password",
             "concourse.client");
-
-    /**
-     * The text that is displayed when the user requests HELP.
-     */
-    private static String HELP_TEXT = "";
 
     /**
      * A list which contains all of the accessible API methods. This list is
@@ -324,26 +357,6 @@ public final class ConcourseShell {
         }
 
     };
-
-    static {
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    ConcourseShell.class.getResourceAsStream("/man")));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.replaceAll("\"", "\\\\\"");
-                HELP_TEXT += line + System.getProperty("line.separator");
-            }
-            HELP_TEXT = HELP_TEXT.trim();
-            reader.close();
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * The client connection to Concourse.
@@ -436,8 +449,16 @@ public final class ConcourseShell {
         if(input.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }
-        else if(input.equalsIgnoreCase("help") || input.equalsIgnoreCase("man")) {
-            throw new HelpRequest();
+        else if(input.toLowerCase().startsWith("help")
+                || input.toLowerCase().startsWith("man")) {
+            String[] toks = input.split(" ");
+            if(toks.length == 1) {
+                throw new HelpRequest();
+            }
+            else {
+                String topic = toks[1];
+                throw new HelpRequest(topic);
+            }
         }
         else if(containsBannedCharSequence(input)) {
             throw new EvaluationException("Cannot evaluate input because "
