@@ -45,7 +45,7 @@ concourse.select(keys=["name", "team"], criteria="age bw 22 29")
 
 # You can even query data from the past
 concourse.get(key="age", record=durant, timestamp="04/2009")
-concourse.find(criteria="team = Chicago Bulls", timestamp="2011")
+concourse.find(criteria="team = Chicago Bulls at 2011")
 concourse.select(criteria="age > 25 and team != Chicago Bulls", timestamp="two years ago")
 
 # Analyze how data has changed over time and revert to previous states
