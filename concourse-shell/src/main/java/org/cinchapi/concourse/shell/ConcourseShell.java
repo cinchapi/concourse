@@ -147,8 +147,8 @@ public final class ConcourseShell {
                                             "echo \"" + text
                                                     + "\" | less > /dev/tty" });
                             p.waitFor();
-                            cash.console.getHistory().removeLast();
                         }
+                        cash.console.getHistory().removeLast();
                     }
                     catch (ExitRequest e) {
                         running = false;
@@ -269,6 +269,7 @@ public final class ConcourseShell {
      */
     private static String getHelpText(String topic) {
         topic = Strings.isNullOrEmpty(topic) ? "man" : topic;
+        topic = topic.toLowerCase();
         InputStream in = ConcourseShell.class.getResourceAsStream("/" + topic);
         if(in == null) {
             System.err.println("No help entry for " + topic);
