@@ -35,7 +35,7 @@ durant = records.pop()
 kobe = records.pop()
 
 # Read and modify individual attributes without loading the entire record
-kobe_age = concourse.get(key="age", record=kobe)
+concourse.get(key="age", record=kobe)
 concourse.add(key="name", value="KD", record=durant)
 concourse.remove(key="jersey_number", value=23, record=lebron)
 
