@@ -61,7 +61,7 @@ public class RestApiTest extends ConcourseIntegrationTest {
         Type type0 = type.getType();
         return new Gson().fromJson(bodyAsJson(response), type0);
     }
-    
+
     /**
      * Return a JsonElement representation of the response body.
      * 
@@ -78,7 +78,7 @@ public class RestApiTest extends ConcourseIntegrationTest {
             throw Throwables.propagate(e);
         }
     }
-    
+
     /**
      * JSON media type
      */
@@ -125,31 +125,29 @@ public class RestApiTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testGetRoot(){
+    public void testGetRoot() {
         login();
-        List<Long> r1 = bodyAsJava(get("/"), new TypeToken<List<Long>>(){});
+        List<Long> r1 = bodyAsJava(get("/"), new TypeToken<List<Long>>() {});
         Assert.assertTrue(r1.isEmpty());
         long record = client.add("foo", "bar");
-        List<Long> r2 = bodyAsJava(get("/"), new TypeToken<List<Long>>(){});
+        List<Long> r2 = bodyAsJava(get("/"), new TypeToken<List<Long>>() {});
         Assert.assertTrue(r2.contains(record));
     }
 
     @Test
-    public void testLogin() throws IOException {
+    public void testLogin() {
         Response resp = login();
         Assert.assertEquals(200, resp.code());
-        JsonObject body = (JsonObject) new JsonParser().parse(resp.body()
-                .string());
+        JsonObject body = (JsonObject) bodyAsJson(resp);
         Assert.assertEquals("default", body.get("environment").getAsString());
     }
 
     @Test
-    public void testLoginNonDefaultEnvironment() throws IOException {
+    public void testLoginNonDefaultEnvironment() {
         String environment = TestData.getStringNoDigits().replaceAll(" ", "");
         Response resp = login(environment);
         Assert.assertEquals(200, resp.code());
-        JsonObject body = (JsonObject) new JsonParser().parse(resp.body()
-                .string());
+        JsonObject body = (JsonObject) bodyAsJson(resp);
         Assert.assertEquals(environment, body.get("environment").getAsString());
     }
 
