@@ -5,78 +5,61 @@
 This is version 0.5.0 of Concourse.
 
 ## Quickstart
-Let's assume we have the following array of JSON objects:
-```json
-[
-  {
-    "name": "Lebron James",
-    "age": 30,
-    "team": "Cleveland Cavaliers"
-  },
-  {
-    "name": "Kevin Durant",
-    "age": 26,
-    "team": "OKC Thunder"
-  },
-  {
-    "name": "Kobe Bryant",
-    "age": 36,
-    "team": "LA Lakers"
-  }
+Let's assume we have the an array of JSON objects that describe NBA players. We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
+```python
+from concourse.concourse import *
+
+data = [
+    {
+        "name": "Lebron James",
+        "age": 30,
+        "team": "Cleveland Cavaliers"
+    },
+    {
+        "name": "Kevin Durant",
+        "age": 26,
+        "team": "OKC Thunder"
+    },
+    {
+        "name": "Kobe Bryant",
+        "age": 36,
+        "team": "LA Lakers"
+    }
 ]
-```
-We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
-```java
-package org.cinchapi.concourse.examples;
 
-import java.util.Set;
+concourse = Concourse.connect()
+records = concourse.insert(data) # each object is added to a distinct record
 
-import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.Timestamp;
-import org.cinchapi.concourse.TransactionException;
-import org.cinchapi.concourse.thrift.Operator;
+lebron = records.pop()
+durant = records.pop()
+kobe = records.pop()
 
-import com.google.common.collect.Iterables;
+# Read and modify individual attributes without loading the entire record
+kobe_age = concourse.get(key="age", record=kobe)
+concourse.add(key="name", value="KD", record=durant)
+concourse.remove(key="jersey_number", value=23, record=lebron)
 
-public static void main(String... args) {
-    Concourse concourse = Concourse.connect();
-    
-    Set<Long> records = concourse.insert(json); // Each object is added to a distinct record 
-    long lebron = Iterables.get(records, 0);
-    long durant = Iterables.get(records, 1);
-    long kobe = Iterables.get(records, 2);
+# Easily find records that match a certain criteria since data is automatically indexed
+concourse.select(criteria="team = Chicago Bulls")
+concourse.select(keys=["name", "team"], criteria="age bw 22 29")
 
-    // Read and modify individual attributes without loading the entire record
-    concourse.get("age", kobe);
-    concourse.add("name", "KD", durant);
-    concourse.remove("jersey_number", 6, lebron);
+# You can even query data from the past
+concourse.get(key="age", record=durant, timestamp="04/2009")
+concourse.find(criteria="team = Chicago Bulls", timestamp="2011")
+concourse.select(criteria="age > 25 and team != Chicago Bulls", timestamp="two years ago")
 
-    // Easily find records that match a criteria since data is automatically indexed
-    concourse.find("team", "=", "Chicago Bulls");
-    concourse.find("age", Operator.BETWEEN, 22, 29);
+# Analyze how data has changed over time and revert to previous states
+concourse.audit(key="team", record=lebron)
+concourse.revert(key="jersey_number", record=kobe, timestamp="two years ago")
 
-    // You can even query data from the past
-    concourse.get("age", durant, Timestamp.parse("04/2009"));
-    concourse.find("team", Operator.EQUALS, "Chicago Bulls",
-            Timestamp.parse("2011"));
-    concourse.find("age", Operator.BETWEEN, 22, 29,
-            Timestamp.parse("2 years ago"));
-
-    // Analyze how data has changed over time and restore previous states.
-    concourse.audit("team", lebron);
-    concourse.revert("jersey_number", kobe, Timestamp.parse("10 years ago"));
-
-    // ACID Transactions are available for import cross-record changes
-    concourse.stage();
-    try {
-        concourse.set("current_team", "OKC Thunder", lebron);
-        concourse.set("current_team", "Cleveland Cavs", durant);
-        concourse.commit();
-    }
-    catch (TransactionException e) {
-        concourse.abort();
-    }
-}
+# ACID transactions are available for important cross record changes
+concourse.stage()
+try:
+    concourse.set(key="current_team", value="OKC Thunder", record=lebron)
+    concourse.set(key="current_team", value="Cleveland Cavs", record=durant)
+    concourse.commit()
+except TransactionException:
+    concourse.abort()
 ```
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](http://concoursedb.com/guide) and [API documentation](concourse/README.md).
 
