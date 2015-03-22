@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
@@ -53,7 +54,7 @@ public class IndexRouter extends Router {
      * @param arg2
      * @return an array with the key followed by the record
      */
-    private static Object[] specifyKeyAndRecord(String arg1, String arg2) {
+    private static Object[] pickKeyAndRecord(String arg1, String arg2) {
         Long record = Longs.tryParse(arg1);
         String key;
         if(record != null) {
@@ -216,10 +217,8 @@ public class IndexRouter extends Router {
         });
 
         /**
-         * POST /record
-         * PUT /record
-         * POST /key
-         * PUT /key
+         * POST|PUT /record
+         * POST|PUT /key
          */
         upsert(new Endpoint("/:arg1") {
 
@@ -243,6 +242,20 @@ public class IndexRouter extends Router {
             }
 
         });
+        
+        /**
+         * DELETE /record
+         */
+        delete(new Endpoint("/:record"){
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                long record = Long.parseLong(getParamValue(":record"));
+                concourse.clearRecord(record, creds, transaction, environment);
+                return NO_DATA;
+            }
+            
+        });
 
         /**
          * GET /key/record[?timestamp=<ts>]
@@ -257,7 +270,7 @@ public class IndexRouter extends Router {
                         .getMicros();
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                Object[] args = pickKeyAndRecord(arg1, arg2);
                 String key = (String) args[0];
                 Long record = (Long) args[1];
                 Object data;
@@ -284,7 +297,7 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                Object[] args = pickKeyAndRecord(arg1, arg2);
                 String key = (String) args[0];
                 Long record = (Long) args[1];
                 TObject value = Convert.javaToThrift(Convert
@@ -306,7 +319,7 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = specifyKeyAndRecord(arg1, arg2);
+                Object[] args = pickKeyAndRecord(arg1, arg2);
                 String key = (String) args[0];
                 Long record = (Long) args[1];
                 TObject value = Convert.javaToThrift(Convert
@@ -314,6 +327,35 @@ public class IndexRouter extends Router {
                 concourse.setKeyValueRecord(key, value, record, creds,
                         transaction, environment);
                 return NO_DATA;
+            }
+
+        });
+
+        /**
+         * DELETE /record/key
+         * DELETE /key/record
+         */
+        delete(new Endpoint("/:arg1/:arg2") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                Object[] args = pickKeyAndRecord(getParamValue(":arg1"),
+                        getParamValue(":arg2"));
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                String body = request.body();
+                if(StringUtils.isBlank(body)) {
+                    concourse.clearKeyRecord(key, record, creds, transaction,
+                            environment);
+                    return NO_DATA;
+                }
+                else {
+                    TObject value = Convert.javaToThrift(Convert
+                            .stringToJava(request.body()));
+                    Object data = concourse.removeKeyValueRecord(key, value,
+                            record, creds, transaction, environment);
+                    return DataServices.gson().toJsonTree(data);
+                }
             }
 
         });

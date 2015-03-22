@@ -12,6 +12,7 @@ dependencies {
     testCompile project(':concourse-server')
     testCompile 'junit:junit:4.11'
     testCompile 'org.xerial:sqlite-jdbc:3.7.2'
+    testCompile 'com.squareup.okhttp:okhttp:2.3.0'
 }
 
 test {
