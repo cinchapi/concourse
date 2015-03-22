@@ -9,7 +9,7 @@ HOME=`cd ${HOME}; pwd`
 RONN_HOME=$HOME/ronn
 RONN_GEMS=$RONN_HOME/gems
 RONN=$RONN_HOME/bin/ronn
-DOCS=$HOME/../docs/md
+DOCS=$HOME/../documentation/md
 TARGET=$HOME/../concourse-shell/src/main/resources
 
 # Setup Ronn
@@ -32,7 +32,7 @@ cd $DOCS
 for DOC in `ls | grep .md`
 do
   name=${DOC%.md}
-  $RONN --man $DOC > $TARGET/$name
+  $RONN --man $DOC > $TARGET/$name 2>/dev/null
 done
 
 exit 0
