@@ -3,6 +3,10 @@ from thriftapi.shared.ttypes import Type
 from thriftapi.data.ttypes import TObject
 from types import *
 import struct
+import parsedatetime
+from time import mktime
+
+cal = parsedatetime.Calendar()
 
 
 def python_to_thrift(value):
@@ -78,3 +82,13 @@ def pythonify(obj):
         return [thrift_to_python(n) for n in obj]
     else:
         return obj
+
+
+def strtotime(timestring):
+    """
+    Convert a human readable time string to a UNIX timestamp with microsecond precision
+    :param timestring:
+    :return: the timestamp
+    """
+    s = cal.parse(timestring)[0]
+    return int(mktime(s)*1000000)

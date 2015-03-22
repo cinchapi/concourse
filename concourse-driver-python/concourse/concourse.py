@@ -1,13 +1,22 @@
+__author__ = "Jeff Nelson"
+__copyright__ = "Copyright 2015, Cinchapi, Inc."
+__license__ = "Apache, Version 2.0"
+
 from thrift import Thrift
-from thrift.transport import TSocket, TTransport
-from thrift.protocol import TBinaryProtocol
+from thrift.transport import TSocket
 from thriftapi import ConcourseService
-from thriftapi.ttypes import *
 from thriftapi.shared.ttypes import *
 from utils import *
+import ujson
 
 
-class Concourse:
+class Concourse(object):
+    """
+    ConcourseDB is a self-tuning database that makes it easier for developers to quickly build robust and scalable
+    systems. Concourse dynamically adapts on a per-application basis and offers features like automatic indexing,
+    version control, and distributed ACID transactions. Concourse, in essence, abstracts away the management and tuning
+    aspects of the database and allows developers to focus on what really matters.
+    """
 
     @staticmethod
     def connect(host="localhost", port=1717, username="admin", password="admin", environment=""):
@@ -45,6 +54,7 @@ class Concourse:
             protocol = TBinaryProtocol.TBinaryProtocol(transport)
             self.client = ConcourseService.Client(protocol)
             transport.open()
+            self.transport = transport
             self.__authenticate()
             self.transaction = None
         except Thrift.TException as e:
@@ -61,15 +71,27 @@ class Concourse:
         except Thrift.TException as e:
             raise e
 
-    def add(self, key, value, records=None):
+    def abort(self):
         """
 
-        :param key:
-        :param value:
-        :param records:
         :return:
         """
+        if self.transaction:
+            token = self.transaction
+            self.transaction = None
+            self.client.abort(self.creds, token, self.environment)
+
+    def add(self, key, value, records=None, record=None):
+        """
+        Append a value to a key within a record if it does not currently exist.
+        :param (string) key: the key for the value
+        :param (object) value: the value to add
+        :param (int or list of int) records: the record(s) for the key/value mappings.
+            If this parameter is omitted, then the data is added to a new record
+        :return:  
+        """
         value = python_to_thrift(value)
+        records = records if records else record
         if records is None:
             return self.client.addKeyValue(key, value, self.creds,
                                            self.transaction, self.environment)
@@ -88,6 +110,8 @@ class Concourse:
         :param kwargs:
         :return:
         """
+        start = start if not isinstance(start, basestring) else strtotime(start)
+        end = end if not isinstance(end, basestring) else strtotime(end)
         if key and record and start and end:
             return self.client.auditKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                       self.environment)
@@ -111,6 +135,7 @@ class Concourse:
         :return:
         """
         # todo need to transform values
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(keys, list):
             if timestamp:
                 return self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
@@ -131,6 +156,200 @@ class Concourse:
                     self.transaction,
                     self.environment)
 
+    def chronologize(self, key, record, start=None, end=None):
+        """
+
+        :param key:
+        :param record:
+        :param start:
+        :param end:
+        :return:
+        """
+        start = start if not isinstance(start, basestring) else strtotime(start)
+        end = end if not isinstance(end, basestring) else strtotime(end)
+        if start and end:
+            return self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+                                                             self.environment)
+        elif start:
+            return self.client.chronologizeKeyRecordStart(key, record, start, self.creds, self.transaction,
+                                                          self.environment)
+        else:
+            return self.client.chronologizeKeyRecord(key, record, self.creds, self.transaction, self.environment)
+
+    def clear(self, keys=None, key=None, records=None, record=None):
+        """
+
+        :param keys:
+        :param key:
+        :param records:
+        :param record:
+        :return:
+        """
+        keys = keys if keys else key
+        records = records if records else record
+        if isinstance(keys, list) and isinstance(records, list):
+            return self.client.clearKeysRecords(keys, records, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and not keys:
+            return self.client.clearRecords(records, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and records:
+            return self.client.clearKeysRecord(keys, records, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and not keys:
+            return self.client.clearKeyRecords(keys, records, self.creds, self.transaction, self.environment)
+        elif keys and records:
+            return self.client.clearKeyRecord(keys, records, self.creds, self.transaction, self.environment)
+        elif records:
+            return self.client.clearRecord(records, self.creds, self.transaction, self.environment)
+        else:
+            raise StandardError
+
+
+    def commit(self):
+        """
+
+        :return:
+        """
+        token = self.transaction
+        self.transaction = None
+        return self.client.commit(self.creds, token, self.environment)
+
+    def describe(self, records=None, record=None, timestamp=None):
+        """
+
+        :param records:
+        :param record:
+        :param timestamp:
+        :return:
+        """
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        records = records if records else record
+        if isinstance(records, list) and timestamp:
+            return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list):
+            return self.client.describeRecords(records, self.creds, self.transaction, self.environment)
+        elif timestamp:
+            return self.client.describeRecordTime(records, timestamp, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.describeRecord(records, self.creds, self.transaction, self.environment)
+
+    def close(self):
+        """
+
+        :return:
+        """
+        self.exit()
+
+    def exit(self):
+        """
+
+        :return:
+        """
+        self.client.logout(self.creds, self.environment)
+        self.transport.close()
+
+    def find(self, criteria=None):
+        """
+
+        :param criteria:
+        :return:
+        """
+        if criteria:
+            return self.client.findCcl(criteria, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.find(self.creds, self.transaction, self.environment)
+
+    def get(self, keys=None, key=None, criteria=None, records=None, record=None, timestamp=None):
+        """
+
+        :param keys:
+        :param criteria:
+        :param records:
+        :param timestamp:
+        :return:
+        """
+        keys = keys if keys else key
+        records = records if records else record
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
+        if isinstance(records, list) and not keys and not timestamp:
+            data = self.client.getRecords(records, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and timestamp and not keys:
+            data = self.client.getRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and isinstance(keys, list) and not timestamp:
+            data = self.client.getKeysRecords(keys, records, self.creds, self.transaction, self.environment)
+        elif isinstance(records, list) and isinstance(keys, list) and timestamp:
+            data = self.client.getKeysRecordsTime(keys, records, timestamp, self.creds, self.transaction,
+                                                  self.environment)
+        elif isinstance(keys, list) and criteria and not timestamp:
+            data = self.client.getKeysCcl(keys, criteria, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and criteria and timestamp:
+            data = self.client.getKeysCclTime(keys, criteria, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and records and not timestamp:
+            data = self.client.getKeysRecord(keys, records, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list) and records and timestamp:
+            data = self.client.getKeysRecordTime(keys, records, timestamp, self.creds, self.transaction,
+                                                 self.environment)
+        elif criteria and not keys and not timestamp:
+            data = self.client.getCcl(criteria, self.creds, self.transaction, self.environment)
+        elif criteria and timestamp and not keys:
+            data = self.client.getCclTime(criteria, self.creds, self.transaction, self.environment)
+        elif records and not keys and not timestamp:
+            data = self.client.getRecord(records, self.creds, self.transaction, self.environment)
+        elif records and timestamp and not keys:
+            data = self.client.getRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
+        elif keys and criteria and not timestamp:
+            data = self.client.getKeyCcl(keys, criteria, self.creds, self.transaction, self.environment)
+        elif keys and criteria and timestamp:
+            data = self.client.getKeyCclTime(keys, criteria, timestamp, self.creds, self.transaction,
+                                             self.environment)
+        elif keys and records and not timestamp:
+            data = self.client.getKeyRecord(keys, records, self.creds, self.transaction, self.environment)
+        elif keys and records and timestamp:
+            data = self.client.getKeyRecordTime(keys, records, timestamp, self.creds, self.transaction,
+                                                self.environment)
+        else:
+            raise StandardError
+        return pythonify(data)
+
+    def get_server_environment(self):
+        return self.client.getServerEnvironment(self.creds, self.transaction, self.environment)
+
+    def get_server_version(self):
+        return self.client.getServerVersion()
+
+    def insert(self, data, records=None, record=None):
+        """
+
+        :param data:
+        :param records:
+        :param record:
+        :return:
+        """
+        records = records if records else record
+        data = ujson.dumps(data)
+        if isinstance(records, list):
+            return self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)
+        elif records:
+            return self.client.insertJsonRecord(data, records, self.creds, self.transaction, self.environment)
+        else:
+            return self.client.insertJson(data, self.creds, self.transaction, self.environment)
+
+    def link(self, key, source, destinations=None, destination=None):
+        """
+
+        :param key:
+        :param source:
+        :param destinations:
+        :param destination:
+        :return:
+        """
+        destinations = destinations if destinations else destination
+        if isinstance(destinations, list):
+            return self.add(key, Link.to(destinations), source)
+        else:
+            data = dict()
+            for dest in destinations:
+                data[dest] = self.add(key, Link.to(destination), source)
+            return data
+
     def ping(self, records, record=None):
         """
 
@@ -143,7 +362,7 @@ class Concourse:
         else:
             return self.client.pingRecord(records, self.creds, self.transaction, self.environment)
 
-    def remove(self, key, value, records, record=None):
+    def remove(self, key, value, records=None, record=None):
         """
 
         :param key:
@@ -151,6 +370,7 @@ class Concourse:
         :param records:
         :return:
         """
+        value = python_to_thrift(value)
         records = records if records else record
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
@@ -168,6 +388,7 @@ class Concourse:
         """
         keys = keys if keys else key
         records = records if records else record
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if not timestamp:
             raise ValueError
         elif isinstance(keys, list) and isinstance(records, list):
@@ -177,7 +398,7 @@ class Concourse:
         elif isinstance(records, list):
             self.client.revertKeyRecordsTime(keys, records, self.creds, self.transaction, self.environment)
         else:
-            self.client.revertKeyRecordsTime(keys, records, self.creds, self.transaction, self.environment)
+            self.client.revertKeyRecordTime(keys, records, timestamp, self.creds, self.transaction, self.environment)
 
     def search(self, key, query):
         """
@@ -199,6 +420,7 @@ class Concourse:
         """
         keys = keys if keys else key
         records = records if records else record
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and timestamp and not keys:
@@ -220,7 +442,7 @@ class Concourse:
         elif criteria and not keys and not timestamp:
             data = self.client.selectCcl(criteria, self.creds, self.transaction, self.environment)
         elif criteria and timestamp and not keys:
-            data = self.client.selectCclTime(criteria, self.creds, self.transaction, self.environment)
+            data = self.client.selectCclTime(criteria, timestamp, self.creds, self.transaction, self.environment)
         elif records and not keys and not timestamp:
             data = self.client.selectRecord(records, self.creds, self.transaction, self.environment)
         elif records and timestamp and not keys:
@@ -239,7 +461,7 @@ class Concourse:
             raise StandardError
         return pythonify(data)
 
-    def set(self, key, value, records):
+    def set(self, key, value, records=None, record=None):
         """
 
         :param key:
@@ -247,6 +469,8 @@ class Concourse:
         :param records:
         :return:
         """
+        records = records if records else record
+        value = python_to_thrift(value)
         if not records:
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
@@ -273,6 +497,7 @@ class Concourse:
 
     def verify(self, key, value, record, timestamp=None):
         value = python_to_thrift(value)
+        timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if not timestamp:
             return self.client.verifyKeyValueRecord(
                 key,
