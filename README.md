@@ -28,8 +28,8 @@ data = [
 ]
 
 concourse = Concourse.connect()
-records = concourse.insert(data) # each object is added to a distinct record
 
+records = concourse.insert(data) # each object is added to a distinct record
 lebron = records.pop()
 durant = records.pop()
 kobe = records.pop()
