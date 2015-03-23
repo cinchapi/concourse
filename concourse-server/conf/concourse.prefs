@@ -105,9 +105,9 @@
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host. In general, you should never need to manually specify a value
-# unless have scripts that perform remote shutdowns and you need to configure
-# specific firewall rules.
+# on this host. In general, you shouldn't need to specify a value unless you
+# have scripts to perform a remote shutdown and must configure firewall rules
+# accordingly.
 #
 # DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434
