@@ -134,27 +134,18 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        # todo need to transform values
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(keys, list):
             if timestamp:
-                return self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
+                data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
             else:
-                return self.client.browseKeys(keys, self.creds, self.transaction,
-                                              self.environment)
+                data = self.client.browseKeys(keys, self.creds, self.transaction, self.environment)
         else:
             if timestamp:
-                return self.client.browseKeyTime(
-                    keys,
-                    self.creds,
-                    self.transaction,
-                    self.environment)
+                data = self.client.browseKeyTime(keys, self.creds, self.transaction, self.environment)
             else:
-                return self.client.browseKey(
-                    keys,
-                    self.creds,
-                    self.transaction,
-                    self.environment)
+                data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
+        return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None):
         """
@@ -168,13 +159,14 @@ class Concourse(object):
         start = start if not isinstance(start, basestring) else strtotime(start)
         end = end if not isinstance(end, basestring) else strtotime(end)
         if start and end:
-            return self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
+            data = self.client.chronologizeKeyRecordStartEnd(key, record, start, end, self.creds, self.transaction,
                                                              self.environment)
         elif start:
-            return self.client.chronologizeKeyRecordStart(key, record, start, self.creds, self.transaction,
+            data = self.client.chronologizeKeyRecordStart(key, record, start, self.creds, self.transaction,
                                                           self.environment)
         else:
-            return self.client.chronologizeKeyRecord(key, record, self.creds, self.transaction, self.environment)
+            data = self.client.chronologizeKeyRecord(key, record, self.creds, self.transaction, self.environment)
+        return pythonify(data)
 
     def clear(self, keys=None, key=None, records=None, record=None):
         """
