@@ -64,3 +64,4 @@ Thumbs.db
 .idea*
 .python-version
 *.pyc
+*concourse-driver-php/nbproject/*
