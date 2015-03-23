@@ -20,6 +20,8 @@
 # The listener port (1-65535) for client connections. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
 # on this host.
+#
+# DEFAULT: 1717
 #client_port = 1717
 
 # The absolute path to the directory where the Database record and index files
@@ -33,6 +35,8 @@
 # The default environment that is automatically loaded when the server
 # starts and is used whenever a client does not specify an environment
 # when connecting.
+#
+# DEFAULT: default
 #default_environment = default
 
 # Determine whether log messages should also be printed to the console (STDOUT)
@@ -101,5 +105,9 @@
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
 # 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host.
+# on this host. In general, you should never need to manually specify a value
+# unless have scripts that perform remote shutdowns and you need to configure
+# specific firewall rules.
+#
+# DEFAULT: automatically chosen based on the client_port
 #shutdown_port = 3434

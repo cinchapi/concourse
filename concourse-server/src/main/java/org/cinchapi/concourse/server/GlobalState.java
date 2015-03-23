@@ -24,6 +24,7 @@ import java.util.Set;
 import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.util.Networking;
 
 import ch.qos.logback.classic.Level;
 
@@ -192,7 +193,8 @@ public final class GlobalState extends Constants {
 
             CLIENT_PORT = config.getInt("client_port", CLIENT_PORT);
 
-            SHUTDOWN_PORT = config.getInt("shutdown_port", SHUTDOWN_PORT);
+            SHUTDOWN_PORT = config.getInt("shutdown_port",
+                    Networking.getCompanionPort(CLIENT_PORT, 2));
 
             JMX_PORT = config.getInt("jmx_port", JMX_PORT);
 
@@ -240,7 +242,7 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static String ACCESS_FILE = ".access";
-    
+
     /**
      * The name of the cookie where the HTTP auth token is stored.
      */
