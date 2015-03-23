@@ -2,6 +2,39 @@
 
 #### Version 0.5.0 (TBD)
 
+#### API Breaks
+* The `insert(json)` method now returns a `Set<Long>` instead of a `long`.
+* The `fetch` methods have been renamed `select`.
+* The `get` methods now return the most recently added value that exists instead of the oldest existing value.
+* Compound operations have been refactored as batch operations, which are now implemented server-side (meaning only 1 TCP round trip per operation) and have atomic guarantees.
+
+#### API Additions
+* Added support for the Concourse Criteria Language (CCL) which allows you to specify complex find/select criteria using structured language.
+* Added a `find()` method that returns all the records that have ever had data.
+* Added `select` methods that return the values for a one or more keys in all the records that match a criteria.
+* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
+* Added `jsonify` methods that return data from records as a JSON string dump.
+* Added `diff` methods that return the changes that have occurred in a record or key/record within a range of time.
+* Added a `find(key, value)` method that is a shortcut to query for records where `key` equals `value`.
+* Changed the method signature of the `close()` method so that it does not throw a checked `Exception`.
+* Added percent sign (%) wild card functionality that matches one or more characters for REGEX and NOT_REGEX operators in find operations. The (%) wildcard is an alias for the traditional regex (\*) wildcard. For example `find("name", REGEX, "%Jeff%")` returns the same result as `find("name", REGEX, "*Jeff*")` which is all the records where the name key contains the substring "Jeff".
+* Added support for specifying *operators* to `find` methods and the `Criteria` builder using string symbols. For example, the following method invocations are now identical:
+
+		concourse.find("foo", Operator.EQUALS, "bar");
+		concourse.find("foo", "=", "bar");
+		concourse.find("foo", "eq", "bar");
+		find("foo", eq, "bar"); // in CaSH
+
+* Added methods to limit the `audit` of a record or a key/record to a specified range of time.
+
+#### REST API
+* Added REST API functionality to Concourse Server that can be enabled by specifying the `http_port` in concourse.prefs.
+
+#### Client Drivers
+* Added a Python client driver
+* Added a PHP client driver
+* Added a Ruby client driver
+
 #### Inventory
 * Added an inventory to keep track of which records have been created.
 * Added logic to the `verify` methods to first check if a record exists and fail fast if possible.
@@ -19,21 +52,19 @@
 		> println fetch("name", record);
 		> }
 
+* Added the ability to request help information about specific functions in CaSH using the `help <function>` command.
+* Display performance logging using seconds instead of milliseconds.
+
 ##### Miscellaneous
-* Added a `verifyOrSet` method to the API that atomically ensures that a value is the only one that exists for a key in a record without creating more revisions than necessary.
 * Improved the performance of the `set` operation by over 25 percent.
 * Added functionality to client and management CLIs to automatically use connnection information specified in a `concourse_client.prefs` file located in the user's home directory. This gives users the option to invoke CLIs without having to specify any connection based arguments.
-* Added a `find(key, value)` method that is a shortcut to query for records where `key` equals `value`.
-* Changed the method signature of the `close()` method so that it does not throw a checked `Exception`.
-* Added percent sign (%) wild card functionality that matches one or more characters for REGEX and NOT_REGEX operators in find operations. The (%) wildcard is an alias for the traditional regex (\*) wildcard. For example `find("name", REGEX, "%Jeff%")` returns the same result as `find("name", REGEX, "*Jeff*")` which is all the records where the name key contains the substring "Jeff".
-* Added support for specifying *operators* to `find` methods and the `Criteria` builder using string symbols. For example, the following method invocations are now identical:
+* Added functionality to automatically choose a `shutdown_port` based on the specified `client_port`
+* Added option to perform a heap dump of a running Concourse Server instance to the `concourse` CLI.
+* Added option to get information about the Concourse Server version using the `concourse` CLI.
+* Changed from the MIT License to the Apache License, Version 2.0
 
-		concourse.find("foo", Operator.EQUALS, "bar");
-		concourse.find("foo", "=", "bar");
-		concourse.find("foo", "eq", "bar");
-		find("foo", eq, "bar"); // in CaSH
-
-* Added methods to limit the `audit` of a record or a key/record to a specified range of time.
+#### Bug Fixes
+* Fixed a bug that caused transactions to prematurely fail if an embedded atomic operation didn't succeed ([CON-263](https://cinchapi.atlassian.net/browse/CON-263)).
 
 #### Version 0.4.5 (TBD)
 
