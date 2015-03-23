@@ -195,7 +195,6 @@ class Concourse(object):
         else:
             raise StandardError
 
-
     def commit(self):
         """
 
