@@ -12,10 +12,11 @@ import ujson
 
 class Concourse(object):
     """
-    ConcourseDB is a self-tuning database that makes it easier for developers to quickly build robust and scalable
+    Concourse is a self-tuning database that makes it easier for developers to quickly build robust and scalable
     systems. Concourse dynamically adapts on a per-application basis and offers features like automatic indexing,
-    version control, and distributed ACID transactions. Concourse, in essence, abstracts away the management and tuning
-    aspects of the database and allows developers to focus on what really matters.
+    version control, and distributed ACID transactions within a big data platform that reduces operational complexity.
+    Concourse abstracts away the management and tuning aspects of the database and allows developers to focus on what
+    really matters.
     """
 
     @staticmethod
