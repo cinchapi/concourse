@@ -251,7 +251,6 @@ public class IndexRouter extends Router {
 
         });
 
-
         /**
          * POST /record/key
          * POST /key/record
