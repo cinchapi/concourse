@@ -110,6 +110,10 @@ fi
 cd "${0%/*}"
 APP_HOME="`pwd -P`/.."
 APP_HOME=`cd ${APP_HOME}; pwd`
+APP_HOME_PROPERTY="org.cinchapi.concourse.server.home=$APP_HOME"
+JVMOPTS=$JVMOPTS"
+-D$APP_HOME_PROPERTY
+"
 
 # The location of the concourse.prefs file that is used to configure the
 # application
@@ -291,7 +295,7 @@ version(){
 
 # Get the PID for the Concourse Server process
 getpid(){
-  local pid=`$JPS | grep "ConcourseServer" | cut -d' ' -f1`
+  local pid=`$JPS -v | grep "$APP_HOME_PROPERTY" | cut -d' ' -f1`
   if [ "X$pid" = "X" ]
     then
     rm $PIDFILE 2>/dev/null
