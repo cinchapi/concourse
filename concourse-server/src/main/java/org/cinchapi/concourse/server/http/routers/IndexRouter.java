@@ -317,7 +317,8 @@ public class IndexRouter extends Router {
                 else if (te == null) {
                     data = concourse.auditRecordStart(record, ts, creds,
                             transaction, environment);
-                } else {
+                } 
+                else {
                     data = concourse.auditKeyRecordStartEnd(key, record, ts, te, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
@@ -349,7 +350,8 @@ public class IndexRouter extends Router {
                 }
                 else if (te == null) {
                     data = concourse.auditKeyRecordStart(key, record, ts, creds, transaction, environment)
-                } else {
+                }
+                else {
                     data = concourse.auditKeyRecordStartEnd(key, record, ts, te, creds, transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
