@@ -38,7 +38,7 @@ import com.google.common.io.BaseEncoding;
  * @author Jeff Nelson
  */
 public class HttpRequests {
-    
+
     /**
      * Decode an auth token.
      * 
@@ -61,7 +61,7 @@ public class HttpRequests {
         return parts;
 
     }
-    
+
     /**
      * Encode an auth token. The encoded token embeds information about the
      * {@code environment} so that we can perform sanity checks that ensure the
@@ -148,6 +148,7 @@ public class HttpRequests {
                         }
                         request.setAttribute(
                                 GlobalState.HTTP_ACCESS_TOKEN_ATTRIBUTE, access);
+
                     }
                     catch (Exception e) {
                         if(e instanceof GeneralSecurityException
@@ -189,6 +190,13 @@ public class HttpRequests {
                 }
             }
         }
+        // Get the transaction token
+        String transaction = findCookieValue(
+                GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE, request);
+        if(transaction != null) {
+            request.setAttribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE,
+                    transaction);
+        }
+
     }
-    
 }

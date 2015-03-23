@@ -28,10 +28,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.vendor.spark.Request;
 import org.cinchapi.vendor.spark.RequestResponseFactory;
 import org.cinchapi.vendor.spark.route.RouteMatcher;
-
 import org.cinchapi.vendor.spark.Access;
 import org.cinchapi.vendor.spark.HaltException;
 import org.cinchapi.vendor.spark.Response;
@@ -144,7 +144,8 @@ public class MatcherFilter implements Filter {
                     }
                 } catch (HaltException hEx) { // NOSONAR
                     throw hEx; // NOSONAR
-                } catch (Exception e) {                 
+                } catch (Exception e) { 
+                    Logger.error("", e);
                     httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     bodyContent = INTERNAL_ERROR;
                 }

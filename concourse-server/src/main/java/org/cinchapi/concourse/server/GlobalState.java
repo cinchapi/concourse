@@ -265,6 +265,19 @@ public final class GlobalState extends Constants {
     @NonPreference
     public static final String HTTP_ENVIRONMENT_ATTRIBUTE = "org.cinchapi.concourse.server.http.EnvironmentAttribute";
 
+    /**
+     * The name of the cookie where the HTTP transaction token is stored.
+     */
+    @NonPreference
+    public static final String HTTP_TRANSACTION_TOKEN_COOKIE = "concoursedb_transaction_token";
+
+    /**
+     * The name of the attribute where the transaction token is temporarily
+     * stored for each HTTP request.
+     */
+    @NonPreference
+    public static final String HTTP_TRANSACTION_TOKEN_ATTRIBUTE = "org.cinchapi.concourse.server.http.TransactionTokenAttribute";
+
     // ========================================================================
 
 }

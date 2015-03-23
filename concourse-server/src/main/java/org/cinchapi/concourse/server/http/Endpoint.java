@@ -16,6 +16,7 @@
 package org.cinchapi.concourse.server.http;
 
 import org.cinchapi.concourse.thrift.TSecurityException;
+import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.vendor.spark.HaltException;
 
 import com.google.gson.JsonElement;
@@ -66,6 +67,7 @@ public abstract class Endpoint extends BaseRewritableRoute {
             }
             else {
                 response.status(500);
+                Logger.error("", e);
             }
             JsonObject json = new JsonObject();
             json.addProperty("error", e.getMessage());

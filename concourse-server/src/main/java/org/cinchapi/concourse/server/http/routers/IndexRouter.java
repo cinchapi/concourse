@@ -28,6 +28,7 @@ import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TObject;
+import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
@@ -130,6 +131,63 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 concourse.logout(creds, environment);
                 response.removeCookie(GlobalState.HTTP_AUTH_TOKEN_COOKIE);
+                return NO_DATA;
+            }
+
+        });
+
+        /*
+         * ######################
+         * #### TRANSACTIONS ####
+         * ######################
+         */
+
+        /**
+         * GET /stage
+         */
+        get(new Endpoint("/stage") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                TransactionToken transaction = concourse.stage(creds,
+                        environment);
+                String token = Long.toString(transaction.timestamp);
+                this.response.cookie("/",
+                        GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE, token, 900,
+                        false);
+                JsonObject data = new JsonObject();
+                data.addProperty("transaction", token);
+                return data;
+            }
+
+        });
+
+        /**
+         * GET /commit
+         */
+        get(new Endpoint("/commit") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                boolean result = concourse.commit(creds, transaction,
+                        environment);
+                this.response
+                        .removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
+                return new JsonPrimitive(result);
+            }
+
+        });
+
+        /**
+         * GET /abort
+         */
+        get(new Endpoint("/abort") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                concourse.abort(creds, transaction, environment);
+                this.response
+                        .removeCookie(GlobalState.HTTP_TRANSACTION_TOKEN_COOKIE);
                 return NO_DATA;
             }
 
@@ -242,11 +300,11 @@ public class IndexRouter extends Router {
             }
 
         });
-        
+
         /**
          * DELETE /record
          */
-        delete(new Endpoint("/:record"){
+        delete(new Endpoint("/:record") {
 
             @Override
             protected JsonElement serve() throws Exception {
@@ -254,7 +312,7 @@ public class IndexRouter extends Router {
                 concourse.clearRecord(record, creds, transaction, environment);
                 return NO_DATA;
             }
-            
+
         });
 
         /**

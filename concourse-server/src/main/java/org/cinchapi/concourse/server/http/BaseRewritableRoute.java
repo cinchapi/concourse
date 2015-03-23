@@ -27,6 +27,7 @@ import org.cinchapi.vendor.spark.Request;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Longs;
 
 import org.cinchapi.vendor.spark.Response;
 
@@ -102,7 +103,7 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
             List<String> list = Lists.newArrayList(request.queryMap(param)
                     .values());
             list.removeAll(EMPTY_STRING_COLLECTION);
-            if(list.size() == 1){
+            if(list.size() == 1) {
                 String elt = list.get(0);
                 elt.replaceAll(", ", ",");
                 String[] elts = elt.split(",");
@@ -173,6 +174,14 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
         this.environment = Objects.firstNonNull((String) request
                 .attribute(GlobalState.HTTP_ENVIRONMENT_ATTRIBUTE),
                 GlobalState.DEFAULT_ENVIRONMENT);
+        try {
+            Long timestamp = Longs.tryParse((String) request
+                    .attribute(GlobalState.HTTP_TRANSACTION_TOKEN_ATTRIBUTE));
+            if(this.creds != null && timestamp != null) {
+                this.transaction = new TransactionToken(creds, timestamp);
+            }
+        }
+        catch (NullPointerException e) {}
         return handle();
     }
 }
