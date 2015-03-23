@@ -548,6 +548,8 @@ public class ConcourseServer implements
                         DEFAULT_ENVIRONMENT);
         FileSystem.mkdirs(bufferStore);
         FileSystem.mkdirs(dbStore);
+        FileSystem.lock(bufferStore);
+        FileSystem.lock(dbStore);
         TServerSocket socket = new TServerSocket(port);
         ConcourseService.Processor<Iface> processor = new ConcourseService.Processor<Iface>(
                 this);

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,6 +35,8 @@ import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Interface to the underlying filesystem which provides methods to perform file
@@ -278,6 +280,28 @@ public final class FileSystem {
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Lock the file or directory specified in {@code path} for use in this JVM
+     * process. If the lock cannot be acquired, an exception is thrown.
+     * 
+     * @param path
+     */
+    public static void lock(String path) {
+        if(Files.isDirectory(Paths.get(path))) {
+            lock(path + File.separator + "concourse.lock");
+        }
+        else {
+            try {
+                checkState(getFileChannel(path).tryLock() != null,
+                        "Unable to grab lock for %s because another "
+                                + "Concourse Server process is using it", path);
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 
