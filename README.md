@@ -27,7 +27,7 @@ data = [
     }
 ]
 ```
-We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
+###### You can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
 ```python
 concourse = Concourse.connect()
 records = concourse.insert(data) # each object is added to a distinct record
@@ -35,30 +35,30 @@ lebron = records.pop()
 durant = records.pop()
 kobe = records.pop()
 ```
-You can read and modify individual attributes without loading the entire record.
+###### You can read and modify individual attributes without loading the entire record.
 ```python
 concourse.get("age", kobe)
 concourse.add("name", "KD", durant)
 concourse.remove("jersey_number", 23, lebron)
 ```
-You can easily find records that match a criteria and select the desired since everything is automatically indexed.
+###### You can easily find records that match a criteria and select the desired since everything is automatically indexed.
 ```python
 concourse.select(criteria="team = Chicago Bulls")
 concourse.select(keys=["name", "team"], criteria="age bw 22 29")
 ```
-You can even query data from the past without doing any extra work.
+###### You can even query data from the past without doing any extra work.
 ```python
 concourse.get("age", durant, "04/2009")
 concourse.find("team = Chicago Bulls at 2011")
 concourse.select(criteria="age > 25 and team != Chicago Bulls", timestamp="two years ago")
 ```
-It is very easy to analyze how data has changed over time and revert to previous states.
+###### It is very easy to analyze how data has changed over time and revert to previous states.
 ```python
 # Analyze how data has changed over time and revert to previous states
 concourse.audit("team", lebron)
 concourse.revert("jersey_number", kobe, "two years ago")
 ```
-And ACID transactions are available for important, cross record changes.
+###### And ACID transactions are available for important, cross record changes.
 ```python
 concourse.stage()
 try:
