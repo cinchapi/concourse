@@ -5,7 +5,7 @@
 This is version 0.5.0 of Concourse.
 
 ## Quickstart
-Let's assume we have the an array of JSON objects that describe NBA players. We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
+Let's assume we have the an array of JSON objects that describe NBA players.
 ```python
 from concourse.concourse import *
 
@@ -26,33 +26,40 @@ data = [
         "team": "LA Lakers"
     }
 ]
-
+```
+We can use Concourse to quickly insert the data and do some quick analysis. Notice that we don't have to declare a schema, create any structure or configure any indexes.
+```python
 concourse = Concourse.connect()
-
 records = concourse.insert(data) # each object is added to a distinct record
 lebron = records.pop()
 durant = records.pop()
 kobe = records.pop()
-
-# Read and modify individual attributes without loading the entire record
+```
+You can read and modify individual attributes without loading the entire record.
+```python
 concourse.get(key="age", record=kobe)
 concourse.add(key="name", value="KD", record=durant)
 concourse.remove(key="jersey_number", value=23, record=lebron)
-
-# Easily find records that match a certain criteria since data is automatically indexed
+```
+You can easily find records that match a criteria and select the desired since everything is automatically indexed.
+```python
 concourse.select(criteria="team = Chicago Bulls")
 concourse.select(keys=["name", "team"], criteria="age bw 22 29")
-
-# You can even query data from the past
+```
+You can even query data from the past without doing any extra work.
+```python
 concourse.get(key="age", record=durant, timestamp="04/2009")
 concourse.find(criteria="team = Chicago Bulls at 2011")
 concourse.select(criteria="age > 25 and team != Chicago Bulls", timestamp="two years ago")
-
+```
+It is very easy to analyze how data has changed over time and revert to previous states.
+```python
 # Analyze how data has changed over time and revert to previous states
 concourse.audit(key="team", record=lebron)
 concourse.revert(key="jersey_number", record=kobe, timestamp="two years ago")
-
-# ACID transactions are available for important cross record changes
+```
+And ACID transactions are available for important, cross record changes.
+```python
 concourse.stage()
 try:
     concourse.set(key="current_team", value="OKC Thunder", record=lebron)
