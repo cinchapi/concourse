@@ -24,7 +24,7 @@ class Tag:
         return self.__str__()
 
     def __eq__(self, other):
-        return self.value == other
+        return self.value == other.value
 
 
 class Link:
@@ -49,3 +49,6 @@ class Link:
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other):
+        return self.record == other.record

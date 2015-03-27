@@ -12,11 +12,10 @@ import ujson
 
 class Concourse(object):
     """
-    Concourse is a self-tuning database that makes it easier for developers to quickly build robust and scalable
-    systems. Concourse dynamically adapts on a per-application basis and offers features like automatic indexing,
-    version control, and distributed ACID transactions within a big data platform that reduces operational complexity.
-    Concourse abstracts away the management and tuning aspects of the database and allows developers to focus on what
-    really matters.
+    ConcourseDB is a self-tuning database that makes it easier to quickly build reliable and scalable systems.
+    Concourse dynamically adapts to any application and offers features like automatic indexing, version control, and
+    distributed ACID transactions within a big data platform that manages itself, reduces costs and allows developers
+    to focus on what really matters.
     """
 
     @staticmethod
@@ -35,8 +34,7 @@ class Concourse(object):
 
     def __init__(self, host, port, username, password, environment):
         """
-        Create a new client connection to the specified environment of the specified Concourse Server
-        and return a handle to facilitate interaction.
+        Initialize a new client connection.
         :param host: the host of the Concourse Server
         :param port: the port of the Concourse Server
         :param username: the username with which to connect
@@ -103,7 +101,7 @@ class Concourse(object):
             return self.client.addKeyValueRecord(key, value, records,
                                                  self.creds, self.transaction, self.environment)
         else:
-            raise ValueError
+            raise ValueError("Must specify records as either an integer, long, list of integers or list of longs")
 
     def audit(self, key=None, record=None, start=None, end=None):
         """
@@ -128,24 +126,23 @@ class Concourse(object):
         else:
             return self.client.auditRecord(record, self.creds, self.transaction, self.environment)
 
-    def browse(self, keys, timestamp=None):
+    def browse(self, keys=None, key=None, timestamp=None):
         """
 
         :param keys:
         :param timestamp:
         :return:
         """
+        keys = keys if keys else key
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
-        if isinstance(keys, list):
-            if timestamp:
-                data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
-            else:
-                data = self.client.browseKeys(keys, self.creds, self.transaction, self.environment)
+        if isinstance(keys, list) and timestamp:
+            data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
+        elif isinstance(keys, list):
+            data = self.client.browseKeys(keys, self.creds, self.transaction, self.environment)
+        elif timestamp:
+            data = self.client.browseKeyTime(keys, self.creds, self.transaction, self.environment)
         else:
-            if timestamp:
-                data = self.client.browseKeyTime(keys, self.creds, self.transaction, self.environment)
-            else:
-                data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
+            data = self.client.browseKey(keys, self.creds, self.transaction, self.environment)
         return pythonify(data)
 
     def chronologize(self, key, record, start=None, end=None):
@@ -249,7 +246,7 @@ class Concourse(object):
         else:
             return self.client.find(self.creds, self.transaction, self.environment)
 
-    def get(self, keys=None, key=None, criteria=None, records=None, record=None, timestamp=None):
+    def get(self, keys=None, key=None, criteria=None, where=None, records=None, record=None, timestamp=None):
         """
 
         :param keys:
@@ -258,8 +255,9 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys if keys else key
-        records = records if records else record
+        criteria = criteria or where
+        keys = keys or key
+        records = records or record
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.getRecords(records, self.creds, self.transaction, self.environment)
