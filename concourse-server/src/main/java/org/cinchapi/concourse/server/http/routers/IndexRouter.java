@@ -16,7 +16,6 @@
 package org.cinchapi.concourse.server.http.routers;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
