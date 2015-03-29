@@ -17,6 +17,8 @@ package org.cinchapi.concourse.util;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Strings;
 
 /**
@@ -45,5 +47,24 @@ public class ObjectUtils {
                 || (value.getClass().isArray() && ((Object[]) value).length == 0)
                 || (value instanceof String && Strings
                         .isNullOrEmpty((String) value));
+    }
+
+    /**
+     * This method is similar to {@link Objects#firstNonNull(Object, Object)}
+     * except it takes an arbitrary number of arguments and it won't throw a NPE
+     * of all the objects are null.
+     * 
+     * @param objects
+     * @return the first non-null object
+     */
+    @SafeVarargs
+    @Nullable
+    public static <T> T firstNonNull(T... objects) {
+        for (T object : objects) {
+            if(object != null) {
+                return object;
+            }
+        }
+        return null;
     }
 }

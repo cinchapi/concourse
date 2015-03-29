@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cinchapi.concourse;
+package org.cinchapi.concourse.http;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
-import java.util.List;
+import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 
+import org.cinchapi.concourse.ConcourseIntegrationTest;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.http.HttpServer;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Networking;
 import org.cinchapi.concourse.util.Reflection;
-import org.cinchapi.concourse.util.TestData;
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -45,11 +43,34 @@ import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 /**
- * Unit tests for the REST API.
+ * A class that defines methods and basic tests for interacting with the HTTP
+ * functionality of Concourse Server.
  * 
  * @author Jeff Nelson
  */
-public class RestApiTest extends ConcourseIntegrationTest {
+public class HttpTest extends ConcourseIntegrationTest {
+
+    /**
+     * Do anything that is necessary to clean up the URL args. For example, make
+     * sure any records (represented as an int or long) does not get rendered
+     * using comma separators.
+     * 
+     * @param args
+     * @return the clean args
+     */
+    private static Object[] cleanUrlArgs(Object... args) {
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            if(arg.getClass() == long.class || arg.getClass() == int.class) {
+                args[i] = Long.toString((long) arg);
+            }
+            else if(arg.getClass() == Long.class
+                    || arg.getClass() == Integer.class) {
+                args[i] = arg.toString();
+            }
+        }
+        return args;
+    }
 
     /**
      * Return the response body as the appropriate Java object.
@@ -57,7 +78,7 @@ public class RestApiTest extends ConcourseIntegrationTest {
      * @param response
      * @return the response body
      */
-    private static <T> T bodyAsJava(Response response, TypeToken<T> type) {
+    protected static <T> T bodyAsJava(Response response, TypeToken<T> type) {
         Type type0 = type.getType();
         return new Gson().fromJson(bodyAsJson(response), type0);
     }
@@ -68,7 +89,7 @@ public class RestApiTest extends ConcourseIntegrationTest {
      * @param response
      * @param the json response
      */
-    private static JsonElement bodyAsJson(Response response) {
+    protected static JsonElement bodyAsJson(Response response) {
         try {
             String body = response.body().string();
             JsonElement json = new JsonParser().parse(body);
@@ -84,13 +105,25 @@ public class RestApiTest extends ConcourseIntegrationTest {
      */
     private static final MediaType JSON = MediaType
             .parse("application/json; charset=utf-8");
+
+    /**
+     * The base URL.
+     */
     private String base = "http://localhost:";
 
+    /**
+     * The HTTP Client.
+     */
     private OkHttpClient http = new OkHttpClient();
 
+    /**
+     * A reference to the HttpServer that interacts with Concourse Server.
+     * Subclasses should never need to interact with this directly.
+     */
     private HttpServer httpServer;
 
     {
+        // Setup support for cookies
         CookieManager cm = new CookieManager();
         cm.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         http.setCookieHandler(cm);
@@ -124,44 +157,40 @@ public class RestApiTest extends ConcourseIntegrationTest {
         base += port;
     }
 
-    @Test
-    public void testGetRoot() {
-        login();
-        List<Long> r1 = bodyAsJava(get("/"), new TypeToken<List<Long>>() {});
-        Assert.assertTrue(r1.isEmpty());
-        long record = client.add("foo", "bar");
-        List<Long> r2 = bodyAsJava(get("/"), new TypeToken<List<Long>>() {});
-        Assert.assertTrue(r2.contains(record));
-    }
-
-    @Test
-    public void testLogin() {
-        Response resp = login();
-        Assert.assertEquals(200, resp.code());
-        JsonObject body = (JsonObject) bodyAsJson(resp);
-        Assert.assertEquals("default", body.get("environment").getAsString());
-    }
-
-    @Test
-    public void testLoginNonDefaultEnvironment() {
-        String environment = TestData.getStringNoDigits().replaceAll(" ", "");
-        Response resp = login(environment);
-        Assert.assertEquals(200, resp.code());
-        JsonObject body = (JsonObject) bodyAsJson(resp);
-        Assert.assertEquals(environment, body.get("environment").getAsString());
+    /**
+     * Perform a DELETE request
+     * 
+     * @param route
+     * @param args
+     * @return the response
+     */
+    protected Response delete(String route, Object... args) {
+        try {
+            args = cleanUrlArgs(args);
+            route = MessageFormat.format(route, args);
+            Request request = new Request.Builder().url(base + route).delete()
+                    .build();
+            return http.newCall(request).execute();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /**
      * Perform a GET request
      * 
      * @param route
+     * @param args
      * @return the response
      */
-    protected Response get(String route) {
+    protected Response get(String route, Object... args) {
         try {
-            return http.newCall(
-                    new Request.Builder().url(base + route).get().build())
-                    .execute();
+            args = cleanUrlArgs(args);
+            route = MessageFormat.format(route, args);
+            Request request = new Request.Builder().url(base + route).get()
+                    .build();
+            return http.newCall(request).execute();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
@@ -198,14 +227,39 @@ public class RestApiTest extends ConcourseIntegrationTest {
      * 
      * @param route
      * @param data
+     * @param args
      * @return the response
      */
-    protected Response post(String route, String data) {
+    protected Response post(String route, String data, Object... args) {
         try {
             RequestBody body = RequestBody.create(JSON, data);
-            return http.newCall(
-                    new Request.Builder().url(base + route).post(body).build())
-                    .execute();
+            args = cleanUrlArgs(args);
+            route = MessageFormat.format(route, args);
+            Request request = new Request.Builder().url(base + route)
+                    .post(body).build();
+            return http.newCall(request).execute();
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Perform a PUT request.
+     * 
+     * @param route
+     * @param data
+     * @param args
+     * @return the response
+     */
+    protected Response put(String route, String data, Object... args) {
+        try {
+            RequestBody body = RequestBody.create(JSON, data);
+            args = cleanUrlArgs(args);
+            route = MessageFormat.format(route, args);
+            Request request = new Request.Builder().url(base + route).put(body)
+                    .build();
+            return http.newCall(request).execute();
         }
         catch (IOException e) {
             throw Throwables.propagate(e);
