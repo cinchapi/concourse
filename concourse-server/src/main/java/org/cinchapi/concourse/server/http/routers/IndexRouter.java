@@ -32,6 +32,7 @@ import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
+import org.cinchapi.concourse.util.ObjectUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -315,6 +316,39 @@ public class IndexRouter extends Router {
             }
 
         });
+        
+        /**
+         * GET /record/audit?timestamp=<ts>
+         * GET /record/audit?start=<ts>&end=<te>
+         */
+        get(new Endpoint("/:arg1/audit") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = ObjectUtils.firstNonNull(ts, getParamValue("timestamp"));
+                Long record = Longs.tryParse(arg1);
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditRecord(record, creds, transaction,
+                            environment);
+                }
+                else if(te == null) {
+                    data = concourse
+                            .auditRecordStart(record, Timestamp.parse(ts).getMicros(),
+                                    creds, transaction, environment);
+                }
+                else {
+                    data = concourse.auditRecordStartEnd(record,
+                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
+
+        });
 
         /**
          * GET /key/record[?timestamp=<ts>]
@@ -419,38 +453,7 @@ public class IndexRouter extends Router {
 
         });
 
-        /**
-         * GET /record/audit?timestamp=<ts>
-         * GET /record/audit?start=<ts>&end=<te>
-         */
-        get(new Endpoint("/:arg1/audit") {
-
-            @Override
-            protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
-                String ts = getParamValue("start");
-                String te = getParamValue("end");
-                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
-                Long record = Timestamp.parse(arg1).getMicros();
-                Object data;
-                if(ts == null) {
-                    data = concourse.auditRecord(record, creds, null,
-                            environment);
-                }
-                else if(te == null) {
-                    data = concourse
-                            .auditRecordStart(record, Timestamp.parse(ts).getMicros(),
-                                    creds, transaction, environment);
-                }
-                else {
-                    data = concourse.auditRecordStartEnd(record,
-                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
-                            transaction, environment);
-                }
-                return DataServices.gson().toJsonTree(data);
-            }
-
-        });
+        
 
         /**
          * GET /record/key/audit?timestamp=<ts>
