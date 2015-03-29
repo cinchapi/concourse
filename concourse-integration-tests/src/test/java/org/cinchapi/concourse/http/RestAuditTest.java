@@ -144,5 +144,30 @@ public class RestAuditTest extends RestTest {
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
         } 
     }
+    
+    @Test
+    public void testAuditKeyRecordStart(){
+        long record = TestData.getLong();
+        String key = TestData.getSimpleString();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        long start = Time.now();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        Map<Long, String> resp = bodyAsJava(
+                get("/{0}/{1}/audit?start={2}", key, record, start),
+                new TypeToken<Map<Long, String>>() {});
+        Map<Timestamp, String> expected = client.audit(key, record,
+                Timestamp.fromMicros(start));
+        Assert.assertEquals(expected.size(), resp.size());
+        for (Entry<Timestamp, String> entry : expected.entrySet()) {
+            long timestamp = entry.getKey().getMicros();
+            Assert.assertTrue(timestamp >= start);
+            Assert.assertEquals(entry.getValue(), resp.get(timestamp));
+        }
+    }
 
 }
