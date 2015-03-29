@@ -79,7 +79,7 @@ public class RestAuditTest extends RestTest {
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
         }
     }
-    
+
     @Test
     public void testAuditRecordStartEnd() {
         long record = TestData.getLong();
@@ -106,47 +106,45 @@ public class RestAuditTest extends RestTest {
             Assert.assertTrue(timestamp >= start);
             Assert.assertTrue(timestamp <= end);
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
-        }  
+        }
     }
-    
+
     @Test
-    public void testAuditKeyRecord(){
+    public void testAuditKeyRecord() {
         long record = TestData.getLong();
         String key = TestData.getSimpleString();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
             client.add(key, i, record);
         }
-        Map<Long, String> resp = bodyAsJava(
-                get("/{0}/{1}/audit", key, record),
+        Map<Long, String> resp = bodyAsJava(get("/{0}/{1}/audit", key, record),
                 new TypeToken<Map<Long, String>>() {});
         Map<Timestamp, String> expected = client.audit(key, record);
         for (Entry<Timestamp, String> entry : expected.entrySet()) {
             long timestamp = entry.getKey().getMicros();
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
-        }  
+        }
     }
-    
+
     @Test
-    public void testAuditRecordKey(){
+    public void testAuditRecordKey() {
         long record = TestData.getLong();
         String key = TestData.getSimpleString();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
             client.add(key, i, record);
         }
-        Map<Long, String> resp = bodyAsJava(
-                get("/{0}/{1}/audit", record, key),
+        Map<Long, String> resp = bodyAsJava(get("/{0}/{1}/audit", record, key),
                 new TypeToken<Map<Long, String>>() {});
         Map<Timestamp, String> expected = client.audit(key, record);
         for (Entry<Timestamp, String> entry : expected.entrySet()) {
             long timestamp = entry.getKey().getMicros();
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
-        } 
+        }
     }
-    
+
     @Test
-    public void testAuditKeyRecordStart(){
+    public void testAuditKeyRecordStart() {
         long record = TestData.getLong();
         String key = TestData.getSimpleString();
         int count = TestData.getScaleCount();
@@ -166,6 +164,36 @@ public class RestAuditTest extends RestTest {
         for (Entry<Timestamp, String> entry : expected.entrySet()) {
             long timestamp = entry.getKey().getMicros();
             Assert.assertTrue(timestamp >= start);
+            Assert.assertEquals(entry.getValue(), resp.get(timestamp));
+        }
+    }
+
+    @Test
+    public void testAuditKeyRecordStartEnd() {
+        long record = TestData.getLong();
+        String key = TestData.getSimpleString();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        long start = Time.now();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        long end = Time.now();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        Map<Long, String> resp = bodyAsJava(
+                get("/{0}/{1}/audit?start={2}&end={3}", key, record, start, end),
+                new TypeToken<Map<Long, String>>() {});
+        Map<Timestamp, String> expected = client.audit(key, record,
+                Timestamp.fromMicros(start), Timestamp.fromMicros(end));
+        Assert.assertEquals(expected.size(), resp.size());
+        for (Entry<Timestamp, String> entry : expected.entrySet()) {
+            long timestamp = entry.getKey().getMicros();
+            Assert.assertTrue(timestamp >= start);
+            Assert.assertTrue(timestamp <= end);
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
         }
     }
