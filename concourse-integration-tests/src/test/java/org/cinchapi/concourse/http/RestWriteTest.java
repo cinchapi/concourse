@@ -15,6 +15,9 @@
  */
 package org.cinchapi.concourse.http;
 
+import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,5 +49,18 @@ public class RestWriteTest extends RestTest {
         Assert.assertEquals(json.get("string").getAsString(), client.get("string", record));
         
     }
+    
+    @Test
+    public void testInsertKeyAsValueInNewRecord(){
+        String key = TestData.getSimpleString();
+        Object value = TestData.getObject();
+        String strValue = prepareForJsonImport(value);
+        Response resp = post("/{0}", strValue, key);
+        long record = bodyAsJava(resp, TypeToken.get(Long.class));
+        Assert.assertEquals(200, resp.code());
+        Assert.assertEquals(value, client.get(key, record));
+    }
+    
+    
 
 }

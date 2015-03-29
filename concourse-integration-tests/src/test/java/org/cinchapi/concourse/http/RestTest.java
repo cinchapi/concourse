@@ -15,6 +15,9 @@
  */
 package org.cinchapi.concourse.http;
 
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.DataServices;
+
 /**
  * A base class for tests against the REST Api. This class handles boilerplate
  * scaffolding (e.g. logging in, etc) so that subclasses can simply define test
@@ -28,6 +31,17 @@ public class RestTest extends HttpTest {
     public void beforeEachTest() {
         super.beforeEachTest();
         login();
+    }
+
+    /**
+     * Return a string that encodes {@code value} in the form that is necessary
+     * for JSON import.
+     * 
+     * @param value
+     * @return the json import ready string
+     */
+    public static String prepareForJsonImport(Object value) {
+        return DataServices.gson().toJson(Convert.javaToThrift(value));
     }
 
 }
