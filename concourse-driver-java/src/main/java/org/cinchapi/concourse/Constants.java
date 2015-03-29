@@ -16,7 +16,7 @@
 package org.cinchapi.concourse;
 
 /**
- * A collection of constant definitions.
+ * A collection of driver accessible constant definitions.
  * 
  * @author Jeff Nelson
  */
