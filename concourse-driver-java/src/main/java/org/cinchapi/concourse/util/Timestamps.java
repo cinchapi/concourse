@@ -59,7 +59,7 @@ public class Timestamps {
             if(sought.getMicros() == stored.getMicros()) {
                 return mid;
             }
-            else if(sought.getMicros() < stored.getMicros()) {
+            else if(sought.getMicros() > stored.getMicros()) {
                 start = mid + 1;
             }
             else {

@@ -81,15 +81,15 @@ public class TimestampsTest {
         }
         Timestamp startTimestamp = Timestamp.fromMicros(
                 Iterables.getFirst(timestamps, null).getMicros());
-        assertEquals(1, Timestamps.
+        assertEquals(0, Timestamps.
                 findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp.fromMicros(
                 Iterables.get(timestamps, timestamps.size()/2).getMicros());
-        assertEquals(timestamps.size()/2+1, Timestamps.
+        assertEquals(timestamps.size()/2, Timestamps.
                 findNearestSuccessorForTimestamp(timestamps, startTimestamp));
         startTimestamp = Timestamp.fromMicros(
                 Iterables.getLast(timestamps).getMicros());
-        assertEquals(timestamps.size(), Timestamps.
+        assertEquals(timestamps.size()-1, Timestamps.
                 findNearestSuccessorForTimestamp(timestamps, startTimestamp));   
     }
     
