@@ -327,22 +327,23 @@ public class IndexRouter extends Router {
             @Override
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":record");
-                String ts = getParamValue("start");
-                String te = getParamValue("end");
-                ts = ObjectUtils.firstNonNull(ts, getParamValue("timestamp"));
+                String start = getParamValue("start");
+                String end = getParamValue("end");
+                start = ObjectUtils.firstNonNull(start,
+                        getParamValue("timestamp"));
                 Long record = Longs.tryParse(arg1);
                 Object data;
                 Preconditions.checkArgument(record != null,
                         "Cannot perform audit on %s because it "
                                 + "is not a valid record", arg1);
-                if(record != null && ts != null && te != null) {
+                if(start != null && end != null) {
                     data = concourse.auditRecordStartEnd(record, Timestamp
-                            .parse(ts).getMicros(), Timestamp.parse(te)
+                            .parse(start).getMicros(), Timestamp.parse(end)
                             .getMicros(), creds, transaction, environment);
                 }
-                else if(record != null && ts != null) {
+                else if(start != null) {
                     data = concourse.auditRecordStart(record,
-                            Timestamp.parse(ts).getMicros(), creds,
+                            Timestamp.parse(start).getMicros(), creds,
                             transaction, environment);
                 }
                 else {
@@ -469,27 +470,33 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                String ts = getParamValue("start");
-                String te = getParamValue("end");
-                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                String start = getParamValue("start");
+                String end = getParamValue("end");
+                start = ObjectUtils.firstNonNull(start,
+                        getParamValue("timestamp"));
                 Object[] args = pickKeyAndRecord(arg1, arg2);
                 String key = (String) args[0];
                 Long record = (Long) args[1];
+                Preconditions.checkArgument(
+                        record != null && !StringUtils.isBlank(key),
+                        "Cannot perform audit on %s/%s because it "
+                                + "is not a valid key/record combination",
+                        arg1, arg2);
                 Object data;
-                if(ts == null) {
-                    data = concourse.auditKeyRecord(key, record, creds,
+                if(start != null && end != null) {
+                    data = concourse.auditKeyRecordStartEnd(key, record,
+                            Timestamp.parse(start).getMicros(), Timestamp
+                                    .parse(end).getMicros(), creds,
                             transaction, environment);
                 }
-                else if(te == null) {
+                else if(start != null) {
                     data = concourse.auditKeyRecordStart(key, record, Timestamp
-                            .parse(ts).getMicros(), creds, transaction,
+                            .parse(start).getMicros(), creds, transaction,
                             environment);
                 }
                 else {
-                    data = concourse.auditKeyRecordStartEnd(key, record,
-                            Timestamp.parse(ts).getMicros(), Timestamp
-                                    .parse(te).getMicros(), creds, transaction,
-                            environment);
+                    data = concourse.auditKeyRecord(key, record, creds,
+                            transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }

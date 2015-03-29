@@ -39,7 +39,7 @@ public class RestAuditTest extends RestTest {
         long record = TestData.getLong();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         Map<Long, String> resp = bodyAsJava(get("/{0}/audit", record),
                 new TypeToken<Map<Long, String>>() {});
@@ -61,11 +61,11 @@ public class RestAuditTest extends RestTest {
         long record = TestData.getLong();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         long start = Time.now();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         Map<Long, String> resp = bodyAsJava(
                 get("/{0}/audit?start={1}", record, start),
@@ -85,15 +85,15 @@ public class RestAuditTest extends RestTest {
         long record = TestData.getLong();
         int count = TestData.getScaleCount();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         long start = Time.now();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         long end = Time.now();
         for (int i = 0; i < count; i++) {
-            client.add(TestData.getSimpleString(), count, record);
+            client.add(TestData.getSimpleString(), i, record);
         }
         Map<Long, String> resp = bodyAsJava(
                 get("/{0}/audit?start={1}&end={2}", record, start, end),
@@ -106,8 +106,43 @@ public class RestAuditTest extends RestTest {
             Assert.assertTrue(timestamp >= start);
             Assert.assertTrue(timestamp <= end);
             Assert.assertEquals(entry.getValue(), resp.get(timestamp));
+        }  
+    }
+    
+    @Test
+    public void testAuditKeyRecord(){
+        long record = TestData.getLong();
+        String key = TestData.getSimpleString();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
         }
-        
+        Map<Long, String> resp = bodyAsJava(
+                get("/{0}/{1}/audit", key, record),
+                new TypeToken<Map<Long, String>>() {});
+        Map<Timestamp, String> expected = client.audit(key, record);
+        for (Entry<Timestamp, String> entry : expected.entrySet()) {
+            long timestamp = entry.getKey().getMicros();
+            Assert.assertEquals(entry.getValue(), resp.get(timestamp));
+        }  
+    }
+    
+    @Test
+    public void testAuditRecordKey(){
+        long record = TestData.getLong();
+        String key = TestData.getSimpleString();
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; i++) {
+            client.add(key, i, record);
+        }
+        Map<Long, String> resp = bodyAsJava(
+                get("/{0}/{1}/audit", record, key),
+                new TypeToken<Map<Long, String>>() {});
+        Map<Timestamp, String> expected = client.audit(key, record);
+        for (Entry<Timestamp, String> entry : expected.entrySet()) {
+            long timestamp = entry.getKey().getMicros();
+            Assert.assertEquals(entry.getValue(), resp.get(timestamp));
+        } 
     }
 
 }
