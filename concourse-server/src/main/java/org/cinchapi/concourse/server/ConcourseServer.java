@@ -690,7 +690,7 @@ public class ConcourseServer implements
                     base.keySet(), start);
             Entry<Long, String> entry = null;
             if(index > 0) {
-                entry = Iterables.get(base.entrySet(), index - 1);
+                entry = Iterables.get(base.entrySet(), index);
                 result.put(entry.getKey(), entry.getValue());
             }
             for (int i = index; i < base.size(); ++i) {
