@@ -24,6 +24,7 @@ import java.util.Set;
 import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.annotate.NonPreference;
 import org.cinchapi.concourse.config.ConcourseConfiguration;
+import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.util.Networking;
 
 import ch.qos.logback.classic.Level;
@@ -174,8 +175,14 @@ public final class GlobalState extends Constants {
     static {
         ConcourseConfiguration config;
         try {
-            config = ConcourseConfiguration.loadConfig("conf" + File.separator
-                    + "concourse.prefs");
+            String devPrefs = "conf" + File.separator + "concourse.prefs.dev";
+            String defaultPrefs = "conf" + File.separator + "concourse.prefs";
+            if(FileSystem.hasFile(devPrefs)) {
+                config = ConcourseConfiguration.loadConfig(devPrefs);
+            }
+            else {
+                config = ConcourseConfiguration.loadConfig(defaultPrefs);
+            }
         }
         catch (Exception e) {
             config = null;

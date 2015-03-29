@@ -58,6 +58,7 @@ Thumbs.db
 *.README*
 *.access
 *.launch
+*concourse.prefs.dev*
 
 # Python project metadata #
 ###########################
