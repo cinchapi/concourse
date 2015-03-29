@@ -33,6 +33,7 @@ import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
@@ -416,6 +417,115 @@ public class IndexRouter extends Router {
                 }
             }
 
+        });
+
+        /**
+         * GET /record/audit?timestamp=<ts>
+         * GET /record/audit?start=<ts>&end=<te>
+         */
+        get(new Endpoint("/:arg1/audit") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Long record = Timestamp.parse(arg1).getMicros();
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditRecord(record, creds, null,
+                            environment);
+                }
+                else if(te == null) {
+                    data = concourse
+                            .auditRecordStart(record, Timestamp.parse(ts).getMicros(),
+                                    creds, transaction, environment);
+                }
+                else {
+                    data = concourse.auditRecordStartEnd(record,
+                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
+
+        });
+
+        /**
+         * GET /record/key/audit?timestamp=<ts>
+         * GET /record/key/audit?start=<ts>&end=<te>
+         * GET /key/record/audit?timestamp=<ts>
+         * GET /key/record/audit?start=<ts>&end=<te>
+         */
+        get(new Endpoint("/:arg1/:arg2/audit") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Object[] args = pickKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                Object data;
+                if(ts == null) {
+                    data = concourse.auditKeyRecord(key, record, creds,
+                            transaction, environment);
+                }
+                else if(te == null) {
+                    data = concourse
+                            .auditKeyRecordStart(key, record,
+                                    Timestamp.parse(ts).getMicros(), creds, transaction,
+                                    environment);
+                }
+                else {
+                    data = concourse.auditKeyRecordStartEnd(key, record,
+                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
+        });
+
+        /**
+         * GET /record/key/chronologize?timestamp=<ts>
+         * GET /record/key/chronologize?start=<ts>&end=<te>
+         * GET /key/record/chronologize?timestamp=<ts>
+         * GET /key/record/chronologize?start=<ts>&end=<te>
+         */
+        get(new Endpoint("/:arg1/:arg2/chronologize") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String ts = getParamValue("start");
+                String te = getParamValue("end");
+                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
+                Object[] args = pickKeyAndRecord(arg1, arg2);
+                String key = (String) args[0];
+                Long record = (Long) args[1];
+                Object data;
+                if(ts == null) {
+                    data = concourse.chronologizeKeyRecord(key, record, creds,
+                            transaction, environment);
+                }
+                else if(te == null) {
+                    data = concourse
+                            .chronologizeKeyRecordStart(key, record,
+                                    Timestamp.parse(ts).getMicros(), creds, transaction,
+                                    environment);
+                }
+                else {
+                    data = concourse.chronologizeKeyRecordStartEnd(key, record,
+                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(data);
+            }
         });
 
     }
