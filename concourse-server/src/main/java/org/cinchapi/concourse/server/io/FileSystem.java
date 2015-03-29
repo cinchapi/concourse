@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
@@ -298,6 +299,10 @@ public final class FileSystem {
                 checkState(getFileChannel(path).tryLock() != null,
                         "Unable to grab lock for %s because another "
                                 + "Concourse Server process is using it", path);
+            }
+            catch (OverlappingFileLockException e) {
+                Logger.warn("Trying to lock {}, but the current "
+                        + "JVM is already the owner", path);
             }
             catch (IOException e) {
                 throw Throwables.propagate(e);
