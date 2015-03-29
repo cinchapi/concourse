@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.gson.reflect.TypeToken;
+import com.squareup.okhttp.Response;
 
 /**
  * Unit tests for the audit functionality in the REST API.
@@ -47,6 +48,10 @@ public class RestAuditTest extends RestTest {
         }
     }
     
-    
+    @Test
+    public void testAuditKeyReturns400Error(){
+        Response resp = get("/foo/audit");
+        Assert.assertEquals(400, resp.code());
+    }
 
 }

@@ -35,6 +35,7 @@ import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.ObjectUtils;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonElement;
@@ -316,34 +317,37 @@ public class IndexRouter extends Router {
             }
 
         });
-        
+
         /**
          * GET /record/audit?timestamp=<ts>
          * GET /record/audit?start=<ts>&end=<te>
          */
-        get(new Endpoint("/:arg1/audit") {
+        get(new Endpoint("/:record/audit") {
 
             @Override
             protected JsonElement serve() throws Exception {
-                String arg1 = getParamValue(":arg1");
+                String arg1 = getParamValue(":record");
                 String ts = getParamValue("start");
                 String te = getParamValue("end");
                 ts = ObjectUtils.firstNonNull(ts, getParamValue("timestamp"));
                 Long record = Longs.tryParse(arg1);
                 Object data;
-                if(ts == null) {
-                    data = concourse.auditRecord(record, creds, transaction,
-                            environment);
+                Preconditions.checkArgument(record != null,
+                        "Cannot perform audit on %s because it "
+                                + "is not a valid record", arg1);
+                if(record != null && ts != null && te != null) {
+                    data = concourse.auditRecordStartEnd(record, Timestamp
+                            .parse(ts).getMicros(), Timestamp.parse(te)
+                            .getMicros(), creds, transaction, environment);
                 }
-                else if(te == null) {
-                    data = concourse
-                            .auditRecordStart(record, Timestamp.parse(ts).getMicros(),
-                                    creds, transaction, environment);
+                else if(record != null && ts != null) {
+                    data = concourse.auditRecordStart(record,
+                            Timestamp.parse(ts).getMicros(), creds,
+                            transaction, environment);
                 }
                 else {
-                    data = concourse.auditRecordStartEnd(record,
-                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
-                            transaction, environment);
+                    data = concourse.auditRecord(record, creds, transaction,
+                            environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
@@ -453,8 +457,6 @@ public class IndexRouter extends Router {
 
         });
 
-        
-
         /**
          * GET /record/key/audit?timestamp=<ts>
          * GET /record/key/audit?start=<ts>&end=<te>
@@ -479,15 +481,15 @@ public class IndexRouter extends Router {
                             transaction, environment);
                 }
                 else if(te == null) {
-                    data = concourse
-                            .auditKeyRecordStart(key, record,
-                                    Timestamp.parse(ts).getMicros(), creds, transaction,
-                                    environment);
+                    data = concourse.auditKeyRecordStart(key, record, Timestamp
+                            .parse(ts).getMicros(), creds, transaction,
+                            environment);
                 }
                 else {
                     data = concourse.auditKeyRecordStartEnd(key, record,
-                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
-                            transaction, environment);
+                            Timestamp.parse(ts).getMicros(), Timestamp
+                                    .parse(te).getMicros(), creds, transaction,
+                            environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
@@ -517,15 +519,15 @@ public class IndexRouter extends Router {
                             transaction, environment);
                 }
                 else if(te == null) {
-                    data = concourse
-                            .chronologizeKeyRecordStart(key, record,
-                                    Timestamp.parse(ts).getMicros(), creds, transaction,
-                                    environment);
+                    data = concourse.chronologizeKeyRecordStart(key, record,
+                            Timestamp.parse(ts).getMicros(), creds,
+                            transaction, environment);
                 }
                 else {
                     data = concourse.chronologizeKeyRecordStartEnd(key, record,
-                            Timestamp.parse(ts).getMicros(), Timestamp.parse(te).getMicros(), creds,
-                            transaction, environment);
+                            Timestamp.parse(ts).getMicros(), Timestamp
+                                    .parse(te).getMicros(), creds, transaction,
+                            environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
