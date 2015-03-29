@@ -20,6 +20,7 @@ dependencies {
     compile 'com.github.spullara.mustache.java:compiler:0.8.15'
 
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
+    testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
 }
 
 test {

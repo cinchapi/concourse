@@ -15,16 +15,12 @@
  */
 package org.cinchapi.concourse.testsuite;
 
-import org.cinchapi.concourse.perf.FindThroughputTest;
-import org.cinchapi.concourse.perf.TransactionThroughputTest;
-import org.cinchapi.concourse.perf.WritePerformanceTest;
+import org.junit.extensions.cpsuite.ClasspathSuite;
+import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
 
-@RunWith(Suite.class)
-@SuiteClasses({ WritePerformanceTest.class, TransactionThroughputTest.class,
-        FindThroughputTest.class })
+@RunWith(ClasspathSuite.class)
+@ClassnameFilters({"org.cinchapi.concourse.perf.*"})
 public class PerformanceTestSuite {
 
 }

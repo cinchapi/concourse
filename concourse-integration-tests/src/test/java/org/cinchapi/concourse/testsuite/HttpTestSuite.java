@@ -20,12 +20,12 @@ import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
 import org.junit.runner.RunWith;
 
 /**
- * Run all the bug repros
+ * Unit tests for the HTTP package
  * 
  * @author Jeff Nelson
  */
 @RunWith(ClasspathSuite.class)
-@ClassnameFilters({"org.cinchapi.concourse.bugrepro.*"})
-public class BugReproSuite {
+@ClassnameFilters({"org.cinchapi.concourse.http.*"})
+public class HttpTestSuite {
 
 }
