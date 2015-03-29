@@ -57,7 +57,7 @@ public class Timestamps {
             int mid = (start + end) / 2;
             Timestamp stored = Iterables.get(timestamps, mid);
             if(sought.getMicros() == stored.getMicros()) {
-                return mid + 1;
+                return mid;
             }
             else if(sought.getMicros() < stored.getMicros()) {
                 start = mid + 1;
@@ -69,6 +69,25 @@ public class Timestamps {
         return start;
     }
 
+    /**
+     * Search the chronological set of {@code timestamps} to return the index of
+     * a contained timestamp that occurs after the {@code sought} timestamp
+     * and more closely than any others.
+     * <p>
+     * <ul>
+     * <li>If the search set is empty, this function will return {@code 0}</li>
+     * <li>If the sought timestamp is smaller than every timestamp in the search
+     * set, this function will return {@code 0}</li>
+     * <li>If the sought timestamp is greater than every timestamp in the search
+     * set, this function will return the size of the search set, which is 1
+     * greater than the last index in the search set</li>
+     * </ul>
+     * </p>
+     * 
+     * @param timestamps
+     * @param sought
+     * @return an index of nearest successor timestamp
+     */
     public static int findNearestSuccessorForTimestamp(Set<Long> timestamps,
             long sought) {
         int start = 0;
@@ -77,7 +96,7 @@ public class Timestamps {
             int mid = (start + end) / 2;
             long stored = Iterables.get(timestamps, mid);
             if(sought == stored) {
-                return mid + 1;
+                return mid;
             }
             else if(sought > stored) {
                 start = mid + 1;

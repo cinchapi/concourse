@@ -366,7 +366,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         }
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, startTimestamp, endTimestamp);
         Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(testSize + 1, result.size());
+        assertEquals(testSize, result.size());
         assertEquals(testSize * 2, lastResultSet.size());
     }
 
@@ -492,29 +492,6 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
     }
 
     @Test
-    public void testChronologizeWithStartTimestampIsInclusiveAfterLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, timestamps.get(testSize - 1), Timestamp.now());
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(testSize, lastResultSet.size());
-    }
-
-    @Test
     public void testChronologizeWithStartTimestampEqualsEndTimestampBeforeFirstValueChangeInKeyInRecord() {
         long record = Variables.register("record", Time.now());
         String key = Variables.register("key", TestData.getString());
@@ -534,54 +511,6 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         // check same timestamps before initial add
         Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.epoch(), Timestamp.epoch());
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    public void testChronologizeWithStartTimestampEqualsEndTimestampAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> chronologie = client.chronologize(key, record);
-        Timestamp exactStartTimestamp = Iterables.getFirst(chronologie.keySet(), null);
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, exactStartTimestamp, exactStartTimestamp);
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(1, lastResultSet.size());
-    }
-
-    @Test
-    public void testChronologizeWithStartTimestampEqualsEndTimestampAfterLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
-        String key = Variables.register("key", TestData.getString());
-        int testSize = Variables.register("testSize", 5);
-        Set<Object> initValues = Variables.register("initValues", Sets.newHashSet());
-        List<Timestamp> timestamps = new ArrayList<Timestamp>();
-        for (int i = 0; i < testSize; i++) {
-            Object value = null;
-            while (value == null || initValues.contains(value)) {
-                value = TestData.getObject();
-            }
-            initValues.add(value);
-            client.add(key, value, record);
-            timestamps.add(Timestamp.now());
-            
-        }
-        Map<Timestamp, Set<Object>> result = client.chronologize(key, record, Timestamp.now(), Timestamp.now());
-        Set<Object> lastResultSet = Iterables.getLast(result.values());
-        assertEquals(1, result.size());
-        assertEquals(testSize, lastResultSet.size());
     }
 
     @Test(expected = IllegalArgumentException.class)

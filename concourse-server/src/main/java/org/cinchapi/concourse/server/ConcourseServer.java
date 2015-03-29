@@ -689,10 +689,6 @@ public class ConcourseServer implements
             int index = Timestamps.findNearestSuccessorForTimestamp(
                     base.keySet(), start);
             Entry<Long, String> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(base.entrySet(), index);
-                result.put(entry.getKey(), entry.getValue());
-            }
             for (int i = index; i < base.size(); ++i) {
                 entry = Iterables.get(base.entrySet(), i);
                 if(entry.getKey() >= end) {
@@ -743,10 +739,6 @@ public class ConcourseServer implements
             int index = Timestamps.findNearestSuccessorForTimestamp(
                     base.keySet(), start);
             Entry<Long, String> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(base.entrySet(), index);
-                result.put(entry.getKey(), entry.getValue());
-            }
             for (int i = index; i < base.size(); ++i) {
                 entry = Iterables.get(base.entrySet(), i);
                 if(entry.getKey() >= end) {
@@ -889,10 +881,6 @@ public class ConcourseServer implements
             int index = Timestamps.findNearestSuccessorForTimestamp(
                     base.keySet(), start);
             Entry<Long, Set<TObject>> entry = null;
-            if(index > 0) {
-                entry = Iterables.get(base.entrySet(), index);
-                result.put(entry.getKey(), entry.getValue());
-            }
             for (int i = index; i < base.size(); ++i) {
                 entry = Iterables.get(base.entrySet(), i);
                 if(entry.getKey() >= end) {
