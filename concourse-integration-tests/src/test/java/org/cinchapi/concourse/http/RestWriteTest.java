@@ -15,9 +15,6 @@
  */
 package org.cinchapi.concourse.http;
 
-import org.cinchapi.concourse.Link;
-import org.cinchapi.concourse.util.Convert;
-import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
