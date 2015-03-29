@@ -59,9 +59,17 @@ Thumbs.db
 *.access
 *.launch
 
-# Python #
-##########
+# Python project metadata #
+###########################
 .idea*
 .python-version
 *.pyc
+
+# PHP project metadata #
+########################
 *concourse-driver-php/nbproject/*
+
+# Debugging related files #
+###########################
+*scratch.*
+*Scratch.*
