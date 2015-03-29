@@ -56,10 +56,10 @@ public class Timestamps {
         while (start <= end) {
             int mid = (start + end) / 2;
             Timestamp stored = Iterables.get(timestamps, mid);
-            if(stored.getMicros() == sought.getMicros()) {
+            if(sought.getMicros() == stored.getMicros()) {
                 return mid + 1;
             }
-            else if(stored.getMicros() < sought.getMicros()) {
+            else if(sought.getMicros() < stored.getMicros()) {
                 start = mid + 1;
             }
             else {
@@ -76,10 +76,10 @@ public class Timestamps {
         while (start <= end) {
             int mid = (start + end) / 2;
             long stored = Iterables.get(timestamps, mid);
-            if(stored == sought) {
+            if(sought == stored) {
                 return mid + 1;
             }
-            else if(stored < sought) {
+            else if(sought > stored) {
                 start = mid + 1;
             }
             else {
