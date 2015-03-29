@@ -90,7 +90,7 @@ class Concourse(object):
         :return:  
         """
         value = python_to_thrift(value)
-        records = records if records else record
+        records = records or record
         if records is None:
             return self.client.addKeyValue(key, value, self.creds,
                                            self.transaction, self.environment)
@@ -133,7 +133,7 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys if keys else key
+        keys = keys or key
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(keys, list) and timestamp:
             data = self.client.browseKeysTime(keys, timestamp, self.creds, self.transaction, self.environment)
@@ -175,8 +175,8 @@ class Concourse(object):
         :param record:
         :return:
         """
-        keys = keys if keys else key
-        records = records if records else record
+        keys = keys or key
+        records = records or record
         if isinstance(keys, list) and isinstance(records, list):
             return self.client.clearKeysRecords(keys, records, self.creds, self.transaction, self.environment)
         elif isinstance(records, list) and not keys:
@@ -210,7 +210,7 @@ class Concourse(object):
         :return:
         """
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
-        records = records if records else record
+        records = records or record
         if isinstance(records, list) and timestamp:
             return self.client.describeRecordsTime(records, timestamp, self.creds, self.transaction, self.environment)
         elif isinstance(records, list):
@@ -313,8 +313,10 @@ class Concourse(object):
         :param record:
         :return:
         """
-        records = records if records else record
-        data = ujson.dumps(data)
+        records = records or record
+        if isinstance(data, dict):
+            data = ujson.dumps(data)
+
         if isinstance(records, list):
             return self.client.insertJsonRecords(data, records, self.creds, self.transaction, self.environment)
         elif records:
@@ -331,7 +333,7 @@ class Concourse(object):
         :param destination:
         :return:
         """
-        destinations = destinations if destinations else destination
+        destinations = destinations or destination
         if isinstance(destinations, list):
             return self.add(key, Link.to(destinations), source)
         else:
@@ -346,7 +348,7 @@ class Concourse(object):
         :param records:
         :return:
         """
-        records = records if records else record
+        records = records or record
         if isinstance(records, list):
             return self.client.pingRecords(records, self.creds, self.transaction, self.environment)
         else:
@@ -361,7 +363,7 @@ class Concourse(object):
         :return:
         """
         value = python_to_thrift(value)
-        records = records if records else record
+        records = records or record
         if isinstance(records, list):
             return self.client.removeKeyValueRecords(key, value, records, self.creds, self.transaction,
                                                      self.environment)
@@ -376,8 +378,8 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys if keys else key
-        records = records if records else record
+        keys = keys or key
+        records = records or record
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if not timestamp:
             raise ValueError
@@ -408,8 +410,8 @@ class Concourse(object):
         :param timestamp:
         :return:
         """
-        keys = keys if keys else key
-        records = records if records else record
+        keys = keys or key
+        records = records or record
         timestamp = timestamp if not isinstance(timestamp, basestring) else strtotime(timestamp)
         if isinstance(records, list) and not keys and not timestamp:
             data = self.client.selectRecords(records, self.creds, self.transaction, self.environment)
@@ -459,7 +461,7 @@ class Concourse(object):
         :param records:
         :return:
         """
-        records = records if records else record
+        records = records or record
         value = python_to_thrift(value)
         if not records:
             return self.client.setKeyValue(key, value, self.creds, self.transaction, self.environment)
