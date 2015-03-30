@@ -21,7 +21,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Set;
 
-import org.cinchapi.concourse.importer.GeneralCsvImporter;
+import org.cinchapi.concourse.importer.CsvImporter;
 import org.cinchapi.concourse.importer.Importer;
 import org.cinchapi.concourse.lang.Criteria;
 import org.cinchapi.concourse.testing.Variables;
@@ -47,8 +47,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
     protected void beforeEachTest() {
         // Import data into Concourse
         System.out.println("Importing college data into Concourse");
-        Importer importer = GeneralCsvImporter.withConnectionInfo(SERVER_HOST,
-                SERVER_PORT, "admin", "admin");
+        Importer importer = new CsvImporter(client);
         importer.importFile(Resources.get("/college.csv").getFile());
 
         // Load up the SQL db which also contains a copy of the data
@@ -73,8 +72,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
                 .operator(Operator.GREATER_THAN).value(90));
         Timestamp t1 = Timestamp.now();
         System.out.println("Importing college data into Concourse");
-        Importer importer = GeneralCsvImporter.withConnectionInfo(SERVER_HOST,
-                SERVER_PORT, "admin", "admin");
+        Importer importer = new CsvImporter(client);
         importer.importFile(Resources.get("/college.csv").getFile());
         Assert.assertEquals(
                 results,
