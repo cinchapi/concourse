@@ -1,15 +1,11 @@
 dependencies {
     compile project(':concourse-driver-java')
     compile project(':concourse-shell')
+    compile project(':concourse-cli')
+    compile project(':concourse-import')
     compile 'com.google.guava:guava:15.0'
     compile 'com.beust:jcommander:1.32'
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
-    compile ('org.cinchapi:concourse-import:1.1.0'){
-    	exclude group: 'org.cinchapi'
-    }
-    compile ('org.cinchapi:concourse-cli:1.1.2'){
-    	exclude group: 'org.cinchapi'
-    }
     compile ('org.reflections:reflections:0.9.9-RC2'){
     	exclude group: 'org.javassist', module:'javassist'
     }
