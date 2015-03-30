@@ -48,7 +48,7 @@ uploadArchives {
         authentication(userName: sonatypeUsername, password: sonatypePassword)
       }
 
-      pom.version = '0.5.0'
+      pom.version = '0.5.0-SNAPSHOT'
 
       pom.project {
          name 'Concourse Import Framework'
