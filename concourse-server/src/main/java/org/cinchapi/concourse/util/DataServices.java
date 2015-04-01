@@ -56,8 +56,7 @@ public class DataServices {
         if(StringUtils.isBlank(key)) {
             throw new IllegalArgumentException("Cannot use a blank key");
         }
-        else if(value.getType() == Type.STRING
-                && StringUtils.isBlank((String) Convert.thriftToJava(value))) {
+        else if(value.isBlank()) {
             throw new IllegalArgumentException("Cannot use a blank value");
         }
     }
@@ -92,7 +91,7 @@ public class DataServices {
      * @author hyin
      */
     private static class JavaTypeAdapter extends TypeAdapter<Object> {
-        
+
         @Override
         public Object read(JsonReader reader) throws IOException {
             return null;

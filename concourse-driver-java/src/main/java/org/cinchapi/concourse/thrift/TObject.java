@@ -31,6 +31,7 @@ import java.util.EnumSet;
 import java.util.Collections;
 import java.util.BitSet;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.annotation.Generated;
@@ -248,6 +249,40 @@ public class TObject implements
      */
     public boolean isSetType() {
         return this.type != null;
+    }
+
+    /**
+     * The byte for UTF-8 whitespace.
+     */
+    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
+
+    /**
+     * Check to see if this TObject represents a "blank" value (e.g. empty
+     * string, null, etc). This method is efficient because it only looks at the
+     * TObject's binary data as opposed to converting the object to a Java
+     * representation beforehand.
+     * 
+     * @return {@code true} if this TObject is "blank"
+     */
+    public boolean isBlank() {
+        if(this == NULL) {
+            return true;
+        }
+        else if(data.capacity() == 0) {
+            return true;
+        }
+        else if(type == Type.STRING || type == Type.TAG) {
+            byte[] bytes = ByteBuffers.toByteArray(data);
+            for (int i = 0; i < bytes.length; ++i) {
+                if(bytes[i] != WHITESPACE) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**

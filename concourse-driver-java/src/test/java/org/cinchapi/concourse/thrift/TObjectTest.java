@@ -15,6 +15,7 @@
  */
 package org.cinchapi.concourse.thrift;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Random;
@@ -51,6 +52,42 @@ public class TObjectTest {
         TObject tag = Convert.javaToThrift(Tag.create(base));
         Assert.assertFalse(tag.matches(string));
         Assert.assertFalse(string.matches(tag));
+    }
+    
+    @Test
+    public void testNullIsAlwaysBlank(){
+        Assert.assertTrue(TObject.NULL.isBlank());
+    }
+    
+    @Test
+    public void testIsBlankPositive(){
+        int count = Random.getScaleCount();
+        String s ="";
+        for(int i =0; i< count; ++i){
+            s+=" ";
+        }
+        TObject t = Convert.javaToThrift(s);
+        Assert.assertTrue(t.isBlank());
+    }
+    
+    @Test
+    public void testIsBlankNegative(){
+        int count = Random.getScaleCount();
+        String s ="";
+        for(int i =0; i< count; ++i){
+            s+=" ";
+        }
+        String extra="";
+        while(StringUtils.isBlank(extra)){
+            extra = Random.getString();
+        }
+        s+=extra;
+        count = Random.getScaleCount();
+        for(int i =0; i< count; ++i){
+            s+=" ";
+        }
+        TObject t = Convert.javaToThrift(s);
+        Assert.assertFalse(t.isBlank());
     }
 
 }
