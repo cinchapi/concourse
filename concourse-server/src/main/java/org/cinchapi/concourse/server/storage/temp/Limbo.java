@@ -370,7 +370,7 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
-        return fetch(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
+        return select(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
     }
 
     /**
@@ -384,7 +384,7 @@ public abstract class Limbo extends BaseStore implements
      * @param context
      * @return the values
      */
-    public Set<TObject> fetch(String key, long record, long timestamp,
+    public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
         if(timestamp >= getOldestWriteTimstamp()) {
             Iterator<Write> it = iterator();

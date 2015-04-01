@@ -108,7 +108,7 @@ public interface Compoundable extends
      * @param record
      * @return {@code Set}
      */
-    public Set<TObject> fetchUnsafe(String key, long record);
+    public Set<TObject> selectUnsafe(String key, long record);
 
     /**
      * Verify {@code key} equals {@code value} in {@code record}.

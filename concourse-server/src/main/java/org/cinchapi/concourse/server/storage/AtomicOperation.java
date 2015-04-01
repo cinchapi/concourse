@@ -283,7 +283,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
-        return super.fetch(key, record, true);
+        return super.select(key, record, true);
     }
 
     @Override
@@ -331,7 +331,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        super.set(key, value, record);
+        super.set(key, value, record, false);
     }
 
     /**

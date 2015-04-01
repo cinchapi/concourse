@@ -182,13 +182,13 @@ public abstract class BufferedStore extends BaseStore {
 
     @Override
     public Set<TObject> select(String key, long record) {
-        return fetch(key, record, false);
+        return select(key, record, false);
     }
 
     @Override
     public Set<TObject> select(String key, long record, long timestamp) {
         Set<TObject> context = destination.select(key, record, timestamp);
-        return buffer.fetch(key, record, timestamp, context);
+        return buffer.select(key, record, timestamp, context);
     }
 
     /**
@@ -403,32 +403,6 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     /**
-     * <<<<<<< HEAD
-     * Fetch {@code key} from {@code record} either using safe or unsafe
-     * methods.
-     * <p>
-     * This method returns the values currently mapped from {@code key} in
-     * {@code record}. The returned Set is nonempty if and only if {@code key}
-     * is a member of the Set returned from {@link #describe(long)}.
-     * </p>
-     * 
-     * @param key
-     * @param record
-     * @param unsafe
-     * @return a possibly empty Set of values
-     */
-    protected Set<TObject> fetch(String key, long record, boolean unsafe) {
-        Set<TObject> context;
-        if(unsafe && destination instanceof Compoundable) {
-            context = ((Compoundable) (destination)).fetchUnsafe(key, record);
-        }
-        else {
-            context = destination.select(key, record);
-        }
-        return buffer.fetch(key, record, Time.now(), context);
-    }
-
-    /**
      * Remove {@code key} as {@code value} from {@code record} with the
      * directive to {@code sync} the data or not. Depending upon the
      * implementation of the {@link #buffer}, a sync may guarantee that the data
@@ -456,6 +430,54 @@ public abstract class BufferedStore extends BaseStore {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
+    }
+
+    /**
+     * Select {@code key} from {@code record} either using safe or unsafe
+     * methods.
+     * <p>
+     * This method returns the values currently mapped from {@code key} in
+     * {@code record}. The returned Set is nonempty if and only if {@code key}
+     * is a member of the Set returned from {@link #describe(long)}.
+     * </p>
+     * 
+     * @param key
+     * @param record
+     * @param lock
+     * @return a possibly empty Set of values
+     */
+    protected Set<TObject> select(String key, long record, boolean lock) {
+        Set<TObject> context;
+        if(!lock && destination instanceof Compoundable) {
+            context = ((Compoundable) (destination)).selectUnsafe(key, record);
+        }
+        else {
+            context = destination.select(key, record);
+        }
+        return buffer.select(key, record, Time.now(), context);
+    }
+
+    /**
+     * Set {@code key} as {@code value} in {@code record}.
+     * <p>
+     * This method will remove all the values currently mapped from {@code key}
+     * in {@code record} and add {@code value} without performing any validity
+     * checks.
+     * </p>
+     * 
+     * @param key
+     * @param value
+     * @param record
+     * @param lockOnRead
+     */
+    protected void set(String key, TObject value, long record,
+            boolean lockOnRead) {
+        DataServices.sanityCheck(key, value);
+        Set<TObject> values = select(key, record, lockOnRead);
+        for (TObject val : values) {
+            buffer.insert(Write.remove(key, val, record)); /* Authorized */
+        }
+        buffer.insert(Write.add(key, value, record)); /* Authorized */
     }
 
     /**

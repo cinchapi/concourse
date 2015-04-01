@@ -607,7 +607,7 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Set<TObject> fetchUnsafe(String key, long record) {
+    public Set<TObject> selectUnsafe(String key, long record) {
         transportLock.readLock().lock();
         try {
             return super.select(key, record);

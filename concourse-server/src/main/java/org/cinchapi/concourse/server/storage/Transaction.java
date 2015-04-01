@@ -194,7 +194,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public Set<TObject> fetchUnsafe(String key, long record) {
+    public Set<TObject> selectUnsafe(String key, long record) {
         return select(key, record);
     }
 

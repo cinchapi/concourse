@@ -484,12 +484,12 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<TObject> fetch(String key, long record, long timestamp,
+    public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> values) {
         transportLock.readLock().lock();
         try {
             scaleBackTransportRate();
-            return super.fetch(key, record, timestamp, values);
+            return super.select(key, record, timestamp, values);
         }
         finally {
             transportLock.readLock().unlock();

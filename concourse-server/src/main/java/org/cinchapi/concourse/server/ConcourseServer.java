@@ -2084,18 +2084,8 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (Multimap<String, Object> object : objects) {
-                        long record = 0;
-                        if(object
-                                .containsKey(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                            record = (long) object
-                                    .get(Constants.JSON_RESERVED_IDENTIFIER_NAME)
-                                    .iterator().next();
-                            object.removeAll(Constants.JSON_RESERVED_IDENTIFIER_NAME);
-                        }
-                        else {
-                            record = Time.now();
-                            atomic.touch(record); 
-                        }
+                        long record = Time.now();
+                        atomic.touch(record);
                         if(insert0(object, record, atomic)) {
                             records.add(record);
                         }
