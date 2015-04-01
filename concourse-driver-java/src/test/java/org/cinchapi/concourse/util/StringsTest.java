@@ -56,5 +56,17 @@ public class StringsTest {
                 Lists.newArrayList("John", "said", "\"hello world\""),
                 Lists.newArrayList(toks));
     }
+    
+    @Test
+    public void testTryParseValidNumber(){
+        Number valid = Random.getNumber();
+        Assert.assertEquals(Strings.tryParseNumber(valid.toString()), valid);
+    }
+    
+    @Test
+    public void testTryParseInvalidNumber(){
+        String invalid = Random.getStringNoDigits();
+        Assert.assertNull(Strings.tryParseNumber(invalid));
+    }
 
 }

@@ -15,6 +15,16 @@
  */
 package org.cinchapi.concourse.util;
 
+import java.text.MessageFormat;
+
+import javax.annotation.Nullable;
+
+import com.google.common.base.Objects;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+
 /**
  * Yet another collection of utility functions for Strings.
  * 
@@ -50,6 +60,48 @@ public final class Strings {
      */
     public static String[] splitButRespectQuotes(String string) {
         return splitStringByDelimiterButRespectQuotes(string, " ");
+    }
+
+    /**
+     * This method efficiently tries to parse {@code value} into a
+     * {@link Number} object if possible. If the string is not a number, then
+     * the method returns {@code null} as quickly as possible.
+     * 
+     * @param value
+     * @return a Number object that represents the string or {@code null} if it
+     *         is not possible to parse the string into a number
+     */
+    @Nullable
+    public static Number tryParseNumber(String value) {
+        if(value == null) {
+            return null;
+        }
+        int size = value.length();
+        boolean decimal = false;
+        for (int i = 0; i < size; ++i) {
+            char c = value.charAt(i);
+            if(!Character.isDigit(c)) {
+                if(i == 0 && c == '-') {
+                    continue;
+                }
+                else if(c == '.') {
+                    decimal = true;
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+        try {
+            return decimal ? Objects.firstNonNull(Floats.tryParse(value),
+                    Doubles.tryParse(value)) : Objects.firstNonNull(
+                    Ints.tryParse(value), Longs.tryParse(value));
+        }
+        catch (NullPointerException e) {
+            throw new NumberFormatException(MessageFormat.format(
+                    "{0} appears to be a number cannot be parsed as such",
+                    value));
+        }
     }
 
     private Strings() {/* noop */}

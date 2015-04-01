@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 import javax.annotation.concurrent.Immutable;
 
 import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.PackagePrivate;
@@ -34,6 +33,7 @@ import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -165,9 +165,6 @@ public final class Convert {
                     "The JSON string must encapsulate data within an object");
         }
         JsonObject object = (JsonObject) parser.parse(json);
-        if(object.has(Constants.JSON_RESERVED_IDENTIFIER_NAME)){
-            object.remove(Constants.JSON_RESERVED_IDENTIFIER_NAME);
-        }
         for (Entry<String, JsonElement> entry : object.entrySet()) {
             String key = entry.getKey();
             JsonElement val = entry.getValue();
@@ -304,21 +301,7 @@ public final class Convert {
             return Tag.create(value.replace("`", ""));
         }
         else {
-            Class<?>[] classes = { Integer.class, Long.class, Float.class,
-                    Double.class };
-            for (Class<?> clazz : classes) {
-                try {
-                    return clazz.getMethod("valueOf", String.class).invoke(
-                            null, value);
-                }
-                catch (Exception e) {
-                    if(e instanceof NumberFormatException
-                            || e.getCause() instanceof NumberFormatException) {
-                        continue;
-                    }
-                }
-            }
-            return value;
+            return Objects.firstNonNull(Strings.tryParseNumber(value), value);
         }
     }
 
