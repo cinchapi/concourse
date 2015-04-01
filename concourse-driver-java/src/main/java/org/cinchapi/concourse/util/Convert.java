@@ -34,7 +34,7 @@ import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.Type;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
@@ -158,7 +158,7 @@ public final class Convert {
         // method of each JsonElement to trigger the conversion to a java
         // primitive to ensure that quotes are taken into account and we
         // properly convert strings masquerading as numbers (e.g. "3").
-        Multimap<String, Object> data = LinkedHashMultimap.create();
+        Multimap<String, Object> data = HashMultimap.create();
         JsonParser parser = new JsonParser();
         JsonElement top = parser.parse(json);
         if(!top.isJsonObject()) {
@@ -172,7 +172,7 @@ public final class Convert {
             if(val.isJsonArray()) {
                 // If we have an array, add the elements individually. If there
                 // are any duplicates in the array, they will be filtered out by
-                // virtue of the fact that a LinkedHashMultimap does not store
+                // virtue of the fact that a HashMultimap does not store
                 // dupes.
                 Iterator<JsonElement> it = val.getAsJsonArray().iterator();
                 while (it.hasNext()) {
@@ -233,7 +233,7 @@ public final class Convert {
         }
         return string;
     }
-
+    
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
      * Object.
@@ -437,8 +437,8 @@ public final class Convert {
             return stringToJava(asString);
         }
         else {
-            char last = asString.charAt(asString.length() - 1);
             try {
+                char last = asString.charAt(asString.length() - 1);
                 char secondToLast = asString.charAt(asString.length() - 2);
                 if(Character.isDigit(secondToLast) && last == 'D') {
                     return stringToJava(asString);
