@@ -37,6 +37,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.primitives.Longs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -268,23 +269,30 @@ public final class Convert {
      * @return the converted value
      */
     public static Object stringToJava(String value) {
-        if(value.matches("\"([^\"]+)\"|'([^']+)'")) { // keep value as
-                                                      // string since its
-                                                      // between single or
-                                                      // double quotes
+        char first = value.charAt(0);
+        char last = value.charAt(value.length() - 1);
+        Long record;
+        if((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+            // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
-        else if(value.matches(MessageFormat.format("{0}{1}{0}", MessageFormat
-                .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
+        else if(first == '@'
+                && last == '@'
+                && value.matches(MessageFormat.format("{0}{1}{0}",
+                        MessageFormat.format("{0}{1}{2}",
+                                RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+                                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
             String[] parts = value.split(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, 3)[1]
                     .split(RAW_RESOLVABLE_LINK_SYMBOL_APPEND, 2);
             String key = parts[0];
             Object theValue = stringToJava(parts[1]);
             return new ResolvableLink(key, theValue);
         }
-        else if(value.matches("@-?[0-9]+@")) {
-            return Link.to(Long.parseLong(value.replace("@", "")));
+        else if(first == '@'
+                && last == '@'
+                && (record = Longs.tryParse(value.substring(1,
+                        value.length() - 1))) != null) {
+            return Link.to(record);
         }
         else if(value.equalsIgnoreCase("true")) {
             return true;
@@ -292,13 +300,8 @@ public final class Convert {
         else if(value.equalsIgnoreCase("false")) {
             return false;
         }
-        else if(value.matches("-?[0-9]+\\.[0-9]+D")) { // Must append "D" to end
-                                                       // of string in order to
-                                                       // force a double
-            return Double.valueOf(value.substring(0, value.length() - 1));
-        }
-        else if(value.matches("`([^`]+)`")) {
-            return Tag.create(value.replace("`", ""));
+        else if(first == '`' && last == '`') {
+            return Tag.create(value.substring(1, value.length() - 1));
         }
         else {
             return Objects.firstNonNull(Strings.tryParseNumber(value), value);

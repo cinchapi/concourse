@@ -60,13 +60,23 @@ public class StringsTest {
     @Test
     public void testTryParseValidNumber(){
         Number valid = Random.getNumber();
-        Assert.assertEquals(Strings.tryParseNumber(valid.toString()), valid);
+        String string = valid.toString();
+        if(valid instanceof Double){
+            string+="D";
+        }
+        Assert.assertEquals(Strings.tryParseNumber(string), valid);
     }
     
     @Test
     public void testTryParseInvalidNumber(){
         String invalid = Random.getStringNoDigits();
         Assert.assertNull(Strings.tryParseNumber(invalid));
+    }
+    
+    @Test
+    public void testTryParseCoercedDouble(){
+        Double d = Random.getDouble();
+        Assert.assertEquals(d, Strings.tryParseNumber(d+"D"));
     }
 
 }

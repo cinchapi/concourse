@@ -87,6 +87,11 @@ public final class Strings {
                 else if(c == '.') {
                     decimal = true;
                 }
+                else if(i == size - 1 && c == 'D') {
+                    // Respect the convention to coerce numeric strings to
+                    // Double objects by appending a single 'D' character.
+                    return Double.valueOf(value.substring(0, i));
+                }
                 else {
                     return null;
                 }
