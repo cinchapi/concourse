@@ -51,31 +51,36 @@ public class TObject implements
         Cloneable,
         Comparable<TObject> {
 
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     /**
      * Represents a null object that can be passed across the wire.
      */
     public static final TObject NULL = new TObject();
+
+    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
+            "TObject");
+
+    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
+            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
+    /**
+     * The byte for UTF-8 whitespace.
+     */
+    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
+
     static {
         NULL.setType(Type.NULL);
         NULL.setData(ByteBuffer.allocate(1));
     }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-
-    private static final org.apache.thrift.protocol.TField DATA_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "data", org.apache.thrift.protocol.TType.STRING, (short) 1);
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct(
-            "TObject");
-    private static final org.apache.thrift.protocol.TField TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField(
-            "type", org.apache.thrift.protocol.TType.I32, (short) 2);
-
     static {
         schemes.put(StandardScheme.class, new TObjectStandardSchemeFactory());
         schemes.put(TupleScheme.class, new TObjectTupleSchemeFactory());
     }
+
     static {
         Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(
                 _Fields.class);
@@ -218,6 +223,35 @@ public class TObject implements
     }
 
     /**
+     * Check to see if this TObject represents a "blank" value (e.g. empty
+     * string, null, etc). This method is efficient because it only looks at the
+     * TObject's binary data as opposed to converting the object to a Java
+     * representation beforehand.
+     * 
+     * @return {@code true} if this TObject is "blank"
+     */
+    public boolean isBlank() {
+        if(this == NULL) {
+            return true;
+        }
+        else if(data.capacity() == 0) {
+            return true;
+        }
+        else if(type == Type.STRING || type == Type.TAG) {
+            byte[] bytes = ByteBuffers.toByteArray(data);
+            for (int i = 0; i < bytes.length; ++i) {
+                if(bytes[i] != WHITESPACE) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
      * Returns true if field corresponding to fieldID is set (has been assigned
      * a value) and false otherwise
      */
@@ -249,40 +283,6 @@ public class TObject implements
      */
     public boolean isSetType() {
         return this.type != null;
-    }
-
-    /**
-     * The byte for UTF-8 whitespace.
-     */
-    private static byte WHITESPACE = " ".getBytes(StandardCharsets.UTF_8)[0];
-
-    /**
-     * Check to see if this TObject represents a "blank" value (e.g. empty
-     * string, null, etc). This method is efficient because it only looks at the
-     * TObject's binary data as opposed to converting the object to a Java
-     * representation beforehand.
-     * 
-     * @return {@code true} if this TObject is "blank"
-     */
-    public boolean isBlank() {
-        if(this == NULL) {
-            return true;
-        }
-        else if(data.capacity() == 0) {
-            return true;
-        }
-        else if(type == Type.STRING || type == Type.TAG) {
-            byte[] bytes = ByteBuffers.toByteArray(data);
-            for (int i = 0; i < bytes.length; ++i) {
-                if(bytes[i] != WHITESPACE) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 
     /**
@@ -388,6 +388,20 @@ public class TObject implements
         schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
     }
 
+    /**
+     * Return the {@link Type} that is used for internal operations.
+     * 
+     * @return the internal type
+     */
+    protected Type getInternalType() { // visible for testing
+        if(type == Type.TAG) {
+            return Type.STRING;
+        }
+        else {
+            return getType();
+        }
+    }
+
     private void readObject(java.io.ObjectInputStream in)
             throws java.io.IOException, ClassNotFoundException {
         try {
@@ -407,20 +421,6 @@ public class TObject implements
         }
         catch (org.apache.thrift.TException te) {
             throw new java.io.IOException(te);
-        }
-    }
-
-    /**
-     * Return the {@link Type} that is used for internal operations.
-     * 
-     * @return the internal type
-     */
-    protected Type getInternalType() { // visible for testing
-        if(type == Type.TAG) {
-            return Type.STRING;
-        }
-        else {
-            return getType();
         }
     }
 
