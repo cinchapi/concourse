@@ -91,6 +91,7 @@ import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Version;
+import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
@@ -346,6 +347,9 @@ public class ConcourseServer implements
     private static boolean insert0(Multimap<String, Object> data, long record,
             AtomicOperation atomic) {
         for (String key : data.keySet()) {
+            if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                continue;
+            }
             for (Object value : data.get(key)) {
                 if(value instanceof ResolvableLink) {
                     ResolvableLink rl = (ResolvableLink) value;
@@ -2080,9 +2084,19 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (Multimap<String, Object> object : objects) {
-                        long record = Time.now();
-                        if(atomic.describe(record).isEmpty()
-                                && insert0(object, record, atomic)) {
+                        long record = 0;
+                        if(object
+                                .containsKey(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                            record = (long) object
+                                    .get(Constants.JSON_RESERVED_IDENTIFIER_NAME)
+                                    .iterator().next();
+                            object.removeAll(Constants.JSON_RESERVED_IDENTIFIER_NAME);
+                        }
+                        else {
+                            record = Time.now();
+                            atomic.touch(record); 
+                        }
+                        if(insert0(object, record, atomic)) {
                             records.add(record);
                         }
                         else {
