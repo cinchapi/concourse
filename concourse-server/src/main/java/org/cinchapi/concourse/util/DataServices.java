@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.thrift.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
