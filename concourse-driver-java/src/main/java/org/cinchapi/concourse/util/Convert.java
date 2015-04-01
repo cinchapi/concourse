@@ -431,22 +431,20 @@ public final class Convert {
      * @return the java object
      */
     private static Object jsonElementToJava(JsonElement element) {
-        if(element.getAsString().matches("-?[0-9]+\\.[0-9]+D")) {
-            return stringToJava(element.getAsString()); // respect desire
-                                                        // to force double
-        }
-        else if(element.getAsString().matches("`([^`]+)`")) {
-            return stringToJava(element.getAsString()); // CON-137
-        }
-        else if(element.getAsString().matches(
-                MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                        "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
-            return stringToJava(element.getAsString()); // respect resolvable
-                                                        // link specification
-
+        String asString = element.getAsString();
+        if((asString.startsWith("@") && asString.endsWith("@"))
+                || (asString.startsWith("`") && asString.endsWith("`"))) {
+            return stringToJava(asString);
         }
         else {
+            char last = asString.charAt(asString.length() - 1);
+            try {
+                char secondToLast = asString.charAt(asString.length() - 2);
+                if(Character.isDigit(secondToLast) && last == 'D') {
+                    return stringToJava(asString);
+                }
+            }
+            catch (IndexOutOfBoundsException e) {}
             return stringToJava(element.toString());
         }
     }
