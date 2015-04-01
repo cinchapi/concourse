@@ -898,7 +898,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean addUnsafe(String key, TObject value, long record,
             boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.add(key, value, record, sync, sync)) {
+        if(super.add(key, value, record, sync, sync, false)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -967,7 +967,7 @@ public final class Engine extends BufferedStore implements
      */
     private boolean removeUnsafe(String key, TObject value, long record,
             boolean sync, Token shared, Token write, RangeToken range) {
-        if(super.remove(key, value, record, sync, sync)) {
+        if(super.remove(key, value, record, sync, sync, false)) {
             notifyVersionChange(write);
             notifyVersionChange(shared);
             notifyVersionChange(range);
@@ -1004,9 +1004,9 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    protected boolean verify(Write write) {
+    protected boolean verify(Write write, boolean lock) {
         return inventory.contains(write.getRecord().longValue()) ? super
-                .verify(write) : false;
+                .verify(write, lock) : false;
     }
 
     /**

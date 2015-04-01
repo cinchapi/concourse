@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +37,7 @@ import org.cinchapi.concourse.server.model.Ranges;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
+import org.cinchapi.concourse.server.storage.temp.TransactionQueue;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -138,7 +139,7 @@ public class AtomicOperation extends BufferedStore implements
      * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
-        this(new Queue(INITIAL_CAPACITY), destination);
+        this(new TransactionQueue(INITIAL_CAPACITY), destination);
     }
 
     /**
@@ -175,7 +176,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record);
+        return super.add(key, value, record, true, true, false);
     }
 
     @Override
@@ -249,7 +250,7 @@ public class AtomicOperation extends BufferedStore implements
             if(grabLocks() && finalizing.compareAndSet(false, true)) {
                 doCommit();
                 releaseLocks();
-                if(destination instanceof Transaction){
+                if(destination instanceof Transaction) {
                     ((Transaction) destination).onCommit(this);
                 }
                 return true;
@@ -310,7 +311,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record);
+        return super.remove(key, value, record, true, true, false);
     }
 
     @Override
@@ -331,6 +332,19 @@ public class AtomicOperation extends BufferedStore implements
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
         super.set(key, value, record);
+    }
+
+    /**
+     * Register interest in {@code record} so that this AtomicOperation can
+     * listen for changes and grab a read lock at commit time.
+     * 
+     * @param record
+     */
+    public void touch(long record) {
+        checkState();
+        Token token = Token.wrap(record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
     }
 
     @Override

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -119,7 +119,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is added
      */
     public boolean add(String key, TObject value, long record) {
-        return add(key, value, record, true, true);
+        return add(key, value, record, true, true, true);
     }
 
     @Override
@@ -133,18 +133,6 @@ public abstract class BufferedStore extends BaseStore {
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record) {
-        return browse(record, false);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp) {
-        Map<String, Set<TObject>> context = destination.select(record,
-                timestamp);
-        return buffer.browse(record, timestamp, context);
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         return browse(key, false);
     }
@@ -153,17 +141,6 @@ public abstract class BufferedStore extends BaseStore {
     public Map<TObject, Set<Long>> browse(String key, long timestamp) {
         Map<TObject, Set<Long>> context = destination.browse(key, timestamp);
         return buffer.browse(key, timestamp, context);
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record) {
-        return fetch(key, record, false);
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record, long timestamp) {
-        Set<TObject> context = destination.select(key, record, timestamp);
-        return buffer.fetch(key, record, timestamp, context);
     }
 
     /**
@@ -181,7 +158,7 @@ public abstract class BufferedStore extends BaseStore {
      * @return {@code true} if the mapping is removed
      */
     public boolean remove(String key, TObject value, long record) {
-        return remove(key, value, record, true, true);
+        return remove(key, value, record, true, true, true);
     }
 
     @Override
@@ -189,6 +166,29 @@ public abstract class BufferedStore extends BaseStore {
         // FIXME: should this be implemented using a context instead?
         return Sets.symmetricDifference(buffer.search(key, query),
                 destination.search(key, query));
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record) {
+        return browse(record, false);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        Map<String, Set<TObject>> context = destination.select(record,
+                timestamp);
+        return buffer.browse(record, timestamp, context);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        return fetch(key, record, false);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        Set<TObject> context = destination.select(key, record, timestamp);
+        return buffer.fetch(key, record, timestamp, context);
     }
 
     /**
@@ -242,13 +242,14 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @param sync
      * @param validate
+     * @param lockOnVerify
      * @return {@code true} if the mapping is added
      */
     protected boolean add(String key, TObject value, long record, boolean sync,
-            boolean validate) {
+            boolean validate, boolean lockOnVerify) {
         DataServices.sanityCheck(key, value);
         Write write = Write.add(key, value, record);
-        if(!validate || !verify(write)) {
+        if(!validate || !verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
@@ -444,13 +445,14 @@ public abstract class BufferedStore extends BaseStore {
      * @param record
      * @param sync
      * @param validate
+     * @param lockOnVerify
      * @return {@code true} if the mapping is removed
      */
     protected boolean remove(String key, TObject value, long record,
-            boolean sync, boolean validate) {
+            boolean sync, boolean validate, boolean lockOnVerify) {
         DataServices.sanityCheck(key, value);
         Write write = Write.remove(key, value, record);
-        if(!validate || verify(write)) {
+        if(!validate || verify(write, lockOnVerify)) {
             return buffer.insert(write, sync); /* Authorized */
         }
         return false;
@@ -494,10 +496,28 @@ public abstract class BufferedStore extends BaseStore {
      * @param write
      * @return {@code true} if {@code write} currently exists
      */
-    protected boolean verify(Write write) {
-        return buffer.verify(write, destination.verify(write.getKey()
-                .toString(), write.getValue().getTObject(), write.getRecord()
-                .longValue()));
+    protected final boolean verify(Write write) {
+        return verify(write, true);
+    }
+
+    /**
+     * Shortcut method to verify {@code write}. This method is called from
+     * {@link #add(String, TObject, long)} and
+     * {@link #remove(String, TObject, long)} so that we can avoid creating a
+     * duplicate Write.
+     * 
+     * @param write
+     * @param lock
+     * @return {@code true} if {@code write} currently exists
+     */
+    protected boolean verify(Write write, boolean lock) {
+        String key = write.getKey().toString();
+        TObject value = write.getValue().getTObject();
+        long record = write.getRecord().longValue();
+        boolean fromDest = (!lock && destination instanceof Compoundable) ? ((Compoundable) destination)
+                .verifyUnsafe(key, value, record) : destination.verify(key,
+                value, record);
+        return buffer.verify(write, fromDest);
     }
 
 }
