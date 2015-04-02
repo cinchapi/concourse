@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -138,11 +138,19 @@ public class RangeToken extends Token {
      */
     private static final byte NULL_OPERATOR = (byte) Operator.values().length;
 
+    /**
+     * An empty byte buffer that is passed off to the super constructor.
+     */
+    private static final ByteBuffer NULL_BYTES = ByteBuffer.wrap(new byte[0]);
+
     private final Text key;
 
     @Nullable
     private final Operator operator;
     private final Value[] values;
+
+    @Nullable
+    private ByteBuffer bytes;
 
     /**
      * Construct a new instance.
@@ -171,7 +179,7 @@ public class RangeToken extends Token {
      * @param values
      */
     private RangeToken(Text key, Operator operator, Value... values) {
-        super(serialize(key, operator, values));
+        super(NULL_BYTES);
         this.key = key;
         this.operator = operator;
         this.values = values;
@@ -296,8 +304,9 @@ public class RangeToken extends Token {
             case GREATER_THAN_OR_EQUALS:
                 return true;
             case BETWEEN:
-                return other.values[1].compareTo(myValue) > 0; // end of range not
-                                                         // included for BETWEEN
+                return other.values[1].compareTo(myValue) > 0; // end of range
+                                                               // not
+                // included for BETWEEN
             case REGEX:
             case NOT_REGEX:
                 return true;
@@ -383,6 +392,30 @@ public class RangeToken extends Token {
             sb.append(" " + value);
         }
         return sb.toString();
+    }
+
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = serialize(key, operator, values);
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
+    }
+
+    @Override
+    public int size() {
+        if(bytes == null) {
+            bytes = serialize(key, operator, values);
+        }
+        return bytes.capacity();
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        if(bytes == null) {
+            bytes = serialize(key, operator, values);
+        }
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
     }
 
 }
