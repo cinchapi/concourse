@@ -131,7 +131,7 @@ public final class Convert {
             type = Type.STRING;
         }
         bytes.rewind();
-        return new TObject(bytes, type);
+        return new TObject(bytes, type).setJavaFormat(object);
     }
 
     /**
@@ -233,7 +233,7 @@ public final class Convert {
         }
         return string;
     }
-    
+
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
      * Object.
@@ -388,38 +388,40 @@ public final class Convert {
      * @return the Object
      */
     public static Object thriftToJava(TObject object) {
-        Object java = null;
-        ByteBuffer buffer = object.bufferForData();
-        switch (object.getType()) {
-        case BOOLEAN:
-            java = ByteBuffers.getBoolean(buffer);
-            break;
-        case DOUBLE:
-            java = buffer.getDouble();
-            break;
-        case FLOAT:
-            java = buffer.getFloat();
-            break;
-        case INTEGER:
-            java = buffer.getInt();
-            break;
-        case LINK:
-            java = Link.to(buffer.getLong());
-            break;
-        case LONG:
-            java = buffer.getLong();
-            break;
-        case TAG:
-            java = ByteBuffers.getString(buffer);
-            break;
-        case NULL:
-            java = null;
-            break;
-        default:
-            java = ByteBuffers.getString(buffer);
-            break;
+        Object java = object.getJavaFormat();
+        if(java == null) {
+            ByteBuffer buffer = object.bufferForData();
+            switch (object.getType()) {
+            case BOOLEAN:
+                java = ByteBuffers.getBoolean(buffer);
+                break;
+            case DOUBLE:
+                java = buffer.getDouble();
+                break;
+            case FLOAT:
+                java = buffer.getFloat();
+                break;
+            case INTEGER:
+                java = buffer.getInt();
+                break;
+            case LINK:
+                java = Link.to(buffer.getLong());
+                break;
+            case LONG:
+                java = buffer.getLong();
+                break;
+            case TAG:
+                java = ByteBuffers.getString(buffer);
+                break;
+            case NULL:
+                java = null;
+                break;
+            default:
+                java = ByteBuffers.getString(buffer);
+                break;
+            }
+            buffer.rewind();
         }
-        buffer.rewind();
         return java;
     }
 

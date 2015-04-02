@@ -187,7 +187,7 @@ public final class Value implements Byteable, Comparable<Value> {
     public boolean equals(Object obj) {
         if(obj instanceof Value) {
             final Value other = (Value) obj;
-            return getObject().equals(other.getObject());
+            return data.equals(other.data);
         }
         return false;
     }
@@ -244,7 +244,7 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public int hashCode() {
-        return getObject().hashCode();
+        return data.hashCode();
     }
 
     @Override

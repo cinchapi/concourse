@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.annotation.Generated;
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +105,13 @@ public class TObject implements
      * @see Type
      */
     public Type type; // required
+
+    /**
+     * A cached reference to the Java representation for this TObject. This
+     * value is set in the {@link Convert#javaToThrift(Object)} method so that
+     * subsequent inverse conversions are more efficient.
+     */
+    private Object java = null;
 
     public TObject() {
         this.type = Type.STRING;
@@ -206,6 +214,16 @@ public class TObject implements
 
         }
         throw new IllegalStateException();
+    }
+
+    /**
+     * Get the java representation
+     * 
+     * @return the java representation
+     */
+    @Nullable
+    public Object getJavaFormat() {
+        return java;
     }
 
     /**
@@ -338,6 +356,17 @@ public class TObject implements
             break;
 
         }
+    }
+
+    /**
+     * Set the java representation.
+     * 
+     * @param java
+     * @return this
+     */
+    public TObject setJavaFormat(Object java) {
+        this.java = java;
+        return this;
     }
 
     /**
