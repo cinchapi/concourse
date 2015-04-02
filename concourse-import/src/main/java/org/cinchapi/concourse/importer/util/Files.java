@@ -15,8 +15,18 @@
  */
 package org.cinchapi.concourse.importer.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.AbstractList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.google.common.base.Throwables;
 
 /**
  * File utilities that are used in the import classes.
@@ -40,6 +50,95 @@ public final class Files {
     public static String expandPath(String path) {
         path = path.replaceAll("~", USER_HOME);
         return BASE_PATH.resolve(path).normalize().toString();
+    }
+
+    /**
+     * Read the contents of {@code file} into a UTF-8 string.
+     * 
+     * @param file
+     * @return the file content
+     */
+    public static String read(String file) {
+        try {
+            return com.google.common.io.Files.toString(new File(file),
+                    StandardCharsets.UTF_8);
+        }
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Return a list that lazily accumulates lines in the underlying
+     * {@code file}.
+     * <p>
+     * This method is really just syntactic sugar for reading lines from a file,
+     * so the returned list doesn't actually allow any operations other than
+     * forward iteration.
+     * </p>
+     * 
+     * @param file
+     * @return a "list" of lines in the file
+     */
+    public static List<String> readLines(final String file) {
+        return new AbstractList<String>() {
+
+            @Override
+            public String get(int index) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public int size() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+
+                    BufferedReader reader;
+                    String line = null;
+                    {
+                        try {
+                            reader = java.nio.file.Files.newBufferedReader(
+                                    Paths.get(file), StandardCharsets.UTF_8);
+                            line = reader.readLine();
+                        }
+                        catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        return this.line != null;
+                    }
+
+                    @Override
+                    public String next() {
+                        String result = line;
+                        try {
+                            line = reader.readLine();
+                            if(line == null) {
+                                reader.close();
+                            }
+                            return result;
+                        }
+                        catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                };
+            }
+
+        };
     }
 
     /**
