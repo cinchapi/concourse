@@ -38,10 +38,11 @@ public class TArraysTest extends ConcourseBaseTest {
     public void testConsistentHashing() {
         // Test that the byte buffer that is returned is consistent from JVM
         // session to JVM (e.g. it depends on persistent data).
-        List<Integer> bytes = Lists.newArrayList(0,1,-116,-58,-22,32,-65,21,0,1,124,19,90,17,84,-119,0,0,0,1,-55,19,-84,-27);
+        List<Integer> bytes = Lists.newArrayList(0,1,-116,-58,-22,32,-65,21,0,67,101,-107,90,17,84,-119,0,0,0,1,-55,19,-84,-27);
         Object[] data = { Text.wrap("foo"),
                 Value.wrap(Convert.javaToThrift("bar")), PrimaryKey.wrap(1) };
         ByteBuffer buf = TArrays.hash(data);
+        System.out.println(buf);
         for (int i = 0; i < buf.capacity(); i++) {
             Assert.assertEquals(buf.get(), bytes.get(i).byteValue());
         }
