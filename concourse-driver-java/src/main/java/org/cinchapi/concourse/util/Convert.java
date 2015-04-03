@@ -434,20 +434,14 @@ public final class Convert {
      */
     private static Object jsonElementToJava(JsonElement element) {
         String asString = element.getAsString();
-        if((asString.startsWith("@") && asString.endsWith("@"))
-                || (asString.startsWith("`") && asString.endsWith("`"))) {
-            return stringToJava(asString);
+        if(element.isJsonPrimitive()
+                && element.getAsJsonPrimitive().isString()
+                && (Strings.tryParseNumberStrict(asString) != null || Strings
+                        .tryParseBoolean(asString) != null)) {
+            return asString;
         }
-        else {
-            try {
-                char last = asString.charAt(asString.length() - 1);
-                char secondToLast = asString.charAt(asString.length() - 2);
-                if(Character.isDigit(secondToLast) && last == 'D') {
-                    return stringToJava(asString);
-                }
-            }
-            catch (IndexOutOfBoundsException e) {}
-            return stringToJava(element.toString());
+        else{
+            return stringToJava(asString);
         }
     }
 
