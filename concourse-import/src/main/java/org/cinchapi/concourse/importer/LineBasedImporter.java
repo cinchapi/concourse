@@ -17,6 +17,10 @@ package org.cinchapi.concourse.importer;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
@@ -25,11 +29,15 @@ import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.importer.util.Files;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Arrays;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Platform;
 import org.cinchapi.concourse.util.Strings;
 
 import ch.qos.logback.classic.Logger;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -45,13 +53,13 @@ import com.google.gson.JsonPrimitive;
 public abstract class LineBasedImporter extends JsonImporter {
 
     /**
-     * Construct a new instance.
-     * 
-     * @param concourse
+     * The ideal size for the batch of records we include in a single JSON
+     * insert/upsert.
      */
-    protected LineBasedImporter(Concourse concourse, Logger log) {
-        super(concourse, log);
-    }
+    private static int IDEAL_BATCH_SIZE = 20000;
+
+    private final ExecutorService executor = Executors
+            .newFixedThreadPool(Platform.idealNumberOfThreadsForCpuBoundTask());
 
     /**
      * Construct a new instance.
@@ -60,6 +68,15 @@ public abstract class LineBasedImporter extends JsonImporter {
      */
     protected LineBasedImporter(Concourse concourse) {
         super(concourse);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected LineBasedImporter(Concourse concourse, Logger log) {
+        super(concourse, log);
     }
 
     @Override
@@ -82,57 +99,45 @@ public abstract class LineBasedImporter extends JsonImporter {
      *         records created/affected from the import and whether any errors
      *         occurred.
      */
+    @SuppressWarnings("unchecked")
     public final Set<Long> importFile(String file, @Nullable String resolveKey) {
         // TODO add option to specify batchSize, which is how many objects to
         // send over the wire in one atomic batch
         List<String> lines = Files.readLines(file);
         String[] keys = header();
-        JsonArray array = new JsonArray();
-        boolean upsert = false;
+        Object array = resolveKey == null ? new JsonObject[IDEAL_BATCH_SIZE]
+                : Lists.newArrayListWithCapacity(IDEAL_BATCH_SIZE);
+        AtomicBoolean upsert = new AtomicBoolean(false);
+        int slot = 0;
         for (String line : lines) {
             if(keys == null) {
                 keys = parseKeys(line);
                 log.info("Parsed keys from header: " + line);
             }
-            else {
-                JsonObject object = parseLine(line, keys);
-                if(resolveKey != null && object.has(resolveKey)) {
-                    upsert = true;
-                    JsonElement resolveValue = object.get(resolveKey);
-                    if(!resolveValue.isJsonArray()) {
-                        JsonArray temp = new JsonArray();
-                        temp.add(resolveValue);
-                        resolveValue = temp;
-                    }
-                    for (int i = 0; i < resolveValue.getAsJsonArray().size(); ++i) {
-                        String value = resolveValue.getAsJsonArray().get(i)
-                                .toString();
-                        Object stored = Convert.stringToJava(value);
-                        Set<Long> resolved = concourse.find(resolveKey,
-                                Operator.EQUALS, stored);
-                        for (long record : resolved) {
-                            object = parseLine(line, keys); // this is
-                                                            // inefficient, but
-                                                            // there is no good
-                                                            // way to clone the
-                                                            // original object
-                            object.addProperty(
-                                    Constants.JSON_RESERVED_IDENTIFIER_NAME,
-                                    record);
-                            array.add(object);
-                        }
-                    }
-                }
-                else {
-                    array.add(object);
-                }
-                log.info("Importing {}", line);
+            else if(resolveKey == null) {
+                asyncParseLine(slot, (JsonObject[]) array, line, keys);
+                ++slot;
             }
-
+            else {
+                asyncParseLine(upsert, resolveKey, (List<JsonObject>) array,
+                        line, keys);
+            }
         }
-        Set<Long> records = upsert ? upsertJsonString(array.toString())
-                : importJsonString(array.toString());
-        return records;
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            Set<Long> records = upsert.get() ? upsertJsonString(array
+                    .toString()) : importJsonString(Arrays
+                    .toString((JsonObject[]) array));
+            return records;
+        }
+        catch (InterruptedException e) {
+            throw Throwables.propagate(e);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /**
@@ -205,6 +210,87 @@ public abstract class LineBasedImporter extends JsonImporter {
             element = new JsonPrimitive(value);
         }
         return element;
+    }
+
+    /**
+     * Asynchronously process {@code line}.
+     * 
+     * @param upsert
+     * @param resolveKey
+     * @param objects
+     * @param line
+     * @param keys
+     */
+    private void asyncParseLine(final AtomicBoolean upsert,
+            final String resolveKey, final List<JsonObject> objects,
+            final String line, final String... keys) {
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                JsonObject object = parseLine(line, keys);
+                if(object.has(resolveKey)) {
+                    upsert.set(true);
+                    JsonElement resolveValue = object.get(resolveKey);
+                    if(!resolveValue.isJsonArray()) {
+                        JsonArray temp = new JsonArray();
+                        temp.add(resolveValue);
+                        resolveValue = temp;
+                    }
+                    for (int i = 0; i < resolveValue.getAsJsonArray().size(); ++i) {
+                        String value = resolveValue.getAsJsonArray().get(i)
+                                .toString();
+                        Object stored = Convert.stringToJava(value);
+                        Set<Long> resolved = concourse.find(resolveKey,
+                                Operator.EQUALS, stored);
+                        for (long record : resolved) {
+                            object = parseLine(line, keys); // this is
+                                                            // inefficient, but
+                                                            // there is no good
+                                                            // way to clone the
+                                                            // original object
+                            object.addProperty(
+                                    Constants.JSON_RESERVED_IDENTIFIER_NAME,
+                                    record);
+                            synchronized (objects) {
+                                objects.add(object);
+                            }
+                        }
+                    }
+
+                }
+                else {
+                    synchronized (objects) {
+                        objects.add(object);
+                    }
+                }
+                log.info("Processed {}", line);
+            }
+        });
+    }
+
+    /**
+     * Asynchronously process {@code line}.
+     * 
+     * @param slot
+     * @param objects
+     * @param line
+     * @param keys
+     */
+    private void asyncParseLine(final int slot, final JsonObject[] objects,
+            final String line, final String... keys) {
+        executor.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                JsonObject object = parseLine(line, keys);
+                synchronized (objects) {
+                    objects[slot] = object;
+                }
+                log.info("Processed {}", line);
+            }
+
+        });
     }
 
     /**
