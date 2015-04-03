@@ -126,7 +126,7 @@ public abstract class LineBasedImporter extends JsonImporter {
                 else {
                     array.add(object);
                 }
-                log.info("Importing {}", line);;
+                log.info("Importing {}", line);
             }
 
         }
