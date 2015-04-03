@@ -1,0 +1,4 @@
+# Normalize working directory
+cd "${0%/*}"
+HOME="`pwd -P`"
+HOME=`cd ${HOME}; pwd`
