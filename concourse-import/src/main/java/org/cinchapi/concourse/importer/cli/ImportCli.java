@@ -69,6 +69,7 @@ public class ImportCli extends CommandLineInterface {
 
     @Override
     protected void doTask() {
+        System.out.println("Starting import...");
         final ImportOptions opts = (ImportOptions) options;
         ExecutorService executor = Executors
                 .newFixedThreadPool(((ImportOptions) options).numThreads);
