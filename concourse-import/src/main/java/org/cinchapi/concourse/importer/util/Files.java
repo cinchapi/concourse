@@ -17,11 +17,11 @@ package org.cinchapi.concourse.importer.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.List;
@@ -90,7 +90,13 @@ public final class Files {
 
             @Override
             public int size() {
-                throw new UnsupportedOperationException();
+                int size = 0;
+                Iterator<String> it = iterator();
+                while (it.hasNext()) {
+                    size += 1;
+                    it.next();
+                }
+                return size;
             }
 
             @Override
@@ -101,8 +107,8 @@ public final class Files {
                     String line = null;
                     {
                         try {
-                            reader = java.nio.file.Files.newBufferedReader(
-                                    Paths.get(file), StandardCharsets.UTF_8);
+                            reader = new BufferedReader(new FileReader(
+                                    Files.expandPath(file)));
                             line = reader.readLine();
                         }
                         catch (IOException e) {

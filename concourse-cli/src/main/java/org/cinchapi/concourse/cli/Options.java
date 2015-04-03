@@ -77,5 +77,8 @@ public class Options {
 
     @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
     public String prefs;
+    
+    @Parameter(names = {"--verbose"}, description = "Turn on the display of informational logging")
+    public boolean verbose = false;
 
 }

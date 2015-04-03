@@ -15,21 +15,20 @@
  */
 package org.cinchapi.concourse.importer;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
+import org.cinchapi.concourse.importer.util.Files;
 import org.cinchapi.concourse.testing.Variables;
-import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Resources;
+import org.cinchapi.concourse.util.Strings;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Iterables;
 
 /**
  * Base unit test that validates the integrity of importing line based files
@@ -51,52 +50,40 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
 
     @Test
     public void testImport() {
-        Collection<ImportResult> results = importer.importFile(Resources.get(
-                "/" + getImportPath()).getFile());
-        for (ImportResult result : results) {
-            // Verify no errors
-            Assert.assertEquals(0, result.getErrorCount());
-
-            // Verify that fetch reads return all the appropriate values
-            Multimap<String, String> data = result.getImportData();
-            for (long record : result.getRecords()) {
-                for (String key : data.keySet()) {
-                    for (String value : data.get(key)) {
-                        if(!Strings.isNullOrEmpty(value)) {
-                            Object expected = Convert.stringToJava(value);
-                            if(!(expected instanceof ResolvableLink)) {
-                                Variables.register("key", key);
-                                Variables.register("expected", expected);
-                                Variables.register("record", record);
-                                Set<Object> stored = client.select(key, record);
-                                int count = 0;
-                                for (Object obj : stored) {
-                                    Variables.register("stored_" + count, obj);
-                                }
-                                Assert.assertTrue(stored.contains(expected));
-                            }
-                        }
-                    }
-                }
+        String file = Resources.get("/" + getImportPath()).getFile();
+        Set<Long> records = importer.importFile(file);
+        List<String> lines = Files.readLines(file);
+        int size = 0;
+        String[] keys = null;
+        for (String line : lines) {
+            Variables.register("line", line);
+            long record = Iterables.get(records, size);
+            Variables.register("record", record);
+            if(keys == null) {
+                keys = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
             }
-
-            // Verify that find queries return all the appropriate records
-            for (String key : data.keySet()) {
-                for (String value : data.get(key)) {
-                    if(!Strings.isNullOrEmpty(value)) {
-                        Object stored = Convert.stringToJava(value);
-                        if(!(stored instanceof ResolvableLink)) {
-                            Assert.assertEquals(
-                                    result.getRecords().size(),
-                                    Sets.intersection(
-                                            result.getRecords(),
-                                            client.find(key, Operator.EQUALS,
-                                                    stored)).size());
+            else {
+                String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line, ",");
+                for(int i = 0; i < Math.min(keys.length, toks.length); ++i){
+                    String key = keys[i];
+                    String value = toks[i];
+                    if(!com.google.common.base.Strings.isNullOrEmpty(value)){
+                        Object expected = Convert.stringToJava(value);
+                        Object actual = client.get(key, record);
+                        Variables.register("key", key);
+                        Variables.register("raw", value);
+                        Variables.register("expected", expected);
+                        Assert.assertNotNull(actual);
+                        Variables.register("actual", actual);
+                        if(!(expected instanceof ResolvableLink)) {  
+                             Assert.assertTrue(client.verify(key, expected, record));
                         }
-                    }
+                    }              
                 }
+                size += 1;
             }
         }
+        Assert.assertEquals(records.size(), size); // account for header
     }
 
     /**

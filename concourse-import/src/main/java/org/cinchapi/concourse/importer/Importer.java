@@ -15,15 +15,14 @@
  */
 package org.cinchapi.concourse.importer;
 
-import java.util.Collection;
-import javax.annotation.Nullable;
+import java.util.Set;
 
 import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.TransactionException;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 import com.google.common.collect.Multimap;
 
@@ -109,14 +108,24 @@ import com.google.common.collect.Multimap;
 public abstract class Importer {
 
     /**
-     * A Logger that is available for the subclass to log helpful messages.
-     */
-    protected Logger log = LoggerFactory.getLogger(getClass());
-
-    /**
      * The connection to Concourse.
      */
-    private final Concourse concourse;
+    protected final Concourse concourse;
+
+    /**
+     * The logger that is used for displaying operational information.
+     */
+    protected final Logger log;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected Importer(Concourse concourse, Logger log) {
+        this.concourse = concourse;
+        this.log = log;
+    }
 
     /**
      * Construct a new instance.
@@ -125,61 +134,16 @@ public abstract class Importer {
      */
     protected Importer(Concourse concourse) {
         this.concourse = concourse;
+        this.log = (Logger) LoggerFactory.getLogger(getClass());
     }
 
     /**
-     * Import the data contained in {@code file} into {@link Concourse}.
+     * Import the data contained in {@code file} into {@link Concourse} and
+     * return the number of records into which data was imported.
      * 
      * @param file
-     * @return a collection of {@link ImportResult} objects that describes the
-     *         records created/affected from the import and whether any errors
-     *         occurred
+     * @return the records affected by the import
      */
-    public final Collection<ImportResult> importFile(String file) {
-        return importFile(file, null);
-    }
-
-    /**
-     * Import the data contained in {@code file} into {@link Concourse}.
-     * <p>
-     * <strong>Note</strong> that if {@code resolveKey} is specified, an attempt
-     * will be made to add the data in from each group into the existing records
-     * that are found using {@code resolveKey} and its corresponding value in
-     * the group.
-     * </p>
-     * 
-     * @param file
-     * @param resolveKey
-     * @return a collection of {@link ImportResult} objects that describes the
-     *         records created/affected from the import and whether any errors
-     *         occurred.
-     */
-    public final Collection<ImportResult> importFile(String file,
-            @Nullable String resolveKey) {
-        concourse.stage();
-        try {
-            Collection<ImportResult> results = splitAndImport(concourse, file,
-                    resolveKey);
-            if(concourse.commit()) {
-                return results;
-            }
-        }
-        catch (TransactionException e) {
-            concourse.abort();
-        }
-        throw new RuntimeException("Failed to import " + file);
-    }
-
-    /**
-     * Split the {@code file} as appropriate and import the data into
-     * {@code concourse} using the {@code resolveKe}, if it is not {@code null}.
-     * 
-     * @param concourse
-     * @param file
-     * @param resolveKey
-     * @return the results of the import
-     */
-    protected abstract Collection<ImportResult> splitAndImport(
-            Concourse concourse, String file, @Nullable String resolveKey);
+    public abstract Set<Long> importFile(String file);
 
 }

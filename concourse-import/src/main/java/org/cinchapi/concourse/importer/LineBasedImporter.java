@@ -15,29 +15,25 @@
  */
 package org.cinchapi.concourse.importer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
-import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.importer.util.Files;
 import org.cinchapi.concourse.thrift.Operator;
-import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
-import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.Strings;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import ch.qos.logback.classic.Logger;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 /**
  * An {@link Importer} that handles data from a file that can be delimited into
@@ -46,7 +42,16 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
-public abstract class LineBasedImporter extends Importer {
+public abstract class LineBasedImporter extends JsonImporter {
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected LineBasedImporter(Concourse concourse, Logger log) {
+        super(concourse, log);
+    }
 
     /**
      * Construct a new instance.
@@ -57,24 +62,77 @@ public abstract class LineBasedImporter extends Importer {
         super(concourse);
     }
 
+    @Override
+    public final Set<Long> importFile(String file) {
+        return importFile(file, null);
+    }
+
     /**
-     * Parse the data from {@code line} into a multimap from key (header) to
-     * value.
+     * Import the data contained in {@code file} into {@link Concourse}.
+     * <p>
+     * <strong>Note</strong> that if {@code resolveKey} is specified, an attempt
+     * will be made to add the data in from each group into the existing records
+     * that are found using {@code resolveKey} and its corresponding value in
+     * the group.
+     * </p>
      * 
-     * @param line
-     * @param keys
-     * @return the line data
+     * @param file
+     * @param resolveKey
+     * @return a collection of {@link ImportResult} objects that describes the
+     *         records created/affected from the import and whether any errors
+     *         occurred.
      */
-    public final Multimap<String, String> parseLine(String line, String... keys) {
-        Multimap<String, String> data = LinkedHashMultimap.create();
-        String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line,
-                delimiter());
-        for (int i = 0; i < Math.min(keys.length, toks.length); i++) {
-            for (String value : transformValue(keys[i], toks[i])) {
-                data.put(keys[i], value);
+    public final Set<Long> importFile(String file, @Nullable String resolveKey) {
+        // TODO add option to specify batchSize, which is how many objects to
+        // send over the wire in one atomic batch
+        List<String> lines = Files.readLines(file);
+        String[] keys = header();
+        JsonArray array = new JsonArray();
+        boolean upsert = false;
+        for (String line : lines) {
+            if(keys == null) {
+                keys = parseKeys(line);
+                log.info("Parsed keys from header: " + line);
             }
+            else {
+                JsonObject object = parseLine(line, keys);
+                if(resolveKey != null && object.has(resolveKey)) {
+                    upsert = true;
+                    JsonElement resolveValue = object.get(resolveKey);
+                    if(!resolveValue.isJsonArray()) {
+                        JsonArray temp = new JsonArray();
+                        temp.add(resolveValue);
+                        resolveValue = temp;
+                    }
+                    for (int i = 0; i < resolveValue.getAsJsonArray().size(); ++i) {
+                        String value = resolveValue.getAsJsonArray().get(i)
+                                .toString();
+                        Object stored = Convert.stringToJava(value);
+                        Set<Long> resolved = concourse.find(resolveKey,
+                                Operator.EQUALS, stored);
+                        for (long record : resolved) {
+                            object = parseLine(line, keys); // this is
+                                                            // inefficient, but
+                                                            // there is no good
+                                                            // way to clone the
+                                                            // original object
+                            object.addProperty(
+                                    Constants.JSON_RESERVED_IDENTIFIER_NAME,
+                                    record);
+                            array.add(object);
+                        }
+                    }
+                }
+                else {
+                    array.add(object);
+                }
+                log.info("Importing {}", line);;
+            }
+
         }
-        return data;
+        Set<Long> records = upsert ? upsertJsonString(array.toString())
+                : importJsonString(array.toString());
+        return records;
     }
 
     /**
@@ -95,133 +153,26 @@ public abstract class LineBasedImporter extends Importer {
     }
 
     /**
-     * Import a single group of {@code data} (i.e. a line in a csv file) into
-     * {@code concourse}.
+     * At a minimum, this method is responsible for taking a raw source string
+     * value and converting it to a {@link JsonElement}. The default
+     * implementation makes an effort to represent numeric and boolean values as
+     * appropriate {@link JsonPrimitive json primitives}. All other kinds of
+     * values are represented as strings, which is the correct format for the
+     * server to handle masquerading types (i.e. resolvable links, links, tags,
+     * forced doubles, etc).
      * <p>
-     * If {@code resolveKey} is specified, it is possible that the {@code data}
-     * will be added to more than one existing record. It is guaranteed that an
-     * attempt will be made to add the data to at least one (possibly) new
-     * record.
+     * The default behaviour is appropriate in most cases, but this method can
+     * be used by subclasses to define dynamic intermediary transformations to
+     * data to better prepare it for import.
      * </p>
-     * 
-     * @param data
-     * @param resolveKey
-     * @return an {@link ImportResult} object that describes the records
-     *         created/affected from the import and whether any errors occurred.
-     */
-    protected final ImportResult import0(Concourse concourse,
-            Multimap<String, String> data, @Nullable String resolveKey) {
-        // Determine import record(s)
-        Set<Long> records = Sets.newHashSet();
-        for (String resolveValue : data.get(resolveKey)) {
-            records = Sets.union(
-                    records,
-                    concourse.find(resolveKey, Operator.EQUALS,
-                            Convert.stringToJava(resolveValue)));
-            records = Sets.newHashSet(records); // must make copy because
-                                                // previous method returns
-                                                // immutable view
-        }
-        if(records.isEmpty()) {
-            records.add(Time.now());
-        }
-        // Iterate through the data and add it to Concourse
-        ImportResult result = ImportResult.newImportResult(data, records);
-        for (String key : data.keySet()) {
-            for (String rawValue : data.get(key)) {
-                if(!com.google.common.base.Strings.isNullOrEmpty(rawValue)) { // do not waste time
-                                                                              // sending
-                                                                              // empty
-                                                                              // values
-                                                                              // over
-                                                                              // the
-                                                                              // wire
-                    Object convertedValue = Convert.stringToJava(rawValue);
-                    List<Object> values = Lists.newArrayList();
-                    if(convertedValue instanceof ResolvableLink) {
-                        // Find all the records that resolve and create a
-                        // Link to those records.
-                        for (long record : concourse.find(
-                                ((ResolvableLink) convertedValue).getKey(),
-                                Operator.EQUALS,
-                                ((ResolvableLink) convertedValue).getValue())) {
-                            values.add(Link.to(record));
-                        }
-                    }
-                    else {
-                        values.add(convertedValue);
-                    }
-                    for (long record : records) {
-                        for (Object value : values) {
-                            if(!concourse.add(key, value, record)) {
-                                result.addError(MessageFormat.format(
-                                        "Could not import {0} AS {1} IN {2}",
-                                        key, value, record));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Parse the keys from the {@code line}.
-     * 
-     * @param line
-     * @return an array of keys
-     */
-    protected String[] parseKeys(String line) {
-        return Strings
-                .splitStringByDelimiterButRespectQuotes(line, delimiter());
-    }
-
-    @Override
-    protected Collection<ImportResult> splitAndImport(Concourse concourse,
-            String file, String resolveKey) {
-        List<ImportResult> results = Lists.newArrayList();
-        String[] keys = header();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(
-                    Files.expandPath(file)));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = cleanup(line);
-                if(keys == null) {
-                    keys = parseKeys(line);
-                    log.info("Processed header: " + line);
-                }
-                else {
-                    Multimap<String, String> data = parseLine(line, keys);
-                    ImportResult result = import0(concourse, data, resolveKey);
-                    results.add(result);
-                    log.info(MessageFormat
-                            .format("Imported {0} into record(s) {1} with {2} error(s)",
-                                    line, result.getRecords(),
-                                    result.getErrorCount()));
-                }
-            }
-            reader.close();
-            return results;
-        }
-        catch (Exception e) {
-            throw Throwables.propagate(e);
-        }      
-    }
-
-    /**
-     * This method allows the subclass to define dynamic intermediary
-     * transformations to data to better prepare it for import. This method is
-     * called before the raw string data is converted to a Java object. There
-     * are several instances for which the subclass should use this method:
+     * <h1>Examples</h1> <h2>Specifying Link Resolution</h2>
      * <p>
-     * <h2>Specifying Link Resolution</h2>
-     * The importer will convert raw data of the form
+     * The server will convert raw data of the form
      * <code>@&lt;key&gt;@value@&lt;key&gt;@</code> into a Link to all the
      * records where key equals value in Concourse. For this purpose, the
      * subclass can convert the raw value to this form using the
-     * {@link #transformValueToResolvableLink(String, String)} method.
+     * {@link Convert#stringToResolvableLinkSpecification(String, String)}
+     * method.
      * </p>
      * <p>
      * <h2>Normalizing Data</h2>
@@ -239,20 +190,58 @@ public abstract class LineBasedImporter extends Importer {
      * 
      * @param key
      * @param value
-     * @return the transformed value
+     * @return the transformed values in a JsonArray
      */
-    protected String[] transformValue(String key, String value) {
-        return new String[] { value };
+    protected JsonElement transformValue(String key, String value) {
+        JsonPrimitive element;
+        Object parsed;
+        if((parsed = Strings.tryParseNumberStrict(value)) != null) {
+            element = new JsonPrimitive((Number) parsed);
+        }
+        else if((parsed = Strings.tryParseBoolean(value)) != null) {
+            element = new JsonPrimitive((Boolean) parsed);
+        }
+        else {
+            element = new JsonPrimitive(value);
+        }
+        return element;
     }
 
     /**
-     * Cleanup the line before processing it.
+     * Parse the keys from the {@code line}. The delimiter can be specified by
+     * the subclass in the {@link #delimiter()} method.
      * 
      * @param line
-     * @return the cleaned up line
+     * @return an array of keys
      */
-    private String cleanup(String line) {
-        return line.replaceAll(delimiter() + " ", delimiter());
+    private final String[] parseKeys(String line) {
+        return Strings
+                .splitStringByDelimiterButRespectQuotes(line, delimiter());
+    }
+
+    /**
+     * Parse the data from {@code line} into a {@link JsonObject} that is
+     * appropriate for import. The subclass can customize the behaviour of this
+     * process by overriding the {@link #header()} and
+     * {@link #transformValue(String, String)} methods.
+     * 
+     * @param line
+     * @param keys
+     * @return the line data encoded as a JsonObject
+     */
+    private final JsonObject parseLine(String line, String... keys) {
+        line = line.trim();
+        JsonObject json = new JsonObject();
+        String[] toks = Strings.splitStringByDelimiterButRespectQuotes(line,
+                delimiter());
+        for (int i = 0; i < Math.min(keys.length, toks.length); i++) {
+            if(StringUtils.isBlank(toks[i])) {
+                continue;
+            }
+            JsonElement value = transformValue(keys[i], toks[i]);
+            json.add(keys[i], value);
+        }
+        return json;
     }
 
 }

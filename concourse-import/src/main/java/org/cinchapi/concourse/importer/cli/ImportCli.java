@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,7 @@ import com.beust.jcommander.Parameter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * A CLI that uses the import framework to import data into Concourse.
@@ -47,6 +49,7 @@ public class ImportCli extends CommandLineInterface {
      * 1) add flag to specify importer (default will be CSV..or maybe auto
      * detect??)
      * 2) add flags to whitelist or blacklist files in a directory
+     * 3) add option to configure verbosity
      */
 
     /**
@@ -61,7 +64,7 @@ public class ImportCli extends CommandLineInterface {
      */
     public ImportCli(String[] args) {
         super(new ImportOptions(), args);
-        this.importer = new CsvImporter(this.concourse);
+        this.importer = new CsvImporter(this.concourse, log);
     }
 
     @Override
@@ -72,12 +75,13 @@ public class ImportCli extends CommandLineInterface {
         String data = opts.data;
         List<String> files = scan(Paths.get(Files.expandPath(data)));
         Stopwatch watch = Stopwatch.createStarted();
+        final Set<Long> records = Sets.newConcurrentHashSet();
         for (final String file : files) {
             executor.execute(new Runnable() {
 
                 @Override
                 public void run() {
-                    importer.importFile(file, opts.resolveKey);
+                    records.addAll(importer.importFile(file));
                 }
 
             });
@@ -87,10 +91,13 @@ public class ImportCli extends CommandLineInterface {
             continue; // block until all tasks are completed
         }
         watch.stop();
-        TimeUnit unit = TimeUnit.SECONDS;
-        System.out.println(MessageFormat.format("Finished import in {0} {1}",
-                watch.elapsed(unit), unit));
-
+        long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+        double seconds = elapsed / 1000.0;
+        if(options.verbose) {
+            System.out.println(records);
+        }
+        System.out.println(MessageFormat.format("Imported data "
+                + "into {0} records in {1} seconds", records.size(), seconds));
     }
 
     /**

@@ -20,8 +20,11 @@ import java.io.IOException;
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.config.ConcourseClientPreferences;
+import org.slf4j.LoggerFactory;
 
 import jline.console.ConsoleReader;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -58,6 +61,12 @@ public abstract class CommandLineInterface {
      * The parser that validates the CLI options.
      */
     protected JCommander parser;
+
+    /**
+     * The logger that should be used when printing information to the console
+     * from the CLI.
+     */
+    protected Logger log = (Logger) LoggerFactory.getLogger(getClass());
 
     /**
      * Construct a new instance.
@@ -146,6 +155,7 @@ public abstract class CommandLineInterface {
      */
     public final int run() {
         try {
+            log.setLevel(options.verbose ? Level.INFO : Level.ERROR);
             doTask();
             return 0;
         }
