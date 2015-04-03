@@ -272,7 +272,7 @@ public final class Convert {
         char first = value.charAt(0);
         char last = value.charAt(value.length() - 1);
         Long record;
-        if((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+        if(Strings.isWithinQuotes(value)) {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
@@ -440,7 +440,7 @@ public final class Convert {
                         .tryParseBoolean(asString) != null)) {
             return asString;
         }
-        else{
+        else {
             return stringToJava(asString);
         }
     }

@@ -33,6 +33,24 @@ import com.google.common.primitives.Longs;
 public final class Strings {
 
     /**
+     * Return {@code true} if {@code string} both starts and ends with single or
+     * double quotes.
+     * 
+     * @param string
+     * @return {@code true} if the string is between quotes
+     */
+    public static boolean isWithinQuotes(String string) {
+        if(string.length() >= 2){
+            char first = string.charAt(0);
+            if(first == '"' || first == '\'') {
+                char last = string.charAt(string.length() - 1);
+                return first == last;
+            } 
+        }
+        return false;
+    }
+
+    /**
      * Split a string on a delimiter as long as that delimiter is not wrapped in
      * double or single quotes.
      * 
@@ -63,6 +81,51 @@ public final class Strings {
     }
 
     /**
+     * A stricter version of {@link #tryParseNumber(String)} that does not parse
+     * strings that masquerade as numbers (i.e. 3.124D). Instead this method
+     * will only parse the string into a Number if it contains characters that
+     * are either a decimal digit, a decimal separator or a negative sign.
+     * 
+     * @param value
+     * @return a Number object that represents the string or {@code null} if it
+     *         is not possible to parse the string into a number
+     */
+    @Nullable
+    public static Number tryParseNumberStrict(String value) {
+        if(value == null || value.length() == 0) {
+            return null;
+        }
+        char last = value.charAt(value.length() - 1);
+        if(Character.isDigit(last)) {
+            return tryParseNumber(value);
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * This method efficiently tries to parse {@code value} into a
+     * {@link Boolean} object if possible. If the string is not a boolean, then
+     * the method returns {@code null} as quickly as possible.
+     * 
+     * @param value
+     * @return a Boolean object that represents the string or {@code null} if it
+     *         is not possible to parse the string into a boolean
+     */
+    public static Boolean tryParseBoolean(String value) {
+        if(value.equalsIgnoreCase("true")) {
+            return true;
+        }
+        else if(value.equalsIgnoreCase("false")) {
+            return false;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * This method efficiently tries to parse {@code value} into a
      * {@link Number} object if possible. If the string is not a number, then
      * the method returns {@code null} as quickly as possible.
@@ -73,7 +136,7 @@ public final class Strings {
      */
     @Nullable
     public static Number tryParseNumber(String value) {
-        if(value == null) {
+        if(value == null || value.length() == 0) {
             return null;
         }
         int size = value.length();
@@ -87,7 +150,7 @@ public final class Strings {
                 else if(c == '.') {
                     decimal = true;
                 }
-                else if(i == size - 1 && c == 'D') {
+                else if(i == size - 1 && c == 'D' && size > 1) {
                     // Respect the convention to coerce numeric strings to
                     // Double objects by appending a single 'D' character.
                     return Double.valueOf(value.substring(0, i));

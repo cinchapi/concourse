@@ -245,6 +245,7 @@ public class ConvertTest {
     public void testConvertJsonStringBoolean() {
         boolean value = Random.getBoolean();
         String json = "{\"elt\": \"" + value + "\"}";
+        System.out.println(json);
         Multimap<String, Object> data = Convert.jsonToJava(json);
         Assert.assertEquals("" + value + "",
                 Iterables.getOnlyElement(data.get("elt")));
