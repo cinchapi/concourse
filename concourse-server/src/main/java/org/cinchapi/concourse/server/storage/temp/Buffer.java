@@ -593,7 +593,7 @@ public final class Buffer extends Limbo {
         }
         catch (CapacityException e) {
             addPage();
-            insert(write);
+            insert(write, sync);
         }
         finally {
             writeLock.unlock();
