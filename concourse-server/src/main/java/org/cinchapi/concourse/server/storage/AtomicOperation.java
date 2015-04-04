@@ -396,58 +396,51 @@ public class AtomicOperation extends BufferedStore implements
             // Grab write locks and remove any covered read or range read
             // intentions
             for (Token token : writes2Lock) {
-                if(!notifiedAboutVersionChange) {
-                    LockType type;
-                    if(token instanceof RangeToken) {
-                        RangeToken rangeToken = (RangeToken) token;
-                        if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
-                            Range<Value> containing = rangeReads2Lock.get(
-                                    rangeToken.getKey(),
-                                    rangeToken.getValues()[0]);
-                            if(containing != null) {
-                                rangeReads2Lock.remove(rangeToken.getKey(),
-                                        containing);
-                                Iterable<Range<Value>> xor = Ranges.xor(Range
-                                        .singleton(rangeToken.getValues()[0]),
-                                        containing);
-                                for (Range<Value> range : xor) {
-                                    rangeReads2Lock.put(rangeToken.getKey(),
-                                            range);
-                                }
+                if(notifiedAboutVersionChange) {
+                    return false;
+                }
+                LockType type;
+                if(token instanceof RangeToken) {
+                    RangeToken rangeToken = (RangeToken) token;
+                    if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
+                        Range<Value> containing = rangeReads2Lock.get(
+                                rangeToken.getKey(), rangeToken.getValues()[0]);
+                        if(containing != null) {
+                            rangeReads2Lock.remove(rangeToken.getKey(),
+                                    containing);
+                            Iterable<Range<Value>> xor = Ranges.xor(
+                                    Range.singleton(rangeToken.getValues()[0]),
+                                    containing);
+                            for (Range<Value> range : xor) {
+                                rangeReads2Lock.put(rangeToken.getKey(), range);
                             }
                         }
-                        type = LockType.RANGE_WRITE;
                     }
-                    else {
-                        reads2Lock.remove(token);
-                        type = LockType.WRITE;
-                    }
-                    LockDescription lock = LockDescription.forToken(token,
-                            lockService, rangeLockService, type);
-                    if(lock.getLock().tryLock()) {
-                        locks.put(lock.getToken(), lock);
-                    }
-                    else {
-                        return false;
-                    }
+                    type = LockType.RANGE_WRITE;
+                }
+                else {
+                    reads2Lock.remove(token);
+                    type = LockType.WRITE;
+                }
+                LockDescription lock = LockDescription.forToken(token,
+                        lockService, rangeLockService, type);
+                if(lock.getLock().tryLock()) {
+                    locks.put(lock.getToken(), lock);
                 }
                 else {
                     return false;
                 }
-
             }
             // Grab the read locks. We can be sure that any remaining intentions
             // are not covered by any of the write locks we grabbed previously.
             for (Token token : reads2Lock) {
-                if(!notifiedAboutVersionChange) {
-                    LockDescription lock = LockDescription.forToken(token,
-                            lockService, rangeLockService, LockType.READ);
-                    if(lock.getLock().tryLock()) {
-                        locks.put(lock.getToken(), lock);
-                    }
-                    else {
-                        return false;
-                    }
+                if(notifiedAboutVersionChange) {
+                    return false;
+                }
+                LockDescription lock = LockDescription.forToken(token,
+                        lockService, rangeLockService, LockType.READ);
+                if(lock.getLock().tryLock()) {
+                    locks.put(lock.getToken(), lock);
                 }
                 else {
                     return false;
@@ -458,24 +451,21 @@ public class AtomicOperation extends BufferedStore implements
             // grabbed previously.
             for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
                     .entrySet()) { /* (Authorized) */
-                if(!notifiedAboutVersionChange) {
-                    Text key = entry.getKey();
-                    for (Range<Value> range : entry.getValue().asRanges()) {
-                        RangeToken rangeToken = Ranges.convertToRangeToken(key,
-                                range);
-                        LockDescription lock = LockDescription.forToken(
-                                rangeToken, lockService, rangeLockService,
-                                LockType.RANGE_READ);
-                        if(lock.getLock().tryLock()) {
-                            locks.put(lock.getToken(), lock);
-                        }
-                        else {
-                            return false;
-                        }
-                    }
-                }
-                else {
+                if(notifiedAboutVersionChange) {
                     return false;
+                }
+                Text key = entry.getKey();
+                for (Range<Value> range : entry.getValue().asRanges()) {
+                    RangeToken rangeToken = Ranges.convertToRangeToken(key,
+                            range);
+                    LockDescription lock = LockDescription.forToken(rangeToken,
+                            lockService, rangeLockService, LockType.RANGE_READ);
+                    if(lock.getLock().tryLock()) {
+                        locks.put(lock.getToken(), lock);
+                    }
+                    else {
+                        return false;
+                    }
                 }
             }
         }
