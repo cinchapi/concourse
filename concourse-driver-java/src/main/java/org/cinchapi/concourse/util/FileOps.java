@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.cinchapi.concourse.importer.util;
+package org.cinchapi.concourse.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,14 +30,10 @@ import com.google.common.base.Throwables;
 
 /**
  * File utilities that are used in the import classes.
- * <p>
- * <strong>NOTE:</strong> This class is copied from the FileSystem class in
- * concourse-server.
- * </p>
  * 
  * @author Jeff Nelson
  */
-public final class Files {
+public class FileOps {
 
     /**
      * Expand the given {@code path} so that it contains completely normalized
@@ -50,6 +46,25 @@ public final class Files {
     public static String expandPath(String path) {
         path = path.replaceAll("~", USER_HOME);
         return BASE_PATH.resolve(path).normalize().toString();
+    }
+    
+    /**
+     * Return the home directory of the parent process for this JVM.
+     * 
+     * @return the home directory
+     */
+    public static String getUserHome() {
+        return USER_HOME;
+    }
+
+    /**
+     * Get the working directory of this JVM, which is the directory from which
+     * the process is launched.
+     * 
+     * @return the working directory
+     */
+    public static String getWorkingDirectory() {
+        return WORKING_DIRECTORY;
     }
 
     /**
@@ -89,26 +104,15 @@ public final class Files {
             }
 
             @Override
-            public int size() {
-                int size = 0;
-                Iterator<String> it = iterator();
-                while (it.hasNext()) {
-                    size += 1;
-                    it.next();
-                }
-                return size;
-            }
-
-            @Override
             public Iterator<String> iterator() {
                 return new Iterator<String>() {
 
-                    BufferedReader reader;
                     String line = null;
+                    BufferedReader reader;
                     {
                         try {
                             reader = new BufferedReader(new FileReader(
-                                    Files.expandPath(file)));
+                                    FileOps.expandPath(file)));
                             line = reader.readLine();
                         }
                         catch (IOException e) {
@@ -144,6 +148,17 @@ public final class Files {
                 };
             }
 
+            @Override
+            public int size() {
+                int size = 0;
+                Iterator<String> it = iterator();
+                while (it.hasNext()) {
+                    size += 1;
+                    it.next();
+                }
+                return size;
+            }
+
         };
     }
 
@@ -157,13 +172,11 @@ public final class Files {
      * The working directory from which the current JVM process was launched.
      */
     private static String WORKING_DIRECTORY = System.getProperty("user.dir");
-
+    
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */
     private static Path BASE_PATH = FileSystems.getDefault().getPath(
             WORKING_DIRECTORY);
-
-    private Files() {/* noop */}
 
 }
