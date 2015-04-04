@@ -54,6 +54,9 @@ task distZip(type: Zip, dependsOn: jar) {
 	into(service) {
 		from '../LICENSE'
 	}
+  into(service) {
+    from '../NOTICE'
+  }
 	into(service) {
 		from context.outputs
 	}
