@@ -19,7 +19,7 @@ import java.util.Set;
 
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Constants;
-import org.cinchapi.concourse.importer.util.Files;
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.Convert;
 
@@ -57,7 +57,7 @@ public class JsonImporter extends Importer {
 
     @Override
     public Set<Long> importFile(String file) {
-        String json = Files.read(file);
+        String json = FileOps.read(file);
         return upsertJsonString(json);
     }
 

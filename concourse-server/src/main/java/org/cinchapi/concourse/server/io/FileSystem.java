@@ -25,13 +25,13 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Logger;
 
 import com.google.common.base.Throwables;
@@ -47,7 +47,7 @@ import static com.google.common.base.Preconditions.checkState;
  * 
  * @author Jeff Nelson
  */
-public final class FileSystem {
+public final class FileSystem extends FileOps {
 
     /**
      * Close the {@code channel} without throwing a checked exception. If, for
@@ -127,18 +127,7 @@ public final class FileSystem {
         }
     }
 
-    /**
-     * Expand the given {@code path} so that it contains completely normalized
-     * components (e.g. ".", "..", and "~" are resolved to the correct absolute
-     * paths).
-     * 
-     * @param path
-     * @return the expanded path
-     */
-    public static String expandPath(String path) {
-        path = path.replaceAll("~", USER_HOME);
-        return BASE_PATH.resolve(path).normalize().toString();
-    }
+    
 
     /**
      * Return the random access {@link FileChannel} for {@code file}. The
@@ -203,25 +192,6 @@ public final class FileSystem {
             }
         }
         return subDirs;
-    }
-
-    /**
-     * Return the home directory of the parent process for this JVM.
-     * 
-     * @return the home directory
-     */
-    public static String getUserHome() {
-        return USER_HOME;
-    }
-
-    /**
-     * Get the working directory of this JVM, which is the directory from which
-     * the process is launched.
-     * 
-     * @return the working directory
-     */
-    public static String getWorkingDirectory() {
-        return WORKING_DIRECTORY;
     }
 
     /**
@@ -399,24 +369,6 @@ public final class FileSystem {
     public static void unmap(MappedByteBuffer buffer) {
         Cleaners.freeMappedByteBuffer(buffer);
     }
-
-    /**
-     * The user's home directory, which is used to expand path names with "~"
-     * (tilde).
-     */
-    private static final String USER_HOME = System.getProperty("user.home");
-
-    /**
-     * The working directory from which the current JVM process was launched.
-     */
-    private static final String WORKING_DIRECTORY = System
-            .getProperty("user.dir");
-    
-    /**
-     * The base path that is used to resolve and normalize other relative paths.
-     */
-    private static final Path BASE_PATH = FileSystems.getDefault().getPath(
-            WORKING_DIRECTORY);
 
     private FileSystem() {}
 

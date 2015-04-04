@@ -30,7 +30,7 @@ import org.cinchapi.concourse.cli.CommandLineInterface;
 import org.cinchapi.concourse.cli.Options;
 import org.cinchapi.concourse.importer.CsvImporter;
 import org.cinchapi.concourse.importer.Importer;
-import org.cinchapi.concourse.importer.util.Files;
+import org.cinchapi.concourse.util.FileOps;
 
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Stopwatch;
@@ -74,7 +74,7 @@ public class ImportCli extends CommandLineInterface {
         ExecutorService executor = Executors
                 .newFixedThreadPool(((ImportOptions) options).numThreads);
         String data = opts.data;
-        List<String> files = scan(Paths.get(Files.expandPath(data)));
+        List<String> files = scan(Paths.get(FileOps.expandPath(data)));
         Stopwatch watch = Stopwatch.createStarted();
         final Set<Long> records = Sets.newConcurrentHashSet();
         for (final String file : files) {

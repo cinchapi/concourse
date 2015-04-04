@@ -19,7 +19,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 
-import org.cinchapi.concourse.importer.util.Files;
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.util.Resources;
 import org.cinchapi.concourse.util.Strings;
 import org.junit.Assert;
@@ -54,7 +54,7 @@ public class ResolveKeyTest extends CsvImportTest {
         importer.importFile(file0, resolveKey);
         Set<Long> records = importer.importFile(file1,
                 resolveKey);
-        List<String> lines = Files.readLines(file1);
+        List<String> lines = FileOps.readLines(file1);
         int i = 0;
         for(String line : lines){
             if(i > 0){

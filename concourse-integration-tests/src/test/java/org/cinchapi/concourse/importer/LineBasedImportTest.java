@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.cinchapi.concourse.ConcourseIntegrationTest;
-import org.cinchapi.concourse.importer.util.Files;
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.testing.Variables;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Convert.ResolvableLink;
@@ -52,7 +52,7 @@ public abstract class LineBasedImportTest extends ConcourseIntegrationTest {
     public void testImport() {
         String file = Resources.get("/" + getImportPath()).getFile();
         Set<Long> records = importer.importFile(file);
-        List<String> lines = Files.readLines(file);
+        List<String> lines = FileOps.readLines(file);
         int size = 0;
         String[] keys = null;
         for (String line : lines) {

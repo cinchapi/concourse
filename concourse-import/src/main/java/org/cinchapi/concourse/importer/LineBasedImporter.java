@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Constants;
-import org.cinchapi.concourse.importer.util.Files;
+import org.cinchapi.concourse.util.FileOps;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.Strings;
@@ -85,7 +85,7 @@ public abstract class LineBasedImporter extends JsonImporter {
     public final Set<Long> importFile(String file, @Nullable String resolveKey) {
         // TODO add option to specify batchSize, which is how many objects to
         // send over the wire in one atomic batch
-        List<String> lines = Files.readLines(file);
+        List<String> lines = FileOps.readLines(file);
         String[] keys = header();
         JsonArray array = new JsonArray();
         boolean upsert = false;
