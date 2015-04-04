@@ -134,6 +134,13 @@ public class AtomicOperation extends BufferedStore implements
     protected AtomicBoolean open = new AtomicBoolean(true);
 
     /**
+     * A flag that is set when the atomic operation must fail because it is
+     * notified about a version change. Each operation checks this flag so it
+     * can know whether it needs to perform an abort (to clean up resources).
+     */
+    private boolean notifiedAboutVersionChange = false;
+
+    /**
      * Construct a new instance.
      * 
      * @param destination - must be a {@link Compoundable}
@@ -247,7 +254,8 @@ public class AtomicOperation extends BufferedStore implements
      */
     public final boolean commit() throws AtomicStateException {
         if(open.compareAndSet(true, false)) {
-            if(grabLocks() && finalizing.compareAndSet(false, true)) {
+            if(grabLocks() && !notifiedAboutVersionChange
+                    && finalizing.compareAndSet(false, true)) {
                 doCommit();
                 releaseLocks();
                 if(destination instanceof Transaction) {
@@ -296,9 +304,8 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     @Restricted
     public void onVersionChange(Token token) {
-        if(finalizing.compareAndSet(false, true)) {
-            abort();
-        }
+        notifiedAboutVersionChange = true;
+        open.set(false);
     }
 
     @Override
@@ -389,45 +396,58 @@ public class AtomicOperation extends BufferedStore implements
             // Grab write locks and remove any covered read or range read
             // intentions
             for (Token token : writes2Lock) {
-                LockType type;
-                if(token instanceof RangeToken) {
-                    RangeToken rangeToken = (RangeToken) token;
-                    if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
-                        Range<Value> containing = rangeReads2Lock.get(
-                                rangeToken.getKey(), rangeToken.getValues()[0]);
-                        if(containing != null) {
-                            rangeReads2Lock.remove(rangeToken.getKey(),
-                                    containing);
-                            Iterable<Range<Value>> xor = Ranges.xor(
-                                    Range.singleton(rangeToken.getValues()[0]),
-                                    containing);
-                            for (Range<Value> range : xor) {
-                                rangeReads2Lock.put(rangeToken.getKey(), range);
+                if(!notifiedAboutVersionChange) {
+                    LockType type;
+                    if(token instanceof RangeToken) {
+                        RangeToken rangeToken = (RangeToken) token;
+                        if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
+                            Range<Value> containing = rangeReads2Lock.get(
+                                    rangeToken.getKey(),
+                                    rangeToken.getValues()[0]);
+                            if(containing != null) {
+                                rangeReads2Lock.remove(rangeToken.getKey(),
+                                        containing);
+                                Iterable<Range<Value>> xor = Ranges.xor(Range
+                                        .singleton(rangeToken.getValues()[0]),
+                                        containing);
+                                for (Range<Value> range : xor) {
+                                    rangeReads2Lock.put(rangeToken.getKey(),
+                                            range);
+                                }
                             }
                         }
+                        type = LockType.RANGE_WRITE;
                     }
-                    type = LockType.RANGE_WRITE;
-                }
-                else {
-                    reads2Lock.remove(token);
-                    type = LockType.WRITE;
-                }
-                LockDescription lock = LockDescription.forToken(token,
-                        lockService, rangeLockService, type);
-                if(lock.getLock().tryLock()) {
-                    locks.put(lock.getToken(), lock);
+                    else {
+                        reads2Lock.remove(token);
+                        type = LockType.WRITE;
+                    }
+                    LockDescription lock = LockDescription.forToken(token,
+                            lockService, rangeLockService, type);
+                    if(lock.getLock().tryLock()) {
+                        locks.put(lock.getToken(), lock);
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return false;
                 }
+
             }
             // Grab the read locks. We can be sure that any remaining intentions
             // are not covered by any of the write locks we grabbed previously.
             for (Token token : reads2Lock) {
-                LockDescription lock = LockDescription.forToken(token,
-                        lockService, rangeLockService, LockType.READ);
-                if(lock.getLock().tryLock()) {
-                    locks.put(lock.getToken(), lock);
+                if(!notifiedAboutVersionChange) {
+                    LockDescription lock = LockDescription.forToken(token,
+                            lockService, rangeLockService, LockType.READ);
+                    if(lock.getLock().tryLock()) {
+                        locks.put(lock.getToken(), lock);
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return false;
@@ -438,20 +458,25 @@ public class AtomicOperation extends BufferedStore implements
             // grabbed previously.
             for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
                     .entrySet()) { /* (Authorized) */
-                Text key = entry.getKey();
-                for (Range<Value> range : entry.getValue().asRanges()) {
-                    RangeToken rangeToken = Ranges.convertToRangeToken(key,
-                            range);
-                    LockDescription lock = LockDescription.forToken(rangeToken,
-                            lockService, rangeLockService, LockType.RANGE_READ);
-                    if(lock.getLock().tryLock()) {
-                        locks.put(lock.getToken(), lock);
-                    }
-                    else {
-                        return false;
+                if(!notifiedAboutVersionChange) {
+                    Text key = entry.getKey();
+                    for (Range<Value> range : entry.getValue().asRanges()) {
+                        RangeToken rangeToken = Ranges.convertToRangeToken(key,
+                                range);
+                        LockDescription lock = LockDescription.forToken(
+                                rangeToken, lockService, rangeLockService,
+                                LockType.RANGE_READ);
+                        if(lock.getLock().tryLock()) {
+                            locks.put(lock.getToken(), lock);
+                        }
+                        else {
+                            return false;
+                        }
                     }
                 }
-
+                else {
+                    return false;
+                }
             }
         }
         catch (NullPointerException e) {
@@ -488,6 +513,9 @@ public class AtomicOperation extends BufferedStore implements
      * @throws AtomicStateException
      */
     protected void checkState() throws AtomicStateException {
+        if(notifiedAboutVersionChange) {
+            abort();
+        }
         if(!open.get()) {
             throw new AtomicStateException();
         }
