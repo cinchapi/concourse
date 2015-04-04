@@ -1,40 +1,54 @@
 Concourse
 Copyright 2013-2015 Cinchapi, Inc.
 
-INCLUDES SOFTWARE DEVELOPED BY THE APACHE SOFTWARE FOUNDATION (http://www.apache.org/) OR RELEASED UNDER THE APACHE LICENSE, VERSION 2.0:
+INCLUDES SOFTWARE DEVELOPED BY THE APACHE SOFTWARE FOUNDATION
+(http://www.apache.org/) OR RELEASED UNDER THE APACHE LICENSE, VERSION 2.0:
 
 HttpCore
-A set of low level HTTP transport components that can be used to build custom client and server side HTTP services with a minimal footprint,
+A set of low level HTTP transport components that can be used to build custom
+client and server side HTTP services with a minimal footprint.
 http://hc.apache.org/httpcomponents-core-ga/
 Copyright 2005-2015 The Apache Software Foundation
 
 Groovy
-Aan object-oriented programming language for the Java platform. It is a language with features similar to those of Python, Ruby, Java, Perl, and Smalltalk.
+Aan object-oriented programming language for the Java platform. It is a language
+with features similar to those of Python, Ruby, Java, Perl, and Smalltalk.
 http://groovy-lang.org/
 Copyright 2003-2015 the Groovy project
 
 Gson
-A Java library that can be used to convert Java Objects into their JSON representation. It can also be used to convert a JSON string to an equivalent Java object. Gson can work with arbitrary Java objects including pre-existing objects that you do not have source-code of.
+A Java library that can be used to convert Java Objects into their JSON
+representation. It can also be used to convert a JSON string to an equivalent
+Java object. Gson can work with arbitrary Java objects including pre-existing
+objects that you do not have source-code of.
 https://code.google.com/p/google-gson/
 Copyright 2008-2015 Google Inc.
 
 Jetty
-Provides a Web server and javax.servlet container, plus support for SPDY, WebSocket, OSGi, JMX, JNDI, JAAS and many other integrations. These components are open source and available for commercial use and distribution.
+Provides a Web server and javax.servlet container, plus support for SPDY,
+WebSocket, OSGi, JMX, JNDI, JAAS and many other integrations. These components
+are open source and available for commercial use and distribution.
 http://www.eclipse.org/jetty/
 Copyright 1995-2015 Mort Bay Consulting Pty Ltd
 
 Commons Configuration
-A software library provides a generic configuration interface which enables a Java application to read configuration data from a variety of sources.
+A software library provides a generic configuration interface which enables a
+Java application to read configuration data from a variety of sources.
 http://commons.apache.org/proper/commons-configuration/
 Copyright 2001-2014 The Apache Software Foundation
 
 xml-commons
-Focussed on common code and guidelines for xml projects. The first focus will be to organize and have common packaging for the various externally-defined standards code relating to XML - things like the DOM, SAX, and JAXP interfaces.
+Focussed on common code and guidelines for xml projects. The first focus will
+be to organize and have common packaging for the various externally-defined
+standards code relating to XML - things like the DOM, SAX, and JAXP interfaces.
 https://xerces.apache.org/xml-commons/
 Copyright 2001-2015 The Apache Software Foundation
 
 HttpClient
-Designed for extension while providing robust support for the base HTTP protocol, HttpClient may be of interest to anyone building HTTP-aware client applications such as web browsers, web service clients, or systems that leverage or extend the HTTP protocol for distributed communication.
+Designed for extension while providing robust support for the base HTTP
+protocol, HttpClient may be of interest to anyone building HTTP-aware client
+applications such as web browsers, web service clients, or systems that
+leverage or extend the HTTP protocol for distributed communication.
 https://hc.apache.org/httpcomponents-client-ga/
 Copyright 2005-2015 The Apache Software Foundation
 
@@ -44,17 +58,27 @@ http://www.joda.org/joda-time/
 Copyright 2002-2015 Joda.org
 
 Guava
-Contains several of Google's core libraries that we rely on in our Java-based projects: collections, caching, primitives support, concurrency libraries, common annotations, string processing, I/O, and so forth.
+Contains several of Google's core libraries that we rely on in our Java-based
+projects: collections, caching, primitives support, concurrency libraries,
+common annotations, string processing, I/O, and so forth.
 https://code.google.com/p/guava-libraries/
 Copyright 2008-2015 Google Inc.
 
 Thrift
-A software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.
+A software framework, for scalable cross-language services development,
+combines a software stack with a code generation engine to build services
+that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby,
+Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and
+Delphi and other languages.
 https://thrift.apache.org/
 Copyright 2014-2015 The Apache Software Foundation
 
 Commons Lang
-Provides a host of helper utilities for the java.lang API, notably String manipulation methods, basic numerical methods, object reflection, concurrency, creation and serialization and System properties. Additionally it contains basic enhancements to java.util.Date and a series of utilities dedicated to help with building methods, such as hashCode, toString and equals.
+Provides a host of helper utilities for the java.lang API, notably String
+manipulation methods, basic numerical methods, object reflection, concurrency,
+creation and serialization and System properties. Additionally it contains
+basic enhancements to java.util.Date and a series of utilities dedicated to
+help with building methods, such as hashCode, toString and equals.
 https://commons.apache.org/proper/commons-lang/
 Copyright 2001-2015 The Apache Software Foundation
 
@@ -67,7 +91,9 @@ Copyright 2010-2015 RightTime, Inc.
 INCLUDES SOFTWARE RELEASED UNDER THE MIT LICENSE:
 
 SLF4J
-A simple facade or abstraction for various logging frameworks (e.g. java.util.logging, logback, log4j) allowing the end user to plug in the desired logging framework at deployment time.
+A simple facade or abstraction for various logging frameworks
+(e.g. java.util.logging, logback, log4j) allowing the end user to plug in the
+desired logging framework at deployment time.
 http://www.slf4j.org/
 Copyright 2004-2015 QOS.ch
 
@@ -77,20 +103,25 @@ https://github.com/mockito/mockito
 Copyright (c) 2007-2015 Mockito contributors
 
 ---
-INCLUDES THIRD-PARTY SOFTWARE RELEASED UNDER VARIOUS LICENSES THAT HAS BEEN MODIFIED:
+INCLUDES THIRD-PARTY SOFTWARE RELEASED UNDER VARIOUS LICENSES THAT HAS BEEN
+MODIFIED:
 
 SparkJava
-A Sinatra inspired framework for java. The original library is licensed under the Apache License, Version 2.0.
+A Sinatra inspired framework for java. The original library is licensed under
+the Apache License, Version 2.0.
 http://sparkjava.com/
 Copyright 2011-2015 Per Wendel
 
 Changes:
 - Removed logging and console print statements.
-- Added support for rewriting URLs at runtime based on the class in which a route is defined.
+- Added support for rewriting URLs at runtime based on the class in which a
+  route is defined.
 - Added integration with Guava library for JSON serialization
 
 StringToTime
-A Java library for parsing just about any English textual datetime description into a Date object. This library is distributed with this project in compliance with its original license.
+A Java library for parsing just about any English textual datetime description
+into a Date object. This library is distributed with this project in compliance
+with its original license.
 http://www.clutch-inc.com
 Copyright 2012-2015 Clutch, Inc.
 
@@ -102,32 +133,54 @@ Changes:
 INCLUDES SOFTWARE RELEASED UNDER OTHER LICENSES:
 
 Servlet API
-The Java Servlet Specification API is linked in compliance with the GNU General Public License Classpath Exception.
+The Java Servlet Specification API is linked in compliance with the GNU General
+Public License Classpath Exception.
 https://java.net/projects/servlet-spec
 Copyright 2007-2015 Oracle and/or its affiliates
 
 JLine
-JLine is a Java library for handling console input. The library is included with the original copyright, in compliance with the BSD 2-Clause License.
+JLine is a Java library for handling console input. The library is included
+with the original copyright, in compliance with the BSD 2-Clause License.
 http://jline.github.io/jline2/
 Copyright 2002-2012 the original author or authors
 
 Logback
-Logback is a reliable, generic, fast and flexible logging framework. This library is included with the original copyright and license. Furthermore, the source code for the components that depend on this library is disclosed at https://github.com/cinchapi/concourse, in compliance with the Eclipse Public License.
+Logback is a reliable, generic, fast and flexible logging framework. This
+library is included with the original copyright and license. Furthermore, the
+source code for the components that depend on this library is disclosed at
+https://github.com/cinchapi/concourse, in compliance with the Eclipse Public
+License.
 http://logback.qos.ch/
 Copyright (C) 1999-2015 QOS.ch
 
 High Scale Lib
-The High Scale Lib is a collection of concurrent and highly scalable utilities. This library has been released into the public domain and is included with this project.
+The High Scale Lib is a collection of concurrent and highly scalable utilities.
+This library has been released into the public domain and is included with
+this project.
 http://stephenc.github.io/high-scale-lib/
 Copyright 2010-2015
 
 Trove
-The Trove library provides high speed regular and primitive collections for Java. This library is included with the original copyright and license. Furthermore, instructions for obtaining the original library are included in this Notice (see below) and the source code for the components that depend on this library is disclosed at https://github.com/cinchapi/concourse, in compliance with the GNU Lesser General Public License. Two classes (HashFunctions and PrimeFinder) included within the library are licensed separately.
+The Trove library provides high speed regular and primitive collections for
+Java. This library is included with the original copyright and license.
+Furthermore, instructions for obtaining the original library are included
+in this Notice (see below) and the source code for the components that
+depend on this library is disclosed at https://github.com/cinchapi/concourse,
+in compliance with the GNU Lesser General Public License.
+Two classes (HashFunctions and PrimeFinder) included within the library are
+licensed separately.
 http://trove.starlight-systems.com/
 Copyright 2015 Starlight Systems
 
 Alphanum Algorithm
-The Alphanum Algorithm is an improved sorting algorithm for strings containing numbers. Instead of sorting numbers in ASCII order like a standard sort, this algorithm sorts numbers in numeric order. This library is included with the original copyright and license. Furthermore, instructions for obtaining the original library are included in this Notice (see below) and the source code for the components that depend on this library is disclosed at https://github.com/cinchapi/concourse, in compliance with the GNU Lesser General Public License.
+The Alphanum Algorithm is an improved sorting algorithm for strings containing
+numbers. Instead of sorting numbers in ASCII order like a standard sort, this
+algorithm sorts numbers in numeric order. This library is included with the
+original copyright and license. Furthermore, instructions for obtaining the
+original library are included in this Notice (see below) and the source code
+for the components that depend on this library is disclosed at
+https://github.com/cinchapi/concourse, in compliance with the GNU Lesser
+General Public License.
 http://www.DaveKoelle.com
 Copyright 2007-2015 Dave Koelle
 
@@ -135,13 +188,20 @@ Copyright 2007-2015 Dave Koelle
 USES SOFTWARE TO HELP PRODUCE ARTIFACTS THAT ARE DISTRIBUTED:
 
 Ronn
-Ronn builds manuals. It converts simple, human readable textfiles to roff for terminal display, and also to HTML for the web.
+Ronn builds manuals. It converts simple, human readable textfiles to roff for
+terminal display, and also to HTML for the web.
 https://github.com/rtomayko/ronn
 Copyright 2009-2015 Ryan Tomayko
 
 Makeself
 makeself.sh is a small shell script that generates a self-extractable
-tar.gz archive from a directory. This library is released under the GNU Public License, Version 2 and above, however the author states in the README that "[a]rchives generated by Makeself don't have to be placed under this
-license...since the archive itself is merely data for Makeself". Concourse is not licensed under the GPL, but 1) includes the original Makeself source code, license and copyright 2) includes install instructions and 3) discloses the source code for components that depend on this library at https://github.com/cinchapi/concourse.
+tar.gz archive from a directory. This library is released under the GNU Public
+License, Version 2 and above, however the author states in the README that
+"[a]rchives generated by Makeself don't have to be placed under this
+license...since the archive itself is merely data for Makeself".
+Concourse is not licensed under the GPL, but 1) includes the original Makeself
+source code, license and copyright 2) includes install instructions and 3)
+discloses the source code for components that depend on this library at
+https://github.com/cinchapi/concourse.
 http://www.megastep.org/makeself/
 Copyright 2008-2015 Stéphane Peter
