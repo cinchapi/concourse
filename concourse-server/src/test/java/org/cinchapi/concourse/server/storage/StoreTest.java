@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -806,8 +806,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     @Test
     public void testFetchEmpty() {
-        Assert.assertTrue(store.select(TestData.getString(), TestData.getLong())
-                .isEmpty());
+        Assert.assertTrue(store
+                .select(TestData.getString(), TestData.getLong()).isEmpty());
     }
 
     @Test
@@ -857,8 +857,57 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long record : records1) {
             add(key, Convert.javaToThrift(value1), record);
         }
-        String value2 = Variables.register("value2", TestData.getString());
+        String value2 = null;
+        while(value2 == null || value2.contains(value1)){
+            value2 = Variables.register("value2", TestData.getString());
+        }
         Set<Long> records2 = Variables.register("records2", getRecords());
+        for (long record : records2) {
+            add(key, Convert.javaToThrift(value2), record);
+        }
+        Assert.assertEquals(records2, store.find(key, Operator.NOT_REGEX,
+                Convert.javaToThrift(putStringWithinPercentSign(value1))));
+    }
+
+    @Test
+    public void testFindForNotRegexWithPercentSignReproA() {
+        String key = Variables
+                .register(
+                        "key",
+                        "pklbwoj8p 1fwni89ra339ytdz u11m6 ttm aynn i5zxzwi402g pfo ui2fba0w6r3580esv8pv3xp hy8ohffod2g");
+        String value1 = Variables.register("value1", "a");
+        Set<Long> records1 = Variables.register("records1", Sets.newHashSet(
+                -8837327677807046246L, -1837928815572945895L,
+                -7042182654721884696L, 3142018574192978144L,
+                -6639179481432426018L, 461806750568583298L,
+                -5449875477758503155L, 1395727263052630755L,
+                4363963785781396592L, -8485487848254456506L,
+                -7931250504437226728L, 6017151736071373350L,
+                -2893502697295133660L, 2052546698363219491L,
+                2410155758617125738L, 2849478253048385138L,
+                6586957270677760116L, -1822986183439476271L,
+                -4186548993362340144L, -727399974550900574L,
+                3688062601296251410L));
+        for (long record : records1) {
+            add(key, Convert.javaToThrift(value1), record);
+        }
+        String value2 = Variables.register("value2",
+                "l5gewgae55y59xyyj63w8x6f5mphssiyh327x5k5q1x z4sbr0xh5il6");
+        while(value2 == null || value2.contains(value1)){
+            value2 = Variables.register("value2", TestData.getString());
+        }
+        Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
+                -6182791895483854312L, -679172883778660965L,
+                1120463509328983993L, -8479770926286484152L,
+                1128382420337449323L, 6257301028647171984L,
+                6823367565918477224L, 2330855273859656550L,
+                7177177908301439818L, -8094395763130835882L,
+                5898816101052626932L, -4557467144755416551L,
+                -2755758238783715284L, 2886417267455105816L,
+                1943598759101180077L, 263040801152290323L,
+                7552043432119880007L, -7277413805920665985L,
+                -4117831401170893413L, 7400570047490749104L,
+                6722954364072475529L));
         for (long record : records2) {
             add(key, Convert.javaToThrift(value2), record);
         }
