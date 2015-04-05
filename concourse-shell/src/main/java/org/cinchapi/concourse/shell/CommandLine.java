@@ -39,7 +39,7 @@ public final class CommandLine {
                 .append(System.lineSeparator());
         banner.append("").append(System.lineSeparator());
         banner.append(
-                "Copyright (c) 2013-2015, Jeff Nelson, Cinchapi Software Collective. All Rights Reserved.")
+                "Copyright (c) 2013-2015, Cinchapi, Inc. All Rights Reserved.")
                 .append(System.lineSeparator());
         System.out.print(banner);
     }
