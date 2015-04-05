@@ -5,6 +5,6 @@
 cd ..
 ./gradlew clean installer
 cd concourse-server/build/distributions
-sh concourse-server*bin
+sh concourse-server*bin -- skip-integration
 
 exit 0
