@@ -323,8 +323,8 @@
         a route is defined.
       - Added integration with Guava library for JSON serialization
 
-      StringToTime
-      ------------
+      StringToTime (Custom License)
+      -----------------------------
       A Java library for parsing just about any English textual datetime
       description into a Date object. This library is distributed with this
       project in compliance with its original license.
@@ -364,22 +364,6 @@
       http://stephenc.github.io/high-scale-lib/
       Copyright 2010-2015
 
-      Trove (LGPL)
-      ------------
-      The Trove library provides high speed regular and primitive collections
-      for Java. This library is included with the original copyright and
-      license. Furthermore, instructions for obtaining the original library are
-      included in this Notice (see below) and the source code for the components
-      that depend on this library is disclosed at
-      https://github.com/cinchapi/concourse, in compliance with the GNU Lesser
-      General Public License.
-
-      Two classes (HashFunctions and PrimeFinder) included within the library
-      are licensed separately.
-
-      http://trove.starlight-systems.com/
-      Copyright 2015 Starlight Systems
-
       Alphanum Algorithm (LGPL)
       -------------------------
       The Alphanum Algorithm is an improved sorting algorithm for strings
@@ -389,13 +373,13 @@
       instructions for obtaining the original library are included in this
       Notice (see below) and the source code for the components that depend on
       this library is disclosed at https://github.com/cinchapi/concourse, in
-      compliance with the GNU Lesser General Public License.
+      compliance with section 6d of the GNU Lesser General Public License.
 
       http://www.DaveKoelle.com
       Copyright 2007-2015 Dave Koelle
 
       Dom4J (BSD Inspired License)
-      --------------------
+      ----------------------------
       dom4j is an easy to use, open source library for working with XML, XPath
       and XSLT on the Java platform using the Java Collections Framework and
       with full support for DOM, SAX and JAXP.
@@ -432,7 +416,7 @@
       https://github.com/rtomayko/ronn
       Copyright 2009-2015 Ryan Tomayko
 
-      Makeself (GPL2+ w/ clarification)
+      Makeself (GPL2+ w/ Clarification)
       ----------------------------------------
       makeself.sh is a small shell script that generates a self-extractable
       tar.gz archive from a directory. This library is released under the GNU

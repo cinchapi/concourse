@@ -8,7 +8,6 @@ dependencies {
     compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
     compile 'org.reflections:reflections:0.9.9-RC2'
     compile 'org.javassist:javassist:3.18.2-GA'
-    compile 'net.sf.trove4j:trove4j:3.0.3'
     compile 'org.eclipse.jetty:jetty-server:9.2.9.v20150224'
     compile 'org.eclipse.jetty:jetty-webapp:9.2.9.v20150224'
     compile 'com.github.spullara.mustache.java:compiler:0.8.15'
