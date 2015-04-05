@@ -102,7 +102,7 @@
 
            * java.sun.security.ssl
 
-          These artifacts replace/modify OpenJDK classes.  The modififications
+          These artifacts replace/modify OpenJDK classes.  The modifications
           are hosted at github and both modified and original are under GPL v2
           with classpath exceptions.
           http://openjdk.java.net/legal/gplv2+ce.html
