@@ -39,8 +39,12 @@ if [ \$files -gt 0 ]; then
 	echo 'Upgrading Concourse Server..........................................................................'
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
-	rm -r ../licenses/ 2>/dev/null
+	rm -r ../licenses/ 2>/dev/null #exists prior to 0.5.0
+	rm -r ../third-party/licenses 2>/dev/null
 	cp -fR third-party-licenses/ ../third-party-licenses/
+	rm -r ../LICENSE
+	cp -fR LICENSE ../
+	cp -fR NOTICE ../ # introduced in 0.5.0
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
   rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
