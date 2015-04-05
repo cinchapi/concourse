@@ -364,20 +364,6 @@
       http://stephenc.github.io/high-scale-lib/
       Copyright 2010-2015
 
-      Alphanum Algorithm (LGPL)
-      -------------------------
-      The Alphanum Algorithm is an improved sorting algorithm for strings
-      containing numbers. Instead of sorting numbers in ASCII order like a
-      standard sort, this algorithm sorts numbers in numeric order. This library
-      is included with the original copyright and license. Furthermore,
-      instructions for obtaining the original library are included in this
-      Notice (see below) and the source code for the components that depend on
-      this library is disclosed at https://github.com/cinchapi/concourse, in
-      compliance with section 6d of the GNU Lesser General Public License.
-
-      http://www.DaveKoelle.com
-      Copyright 2007-2015 Dave Koelle
-
       Dom4J (BSD Inspired License)
       ----------------------------
       dom4j is an easy to use, open source library for working with XML, XPath
