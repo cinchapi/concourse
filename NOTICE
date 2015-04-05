@@ -290,7 +290,8 @@
       http://logback.qos.ch/
       Copyright (C) 1999-2015 QOS.ch
 
-  2. Includes software released under the MIT License:
+  2. Includes software released under the MIT License, which is compatible with
+     the Apache License, Version 2.0:
 
       SLF4J
       -----
