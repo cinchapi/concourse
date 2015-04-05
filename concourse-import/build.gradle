@@ -11,10 +11,7 @@ repositories {
 dependencies {
   compile project(':concourse-driver-java')
   compile project(':concourse-cli')
-  compile ('org.cinchapi:concourse-config:1.0.5'){
-    exclude group: 'org.cinchapi', module:'concourse'
-    exclude group: 'org.cinchapi', module:'concourse-driver-java'
-  }
+  compile 'org.cinchapi:concourse-config:1.0.5'
 }
 
 jar {

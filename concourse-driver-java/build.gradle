@@ -3,10 +3,7 @@ apply plugin: 'signing'
 dependencies {
     compile 'org.slf4j:log4j-over-slf4j:1.7.5'
     compile 'org.slf4j:jcl-over-slf4j:1.7.5'
-    compile ('org.cinchapi:concourse-config:1.0.5'){
-    	exclude group: 'org.cinchapi', module:'concourse'
-      exclude group: 'org.cinchapi', module:'concourse-driver-java'
-    }
+    compile 'org.cinchapi:concourse-config:1.0.5'
     compile 'com.google.code.gson:gson:2.2.4'
 }
 

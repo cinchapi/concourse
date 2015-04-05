@@ -10,10 +10,7 @@ repositories {
 
 dependencies {
   compile project(':concourse-driver-java')
-  compile ('org.cinchapi:concourse-config:1.0.5'){
-    exclude group: 'org.cinchapi', module:'concourse'
-    exclude group: 'org.cinchapi', module:'concourse-driver-java'
-  }
+  compile 'org.cinchapi:concourse-config:1.0.5'
   compile 'com.beust:jcommander:1.32'
   compile 'jline:jline:2.11'
 }
