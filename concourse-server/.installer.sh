@@ -40,11 +40,12 @@ if [ \$files -gt 0 ]; then
 	rm -r ../lib/
 	cp -fR lib/ ../lib/
 	rm -r ../licenses/ 2>/dev/null
-	cp -fR licenses/ ../licenses/
+	cp -fR third-party-licenses/ ../third-party-licenses/
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
   rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
+	rm -rf ../conf/.concourse.conf 2>/dev/null #exists prior to 0.5.0
 
 	# --- run upgrade tasks
 	echo
