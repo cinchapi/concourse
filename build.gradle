@@ -34,7 +34,6 @@ subprojects {
 
     configurations {
       all*.exclude group: 'org.cinchapi', module: 'concourse'
-      all*.exclude group: 'org.javassist', module: 'javassist'
       all*.exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
 
