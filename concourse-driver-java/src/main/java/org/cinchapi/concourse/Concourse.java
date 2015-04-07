@@ -40,6 +40,7 @@ import org.cinchapi.concourse.lang.Language;
 import org.cinchapi.concourse.security.ClientSecurity;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.ConcourseService;
+import org.cinchapi.concourse.thrift.Diff;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TSecurityException;
@@ -56,7 +57,6 @@ import org.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * <p>
@@ -504,8 +504,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param end
      * @return the changes made to the record within the range
      */
-    public abstract Map<String, Map<Diff, Set<Object>>> diff(long record,
-            Timestamp start, Timestamp end);
+    public abstract <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
+            final Timestamp start, final Timestamp end);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code value} of
@@ -517,8 +517,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@code record} within the
      *         range
      */
-    public abstract Map<Diff, Set<Object>> diff(String key, long record,
-            Timestamp start);
+    public abstract <T> Map<Diff, Set<T>> diff(final String key,
+            final long record, final Timestamp start);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code value} of
@@ -531,8 +531,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@coee record} within the
      *         range
      */
-    public abstract Map<Diff, Set<Object>> diff(String key, long record,
-            Timestamp start, Timestamp end);
+    public abstract <T> Map<Diff, Set<T>> diff(final String key,
+            final long record, final Timestamp start, final Timestamp end);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code key} and it's
@@ -543,8 +543,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param end
      * @return the changes map to the key within the range
      */
-    public abstract Map<Object, Map<Diff, Set<Long>>> diff(String key,
-            Timestamp start, Timestamp end);
+    public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
+            final Timestamp start, final Timestamp end);
 
     /**
      * Close the Client connection.
@@ -575,10 +575,10 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
-                                                     // case the caller
-                                                     // forgets
-                                                     // to called #build() on
-                                                     // the CriteriaBuilder
+    // case the caller
+    // forgets
+    // to called #build() on
+    // the CriteriaBuilder
 
     /**
      * Find and return the set of records that satisfy the {@code ccl} criteria.
@@ -1785,9 +1785,6 @@ public abstract class Concourse implements AutoCloseable {
      * @author dubex
      *
      */
-    public enum Diff {
-        ADDED, REMOVED
-    }
 
     /**
      * The implementation of the {@link Concourse} interface that establishes a
@@ -1952,7 +1949,7 @@ public abstract class Concourse implements AutoCloseable {
             catch (TTransportException e) {
                 throw new RuntimeException(
                         "Could not connect to the Concourse Server at " + host
-                                + ":" + port);
+                        + ":" + port);
             }
         }
 
@@ -2034,7 +2031,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2054,7 +2051,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2075,7 +2072,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2092,7 +2089,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2113,7 +2110,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2134,7 +2131,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                            .setKeyName("DateTime").setValueName("Revision");
+                                    .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2477,115 +2474,74 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
-        public Map<String, Map<Diff, Set<Object>>> diff(long record,
-                Timestamp start, Timestamp end) {
-            PrettyLinkedTableMap<String, Diff, Set<Object>> result = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            result.setRowName("Value");
-            Map<String, Set<Object>> startBrowse = select(record, start);
-            Map<String, Set<Object>> endBrowse = select(record, end);
-            Set<String> startBrowseKeySet = startBrowse.keySet();
-            Set<String> endBrowseKeySet = endBrowse.keySet();
-            Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
-                    endBrowseKeySet);
-            Set<String> intersection = Sets.intersection(startBrowseKeySet,
-                    endBrowseKeySet);
+        public <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
+                final Timestamp start, final Timestamp end) {
+            return execute(new Callable<Map<String, Map<Diff, Set<T>>>>() {
 
-            for (String current : xor) {
-                if(!startBrowseKeySet.contains(current))
-                    result.put(current, Diff.ADDED, endBrowse.get(current));
-                else {
-                    result.put(current, Diff.REMOVED, startBrowse.get(current));
-                }
-            }
-
-            for (String currentKey : intersection) {
-                Set<Object> startValue = startBrowse.get(currentKey);
-                Set<Object> endValue = endBrowse.get(currentKey);
-                Set<Object> xorValue = Sets.symmetricDifference(startValue,
-                        endValue);
-                for (Object currentValue : xorValue) {
-                    if(!startValue.contains(currentValue))
-                        result.put(currentKey, Diff.ADDED,
-                                Sets.newHashSet(currentValue));
-                    else {
-                        result.put(currentKey, Diff.REMOVED,
-                                Sets.newHashSet(currentValue));
+                @Override
+                public Map<String, Map<Diff, Set<T>>> call() throws Exception {
+                    Map<String, Map<Diff, Set<TObject>>> raw = client
+                            .diffRecordStartEnd(record, start.getMicros(),
+                                    end.getMicros(), creds, transaction,
+                                    environment);
+                    Map<String, Map<Diff, Set<T>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap();
+                    for (Entry<String, Map<Diff, Set<TObject>>> entry : raw
+                            .entrySet()) {
+                        pretty.put(entry.getKey(), Transformers
+                                .transformMapSet(entry.getValue(),
+                                        Conversions.<Diff> none(),
+                                        Conversions.<T> thriftToJavaCasted()));
                     }
+                    return pretty;
                 }
-            }
-            return result;
+            });
         }
 
         @Override
-        public Map<Diff, Set<Object>> diff(String key, long record,
-                Timestamp start) {
+        public <T> Map<Diff, Set<T>> diff(final String key, final long record,
+                final Timestamp start) {
             return diff(key, record, start, Timestamp.now());
         }
 
         @Override
-        public Map<Diff, Set<Object>> diff(String key, long record,
-                Timestamp start, Timestamp end) {
-            Map<Diff, Set<Object>> result = PrettyLinkedHashMap
-                    .newPrettyLinkedHashMap("Status", "Value");
-            Set<Object> added = Sets.newHashSet();
-            Set<Object> removed = Sets.newHashSet();
-            Set<Object> startFetch = select(key, record, start);
-            Set<Object> endFetch = select(key, record, end);
-            Set<Object> xor = Sets.symmetricDifference(startFetch, endFetch);
+        public <T> Map<Diff, Set<T>> diff(final String key, final long record,
+                final Timestamp start, final Timestamp end) {
+            return execute(new Callable<Map<Diff, Set<T>>>() {
 
-            for (Object current : xor) {
-                if(!startFetch.contains(current))
-                    added.add(current);
-                else {
-                    removed.add(current);
+                @Override
+                public Map<Diff, Set<T>> call() throws Exception {
+                    Map<Diff, Set<TObject>> raw = client.diffKeyRecordStartEnd(
+                            key, record, start.getMicros(), end.getMicros(),
+                            creds, transaction, environment);
+                    Map<Diff, Set<T>> pretty = PrettyLinkedHashMap
+                            .newPrettyLinkedHashMap("Status", "Value");
+                    for (Entry<Diff, Set<TObject>> entry : raw.entrySet()) {
+                        pretty.put(entry.getKey(), Transformers.transformSet(
+                                entry.getValue(),
+                                Conversions.<T> thriftToJavaCasted()));
+                    }
+                    return pretty;
                 }
-            }
-            result.put(Diff.ADDED, added);
-            result.put(Diff.REMOVED, removed);
-            return result;
+            });
         }
 
         @Override
-        public Map<Object, Map<Diff, Set<Long>>> diff(String key,
-                Timestamp start, Timestamp end) {
-            PrettyLinkedTableMap<Object, Diff, Set<Long>> result = PrettyLinkedTableMap
-                    .newPrettyLinkedTableMap();
-            result.setRowName("Value");
-            Map<Object, Set<Long>> startBrowse = browse(key, start);
-            Map<Object, Set<Long>> endBrowse = browse(key, end);
-            Set<Object> startBrowseKeySet = startBrowse.keySet();
-            Set<Object> endBrowseKeySet = endBrowse.keySet();
-            Set<Object> xor = Sets.symmetricDifference(startBrowseKeySet,
-                    endBrowseKeySet);
-            Set<Object> intersection = Sets.intersection(startBrowseKeySet,
-                    endBrowseKeySet);
+        public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
+                final Timestamp start, final Timestamp end) {
+            return execute(new Callable<Map<T, Map<Diff, Set<Long>>>>() {
 
-            for (Object current : xor) {
-                if(!startBrowseKeySet.contains(current))
-                    result.put(current, Diff.ADDED, endBrowse.get(current));
-                else {
-                    result.put(current, Diff.REMOVED, startBrowse.get(current));
-                }
-            }
-
-            for (Object currentKey : intersection) {
-                Set<Long> startValue = startBrowse.get(currentKey);
-                Set<Long> endValue = endBrowse.get(currentKey);
-                Set<Long> xorValue = Sets.symmetricDifference(startValue,
-                        endValue);
-                for (Long currentValue : xorValue) {
-                    if(!startValue.contains(currentValue))
-                        result.put(currentKey, Diff.ADDED,
-                                Sets.newHashSet(currentValue));
-                    else {
-                        result.put(currentKey, Diff.REMOVED,
-                                Sets.newHashSet(currentValue));
+                @Override
+                public Map<T, Map<Diff, Set<Long>>> call() throws Exception {
+                    Map<TObject, Map<Diff, Set<Long>>> raw = client.diffKeyStartEnd(key, start.getMicros(), end.getMicros(), creds, transaction, environment);
+                    Map<T, Map<Diff, Set<Long>>> pretty = PrettyLinkedTableMap
+                            .newPrettyLinkedTableMap();
+                    for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw.entrySet()) {
+                        pretty.put((T)Convert.thriftToJava(entry.getKey()), entry.getValue());
                     }
+                    return pretty;
                 }
-            }
-            return result;
-
+            });
         }
 
         @Override

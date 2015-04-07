@@ -948,6 +948,43 @@ service ConcourseService {
     7: string environment)
   throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
 
+  map<string, map<shared.Diff, set<data.TObject>>> diffRecordStartEnd(
+    1: i64 record,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStart(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<shared.Diff, set<data.TObject>> diffKeyRecordStartEnd(
+    1: string key,
+    2: i64 record,
+    3: i64 start,
+    4: i64 tend,
+    5: shared.AccessToken creds,
+    6: shared.TransactionToken transaction,
+    7: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
+  map<data.TObject, map<shared.Diff, set<i64>>> diffKeyStartEnd(
+    1: string key,
+    2: i64 start,
+    3: i64 tend,
+    4: shared.AccessToken creds,
+    5: shared.TransactionToken transaction,
+    6: string environment)
+  throws (1: shared.TSecurityException ex, 2: shared.TTransactionException ex2);
+
   void revertKeysRecordsTime(
     1: list<string> keys,
     2: list<i64> records,

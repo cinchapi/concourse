@@ -38,6 +38,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
+import org.cinchapi.concourse.thrift.Diff;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
@@ -87,12 +88,15 @@ import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
+import org.cinchapi.concourse.util.PrettyLinkedHashMap;
+import org.cinchapi.concourse.util.PrettyLinkedTableMap;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Timestamps;
 import org.cinchapi.concourse.util.Version;
 import org.cinchapi.concourse.Constants;
 import org.cinchapi.concourse.Link;
+import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.thrift.Type;
 import org.cliffc.high_scale_lib.NonBlockingHashMap;
 
@@ -107,6 +111,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -1146,6 +1151,118 @@ public class ConcourseServer implements
         catch (TransactionStateException e) {
             throw new TTransactionException();
         }
+    }
+    
+    @Override
+    public Map<String, Map<Diff, Set<TObject>>> diffRecordStartEnd(long record,
+            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
+        PrettyLinkedTableMap<String, Diff, Set<TObject>> result = PrettyLinkedTableMap
+                .newPrettyLinkedTableMap();
+        result.setRowName("Value");
+        Map<String, Set<TObject>> startBrowse = selectRecordTime(record, start, creds, transaction, environment);
+        Map<String, Set<TObject>> endBrowse = selectRecordTime(record, end, creds, transaction, environment);
+        Set<String> startBrowseKeySet = startBrowse.keySet();
+        Set<String> endBrowseKeySet = endBrowse.keySet();
+        Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
+                endBrowseKeySet);
+        Set<String> intersection = Sets.intersection(startBrowseKeySet,
+                endBrowseKeySet);
+
+        for (String current : xor) {
+            if(!startBrowseKeySet.contains(current))
+                result.put(current, Diff.ADDED, endBrowse.get(current));
+            else {
+                result.put(current, Diff.REMOVED, startBrowse.get(current));
+            }
+        }
+
+        for (String currentKey : intersection) {
+            Set<TObject> startValue = startBrowse.get(currentKey);
+            Set<TObject> endValue = endBrowse.get(currentKey);
+            Set<TObject> xorValue = Sets.symmetricDifference(startValue,
+                    endValue);
+            for (TObject currentValue : xorValue) {
+                if(!startValue.contains(currentValue))
+                    result.put(currentKey, Diff.ADDED,
+                            Sets.newHashSet(currentValue));
+                else {
+                    result.put(currentKey, Diff.REMOVED,
+                            Sets.newHashSet(currentValue));
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
+            long start, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
+        return diffKeyRecordStartEnd(key, record, start, Timestamp.now().getMicros(), creds, transaction, environment);
+    }
+
+    @Override
+    public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key, long record,
+            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
+        Map<Diff, Set<TObject>> result = PrettyLinkedHashMap
+                .newPrettyLinkedHashMap("Status", "Value");
+        Set<TObject> added = Sets.newHashSet();
+        Set<TObject> removed = Sets.newHashSet();
+        Set<TObject> startFetch = selectKeyRecordTime(key, record, start, creds, transaction, environment);
+        Set<TObject> endFetch = selectKeyRecordTime(key, record, end, creds, transaction, environment);
+        Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
+
+        for (TObject current : xor) {
+            if(!startFetch.contains(current))
+                added.add(current);
+            else {
+                removed.add(current);
+            }
+        }
+        result.put(Diff.ADDED, added);
+        result.put(Diff.REMOVED, removed);
+        return result;
+    }
+
+    @Override
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
+            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TException {
+        PrettyLinkedTableMap<TObject, Diff, Set<Long>> result = PrettyLinkedTableMap
+                .newPrettyLinkedTableMap();
+        result.setRowName("Value");
+        Map<TObject, Set<Long>> startBrowse = browseKeyTime(key, start, creds, transaction, environment);
+        Map<TObject, Set<Long>> endBrowse = browseKeyTime(key, end, creds, transaction, environment);
+        Set<TObject> startBrowseKeySet = startBrowse.keySet();
+        Set<TObject> endBrowseKeySet = endBrowse.keySet();
+        Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
+                endBrowseKeySet);
+        Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
+                endBrowseKeySet);
+
+        for (TObject current : xor) {
+            if(!startBrowseKeySet.contains(current))
+                result.put(current, Diff.ADDED, endBrowse.get(current));
+            else {
+                result.put(current, Diff.REMOVED, startBrowse.get(current));
+            }
+        }
+
+        for (TObject currentKey : intersection) {
+            Set<Long> startValue = startBrowse.get(currentKey);
+            Set<Long> endValue = endBrowse.get(currentKey);
+            Set<Long> xorValue = Sets.symmetricDifference(startValue,
+                    endValue);
+            for (Long currentValue : xorValue) {
+                if(!startValue.contains(currentValue))
+                    result.put(currentKey, Diff.ADDED,
+                            Sets.newHashSet(currentValue));
+                else {
+                    result.put(currentKey, Diff.REMOVED,
+                            Sets.newHashSet(currentValue));
+                }
+            }
+        }
+        return result;
+
     }
 
     @ManagedOperation

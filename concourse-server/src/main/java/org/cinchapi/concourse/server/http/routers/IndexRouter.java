@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.cinchapi.common.util.KeyRecordArgs;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
@@ -48,28 +49,6 @@ import com.google.gson.JsonPrimitive;
  * @author Jeff Nelson
  */
 public class IndexRouter extends Router {
-
-    /**
-     * Given two arguments, figure out which is the key and which is the record.
-     * This method returns an array where the first element is the key and the
-     * second is the record.
-     * 
-     * @param arg1
-     * @param arg2
-     * @return an array with the key followed by the record
-     */
-    private static Object[] pickKeyAndRecord(String arg1, String arg2) {
-        Long record = Longs.tryParse(arg1);
-        String key;
-        if(record != null) {
-            key = arg2;
-        }
-        else {
-            key = arg1;
-            record = Long.parseLong(arg2);
-        }
-        return new Object[] { key, record };
-    }
 
     /**
      * Construct a new instance.
@@ -368,9 +347,9 @@ public class IndexRouter extends Router {
                         .getMicros();
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = pickKeyAndRecord(arg1, arg2);
-                String key = (String) args[0];
-                Long record = (Long) args[1];
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
                 Object data;
                 if(timestamp == null) {
                     data = concourse.selectKeyRecord(key, record, creds,
@@ -395,9 +374,9 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = pickKeyAndRecord(arg1, arg2);
-                String key = (String) args[0];
-                Long record = (Long) args[1];
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
                 boolean result = concourse.addKeyValueRecord(key, value,
@@ -417,9 +396,9 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                Object[] args = pickKeyAndRecord(arg1, arg2);
-                String key = (String) args[0];
-                Long record = (Long) args[1];
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
                 concourse.setKeyValueRecord(key, value, record, creds,
@@ -437,10 +416,10 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                Object[] args = pickKeyAndRecord(getParamValue(":arg1"),
+                KeyRecordArgs kra = KeyRecordArgs.parse(getParamValue(":arg1"),
                         getParamValue(":arg2"));
-                String key = (String) args[0];
-                Long record = (Long) args[1];
+                String key = kra.getKey();
+                Long record = kra.getRecord();
                 String body = request.body();
                 if(StringUtils.isBlank(body)) {
                     concourse.clearKeyRecord(key, record, creds, transaction,
@@ -474,15 +453,15 @@ public class IndexRouter extends Router {
                 String end = getParamValue("end");
                 start = ObjectUtils.firstNonNull(start,
                         getParamValue("timestamp"));
-                Object[] args = pickKeyAndRecord(arg1, arg2);
-                String key = (String) args[0];
-                Long record = (Long) args[1];
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
                 Preconditions.checkArgument(
                         record != null && !StringUtils.isBlank(key),
                         "Cannot perform audit on %s/%s because it "
                                 + "is not a valid key/record combination",
                         arg1, arg2);
-                Object data;
+                Object data = null;
                 if(start != null && end != null) {
                     data = concourse.auditKeyRecordStartEnd(key, record,
                             Timestamp.parse(start).getMicros(), Timestamp
@@ -514,31 +493,105 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                String ts = getParamValue("start");
-                String te = getParamValue("end");
-                ts = Objects.firstNonNull(ts, getParamValue("timestamp"));
-                Object[] args = pickKeyAndRecord(arg1, arg2);
-                String key = (String) args[0];
-                Long record = (Long) args[1];
-                Object data;
-                if(ts == null) {
+                String start = getParamValue("start");
+                String end = getParamValue("end");
+                start = Objects.firstNonNull(start, getParamValue("timestamp"));
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
+                Object data = null;
+                if(start == null) {
                     data = concourse.chronologizeKeyRecord(key, record, creds,
                             transaction, environment);
                 }
-                else if(te == null) {
+                else if(end == null) {
                     data = concourse.chronologizeKeyRecordStart(key, record,
-                            Timestamp.parse(ts).getMicros(), creds,
+                            Timestamp.parse(start).getMicros(), creds,
                             transaction, environment);
                 }
                 else {
                     data = concourse.chronologizeKeyRecordStartEnd(key, record,
-                            Timestamp.parse(ts).getMicros(), Timestamp
-                                    .parse(te).getMicros(), creds, transaction,
-                            environment);
+                            Timestamp.parse(start).getMicros(), Timestamp
+                                    .parse(end).getMicros(), creds,
+                            transaction, environment);
                 }
                 return DataServices.gson().toJsonTree(data);
             }
         });
 
+        /**
+         * GET /record/key/revert?timestamp=<ts>
+         * GET /key/record/revert?timestamp=<ts>
+         */
+        get(new Endpoint("/:arg1/:arg2/revert") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String ts = getParamValue("timestamp");
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
+                if(key != null && record != null) {
+                    concourse.revertKeyRecordTime(key, record.longValue(),
+                            Timestamp.parse(ts).getMicros(), creds,
+                            transaction, environment);
+                }
+                return DataServices.gson().toJsonTree(true);
+
+            }
+        });
+
+        /**
+         * GET /record/key/diff?start=<ts>&end=<te>
+         * GET /key/record/diff?start=<ts>
+         * GET /record/diff?start=<ts>&end=<te>
+         * GET /key/diff?start=<ts>&end=<te>
+         * 
+         * @return
+         */
+        get(new Endpoint("/:arg1/:arg2/diff") {
+
+            @Override
+            protected JsonElement serve() throws Exception {
+                String arg1 = getParamValue(":arg1");
+                String arg2 = getParamValue(":arg2");
+                String start = getParamValue("start");
+                String end = getParamValue("end");
+                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                String key = kra.getKey();
+                Long record = kra.getRecord();
+                Object data = null;
+                if(key != null && record != null && start != null & end != null) {
+                    data = concourse.diffKeyRecordStartEnd(key, record,
+                            Timestamp.parse(start).getMicros(), Timestamp
+                                    .parse(end).getMicros(), creds,
+                            transaction, environment);
+                }
+                else if(key != null && record != null && start != null
+                        & end == null) {
+                    data = concourse.diffKeyRecordStart(key, record, Timestamp
+                            .parse(start).getMicros(), creds, transaction,
+                            environment);
+                }
+                else if(key == null && record != null && start != null
+                        & end != null) {
+                    data = concourse.diffRecordStartEnd(record, Timestamp
+                            .parse(start).getMicros(), Timestamp.parse(end)
+                            .getMicros(), creds, transaction, environment);
+                }
+                else if(key != null && record == null && start != null
+                        & end != null) {
+                    data = concourse.diffKeyStartEnd(key, Timestamp
+                            .parse(start).getMicros(), Timestamp.parse(end)
+                            .getMicros(), creds, transaction, environment);
+                }
+
+                return DataServices.gson().toJsonTree(data);
+
+            }
+        });
     }
+
 }

@@ -49,6 +49,11 @@ enum Type {
   NULL = 9,
 }
 
+enum Diff {
+	ADDED = 1,
+        REMOVED = 2,
+}
+
 /**
  * A temporary token that is returned by the
  * {@link ConcourseService#login(String, String)} method to grant access
