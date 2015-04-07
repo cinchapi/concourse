@@ -1779,14 +1779,6 @@ public abstract class Concourse implements AutoCloseable {
     public abstract void verifyOrSet(String key, Object value, long record);
 
     /**
-     * Diff represent whether the {@code value} or {@code record} or both is
-     * Added or Removed
-     * 
-     * @author dubex
-     *
-     */
-
-    /**
      * The implementation of the {@link Concourse} interface that establishes a
      * connection with the remote server and handles communication. This class
      * is a more user friendly wrapper around a Thrift

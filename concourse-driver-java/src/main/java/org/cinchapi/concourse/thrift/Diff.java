@@ -11,6 +11,13 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
+/**
+ * Diff represent whether the {@code value} or {@code record} or both is
+ * Added or Removed
+ * 
+ * @author dubex
+ *
+ */
 public enum Diff implements org.apache.thrift.TEnum {
   ADDED(1),
   REMOVED(2);
