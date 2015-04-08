@@ -331,7 +331,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     protected void doCommit() {
-        if(readOnly) {
+        if(isReadOnly()) {
             invokeSuperDoCommit();
         }
         else {

@@ -112,11 +112,6 @@ public class AtomicOperation extends BufferedStore implements
     private final Set<Token> writes2Lock = Sets.newHashSet();
 
     /**
-     * A flag that indicates the transaction does not perform any writes.
-     */
-    protected boolean readOnly = true;
-
-    /**
      * A flag that indicates this atomic operation has successfully grabbed all
      * required locks and is in the process of committing or has been notified
      * of a version change and is in the process of aborting. We use this flag
@@ -188,13 +183,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        if(super.add(key, value, record, true, true, false)) {
-            readOnly = false;
-            return true;
-        }
-        else {
-            return false;
-        }
+        return super.add(key, value, record, true, true, false);
     }
 
     @Override
@@ -329,13 +318,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        if(super.remove(key, value, record, true, true, false)) {
-            readOnly = false;
-            return true;
-        }
-        else {
-            return false;
-        }
+        return super.remove(key, value, record, true, true, false);
     }
 
     @Override
@@ -355,7 +338,6 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        readOnly = false;
         super.set(key, value, record, false);
     }
 
@@ -406,7 +388,7 @@ public class AtomicOperation extends BufferedStore implements
      *         are grabbed.
      */
     private boolean grabLocks() {
-        if(readOnly) {
+        if(isReadOnly()) {
             return true;
         }
         else {
@@ -509,7 +491,7 @@ public class AtomicOperation extends BufferedStore implements
      * Release all of the locks that are held by this operation.
      */
     private void releaseLocks() {
-        if(readOnly) {
+        if(isReadOnly()) {
             return;
         }
         else if(locks != null) {
@@ -584,6 +566,16 @@ public class AtomicOperation extends BufferedStore implements
             rangeReads2Lock.put(key0, range);
         }
         return super.doExplore(key, operator, values, true);
+    }
+
+    /**
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) buffer).size() == 0;
     }
 
     /**
