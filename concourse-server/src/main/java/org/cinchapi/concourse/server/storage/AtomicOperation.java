@@ -98,6 +98,13 @@ public class AtomicOperation extends BufferedStore implements
     private final Set<Token> reads2Lock = Sets.newHashSet();
 
     /**
+     * This map contains all the records in which a "wide read" (e.g. a read
+     * that touches every field in the record) was performed. This data is used
+     * to determine if lock coarsening can be performed at commit time.
+     */
+    private final Map<Long, Token> wideReads = Maps.newHashMap();
+
+    /**
      * A casted pointer to the destination store, which is the source from which
      * this Atomic Operation stems.
      */
@@ -180,8 +187,15 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrapCached(key),
                 Value.wrap(value));
-        source.addVersionChangeListener(token, this);
-        writes2Lock.add(token);
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            wide.upgrade();
+            writes2Lock.add(wide);
+        }
+        else {
+            source.addVersionChangeListener(token, this);
+            writes2Lock.add(token);
+        }
         writes2Lock.add(rangeToken);
         return super.add(key, value, record, true, true, false);
     }
@@ -192,6 +206,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
+        wideReads.put(record, token);
         return super.audit(record, true);
     }
 
@@ -212,6 +227,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
+        wideReads.put(record, token);
         return super.browse(record, true);
     }
 
@@ -315,8 +331,15 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrapCached(key),
                 Value.wrap(value));
-        source.addVersionChangeListener(token, this);
-        writes2Lock.add(token);
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            wide.upgrade();
+            writes2Lock.add(wide);
+        }
+        else {
+            source.addVersionChangeListener(token, this);
+            writes2Lock.add(token);
+        }
         writes2Lock.add(rangeToken);
         return super.remove(key, value, record, true, true, false);
     }
@@ -335,8 +358,15 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrapCached(key),
                 Value.wrap(value));
-        source.addVersionChangeListener(token, this);
-        writes2Lock.add(token);
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            wide.upgrade();
+            writes2Lock.add(wide);
+        }
+        else {
+            source.addVersionChangeListener(token, this);
+            writes2Lock.add(token);
+        }
         writes2Lock.add(rangeToken);
         super.set(key, value, record, false);
     }
@@ -352,6 +382,7 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(record);
         source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
+        wideReads.put(record, token);
     }
 
     @Override
