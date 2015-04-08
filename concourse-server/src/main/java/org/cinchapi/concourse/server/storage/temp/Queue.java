@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,16 +56,32 @@ public class Queue extends Limbo {
     }
 
     @Override
-    public Iterator<Write> iterator() {
-        return writes.iterator();
-    }
-
-    @Override
     public boolean insert(Write write, boolean sync) {
         return writes.add(write);// NOTE: #sync is
                                  // meaningless since
                                  // Queue is a memory
                                  // store
+    }
+
+    @Override
+    public Iterator<Write> iterator() {
+        return writes.iterator();
+    }
+
+    @Override
+    public Iterator<Write> reverseIterator() {
+        List<Write> copy = Lists.newArrayList(writes);
+        Collections.reverse(copy);
+        return copy.iterator();
+    }
+
+    /**
+     * Return the number of writes in this Queue.
+     * 
+     * @return the number of writes
+     */
+    public int size() {
+        return writes.size();
     }
 
     @Override
@@ -76,13 +92,6 @@ public class Queue extends Limbo {
     @Override
     public void stop() {
         // do nothing
-    }
-
-    @Override
-    public Iterator<Write> reverseIterator() {
-        List<Write> copy = Lists.newArrayList(writes);
-        Collections.reverse(copy);
-        return copy.iterator();
     }
 
     @Override
