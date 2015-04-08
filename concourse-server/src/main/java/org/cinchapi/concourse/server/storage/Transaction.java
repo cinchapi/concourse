@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -331,21 +331,27 @@ public final class Transaction extends AtomicOperation implements Compoundable {
 
     @Override
     protected void doCommit() {
-        String file = ((Engine) destination).transactionStore + File.separator
-                + id + ".txn";
-        FileChannel channel = FileSystem.getFileChannel(file);
-        try {
-            channel.write(serialize());
-            channel.force(true);
-            Logger.info("Created backup for transaction {} at '{}'", this, file);
+        if(readOnly) {
             invokeSuperDoCommit();
-            FileSystem.deleteFile(file);
         }
-        catch (IOException e) {
-            throw Throwables.propagate(e);
-        }
-        finally {
-            FileSystem.closeFileChannel(channel);
+        else {
+            String file = ((Engine) destination).transactionStore
+                    + File.separator + id + ".txn";
+            FileChannel channel = FileSystem.getFileChannel(file);
+            try {
+                channel.write(serialize());
+                channel.force(true);
+                Logger.info("Created backup for transaction {} at '{}'", this,
+                        file);
+                invokeSuperDoCommit();
+                FileSystem.deleteFile(file);
+            }
+            catch (IOException e) {
+                throw Throwables.propagate(e);
+            }
+            finally {
+                FileSystem.closeFileChannel(channel);
+            }
         }
     }
 

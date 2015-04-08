@@ -112,6 +112,11 @@ public class AtomicOperation extends BufferedStore implements
     private final Set<Token> writes2Lock = Sets.newHashSet();
 
     /**
+     * A flag that indicates the transaction does not perform any writes.
+     */
+    protected boolean readOnly = true;
+
+    /**
      * A flag that indicates this atomic operation has successfully grabbed all
      * required locks and is in the process of committing or has been notified
      * of a version change and is in the process of aborting. We use this flag
@@ -183,7 +188,13 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        return super.add(key, value, record, true, true, false);
+        if(super.add(key, value, record, true, true, false)) {
+            readOnly = false;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
@@ -318,7 +329,13 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
-        return super.remove(key, value, record, true, true, false);
+        if(super.remove(key, value, record, true, true, false)) {
+            readOnly = false;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     @Override
@@ -338,6 +355,7 @@ public class AtomicOperation extends BufferedStore implements
         source.addVersionChangeListener(token, this);
         writes2Lock.add(token);
         writes2Lock.add(rangeToken);
+        readOnly = false;
         super.set(key, value, record, false);
     }
 
@@ -388,78 +406,48 @@ public class AtomicOperation extends BufferedStore implements
      *         are grabbed.
      */
     private boolean grabLocks() {
-        // NOTE: If we can't grab a lock immediately because it is held by
-        // someone else, then we must fail immediately because the
-        // AtomicOperation can't properly commit.
-        locks = Maps.newHashMap();
-        try {
-            // Grab write locks and remove any covered read or range read
-            // intentions
-            for (Token token : writes2Lock) {
-                if(notifiedAboutVersionChange) {
-                    return false;
-                }
-                LockType type;
-                if(token instanceof RangeToken) {
-                    RangeToken rangeToken = (RangeToken) token;
-                    if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
-                        Range<Value> containing = rangeReads2Lock.get(
-                                rangeToken.getKey(), rangeToken.getValues()[0]);
-                        if(containing != null) {
-                            rangeReads2Lock.remove(rangeToken.getKey(),
-                                    containing);
-                            Iterable<Range<Value>> xor = Ranges.xor(
-                                    Range.singleton(rangeToken.getValues()[0]),
-                                    containing);
-                            for (Range<Value> range : xor) {
-                                rangeReads2Lock.put(rangeToken.getKey(), range);
+        if(readOnly) {
+            return true;
+        }
+        else {
+            // NOTE: If we can't grab a lock immediately because it is held by
+            // someone else, then we must fail immediately because the
+            // AtomicOperation can't properly commit.
+            locks = Maps.newHashMap();
+            try {
+                // Grab write locks and remove any covered read or range read
+                // intentions
+                for (Token token : writes2Lock) {
+                    if(notifiedAboutVersionChange) {
+                        return false;
+                    }
+                    LockType type;
+                    if(token instanceof RangeToken) {
+                        RangeToken rangeToken = (RangeToken) token;
+                        if(!rangeReads2Lock.isEmpty(rangeToken.getKey())) {
+                            Range<Value> containing = rangeReads2Lock.get(
+                                    rangeToken.getKey(),
+                                    rangeToken.getValues()[0]);
+                            if(containing != null) {
+                                rangeReads2Lock.remove(rangeToken.getKey(),
+                                        containing);
+                                Iterable<Range<Value>> xor = Ranges.xor(Range
+                                        .singleton(rangeToken.getValues()[0]),
+                                        containing);
+                                for (Range<Value> range : xor) {
+                                    rangeReads2Lock.put(rangeToken.getKey(),
+                                            range);
+                                }
                             }
                         }
+                        type = LockType.RANGE_WRITE;
                     }
-                    type = LockType.RANGE_WRITE;
-                }
-                else {
-                    reads2Lock.remove(token);
-                    type = LockType.WRITE;
-                }
-                LockDescription lock = LockDescription.forToken(token,
-                        lockService, rangeLockService, type);
-                if(lock.getLock().tryLock()) {
-                    locks.put(lock.getToken(), lock);
-                }
-                else {
-                    return false;
-                }
-            }
-            // Grab the read locks. We can be sure that any remaining intentions
-            // are not covered by any of the write locks we grabbed previously.
-            for (Token token : reads2Lock) {
-                if(notifiedAboutVersionChange) {
-                    return false;
-                }
-                LockDescription lock = LockDescription.forToken(token,
-                        lockService, rangeLockService, LockType.READ);
-                if(lock.getLock().tryLock()) {
-                    locks.put(lock.getToken(), lock);
-                }
-                else {
-                    return false;
-                }
-            }
-            // Grab the range read locks. We can be sure that any remaining
-            // intentions are not covered by any of the range write locks we
-            // grabbed previously.
-            for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
-                    .entrySet()) { /* (Authorized) */
-                if(notifiedAboutVersionChange) {
-                    return false;
-                }
-                Text key = entry.getKey();
-                for (Range<Value> range : entry.getValue().asRanges()) {
-                    RangeToken rangeToken = Ranges.convertToRangeToken(key,
-                            range);
-                    LockDescription lock = LockDescription.forToken(rangeToken,
-                            lockService, rangeLockService, LockType.RANGE_READ);
+                    else {
+                        reads2Lock.remove(token);
+                        type = LockType.WRITE;
+                    }
+                    LockDescription lock = LockDescription.forToken(token,
+                            lockService, rangeLockService, type);
                     if(lock.getLock().tryLock()) {
                         locks.put(lock.getToken(), lock);
                     }
@@ -467,31 +455,75 @@ public class AtomicOperation extends BufferedStore implements
                         return false;
                     }
                 }
+                // Grab the read locks. We can be sure that any remaining
+                // intentions
+                // are not covered by any of the write locks we grabbed
+                // previously.
+                for (Token token : reads2Lock) {
+                    if(notifiedAboutVersionChange) {
+                        return false;
+                    }
+                    LockDescription lock = LockDescription.forToken(token,
+                            lockService, rangeLockService, LockType.READ);
+                    if(lock.getLock().tryLock()) {
+                        locks.put(lock.getToken(), lock);
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                // Grab the range read locks. We can be sure that any remaining
+                // intentions are not covered by any of the range write locks we
+                // grabbed previously.
+                for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
+                        .entrySet()) { /* (Authorized) */
+                    if(notifiedAboutVersionChange) {
+                        return false;
+                    }
+                    Text key = entry.getKey();
+                    for (Range<Value> range : entry.getValue().asRanges()) {
+                        RangeToken rangeToken = Ranges.convertToRangeToken(key,
+                                range);
+                        LockDescription lock = LockDescription.forToken(
+                                rangeToken, lockService, rangeLockService,
+                                LockType.RANGE_READ);
+                        if(lock.getLock().tryLock()) {
+                            locks.put(lock.getToken(), lock);
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                }
             }
+            catch (NullPointerException e) {
+                // If we are notified a version change while grabbing locks, we
+                // abort immediately which means that #locks will become null.
+                return false;
+            }
+            return true;
         }
-        catch (NullPointerException e) {
-            // If we are notified a version change while grabbing locks, we
-            // abort immediately which means that #locks will become null.
-            return false;
-        }
-        return true;
     }
 
     /**
      * Release all of the locks that are held by this operation.
      */
     private void releaseLocks() {
-        if(locks != null) {
+        if(readOnly) {
+            return;
+        }
+        else if(locks != null) {
             Map<Token, LockDescription> _locks = locks;
             locks = null; // CON-172: Set the reference of the locks to null
-                          // immediately to prevent a race condition where the
-                          // #grabLocks method isn't notified of version change
-                          // failure in time
+                          // immediately to prevent a race condition where
+                          // the #grabLocks method isn't notified of version
+                          // change failure in time
             for (LockDescription lock : _locks.values()) {
                 lock.getLock().unlock(); // We should never encounter an
                                          // IllegalMonitorStateException
-                                         // here because a lock should only go
-                                         // in #locks once it has been locked.
+                                         // here because a lock should only
+                                         // go in #locks once it has been
+                                         // locked.
             }
         }
     }
