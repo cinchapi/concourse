@@ -249,5 +249,24 @@ public class LockServiceTest extends ConcourseBaseTest {
         c.join();
         Assert.assertTrue(passed.get());
     }
+    
+    @Test
+    public void testExclusiveWriteLockForUpgradedToken() throws InterruptedException{
+        Token token = Token.wrap(TestData.getLong());
+        token.upgrade();
+        final WriteLock write2 = lockService.getWriteLock(token);
+        write2.lock();
+        Thread b = new Thread(new Runnable(){
+
+            @Override
+            public void run() {
+                Assert.assertFalse(write2.tryLock());
+                
+            }
+            
+        });
+        b.start();
+        b.join();
+    }
 
 }

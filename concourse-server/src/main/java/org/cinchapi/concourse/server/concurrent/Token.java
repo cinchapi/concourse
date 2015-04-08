@@ -121,6 +121,9 @@ public class Token implements Byteable {
         return getBytes().hashCode();
     }
 
+    /**
+     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
+     */
     public void upgrade() {
         this.cardinality += 1;
     }
