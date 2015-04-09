@@ -34,8 +34,6 @@ public class AtomicClock {
      * 
      * @return the timestamp.
      */
-    // see
-    // http://stackoverflow.com/questions/9191288/creating-a-unique-timestamp-in-java
     public long time() {
         long now = System.currentTimeMillis() * 1000;
         for (;;) {
