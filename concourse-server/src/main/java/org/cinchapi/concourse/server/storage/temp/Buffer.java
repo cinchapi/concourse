@@ -1603,7 +1603,7 @@ public final class Buffer extends Limbo {
             }
 
         }
-        
+
         @Override
         public boolean hasNext() {
             return next != null;
@@ -1620,7 +1620,7 @@ public final class Buffer extends Limbo {
         public void remove() {
             throw new UnsupportedOperationException();
         }
-        
+
         /**
          * Each subclass should call this method after constructing the initial
          * state to turn to the first page and get the first write.
@@ -1639,10 +1639,10 @@ public final class Buffer extends Limbo {
          * @return the next write or {@code null}
          */
         private Write advance() {
-            if(writeIterator == null) {
-                return null;
-            }
-            else if(writeIterator.hasNext()) {
+            for (;;) {
+                if(writeIterator == null) {
+                    return null;
+                }
                 while (writeIterator.hasNext()) {
                     Write write = writeIterator.next();
                     if(!ignoreTimestamp && write.getVersion() > timestamp) {
@@ -1654,10 +1654,8 @@ public final class Buffer extends Limbo {
                         return write;
                     }
                 }
+                flip();
             }
-            flip();
-            return advance();
-
         }
 
         /**
