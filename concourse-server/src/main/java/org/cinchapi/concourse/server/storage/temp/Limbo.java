@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,7 +85,7 @@ public abstract class Limbo extends BaseStore implements
      * @param values
      * @return {@code true} if {@code input} matches
      */
-    private static boolean matches(Value input, Operator operator,
+    protected static boolean matches(Value input, Operator operator,
             TObject... values) {
         Value v1 = Value.wrap(values[0]);
         switch (operator) {
@@ -119,7 +119,7 @@ public abstract class Limbo extends BaseStore implements
     /**
      * A Predicate that is used to filter out empty sets.
      */
-    private static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
+    protected static final Predicate<Set<? extends Object>> emptySetFilter = new Predicate<Set<? extends Object>>() {
 
         @Override
         public boolean apply(@Nullable Set<? extends Object> input) {
@@ -166,7 +166,7 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public Map<String, Set<TObject>> select(long record) {
-        return select(record, Time.now());
+        return select(record, Time.NONE);
     }
 
     @Override
@@ -180,7 +180,7 @@ public abstract class Limbo extends BaseStore implements
                     }
 
                 });
-        return browse(record, timestamp, context);
+        return select(record, timestamp, context);
     }
 
     /**
@@ -192,7 +192,7 @@ public abstract class Limbo extends BaseStore implements
      * @param context
      * @return a possibly empty Map of data
      */
-    public Map<String, Set<TObject>> browse(long record, long timestamp,
+    public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
         if(timestamp >= getOldestWriteTimstamp()) {
             Iterator<Write> it = iterator();
@@ -227,7 +227,7 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
-        return browse(key, Time.now());
+        return browse(key, Time.NONE);
     }
 
     @Override
@@ -365,7 +365,7 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public Set<TObject> select(String key, long record) {
-        return select(key, record, Time.now());
+        return select(key, record, Time.NONE);
     }
 
     @Override
@@ -520,7 +520,7 @@ public abstract class Limbo extends BaseStore implements
                  * NOTE: It is not enough to merely check if the stored text
                  * contains the query because the Database does infix
                  * indexing/searching, which has some subtleties:
-                 * 1. Stop words are removed from the both stored indices and 
+                 * 1. Stop words are removed from the both stored indices and
                  * the search query
                  * 2. A query and document are considered to match if the
                  * document contains a sequence of terms where each term or a
@@ -589,7 +589,7 @@ public abstract class Limbo extends BaseStore implements
 
     @Override
     public boolean verify(String key, TObject value, long record) {
-        return verify(key, value, record, Time.now());
+        return verify(key, value, record, Time.NONE);
     }
 
     @Override
@@ -610,7 +610,7 @@ public abstract class Limbo extends BaseStore implements
      *         times
      */
     public boolean verify(Write write, boolean exists) {
-        return verify(write, Time.now(), exists);
+        return verify(write, Time.NONE, exists);
     }
 
     /**
@@ -682,7 +682,7 @@ public abstract class Limbo extends BaseStore implements
     @Override
     protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
             TObject... values) {
-        return explore(Time.now(), key, operator, values);
+        return explore(Time.NONE, key, operator, values);
     }
 
 }

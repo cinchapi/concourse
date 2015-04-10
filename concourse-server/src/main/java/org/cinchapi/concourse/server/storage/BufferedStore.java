@@ -177,7 +177,7 @@ public abstract class BufferedStore extends BaseStore {
     public Map<String, Set<TObject>> select(long record, long timestamp) {
         Map<String, Set<TObject>> context = destination.select(record,
                 timestamp);
-        return buffer.browse(record, timestamp, context);
+        return buffer.select(record, timestamp, context);
     }
 
     @Override
@@ -339,7 +339,7 @@ public abstract class BufferedStore extends BaseStore {
         else {
             context = destination.select(record);
         }
-        return buffer.browse(record, Time.now(), context);
+        return buffer.select(record, Time.now(), context);
     }
 
     /**

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,6 +43,21 @@ public final class Integers {
         n |= n >> 16;
         ++n;
         return n;
+    }
+
+    /**
+     * Return the integer casted average of all the {@code ints}.
+     * 
+     * @param ints
+     * @return the average
+     */
+    public static int avg(int... ints) {
+        int sum = 0;
+        int length = ints.length;
+        for (int i = 0; i < length; ++i) {
+            sum += ints[i];
+        }
+        return sum / length;
     }
 
     private Integers() {/* noop */}
