@@ -59,9 +59,11 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TMaps;
+import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -691,6 +693,54 @@ public final class Buffer extends Limbo {
      */
     public void setThreadNamePrefix(String threadNamePrefix) {
         this.threadNamePrefix = threadNamePrefix;
+    }
+
+    @Override
+    public Set<Long> search(String key, String query) {
+        Map<Long, Set<Value>> rtv = Maps.newHashMap();
+        Iterator<Write> it = iterator(key, Time.NONE);
+        while (it.hasNext()) {
+            Write write = it.next();
+            Value value = write.getValue();
+            long record = write.getRecord().longValue();
+            if(value.getType() == Type.STRING) {
+                /*
+                 * NOTE: It is not enough to merely check if the stored text
+                 * contains the query because the Database does infix
+                 * indexing/searching, which has some subtleties:
+                 * 1. Stop words are removed from the both stored indices and
+                 * the search query
+                 * 2. A query and document are considered to match if the
+                 * document contains a sequence of terms where each term or a
+                 * substring of the term matches the term in the same relative
+                 * position of the query.
+                 */
+                // CON-10: compare lowercase for case insensitive search
+                String stored = TStrings.stripStopWords(((String) (value
+                        .getObject())).toLowerCase());
+                query = TStrings.stripStopWords(query.toLowerCase());
+                if(!Strings.isNullOrEmpty(stored)
+                        && !Strings.isNullOrEmpty(query)
+                        && TStrings.isInfixSearchMatch(query, stored)) {
+                    Set<Value> values = rtv.get(record);
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        rtv.put(record, values);
+                    }
+                    if(values.contains(value)) {
+                        values.remove(value);
+                    }
+                    else {
+                        values.add(value);
+                    }
+
+                }
+            }
+        }
+        // FIXME sort search results based on frequency (see
+        // SearchRecord#search())
+        return newLinkedHashMap(Maps.filterValues(rtv, emptySetFilter))
+                .keySet();
     }
 
     @Override
@@ -1540,30 +1590,6 @@ public final class Buffer extends Limbo {
         }
 
         /**
-         * Grab the necessary locks to protected {@code #page} while it is used
-         * in the iterator.
-         * 
-         * @param page
-         */
-        private void grabLocks(Page page) {
-            myCurrentPage = page;
-            myAccessStamp = Locks.stampLockReadIfCondition(
-                    myCurrentPage.accessLock, myCurrentPage == currentPage);
-            myCurrentPage.transportLock.readLock().lock();
-        }
-
-        /**
-         * Release the locks for {@link #myCurrentPage}.
-         */
-        private void releaseLocks() {
-            if(myCurrentPage != null) {
-                Locks.stampUnlockReadIfCondition(myCurrentPage.accessLock,
-                        myAccessStamp, myCurrentPage == currentPage);
-                myCurrentPage.transportLock.readLock().unlock();
-            }
-        }
-
-        /**
          * Flip to the next page in the Buffer with the option to temporarily
          * skip the timestamp check.
          * 
@@ -1599,6 +1625,30 @@ public final class Buffer extends Limbo {
          */
         private void flip() {
             flip(false);
+        }
+
+        /**
+         * Grab the necessary locks to protected {@code #page} while it is used
+         * in the iterator.
+         * 
+         * @param page
+         */
+        private void grabLocks(Page page) {
+            myCurrentPage = page;
+            myAccessStamp = Locks.stampLockReadIfCondition(
+                    myCurrentPage.accessLock, myCurrentPage == currentPage);
+            myCurrentPage.transportLock.readLock().lock();
+        }
+
+        /**
+         * Release the locks for {@link #myCurrentPage}.
+         */
+        private void releaseLocks() {
+            if(myCurrentPage != null) {
+                Locks.stampUnlockReadIfCondition(myCurrentPage.accessLock,
+                        myAccessStamp, myCurrentPage == currentPage);
+                myCurrentPage.transportLock.readLock().unlock();
+            }
         }
 
         /**
