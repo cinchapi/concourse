@@ -29,13 +29,10 @@ import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.TMaps;
 import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.concourse.server.model.TObjectSorter;
-import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.PermanentStore;
-import org.cinchapi.concourse.server.storage.VersionGetter;
-import org.cinchapi.concourse.server.storage.Versioned;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
@@ -73,8 +70,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  */
 @NotThreadSafe
 public abstract class Limbo extends BaseStore implements
-        Iterable<Write>,
-        VersionGetter {
+        Iterable<Write> {
 
     /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
@@ -419,38 +415,6 @@ public abstract class Limbo extends BaseStore implements
         return 0;
     }
 
-    @Override
-    public long getVersion(long record) {
-        return getVersion(null, record);
-    }
-
-    @Override
-    public long getVersion(String key) {
-        Iterator<Write> it = reverseIterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(write.getKey().equals(Text.wrapCached(key))) {
-                return write.getVersion();
-            }
-        }
-        return Versioned.NO_VERSION;
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        key = Strings.nullToEmpty(key);
-        Iterator<Write> it = reverseIterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            if(record == write.getRecord().longValue()
-                    && (Strings.isNullOrEmpty(key) || write.getKey().equals(
-                            Text.wrapCached(key)))) {
-                return write.getVersion();
-            }
-        }
-        return Versioned.NO_VERSION;
-    }
-
     /**
      * Return the timestamp for the oldest write available.
      * 
@@ -497,14 +461,6 @@ public abstract class Limbo extends BaseStore implements
      */
     @Override
     public abstract Iterator<Write> iterator();
-
-    /**
-     * Return an iterator that traverses the Writes in the store in reverse
-     * order.
-     * 
-     * @return the iterator
-     */
-    public abstract Iterator<Write> reverseIterator();
 
     @Override
     public Set<Long> search(String key, String query) {

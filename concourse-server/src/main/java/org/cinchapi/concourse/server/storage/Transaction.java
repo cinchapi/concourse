@@ -199,24 +199,6 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     }
 
     @Override
-    public long getVersion(long record) {
-        return Math.max(buffer.getVersion(record),
-                ((Engine) destination).getVersion(record));
-    }
-
-    @Override
-    public long getVersion(String key) {
-        return Math.max(buffer.getVersion(key),
-                ((Engine) destination).getVersion(key));
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        return Math.max(buffer.getVersion(key, record),
-                ((Engine) destination).getVersion(key, record));
-    }
-
-    @Override
     @Restricted
     public void notifyVersionChange(Token token) {}
 

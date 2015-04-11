@@ -68,13 +68,6 @@ public class Queue extends Limbo {
         return writes.iterator();
     }
 
-    @Override
-    public Iterator<Write> reverseIterator() {
-        List<Write> copy = Lists.newArrayList(writes);
-        Collections.reverse(copy);
-        return copy.iterator();
-    }
-
     /**
      * Return the number of writes in this Queue.
      * 

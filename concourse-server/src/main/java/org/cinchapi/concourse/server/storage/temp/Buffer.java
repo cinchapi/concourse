@@ -511,25 +511,8 @@ public final class Buffer extends Limbo {
     public long getTimeOfLastTransport() {
         return timeOfLastTransport.get();
     }
-
-    @Override
-    public long getVersion(long record) {
-        scaleBackTransportRate();
-        return super.getVersion(record);
-    }
-
-    @Override
-    public long getVersion(String key) {
-        scaleBackTransportRate();
-        return super.getVersion(key);
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        scaleBackTransportRate();
-        return super.getVersion(key, record);
-    }
-
+    
+    
     @Override
     public boolean insert(Write write, boolean sync) {
         writeLock.lock();
@@ -613,56 +596,6 @@ public final class Buffer extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Long.MAX_VALUE);
-    }
-
-    @Override
-    public Iterator<Write> reverseIterator() {
-        return new Iterator<Write>() {
-
-            private ListIterator<Page> pageIterator = pages.listIterator(pages
-                    .size());
-            private Iterator<Write> writeIterator = null;
-
-            {
-                flip();
-            }
-
-            @Override
-            public boolean hasNext() {
-                if(writeIterator == null) {
-                    return false;
-                }
-                else if(writeIterator.hasNext()) {
-                    return true;
-                }
-                else {
-                    flip();
-                    return hasNext();
-                }
-            }
-
-            @Override
-            public Write next() {
-                return writeIterator.next();
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-            /**
-             * Flip to the next page in the Buffer.
-             */
-            private void flip() {
-                writeIterator = null;
-                if(pageIterator.hasPrevious()) {
-                    Page next = pageIterator.previous();
-                    writeIterator = next.reverseIterator();
-                }
-            }
-
-        };
     }
 
     /**
@@ -1315,56 +1248,6 @@ public final class Buffer extends Limbo {
                 Locks.stampUnlockWriteIfCondition(accessLock, stamp,
                         this == currentPage);
             }
-        }
-
-        /**
-         * Return an iterator that traverses the writes on the Page in reverse.
-         * 
-         * @return the iterator
-         */
-        public Iterator<Write> reverseIterator() {
-            return new Iterator<Write>() {
-
-                /**
-                 * The index of the "next" element in {@link #writes}.
-                 */
-                private int index = size - 1;
-
-                /**
-                 * The distance between the {@link #head} element and the
-                 * {@code next} element. This is used to detect for concurrent
-                 * modifications.
-                 */
-                private int distance = index - head;
-
-                @Override
-                public boolean hasNext() {
-                    if(index - head != distance) {
-                        throw new ConcurrentModificationException(
-                                "A write has been removed from the Page");
-                    }
-                    return index >= head;
-                }
-
-                @Override
-                public Write next() {
-                    if(index - head != distance) {
-                        throw new ConcurrentModificationException(
-                                "A write has been removed from the Page");
-                    }
-                    Write next = writes[index];
-                    index--;
-                    distance--;
-                    return next;
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException();
-
-                }
-
-            };
         }
 
         @Override

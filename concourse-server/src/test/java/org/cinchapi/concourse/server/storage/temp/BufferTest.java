@@ -153,36 +153,6 @@ public class BufferTest extends LimboTest {
     }
 
     @Test
-    public void testReverseIteratorAfterTransport() {
-        ((Buffer) store).transportRateMultiplier = 1;
-        List<Write> writes = getWrites();
-        for (Write write : writes) {
-            add(write.getKey().toString(), write.getValue().getTObject(), write
-                    .getRecord().longValue());
-        }
-        int div = (TestData.getScaleCount() % 9) + 1;
-        int count = writes.size() / div;
-        for (int i = 0; i < count; i++) {
-            if(((Buffer) store).canTransport()) {
-                ((Buffer) store).transport(MOCK_DESTINATION);
-                writes.remove(0);
-            }
-            else {
-                break;
-            }
-        }
-        Iterator<Write> it = ((Limbo) store).reverseIterator();
-        int index = writes.size() - 1;
-        while (it.hasNext()) {
-            if(index == 0) {}
-            Write w = it.next();
-            Assert.assertEquals(w, writes.get(index));
-            index--;
-        }
-        Assert.assertEquals(-1, index);
-    }
-
-    @Test
     public void testWaitUntilTransportable() throws InterruptedException {
         final AtomicLong later = new AtomicLong(0);
         Thread thread = new Thread(new Runnable() {

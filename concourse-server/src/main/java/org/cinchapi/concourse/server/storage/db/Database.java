@@ -43,7 +43,6 @@ import org.cinchapi.concourse.server.storage.Action;
 import org.cinchapi.concourse.server.storage.BaseStore;
 import org.cinchapi.concourse.server.storage.Functions;
 import org.cinchapi.concourse.server.storage.PermanentStore;
-import org.cinchapi.concourse.server.storage.VersionGetter;
 import org.cinchapi.concourse.server.storage.temp.Buffer;
 import org.cinchapi.concourse.server.storage.temp.Write;
 import org.cinchapi.concourse.thrift.Operator;
@@ -78,8 +77,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  */
 @ThreadSafe
 public final class Database extends BaseStore implements
-        PermanentStore,
-        VersionGetter {
+        PermanentStore {
 
     /**
      * Return a cache for records of type {@code T}.
@@ -377,25 +375,6 @@ public final class Database extends BaseStore implements
             ids.add(block.getId());
         }
         return ids;
-    }
-
-    @Override
-    public long getVersion(long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record)).getVersion();
-    }
-
-    @Override
-    public long getVersion(String key) {
-        // NOTE: We must consult the SecondaryRecord over the SearchRecord
-        // because ALL writes for a key are secondary indexed whereas only text
-        // writes are search indexed.
-        return getSecondaryRecord(Text.wrapCached(key)).getVersion();
-    }
-
-    @Override
-    public long getVersion(String key, long record) {
-        return getPrimaryRecord(PrimaryKey.wrap(record), Text.wrapCached(key))
-                .getVersion();
     }
 
     @Override
