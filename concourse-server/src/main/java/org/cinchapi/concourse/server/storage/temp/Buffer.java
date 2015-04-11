@@ -59,6 +59,7 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TMaps;
+import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -195,14 +196,6 @@ public final class Buffer extends Limbo {
         }
 
     };
-
-    /**
-     * The transportLock makes it possible to append new Writes and transport
-     * old writes concurrently while prohibiting reading the buffer and
-     * transporting writes at the same time.
-     */
-    private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
-            .prioritizeReads();
 
     /**
      * A monitor that is used to make a thread block while waiting for the
@@ -344,122 +337,92 @@ public final class Buffer extends Limbo {
 
     @Override
     public Map<Long, String> audit(long record) {
-        transportLock.readLock().lock();
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            Iterator<Write> it = iterator(record, Long.MAX_VALUE);
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
+        Map<Long, String> audit = Maps.newTreeMap();
+        Iterator<Write> it = iterator(record, Long.MAX_VALUE);
+        while (it.hasNext()) {
+            Write write = it.next();
+            audit.put(write.getVersion(), write.toString());
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return audit;
     }
 
     @Override
     public Map<Long, String> audit(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            Iterator<Write> it = iterator(key, record, Long.MAX_VALUE);
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
+        Map<Long, String> audit = Maps.newTreeMap();
+        Iterator<Write> it = iterator(key, record, Long.MAX_VALUE);
+        while (it.hasNext()) {
+            Write write = it.next();
+            audit.put(write.getVersion(), write.toString());
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return audit;
     }
 
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(record, timestamp);
-            while (it.hasNext()) {
-                Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
-                }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
-                }
+        Iterator<Write> it = iterator(record, timestamp);
+        while (it.hasNext()) {
+            Write write = it.next();
+            Set<TObject> values;
+            values = context.get(write.getKey().toString());
+            if(values == null) {
+                values = Sets.newHashSet();
+                context.put(write.getKey().toString(), values);
             }
-            return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
-                    .filterValues(context, emptySetFilter));
+            if(write.getType() == Action.ADD) {
+                values.add(write.getValue().getTObject());
+            }
+            else {
+                values.remove(write.getValue().getTObject());
+            }
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
+                .filterValues(context, emptySetFilter));
     }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(key, timestamp);
-            while (it.hasNext()) {
-                Write write = it.next();
-                Set<Long> records = context.get(write.getValue().getTObject());
-                if(records == null) {
-                    records = Sets.newLinkedHashSet();
-                    context.put(write.getValue().getTObject(), records);
-                }
-                if(write.getType() == Action.ADD) {
-                    records.add(write.getRecord().longValue());
-                }
-                else {
-                    records.remove(write.getRecord().longValue());
-                }
+        Iterator<Write> it = iterator(key, timestamp);
+        while (it.hasNext()) {
+            Write write = it.next();
+            Set<Long> records = context.get(write.getValue().getTObject());
+            if(records == null) {
+                records = Sets.newLinkedHashSet();
+                context.put(write.getValue().getTObject(), records);
             }
-            return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
-                    .filterValues(context, emptySetFilter));
+            if(write.getType() == Action.ADD) {
+                records.add(write.getRecord().longValue());
+            }
+            else {
+                records.remove(write.getRecord().longValue());
+            }
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return Maps.newTreeMap((SortedMap<TObject, Set<Long>>) Maps
+                .filterValues(context, emptySetFilter));
     }
 
     @Override
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(record, timestamp);
-            while (it.hasNext()) {
-                Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
-                }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
-                }
+        Iterator<Write> it = iterator(record, timestamp);
+        while (it.hasNext()) {
+            Write write = it.next();
+            Set<TObject> values;
+            values = context.get(write.getKey().toString());
+            if(values == null) {
+                values = Sets.newHashSet();
+                context.put(write.getKey().toString(), values);
             }
-            return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
-                    .keySet();
+            if(write.getType() == Action.ADD) {
+                values.add(write.getValue().getTObject());
+            }
+            else {
+                values.remove(write.getValue().getTObject());
+            }
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return newLinkedHashMap(Maps.filterValues(context, emptySetFilter))
+                .keySet();
     }
 
     /**
@@ -479,50 +442,38 @@ public final class Buffer extends Limbo {
     @Override
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(key, record, timestamp);
-            while (it.hasNext()) {
-                Write write = it.next();
-                if(write.getType() == Action.ADD) {
-                    context.add(write.getValue().getTObject());
-                }
-                else {
-                    context.remove(write.getValue().getTObject());
-                }
+        Iterator<Write> it = iterator(key, record, timestamp);
+        while (it.hasNext()) {
+            Write write = it.next();
+            if(write.getType() == Action.ADD) {
+                context.add(write.getValue().getTObject());
             }
-            return context;
+            else {
+                context.remove(write.getValue().getTObject());
+            }
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return context;
     }
 
     @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(key, timestamp);
-            while (it.hasNext()) {
-                Write write = it.next();
-                long record = write.getRecord().longValue();
-                if(matches(write.getValue(), operator, values)) {
-                    if(write.getType() == Action.ADD) {
-                        MultimapViews.put(context, record, write.getValue()
-                                .getTObject());
-                    }
-                    else {
-                        MultimapViews.remove(context, record, write.getValue()
-                                .getTObject());
-                    }
+        Iterator<Write> it = iterator(key, timestamp);
+        while (it.hasNext()) {
+            Write write = it.next();
+            long record = write.getRecord().longValue();
+            if(matches(write.getValue(), operator, values)) {
+                if(write.getType() == Action.ADD) {
+                    MultimapViews.put(context, record, write.getValue()
+                            .getTObject());
+                }
+                else {
+                    MultimapViews.remove(context, record, write.getValue()
+                            .getTObject());
                 }
             }
-            return TMaps.asSortedMap(context);
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return TMaps.asSortedMap(context);
     }
 
     /**
@@ -561,38 +512,20 @@ public final class Buffer extends Limbo {
 
     @Override
     public long getVersion(long record) {
-        transportLock.readLock().lock();
-        try {
-            scaleBackTransportRate();
-            return super.getVersion(record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        scaleBackTransportRate();
+        return super.getVersion(record);
     }
 
     @Override
     public long getVersion(String key) {
-        transportLock.readLock().lock();
-        try {
-            scaleBackTransportRate();
-            return super.getVersion(key);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        scaleBackTransportRate();
+        return super.getVersion(key);
     }
 
     @Override
     public long getVersion(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            scaleBackTransportRate();
-            return super.getVersion(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        scaleBackTransportRate();
+        return super.getVersion(key, record);
     }
 
     @Override
@@ -730,18 +663,6 @@ public final class Buffer extends Limbo {
         };
     }
 
-    @Override
-    public Set<Long> search(String key, String query) {
-        transportLock.readLock().lock();
-        try {
-            scaleBackTransportRate();
-            return super.search(key, query);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
     /**
      * <p>
      * <strong>DO NOT CALL!!!</strong>
@@ -821,52 +742,47 @@ public final class Buffer extends Limbo {
     public void transport(PermanentStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
-        if(pages.size() > 1
-                && !transportLock.writeLock().isHeldByCurrentThread()
-                && transportLock.writeLock().tryLock()) {
-            try {
-                Page page = pages.get(0);
-                int i = 0;
-                while (i < transportRate) {
-                    if(page.hasNext()) {
-                        destination.accept(page.next());
-                        page.remove();
-                        ++i;
+        if(pages.size() > 1) {
+            Page page = pages.get(0);
+            if(!page.transportLock.writeLock().isHeldByCurrentThread()
+                    && page.transportLock.writeLock().tryLock()) {
+                try {
+                    int i = 0;
+                    while (i < transportRate) {
+                        if(page.hasNext()) {
+                            destination.accept(page.next());
+                            page.remove();
+                            ++i;
+                        }
+                        else {
+                            ((Database) destination).triggerSync();
+                            removePage();
+                            break;
+                        }
                     }
-                    else {
-                        ((Database) destination).triggerSync();
-                        removePage();
-                        break;
+                    timeOfLastTransport.set(Time.now());
+                    transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
+                            : (transportRate * transportRateMultiplier);
+                    --transportThreadSleepTimeInMs;
+                    if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
+                        transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
                     }
                 }
-                timeOfLastTransport.set(Time.now());
-                transportRate = transportRate >= MAX_TRANSPORT_RATE ? MAX_TRANSPORT_RATE
-                        : (transportRate * transportRateMultiplier);
-                --transportThreadSleepTimeInMs;
-                if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
-                    transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+                finally {
+                    page.transportLock.writeLock().unlock();
                 }
-            }
-            finally {
-                transportLock.writeLock().unlock();
             }
         }
     }
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-        transportLock.readLock().lock();
-        try {
-            Iterator<Write> it = iterator(write, timestamp);
-            while (it.hasNext()) {
-                it.next();
-                exists ^= true; // toggle boolean
-            }
-            return exists;
+        Iterator<Write> it = iterator(write, timestamp);
+        while (it.hasNext()) {
+            it.next();
+            exists ^= true; // toggle boolean
         }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return exists;
     }
 
     @Override
@@ -986,10 +902,18 @@ public final class Buffer extends Limbo {
         private final String filename;
 
         /**
-         * The local lock for the page, which is only used if this page is equal
-         * to the {@link #currentPage}.
+         * The local lock for read/write access on the page. This is only used
+         * when this page is equal to the {@link #currentPage}.
          */
-        private final transient ReentrantReadWriteLock pageLock = new ReentrantReadWriteLock();
+        private transient StampedLock accessLock = new StampedLock();
+
+        /**
+         * The transportLock makes it possible to append new Writes and
+         * transport old writes concurrently while prohibiting reading the Page
+         * and transporting writes at the same time.
+         */
+        private final transient ReentrantReadWriteLock transportLock = PriorityReadWriteLock
+                .prioritizeReads();
 
         /**
          * Indicates the index in {@link #writes} that constitutes the first
@@ -1098,7 +1022,7 @@ public final class Buffer extends Limbo {
         public void append(Write write, boolean sync) throws CapacityException {
             Preconditions.checkState(this == currentPage, "Illegal attempt to "
                     + "append a Write to an inactive Page");
-            pageLock.writeLock().lock();
+            long stamp = accessLock.writeLock();
             try {
                 if(content.remaining() >= write.size() + 4) {
                     index(write);
@@ -1114,7 +1038,7 @@ public final class Buffer extends Limbo {
                 }
             }
             finally {
-                pageLock.writeLock().unlock();
+                accessLock.unlockWrite(stamp);
             }
         }
 
@@ -1137,8 +1061,8 @@ public final class Buffer extends Limbo {
         public long getOldestWriteTimestamp() {
             Write oldestWrite = writes[0];
             // When there is no data on the page return the max possible
+            // timestamp so that no query's timestamp is less than this
             // timestamp
-            // so that no query's timestamp is less than this timestamp
             return oldestWrite == null ? Long.MAX_VALUE : oldestWrite
                     .getVersion();
         }
@@ -1152,12 +1076,13 @@ public final class Buffer extends Limbo {
          */
         @Override
         public boolean hasNext() {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
+            long stamp = Locks.stampLockReadIfCondition(accessLock,
+                    this == currentPage);
             try {
                 return head < size;
             }
             finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
+                Locks.stampUnlockReadIfCondition(accessLock, stamp,
                         this == currentPage);
             }
         }
@@ -1203,39 +1128,23 @@ public final class Buffer extends Limbo {
 
                 @Override
                 public boolean hasNext() {
-                    Locks.lockIfCondition(pageLock.readLock(),
-                            Page.this == currentPage);
-                    try {
-                        if(index - head != distance) {
-                            throw new ConcurrentModificationException(
-                                    "A write has been removed from the Page");
-                        }
-                        return index < size;
+                    if(index - head != distance) {
+                        throw new ConcurrentModificationException(
+                                "A write has been removed from the Page");
                     }
-                    finally {
-                        Locks.unlockIfCondition(pageLock.readLock(),
-                                Page.this == currentPage);
-                    }
+                    return index < size;
                 }
 
                 @Override
                 public Write next() {
-                    Locks.lockIfCondition(pageLock.readLock(),
-                            Page.this == currentPage);
-                    try {
-                        if(index - head != distance) {
-                            throw new ConcurrentModificationException(
-                                    "A write has been removed from the Page");
-                        }
-                        Write next = writes[index];
-                        ++index;
-                        ++distance;
-                        return next;
+                    if(index - head != distance) {
+                        throw new ConcurrentModificationException(
+                                "A write has been removed from the Page");
                     }
-                    finally {
-                        Locks.unlockIfCondition(pageLock.readLock(),
-                                Page.this == currentPage);
-                    }
+                    Write next = writes[index];
+                    ++index;
+                    ++distance;
+                    return next;
                 }
 
                 @Override
@@ -1256,33 +1165,25 @@ public final class Buffer extends Limbo {
          * @return {@code true} if the write possibly exists
          */
         public boolean mightContain(Write write) {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
-            try {
-                Type valueType = write.getValue().getType();
-                if(writeCache.mightContainCached(write.getRecord(),
-                        write.getKey(), write.getValue())) {
-                    return true;
-                }
-                else if(valueType == Type.STRING) {
-                    return writeCache.mightContainCached(write.getRecord(),
-                            write.getKey(), Value.wrap(Convert.javaToThrift(Tag
-                                    .create((String) write.getValue()
-                                            .getObject()))));
-                }
-                else if(valueType == Type.TAG) {
-                    return writeCache.mightContainCached(
-                            write.getRecord(),
-                            write.getKey(),
-                            Value.wrap(Convert.javaToThrift(write.getValue()
-                                    .getObject().toString())));
-                }
-                else {
-                    return false;
-                }
+            Type valueType = write.getValue().getType();
+            if(writeCache.mightContainCached(write.getRecord(), write.getKey(),
+                    write.getValue())) {
+                return true;
             }
-            finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
-                        this == currentPage);
+            else if(valueType == Type.STRING) {
+                return writeCache.mightContainCached(write.getRecord(), write
+                        .getKey(), Value.wrap(Convert.javaToThrift(Tag
+                        .create((String) write.getValue().getObject()))));
+            }
+            else if(valueType == Type.TAG) {
+                return writeCache.mightContainCached(
+                        write.getRecord(),
+                        write.getKey(),
+                        Value.wrap(Convert.javaToThrift(write.getValue()
+                                .getObject().toString())));
+            }
+            else {
+                return false;
             }
         }
 
@@ -1296,14 +1197,7 @@ public final class Buffer extends Limbo {
          * @return {@code true} if a write within {@code record} possibly exists
          */
         public boolean mightContain(PrimaryKey record) {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
-            try {
-                return recordCache[slotify(record.hashCode())];
-            }
-            finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
-                        this == currentPage);
-            }
+            return recordCache[slotify(record.hashCode())];
         }
 
         /**
@@ -1316,14 +1210,7 @@ public final class Buffer extends Limbo {
          * @return {@code true} if a write for {@code key} possibly exists
          */
         public boolean mightContain(Text key) {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
-            try {
-                return keyCache[slotify(key.hashCode())];
-            }
-            finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
-                        this == currentPage);
-            }
+            return keyCache[slotify(key.hashCode())];
         }
 
         /**
@@ -1338,14 +1225,7 @@ public final class Buffer extends Limbo {
          *         possibly exists
          */
         public boolean mightContain(Text key, PrimaryKey record) {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
-            try {
-                return keyRecordCache[slotify(key.hashCode(), record.hashCode())];
-            }
-            finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
-                        this == currentPage);
-            }
+            return keyRecordCache[slotify(key.hashCode(), record.hashCode())];
         }
 
         /**
@@ -1358,12 +1238,13 @@ public final class Buffer extends Limbo {
          */
         @Override
         public Write next() {
-            Locks.lockIfCondition(pageLock.readLock(), this == currentPage);
+            long stamp = Locks.stampLockReadIfCondition(accessLock,
+                    this == currentPage);
             try {
                 return writes[head];
             }
             finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
+                Locks.stampUnlockReadIfCondition(accessLock, stamp,
                         this == currentPage);
             }
         }
@@ -1375,12 +1256,14 @@ public final class Buffer extends Limbo {
          */
         @Override
         public void remove() {
-            Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
+            long stamp = Locks.stampLockWriteIfCondition(accessLock,
+                    this == currentPage);
             try {
                 ++head;
             }
             finally {
-                Locks.lockIfCondition(pageLock.writeLock(), this == currentPage);
+                Locks.stampUnlockWriteIfCondition(accessLock, stamp,
+                        this == currentPage);
             }
         }
 
@@ -1406,39 +1289,23 @@ public final class Buffer extends Limbo {
 
                 @Override
                 public boolean hasNext() {
-                    Locks.lockIfCondition(pageLock.readLock(),
-                            Page.this == currentPage);
-                    try {
-                        if(index - head != distance) {
-                            throw new ConcurrentModificationException(
-                                    "A write has been removed from the Page");
-                        }
-                        return index >= head;
+                    if(index - head != distance) {
+                        throw new ConcurrentModificationException(
+                                "A write has been removed from the Page");
                     }
-                    finally {
-                        Locks.unlockIfCondition(pageLock.readLock(),
-                                Page.this == currentPage);
-                    }
+                    return index >= head;
                 }
 
                 @Override
                 public Write next() {
-                    Locks.lockIfCondition(pageLock.readLock(),
-                            Page.this == currentPage);
-                    try {
-                        if(index - head != distance) {
-                            throw new ConcurrentModificationException(
-                                    "A write has been removed from the Page");
-                        }
-                        Write next = writes[index];
-                        index--;
-                        distance--;
-                        return next;
+                    if(index - head != distance) {
+                        throw new ConcurrentModificationException(
+                                "A write has been removed from the Page");
                     }
-                    finally {
-                        Locks.unlockIfCondition(pageLock.readLock(),
-                                Page.this == currentPage);
-                    }
+                    Write next = writes[index];
+                    index--;
+                    distance--;
+                    return next;
                 }
 
                 @Override
@@ -1461,7 +1328,8 @@ public final class Buffer extends Limbo {
          * @return the dump string
          */
         protected String dump() {
-            Locks.lockIfCondition(pageLock.readLock(), Page.this == currentPage);
+            long stamp = Locks.stampLockReadIfCondition(accessLock,
+                    this == currentPage);
             try {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Dump for " + getClass().getSimpleName() + " "
@@ -1482,8 +1350,8 @@ public final class Buffer extends Limbo {
                 return sb.toString();
             }
             finally {
-                Locks.unlockIfCondition(pageLock.readLock(),
-                        Page.this == currentPage);
+                Locks.stampUnlockReadIfCondition(accessLock, stamp,
+                        this == currentPage);
             }
         }
 
@@ -1579,6 +1447,18 @@ public final class Buffer extends Limbo {
         private boolean ignoreTimestamp = false;
 
         /**
+         * A reference to the page in which the iterator is currently
+         * traversing.
+         */
+        private Page myCurrentPage;
+
+        /**
+         * The stamp returned from grabbing the read access lock from
+         * {@link #myCurrentPage}.
+         */
+        private long myAccessStamp = 0L;
+
+        /**
          * A flag that indicates whether this iterator has satisfied
          * preconditions and is useable. If it is not useable, it won't perform
          * any traversals or return any data.
@@ -1648,6 +1528,7 @@ public final class Buffer extends Limbo {
                     if(!ignoreTimestamp && write.getVersion() > timestamp) {
                         writeIterator = null;
                         pageIterator = null;
+                        releaseLocks();
                         return null;
                     }
                     else if(isRelevantWrite(write)) {
@@ -1659,6 +1540,30 @@ public final class Buffer extends Limbo {
         }
 
         /**
+         * Grab the necessary locks to protected {@code #page} while it is used
+         * in the iterator.
+         * 
+         * @param page
+         */
+        private void grabLocks(Page page) {
+            myCurrentPage = page;
+            myAccessStamp = Locks.stampLockReadIfCondition(
+                    myCurrentPage.accessLock, myCurrentPage == currentPage);
+            myCurrentPage.transportLock.readLock().lock();
+        }
+
+        /**
+         * Release the locks for {@link #myCurrentPage}.
+         */
+        private void releaseLocks() {
+            if(myCurrentPage != null) {
+                Locks.stampUnlockReadIfCondition(myCurrentPage.accessLock,
+                        myAccessStamp, myCurrentPage == currentPage);
+                myCurrentPage.transportLock.readLock().unlock();
+            }
+        }
+
+        /**
          * Flip to the next page in the Buffer with the option to temporarily
          * skip the timestamp check.
          * 
@@ -1666,18 +1571,24 @@ public final class Buffer extends Limbo {
          */
         private void flip(boolean skipTsCheck) {
             writeIterator = null;
+            releaseLocks();
             if(pageIterator.hasNext()) {
                 while (pageIterator.hasNext()) {
                     Page next = pageIterator.next();
+                    grabLocks(next);
                     if(!skipTsCheck && !ignoreTimestamp
                             && next.getOldestWriteTimestamp() > timestamp) {
                         writeIterator = null;
                         pageIterator = null;
+                        releaseLocks();
                         break;
                     }
                     if(pageMightContainRelevantWrites(next)) {
                         writeIterator = next.iterator();
                         break;
+                    }
+                    else {
+                        releaseLocks();
                     }
                 }
             }
