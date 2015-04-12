@@ -497,6 +497,18 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Return all the changes (Addition and Deletion) of {@code record} and
      * {@code value} in {@code record} for all {@code key} between {@code start}
+     * and current time.
+     * 
+     * @param record
+     * @param start
+     * @return the changes made to the record within the range
+     */
+    public abstract <T> Map<String, Map<Diff, Set<T>>> diff(long record,
+            Timestamp start);    
+    
+    /**
+     * Return all the changes (Addition and Deletion) of {@code record} and
+     * {@code value} in {@code record} for all {@code key} between {@code start}
      * and {@code end}.
      * 
      * @param record
@@ -504,8 +516,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param end
      * @return the changes made to the record within the range
      */
-    public abstract <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
-            final Timestamp start, final Timestamp end);
+    public abstract <T> Map<String, Map<Diff, Set<T>>> diff(long record,
+            Timestamp start, Timestamp end);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code value} of
@@ -517,8 +529,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@code record} within the
      *         range
      */
-    public abstract <T> Map<Diff, Set<T>> diff(final String key,
-            final long record, final Timestamp start);
+    public abstract <T> Map<Diff, Set<T>> diff(String key,
+            long record,Timestamp start);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code value} of
@@ -531,8 +543,18 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@coee record} within the
      *         range
      */
-    public abstract <T> Map<Diff, Set<T>> diff(final String key,
-            final long record, final Timestamp start, final Timestamp end);
+    public abstract <T> Map<Diff, Set<T>> diff(String key,
+            long record,Timestamp start,Timestamp end);
+    
+    /**
+     * Return all the changes (Addition and Deletion) of {@code key} and it's
+     * value between {@code start} and and current time.
+     * @param key
+     * @param start
+     * @return
+     */
+    public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(String key,
+            Timestamp start);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code key} and it's
@@ -543,8 +565,8 @@ public abstract class Concourse implements AutoCloseable {
      * @param end
      * @return the changes map to the key within the range
      */
-    public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
-            final Timestamp start, final Timestamp end);
+    public abstract <T> Map<T, Map<Diff, Set<Long>>> diff(String key,
+            Timestamp start, Timestamp end);
 
     /**
      * Close the Client connection.
@@ -2464,6 +2486,12 @@ public abstract class Concourse implements AutoCloseable {
                 }
             });
         }
+        
+        @Override
+        public <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
+                final Timestamp start) {
+            return diff(record, start, Timestamp.now());
+        }
 
         @Override
         public <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
@@ -2517,6 +2545,13 @@ public abstract class Concourse implements AutoCloseable {
                 }
             });
         }
+        
+        @Override
+        public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
+                final Timestamp start) {
+            return diff(key, start, Timestamp.now());
+        }
+        
 
         @Override
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,

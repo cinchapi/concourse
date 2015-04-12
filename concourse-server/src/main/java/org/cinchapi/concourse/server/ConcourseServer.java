@@ -88,8 +88,6 @@ import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.Environments;
 import org.cinchapi.concourse.util.Logger;
-import org.cinchapi.concourse.util.PrettyLinkedHashMap;
-import org.cinchapi.concourse.util.PrettyLinkedTableMap;
 import org.cinchapi.concourse.util.TCollections;
 import org.cinchapi.concourse.util.TSets;
 import org.cinchapi.concourse.util.Timestamps;
@@ -111,7 +109,6 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-
 
 import static org.cinchapi.concourse.server.GlobalState.*;
 
@@ -1152,117 +1149,202 @@ public class ConcourseServer implements
             throw new TTransactionException();
         }
     }
-    
+
+    @Override    
+    public Map<String, Map<Diff, Set<TObject>>> diffRecordStart(long record,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return diffRecordStartEnd(record, start, Timestamp.now().getMicros(),
+                creds, transaction, environment);
+    }
+
     @Override
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStartEnd(long record,
-            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
-        PrettyLinkedTableMap<String, Diff, Set<TObject>> result = PrettyLinkedTableMap
-                .newPrettyLinkedTableMap();
-        result.setRowName("Value");
-        Map<String, Set<TObject>> startBrowse = selectRecordTime(record, start, creds, transaction, environment);
-        Map<String, Set<TObject>> endBrowse = selectRecordTime(record, end, creds, transaction, environment);
-        Set<String> startBrowseKeySet = startBrowse.keySet();
-        Set<String> endBrowseKeySet = endBrowse.keySet();
-        Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
-                endBrowseKeySet);
-        Set<String> intersection = Sets.intersection(startBrowseKeySet,
-                endBrowseKeySet);
-
-        for (String current : xor) {
-            if(!startBrowseKeySet.contains(current))
-                result.put(current, Diff.ADDED, endBrowse.get(current));
-            else {
-                result.put(current, Diff.REMOVED, startBrowse.get(current));
-            }
-        }
-
-        for (String currentKey : intersection) {
-            Set<TObject> startValue = startBrowse.get(currentKey);
-            Set<TObject> endValue = endBrowse.get(currentKey);
-            Set<TObject> xorValue = Sets.symmetricDifference(startValue,
-                    endValue);
-            for (TObject currentValue : xorValue) {
-                if(!startValue.contains(currentValue))
-                    result.put(currentKey, Diff.ADDED,
-                            Sets.newHashSet(currentValue));
-                else {
-                    result.put(currentKey, Diff.REMOVED,
-                            Sets.newHashSet(currentValue));
+            long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<String, Map<Diff, Set<TObject>>> result = Maps
+                    .newLinkedHashMap();
+            AtomicOperation atomic = null;
+            Map<String, Set<TObject>> startBrowse = null;
+            Map<String, Set<TObject>> endBrowse = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    startBrowse = store.select(record, start);
+                    endBrowse = store.select(record, end);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
                 }
             }
+
+            Set<String> startBrowseKeySet = startBrowse.keySet();
+            Set<String> endBrowseKeySet = endBrowse.keySet();
+            Set<String> xor = Sets.symmetricDifference(startBrowseKeySet,
+                    endBrowseKeySet);
+            Set<String> intersection = Sets.intersection(startBrowseKeySet,
+                    endBrowseKeySet);
+
+            for (String current : xor) {
+                Map<Diff, Set<TObject>> entry = Maps.newHashMap();
+                if(!startBrowseKeySet.contains(current)) {
+                    entry.put(Diff.ADDED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+                else {
+                    entry.put(Diff.REMOVED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+            }
+
+            for (String currentKey : intersection) {
+                Set<TObject> startValue = startBrowse.get(currentKey);
+                Set<TObject> endValue = endBrowse.get(currentKey);
+                Set<TObject> xorValue = Sets.symmetricDifference(startValue,
+                        endValue);
+                for (TObject currentValue : xorValue) {
+                    Map<Diff, Set<TObject>> entry = Maps.newHashMap();
+                    if(!startValue.contains(currentValue)) {
+                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                    else {
+                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                }
+            }
+            return result;
         }
-        return result;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @Override
     public Map<Diff, Set<TObject>> diffKeyRecordStart(String key, long record,
-            long start, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
-        return diffKeyRecordStartEnd(key, record, start, Timestamp.now().getMicros(), creds, transaction, environment);
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TSecurityException,
+            TTransactionException, TException {
+        return diffKeyRecordStartEnd(key, record, start, Timestamp.now()
+                .getMicros(), creds, transaction, environment);
     }
 
     @Override
-    public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key, long record,
-            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TSecurityException, TTransactionException, TException {
-        Map<Diff, Set<TObject>> result = PrettyLinkedHashMap
-                .newPrettyLinkedHashMap("Status", "Value");
-        Set<TObject> added = Sets.newHashSet();
-        Set<TObject> removed = Sets.newHashSet();
-        Set<TObject> startFetch = selectKeyRecordTime(key, record, start, creds, transaction, environment);
-        Set<TObject> endFetch = selectKeyRecordTime(key, record, end, creds, transaction, environment);
-        Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
+    public Map<Diff, Set<TObject>> diffKeyRecordStartEnd(String key,
+            long record, long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
 
-        for (TObject current : xor) {
-            if(!startFetch.contains(current))
-                added.add(current);
-            else {
-                removed.add(current);
+            Map<Diff, Set<TObject>> result = Maps.newHashMap();
+            Set<TObject> added = Sets.newHashSet();
+            Set<TObject> removed = Sets.newHashSet();
+            AtomicOperation atomic = null;
+            Set<TObject> startFetch = null;
+            Set<TObject> endFetch = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    startFetch = store.select(key, record, start);
+                    endFetch = store.select(key, record, end);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
+                }
             }
+            Set<TObject> xor = Sets.symmetricDifference(startFetch, endFetch);
+
+            for (TObject current : xor) {
+                if(!startFetch.contains(current))
+                    added.add(current);
+                else {
+                    removed.add(current);
+                }
+            }
+            result.put(Diff.ADDED, added);
+            result.put(Diff.REMOVED, removed);
+            return result;
         }
-        result.put(Diff.ADDED, added);
-        result.put(Diff.REMOVED, removed);
-        return result;
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
+    }
+
+    @Override
+    public Map<TObject, Map<Diff, Set<Long>>> diffKeyStart(String key,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return diffKeyStartEnd(key, start, Timestamp.now().getMicros(), creds,
+                transaction, environment);
     }
 
     @Override
     public Map<TObject, Map<Diff, Set<Long>>> diffKeyStartEnd(String key,
-            long start, long end, AccessToken creds, TransactionToken transaction, String environment) throws TException {
-        PrettyLinkedTableMap<TObject, Diff, Set<Long>> result = PrettyLinkedTableMap
-                .newPrettyLinkedTableMap();
-        result.setRowName("Value");
-        Map<TObject, Set<Long>> startBrowse = browseKeyTime(key, start, creds, transaction, environment);
-        Map<TObject, Set<Long>> endBrowse = browseKeyTime(key, end, creds, transaction, environment);
-        Set<TObject> startBrowseKeySet = startBrowse.keySet();
-        Set<TObject> endBrowseKeySet = endBrowse.keySet();
-        Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
-                endBrowseKeySet);
-        Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
-                endBrowseKeySet);
-
-        for (TObject current : xor) {
-            if(!startBrowseKeySet.contains(current))
-                result.put(current, Diff.ADDED, endBrowse.get(current));
-            else {
-                result.put(current, Diff.REMOVED, startBrowse.get(current));
-            }
-        }
-
-        for (TObject currentKey : intersection) {
-            Set<Long> startValue = startBrowse.get(currentKey);
-            Set<Long> endValue = endBrowse.get(currentKey);
-            Set<Long> xorValue = Sets.symmetricDifference(startValue,
-                    endValue);
-            for (Long currentValue : xorValue) {
-                if(!startValue.contains(currentValue))
-                    result.put(currentKey, Diff.ADDED,
-                            Sets.newHashSet(currentValue));
-                else {
-                    result.put(currentKey, Diff.REMOVED,
-                            Sets.newHashSet(currentValue));
+            long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment) throws TException {
+        checkAccess(creds, transaction);
+        try {
+            Compoundable store = getStore(transaction, environment);
+            Map<TObject, Map<Diff, Set<Long>>> result = Maps.newLinkedHashMap();
+            AtomicOperation atomic = null;
+            Map<TObject, Set<Long>> startBrowse = null;
+            Map<TObject, Set<Long>> endBrowse = null;
+            while (atomic == null || !atomic.commit()) {
+                atomic = store.startAtomicOperation();
+                try {
+                    startBrowse = store.browse(key, start);
+                    endBrowse = store.browse(key, end);
+                }
+                catch (AtomicStateException e) {
+                    atomic = null;
                 }
             }
-        }
-        return result;
+            Set<TObject> startBrowseKeySet = startBrowse.keySet();
+            Set<TObject> endBrowseKeySet = endBrowse.keySet();
+            Set<TObject> xor = Sets.symmetricDifference(startBrowseKeySet,
+                    endBrowseKeySet);
+            Set<TObject> intersection = Sets.intersection(startBrowseKeySet,
+                    endBrowseKeySet);
 
+            for (TObject current : xor) {
+                Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                if(!startBrowseKeySet.contains(current)) {
+                    entry.put(Diff.ADDED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+                else {
+                    entry.put(Diff.REMOVED, endBrowse.get(current));
+                    result.put(current, entry);
+                }
+            }
+
+            for (TObject currentKey : intersection) {
+                Set<Long> startValue = startBrowse.get(currentKey);
+                Set<Long> endValue = endBrowse.get(currentKey);
+                Set<Long> xorValue = Sets.symmetricDifference(startValue,
+                        endValue);
+                for (Long currentValue : xorValue) {
+                    Map<Diff, Set<Long>> entry = Maps.newHashMap();
+                    if(!startValue.contains(currentValue)) {
+                        entry.put(Diff.ADDED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                    else {
+                        entry.put(Diff.REMOVED, Sets.newHashSet(currentValue));
+                        result.put(currentKey, entry);
+                    }
+                }
+            }
+            return result;
+        }
+        catch (TransactionStateException e) {
+            throw new TTransactionException();
+        }
     }
 
     @ManagedOperation

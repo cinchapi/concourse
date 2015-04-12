@@ -1,4 +1,4 @@
-package org.cinchapi.common.util;
+package org.cinchapi.concourse.server.http;
 
 import java.util.List;
 

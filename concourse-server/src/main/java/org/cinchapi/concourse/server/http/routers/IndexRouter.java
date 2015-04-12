@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.cinchapi.common.util.KeyRecordArgs;
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Endpoint;
 import org.cinchapi.concourse.server.http.HttpRequests;
+import org.cinchapi.concourse.server.http.KeyRecordArgs;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TObject;

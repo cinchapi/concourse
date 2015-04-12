@@ -7,10 +7,6 @@
 package org.cinchapi.concourse.thrift;
 
 
-import java.util.Map;
-import java.util.HashMap;
-import org.apache.thrift.TEnum;
-
 /**
  * Diff represent whether the {@code value} or {@code record} or both is
  * Added or Removed
