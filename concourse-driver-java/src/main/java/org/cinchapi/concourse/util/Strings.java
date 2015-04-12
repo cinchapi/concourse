@@ -33,6 +33,33 @@ import com.google.common.primitives.Longs;
 public final class Strings {
 
     /**
+     * Concatenates the toString values of all the {@code args} in an efficient
+     * manner.
+     * 
+     * @param args
+     * @return the resulting String
+     */
+    public static String concat(Object... args) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < args.length; ++i) {
+            builder.append(args[i]);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Concatenates the toString values of all the {@code args}, separated by
+     * whitespace in an efficient manner.
+     * 
+     * @param separator
+     * @param args
+     * @return the resulting String
+     */
+    public static String concatWithSpace(Object... args) {
+        return concat(' ', args);
+    }
+
+    /**
      * Return {@code true} if {@code string} both starts and ends with single or
      * double quotes.
      * 
@@ -40,14 +67,25 @@ public final class Strings {
      * @return {@code true} if the string is between quotes
      */
     public static boolean isWithinQuotes(String string) {
-        if(string.length() >= 2){
+        if(string.length() >= 2) {
             char first = string.charAt(0);
             if(first == '"' || first == '\'') {
                 char last = string.charAt(string.length() - 1);
                 return first == last;
-            } 
+            }
         }
         return false;
+    }
+
+    /**
+     * Split a string, using whitespace as a delimiter, as long as the
+     * whitespace is not wrapped in double or single quotes.
+     * 
+     * @param string
+     * @return the tokens that result from the split
+     */
+    public static String[] splitButRespectQuotes(String string) {
+        return splitStringByDelimiterButRespectQuotes(string, " ");
     }
 
     /**
@@ -67,41 +105,6 @@ public final class Strings {
         string = string.replaceAll("' ", "\" ");
         string = string.replaceAll("'$", "\"");
         return string.split(delimiter + "(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-    }
-
-    /**
-     * Split a string, using whitespace as a delimiter, as long as the
-     * whitespace is not wrapped in double or single quotes.
-     * 
-     * @param string
-     * @return the tokens that result from the split
-     */
-    public static String[] splitButRespectQuotes(String string) {
-        return splitStringByDelimiterButRespectQuotes(string, " ");
-    }
-
-    /**
-     * A stricter version of {@link #tryParseNumber(String)} that does not parse
-     * strings that masquerade as numbers (i.e. 3.124D). Instead this method
-     * will only parse the string into a Number if it contains characters that
-     * are either a decimal digit, a decimal separator or a negative sign.
-     * 
-     * @param value
-     * @return a Number object that represents the string or {@code null} if it
-     *         is not possible to parse the string into a number
-     */
-    @Nullable
-    public static Number tryParseNumberStrict(String value) {
-        if(value == null || value.length() == 0) {
-            return null;
-        }
-        char last = value.charAt(value.length() - 1);
-        if(Character.isDigit(last)) {
-            return tryParseNumber(value);
-        }
-        else {
-            return null;
-        }
     }
 
     /**
@@ -170,6 +173,48 @@ public final class Strings {
                     "{0} appears to be a number cannot be parsed as such",
                     value));
         }
+    }
+
+    /**
+     * A stricter version of {@link #tryParseNumber(String)} that does not parse
+     * strings that masquerade as numbers (i.e. 3.124D). Instead this method
+     * will only parse the string into a Number if it contains characters that
+     * are either a decimal digit, a decimal separator or a negative sign.
+     * 
+     * @param value
+     * @return a Number object that represents the string or {@code null} if it
+     *         is not possible to parse the string into a number
+     */
+    @Nullable
+    public static Number tryParseNumberStrict(String value) {
+        if(value == null || value.length() == 0) {
+            return null;
+        }
+        char last = value.charAt(value.length() - 1);
+        if(Character.isDigit(last)) {
+            return tryParseNumber(value);
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Concatenates the toString values of all the {@code args}, separated by
+     * the {@code separator} char in an efficient manner.
+     * 
+     * @param separator
+     * @param args
+     * @return the resulting String
+     */
+    private static String concat(char separator, Object... args) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < args.length; ++i) {
+            builder.append(args[i]);
+            builder.append(separator);
+        }
+        builder.deleteCharAt(builder.length() - 1);
+        return builder.toString();
     }
 
     private Strings() {/* noop */}

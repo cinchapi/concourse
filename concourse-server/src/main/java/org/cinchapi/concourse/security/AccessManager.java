@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -785,11 +784,10 @@ public class AccessManager {
          * @return the description
          */
         public String getDescription() {
-            return MessageFormat.format(
-                    "{0} logged in since {1}",
+            return org.cinchapi.concourse.util.Strings.concatWithSpace(
                     ByteBuffers.getString(ByteBuffers.decodeFromHex(username)),
-                    Timestamp.fromMicros(timestamp).getJoda()
-                            .toString(DATE_TIME_FORMATTER));
+                    "logged in since", Timestamp.fromMicros(timestamp)
+                            .getJoda().toString(DATE_TIME_FORMATTER));
         }
 
         /**

@@ -17,7 +17,6 @@ package org.cinchapi.concourse.util;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -276,12 +275,8 @@ public final class Convert {
             // keep value as string since its between single or double quotes
             return value.substring(1, value.length() - 1);
         }
-        else if(first == '@'
-                && last == '@'
-                && value.matches(MessageFormat.format("{0}{1}{0}",
-                        MessageFormat.format("{0}{1}{2}",
-                                RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
+        else if(first == '@' && last == '@'
+                && value.matches(RESOLVABLE_LINK_REGEX)) {
             String[] parts = value.split(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, 3)[1]
                     .split(RAW_RESOLVABLE_LINK_SYMBOL_APPEND, 2);
             String key = parts[0];
@@ -376,9 +371,9 @@ public final class Convert {
      */
     public static String stringToResolvableLinkSpecification(String key,
             String rawValue) {
-        return MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), rawValue);
+        String symbol = Strings.concat(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
+                RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
+        return Strings.concat(symbol, rawValue, symbol);
     }
 
     /**
@@ -463,6 +458,23 @@ public final class Convert {
                                                                    // for
                                                                    // testing
 
+    /**
+     * Helper regex to form {@link #RESOLVABLE_LINK_REGEX}.
+     */
+    private static final String RESOLVABLE_LINK_REGEX_INNER = Strings.concat(
+            RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+            RAW_RESOLVABLE_LINK_SYMBOL_APPEND);
+
+    /**
+     * The regex that is used to determine if a value matches the specification
+     * for a {@link ResolvableLink}.
+     */
+    @PackagePrivate
+    static final String RESOLVABLE_LINK_REGEX = Strings.concat(
+            RESOLVABLE_LINK_REGEX_INNER, ".+", RESOLVABLE_LINK_REGEX_INNER); // visible
+                                                                             // for
+                                                                             // testing
+
     private Convert() {/* Utility Class */}
 
     /**
@@ -540,8 +552,8 @@ public final class Convert {
 
         @Override
         public String toString() {
-            return MessageFormat.format("{0} for {1} AS {2}", this.getClass()
-                    .getSimpleName(), key, value);
+            return Strings.concatWithSpace(this.getClass().getSimpleName(),
+                    "for", key, "AS", value);
         }
 
     }
