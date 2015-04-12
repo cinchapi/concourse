@@ -504,8 +504,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the record within the range
      */
     public abstract <T> Map<String, Map<Diff, Set<T>>> diff(long record,
-            Timestamp start);    
-    
+            Timestamp start);
+
     /**
      * Return all the changes (Addition and Deletion) of {@code record} and
      * {@code value} in {@code record} for all {@code key} between {@code start}
@@ -529,8 +529,8 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@code record} within the
      *         range
      */
-    public abstract <T> Map<Diff, Set<T>> diff(String key,
-            long record,Timestamp start);
+    public abstract <T> Map<Diff, Set<T>> diff(String key, long record,
+            Timestamp start);
 
     /**
      * Return all the changes (Addition and Deletion) of {@code value} of
@@ -543,12 +543,13 @@ public abstract class Concourse implements AutoCloseable {
      * @return the changes made to the {@code key}/{@coee record} within the
      *         range
      */
-    public abstract <T> Map<Diff, Set<T>> diff(String key,
-            long record,Timestamp start,Timestamp end);
-    
+    public abstract <T> Map<Diff, Set<T>> diff(String key, long record,
+            Timestamp start, Timestamp end);
+
     /**
      * Return all the changes (Addition and Deletion) of {@code key} and it's
      * value between {@code start} and and current time.
+     * 
      * @param key
      * @param start
      * @return
@@ -1963,7 +1964,7 @@ public abstract class Concourse implements AutoCloseable {
             catch (TTransportException e) {
                 throw new RuntimeException(
                         "Could not connect to the Concourse Server at " + host
-                        + ":" + port);
+                                + ":" + port);
             }
         }
 
@@ -2045,7 +2046,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2065,7 +2066,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2086,7 +2087,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2103,7 +2104,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2124,7 +2125,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2145,7 +2146,7 @@ public abstract class Concourse implements AutoCloseable {
                     return ((PrettyLinkedHashMap<Timestamp, String>) Transformers
                             .transformMap(audit,
                                     Conversions.timestampToMicros()))
-                                    .setKeyName("DateTime").setValueName("Revision");
+                            .setKeyName("DateTime").setValueName("Revision");
                 }
 
             });
@@ -2486,7 +2487,7 @@ public abstract class Concourse implements AutoCloseable {
                 }
             });
         }
-        
+
         @Override
         public <T> Map<String, Map<Diff, Set<T>>> diff(final long record,
                 final Timestamp start) {
@@ -2545,13 +2546,12 @@ public abstract class Concourse implements AutoCloseable {
                 }
             });
         }
-        
+
         @Override
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
                 final Timestamp start) {
             return diff(key, start, Timestamp.now());
         }
-        
 
         @Override
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
@@ -2560,11 +2560,16 @@ public abstract class Concourse implements AutoCloseable {
 
                 @Override
                 public Map<T, Map<Diff, Set<Long>>> call() throws Exception {
-                    Map<TObject, Map<Diff, Set<Long>>> raw = client.diffKeyStartEnd(key, start.getMicros(), end.getMicros(), creds, transaction, environment);
+                    Map<TObject, Map<Diff, Set<Long>>> raw = client
+                            .diffKeyStartEnd(key, start.getMicros(),
+                                    end.getMicros(), creds, transaction,
+                                    environment);
                     Map<T, Map<Diff, Set<Long>>> pretty = PrettyLinkedTableMap
                             .newPrettyLinkedTableMap();
-                    for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw.entrySet()) {
-                        pretty.put((T)Convert.thriftToJava(entry.getKey()), entry.getValue());
+                    for (Entry<TObject, Map<Diff, Set<Long>>> entry : raw
+                            .entrySet()) {
+                        pretty.put((T) Convert.thriftToJava(entry.getKey()),
+                                entry.getValue());
                     }
                     return pretty;
                 }

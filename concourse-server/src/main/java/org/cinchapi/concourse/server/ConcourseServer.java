@@ -1150,7 +1150,7 @@ public class ConcourseServer implements
         }
     }
 
-    @Override    
+    @Override
     public Map<String, Map<Diff, Set<TObject>>> diffRecordStart(long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
