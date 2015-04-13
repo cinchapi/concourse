@@ -3297,9 +3297,9 @@ public class ConcourseServer implements
         try {
             AtomicOperation atomic = getStore(transaction, environment)
                     .startAtomicOperation();
-            return (atomic.verify(key, expected, record)
-                    && atomic.remove(key, expected, record) && atomic.add(key,
-                    replacement, record)) ? atomic.commit() : false;
+            return atomic.remove(key, expected, record)
+                    && atomic.add(key, replacement, record) ? atomic.commit()
+                    : false;
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
