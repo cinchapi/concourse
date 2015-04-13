@@ -36,12 +36,10 @@ import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.db.Database;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
-import org.cinchapi.concourse.thrift.Type;
 import org.cinchapi.concourse.time.Time;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -69,8 +67,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class Limbo extends BaseStore implements
-        Iterable<Write> {
+public abstract class Limbo extends BaseStore implements Iterable<Write> {
 
     /**
      * Return {@code true} if {@code input} matches {@code operator} in relation
@@ -158,67 +155,6 @@ public abstract class Limbo extends BaseStore implements
         }
         return audit;
 
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record) {
-        return select(record, Time.NONE);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp) {
-        Map<String, Set<TObject>> context = Maps
-                .newTreeMap(new Comparator<String>() {
-
-                    @Override
-                    public int compare(String s1, String s2) {
-                        return s1.compareToIgnoreCase(s2);
-                    }
-
-                });
-        return select(record, timestamp, context);
-    }
-
-    /**
-     * Calculate the browsable view of {@code record} at {@code timestamp} using
-     * prior {@code context} as if it were also a part of the Buffer.
-     * 
-     * @param key
-     * @param timestamp
-     * @param context
-     * @return a possibly empty Map of data
-     */
-    public Map<String, Set<TObject>> select(long record, long timestamp,
-            Map<String, Set<TObject>> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
-            Iterator<Write> it = iterator();
-            while (it.hasNext()) {
-                Write write = it.next();
-                if(write.getRecord().longValue() == record
-                        && write.getVersion() <= timestamp) {
-                    Set<TObject> values;
-                    values = context.get(write.getKey().toString());
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        context.put(write.getKey().toString(), values);
-                    }
-                    if(write.getType() == Action.ADD) {
-                        values.add(write.getValue().getTObject());
-                    }
-                    else {
-                        values.remove(write.getValue().getTObject());
-                    }
-                }
-                else if(write.getVersion() > timestamp) {
-                    break;
-                }
-                else {
-                    continue;
-                }
-            }
-        }
-        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
-                .filterValues(context, emptySetFilter));
     }
 
     @Override
@@ -359,52 +295,6 @@ public abstract class Limbo extends BaseStore implements
         return TMaps.asSortedMap(context);
     }
 
-    @Override
-    public Set<TObject> select(String key, long record) {
-        return select(key, record, Time.NONE);
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record, long timestamp) {
-        return select(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
-    }
-
-    /**
-     * Fetch the values mapped from {@code key} in {@code record} at
-     * {@code timestamp} using prior {@code context} as if it were also a part
-     * of the Buffer.
-     * 
-     * @param key
-     * @param record
-     * @param timestamp
-     * @param context
-     * @return the values
-     */
-    public Set<TObject> select(String key, long record, long timestamp,
-            Set<TObject> context) {
-        if(timestamp >= getOldestWriteTimstamp()) {
-            Iterator<Write> it = iterator();
-            while (it.hasNext()) {
-                Write write = it.next();
-                if(write.getVersion() <= timestamp) {
-                    if(key.equals(write.getKey().toString())
-                            && record == write.getRecord().longValue()) {
-                        if(write.getType() == Action.ADD) {
-                            context.add(write.getValue().getTObject());
-                        }
-                        else {
-                            context.remove(write.getValue().getTObject());
-                        }
-                    }
-                }
-                else {
-                    break;
-                }
-            }
-        }
-        return context;
-    }
-
     /**
      * Return the number of milliseconds that this store desires any back to
      * back transport requests to pause in between.
@@ -414,13 +304,6 @@ public abstract class Limbo extends BaseStore implements
     public int getDesiredTransportSleepTimeInMs() {
         return 0;
     }
-
-    /**
-     * Return the timestamp for the oldest write available.
-     * 
-     * @return {@code timestamp}
-     */
-    protected abstract long getOldestWriteTimstamp();
 
     /**
      * Insert {@code write} into the store <strong>without performing any
@@ -465,43 +348,45 @@ public abstract class Limbo extends BaseStore implements
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> rtv = Maps.newHashMap();
-        Iterator<Write> it = iterator();
-        while (it.hasNext()) {
-            Write write = it.next();
-            Value value = write.getValue();
-            long record = write.getRecord().longValue();
-            if(write.getKey().toString().equals(key)
-                    && value.getType() == Type.STRING) {
-                /*
-                 * NOTE: It is not enough to merely check if the stored text
-                 * contains the query because the Database does infix
-                 * indexing/searching, which has some subtleties:
-                 * 1. Stop words are removed from the both stored indices and
-                 * the search query
-                 * 2. A query and document are considered to match if the
-                 * document contains a sequence of terms where each term or a
-                 * substring of the term matches the term in the same relative
-                 * position of the query.
-                 */
-                // CON-10: compare lowercase for case insensitive search
-                String stored = TStrings.stripStopWords(((String) (value
-                        .getObject())).toLowerCase());
-                query = TStrings.stripStopWords(query.toLowerCase());
-                if(!Strings.isNullOrEmpty(stored)
-                        && !Strings.isNullOrEmpty(query)
-                        && TStrings.isInfixSearchMatch(query, stored)) {
-                    Set<Value> values = rtv.get(record);
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        rtv.put(record, values);
-                    }
-                    if(values.contains(value)) {
-                        values.remove(value);
-                    }
-                    else {
-                        values.add(value);
-                    }
+        String[] needle = TStrings.stripStopWordsAndTokenize(query
+                .toLowerCase());
+        if(needle.length > 0) {
+            Iterator<Write> it = getSearchIterator(key);
+            while (it.hasNext()) {
+                Write write = it.next();
+                Value value = write.getValue();
+                long record = write.getRecord().longValue();
+                if(isPossibleSearchMatch(key, write, value)) {
+                    /*
+                     * NOTE: It is not enough to merely check if the stored text
+                     * contains the query because the Database does infix
+                     * indexing/searching, which has some subtleties:
+                     * 1. Stop words are removed from the both stored indices
+                     * and the search query
+                     * 2. A query and document are considered to match if the
+                     * document contains a sequence of terms where each term or
+                     * a substring of the term matches the term in the same
+                     * relative position of the query.
+                     */
+                    // CON-10: compare lowercase for case insensitive search
+                    String stored = (String) (value.getObject());
+                    String[] haystack = TStrings
+                            .stripStopWordsAndTokenize(stored.toLowerCase());
+                    if(haystack.length > 0
+                            && TStrings.isInfixSearchMatch(needle, haystack)) {
+                        Set<Value> values = rtv.get(record);
+                        if(values == null) {
+                            values = Sets.newHashSet();
+                            rtv.put(record, values);
+                        }
+                        if(write.getType() == Action.REMOVE) {
+                            values.remove(value);
+                        }
+                        else {
+                            values.add(value);
+                        }
 
+                    }
                 }
             }
         }
@@ -509,6 +394,113 @@ public abstract class Limbo extends BaseStore implements
         // SearchRecord#search())
         return newLinkedHashMap(Maps.filterValues(rtv, emptySetFilter))
                 .keySet();
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record) {
+        return select(record, Time.NONE);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        Map<String, Set<TObject>> context = Maps
+                .newTreeMap(new Comparator<String>() {
+
+                    @Override
+                    public int compare(String s1, String s2) {
+                        return s1.compareToIgnoreCase(s2);
+                    }
+
+                });
+        return select(record, timestamp, context);
+    }
+
+    /**
+     * Calculate the browsable view of {@code record} at {@code timestamp} using
+     * prior {@code context} as if it were also a part of the Buffer.
+     * 
+     * @param key
+     * @param timestamp
+     * @param context
+     * @return a possibly empty Map of data
+     */
+    public Map<String, Set<TObject>> select(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getRecord().longValue() == record
+                        && write.getVersion() <= timestamp) {
+                    Set<TObject> values;
+                    values = context.get(write.getKey().toString());
+                    if(values == null) {
+                        values = Sets.newHashSet();
+                        context.put(write.getKey().toString(), values);
+                    }
+                    if(write.getType() == Action.ADD) {
+                        values.add(write.getValue().getTObject());
+                    }
+                    else {
+                        values.remove(write.getValue().getTObject());
+                    }
+                }
+                else if(write.getVersion() > timestamp) {
+                    break;
+                }
+                else {
+                    continue;
+                }
+            }
+        }
+        return Maps.newTreeMap((SortedMap<String, Set<TObject>>) Maps
+                .filterValues(context, emptySetFilter));
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        return select(key, record, Time.NONE);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        return select(key, record, timestamp, Sets.<TObject> newLinkedHashSet());
+    }
+
+    /**
+     * Fetch the values mapped from {@code key} in {@code record} at
+     * {@code timestamp} using prior {@code context} as if it were also a part
+     * of the Buffer.
+     * 
+     * @param key
+     * @param record
+     * @param timestamp
+     * @param context
+     * @return the values
+     */
+    public Set<TObject> select(String key, long record, long timestamp,
+            Set<TObject> context) {
+        if(timestamp >= getOldestWriteTimstamp()) {
+            Iterator<Write> it = iterator();
+            while (it.hasNext()) {
+                Write write = it.next();
+                if(write.getVersion() <= timestamp) {
+                    if(key.equals(write.getKey().toString())
+                            && record == write.getRecord().longValue()) {
+                        if(write.getType() == Action.ADD) {
+                            context.add(write.getValue().getTObject());
+                        }
+                        else {
+                            context.remove(write.getValue().getTObject());
+                        }
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return context;
     }
 
     /**
@@ -640,5 +632,38 @@ public abstract class Limbo extends BaseStore implements
             TObject... values) {
         return explore(Time.NONE, key, operator, values);
     }
+
+    /**
+     * Return the timestamp for the oldest write available.
+     * 
+     * @return {@code timestamp}
+     */
+    protected abstract long getOldestWriteTimstamp();
+
+    /**
+     * Return the iterator to use in the {@link #search(String, String)} method.
+     * 
+     * @param key
+     * @return the appropriate iterator to use for searching
+     */
+    protected abstract Iterator<Write> getSearchIterator(String key);
+
+    /**
+     * Allows the subclass to define some criteria for the search logic to
+     * determine if {@code write} with {@code value} is a possible search match
+     * for {@code key}.
+     * <p>
+     * The {@link Buffer} uses this method to optimize the check since the
+     * iterator it returns in {@link #getSearchIterator(String)} does some
+     * pre-processing to make the routine more efficient.
+     * </p>
+     * 
+     * @param key
+     * @param write
+     * @param value
+     * @return {@code true} if the write is a basic search match
+     */
+    protected abstract boolean isPossibleSearchMatch(String key, Write write,
+            Value value);
 
 }

@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.thrift.Type;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -99,6 +102,17 @@ public class Queue extends Limbo {
             return oldestWrite.getVersion();
         }
 
+    }
+
+    @Override
+    protected Iterator<Write> getSearchIterator(String key) {
+        return iterator();
+    }
+
+    @Override
+    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
+        return write.getKey().toString().equals(key)
+                && value.getType() == Type.STRING;
     }
 
 }

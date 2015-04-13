@@ -59,11 +59,9 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TMaps;
-import org.cinchapi.concourse.util.TStrings;
 import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -511,8 +509,7 @@ public final class Buffer extends Limbo {
     public long getTimeOfLastTransport() {
         return timeOfLastTransport.get();
     }
-    
-    
+
     @Override
     public boolean insert(Write write, boolean sync) {
         writeLock.lock();
@@ -629,54 +626,6 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Set<Long> search(String key, String query) {
-        Map<Long, Set<Value>> rtv = Maps.newHashMap();
-        Iterator<Write> it = iterator(key, Time.NONE);
-        while (it.hasNext()) {
-            Write write = it.next();
-            Value value = write.getValue();
-            long record = write.getRecord().longValue();
-            if(value.getType() == Type.STRING) {
-                /*
-                 * NOTE: It is not enough to merely check if the stored text
-                 * contains the query because the Database does infix
-                 * indexing/searching, which has some subtleties:
-                 * 1. Stop words are removed from the both stored indices and
-                 * the search query
-                 * 2. A query and document are considered to match if the
-                 * document contains a sequence of terms where each term or a
-                 * substring of the term matches the term in the same relative
-                 * position of the query.
-                 */
-                // CON-10: compare lowercase for case insensitive search
-                String stored = TStrings.stripStopWords(((String) (value
-                        .getObject())).toLowerCase());
-                query = TStrings.stripStopWords(query.toLowerCase());
-                if(!Strings.isNullOrEmpty(stored)
-                        && !Strings.isNullOrEmpty(query)
-                        && TStrings.isInfixSearchMatch(query, stored)) {
-                    Set<Value> values = rtv.get(record);
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        rtv.put(record, values);
-                    }
-                    if(values.contains(value)) {
-                        values.remove(value);
-                    }
-                    else {
-                        values.add(value);
-                    }
-
-                }
-            }
-        }
-        // FIXME sort search results based on frequency (see
-        // SearchRecord#search())
-        return newLinkedHashMap(Maps.filterValues(rtv, emptySetFilter))
-                .keySet();
-    }
-
-    @Override
     public void start() {
         if(!running) {
             running = true;
@@ -730,12 +679,10 @@ public final class Buffer extends Limbo {
             if(!page.transportLock.writeLock().isHeldByCurrentThread()
                     && page.transportLock.writeLock().tryLock()) {
                 try {
-                    int i = 0;
-                    while (i < transportRate) {
+                    for (int i = 0; i < transportRate; ++i) {
                         if(page.hasNext()) {
                             destination.accept(page.next());
                             page.remove();
-                            ++i;
                         }
                         else {
                             ((Database) destination).triggerSync();
@@ -796,6 +743,16 @@ public final class Buffer extends Limbo {
     @Override
     protected long getOldestWriteTimstamp() {
         return pages.get(0).getOldestWriteTimestamp();
+    }
+    
+    @Override
+    protected Iterator<Write> getSearchIterator(String key) {
+        return iterator(key, Time.NONE);
+    }
+    
+    @Override
+    protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
+        return value.getType() == Type.STRING;
     }
 
     /**
@@ -1739,4 +1696,5 @@ public final class Buffer extends Limbo {
         }
 
     }
+
 }

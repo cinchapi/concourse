@@ -858,7 +858,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             add(key, Convert.javaToThrift(value1), record);
         }
         String value2 = null;
-        while(value2 == null || value2.contains(value1)){
+        while (value2 == null || value2.contains(value1)) {
             value2 = Variables.register("value2", TestData.getString());
         }
         Set<Long> records2 = Variables.register("records2", getRecords());
@@ -893,7 +893,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
         }
         String value2 = Variables.register("value2",
                 "l5gewgae55y59xyyj63w8x6f5mphssiyh327x5k5q1x z4sbr0xh5il6");
-        while(value2 == null || value2.contains(value1)){
+        while (value2 == null || value2.contains(value1)) {
             value2 = Variables.register("value2", TestData.getString());
         }
         Set<Long> records2 = Variables.register("records2", Sets.newHashSet(
@@ -1738,8 +1738,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
                     boolean matches = TStrings.isInfixSearchMatch(
-                            TStrings.stripStopWords(query),
-                            TStrings.stripStopWords(other));
+                            query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key,
                                     Convert.javaToThrift(other), record, query,
