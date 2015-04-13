@@ -153,7 +153,6 @@ public final class TStrings {
      * @return {@code true} if {@code needle} is a substring
      */
     public static boolean isSubString(String needle, String haystack) {
-        boolean checkSize = false;
         if(needle.length() > haystack.length()) {
             return false;
         }
@@ -165,25 +164,23 @@ public final class TStrings {
             char[] h = haystack.toCharArray();
             int npos = 0;
             int hpos = 0;
+            int stop = h.length - n.length;
             while (hpos < h.length && npos < n.length) {
-                if(checkSize && h.length - hpos < n.length - npos) {
-                    return false;
+                char hi = h[hpos];
+                char ni = n[npos];
+                if(hi == ni) {
+                    ++npos;
+                    ++hpos;
                 }
                 else {
-                    checkSize = true;
-                    char hi = h[hpos];
-                    char ni = n[npos];
-                    if(hi == ni) {
-                        ++npos;
-                        ++hpos;
+                    if(npos > 0) {
+                        npos = 0;
                     }
                     else {
-                        if(npos > 0) {
-                            npos = 0;
-                        }
-                        else {
-                            ++hpos;
-                        }
+                        ++hpos;
+                    }
+                    if(hpos > stop) {
+                        return false;
                     }
                 }
             }
