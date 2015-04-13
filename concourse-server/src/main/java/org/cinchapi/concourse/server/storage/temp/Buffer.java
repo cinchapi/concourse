@@ -338,8 +338,7 @@ public final class Buffer extends Limbo {
     @Override
     public Map<Long, String> audit(long record) {
         Map<Long, String> audit = Maps.newTreeMap();
-        Iterator<Write> it = iterator(record, Long.MAX_VALUE);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(record, Time.NONE); it.hasNext();) {
             Write write = it.next();
             audit.put(write.getVersion(), write.toString());
         }
@@ -349,8 +348,8 @@ public final class Buffer extends Limbo {
     @Override
     public Map<Long, String> audit(String key, long record) {
         Map<Long, String> audit = Maps.newTreeMap();
-        Iterator<Write> it = iterator(key, record, Long.MAX_VALUE);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(key, record, Time.NONE); it
+                .hasNext();) {
             Write write = it.next();
             audit.put(write.getVersion(), write.toString());
         }
@@ -360,8 +359,7 @@ public final class Buffer extends Limbo {
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        Iterator<Write> it = iterator(record, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
             Write write = it.next();
             Set<TObject> values;
             values = context.get(write.getKey().toString());
@@ -383,8 +381,7 @@ public final class Buffer extends Limbo {
     @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        Iterator<Write> it = iterator(key, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(key, timestamp); it.hasNext();) {
             Write write = it.next();
             Set<Long> records = context.get(write.getValue().getTObject());
             if(records == null) {
@@ -405,8 +402,7 @@ public final class Buffer extends Limbo {
     @Override
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        Iterator<Write> it = iterator(record, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {
             Write write = it.next();
             Set<TObject> values;
             values = context.get(write.getKey().toString());
@@ -442,8 +438,7 @@ public final class Buffer extends Limbo {
     @Override
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        Iterator<Write> it = iterator(key, record, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(key, record, timestamp); it.hasNext();) {
             Write write = it.next();
             if(write.getType() == Action.ADD) {
                 context.add(write.getValue().getTObject());
@@ -458,8 +453,7 @@ public final class Buffer extends Limbo {
     @Override
     public Map<Long, Set<TObject>> explore(Map<Long, Set<TObject>> context,
             long timestamp, String key, Operator operator, TObject... values) {
-        Iterator<Write> it = iterator(key, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(key, timestamp); it.hasNext();) {
             Write write = it.next();
             long record = write.getRecord().longValue();
             if(matches(write.getValue(), operator, values)) {
@@ -707,8 +701,7 @@ public final class Buffer extends Limbo {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-        Iterator<Write> it = iterator(write, timestamp);
-        while (it.hasNext()) {
+        for (Iterator<Write> it = iterator(write, timestamp); it.hasNext();) {
             it.next();
             exists ^= true; // toggle boolean
         }
@@ -744,12 +737,12 @@ public final class Buffer extends Limbo {
     protected long getOldestWriteTimstamp() {
         return pages.get(0).getOldestWriteTimestamp();
     }
-    
+
     @Override
     protected Iterator<Write> getSearchIterator(String key) {
         return iterator(key, Time.NONE);
     }
-    
+
     @Override
     protected boolean isPossibleSearchMatch(String key, Write write, Value value) {
         return value.getType() == Type.STRING;
