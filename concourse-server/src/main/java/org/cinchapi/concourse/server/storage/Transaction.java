@@ -276,9 +276,11 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * method should only be called when it is desirable to doCommit without
      * performing a backup (i.e. when restoring from a backup in a static
      * method).
+     * 
+     * @param syncAndVerify
      */
-    private void invokeSuperDoCommit(boolean sync) {
-        super.doCommit(sync);
+    private void invokeSuperDoCommit(boolean syncAndVerify) {
+        super.doCommit(syncAndVerify);
     }
 
     /**
