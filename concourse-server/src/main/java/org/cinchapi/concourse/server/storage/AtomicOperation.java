@@ -562,6 +562,18 @@ public class AtomicOperation extends BufferedStore implements
      * the data, etc) if necessary.
      */
     protected void doCommit() {
+        doCommit(false);
+    }
+
+    
+    /**
+     * Transport the written data to the {@link #destination} store. The
+     * subclass may override this method to do additional things (i.e. backup
+     * the data, etc) if necessary.
+     * 
+     * @param syncAndVerify
+     */
+    protected void doCommit(boolean syncAndVerify) {
         // Since we don't take a backup, it is possible that we can end up
         // in a situation where the server crashes in the middle of the data
         // transport, which means that the atomic operation would be partially
@@ -572,8 +584,10 @@ public class AtomicOperation extends BufferedStore implements
         // technically not a violation of "all or nothing" if the entire
         // operation succeeds but isn't durable on crash and leaves the database
         // in an inconsistent state.
-        buffer.transport(destination, false);
-        destination.sync();
+        buffer.transport(destination, syncAndVerify);
+        if(!syncAndVerify) {
+            destination.sync();
+        }
     }
 
     @Override

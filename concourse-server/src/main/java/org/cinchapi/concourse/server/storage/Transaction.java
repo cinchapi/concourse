@@ -71,7 +71,10 @@ public final class Transaction extends AtomicOperation implements Compoundable {
             Transaction transaction = new Transaction(destination,
                     FileSystem.map(file, MapMode.READ_ONLY, 0,
                             FileSystem.getFileSize(file)));
-            transaction.invokeSuperDoCommit();
+            transaction.invokeSuperDoCommit(true); // recovering transaction
+                                                   // must always syncAndVerify
+                                                   // to prevent possible data
+                                                   // duplication
             FileSystem.deleteFile(file);
         }
         catch (Exception e) {
@@ -274,8 +277,8 @@ public final class Transaction extends AtomicOperation implements Compoundable {
      * performing a backup (i.e. when restoring from a backup in a static
      * method).
      */
-    private void invokeSuperDoCommit() {
-        super.doCommit();
+    private void invokeSuperDoCommit(boolean sync) {
+        super.doCommit(sync);
     }
 
     /**
@@ -314,7 +317,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
     @Override
     protected void doCommit() {
         if(isReadOnly()) {
-            invokeSuperDoCommit();
+            invokeSuperDoCommit(false);
         }
         else {
             String file = ((Engine) destination).transactionStore
@@ -325,7 +328,7 @@ public final class Transaction extends AtomicOperation implements Compoundable {
                 channel.force(true);
                 Logger.info("Created backup for transaction {} at '{}'", this,
                         file);
-                invokeSuperDoCommit();
+                invokeSuperDoCommit(false);
                 FileSystem.deleteFile(file);
             }
             catch (IOException e) {
