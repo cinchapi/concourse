@@ -770,18 +770,17 @@ public final class Buffer extends Limbo {
      *            method.
      */
     private void addPage(boolean sync) {
-        if(structure.tryLock()) {
-            try {
-                if(sync) {
-                    sync();
-                }
-                currentPage = new Page(BUFFER_PAGE_SIZE);
-                pages.add(currentPage);
-                Logger.debug("Added page {} to Buffer", currentPage);
+        structure.lock();
+        try {
+            if(sync) {
+                sync();
             }
-            finally {
-                structure.unlock();
-            }
+            currentPage = new Page(BUFFER_PAGE_SIZE);
+            pages.add(currentPage);
+            Logger.debug("Added page {} to Buffer", currentPage);
+        }
+        finally {
+            structure.unlock();
         }
     }
 
