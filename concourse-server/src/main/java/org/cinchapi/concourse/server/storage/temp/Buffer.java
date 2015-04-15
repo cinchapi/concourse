@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -298,7 +299,7 @@ public final class Buffer extends Limbo {
      * The structure lock ensures that only a single thread can modify the
      * structure of the Buffer, without affecting any readers.
      */
-    protected final StampedLock structure = new StampedLock();
+    protected final ReentrantLock structure = new ReentrantLock();
 
     /**
      * Don't let the transport rate exceed this value.
@@ -768,8 +769,7 @@ public final class Buffer extends Limbo {
      *            method.
      */
     private void addPage(boolean sync) {
-        long stamp = structure.tryWriteLock();
-        if(stamp > 0) {
+        if(structure.tryLock()) {
             try {
                 if(sync) {
                     sync();
@@ -779,8 +779,11 @@ public final class Buffer extends Limbo {
                 Logger.debug("Added page {} to Buffer", currentPage);
             }
             finally {
-                structure.unlockWrite(stamp);
+                structure.unlock();
             }
+        }
+        else {
+            Thread.yield();
         }
     }
 
@@ -788,12 +791,12 @@ public final class Buffer extends Limbo {
      * Remove the first page in the Buffer.
      */
     private void removePage() {
-        long stamp = structure.writeLock();
+        structure.lock();
         try {
             pages.remove(0).delete();
         }
         finally {
-            structure.unlockWrite(stamp);
+            structure.unlock();
         }
     }
 
