@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -298,7 +299,7 @@ public final class Buffer extends Limbo {
      * The structure lock ensures that only a single thread can modify the
      * structure of the Buffer, without affecting any readers.
      */
-    protected final StampedLock structure = new StampedLock();
+    private final ReentrantLock structure = new ReentrantLock();
 
     /**
      * Don't let the transport rate exceed this value.
@@ -513,23 +514,24 @@ public final class Buffer extends Limbo {
 
     @Override
     public boolean insert(Write write, boolean sync) {
-        for (boolean done = false, notify = false; !done;) {
-            try {
-                notify = !notify ? pages.size() == 2 && currentPage.size == 0
-                        : notify;
-                currentPage.append(write, sync);
-                if(notify) {
-                    synchronized (transportable) {
-                        transportable.notify();
-                    }
+        structure.lock();
+        try {
+            boolean notify = pages.size() == 2 && currentPage.size == 0;
+            currentPage.append(write, sync);
+            if(notify) {
+                synchronized (transportable) {
+                    transportable.notify();
                 }
-                done = true;
             }
-            catch (CapacityException e) {
-                addPage();
-            }
+            return true;
         }
-        return true;
+        catch (CapacityException e) {
+            addPage();
+            return insert(write, sync);
+        }
+        finally {
+            structure.unlock();
+        }
     }
 
     /**
@@ -768,8 +770,7 @@ public final class Buffer extends Limbo {
      *            method.
      */
     private void addPage(boolean sync) {
-        long stamp = structure.tryWriteLock();
-        if(stamp > 0) {
+        if(structure.tryLock()) {
             try {
                 if(sync) {
                     sync();
@@ -779,11 +780,8 @@ public final class Buffer extends Limbo {
                 Logger.debug("Added page {} to Buffer", currentPage);
             }
             finally {
-                structure.unlockWrite(stamp);
+                structure.unlock();
             }
-        }
-        else {
-            Thread.yield();
         }
     }
 
@@ -791,12 +789,12 @@ public final class Buffer extends Limbo {
      * Remove the first page in the Buffer.
      */
     private void removePage() {
-        long stamp = structure.writeLock();
+        structure.lock();
         try {
             pages.remove(0).delete();
         }
         finally {
-            structure.unlockWrite(stamp);
+            structure.unlock();
         }
     }
 
