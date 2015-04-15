@@ -35,6 +35,11 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
         client.add("id", 1, 1);
         client.add("bar", 1, 1);
     }
+    
+    @Override
+    public void afterEachTest(){
+        System.gc();
+    }
 
     @Test
     public void testSelectAll() {
@@ -76,6 +81,34 @@ public class OpsPerSecondTest extends ConcourseIntegrationTest {
         double seconds = elapsed / 1000.0;
         double ops = count / seconds;
         System.out.println("Verify and swap operations per second: " + ops);
+    }
+    
+    @Test
+    public void testAddDifferentRecords(){
+        int count = 5000;
+        Stopwatch watch = Stopwatch.createStarted();
+        for (int i = 0; i < count; ++i) {
+            client.add("foo", i, i);
+        }
+        watch.stop();
+        long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+        double seconds = elapsed / 1000.0;
+        double ops = count / seconds;
+        System.out.println("Add to different records operations per second: " + ops);
+    }
+    
+    @Test
+    public void testAddSameRecord(){
+        int count = 5000;
+        Stopwatch watch = Stopwatch.createStarted();
+        for (int i = 0; i < count; ++i) {
+            client.add("foo", i, 1);
+        }
+        watch.stop();
+        long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+        double seconds = elapsed / 1000.0;
+        double ops = count / seconds;
+        System.out.println("Add to same records operations per second: " + ops);
     }
 
 }
