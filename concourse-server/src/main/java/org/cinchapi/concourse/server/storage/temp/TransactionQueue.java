@@ -15,8 +15,11 @@
  */
 package org.cinchapi.concourse.server.storage.temp;
 
+import java.util.concurrent.Callable;
+
 import org.cinchapi.concourse.server.storage.PermanentStore;
 import org.cinchapi.concourse.server.storage.cache.BloomFilter;
+import org.cinchapi.concourse.util.Producer;
 
 /**
  * A special {@link Queue} that is used for {@link Transaction transactions}:
@@ -44,6 +47,25 @@ public class TransactionQueue extends Queue {
     private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
 
     /**
+     * A global producer that provides BloomFilters to instances that need them.
+     * To some extent, this producer will queue up bloom filters so that the
+     * overhead of creating them is not incurred directly by the caller.
+     */
+    private static final Producer<BloomFilter> producer = new Producer<BloomFilter>(
+            new Callable<BloomFilter>() {
+
+                @Override
+                public BloomFilter call() throws Exception {
+                    return BloomFilter.create(500000); // TODO at some point
+                                                       // this size should be
+                                                       // determine based on
+                                                       // some intelligent
+                                                       // heuristic
+                }
+
+            });
+
+    /**
      * Construct a new instance.
      * 
      * @param initialSize
@@ -60,10 +82,7 @@ public class TransactionQueue extends Queue {
                         write.getRecord());
             }
             else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
-                filter = BloomFilter.create(500000); // TODO at some point this
-                                                     // size should be determine
-                                                     // based on some
-                                                     // intelligent heuristic
+                filter = producer.consume();
                 for (int i = 0; i < writes.size(); ++i) {
                     Write stored = writes.get(i);
                     filter.put(stored.getKey(), stored.getValue(),
