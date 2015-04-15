@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -120,13 +119,6 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
         }
 
     };
-
-    /**
-     * The writeLock ensures that only a single writer can modify the state of
-     * the store, without affecting any readers. The subclass should, at a
-     * minimum, use this lock in the {@link #insert(Write)} method.
-     */
-    protected final ReentrantLock writeLock = new ReentrantLock();
 
     @Override
     public Map<Long, String> audit(long record) {
