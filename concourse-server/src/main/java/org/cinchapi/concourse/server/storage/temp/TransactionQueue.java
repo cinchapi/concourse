@@ -35,7 +35,13 @@ public class TransactionQueue extends Queue {
     /**
      * The bloom filter used to speed up verifies.
      */
-    private final BloomFilter bloom = BloomFilter.create(500000);
+    private BloomFilter filter = null;
+
+    /**
+     * The threshold at which an internal bloom filter is dynamically created to
+     * speed up verifies.
+     */
+    private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
 
     /**
      * Construct a new instance.
@@ -49,7 +55,21 @@ public class TransactionQueue extends Queue {
     @Override
     public boolean insert(Write write, boolean sync) {
         if(super.insert(write, sync)) {
-            bloom.putCached(write.getKey(), write.getValue(), write.getRecord());
+            if(filter != null) {
+                filter.putCached(write.getKey(), write.getValue(),
+                        write.getRecord());
+            }
+            else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
+                filter = BloomFilter.create(500000); // TODO at some point this
+                                                     // size should be determine
+                                                     // based on some
+                                                     // intelligent heuristic
+                for (int i = 0; i < writes.size(); ++i) {
+                    Write stored = writes.get(i);
+                    filter.put(stored.getKey(), stored.getValue(),
+                            stored.getRecord());
+                }
+            }
             return true;
         }
         else {
@@ -74,8 +94,9 @@ public class TransactionQueue extends Queue {
 
     @Override
     public boolean verify(Write write, long timestamp, boolean exists) {
-        if(bloom.mightContainCached(write.getKey(), write.getValue(),
-                write.getRecord())) {
+        if(filter == null
+                || (filter != null && filter.mightContainCached(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
             return super.verify(write, timestamp, exists);
         }
         else {
