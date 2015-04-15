@@ -295,12 +295,6 @@ public final class Buffer extends Limbo {
     protected int transportRateMultiplier = 2; // visible for testing
 
     /**
-     * The structure lock ensures that only a single thread can modify the
-     * structure of the Buffer, without affecting any readers.
-     */
-    protected final StampedLock structure = new StampedLock();
-
-    /**
      * Don't let the transport rate exceed this value.
      */
     private static int MAX_TRANSPORT_RATE = 8192;
@@ -444,8 +438,7 @@ public final class Buffer extends Limbo {
     @Override
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        for (Iterator<Write> it = iterator(key, record, timestamp); it
-                .hasNext();) {
+        for (Iterator<Write> it = iterator(key, record, timestamp); it.hasNext();) {
             Write write = it.next();
             if(write.getType() == Action.ADD) {
                 context.add(write.getValue().getTObject());
@@ -513,21 +506,22 @@ public final class Buffer extends Limbo {
 
     @Override
     public boolean insert(Write write, boolean sync) {
-        for (boolean done = false, notify = false; !done;) {
-            try {
-                notify = !notify ? pages.size() == 2 && currentPage.size == 0
-                        : notify;
-                currentPage.append(write, sync);
-                if(notify) {
-                    synchronized (transportable) {
-                        transportable.notify();
-                    }
+        writeLock.lock();
+        try {
+            boolean notify = pages.size() == 2 && currentPage.size == 0;
+            currentPage.append(write, sync);
+            if(notify) {
+                synchronized (transportable) {
+                    transportable.notify();
                 }
-                done = true;
             }
-            catch (CapacityException e) {
-                addPage();
-            }
+        }
+        catch (CapacityException e) {
+            addPage();
+            insert(write, sync);
+        }
+        finally {
+            writeLock.unlock();
         }
         return true;
     }
@@ -768,22 +762,17 @@ public final class Buffer extends Limbo {
      *            method.
      */
     private void addPage(boolean sync) {
-        long stamp = structure.tryWriteLock();
-        if(stamp > 0) {
-            try {
-                if(sync) {
-                    sync();
-                }
-                currentPage = new Page(BUFFER_PAGE_SIZE);
-                pages.add(currentPage);
-                Logger.debug("Added page {} to Buffer", currentPage);
+        writeLock.lock();
+        try {
+            if(sync) {
+                sync();
             }
-            finally {
-                structure.unlockWrite(stamp);
-            }
+            currentPage = new Page(BUFFER_PAGE_SIZE);
+            pages.add(currentPage);
+            Logger.debug("Added page {} to Buffer", currentPage);
         }
-        else {
-            Thread.yield();
+        finally {
+            writeLock.unlock();
         }
     }
 
@@ -791,12 +780,12 @@ public final class Buffer extends Limbo {
      * Remove the first page in the Buffer.
      */
     private void removePage() {
-        long stamp = structure.writeLock();
+        writeLock.lock();
         try {
             pages.remove(0).delete();
         }
         finally {
-            structure.unlockWrite(stamp);
+            writeLock.unlock();
         }
     }
 
