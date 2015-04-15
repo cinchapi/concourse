@@ -15,12 +15,15 @@
  */
 package org.cinchapi.concourse.server.storage.temp;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.cinchapi.concourse.server.model.Value;
+import org.cinchapi.concourse.server.storage.PermanentStore;
+import org.cinchapi.concourse.server.storage.cache.BloomFilter;
 import org.cinchapi.concourse.thrift.Type;
+import org.cinchapi.concourse.util.Producer;
 
 import com.google.common.collect.Lists;
 
@@ -34,10 +37,46 @@ import com.google.common.collect.Lists;
 public class Queue extends Limbo {
 
     /**
+     * The threshold at which an internal bloom filter is dynamically created to
+     * speed up verifies.
+     */
+    private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
+
+    /**
+     * An empty array of writes that is used to specify type conversion in the
+     * {@link ArrayList#toArray(Object[])} method.
+     */
+    private static final Write[] EMPTY_WRITES_ARRAY = new Write[0];
+
+    /**
+     * A global producer that provides BloomFilters to instances that need them.
+     * To some extent, this producer will queue up bloom filters so that the
+     * overhead of creating them is not incurred directly by the caller.
+     */
+    private static final Producer<BloomFilter> producer = new Producer<BloomFilter>(
+            new Callable<BloomFilter>() {
+
+                @Override
+                public BloomFilter call() throws Exception {
+                    return BloomFilter.create(500000); // TODO at some point
+                                                       // this size should be
+                                                       // determine based on
+                                                       // some intelligent
+                                                       // heuristic
+                }
+
+            });
+
+    /**
      * Revisions are stored as a sequential list of {@link Write} objects, which
      * means most reads are <em>at least</em> an O(n) scan.
      */
     protected final List<Write> writes;
+
+    /**
+     * The bloom filter used to speed up verifies.
+     */
+    private BloomFilter filter = null;
 
     /**
      * Construct a Limbo with enough capacity for {@code initialSize}. If
@@ -55,15 +94,25 @@ public class Queue extends Limbo {
      * @return the writes
      */
     public List<Write> getWrites() {
-        return Collections.unmodifiableList(writes);
+        return writes;
     }
 
     @Override
     public boolean insert(Write write, boolean sync) {
-        return writes.add(write);// NOTE: #sync is
-                                 // meaningless since
-                                 // Queue is a memory
-                                 // store
+        writes.add(write); // #sync is meaningless since Queue is a memory store
+        if(filter != null) {
+            filter.putCached(write.getKey(), write.getValue(),
+                    write.getRecord());
+        }
+        else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
+            filter = producer.consume();
+            for (int i = 0; i < writes.size(); ++i) {
+                Write stored = writes.get(i);
+                filter.put(stored.getKey(), stored.getValue(),
+                        stored.getRecord());
+            }
+        }
+        return true;
     }
 
     @Override
@@ -88,6 +137,33 @@ public class Queue extends Limbo {
     @Override
     public void stop() {
         // do nothing
+    }
+
+    @Override
+    public void transport(PermanentStore destination, boolean sync) {
+        // For transactions, this method will only be called once, so we can
+        // optimize it by not using the services of an Iterator (e.g. hasNext(),
+        // remove(), etc) and, if the number of writes in the Queue is large
+        // enough, grabbing elements from the backing array directly.
+        int length = writes.size();
+        Write[] elts = length > 10000 ? writes.toArray(EMPTY_WRITES_ARRAY)
+                : null;
+        for (int i = 0; i < length; ++i) {
+            Write write = elts == null ? writes.get(i) : elts[i];
+            destination.accept(write, sync);
+        }
+    }
+
+    @Override
+    public boolean verify(Write write, long timestamp, boolean exists) {
+        if(filter == null
+                || (filter != null && filter.mightContainCached(write.getKey(),
+                        write.getValue(), write.getRecord()))) {
+            return super.verify(write, timestamp, exists);
+        }
+        else {
+            return exists;
+        }
     }
 
     @Override

@@ -37,7 +37,6 @@ import org.cinchapi.concourse.server.model.Ranges;
 import org.cinchapi.concourse.server.model.Text;
 import org.cinchapi.concourse.server.model.Value;
 import org.cinchapi.concourse.server.storage.temp.Queue;
-import org.cinchapi.concourse.server.storage.temp.TransactionQueue;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.util.ByteBuffers;
@@ -153,7 +152,7 @@ public class AtomicOperation extends BufferedStore implements
      * @param destination - must be a {@link Compoundable}
      */
     protected AtomicOperation(Compoundable destination) {
-        this(new TransactionQueue(INITIAL_CAPACITY), destination);
+        this(new Queue(INITIAL_CAPACITY), destination);
     }
 
     /**
