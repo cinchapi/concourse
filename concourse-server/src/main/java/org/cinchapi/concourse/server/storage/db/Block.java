@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -279,6 +279,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
             try {
                 this.filter = BloomFilter.open(directory + File.separator + id
                         + FILTER_NAME_EXTENSION);
+                filter.disableThreadSafety();
             }
             catch (RuntimeException e) {
                 repair(e);
@@ -520,6 +521,7 @@ abstract class Block<L extends Byteable & Comparable<L>, K extends Byteable & Co
                 FileSystem.closeFileChannel(channel);
                 revisions = null; // Set to NULL so that the Set is eligible for
                                   // GC while the Block stays in memory.
+                filter.disableThreadSafety();
             }
             else if(!mutable) {
                 Logger.warn("Cannot sync a block that is not mutable: {}", id);

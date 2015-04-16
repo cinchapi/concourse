@@ -844,7 +844,9 @@ public final class Buffer extends Limbo {
 
         /**
          * The local lock for read/write access on the page. This is only used
-         * when this page is equal to the {@link #currentPage}.
+         * when this page is equal to the {@link #currentPage}. In that case,
+         * this lock is grabbed before any access is allowed on the page, so
+         * subsequent structures that are used need not be thread safe.
          */
         private transient StampedLock accessLock = new StampedLock();
 
@@ -940,6 +942,7 @@ public final class Buffer extends Limbo {
             this.keyRecordCache = new boolean[sizeUpperBound];
             this.writeCache = BloomFilter
                     .create(PER_PAGE_BLOOM_FILTER_CAPACITY);
+            writeCache.disableThreadSafety();
             Iterator<ByteBuffer> it = ByteableCollections.iterator(content);
             while (it.hasNext()) {
                 Write write = Write.fromByteBuffer(it.next());

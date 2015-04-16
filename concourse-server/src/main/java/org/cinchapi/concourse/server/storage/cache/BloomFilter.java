@@ -83,42 +83,6 @@ public class BloomFilter implements Syncable {
     }
 
     /**
-     * Create a new concurrent BloomFilter with enough capacity for
-     * {@code expectedInsertions}.
-     * <p>
-     * Note that overflowing a BloomFilter with significantly more elements than
-     * specified, will result in its saturation, and a sharp deterioration of
-     * its false positive probability (source:
-     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
-     * <p>
-     * 
-     * @param expectedInsertions
-     * @return the BloomFilter
-     */
-    public static BloomFilter createConcurrent(int expectedInsertions) {
-        return new ConcurrentBloomFilter(null, expectedInsertions);
-    }
-
-    /**
-     * Create a new concurrent BloomFilter with enough capacity for
-     * {@code expectedInsertions}.
-     * <p>
-     * Note that overflowing a BloomFilter with significantly more elements than
-     * specified, will result in its saturation, and a sharp deterioration of
-     * its false positive probability (source:
-     * {@link BloomFilter#create(com.google.common.hash.Funnel, int)})
-     * <p>
-     * 
-     * @param file
-     * @param expectedInsertions
-     * @return the BloomFilter
-     */
-    public static BloomFilter createConcurrent(String file,
-            int expectedInsertions) {
-        return new ConcurrentBloomFilter(file, expectedInsertions);
-    }
-
-    /**
      * Return the BloomFilter that is stored on disk in {@code file}.
      * 
      * @param file
@@ -181,12 +145,20 @@ public class BloomFilter implements Syncable {
     private final com.google.common.hash.BloomFilter<Composite> source;
 
     /**
+     * A flag that indicates if this BloomFilter instance does locking and is
+     * therefore thread safe under concurrent access. This is configurable using
+     * the {@link #enableThreadSafety()} and {@link #disableThreadSafety()}
+     * methods.
+     */
+    private boolean threadSafe = true;
+
+    /**
      * Construct a new instance.
      * 
      * @param file
      * @param source
      */
-    protected BloomFilter(String file,
+    private BloomFilter(String file,
             com.google.common.hash.BloomFilter<Composite> source) {
         this.source = source;
         this.file = file;
@@ -197,12 +169,28 @@ public class BloomFilter implements Syncable {
      * 
      * @param expectedInsertions
      */
-    protected BloomFilter(String file, int expectedInsertions) {
+    private BloomFilter(String file, int expectedInsertions) {
         this.source = com.google.common.hash.BloomFilter.create(
                 ByteableFunnel.INSTANCE, expectedInsertions); // uses 3% false
                                                               // positive
                                                               // probability
         this.file = file;
+    }
+
+    /**
+     * Turn off thread safety for this BloomFilter. Only do this when it is
+     * certain that the bloom filter will not see any additional writes from
+     * multiple concurrent threads.
+     */
+    public void disableThreadSafety() {
+        threadSafe = false;
+    }
+
+    /**
+     * Turn on thread safety for this BloomFilter.
+     */
+    public void enableThreadSafety() {
+        threadSafe = true;
     }
 
     /**
@@ -288,10 +276,10 @@ public class BloomFilter implements Syncable {
         Preconditions.checkState(file != null, "Cannot sync a "
                 + "BloomFilter that does not have an associated file");
         FileChannel channel = FileSystem.getFileChannel(file);
-        long stamp = tryOptimisticRead();
+        long stamp = lock.tryOptimisticRead();
         Serializables.write(source, channel); // CON-164
-        if(!validate(stamp)) {
-            stamp = readLock();
+        if(!lock.validate(stamp)) {
+            stamp = lock.readLock();
             try {
                 channel.position(0);
                 Serializables.write(source, channel); // CON-164
@@ -300,7 +288,7 @@ public class BloomFilter implements Syncable {
                 throw Throwables.propagate(e);
             }
             finally {
-                unlockRead(stamp);
+                lock.unlockRead(stamp);
             }
         }
         FileSystem.closeFileChannel(channel);
@@ -314,18 +302,23 @@ public class BloomFilter implements Syncable {
      * @return {@code true} if the composite might exist
      */
     private boolean mightContain(Composite composite) {
-        long stamp = tryOptimisticRead();
-        boolean mightContain = source.mightContain(composite);
-        if(!validate(stamp)) {
-            stamp = readLock();
-            try {
-                mightContain = source.mightContain(composite);
+        if(threadSafe) {
+            long stamp = lock.tryOptimisticRead();
+            boolean mightContain = source.mightContain(composite);
+            if(!lock.validate(stamp)) {
+                stamp = lock.readLock();
+                try {
+                    mightContain = source.mightContain(composite);
+                }
+                finally {
+                    lock.unlockRead(stamp);
+                }
             }
-            finally {
-                unlockRead(stamp);
-            }
+            return mightContain;
         }
-        return mightContain;
+        else {
+            return source.mightContain(composite);
+        }
     }
 
     /**
@@ -336,72 +329,18 @@ public class BloomFilter implements Syncable {
      *         of the {@code composite}
      */
     private boolean put(Composite composite) {
-        long stamp = writeLock();
-        try {
+        if(threadSafe) {
+            long stamp = lock.writeLock();
+            try {
+                return source.put(composite);
+            }
+            finally {
+                lock.unlockWrite(stamp);
+            }
+        }
+        else {
             return source.put(composite);
         }
-        finally {
-            unlockWrite(stamp);
-        }
-    }
-
-    /**
-     * Grabs the read {@link StampedLock} {@code lock} and return the
-     * {@code stamp}.
-     * 
-     * @return {@code stamp}
-     */
-    protected long readLock() {
-        return lock.readLock();
-    }
-
-    /**
-     * Returns stamp using {@link #tryOptimisticRead() tryOptimisticRead()}
-     * 
-     * @return {@code stamp}
-     */
-    protected long tryOptimisticRead() {
-        return lock.tryOptimisticRead();
-    }
-
-    /**
-     * Release the read {@link StampedLock} {@code lock} for {@code stamp}.
-     * 
-     * @param stamp
-     */
-    protected void unlockRead(long stamp) {
-        lock.unlockRead(stamp);
-    }
-
-    /**
-     * Release the write {@link StampedLock} {@code lock} for {@code stamp}.
-     * 
-     * @param stamp
-     */
-    protected void unlockWrite(long stamp) {
-        lock.unlockWrite(stamp);
-    }
-
-    /**
-     * Checks whether the lock has not been exclusively acquired since issuance
-     * of the given stamp using {@link #validate(long) validate(long stamp)}
-     * method.
-     * 
-     * @param stamp
-     * @return boolean
-     */
-    protected boolean validate(long stamp) {
-        return lock.validate(stamp);
-    }
-
-    /**
-     * Grabs the write {@link StampedLock} {@code lock} and return the
-     * {@code stamp}.
-     * 
-     * @return {@code stamp}
-     */
-    protected long writeLock() {
-        return lock.writeLock();
     }
 
 }

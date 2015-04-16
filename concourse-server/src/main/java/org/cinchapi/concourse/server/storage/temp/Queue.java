@@ -58,11 +58,11 @@ public class Queue extends Limbo {
 
                 @Override
                 public BloomFilter call() throws Exception {
-                    return BloomFilter.create(500000); // TODO at some point
-                                                       // this size should be
-                                                       // determine based on
-                                                       // some intelligent
-                                                       // heuristic
+                    // TODO: at some point this size should be determined based
+                    // on some intelligent heuristic
+                    BloomFilter filter = BloomFilter.create(500000);
+                    filter.disableThreadSafety();
+                    return filter;
                 }
 
             });
