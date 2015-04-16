@@ -1149,6 +1149,77 @@ interface ConcourseServiceIf {
    */
   public function chronologizeKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
   /**
+   * @param int $record
+   * @param int $start
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffRecordStart($record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param int $record
+   * @param int $start
+   * @param int $tend
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffRecordStartEnd($record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param int $record
+   * @param int $start
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param int $record
+   * @param int $start
+   * @param int $tend
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param int $start
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffKeyStart($key, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
+   * @param string $key
+   * @param int $start
+   * @param int $tend
+   * @param \thrift\shared\AccessToken $creds
+   * @param \thrift\shared\TransactionToken $transaction
+   * @param string $environment
+   * @return array
+   * @throws \thrift\shared\TSecurityException
+   * @throws \thrift\shared\TTransactionException
+   */
+  public function diffKeyStartEnd($key, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment);
+  /**
    * @param string[] $keys
    * @param int[] $records
    * @param int $timestamp
@@ -7063,6 +7134,377 @@ class ConcourseServiceClient implements \thrift\ConcourseServiceIf {
       throw $result->ex2;
     }
     throw new \Exception("chronologizeKeyRecordStartEnd failed: unknown result");
+  }
+
+  public function diffRecordStart($record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffRecordStart($record, $start, $creds, $transaction, $environment);
+    return $this->recv_diffRecordStart();
+  }
+
+  public function send_diffRecordStart($record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffRecordStart_args();
+    $args->record = $record;
+    $args->start = $start;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffRecordStart', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffRecordStart', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffRecordStart()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffRecordStart_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffRecordStart_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffRecordStart failed: unknown result");
+  }
+
+  public function diffRecordStartEnd($record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffRecordStartEnd($record, $start, $tend, $creds, $transaction, $environment);
+    return $this->recv_diffRecordStartEnd();
+  }
+
+  public function send_diffRecordStartEnd($record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffRecordStartEnd_args();
+    $args->record = $record;
+    $args->start = $start;
+    $args->tend = $tend;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffRecordStartEnd', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffRecordStartEnd', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffRecordStartEnd()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffRecordStartEnd_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffRecordStartEnd_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffRecordStartEnd failed: unknown result");
+  }
+
+  public function diffKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffKeyRecordStart($key, $record, $start, $creds, $transaction, $environment);
+    return $this->recv_diffKeyRecordStart();
+  }
+
+  public function send_diffKeyRecordStart($key, $record, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffKeyRecordStart_args();
+    $args->key = $key;
+    $args->record = $record;
+    $args->start = $start;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffKeyRecordStart', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffKeyRecordStart', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffKeyRecordStart()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffKeyRecordStart_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffKeyRecordStart_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffKeyRecordStart failed: unknown result");
+  }
+
+  public function diffKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffKeyRecordStartEnd($key, $record, $start, $tend, $creds, $transaction, $environment);
+    return $this->recv_diffKeyRecordStartEnd();
+  }
+
+  public function send_diffKeyRecordStartEnd($key, $record, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffKeyRecordStartEnd_args();
+    $args->key = $key;
+    $args->record = $record;
+    $args->start = $start;
+    $args->tend = $tend;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffKeyRecordStartEnd', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffKeyRecordStartEnd', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffKeyRecordStartEnd()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffKeyRecordStartEnd_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffKeyRecordStartEnd_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffKeyRecordStartEnd failed: unknown result");
+  }
+
+  public function diffKeyStart($key, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffKeyStart($key, $start, $creds, $transaction, $environment);
+    return $this->recv_diffKeyStart();
+  }
+
+  public function send_diffKeyStart($key, $start, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffKeyStart_args();
+    $args->key = $key;
+    $args->start = $start;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffKeyStart', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffKeyStart', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffKeyStart()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffKeyStart_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffKeyStart_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffKeyStart failed: unknown result");
+  }
+
+  public function diffKeyStartEnd($key, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $this->send_diffKeyStartEnd($key, $start, $tend, $creds, $transaction, $environment);
+    return $this->recv_diffKeyStartEnd();
+  }
+
+  public function send_diffKeyStartEnd($key, $start, $tend, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
+  {
+    $args = new \thrift\ConcourseService_diffKeyStartEnd_args();
+    $args->key = $key;
+    $args->start = $start;
+    $args->tend = $tend;
+    $args->creds = $creds;
+    $args->transaction = $transaction;
+    $args->environment = $environment;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'diffKeyStartEnd', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('diffKeyStartEnd', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_diffKeyStartEnd()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\thrift\ConcourseService_diffKeyStartEnd_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \thrift\ConcourseService_diffKeyStartEnd_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->ex !== null) {
+      throw $result->ex;
+    }
+    if ($result->ex2 !== null) {
+      throw $result->ex2;
+    }
+    throw new \Exception("diffKeyStartEnd failed: unknown result");
   }
 
   public function revertKeysRecordsTime(array $keys, array $records, $timestamp, \thrift\shared\AccessToken $creds, \thrift\shared\TransactionToken $transaction, $environment)
@@ -42064,6 +42506,2459 @@ class ConcourseService_chronologizeKeyRecordStartEnd_result {
 
 }
 
+class ConcourseService_diffRecordStart_args {
+  static $_TSPEC;
+
+  /**
+   * @var int
+   */
+  public $record = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'record',
+          'type' => TType::I64,
+          ),
+        2 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['record'])) {
+        $this->record = $vals['record'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffRecordStart_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->record);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffRecordStart_args');
+    if ($this->record !== null) {
+      $xfer += $output->writeFieldBegin('record', TType::I64, 1);
+      $xfer += $output->writeI64($this->record);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 2);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffRecordStart_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::STRING,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::STRING,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::I32,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::I32,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::STRUCT,
+              'elem' => array(
+                'type' => TType::STRUCT,
+                'class' => '\thrift\data\TObject',
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffRecordStart_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1405 = 0;
+            $_ktype1406 = 0;
+            $_vtype1407 = 0;
+            $xfer += $input->readMapBegin($_ktype1406, $_vtype1407, $_size1405);
+            for ($_i1409 = 0; $_i1409 < $_size1405; ++$_i1409)
+            {
+              $key1410 = '';
+              $val1411 = array();
+              $xfer += $input->readString($key1410);
+              $val1411 = array();
+              $_size1412 = 0;
+              $_ktype1413 = 0;
+              $_vtype1414 = 0;
+              $xfer += $input->readMapBegin($_ktype1413, $_vtype1414, $_size1412);
+              for ($_i1416 = 0; $_i1416 < $_size1412; ++$_i1416)
+              {
+                $key1417 = 0;
+                $val1418 = array();
+                $xfer += $input->readI32($key1417);
+                $val1418 = array();
+                $_size1419 = 0;
+                $_etype1422 = 0;
+                $xfer += $input->readSetBegin($_etype1422, $_size1419);
+                for ($_i1423 = 0; $_i1423 < $_size1419; ++$_i1423)
+                {
+                  $elem1424 = null;
+                  $elem1424 = new \thrift\data\TObject();
+                  $xfer += $elem1424->read($input);
+                  if (is_scalar($elem1424)) {
+                    $val1418[$elem1424] = true;
+                  } else {
+                    $val1418 []= $elem1424;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val1411[$key1417] = $val1418;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key1410] = $val1411;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffRecordStart_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::STRING, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter1425 => $viter1426)
+          {
+            $xfer += $output->writeString($kiter1425);
+            {
+              $output->writeMapBegin(TType::I32, TType::SET, count($viter1426));
+              {
+                foreach ($viter1426 as $kiter1427 => $viter1428)
+                {
+                  $xfer += $output->writeI32($kiter1427);
+                  {
+                    $output->writeSetBegin(TType::STRUCT, count($viter1428));
+                    {
+                      foreach ($viter1428 as $iter1429 => $iter1430)
+                      {
+                        if (is_scalar($iter1430)) {
+                        $xfer += $iter1429->write($output);
+                        } else {
+                        $xfer += $iter1430->write($output);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffRecordStartEnd_args {
+  static $_TSPEC;
+
+  /**
+   * @var int
+   */
+  public $record = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var int
+   */
+  public $tend = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'record',
+          'type' => TType::I64,
+          ),
+        2 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'tend',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['record'])) {
+        $this->record = $vals['record'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['tend'])) {
+        $this->tend = $vals['tend'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffRecordStartEnd_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->record);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->tend);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffRecordStartEnd_args');
+    if ($this->record !== null) {
+      $xfer += $output->writeFieldBegin('record', TType::I64, 1);
+      $xfer += $output->writeI64($this->record);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 2);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->tend !== null) {
+      $xfer += $output->writeFieldBegin('tend', TType::I64, 3);
+      $xfer += $output->writeI64($this->tend);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffRecordStartEnd_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::STRING,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::STRING,
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::I32,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::I32,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::STRUCT,
+              'elem' => array(
+                'type' => TType::STRUCT,
+                'class' => '\thrift\data\TObject',
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffRecordStartEnd_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1431 = 0;
+            $_ktype1432 = 0;
+            $_vtype1433 = 0;
+            $xfer += $input->readMapBegin($_ktype1432, $_vtype1433, $_size1431);
+            for ($_i1435 = 0; $_i1435 < $_size1431; ++$_i1435)
+            {
+              $key1436 = '';
+              $val1437 = array();
+              $xfer += $input->readString($key1436);
+              $val1437 = array();
+              $_size1438 = 0;
+              $_ktype1439 = 0;
+              $_vtype1440 = 0;
+              $xfer += $input->readMapBegin($_ktype1439, $_vtype1440, $_size1438);
+              for ($_i1442 = 0; $_i1442 < $_size1438; ++$_i1442)
+              {
+                $key1443 = 0;
+                $val1444 = array();
+                $xfer += $input->readI32($key1443);
+                $val1444 = array();
+                $_size1445 = 0;
+                $_etype1448 = 0;
+                $xfer += $input->readSetBegin($_etype1448, $_size1445);
+                for ($_i1449 = 0; $_i1449 < $_size1445; ++$_i1449)
+                {
+                  $elem1450 = null;
+                  $elem1450 = new \thrift\data\TObject();
+                  $xfer += $elem1450->read($input);
+                  if (is_scalar($elem1450)) {
+                    $val1444[$elem1450] = true;
+                  } else {
+                    $val1444 []= $elem1450;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val1437[$key1443] = $val1444;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key1436] = $val1437;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffRecordStartEnd_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::STRING, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter1451 => $viter1452)
+          {
+            $xfer += $output->writeString($kiter1451);
+            {
+              $output->writeMapBegin(TType::I32, TType::SET, count($viter1452));
+              {
+                foreach ($viter1452 as $kiter1453 => $viter1454)
+                {
+                  $xfer += $output->writeI32($kiter1453);
+                  {
+                    $output->writeSetBegin(TType::STRUCT, count($viter1454));
+                    {
+                      foreach ($viter1454 as $iter1455 => $iter1456)
+                      {
+                        if (is_scalar($iter1456)) {
+                        $xfer += $iter1455->write($output);
+                        } else {
+                        $xfer += $iter1456->write($output);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyRecordStart_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var int
+   */
+  public $record = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'record',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['record'])) {
+        $this->record = $vals['record'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyRecordStart_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->record);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyRecordStart_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->record !== null) {
+      $xfer += $output->writeFieldBegin('record', TType::I64, 2);
+      $xfer += $output->writeI64($this->record);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 3);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyRecordStart_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I32,
+          'vtype' => TType::SET,
+          'key' => array(
+            'type' => TType::I32,
+          ),
+          'val' => array(
+            'type' => TType::SET,
+            'etype' => TType::STRUCT,
+            'elem' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyRecordStart_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1457 = 0;
+            $_ktype1458 = 0;
+            $_vtype1459 = 0;
+            $xfer += $input->readMapBegin($_ktype1458, $_vtype1459, $_size1457);
+            for ($_i1461 = 0; $_i1461 < $_size1457; ++$_i1461)
+            {
+              $key1462 = 0;
+              $val1463 = array();
+              $xfer += $input->readI32($key1462);
+              $val1463 = array();
+              $_size1464 = 0;
+              $_etype1467 = 0;
+              $xfer += $input->readSetBegin($_etype1467, $_size1464);
+              for ($_i1468 = 0; $_i1468 < $_size1464; ++$_i1468)
+              {
+                $elem1469 = null;
+                $elem1469 = new \thrift\data\TObject();
+                $xfer += $elem1469->read($input);
+                if (is_scalar($elem1469)) {
+                  $val1463[$elem1469] = true;
+                } else {
+                  $val1463 []= $elem1469;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[$key1462] = $val1463;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyRecordStart_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I32, TType::SET, count($this->success));
+        {
+          foreach ($this->success as $kiter1470 => $viter1471)
+          {
+            $xfer += $output->writeI32($kiter1470);
+            {
+              $output->writeSetBegin(TType::STRUCT, count($viter1471));
+              {
+                foreach ($viter1471 as $iter1472 => $iter1473)
+                {
+                  if (is_scalar($iter1473)) {
+                  $xfer += $iter1472->write($output);
+                  } else {
+                  $xfer += $iter1473->write($output);
+                  }
+                }
+              }
+              $output->writeSetEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyRecordStartEnd_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var int
+   */
+  public $record = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var int
+   */
+  public $tend = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'record',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'tend',
+          'type' => TType::I64,
+          ),
+        5 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        6 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        7 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['record'])) {
+        $this->record = $vals['record'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['tend'])) {
+        $this->tend = $vals['tend'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyRecordStartEnd_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->record);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->tend);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 7:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyRecordStartEnd_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->record !== null) {
+      $xfer += $output->writeFieldBegin('record', TType::I64, 2);
+      $xfer += $output->writeI64($this->record);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 3);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->tend !== null) {
+      $xfer += $output->writeFieldBegin('tend', TType::I64, 4);
+      $xfer += $output->writeI64($this->tend);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 5);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 6);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 7);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyRecordStartEnd_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::I32,
+          'vtype' => TType::SET,
+          'key' => array(
+            'type' => TType::I32,
+          ),
+          'val' => array(
+            'type' => TType::SET,
+            'etype' => TType::STRUCT,
+            'elem' => array(
+              'type' => TType::STRUCT,
+              'class' => '\thrift\data\TObject',
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyRecordStartEnd_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1474 = 0;
+            $_ktype1475 = 0;
+            $_vtype1476 = 0;
+            $xfer += $input->readMapBegin($_ktype1475, $_vtype1476, $_size1474);
+            for ($_i1478 = 0; $_i1478 < $_size1474; ++$_i1478)
+            {
+              $key1479 = 0;
+              $val1480 = array();
+              $xfer += $input->readI32($key1479);
+              $val1480 = array();
+              $_size1481 = 0;
+              $_etype1484 = 0;
+              $xfer += $input->readSetBegin($_etype1484, $_size1481);
+              for ($_i1485 = 0; $_i1485 < $_size1481; ++$_i1485)
+              {
+                $elem1486 = null;
+                $elem1486 = new \thrift\data\TObject();
+                $xfer += $elem1486->read($input);
+                if (is_scalar($elem1486)) {
+                  $val1480[$elem1486] = true;
+                } else {
+                  $val1480 []= $elem1486;
+                }
+              }
+              $xfer += $input->readSetEnd();
+              $this->success[$key1479] = $val1480;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyRecordStartEnd_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::I32, TType::SET, count($this->success));
+        {
+          foreach ($this->success as $kiter1487 => $viter1488)
+          {
+            $xfer += $output->writeI32($kiter1487);
+            {
+              $output->writeSetBegin(TType::STRUCT, count($viter1488));
+              {
+                foreach ($viter1488 as $iter1489 => $iter1490)
+                {
+                  if (is_scalar($iter1490)) {
+                  $xfer += $iter1489->write($output);
+                  } else {
+                  $xfer += $iter1490->write($output);
+                  }
+                }
+              }
+              $output->writeSetEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyStart_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        4 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        5 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyStart_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyStart_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 2);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 3);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 4);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 5);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyStart_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::STRUCT,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::STRUCT,
+            'class' => '\thrift\data\TObject',
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::I32,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::I32,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::I64,
+              'elem' => array(
+                'type' => TType::I64,
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyStart_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1491 = 0;
+            $_ktype1492 = 0;
+            $_vtype1493 = 0;
+            $xfer += $input->readMapBegin($_ktype1492, $_vtype1493, $_size1491);
+            for ($_i1495 = 0; $_i1495 < $_size1491; ++$_i1495)
+            {
+              $key1496 = new \thrift\data\TObject();
+              $val1497 = array();
+              $key1496 = new \thrift\data\TObject();
+              $xfer += $key1496->read($input);
+              $val1497 = array();
+              $_size1498 = 0;
+              $_ktype1499 = 0;
+              $_vtype1500 = 0;
+              $xfer += $input->readMapBegin($_ktype1499, $_vtype1500, $_size1498);
+              for ($_i1502 = 0; $_i1502 < $_size1498; ++$_i1502)
+              {
+                $key1503 = 0;
+                $val1504 = array();
+                $xfer += $input->readI32($key1503);
+                $val1504 = array();
+                $_size1505 = 0;
+                $_etype1508 = 0;
+                $xfer += $input->readSetBegin($_etype1508, $_size1505);
+                for ($_i1509 = 0; $_i1509 < $_size1505; ++$_i1509)
+                {
+                  $elem1510 = null;
+                  $xfer += $input->readI64($elem1510);
+                  if (is_scalar($elem1510)) {
+                    $val1504[$elem1510] = true;
+                  } else {
+                    $val1504 []= $elem1510;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val1497[$key1503] = $val1504;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key1496] = $val1497;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyStart_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::STRUCT, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter1511 => $viter1512)
+          {
+            $xfer += $kiter1511->write($output);
+            {
+              $output->writeMapBegin(TType::I32, TType::SET, count($viter1512));
+              {
+                foreach ($viter1512 as $kiter1513 => $viter1514)
+                {
+                  $xfer += $output->writeI32($kiter1513);
+                  {
+                    $output->writeSetBegin(TType::I64, count($viter1514));
+                    {
+                      foreach ($viter1514 as $iter1515 => $iter1516)
+                      {
+                        if (is_scalar($iter1516)) {
+                        $xfer += $output->writeI64($iter1515);
+                        } else {
+                        $xfer += $output->writeI64($iter1516);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyStartEnd_args {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $key = null;
+  /**
+   * @var int
+   */
+  public $start = null;
+  /**
+   * @var int
+   */
+  public $tend = null;
+  /**
+   * @var \thrift\shared\AccessToken
+   */
+  public $creds = null;
+  /**
+   * @var \thrift\shared\TransactionToken
+   */
+  public $transaction = null;
+  /**
+   * @var string
+   */
+  public $environment = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'key',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'start',
+          'type' => TType::I64,
+          ),
+        3 => array(
+          'var' => 'tend',
+          'type' => TType::I64,
+          ),
+        4 => array(
+          'var' => 'creds',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\AccessToken',
+          ),
+        5 => array(
+          'var' => 'transaction',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TransactionToken',
+          ),
+        6 => array(
+          'var' => 'environment',
+          'type' => TType::STRING,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['key'])) {
+        $this->key = $vals['key'];
+      }
+      if (isset($vals['start'])) {
+        $this->start = $vals['start'];
+      }
+      if (isset($vals['tend'])) {
+        $this->tend = $vals['tend'];
+      }
+      if (isset($vals['creds'])) {
+        $this->creds = $vals['creds'];
+      }
+      if (isset($vals['transaction'])) {
+        $this->transaction = $vals['transaction'];
+      }
+      if (isset($vals['environment'])) {
+        $this->environment = $vals['environment'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyStartEnd_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->key);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->start);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->tend);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRUCT) {
+            $this->creds = new \thrift\shared\AccessToken();
+            $xfer += $this->creds->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->transaction = new \thrift\shared\TransactionToken();
+            $xfer += $this->transaction->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->environment);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyStartEnd_args');
+    if ($this->key !== null) {
+      $xfer += $output->writeFieldBegin('key', TType::STRING, 1);
+      $xfer += $output->writeString($this->key);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->start !== null) {
+      $xfer += $output->writeFieldBegin('start', TType::I64, 2);
+      $xfer += $output->writeI64($this->start);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->tend !== null) {
+      $xfer += $output->writeFieldBegin('tend', TType::I64, 3);
+      $xfer += $output->writeI64($this->tend);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->creds !== null) {
+      if (!is_object($this->creds)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('creds', TType::STRUCT, 4);
+      $xfer += $this->creds->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->transaction !== null) {
+      if (!is_object($this->transaction)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('transaction', TType::STRUCT, 5);
+      $xfer += $this->transaction->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->environment !== null) {
+      $xfer += $output->writeFieldBegin('environment', TType::STRING, 6);
+      $xfer += $output->writeString($this->environment);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ConcourseService_diffKeyStartEnd_result {
+  static $_TSPEC;
+
+  /**
+   * @var array
+   */
+  public $success = null;
+  /**
+   * @var \thrift\shared\TSecurityException
+   */
+  public $ex = null;
+  /**
+   * @var \thrift\shared\TTransactionException
+   */
+  public $ex2 = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::MAP,
+          'ktype' => TType::STRUCT,
+          'vtype' => TType::MAP,
+          'key' => array(
+            'type' => TType::STRUCT,
+            'class' => '\thrift\data\TObject',
+          ),
+          'val' => array(
+            'type' => TType::MAP,
+            'ktype' => TType::I32,
+            'vtype' => TType::SET,
+            'key' => array(
+              'type' => TType::I32,
+            ),
+            'val' => array(
+              'type' => TType::SET,
+              'etype' => TType::I64,
+              'elem' => array(
+                'type' => TType::I64,
+                ),
+              ),
+            ),
+          ),
+        1 => array(
+          'var' => 'ex',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TSecurityException',
+          ),
+        2 => array(
+          'var' => 'ex2',
+          'type' => TType::STRUCT,
+          'class' => '\thrift\shared\TTransactionException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['ex'])) {
+        $this->ex = $vals['ex'];
+      }
+      if (isset($vals['ex2'])) {
+        $this->ex2 = $vals['ex2'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ConcourseService_diffKeyStartEnd_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::MAP) {
+            $this->success = array();
+            $_size1517 = 0;
+            $_ktype1518 = 0;
+            $_vtype1519 = 0;
+            $xfer += $input->readMapBegin($_ktype1518, $_vtype1519, $_size1517);
+            for ($_i1521 = 0; $_i1521 < $_size1517; ++$_i1521)
+            {
+              $key1522 = new \thrift\data\TObject();
+              $val1523 = array();
+              $key1522 = new \thrift\data\TObject();
+              $xfer += $key1522->read($input);
+              $val1523 = array();
+              $_size1524 = 0;
+              $_ktype1525 = 0;
+              $_vtype1526 = 0;
+              $xfer += $input->readMapBegin($_ktype1525, $_vtype1526, $_size1524);
+              for ($_i1528 = 0; $_i1528 < $_size1524; ++$_i1528)
+              {
+                $key1529 = 0;
+                $val1530 = array();
+                $xfer += $input->readI32($key1529);
+                $val1530 = array();
+                $_size1531 = 0;
+                $_etype1534 = 0;
+                $xfer += $input->readSetBegin($_etype1534, $_size1531);
+                for ($_i1535 = 0; $_i1535 < $_size1531; ++$_i1535)
+                {
+                  $elem1536 = null;
+                  $xfer += $input->readI64($elem1536);
+                  if (is_scalar($elem1536)) {
+                    $val1530[$elem1536] = true;
+                  } else {
+                    $val1530 []= $elem1536;
+                  }
+                }
+                $xfer += $input->readSetEnd();
+                $val1523[$key1529] = $val1530;
+              }
+              $xfer += $input->readMapEnd();
+              $this->success[$key1522] = $val1523;
+            }
+            $xfer += $input->readMapEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->ex = new \thrift\shared\TSecurityException();
+            $xfer += $this->ex->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->ex2 = new \thrift\shared\TTransactionException();
+            $xfer += $this->ex2->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ConcourseService_diffKeyStartEnd_result');
+    if ($this->success !== null) {
+      if (!is_array($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::MAP, 0);
+      {
+        $output->writeMapBegin(TType::STRUCT, TType::MAP, count($this->success));
+        {
+          foreach ($this->success as $kiter1537 => $viter1538)
+          {
+            $xfer += $kiter1537->write($output);
+            {
+              $output->writeMapBegin(TType::I32, TType::SET, count($viter1538));
+              {
+                foreach ($viter1538 as $kiter1539 => $viter1540)
+                {
+                  $xfer += $output->writeI32($kiter1539);
+                  {
+                    $output->writeSetBegin(TType::I64, count($viter1540));
+                    {
+                      foreach ($viter1540 as $iter1541 => $iter1542)
+                      {
+                        if (is_scalar($iter1542)) {
+                        $xfer += $output->writeI64($iter1541);
+                        } else {
+                        $xfer += $output->writeI64($iter1542);
+                        }
+                      }
+                    }
+                    $output->writeSetEnd();
+                  }
+                }
+              }
+              $output->writeMapEnd();
+            }
+          }
+        }
+        $output->writeMapEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex !== null) {
+      $xfer += $output->writeFieldBegin('ex', TType::STRUCT, 1);
+      $xfer += $this->ex->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->ex2 !== null) {
+      $xfer += $output->writeFieldBegin('ex2', TType::STRUCT, 2);
+      $xfer += $this->ex2->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class ConcourseService_revertKeysRecordsTime_args {
   static $_TSPEC;
 
@@ -42175,14 +45070,14 @@ class ConcourseService_revertKeysRecordsTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size1405 = 0;
-            $_etype1408 = 0;
-            $xfer += $input->readListBegin($_etype1408, $_size1405);
-            for ($_i1409 = 0; $_i1409 < $_size1405; ++$_i1409)
+            $_size1543 = 0;
+            $_etype1546 = 0;
+            $xfer += $input->readListBegin($_etype1546, $_size1543);
+            for ($_i1547 = 0; $_i1547 < $_size1543; ++$_i1547)
             {
-              $elem1410 = null;
-              $xfer += $input->readString($elem1410);
-              $this->keys []= $elem1410;
+              $elem1548 = null;
+              $xfer += $input->readString($elem1548);
+              $this->keys []= $elem1548;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -42192,14 +45087,14 @@ class ConcourseService_revertKeysRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1411 = 0;
-            $_etype1414 = 0;
-            $xfer += $input->readListBegin($_etype1414, $_size1411);
-            for ($_i1415 = 0; $_i1415 < $_size1411; ++$_i1415)
+            $_size1549 = 0;
+            $_etype1552 = 0;
+            $xfer += $input->readListBegin($_etype1552, $_size1549);
+            for ($_i1553 = 0; $_i1553 < $_size1549; ++$_i1553)
             {
-              $elem1416 = null;
-              $xfer += $input->readI64($elem1416);
-              $this->records []= $elem1416;
+              $elem1554 = null;
+              $xfer += $input->readI64($elem1554);
+              $this->records []= $elem1554;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -42257,9 +45152,9 @@ class ConcourseService_revertKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter1417)
+          foreach ($this->keys as $iter1555)
           {
-            $xfer += $output->writeString($iter1417);
+            $xfer += $output->writeString($iter1555);
           }
         }
         $output->writeListEnd();
@@ -42274,9 +45169,9 @@ class ConcourseService_revertKeysRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1418)
+          foreach ($this->records as $iter1556)
           {
-            $xfer += $output->writeI64($iter1418);
+            $xfer += $output->writeI64($iter1556);
           }
         }
         $output->writeListEnd();
@@ -42525,14 +45420,14 @@ class ConcourseService_revertKeysRecordTime_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->keys = array();
-            $_size1419 = 0;
-            $_etype1422 = 0;
-            $xfer += $input->readListBegin($_etype1422, $_size1419);
-            for ($_i1423 = 0; $_i1423 < $_size1419; ++$_i1423)
+            $_size1557 = 0;
+            $_etype1560 = 0;
+            $xfer += $input->readListBegin($_etype1560, $_size1557);
+            for ($_i1561 = 0; $_i1561 < $_size1557; ++$_i1561)
             {
-              $elem1424 = null;
-              $xfer += $input->readString($elem1424);
-              $this->keys []= $elem1424;
+              $elem1562 = null;
+              $xfer += $input->readString($elem1562);
+              $this->keys []= $elem1562;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -42597,9 +45492,9 @@ class ConcourseService_revertKeysRecordTime_args {
       {
         $output->writeListBegin(TType::STRING, count($this->keys));
         {
-          foreach ($this->keys as $iter1425)
+          foreach ($this->keys as $iter1563)
           {
-            $xfer += $output->writeString($iter1425);
+            $xfer += $output->writeString($iter1563);
           }
         }
         $output->writeListEnd();
@@ -42860,14 +45755,14 @@ class ConcourseService_revertKeyRecordsTime_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1426 = 0;
-            $_etype1429 = 0;
-            $xfer += $input->readListBegin($_etype1429, $_size1426);
-            for ($_i1430 = 0; $_i1430 < $_size1426; ++$_i1430)
+            $_size1564 = 0;
+            $_etype1567 = 0;
+            $xfer += $input->readListBegin($_etype1567, $_size1564);
+            for ($_i1568 = 0; $_i1568 < $_size1564; ++$_i1568)
             {
-              $elem1431 = null;
-              $xfer += $input->readI64($elem1431);
-              $this->records []= $elem1431;
+              $elem1569 = null;
+              $xfer += $input->readI64($elem1569);
+              $this->records []= $elem1569;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -42930,9 +45825,9 @@ class ConcourseService_revertKeyRecordsTime_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1432)
+          foreach ($this->records as $iter1570)
           {
-            $xfer += $output->writeI64($iter1432);
+            $xfer += $output->writeI64($iter1570);
           }
         }
         $output->writeListEnd();
@@ -43461,14 +46356,14 @@ class ConcourseService_pingRecords_args {
         case 1:
           if ($ftype == TType::LST) {
             $this->records = array();
-            $_size1433 = 0;
-            $_etype1436 = 0;
-            $xfer += $input->readListBegin($_etype1436, $_size1433);
-            for ($_i1437 = 0; $_i1437 < $_size1433; ++$_i1437)
+            $_size1571 = 0;
+            $_etype1574 = 0;
+            $xfer += $input->readListBegin($_etype1574, $_size1571);
+            for ($_i1575 = 0; $_i1575 < $_size1571; ++$_i1575)
             {
-              $elem1438 = null;
-              $xfer += $input->readI64($elem1438);
-              $this->records []= $elem1438;
+              $elem1576 = null;
+              $xfer += $input->readI64($elem1576);
+              $this->records []= $elem1576;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -43519,9 +46414,9 @@ class ConcourseService_pingRecords_args {
       {
         $output->writeListBegin(TType::I64, count($this->records));
         {
-          foreach ($this->records as $iter1439)
+          foreach ($this->records as $iter1577)
           {
-            $xfer += $output->writeI64($iter1439);
+            $xfer += $output->writeI64($iter1577);
           }
         }
         $output->writeListEnd();
@@ -43634,17 +46529,17 @@ class ConcourseService_pingRecords_result {
         case 0:
           if ($ftype == TType::MAP) {
             $this->success = array();
-            $_size1440 = 0;
-            $_ktype1441 = 0;
-            $_vtype1442 = 0;
-            $xfer += $input->readMapBegin($_ktype1441, $_vtype1442, $_size1440);
-            for ($_i1444 = 0; $_i1444 < $_size1440; ++$_i1444)
+            $_size1578 = 0;
+            $_ktype1579 = 0;
+            $_vtype1580 = 0;
+            $xfer += $input->readMapBegin($_ktype1579, $_vtype1580, $_size1578);
+            for ($_i1582 = 0; $_i1582 < $_size1578; ++$_i1582)
             {
-              $key1445 = 0;
-              $val1446 = false;
-              $xfer += $input->readI64($key1445);
-              $xfer += $input->readBool($val1446);
-              $this->success[$key1445] = $val1446;
+              $key1583 = 0;
+              $val1584 = false;
+              $xfer += $input->readI64($key1583);
+              $xfer += $input->readBool($val1584);
+              $this->success[$key1583] = $val1584;
             }
             $xfer += $input->readMapEnd();
           } else {
@@ -43688,10 +46583,10 @@ class ConcourseService_pingRecords_result {
       {
         $output->writeMapBegin(TType::I64, TType::BOOL, count($this->success));
         {
-          foreach ($this->success as $kiter1447 => $viter1448)
+          foreach ($this->success as $kiter1585 => $viter1586)
           {
-            $xfer += $output->writeI64($kiter1447);
-            $xfer += $output->writeBool($viter1448);
+            $xfer += $output->writeI64($kiter1585);
+            $xfer += $output->writeBool($viter1586);
           }
         }
         $output->writeMapEnd();

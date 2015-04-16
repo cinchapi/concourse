@@ -1142,6 +1142,77 @@ class Iface:
     """
     pass
 
+  def diffRecordStart(self, record, start, creds, transaction, environment):
+    """
+    Parameters:
+     - record
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def diffRecordStartEnd(self, record, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - record
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def diffKeyRecordStart(self, key, record, start, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - record
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def diffKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - record
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def diffKeyStart(self, key, start, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
+  def diffKeyStartEnd(self, key, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    pass
+
   def revertKeysRecordsTime(self, keys, records, timestamp, creds, transaction, environment):
     """
     Parameters:
@@ -5426,6 +5497,274 @@ class Client(Iface):
       raise result.ex2
     raise TApplicationException(TApplicationException.MISSING_RESULT, "chronologizeKeyRecordStartEnd failed: unknown result");
 
+  def diffRecordStart(self, record, start, creds, transaction, environment):
+    """
+    Parameters:
+     - record
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffRecordStart(record, start, creds, transaction, environment)
+    return self.recv_diffRecordStart()
+
+  def send_diffRecordStart(self, record, start, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffRecordStart', TMessageType.CALL, self._seqid)
+    args = diffRecordStart_args()
+    args.record = record
+    args.start = start
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffRecordStart(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffRecordStart_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffRecordStart failed: unknown result");
+
+  def diffRecordStartEnd(self, record, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - record
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffRecordStartEnd(record, start, tend, creds, transaction, environment)
+    return self.recv_diffRecordStartEnd()
+
+  def send_diffRecordStartEnd(self, record, start, tend, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffRecordStartEnd', TMessageType.CALL, self._seqid)
+    args = diffRecordStartEnd_args()
+    args.record = record
+    args.start = start
+    args.tend = tend
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffRecordStartEnd(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffRecordStartEnd_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffRecordStartEnd failed: unknown result");
+
+  def diffKeyRecordStart(self, key, record, start, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - record
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffKeyRecordStart(key, record, start, creds, transaction, environment)
+    return self.recv_diffKeyRecordStart()
+
+  def send_diffKeyRecordStart(self, key, record, start, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffKeyRecordStart', TMessageType.CALL, self._seqid)
+    args = diffKeyRecordStart_args()
+    args.key = key
+    args.record = record
+    args.start = start
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffKeyRecordStart(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffKeyRecordStart_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyRecordStart failed: unknown result");
+
+  def diffKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - record
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
+    return self.recv_diffKeyRecordStartEnd()
+
+  def send_diffKeyRecordStartEnd(self, key, record, start, tend, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffKeyRecordStartEnd', TMessageType.CALL, self._seqid)
+    args = diffKeyRecordStartEnd_args()
+    args.key = key
+    args.record = record
+    args.start = start
+    args.tend = tend
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffKeyRecordStartEnd(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffKeyRecordStartEnd_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyRecordStartEnd failed: unknown result");
+
+  def diffKeyStart(self, key, start, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - start
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffKeyStart(key, start, creds, transaction, environment)
+    return self.recv_diffKeyStart()
+
+  def send_diffKeyStart(self, key, start, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffKeyStart', TMessageType.CALL, self._seqid)
+    args = diffKeyStart_args()
+    args.key = key
+    args.start = start
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffKeyStart(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffKeyStart_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyStart failed: unknown result");
+
+  def diffKeyStartEnd(self, key, start, tend, creds, transaction, environment):
+    """
+    Parameters:
+     - key
+     - start
+     - tend
+     - creds
+     - transaction
+     - environment
+    """
+    self.send_diffKeyStartEnd(key, start, tend, creds, transaction, environment)
+    return self.recv_diffKeyStartEnd()
+
+  def send_diffKeyStartEnd(self, key, start, tend, creds, transaction, environment):
+    self._oprot.writeMessageBegin('diffKeyStartEnd', TMessageType.CALL, self._seqid)
+    args = diffKeyStartEnd_args()
+    args.key = key
+    args.start = start
+    args.tend = tend
+    args.creds = creds
+    args.transaction = transaction
+    args.environment = environment
+    args.write(self._oprot)
+    self._oprot.writeMessageEnd()
+    self._oprot.trans.flush()
+
+  def recv_diffKeyStartEnd(self):
+    iprot = self._iprot
+    (fname, mtype, rseqid) = iprot.readMessageBegin()
+    if mtype == TMessageType.EXCEPTION:
+      x = TApplicationException()
+      x.read(iprot)
+      iprot.readMessageEnd()
+      raise x
+    result = diffKeyStartEnd_result()
+    result.read(iprot)
+    iprot.readMessageEnd()
+    if result.success is not None:
+      return result.success
+    if result.ex is not None:
+      raise result.ex
+    if result.ex2 is not None:
+      raise result.ex2
+    raise TApplicationException(TApplicationException.MISSING_RESULT, "diffKeyStartEnd failed: unknown result");
+
   def revertKeysRecordsTime(self, keys, records, timestamp, creds, transaction, environment):
     """
     Parameters:
@@ -5939,6 +6278,12 @@ class Processor(Iface, TProcessor):
     self._processMap["chronologizeKeyRecord"] = Processor.process_chronologizeKeyRecord
     self._processMap["chronologizeKeyRecordStart"] = Processor.process_chronologizeKeyRecordStart
     self._processMap["chronologizeKeyRecordStartEnd"] = Processor.process_chronologizeKeyRecordStartEnd
+    self._processMap["diffRecordStart"] = Processor.process_diffRecordStart
+    self._processMap["diffRecordStartEnd"] = Processor.process_diffRecordStartEnd
+    self._processMap["diffKeyRecordStart"] = Processor.process_diffKeyRecordStart
+    self._processMap["diffKeyRecordStartEnd"] = Processor.process_diffKeyRecordStartEnd
+    self._processMap["diffKeyStart"] = Processor.process_diffKeyStart
+    self._processMap["diffKeyStartEnd"] = Processor.process_diffKeyStartEnd
     self._processMap["revertKeysRecordsTime"] = Processor.process_revertKeysRecordsTime
     self._processMap["revertKeysRecordTime"] = Processor.process_revertKeysRecordTime
     self._processMap["revertKeyRecordsTime"] = Processor.process_revertKeyRecordsTime
@@ -7499,6 +7844,102 @@ class Processor(Iface, TProcessor):
     except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
       result.ex2 = ex2
     oprot.writeMessageBegin("chronologizeKeyRecordStartEnd", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffRecordStart(self, seqid, iprot, oprot):
+    args = diffRecordStart_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffRecordStart_result()
+    try:
+      result.success = self._handler.diffRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffRecordStart", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffRecordStartEnd(self, seqid, iprot, oprot):
+    args = diffRecordStartEnd_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffRecordStartEnd_result()
+    try:
+      result.success = self._handler.diffRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffRecordStartEnd", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffKeyRecordStart(self, seqid, iprot, oprot):
+    args = diffKeyRecordStart_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffKeyRecordStart_result()
+    try:
+      result.success = self._handler.diffKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffKeyRecordStart", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffKeyRecordStartEnd(self, seqid, iprot, oprot):
+    args = diffKeyRecordStartEnd_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffKeyRecordStartEnd_result()
+    try:
+      result.success = self._handler.diffKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffKeyRecordStartEnd", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffKeyStart(self, seqid, iprot, oprot):
+    args = diffKeyStart_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffKeyStart_result()
+    try:
+      result.success = self._handler.diffKeyStart(args.key, args.start, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffKeyStart", TMessageType.REPLY, seqid)
+    result.write(oprot)
+    oprot.writeMessageEnd()
+    oprot.trans.flush()
+
+  def process_diffKeyStartEnd(self, seqid, iprot, oprot):
+    args = diffKeyStartEnd_args()
+    args.read(iprot)
+    iprot.readMessageEnd()
+    result = diffKeyStartEnd_result()
+    try:
+      result.success = self._handler.diffKeyStartEnd(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
+    except concourse.thriftapi.shared.ttypes.TSecurityException, ex:
+      result.ex = ex
+    except concourse.thriftapi.shared.ttypes.TTransactionException, ex2:
+      result.ex2 = ex2
+    oprot.writeMessageBegin("diffKeyStartEnd", TMessageType.REPLY, seqid)
     result.write(oprot)
     oprot.writeMessageEnd()
     oprot.trans.flush()
@@ -29442,6 +29883,1491 @@ class chronologizeKeyRecordStartEnd_result:
   def __ne__(self, other):
     return not (self == other)
 
+class diffRecordStart_args:
+  """
+  Attributes:
+   - record
+   - start
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.I64, 'record', None, None, ), # 1
+    (2, TType.I64, 'start', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, record=None, start=None, creds=None, transaction=None, environment=None,):
+    self.record = record
+    self.start = start
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.I64:
+          self.record = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffRecordStart_args')
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 1)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 2)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffRecordStart_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1362, _vtype1363, _size1361 ) = iprot.readMapBegin()
+          for _i1365 in xrange(_size1361):
+            _key1366 = iprot.readString();
+            _val1367 = {}
+            (_ktype1369, _vtype1370, _size1368 ) = iprot.readMapBegin()
+            for _i1372 in xrange(_size1368):
+              _key1373 = iprot.readI32();
+              _val1374 = set()
+              (_etype1378, _size1375) = iprot.readSetBegin()
+              for _i1379 in xrange(_size1375):
+                _elem1380 = concourse.thriftapi.data.ttypes.TObject()
+                _elem1380.read(iprot)
+                _val1374.add(_elem1380)
+              iprot.readSetEnd()
+              _val1367[_key1373] = _val1374
+            iprot.readMapEnd()
+            self.success[_key1366] = _val1367
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffRecordStart_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
+      for kiter1381,viter1382 in self.success.items():
+        oprot.writeString(kiter1381)
+        oprot.writeMapBegin(TType.I32, TType.SET, len(viter1382))
+        for kiter1383,viter1384 in viter1382.items():
+          oprot.writeI32(kiter1383)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1384))
+          for iter1385 in viter1384:
+            iter1385.write(oprot)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffRecordStartEnd_args:
+  """
+  Attributes:
+   - record
+   - start
+   - tend
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.I64, 'record', None, None, ), # 1
+    (2, TType.I64, 'start', None, None, ), # 2
+    (3, TType.I64, 'tend', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, record=None, start=None, tend=None, creds=None, transaction=None, environment=None,):
+    self.record = record
+    self.start = start
+    self.tend = tend
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.I64:
+          self.record = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.tend = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffRecordStartEnd_args')
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 1)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 2)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.tend is not None:
+      oprot.writeFieldBegin('tend', TType.I64, 3)
+      oprot.writeI64(self.tend)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.tend)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffRecordStartEnd_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.STRING,None,TType.MAP,(TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec)))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1387, _vtype1388, _size1386 ) = iprot.readMapBegin()
+          for _i1390 in xrange(_size1386):
+            _key1391 = iprot.readString();
+            _val1392 = {}
+            (_ktype1394, _vtype1395, _size1393 ) = iprot.readMapBegin()
+            for _i1397 in xrange(_size1393):
+              _key1398 = iprot.readI32();
+              _val1399 = set()
+              (_etype1403, _size1400) = iprot.readSetBegin()
+              for _i1404 in xrange(_size1400):
+                _elem1405 = concourse.thriftapi.data.ttypes.TObject()
+                _elem1405.read(iprot)
+                _val1399.add(_elem1405)
+              iprot.readSetEnd()
+              _val1392[_key1398] = _val1399
+            iprot.readMapEnd()
+            self.success[_key1391] = _val1392
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffRecordStartEnd_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.STRING, TType.MAP, len(self.success))
+      for kiter1406,viter1407 in self.success.items():
+        oprot.writeString(kiter1406)
+        oprot.writeMapBegin(TType.I32, TType.SET, len(viter1407))
+        for kiter1408,viter1409 in viter1407.items():
+          oprot.writeI32(kiter1408)
+          oprot.writeSetBegin(TType.STRUCT, len(viter1409))
+          for iter1410 in viter1409:
+            iter1410.write(oprot)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyRecordStart_args:
+  """
+  Attributes:
+   - key
+   - record
+   - start
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.I64, 'record', None, None, ), # 2
+    (3, TType.I64, 'start', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, record=None, start=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.record = record
+    self.start = start
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.record = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyRecordStart_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 2)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 3)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyRecordStart_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1412, _vtype1413, _size1411 ) = iprot.readMapBegin()
+          for _i1415 in xrange(_size1411):
+            _key1416 = iprot.readI32();
+            _val1417 = set()
+            (_etype1421, _size1418) = iprot.readSetBegin()
+            for _i1422 in xrange(_size1418):
+              _elem1423 = concourse.thriftapi.data.ttypes.TObject()
+              _elem1423.read(iprot)
+              _val1417.add(_elem1423)
+            iprot.readSetEnd()
+            self.success[_key1416] = _val1417
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyRecordStart_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
+      for kiter1424,viter1425 in self.success.items():
+        oprot.writeI32(kiter1424)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1425))
+        for iter1426 in viter1425:
+          iter1426.write(oprot)
+        oprot.writeSetEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyRecordStartEnd_args:
+  """
+  Attributes:
+   - key
+   - record
+   - start
+   - tend
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.I64, 'record', None, None, ), # 2
+    (3, TType.I64, 'start', None, None, ), # 3
+    (4, TType.I64, 'tend', None, None, ), # 4
+    (5, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 5
+    (6, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 6
+    (7, TType.STRING, 'environment', None, None, ), # 7
+  )
+
+  def __init__(self, key=None, record=None, start=None, tend=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.record = record
+    self.start = start
+    self.tend = tend
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.record = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I64:
+          self.tend = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 7:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyRecordStartEnd_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.record is not None:
+      oprot.writeFieldBegin('record', TType.I64, 2)
+      oprot.writeI64(self.record)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 3)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.tend is not None:
+      oprot.writeFieldBegin('tend', TType.I64, 4)
+      oprot.writeI64(self.tend)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 5)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 6)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 7)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.record)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.tend)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyRecordStartEnd_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.I32,None,TType.SET,(TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1428, _vtype1429, _size1427 ) = iprot.readMapBegin()
+          for _i1431 in xrange(_size1427):
+            _key1432 = iprot.readI32();
+            _val1433 = set()
+            (_etype1437, _size1434) = iprot.readSetBegin()
+            for _i1438 in xrange(_size1434):
+              _elem1439 = concourse.thriftapi.data.ttypes.TObject()
+              _elem1439.read(iprot)
+              _val1433.add(_elem1439)
+            iprot.readSetEnd()
+            self.success[_key1432] = _val1433
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyRecordStartEnd_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.I32, TType.SET, len(self.success))
+      for kiter1440,viter1441 in self.success.items():
+        oprot.writeI32(kiter1440)
+        oprot.writeSetBegin(TType.STRUCT, len(viter1441))
+        for iter1442 in viter1441:
+          iter1442.write(oprot)
+        oprot.writeSetEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyStart_args:
+  """
+  Attributes:
+   - key
+   - start
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.I64, 'start', None, None, ), # 2
+    (3, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 3
+    (4, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 4
+    (5, TType.STRING, 'environment', None, None, ), # 5
+  )
+
+  def __init__(self, key=None, start=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.start = start
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyStart_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 2)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 3)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 4)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 5)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyStart_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1444, _vtype1445, _size1443 ) = iprot.readMapBegin()
+          for _i1447 in xrange(_size1443):
+            _key1448 = concourse.thriftapi.data.ttypes.TObject()
+            _key1448.read(iprot)
+            _val1449 = {}
+            (_ktype1451, _vtype1452, _size1450 ) = iprot.readMapBegin()
+            for _i1454 in xrange(_size1450):
+              _key1455 = iprot.readI32();
+              _val1456 = set()
+              (_etype1460, _size1457) = iprot.readSetBegin()
+              for _i1461 in xrange(_size1457):
+                _elem1462 = iprot.readI64();
+                _val1456.add(_elem1462)
+              iprot.readSetEnd()
+              _val1449[_key1455] = _val1456
+            iprot.readMapEnd()
+            self.success[_key1448] = _val1449
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyStart_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
+      for kiter1463,viter1464 in self.success.items():
+        kiter1463.write(oprot)
+        oprot.writeMapBegin(TType.I32, TType.SET, len(viter1464))
+        for kiter1465,viter1466 in viter1464.items():
+          oprot.writeI32(kiter1465)
+          oprot.writeSetBegin(TType.I64, len(viter1466))
+          for iter1467 in viter1466:
+            oprot.writeI64(iter1467)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyStartEnd_args:
+  """
+  Attributes:
+   - key
+   - start
+   - tend
+   - creds
+   - transaction
+   - environment
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.STRING, 'key', None, None, ), # 1
+    (2, TType.I64, 'start', None, None, ), # 2
+    (3, TType.I64, 'tend', None, None, ), # 3
+    (4, TType.STRUCT, 'creds', (concourse.thriftapi.shared.ttypes.AccessToken, concourse.thriftapi.shared.ttypes.AccessToken.thrift_spec), None, ), # 4
+    (5, TType.STRUCT, 'transaction', (concourse.thriftapi.shared.ttypes.TransactionToken, concourse.thriftapi.shared.ttypes.TransactionToken.thrift_spec), None, ), # 5
+    (6, TType.STRING, 'environment', None, None, ), # 6
+  )
+
+  def __init__(self, key=None, start=None, tend=None, creds=None, transaction=None, environment=None,):
+    self.key = key
+    self.start = start
+    self.tend = tend
+    self.creds = creds
+    self.transaction = transaction
+    self.environment = environment
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.STRING:
+          self.key = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I64:
+          self.start = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I64:
+          self.tend = iprot.readI64();
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.STRUCT:
+          self.creds = concourse.thriftapi.shared.ttypes.AccessToken()
+          self.creds.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.transaction = concourse.thriftapi.shared.ttypes.TransactionToken()
+          self.transaction.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.STRING:
+          self.environment = iprot.readString();
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyStartEnd_args')
+    if self.key is not None:
+      oprot.writeFieldBegin('key', TType.STRING, 1)
+      oprot.writeString(self.key)
+      oprot.writeFieldEnd()
+    if self.start is not None:
+      oprot.writeFieldBegin('start', TType.I64, 2)
+      oprot.writeI64(self.start)
+      oprot.writeFieldEnd()
+    if self.tend is not None:
+      oprot.writeFieldBegin('tend', TType.I64, 3)
+      oprot.writeI64(self.tend)
+      oprot.writeFieldEnd()
+    if self.creds is not None:
+      oprot.writeFieldBegin('creds', TType.STRUCT, 4)
+      self.creds.write(oprot)
+      oprot.writeFieldEnd()
+    if self.transaction is not None:
+      oprot.writeFieldBegin('transaction', TType.STRUCT, 5)
+      self.transaction.write(oprot)
+      oprot.writeFieldEnd()
+    if self.environment is not None:
+      oprot.writeFieldBegin('environment', TType.STRING, 6)
+      oprot.writeString(self.environment)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.key)
+    value = (value * 31) ^ hash(self.start)
+    value = (value * 31) ^ hash(self.tend)
+    value = (value * 31) ^ hash(self.creds)
+    value = (value * 31) ^ hash(self.transaction)
+    value = (value * 31) ^ hash(self.environment)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
+class diffKeyStartEnd_result:
+  """
+  Attributes:
+   - success
+   - ex
+   - ex2
+  """
+
+  thrift_spec = (
+    (0, TType.MAP, 'success', (TType.STRUCT,(concourse.thriftapi.data.ttypes.TObject, concourse.thriftapi.data.ttypes.TObject.thrift_spec),TType.MAP,(TType.I32,None,TType.SET,(TType.I64,None))), None, ), # 0
+    (1, TType.STRUCT, 'ex', (concourse.thriftapi.shared.ttypes.TSecurityException, concourse.thriftapi.shared.ttypes.TSecurityException.thrift_spec), None, ), # 1
+    (2, TType.STRUCT, 'ex2', (concourse.thriftapi.shared.ttypes.TTransactionException, concourse.thriftapi.shared.ttypes.TTransactionException.thrift_spec), None, ), # 2
+  )
+
+  def __init__(self, success=None, ex=None, ex2=None,):
+    self.success = success
+    self.ex = ex
+    self.ex2 = ex2
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 0:
+        if ftype == TType.MAP:
+          self.success = {}
+          (_ktype1469, _vtype1470, _size1468 ) = iprot.readMapBegin()
+          for _i1472 in xrange(_size1468):
+            _key1473 = concourse.thriftapi.data.ttypes.TObject()
+            _key1473.read(iprot)
+            _val1474 = {}
+            (_ktype1476, _vtype1477, _size1475 ) = iprot.readMapBegin()
+            for _i1479 in xrange(_size1475):
+              _key1480 = iprot.readI32();
+              _val1481 = set()
+              (_etype1485, _size1482) = iprot.readSetBegin()
+              for _i1486 in xrange(_size1482):
+                _elem1487 = iprot.readI64();
+                _val1481.add(_elem1487)
+              iprot.readSetEnd()
+              _val1474[_key1480] = _val1481
+            iprot.readMapEnd()
+            self.success[_key1473] = _val1474
+          iprot.readMapEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 1:
+        if ftype == TType.STRUCT:
+          self.ex = concourse.thriftapi.shared.ttypes.TSecurityException()
+          self.ex.read(iprot)
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.STRUCT:
+          self.ex2 = concourse.thriftapi.shared.ttypes.TTransactionException()
+          self.ex2.read(iprot)
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('diffKeyStartEnd_result')
+    if self.success is not None:
+      oprot.writeFieldBegin('success', TType.MAP, 0)
+      oprot.writeMapBegin(TType.STRUCT, TType.MAP, len(self.success))
+      for kiter1488,viter1489 in self.success.items():
+        kiter1488.write(oprot)
+        oprot.writeMapBegin(TType.I32, TType.SET, len(viter1489))
+        for kiter1490,viter1491 in viter1489.items():
+          oprot.writeI32(kiter1490)
+          oprot.writeSetBegin(TType.I64, len(viter1491))
+          for iter1492 in viter1491:
+            oprot.writeI64(iter1492)
+          oprot.writeSetEnd()
+        oprot.writeMapEnd()
+      oprot.writeMapEnd()
+      oprot.writeFieldEnd()
+    if self.ex is not None:
+      oprot.writeFieldBegin('ex', TType.STRUCT, 1)
+      self.ex.write(oprot)
+      oprot.writeFieldEnd()
+    if self.ex2 is not None:
+      oprot.writeFieldBegin('ex2', TType.STRUCT, 2)
+      self.ex2.write(oprot)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.success)
+    value = (value * 31) ^ hash(self.ex)
+    value = (value * 31) ^ hash(self.ex2)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class revertKeysRecordsTime_args:
   """
   Attributes:
@@ -29483,20 +31409,20 @@ class revertKeysRecordsTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1364, _size1361) = iprot.readListBegin()
-          for _i1365 in xrange(_size1361):
-            _elem1366 = iprot.readString();
-            self.keys.append(_elem1366)
+          (_etype1496, _size1493) = iprot.readListBegin()
+          for _i1497 in xrange(_size1493):
+            _elem1498 = iprot.readString();
+            self.keys.append(_elem1498)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1370, _size1367) = iprot.readListBegin()
-          for _i1371 in xrange(_size1367):
-            _elem1372 = iprot.readI64();
-            self.records.append(_elem1372)
+          (_etype1502, _size1499) = iprot.readListBegin()
+          for _i1503 in xrange(_size1499):
+            _elem1504 = iprot.readI64();
+            self.records.append(_elem1504)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -29535,15 +31461,15 @@ class revertKeysRecordsTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1373 in self.keys:
-        oprot.writeString(iter1373)
+      for iter1505 in self.keys:
+        oprot.writeString(iter1505)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1374 in self.records:
-        oprot.writeI64(iter1374)
+      for iter1506 in self.records:
+        oprot.writeI64(iter1506)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -29711,10 +31637,10 @@ class revertKeysRecordTime_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.keys = []
-          (_etype1378, _size1375) = iprot.readListBegin()
-          for _i1379 in xrange(_size1375):
-            _elem1380 = iprot.readString();
-            self.keys.append(_elem1380)
+          (_etype1510, _size1507) = iprot.readListBegin()
+          for _i1511 in xrange(_size1507):
+            _elem1512 = iprot.readString();
+            self.keys.append(_elem1512)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -29758,8 +31684,8 @@ class revertKeysRecordTime_args:
     if self.keys is not None:
       oprot.writeFieldBegin('keys', TType.LIST, 1)
       oprot.writeListBegin(TType.STRING, len(self.keys))
-      for iter1381 in self.keys:
-        oprot.writeString(iter1381)
+      for iter1513 in self.keys:
+        oprot.writeString(iter1513)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.record is not None:
@@ -29936,10 +31862,10 @@ class revertKeyRecordsTime_args:
       elif fid == 2:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1385, _size1382) = iprot.readListBegin()
-          for _i1386 in xrange(_size1382):
-            _elem1387 = iprot.readI64();
-            self.records.append(_elem1387)
+          (_etype1517, _size1514) = iprot.readListBegin()
+          for _i1518 in xrange(_size1514):
+            _elem1519 = iprot.readI64();
+            self.records.append(_elem1519)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -29982,8 +31908,8 @@ class revertKeyRecordsTime_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 2)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1388 in self.records:
-        oprot.writeI64(iter1388)
+      for iter1520 in self.records:
+        oprot.writeI64(iter1520)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.timestamp is not None:
@@ -30357,10 +32283,10 @@ class pingRecords_args:
       if fid == 1:
         if ftype == TType.LIST:
           self.records = []
-          (_etype1392, _size1389) = iprot.readListBegin()
-          for _i1393 in xrange(_size1389):
-            _elem1394 = iprot.readI64();
-            self.records.append(_elem1394)
+          (_etype1524, _size1521) = iprot.readListBegin()
+          for _i1525 in xrange(_size1521):
+            _elem1526 = iprot.readI64();
+            self.records.append(_elem1526)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -30394,8 +32320,8 @@ class pingRecords_args:
     if self.records is not None:
       oprot.writeFieldBegin('records', TType.LIST, 1)
       oprot.writeListBegin(TType.I64, len(self.records))
-      for iter1395 in self.records:
-        oprot.writeI64(iter1395)
+      for iter1527 in self.records:
+        oprot.writeI64(iter1527)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     if self.creds is not None:
@@ -30467,11 +32393,11 @@ class pingRecords_result:
       if fid == 0:
         if ftype == TType.MAP:
           self.success = {}
-          (_ktype1397, _vtype1398, _size1396 ) = iprot.readMapBegin()
-          for _i1400 in xrange(_size1396):
-            _key1401 = iprot.readI64();
-            _val1402 = iprot.readBool();
-            self.success[_key1401] = _val1402
+          (_ktype1529, _vtype1530, _size1528 ) = iprot.readMapBegin()
+          for _i1532 in xrange(_size1528):
+            _key1533 = iprot.readI64();
+            _val1534 = iprot.readBool();
+            self.success[_key1533] = _val1534
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -30500,9 +32426,9 @@ class pingRecords_result:
     if self.success is not None:
       oprot.writeFieldBegin('success', TType.MAP, 0)
       oprot.writeMapBegin(TType.I64, TType.BOOL, len(self.success))
-      for kiter1403,viter1404 in self.success.items():
-        oprot.writeI64(kiter1403)
-        oprot.writeBool(viter1404)
+      for kiter1535,viter1536 in self.success.items():
+        oprot.writeI64(kiter1535)
+        oprot.writeBool(viter1536)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.ex is not None:
