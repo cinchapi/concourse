@@ -214,6 +214,13 @@ public final class GlobalState extends Constants {
 
             ENABLE_CONSOLE_LOGGING = config.getBoolean(
                     "enable_console_logging", ENABLE_CONSOLE_LOGGING);
+            if(!ENABLE_CONSOLE_LOGGING) {
+                ENABLE_CONSOLE_LOGGING = Boolean
+                        .parseBoolean(System
+                                .getProperty(
+                                        "org.cinchapi.concourse.server.logging.console",
+                                        "false"));
+            }
 
             DEFAULT_ENVIRONMENT = config.getString("default_environment",
                     DEFAULT_ENVIRONMENT);

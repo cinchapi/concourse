@@ -325,6 +325,9 @@ console(){
   pid=`getpid`
   if [ "X$pid" = "X" ]
     then
+    JVMOPTS=$JVMOPTS"
+    -Dorg.cinchapi.concourse.server.logging.console=true
+    "
     echo "Running Concourse Server..."
     exec $JAVA $JVMOPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@"
   else
