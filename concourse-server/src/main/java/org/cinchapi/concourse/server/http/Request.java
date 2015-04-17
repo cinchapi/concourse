@@ -15,9 +15,9 @@
  */
 package org.cinchapi.concourse.server.http;
 
-import org.cinchapi.vendor.spark.HaltException;
-import org.cinchapi.vendor.spark.Response;
-import org.cinchapi.vendor.spark.Route;
+import spark.HaltException;
+import spark.Response;
+import spark.Route;
 
 import com.google.common.base.Strings;
 import com.google.gson.JsonElement;
@@ -70,7 +70,7 @@ public abstract class Request extends Route implements Rewritable {
     /**
      * The associated request.
      */
-    private org.cinchapi.vendor.spark.Request request;
+    private spark.Request request;
 
     /**
      * The associated response.
@@ -94,7 +94,7 @@ public abstract class Request extends Route implements Rewritable {
     }
 
     @Override
-    public final Object handle(org.cinchapi.vendor.spark.Request request, org.cinchapi.vendor.spark.Response response) {
+    public final Object handle(spark.Request request, spark.Response response) {
         this.request = request;
         this.response = response;
         JsonObject json = new JsonObject();

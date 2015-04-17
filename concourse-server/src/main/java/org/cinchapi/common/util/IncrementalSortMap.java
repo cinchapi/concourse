@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.cinchapi.vendor.jsr166e.StampedLock;
+import jsr166e.StampedLock;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;

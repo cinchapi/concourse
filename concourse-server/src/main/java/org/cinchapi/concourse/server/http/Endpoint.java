@@ -17,7 +17,8 @@ package org.cinchapi.concourse.server.http;
 
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.util.Logger;
-import org.cinchapi.vendor.spark.HaltException;
+
+import spark.HaltException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;

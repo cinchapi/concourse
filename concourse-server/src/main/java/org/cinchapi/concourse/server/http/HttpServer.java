@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.Reflection;
-import org.cinchapi.vendor.spark.Spark;
 import org.reflections.Reflections;
 import org.slf4j.LoggerFactory;
 
+import spark.Spark;
 import ch.qos.logback.classic.Level;
 
 import com.google.common.base.Throwables;

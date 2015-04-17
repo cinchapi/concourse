@@ -23,10 +23,11 @@ import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import jsr166e.StampedLock;
+
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.util.Integers;
 import org.cinchapi.concourse.util.LongBitSet;
-import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.collect.Lists;
 

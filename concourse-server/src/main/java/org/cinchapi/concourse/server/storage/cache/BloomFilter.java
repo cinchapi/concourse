@@ -26,12 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import jsr166e.StampedLock;
+
 import org.cinchapi.concourse.server.io.Byteable;
 import org.cinchapi.concourse.server.io.Composite;
 import org.cinchapi.concourse.server.io.FileSystem;
 import org.cinchapi.concourse.server.io.Serializables;
 import org.cinchapi.concourse.server.io.Syncable;
-import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

@@ -26,6 +26,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import jsr166e.StampedLock;
+
 import org.cinchapi.concourse.Timestamp;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.io.FileSystem;
@@ -34,7 +36,6 @@ import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.time.Time;
 import org.cinchapi.concourse.util.ByteBuffers;
 import org.cinchapi.concourse.util.TStrings;
-import org.cinchapi.vendor.jsr166e.StampedLock;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.DateTimeFormatterBuilder;
 

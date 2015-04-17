@@ -23,13 +23,13 @@ import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TransactionToken;
 import org.cinchapi.concourse.util.ObjectUtils;
-import org.cinchapi.vendor.spark.Request;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
-import org.cinchapi.vendor.spark.Response;
+import spark.Request;
+import spark.Response;
 
 /**
  * The base class for routes that desire abstract request/response boilerplate

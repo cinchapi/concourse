@@ -17,14 +17,13 @@ package org.cinchapi.concourse.server.http;
 
 import java.lang.reflect.Field;
 
-import org.cinchapi.vendor.spark.Request;
-import org.cinchapi.vendor.spark.template.MustacheTemplateRoute;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
-import org.cinchapi.vendor.spark.Response;
+import spark.Request;
+import spark.Response;
+import spark.template.MustacheTemplateRoute;
 
 /**
  * A {@link RewritableRoute} is one that can have its path altered in certain

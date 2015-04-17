@@ -18,7 +18,7 @@ package org.cinchapi.concourse.server.concurrent;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import org.cinchapi.vendor.jsr166e.ConcurrentHashMapV8;
+import jsr166e.ConcurrentHashMapV8;
 
 /**
  * A global service that provides ReadLock and WriteLock instances for a given

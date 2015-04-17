@@ -18,10 +18,11 @@ package org.cinchapi.concourse.server.http;
 import com.google.common.base.CaseFormat;
 
 import org.cinchapi.concourse.server.ConcourseServer;
-import org.cinchapi.vendor.spark.Filter;
-import org.cinchapi.vendor.spark.Request;
-import org.cinchapi.vendor.spark.Response;
-import org.cinchapi.vendor.spark.Spark;
+
+import spark.Filter;
+import spark.Request;
+import spark.Response;
+import spark.Spark;
 
 /**
  * A {@link Router} is responsible for defining accessible routes and serving

@@ -34,6 +34,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import jsr166e.StampedLock;
+
 import org.cinchapi.concourse.Tag;
 import org.cinchapi.concourse.annotate.Restricted;
 import org.cinchapi.concourse.server.GlobalState;
@@ -60,7 +62,6 @@ import org.cinchapi.concourse.util.Logger;
 import org.cinchapi.concourse.util.MultimapViews;
 import org.cinchapi.concourse.util.NaturalSorter;
 import org.cinchapi.concourse.util.TMaps;
-import org.cinchapi.vendor.jsr166e.StampedLock;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
