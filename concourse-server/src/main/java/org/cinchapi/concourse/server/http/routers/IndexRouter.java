@@ -26,6 +26,7 @@ import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Endpoint;
 import org.cinchapi.concourse.server.http.HttpRequests;
 import org.cinchapi.concourse.server.http.Router;
+import org.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import org.cinchapi.concourse.thrift.AccessToken;
 import org.cinchapi.concourse.thrift.TObject;
 import org.cinchapi.concourse.thrift.TransactionToken;
@@ -97,8 +98,10 @@ public class IndexRouter extends Router {
             @Override
             protected JsonElement serve() throws Exception {
                 JsonElement body = this.request.bodyAsJson();
-                if(body.isJsonObject()) {
-                    JsonObject creds = (JsonObject) body;
+                JsonObject creds;
+                if(body.isJsonObject()
+                        && (creds = (JsonObject) body).has("username")
+                        && creds.has("password")) {
                     ByteBuffer username = ByteBuffers.fromString(creds.get(
                             "username").getAsString());
                     ByteBuffer password = ByteBuffers.fromString(creds.get(
@@ -117,9 +120,7 @@ public class IndexRouter extends Router {
                     return response;
                 }
                 else {
-                    throw new IllegalArgumentException(
-                            "Please specify username/password credentials "
-                                    + "in a JSON object");
+                    throw BadLoginSyntaxError.INSTANCE;
                 }
             }
 

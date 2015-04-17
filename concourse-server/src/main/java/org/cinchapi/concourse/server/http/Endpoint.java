@@ -15,6 +15,7 @@
  */
 package org.cinchapi.concourse.server.http;
 
+import org.cinchapi.concourse.server.http.errors.HttpError;
 import org.cinchapi.concourse.thrift.TSecurityException;
 import org.cinchapi.concourse.util.Logger;
 
@@ -58,7 +59,10 @@ public abstract class Endpoint extends BaseRewritableRoute {
             throw e;
         }
         catch (Exception e) {
-            if(e instanceof TSecurityException
+            if(e instanceof HttpError) {
+                response.status(((HttpError) e).getCode());
+            }
+            else if(e instanceof TSecurityException
                     || e instanceof SecurityException) {
                 response.status(401);
                 // TODO remove auth token cookie
