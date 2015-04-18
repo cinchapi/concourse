@@ -476,6 +476,10 @@ case "$1" in
   echo "Copyright (c) 2015 Cinchapi, Inc."
   ;;
 
+  '')
+  start "$@"
+  ;;
+  
   *)
   usage "$@"
   ;;
