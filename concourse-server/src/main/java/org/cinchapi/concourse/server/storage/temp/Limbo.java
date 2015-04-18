@@ -200,6 +200,17 @@ public abstract class Limbo extends BaseStore implements Iterable<Write> {
                 .filterValues(context, emptySetFilter));
     }
 
+    @Override
+    public boolean contains(long record) {
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Calculate the description for {@code record} using prior {@code context}
      * as if it were also a part of the Buffer.

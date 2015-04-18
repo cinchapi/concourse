@@ -143,6 +143,11 @@ public abstract class BufferedStore extends BaseStore {
         return buffer.browse(key, timestamp, context);
     }
 
+    @Override
+    public boolean contains(long record) {
+        return destination.contains(record) || buffer.contains(record);
+    }
+
     /**
      * Remove {@code key} as {@code value} from {@code record}.
      * <p>

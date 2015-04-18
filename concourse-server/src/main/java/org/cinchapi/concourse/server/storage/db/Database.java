@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,8 +76,7 @@ import static org.cinchapi.concourse.server.GlobalState.*;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Database extends BaseStore implements
-        PermanentStore {
+public final class Database extends BaseStore implements PermanentStore {
 
     /**
      * Return a cache for records of type {@code T}.
@@ -149,9 +148,6 @@ public final class Database extends BaseStore implements
      * record.
      */
     private final transient List<PrimaryBlock> cpb = Lists.newArrayList();
-    private final transient List<SearchBlock> ctb = Lists.newArrayList();
-    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
-
     /*
      * CURRENT BLOCK POINTERS
      * ----------------------
@@ -159,8 +155,6 @@ public final class Database extends BaseStore implements
      * whenever the database triggers a sync operation.
      */
     private transient PrimaryBlock cpb0;
-    private transient SecondaryBlock csb0;
-    private transient SearchBlock ctb0;
     /*
      * RECORD CACHES
      * -------------
@@ -170,12 +164,13 @@ public final class Database extends BaseStore implements
      * stale.
      */
     private final Cache<Composite, PrimaryRecord> cpc = buildCache();
+
     private final Cache<Composite, PrimaryRecord> cppc = buildCache();
+    private final transient List<SecondaryBlock> csb = Lists.newArrayList();
+    private transient SecondaryBlock csb0;
     private final Cache<Composite, SecondaryRecord> csc = buildCache();
-
-    
-
-    
+    private final transient List<SearchBlock> ctb = Lists.newArrayList();
+    private transient SearchBlock ctb0;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -259,22 +254,6 @@ public final class Database extends BaseStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp) {
-        return Transformers.transformTreeMapSet(
-                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
-                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
-                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         return Transformers.transformTreeMapSet(
                 getSecondaryRecord(Text.wrapCached(key)).browse(),
@@ -288,6 +267,11 @@ public final class Database extends BaseStore implements
                 getSecondaryRecord(Text.wrapCached(key)).browse(timestamp),
                 Functions.VALUE_TO_TOBJECT, Functions.PRIMARY_KEY_TO_LONG,
                 TObjectSorter.INSTANCE);
+    }
+
+    @Override
+    public boolean contains(long record) {
+        return !getPrimaryRecord(PrimaryKey.wrap(record)).isEmpty();
     }
 
     @Override
@@ -337,22 +321,6 @@ public final class Database extends BaseStore implements
         return sb.toString();
     }
 
-    @Override
-    public Set<TObject> select(String key, long record) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
-                Functions.VALUE_TO_TOBJECT);
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record, long timestamp) {
-        Text key0 = Text.wrapCached(key);
-        return Transformers.transformSet(
-                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
-                        timestamp), Functions.VALUE_TO_TOBJECT);
-    }
-
     /**
      * Return the location where the Database stores its data.
      * 
@@ -382,6 +350,38 @@ public final class Database extends BaseStore implements
         return Transformers.transformSet(
                 getSearchRecord(Text.wrapCached(key), Text.wrap(query)).search(
                         Text.wrap(query)), Functions.PRIMARY_KEY_TO_LONG);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record) {
+        return Transformers.transformTreeMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        return Transformers.transformTreeMapSet(
+                getPrimaryRecord(PrimaryKey.wrap(record)).browse(timestamp),
+                Functions.TEXT_TO_STRING, Functions.VALUE_TO_TOBJECT,
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        Text key0 = Text.wrapCached(key);
+        return Transformers.transformSet(
+                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0),
+                Functions.VALUE_TO_TOBJECT);
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        Text key0 = Text.wrapCached(key);
+        return Transformers.transformSet(
+                getPrimaryRecord(PrimaryKey.wrap(record), key0).fetch(key0,
+                        timestamp), Functions.VALUE_TO_TOBJECT);
     }
 
     @Override

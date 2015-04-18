@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -307,6 +307,22 @@ abstract class Record<L extends Byteable & Comparable<L>, K extends Byteable & C
     @Override
     public int hashCode() {
         return partial ? Objects.hash(locator, key) : locator.hashCode();
+    }
+
+    /**
+     * Return {@code true} if this record is empty and contains no present or
+     * historical data.
+     * 
+     * @return {@code true} if the record is empty
+     */
+    public boolean isEmpty() {
+        read.lock();
+        try {
+            return present.isEmpty() && history.isEmpty();
+        }
+        finally {
+            read.unlock();
+        }
     }
 
     /**

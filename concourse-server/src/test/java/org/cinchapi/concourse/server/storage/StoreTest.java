@@ -1543,6 +1543,18 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertFalse(store.verify(TestData.getString(),
                 TestData.getTObject(), TestData.getLong()));
     }
+    
+    @Test
+    public void testContains(){
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Assert.assertFalse(store.contains(record));
+        add(key, value, record);
+        Assert.assertTrue(store.contains(record));
+        remove(key, value, record);
+        Assert.assertTrue(store.contains(record));
+    }
 
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.

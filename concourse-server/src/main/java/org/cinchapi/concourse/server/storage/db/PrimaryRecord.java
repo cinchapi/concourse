@@ -135,7 +135,7 @@ final class PrimaryRecord extends BrowsableRecord<PrimaryKey, Text, Value> {
     public boolean ping() {
         return !describe().isEmpty();
     }
-
+    
     /**
      * Return {@code true} if {@code value} <em>currently</em> exists in the
      * field mapped from {@code key}.

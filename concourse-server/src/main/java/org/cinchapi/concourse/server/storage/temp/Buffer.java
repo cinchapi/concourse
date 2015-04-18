@@ -408,6 +408,11 @@ public final class Buffer extends Limbo {
     }
 
     @Override
+    public boolean contains(long record) {
+        return inventory.contains(record);
+    }
+
+    @Override
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
         for (Iterator<Write> it = iterator(record, timestamp); it.hasNext();) {

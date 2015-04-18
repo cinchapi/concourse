@@ -146,6 +146,48 @@ public final class Engine extends BufferedStore implements
                                                                                                  // testing
 
     /**
+     * A flag to indicate that the {@link BufferTransportThrread} has appeared
+     * to be hung at some point during the current lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has ever been
+     * sucessfully restarted after appearing to be hung during the current
+     * lifecycle.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThread} has gone into
+     * block mode instead of busy waiting at least once.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
+            false); // visible for testing
+
+    /**
+     * If this value is > 0, then we will sleep for this amount instead of what
+     * the buffer suggests. This is mainly used for testing.
+     */
+    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
+
+    /**
+     * The inventory contains a collection of all the records that have ever
+     * been created. The Engine and its buffer share access to this inventory so
+     * that the Buffer can update it whenever a new record is written. The
+     * Engine uses the inventory to make some reads (i.e. verify) more
+     * efficient.
+     */
+    protected final Inventory inventory; // visible for testing
+
+    /**
+     * The location where transaction backups are stored.
+     */
+    protected final String transactionStore; // exposed for Transaction backup
+
+    /**
      * The thread that is responsible for transporting buffer content in the
      * background.
      */
@@ -216,48 +258,6 @@ public final class Engine extends BufferedStore implements
      * a given token.
      */
     private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMapV8<Token, WeakHashMap<VersionChangeListener, Boolean>>();
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThrread} has appeared
-     * to be hung at some point during the current lifecycle.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThread} has ever been
-     * sucessfully restarted after appearing to be hung during the current
-     * lifecycle.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverBeenRestarted = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * A flag to indicate that the {@link BufferTransportThread} has gone into
-     * block mode instead of busy waiting at least once.
-     */
-    protected final AtomicBoolean bufferTransportThreadHasEverPaused = new AtomicBoolean(
-            false); // visible for testing
-
-    /**
-     * If this value is > 0, then we will sleep for this amount instead of what
-     * the buffer suggests. This is mainly used for testing.
-     */
-    protected int bufferTransportThreadSleepInMs = 0; // visible for testing
-
-    /**
-     * The inventory contains a collection of all the records that have ever
-     * been created. The Engine and its buffer share access to this inventory so
-     * that the Buffer can update it whenever a new record is written. The
-     * Engine uses the inventory to make some reads (i.e. verify) more
-     * efficient.
-     */
-    protected final Inventory inventory; // visible for testing
-
-    /**
-     * The location where transaction backups are stored.
-     */
-    protected final String transactionStore; // exposed for Transaction backup
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -483,31 +483,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public Map<String, Set<TObject>> select(long record) {
-        transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(record);
-        read.lock();
-        try {
-            return super.select(record);
-        }
-        finally {
-            read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Map<String, Set<TObject>> select(long record, long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return super.select(record, timestamp);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
         Lock range = rangeLockService.getReadLock(Text.wrapCached(key),
@@ -557,6 +532,11 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
+    public boolean contains(long record) {
+        return inventory.contains(record);
+    }
+
+    @Override
     public Map<Long, Set<TObject>> doExploreUnsafe(String key,
             Operator operator, TObject... values) {
         transportLock.readLock().lock();
@@ -580,42 +560,6 @@ public final class Engine extends BufferedStore implements
             return ((Buffer) buffer).dump();
         }
         return ((Database) destination).dump(id);
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record) {
-        transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
-        try {
-            return super.select(key, record);
-        }
-        finally {
-            read.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<TObject> select(String key, long record, long timestamp) {
-        transportLock.readLock().lock();
-        try {
-            return super.select(key, record, timestamp);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    public Set<TObject> selectUnsafe(String key, long record) {
-        transportLock.readLock().lock();
-        try {
-            return super.select(key, record);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
     }
 
     /**
@@ -713,6 +657,67 @@ public final class Engine extends BufferedStore implements
         transportLock.readLock().lock();
         try {
             return super.search(key, query);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(record);
+        read.lock();
+        try {
+            return super.select(record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record) {
+        transportLock.readLock().lock();
+        Lock read = lockService.getReadLock(key, record);
+        read.lock();
+        try {
+            return super.select(key, record);
+        }
+        finally {
+            read.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(key, record, timestamp);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Set<TObject> selectUnsafe(String key, long record) {
+        transportLock.readLock().lock();
+        try {
+            return super.select(key, record);
         }
         finally {
             transportLock.readLock().unlock();
@@ -847,6 +852,39 @@ public final class Engine extends BufferedStore implements
         }
     }
 
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
+            Operator operator, TObject... values) {
+        transportLock.readLock().lock();
+        try {
+            return super.doExplore(timestamp, key, operator, values);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
+            TObject... values) {
+        transportLock.readLock().lock();
+        Lock range = rangeLockService.getReadLock(key, operator, values);
+        range.lock();
+        try {
+            return super.doExplore(key, operator, values);
+        }
+        finally {
+            range.unlock();
+            transportLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    protected boolean verify(Write write, boolean lock) {
+        return inventory.contains(write.getRecord().longValue()) ? super
+                .verify(write, lock) : false;
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
@@ -958,39 +996,6 @@ public final class Engine extends BufferedStore implements
             return true;
         }
         return false;
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(long timestamp, String key,
-            Operator operator, TObject... values) {
-        transportLock.readLock().lock();
-        try {
-            return super.doExplore(timestamp, key, operator, values);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    protected Map<Long, Set<TObject>> doExplore(String key, Operator operator,
-            TObject... values) {
-        transportLock.readLock().lock();
-        Lock range = rangeLockService.getReadLock(key, operator, values);
-        range.lock();
-        try {
-            return super.doExplore(key, operator, values);
-        }
-        finally {
-            range.unlock();
-            transportLock.readLock().unlock();
-        }
-    }
-
-    @Override
-    protected boolean verify(Write write, boolean lock) {
-        return inventory.contains(write.getRecord().longValue()) ? super
-                .verify(write, lock) : false;
     }
 
     /**

@@ -229,7 +229,7 @@ public class ConcourseServer implements
      */
     private static void addIfEmpty(String key, TObject value, long record,
             AtomicOperation operation) throws AtomicStateException {
-        if(operation.describe(record).isEmpty()) {
+        if(!operation.contains(record)) {
             operation.add(key, value, record);
         }
         else {

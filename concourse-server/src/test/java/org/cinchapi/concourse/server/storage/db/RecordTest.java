@@ -249,6 +249,20 @@ public abstract class RecordTest<L extends Byteable & Comparable<L>, K extends B
         }
         Assert.assertTrue(record.get(key).contains(value));
     }
+    
+    @Test
+    public void testIsEmpty(){
+        L locator = getLocator();
+        K key = getKey();
+        V value = getValue();
+        record = getRecord(locator, key);
+        Assert.assertTrue(record.isEmpty());
+        record.append(getRevision(locator, key, value));
+        Assert.assertFalse(record.isEmpty());
+        record.append(getRevision(locator, key, value));
+        Assert.assertTrue(record.describe().isEmpty());
+        Assert.assertFalse(record.isEmpty());
+    }
 
     protected abstract K getKey();
 

@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -111,11 +111,20 @@ public interface Store {
     public Map<TObject, Set<Long>> browse(String key, long timestamp);
 
     /**
+     * Return {@code true} if the store contains any data, present or
+     * historical, for {@code record}.
+     * 
+     * @param record
+     * @return {@code true} if the record exists
+     */
+    public boolean contains(long record);
+
+    /**
      * Describe {@code record}.
      * <p>
      * This method returns the keys for fields that currently have at least one
-     * mapped value in {@code record} such that {@link #select(String, long)} for
-     * each key is nonempty. If there are no such keys, an empty Set is
+     * mapped value in {@code record} such that {@link #select(String, long)}
+     * for each key is nonempty. If there are no such keys, an empty Set is
      * returned.
      * </p>
      * 
