@@ -598,10 +598,10 @@ public abstract class Concourse implements AutoCloseable {
      * @return the records that match the {@code criteria}
      */
     public abstract Set<Long> find(Object criteria); // this method exists in
-    // case the caller
-    // forgets
-    // to called #build() on
-    // the CriteriaBuilder
+                                                     // case the caller
+                                                     // forgets
+                                                     // to called #build() on
+                                                     // the CriteriaBuilder
 
     /**
      * Find and return the set of records that satisfy the {@code ccl} criteria.
@@ -2554,10 +2554,11 @@ public abstract class Concourse implements AutoCloseable {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T> Map<T, Map<Diff, Set<Long>>> diff(final String key,
                 final Timestamp start, final Timestamp end) {
             return execute(new Callable<Map<T, Map<Diff, Set<Long>>>>() {
-
+                
                 @Override
                 public Map<T, Map<Diff, Set<Long>>> call() throws Exception {
                     Map<TObject, Map<Diff, Set<Long>>> raw = client
