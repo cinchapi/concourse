@@ -137,6 +137,31 @@ public abstract class BaseRewritableRoute extends RewritableRoute {
     }
 
     /**
+     * Given a list of param aliases, return the first existing value that is
+     * encountered.
+     * <p>
+     * Prepend the name of the parameter with {@code ":"} if it is a variable in
+     * the route (i.e. /foo/:id). Otherwise, if the name of the parameter does
+     * not start with {@code ":"} then it is assumed to be a variable in the
+     * query string. (i.e. /foo?id=).
+     * </p>
+     * 
+     * @param aliases
+     * @return the first found value associated with one of the aliases or
+     *         {@code null} if none of the aliases are provided with a value.
+     */
+    @Nullable
+    protected final String getParamValueOrAlias(String... aliases) {
+        for (String alias : aliases) {
+            String value = getParamValue(alias);
+            if(value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Handle the request that has been made to the path that corresponds to
      * this {@link RewritableRoute}.
      * 

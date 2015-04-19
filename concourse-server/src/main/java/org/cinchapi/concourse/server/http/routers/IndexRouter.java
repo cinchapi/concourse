@@ -25,7 +25,7 @@ import org.cinchapi.concourse.server.ConcourseServer;
 import org.cinchapi.concourse.server.GlobalState;
 import org.cinchapi.concourse.server.http.Endpoint;
 import org.cinchapi.concourse.server.http.HttpRequests;
-import org.cinchapi.concourse.server.http.KeyRecordArgs;
+import org.cinchapi.concourse.server.http.HttpArgs;
 import org.cinchapi.concourse.server.http.Router;
 import org.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import org.cinchapi.concourse.thrift.AccessToken;
@@ -36,7 +36,6 @@ import org.cinchapi.concourse.util.Convert;
 import org.cinchapi.concourse.util.DataServices;
 import org.cinchapi.concourse.util.ObjectUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
@@ -348,9 +347,9 @@ public class IndexRouter extends Router {
                         .getMicros();
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 Object data;
                 if(timestamp == null) {
                     data = concourse.selectKeyRecord(key, record, creds,
@@ -375,9 +374,9 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
                 boolean result = concourse.addKeyValueRecord(key, value,
@@ -397,9 +396,9 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 TObject value = Convert.javaToThrift(Convert
                         .stringToJava(request.body()));
                 concourse.setKeyValueRecord(key, value, record, creds,
@@ -417,7 +416,7 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                KeyRecordArgs kra = KeyRecordArgs.parse(getParamValue(":arg1"),
+                HttpArgs kra = HttpArgs.parse(getParamValue(":arg1"),
                         getParamValue(":arg2"));
                 String key = kra.getKey();
                 Long record = kra.getRecord();
@@ -450,11 +449,9 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                String start = getParamValue("start");
+                String start = getParamValueOrAlias("start", "timestamp");
                 String end = getParamValue("end");
-                start = ObjectUtils.firstNonNull(start,
-                        getParamValue("timestamp"));
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
+                HttpArgs kra = HttpArgs.parse(arg1, arg2);
                 String key = kra.getKey();
                 Long record = kra.getRecord();
                 Preconditions.checkArgument(
@@ -494,12 +491,11 @@ public class IndexRouter extends Router {
             protected JsonElement serve() throws Exception {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
-                String start = getParamValue("start");
+                String start = getParamValueOrAlias("start", "timestamp");
                 String end = getParamValue("end");
-                start = Objects.firstNonNull(start, getParamValue("timestamp"));
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 Object data = null;
                 if(start == null) {
                     data = concourse.chronologizeKeyRecord(key, record, creds,
@@ -531,9 +527,9 @@ public class IndexRouter extends Router {
                 String arg1 = getParamValue(":arg1");
                 String arg2 = getParamValue(":arg2");
                 String ts = getParamValue("timestamp");
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 if(key != null && record != null) {
                     concourse.revertKeyRecordTime(key, record.longValue(),
                             Timestamp.parse(ts).getMicros(), creds,
@@ -560,9 +556,9 @@ public class IndexRouter extends Router {
                 String arg2 = getParamValue(":arg2");
                 String start = getParamValue("start");
                 String end = getParamValue("end");
-                KeyRecordArgs kra = KeyRecordArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 Object data = null;
                 if(key != null && record != null && start != null & end != null) {
                     data = concourse.diffKeyRecordStartEnd(key, record,
