@@ -344,8 +344,8 @@ public class ConcourseServer implements
      * @param atomic
      * @return {@code true} if all the data is atomically inserted
      */
-    private static boolean insert0(Multimap<String, Object> data, long record,
-            AtomicOperation atomic) {
+    private static boolean insertAtomic(Multimap<String, Object> data,
+            long record, AtomicOperation atomic) {
         for (String key : data.keySet()) {
             if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
                 continue;
@@ -2086,7 +2086,7 @@ public class ConcourseServer implements
                     for (Multimap<String, Object> object : objects) {
                         long record = Time.now();
                         atomic.touch(record);
-                        if(insert0(object, record, atomic)) {
+                        if(insertAtomic(object, record, atomic)) {
                             records.add(record);
                         }
                         else {
@@ -2116,7 +2116,7 @@ public class ConcourseServer implements
         try {
             Multimap<String, Object> data = Convert.jsonToJava(json);
             AtomicOperation atomic = store.startAtomicOperation();
-            return insert0(data, record, atomic) && atomic.commit();
+            return insertAtomic(data, record, atomic) && atomic.commit();
         }
         catch (TransactionStateException e) {
             throw new TTransactionException();
@@ -2142,7 +2142,7 @@ public class ConcourseServer implements
                 atomic = store.startAtomicOperation();
                 try {
                     for (long record : records) {
-                        result.put(record, insert0(data, record, atomic));
+                        result.put(record, insertAtomic(data, record, atomic));
                     }
                 }
                 catch (AtomicStateException e) {
