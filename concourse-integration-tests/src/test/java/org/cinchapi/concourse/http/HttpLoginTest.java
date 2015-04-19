@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2013-2015 Cinchapi, Inc.
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package org.cinchapi.concourse.http;
 
 import java.util.List;
 
+import org.cinchapi.concourse.server.http.errors.BadLoginSyntaxError;
 import org.cinchapi.concourse.util.TestData;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +32,7 @@ import com.squareup.okhttp.Response;
  * @author Jeff Nelson
  */
 public class HttpLoginTest extends HttpTest {
-    
+
     @Test
     public void testGetRoot() {
         login();
@@ -57,6 +58,15 @@ public class HttpLoginTest extends HttpTest {
         Assert.assertEquals(200, resp.code());
         JsonObject body = (JsonObject) bodyAsJson(resp);
         Assert.assertEquals(environment, body.get("environment").getAsString());
+    }
+
+    @Test
+    public void testLoginWithMalformedCredSyntaxThrowsAppropriateError() {
+        Response resp = post("/login", "{'user': 'admin', 'pass': 'admin'}");
+        JsonObject body = (JsonObject) bodyAsJson(resp);
+        Assert.assertEquals(resp.code(), BadLoginSyntaxError.INSTANCE.getCode());
+        Assert.assertEquals(body.get("error").getAsString(),
+                BadLoginSyntaxError.INSTANCE.getMessage());
     }
 
 }
