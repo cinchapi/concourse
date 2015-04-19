@@ -220,6 +220,16 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public boolean contains(long record) {
+        checkState();
+        Token token = Token.wrap(record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        wideReads.put(record, token);
+        return super.contains(record);
+    }
+
+    @Override
     public Map<String, Set<TObject>> select(long record)
             throws AtomicStateException {
         checkState();
@@ -564,7 +574,6 @@ public class AtomicOperation extends BufferedStore implements
         doCommit(false);
     }
 
-    
     /**
      * Transport the written data to the {@link #destination} store. The
      * subclass may override this method to do additional things (i.e. backup
