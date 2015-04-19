@@ -1625,6 +1625,108 @@ module ConcourseService
       raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'chronologizeKeyRecordStartEnd failed: unknown result')
     end
 
+    def diffRecordStart(record, start, creds, transaction, environment)
+      send_diffRecordStart(record, start, creds, transaction, environment)
+      return recv_diffRecordStart()
+    end
+
+    def send_diffRecordStart(record, start, creds, transaction, environment)
+      send_message('diffRecordStart', DiffRecordStart_args, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffRecordStart()
+      result = receive_message(DiffRecordStart_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStart failed: unknown result')
+    end
+
+    def diffRecordStartEnd(record, start, tend, creds, transaction, environment)
+      send_diffRecordStartEnd(record, start, tend, creds, transaction, environment)
+      return recv_diffRecordStartEnd()
+    end
+
+    def send_diffRecordStartEnd(record, start, tend, creds, transaction, environment)
+      send_message('diffRecordStartEnd', DiffRecordStartEnd_args, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffRecordStartEnd()
+      result = receive_message(DiffRecordStartEnd_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffRecordStartEnd failed: unknown result')
+    end
+
+    def diffKeyRecordStart(key, record, start, creds, transaction, environment)
+      send_diffKeyRecordStart(key, record, start, creds, transaction, environment)
+      return recv_diffKeyRecordStart()
+    end
+
+    def send_diffKeyRecordStart(key, record, start, creds, transaction, environment)
+      send_message('diffKeyRecordStart', DiffKeyRecordStart_args, :key => key, :record => record, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyRecordStart()
+      result = receive_message(DiffKeyRecordStart_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStart failed: unknown result')
+    end
+
+    def diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
+      send_diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
+      return recv_diffKeyRecordStartEnd()
+    end
+
+    def send_diffKeyRecordStartEnd(key, record, start, tend, creds, transaction, environment)
+      send_message('diffKeyRecordStartEnd', DiffKeyRecordStartEnd_args, :key => key, :record => record, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyRecordStartEnd()
+      result = receive_message(DiffKeyRecordStartEnd_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyRecordStartEnd failed: unknown result')
+    end
+
+    def diffKeyStart(key, start, creds, transaction, environment)
+      send_diffKeyStart(key, start, creds, transaction, environment)
+      return recv_diffKeyStart()
+    end
+
+    def send_diffKeyStart(key, start, creds, transaction, environment)
+      send_message('diffKeyStart', DiffKeyStart_args, :key => key, :start => start, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyStart()
+      result = receive_message(DiffKeyStart_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStart failed: unknown result')
+    end
+
+    def diffKeyStartEnd(key, start, tend, creds, transaction, environment)
+      send_diffKeyStartEnd(key, start, tend, creds, transaction, environment)
+      return recv_diffKeyStartEnd()
+    end
+
+    def send_diffKeyStartEnd(key, start, tend, creds, transaction, environment)
+      send_message('diffKeyStartEnd', DiffKeyStartEnd_args, :key => key, :start => start, :tend => tend, :creds => creds, :transaction => transaction, :environment => environment)
+    end
+
+    def recv_diffKeyStartEnd()
+      result = receive_message(DiffKeyStartEnd_result)
+      return result.success unless result.success.nil?
+      raise result.ex unless result.ex.nil?
+      raise result.ex2 unless result.ex2.nil?
+      raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'diffKeyStartEnd failed: unknown result')
+    end
+
     def revertKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       send_revertKeysRecordsTime(keys, records, timestamp, creds, transaction, environment)
       recv_revertKeysRecordsTime()
@@ -3046,6 +3148,84 @@ module ConcourseService
         result.ex2 = ex2
       end
       write_result(result, oprot, 'chronologizeKeyRecordStartEnd', seqid)
+    end
+
+    def process_diffRecordStart(seqid, iprot, oprot)
+      args = read_args(iprot, DiffRecordStart_args)
+      result = DiffRecordStart_result.new()
+      begin
+        result.success = @handler.diffRecordStart(args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffRecordStart', seqid)
+    end
+
+    def process_diffRecordStartEnd(seqid, iprot, oprot)
+      args = read_args(iprot, DiffRecordStartEnd_args)
+      result = DiffRecordStartEnd_result.new()
+      begin
+        result.success = @handler.diffRecordStartEnd(args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffRecordStartEnd', seqid)
+    end
+
+    def process_diffKeyRecordStart(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyRecordStart_args)
+      result = DiffKeyRecordStart_result.new()
+      begin
+        result.success = @handler.diffKeyRecordStart(args.key, args.record, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyRecordStart', seqid)
+    end
+
+    def process_diffKeyRecordStartEnd(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyRecordStartEnd_args)
+      result = DiffKeyRecordStartEnd_result.new()
+      begin
+        result.success = @handler.diffKeyRecordStartEnd(args.key, args.record, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyRecordStartEnd', seqid)
+    end
+
+    def process_diffKeyStart(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyStart_args)
+      result = DiffKeyStart_result.new()
+      begin
+        result.success = @handler.diffKeyStart(args.key, args.start, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyStart', seqid)
+    end
+
+    def process_diffKeyStartEnd(seqid, iprot, oprot)
+      args = read_args(iprot, DiffKeyStartEnd_args)
+      result = DiffKeyStartEnd_result.new()
+      begin
+        result.success = @handler.diffKeyStartEnd(args.key, args.start, args.tend, args.creds, args.transaction, args.environment)
+      rescue ::TSecurityException => ex
+        result.ex = ex
+      rescue ::TTransactionException => ex2
+        result.ex2 = ex2
+      end
+      write_result(result, oprot, 'diffKeyStartEnd', seqid)
     end
 
     def process_revertKeysRecordsTime(seqid, iprot, oprot)
@@ -7372,6 +7552,280 @@ module ConcourseService
 
     FIELDS = {
       SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I64}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStart_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStartEnd_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    RECORD = 1
+    START = 2
+    TEND = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::I64, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffRecordStartEnd_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRING}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStart_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStartEnd_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    RECORD = 2
+    START = 3
+    TEND = 4
+    CREDS = 5
+    TRANSACTION = 6
+    ENVIRONMENT = 7
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      RECORD => {:type => ::Thrift::Types::I64, :name => 'record'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::I64, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyRecordStartEnd_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStart_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    START = 2
+    CREDS = 3
+    TRANSACTION = 4
+    ENVIRONMENT = 5
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStart_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
+      EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
+      EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStartEnd_args
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    KEY = 1
+    START = 2
+    TEND = 3
+    CREDS = 4
+    TRANSACTION = 5
+    ENVIRONMENT = 6
+
+    FIELDS = {
+      KEY => {:type => ::Thrift::Types::STRING, :name => 'key'},
+      START => {:type => ::Thrift::Types::I64, :name => 'start'},
+      TEND => {:type => ::Thrift::Types::I64, :name => 'tend'},
+      CREDS => {:type => ::Thrift::Types::STRUCT, :name => 'creds', :class => ::AccessToken},
+      TRANSACTION => {:type => ::Thrift::Types::STRUCT, :name => 'transaction', :class => ::TransactionToken},
+      ENVIRONMENT => {:type => ::Thrift::Types::STRING, :name => 'environment'}
+    }
+
+    def struct_fields; FIELDS; end
+
+    def validate
+    end
+
+    ::Thrift::Struct.generate_accessors self
+  end
+
+  class DiffKeyStartEnd_result
+    include ::Thrift::Struct, ::Thrift::Struct_Union
+    SUCCESS = 0
+    EX = 1
+    EX2 = 2
+
+    FIELDS = {
+      SUCCESS => {:type => ::Thrift::Types::MAP, :name => 'success', :key => {:type => ::Thrift::Types::STRUCT, :class => ::TObject}, :value => {:type => ::Thrift::Types::MAP, :key => {:type => ::Thrift::Types::I32, :enum_class => ::Diff}, :value => {:type => ::Thrift::Types::SET, :element => {:type => ::Thrift::Types::I64}}}},
       EX => {:type => ::Thrift::Types::STRUCT, :name => 'ex', :class => ::TSecurityException},
       EX2 => {:type => ::Thrift::Types::STRUCT, :name => 'ex2', :class => ::TTransactionException}
     }
