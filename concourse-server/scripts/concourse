@@ -316,7 +316,7 @@ start(){
   if [ "X$pid" = "X" ]
     then
     echo "Starting Concourse Server..."
-    exec nohup $JAVA $JVMOPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> log/console.log 2>/dev/null &
+    exec nohup $JAVA $JVMOPTS -classpath "$CLASSPATH" org.cinchapi.concourse.server.ConcourseServer "$@" >> log/console.log 2>&1 &
     startwait
   else
     echo "Concourse Server is already running (PID:$pid)"
