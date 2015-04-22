@@ -295,7 +295,12 @@ version(){
 
 # Get the PID for the Concourse Server process
 getpid(){
-  local pid=`$JPS -v | grep "$APP_HOME_PROPERTY" | cut -d' ' -f1`
+  if [ -x $JPS ];
+    then
+    local pid=`$JPS -v | grep "$APP_HOME_PROPERTY" | cut -d' ' -f1`
+  else
+    local pid=`ps ax | grep "$APP_HOME_PROPERTY" | grep -v "00 grep" | sed -e 's/^[ \t]*//' | cut -d' ' -f1`
+  fi
   if [ "X$pid" = "X" ]
     then
     rm $PIDFILE 2>/dev/null
@@ -479,7 +484,7 @@ case "$1" in
   '')
   start "$@"
   ;;
-  
+
   *)
   usage "$@"
   ;;
