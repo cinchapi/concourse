@@ -65,8 +65,7 @@ public final class Convert {
      */
     public static List<Multimap<String, Object>> anyJsonToJava(String json) {
         List<Multimap<String, Object>> result = Lists.newArrayList();
-        JsonParser parser = new JsonParser();
-        JsonElement top = parser.parse(json);
+        JsonElement top = JSON_PARSER.parse(json);
         if(top.isJsonArray()) {
             JsonArray array = (JsonArray) top;
             Iterator<JsonElement> it = array.iterator();
@@ -474,6 +473,12 @@ public final class Convert {
             RESOLVABLE_LINK_REGEX_INNER, ".+", RESOLVABLE_LINK_REGEX_INNER); // visible
                                                                              // for
                                                                              // testing
+
+    /**
+     * A parser to convert JSON documents represented as Strings to
+     * {@link JsonElement json elements}.
+     */
+    private static final JsonParser JSON_PARSER = new JsonParser();
 
     private Convert() {/* Utility Class */}
 
