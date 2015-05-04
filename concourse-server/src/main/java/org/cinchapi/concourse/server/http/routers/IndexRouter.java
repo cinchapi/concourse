@@ -416,10 +416,10 @@ public class IndexRouter extends Router {
 
             @Override
             protected JsonElement serve() throws Exception {
-                HttpArgs kra = HttpArgs.parse(getParamValue(":arg1"),
+                HttpArgs args = HttpArgs.parse(getParamValue(":arg1"),
                         getParamValue(":arg2"));
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                String key = args.getKey();
+                Long record = args.getRecord();
                 String body = request.body();
                 if(StringUtils.isBlank(body)) {
                     concourse.clearKeyRecord(key, record, creds, transaction,
@@ -451,9 +451,9 @@ public class IndexRouter extends Router {
                 String arg2 = getParamValue(":arg2");
                 String start = getParamValueOrAlias("start", "timestamp");
                 String end = getParamValue("end");
-                HttpArgs kra = HttpArgs.parse(arg1, arg2);
-                String key = kra.getKey();
-                Long record = kra.getRecord();
+                HttpArgs args = HttpArgs.parse(arg1, arg2);
+                String key = args.getKey();
+                Long record = args.getRecord();
                 Preconditions.checkArgument(
                         record != null && !StringUtils.isBlank(key),
                         "Cannot perform audit on %s/%s because it "
