@@ -49,9 +49,13 @@ public class HttpArgs {
                 }
             }
             else if(obj instanceof String) {
-                args.record = Longs.tryParse((String) obj);
-                if(args.record == null) {
-                    args.key = (String) obj;
+                String str = (String) obj;
+                Long record = Longs.tryParse(str);
+                if(record != null){
+                    args.record = record;
+                }
+                else{
+                    args.key = str;
                 }
             }
         }
