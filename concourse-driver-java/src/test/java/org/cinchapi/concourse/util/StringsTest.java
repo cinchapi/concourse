@@ -56,27 +56,50 @@ public class StringsTest {
                 Lists.newArrayList("John", "said", "\"hello world\""),
                 Lists.newArrayList(toks));
     }
-    
+
     @Test
-    public void testTryParseValidNumber(){
+    public void testTryParseValidNumber() {
         Number valid = Random.getNumber();
         String string = valid.toString();
-        if(valid instanceof Double){
-            string+="D";
+        if(valid instanceof Double) {
+            string += "D";
         }
         Assert.assertEquals(Strings.tryParseNumber(string), valid);
     }
-    
+
     @Test
-    public void testTryParseInvalidNumber(){
+    public void testTryParseInvalidNumber() {
         String invalid = Random.getStringNoDigits();
         Assert.assertNull(Strings.tryParseNumber(invalid));
     }
-    
+
     @Test
-    public void testTryParseCoercedDouble(){
+    public void testTryParseCoercedDouble() {
         Double d = Random.getDouble();
-        Assert.assertEquals(d, Strings.tryParseNumber(d+"D"));
+        Assert.assertEquals(d, Strings.tryParseNumber(d + "D"));
+    }
+
+    @Test
+    public void testSplitCamelCase() {
+        String str = "getArg1Arg2Arg3ABC";
+        Assert.assertEquals(Lists.newArrayList("get", "Arg1", "Arg2", "Arg3",
+                "A", "B", "C"), Strings.splitCamelCase(str));
+        str = "testSplitCamelCase";
+        Assert.assertEquals(
+                Lists.newArrayList("test", "Split", "Camel", "Case"),
+                Strings.splitCamelCase(str));
+        str = "SplitCamelCase";
+        Assert.assertEquals(
+                Lists.newArrayList("Split", "Camel", "Case"),
+                Strings.splitCamelCase(str));
+        str = "Splitcamelcase";
+        Assert.assertEquals(
+                Lists.newArrayList("Splitcamelcase"),
+                Strings.splitCamelCase(str));
+        str = "splitcamelcase";
+        Assert.assertEquals(
+                Lists.newArrayList("splitcamelcase"),
+                Strings.splitCamelCase(str));
     }
 
 }

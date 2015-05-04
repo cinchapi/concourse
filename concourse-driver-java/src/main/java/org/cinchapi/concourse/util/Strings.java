@@ -16,10 +16,12 @@
 package org.cinchapi.concourse.util;
 
 import java.text.MessageFormat;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 import com.google.common.primitives.Ints;
@@ -75,6 +77,37 @@ public final class Strings {
             }
         }
         return false;
+    }
+
+    /**
+     * Split a camel case {@code string} into tokens that represent the distinct
+     * words.
+     * <p>
+     * <h1>Example</h1>
+     * <ul>thisIsACamelCaseSTRING -> [this, Is, A, Camel, Case, S, T, R, I, N, G]</ul>
+     * <ul>ThisIsACamelCaseSTRING -> [This, Is, A, Camel, Case, S, T, R, I, N, G]</ul>
+     * <ul>thisisacamelcasestring -> [thisisacamelcasestring]</ul>
+     * </p>
+     * 
+     * @param string
+     * @return
+     */
+    public static List<String> splitCamelCase(String string) {
+        List<String> words = Lists.newArrayList();
+        char[] chars = string.toCharArray();
+        StringBuilder word = new StringBuilder();
+        for (int i = 0; i < chars.length; ++i) {
+            char c = chars[i];
+            if(Character.isUpperCase(c)) {
+                if(word.length() > 0) {
+                    words.add(word.toString());
+                }
+                word.setLength(0);
+            }
+            word.append(c);
+        }
+        words.add(word.toString());
+        return words;
     }
 
     /**
